@@ -14,7 +14,7 @@
             <div id="divUsuario">
                 <label for="text">Usuario</label>
                 <input type="text" name="usuario" id="usuario">
-                <p class="error" id="error_correo">Ingresa Nombre Usuario</p>
+                <p class="error" id="error_correo">pRUEBA1</p>
             </div>
             <div id="divPassword">
                 <label for="text">Contraseña</label>
