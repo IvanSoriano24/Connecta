@@ -1,0 +1,220 @@
+/*
+body {
+    font-family: Arial, sans-serif;
+    background-color: #7e7d7d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+#divContenedor {
+    background-color: #dfdede;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(11, 14, 20, 0.705);
+    width: 300px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#divContenedor:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 12px rgba(11, 14, 20, 0.705);
+}
+
+
+h4 {
+    margin-bottom: 35px;
+    color: #0e0e0e;
+}
+
+label {
+    display: block;
+    text-align: left;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #555;
+}
+
+input[type="text"], input[type="password"] {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: #cecbcb;
+    border: 1px solid #f1f1f1;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    border-color: #acaeaf;
+    outline: none;
+}
+
+#divButton {
+    text-align: center;
+}
+
+
+
+input[type="submit"] {
+    background-color: #bebec2;
+    color: #080404;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 50px; 
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); 
+    transition: background-color 0.3s ease, transform 0.4s ease; 
+}
+
+input[type="submit"]:hover {
+    background-color: #eeeeee; 
+    transform: scale(1.1); 
+}
+s
+
+input[type="submit"]:hover {
+    background-color: #a9a9ac; 
+    transform: scale(1.1); 
+}
+
+.error {
+    color: rgb(224, 158, 158);
+    font-size: 12px;
+    margin-top: -10px;
+    margin-bottom
+    : 10px;
+    text-align: left;
+}
+*/
+
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #7e7d7d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    }
+    
+    #divContenedor {
+    background-color: #dfdede;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(11, 14, 20, 0.705);
+    width: 300px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    #divContenedor:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 12px rgba(11, 14, 20, 0.705);
+    }
+    
+    h4 {
+    margin-bottom: 35px;
+    color: #0e0e0e;
+    }
+    
+    label {
+    display: block;
+    text-align: left;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #555;
+    }
+    
+    input[type="text"], input[type="password"], input[type="email"] {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: #cecbcb;
+    border: 1px solid #f1f1f1;
+    border-radius: 5px;
+    font-size: 14px;
+    }
+    
+    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+    border-color: #acaeaf;
+    outline: none;
+    }
+    
+    #divButton {
+    text-align: center;
+    }
+    
+    input[type="submit"], button {
+    background-color: #bebec2;
+    color: #080404;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.3s ease, transform 0.4s ease;
+    }
+    
+    input[type="submit"]:hover, button:hover {
+    background-color: #a9a9ac;
+    transform: scale(1.1);
+    }
+    
+    .error {
+    color: rgb(224, 158, 158);
+    font-size: 12px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+    text-align: left;
+    }
+    
+    .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    }
+    
+    .modal-content {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 400px;
+    text-align: center;
+    position: relative;
+    }
+    
+    .close-modal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    color: #888;
+    }
+    
+    .close-modal:hover {
+    color: #333;
+    }
+
+    #logo {
+        width: 100px;
+        height: auto;
+        margin-bottom: 20px;
+        border-radius: 10px;
+    }
