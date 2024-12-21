@@ -43,6 +43,12 @@
 </div>
 <script type="module" src="JS/Conectar.js"></script>
 <script src="JS/java.js"></script>
+
+<video muted autoplay loop>
+    <source src="./video/fondo1.mp4" type= "video/mp4">
+</video>
+<div class="capa"> </div>
+
 </body>
 </html>
 

@@ -92,10 +92,32 @@ input[type="submit"]:hover {
 }
 */
 
+#hero{
+    min-height: 100vh;
+    position: relative;
+}
+video{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.capa{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+}
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #7e7d7d;
+    background-image: #7e7d7d;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -104,13 +126,14 @@ body {
     }
     
     #divContenedor {
-    background-color: #dfdede;
+    background-color: #777777;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(11, 14, 20, 0.705);
     width: 300px;
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative; z-index: 3;
     }
     
     #divContenedor:hover {

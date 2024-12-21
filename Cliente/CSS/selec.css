@@ -1,0 +1,106 @@
+/* Archivo: styles.css */
+
+/* Fondo general */
+body {
+    background-color: #484848; /* Fondo claro */
+    font-family: 'Arial', sans-serif;
+    color: #343a40; /* Texto oscuro */
+}
+
+/* Título de bienvenida */
+
+center{
+    color: #1a1919;
+}
+
+h1.display-4 {
+   
+    color: #575151;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); 
+}
+
+.text-primary {
+    color: #131313 !important; 
+}
+
+.btn-primary {
+    background-color: #171a15 !important; 
+    border-color: #9e9e9e !important;    
+}
+
+.btn-primary:hover {
+    background-color: #5e5e5e8e !important; 
+    border-color: #faf9f8 !important;
+}
+
+/* Texto secundario */
+.lead {
+    color: #0f0f0f;
+}
+
+/* Tarjeta (Card) */
+.card {
+    border: none; 
+    
+    background-color: #757373; /* Fondo blanco */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    padding: 20px;
+}
+
+/* Título de la tarjeta */
+.card-title {
+    color: #0c0c0c; /* Azul primario */
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Select personalizado */
+.form-select {
+    border: 2px solid #030303; 
+    border-radius: 10px; 
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease-in-out;
+}
+
+.form-select:focus {
+    border-color: #030303; 
+    outline: none; 
+    box-shadow: 0 0 8px rgba(2, 2, 2, 0.5); 
+}
+
+/* Botón */
+.btn-primary {
+    background-color: #020202; /* Azul primario */
+    border: none; /* Sin borde */
+    border-radius: 50px; /* Bordes redondeados */
+    padding: 12px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Sombra del botón */
+    transition: background-color 0.3s ease-in-out, transform 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #636567; /* Azul más oscuro */
+    transform: scale(1.05); /* Efecto de zoom */
+}
+
+/* Pie de página */
+footer {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+/* Estilo del contenedor */
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Animaciones (opcional) */
+.card:hover {
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+    transform: translateY(-5px); /* Efecto de elevación */
+}
