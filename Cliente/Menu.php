@@ -1,3 +1,16 @@
+<?php
+//$tipoUsuario = 2;
+session_start();
+if (isset($_SESSION['usuario'])) {
+    $nombreUsuario = $_SESSION['usuario']["nombre"];
+    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+} else {
+    header('Location:../index.php');
+}
+/*
+session_unset();
+session_destroy();*/
+?>
 
 <!DOCTYPE html>
 <html>
@@ -127,10 +140,8 @@
     }
   });
 </script>
-    
+<script src="JS/menu.js"></script>
  </body>
  
 </html>
     
-
-  

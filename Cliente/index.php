@@ -1,3 +1,9 @@
+<?php
+session_start();
+if (isset($_SESSION["usuario"])) {
+    header('Location:menu.php');
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +21,7 @@
 
 <div class="containerP">
     <div id="divContenedor" class="form-container sign-up-container">
-        <form id="form">
+        <form id="form" method="POST" action="../Servidor/PHP/conexion.php">
             <div id="divLogo">
                 <img src="SRC/imagen.png" alt="Logo" id="logo">
             </div>
@@ -38,6 +44,7 @@
                 <br>
                 <a class="w3-text-blue" id="recuperarContrasena">He olvidado mi contraseña</a>
             </div>
+            <input type="hidden" value="1" id="numFuncion", name="numFuncion">
         </form>
     </div>
 </div>
