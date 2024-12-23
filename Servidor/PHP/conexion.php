@@ -52,7 +52,7 @@ function login($funcion){
 
             // Redirigir según el resultado de la validación
             if ($usuarioValido) {
-                header("Location: ../../Cliente/Views/menu.php"); // Redirigir al dashboard
+                header("Location: ../../Cliente/menu.php"); // Redirigir al dashboard
                 //header("Location: ../../Cliente/Views/crudEmpresas.php"); //crudEmpresas w
                 exit();
             } else {
@@ -63,12 +63,37 @@ function login($funcion){
         echo $e->getMessage(); //En caso de fallo se muestra el error
     }
 }
+function cerrarSesion() {
+    session_start();
+    session_unset();
+    session_destroy();
+    echo "Sesión Finalizada";
+}
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $funcion = $_POST["numFuncion"] ?? null;
+    switch ($funcion) {
+        case 1:
+            // login($funcion); // Ejemplo, no incluido aquí
+            break;
+        case 2:
+            cerrarSesion();
+            break;
+        default:
+            echo "Función no válida.";
+            break;
+    }
+} else {
+    echo "Método no permitido.";
+}
 
 $funcion = $_POST["numFuncion"];
 switch ($funcion) {
     case 1:
         login($funcion);
+        break;
+    case 2:
+        cerrarSesion();
         break;
 }
 ?>
