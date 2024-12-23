@@ -161,9 +161,9 @@ session_destroy();*/
             <label for="text">host</label>
             <input type="text" name="host" id="host"><br>
             <label for="text">usuario</label>
-            <input type="text" name="nomEmpresa" id="noEmpresa"><br>
+            <input type="text" name="usuarioSae" id="usuarioSae"><br>
             <label for="text">password</label>
-            <input type="password" name="razonSocial" id="razonSocial"><br>
+            <input type="password" name="password" id="password"><br>
             <label for="text">Nombre de base de datos</Base></label>
             <input type="text" name="nombreBase" id="nombreBase">
           </form>

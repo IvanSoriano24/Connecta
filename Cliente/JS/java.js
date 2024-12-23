@@ -121,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (valid) {
-            alert("Formulario enviado correctamente.");
             form.submit(); // Enviar formulario si todo está válido
         } else {
             alert("Por favor, llena todos los campos.");

@@ -102,6 +102,39 @@ function eliminarEmpresa() {
     }
 }
 
+function probarConexionSAE() {
+    const data = {
+        action: 'probar',
+        host: $('#host').val(),
+        usuarioSae: $('#usuarioSae').val(),
+        password: $('#password').val(),
+        nombreBase: $('#nombreBase').val()
+    };
+
+    console.log("Datos a enviar:", data);
+
+    fetch('../Servidor/PHP/sae.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(responseData => {
+        console.log("Respuesta del servidor:", responseData);
+        if (responseData.success) {
+            alert('Conexión exitosa.');
+        } else {
+            alert('Error: ' + responseData.message);
+        }
+    })
+    .catch(error => {
+        console.log("Error de la solicitud:", error);
+    });
+}
+
+
 $(document).ready(function () {
 
     document.getElementById('SAE').addEventListener('click', function() {
@@ -132,6 +165,10 @@ $(document).ready(function () {
         eliminarEmpresa();
     });
 
+    $('#confirmarConexion').click(function () {
+        probarConexionSAE();
+    });
+    
     $("#cerrarSesion").click(function () {
         if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
           $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
