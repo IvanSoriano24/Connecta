@@ -4,6 +4,9 @@ session_start();
 if (isset($_SESSION['usuario'])) {
   $nombreUsuario = $_SESSION['usuario']["nombre"];
   $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+
+  //$empresa = $_SESSION['empresa']['id'];
+
 } else {
   header('Location:../index.php');
 }
@@ -68,10 +71,16 @@ session_destroy();*/
                   <a class="nav-link" href="pedidos.html">Pedidos </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="infoEmpresa.html">Info Empresa </a>
-                </li>
-                <li class="nav-item">
                   <a class="nav-link" id="cerrarSesion">Cerrar Sesion</a>
+                </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="configuracionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Configuración
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="configuracionDropdown">
+                    <li><a class="dropdown-item" id="Empresa">Empresa</a></li>
+                    <li><a class="dropdown-item" id="SAE">SAE</a></li>
+                  </ul>
                 </li>
                 <!-- Agregar otro titulo
                 <li class="nav-item">
@@ -111,7 +120,6 @@ session_destroy();*/
           <select class="form-select" id="empresaSelect" name="empresaSelect">
             <option selected disabled>Selecciona una empresa</option>
           </select>
-
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" id="confirmarEmpresa"> Confirmar</button>
@@ -120,11 +128,60 @@ session_destroy();*/
     </div>
   </div>
 
+  <!-- Formumario -->
+  <div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h2 class="card-title text-center">Informacion  de Empresa</h2>
+          <form action="">
+            <label for="text">Id</label>
+            <input type="text" name="id" id="id"><br>
+            <label for="text">Numero de Empresa</label>
+            <input type="text" name="nomEmpresa" id="noEmpresa"><br>
+            <label for="text">Razon Social</label>
+            <input type="text" name="razonSocial" id="razonSocial"><br>
+          </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conceccion a SAE -->
+  <div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h2 class="card-title text-center">Informacion de Conexion</h2>
+          <form >
+            <label for="text">host</label>
+            <input type="text" name="host" id="host"><br>
+            <label for="text">usuario</label>
+            <input type="text" name="nomEmpresa" id="noEmpresa"><br>
+            <label for="text">password</label>
+            <input type="password" name="razonSocial" id="razonSocial"><br>
+            <label for="text">Nombre de base de datos</Base></label>
+            <input type="text" name="nombreBase" id="nombreBase">
+          </form>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="confirmarConexion">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    document.getElementById('empresaModal').addEventListener('shown.bs.modal', function () {
-        cargarEmpresa();
+    document.getElementById('empresaModal').addEventListener('shown.bs.modal', function() {
+      cargarEmpresa();
     });
     document.addEventListener('DOMContentLoaded', function() {
       const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));

@@ -1,13 +1,33 @@
-function cerrarModal(){
-    document.getElementById("modalEmpresas").style.display = "none";
-    mostrarMenu();
 
+function cerrarModal(){
+    const modal = bootstrap.Modal.getInstance(document.getElementById('infoEmpresa'));
+        modal.hide();
+}
+function cerrarModalSae(){
+    const modal = bootstrap.Modal.getInstance(document.getElementById('infoConexion'));
+        modal.hide();
 }
 
+function informaEmpresa(){
+    $.get('../Servidor/PHP/e.php', { action: 'get' }, function (response) {
+        if (response.success && response.data) {
+            const empresas = response.data;
+            if (empresas.length > 0) {
+                const empresa = empresas[0];
+                $('#id').val(empresa.id);
+                $('#noEmpresa').val(empresa.noEmpresa);
+                $('#razonSocial').val(empresa.razonSocial);
+            } else {
+                alert('No hay datos de la empresa, puedes crear una nueva.');
+            }
+        } else {
+            alert(response.message || 'Error al obtener los datos de la empresa.');
+        }
+    }, 'json');
+}
 function mostrarMenu(){
     document.getElementById("divContenedor").style.display = "block";
 }
-
 
 // Función para cargar los datos de la empresa
 function cargarEmpresa() {
@@ -38,7 +58,7 @@ function guardarEmpresa() {
         noEmpresa: $('#noEmpresa').val(),
         razonSocial: $('#razonSocial').val()
     };
-    $.post('../../Servidor/PHP/empresas.php', data, function (response) {
+    $.post('../Servidor/PHP/empresas.php', data, function (response) {
         if (response.success) {
             alert('Empresa guardada correctamente.');
         } else {
@@ -61,11 +81,26 @@ function eliminarEmpresa() {
     }
 }
 $(document).ready(function () {
-    // Mostrar el formulario y cargar los datos de la empresa
-
-
+    document.getElementById('SAE').addEventListener('click', function() {
+        const conexionModal = new bootstrap.Modal(document.getElementById('infoConexion'));
+        conexionModal.show();
+      });
+    document.getElementById('Empresa').addEventListener('click', function() {
+        const empresaModal = new bootstrap.Modal(document.getElementById('infoEmpresa'));
+        empresaModal.show();
+    });
+    $('#Empresa').click(function () {
+        informaEmpresa(); // Llamar a la función que obtiene los datos
+    });
+    $('#cancelarModal').click(function () {
+        cerrarModal();
+    });
+    $('#cancelarModalSae').click(function () {
+        cerrarModalSae();
+    });
+    
     // Guardar o actualizar empresa
-    $('#guardarEmpresa').click(function () {
+    $('#confirmarDatos').click(function () {
         guardarEmpresa();
     });
 

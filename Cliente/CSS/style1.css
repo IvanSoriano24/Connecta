@@ -116,3 +116,111 @@ body {
     background-color: #007bff;
   }
   
+  /*JN */
+  .dropdown-menu {
+    background-color: #343a40; 
+    border: none; 
+  }
+  
+  .dropdown-item {
+    color: #f8f9fa; 
+    transition: background-color 0.3s;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #6c757d; 
+  }
+  
+  /* Estilo general de los modales */
+.modal-content {
+  border-radius: 15px; /* Bordes redondeados */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Sombra suave */
+  background-color: #f8f9fa; /* Fondo claro */
+  border: none;
+}
+
+/* Título del modal */
+.modal-body .card-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #343a40; /* Gris oscuro */
+  margin-bottom: 20px;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1); /* Sombra en el texto */
+}
+
+/* Inputs del formulario */
+.modal-body input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 2px solid #ced4da; /* Borde gris claro */
+  border-radius: 8px; /* Bordes redondeados */
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.modal-body input:focus {
+  border-color: #007bff; /* Azul Bootstrap */
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Resplandor azul */
+  outline: none; /* Sin borde adicional */
+}
+
+/* Botones del modal */
+.modal-footer .btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 50px; /* Bordes redondeados */
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+/* Botón confirmar */
+.modal-footer .btn-primary {
+  background-color: #007bff; /* Azul Bootstrap */
+  border: none;
+  color: #fff;
+}
+
+.modal-footer .btn-primary:hover {
+  background-color: #0056b3; /* Azul más oscuro */
+  transform: scale(1.05); /* Efecto de zoom */
+}
+
+/* Botón cancelar */
+.modal-footer .btn-danger {
+  background-color: #dc3545; /* Rojo Bootstrap */
+  border: none;
+  color: #fff;
+}
+
+.modal-footer .btn-danger:hover {
+  background-color: #c82333; /* Rojo más oscuro */
+  transform: scale(1.05); /* Efecto de zoom */
+}
+
+/* Animaciones para el modal */
+.modal.fade .modal-dialog {
+  transform: translateY(-50px);
+  opacity: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Fondo del modal */
+.modal-backdrop.show {
+  background-color: rgba(0, 0, 0, 0.6); /* Fondo oscuro traslúcido */
+}
+
+/* Espaciado interno */
+.modal-body label {
+  font-weight: bold;
+  color: #495057; /* Gris oscuro */
+  margin-bottom: 5px;
+  display: block;
+}
+
+.modal-body form {
+  margin-top: 10px;
+}

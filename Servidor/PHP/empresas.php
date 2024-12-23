@@ -4,12 +4,11 @@ require 'firebase.php';
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
     if ($action === 'get') {
-        obtenerEmpresas(); // Llamar a la función para obtener las empresas
+        obtenerEmpresa(); // Llamar a la función para obtener las empresas
     }else{
-        print_r("No");
     }
 }
-/*
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'];
 
@@ -26,8 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'delete': // Eliminar empresa
             eliminarEmpresa();
             break;
+        case 'guardarEmpresa':
+            guardarDatosEmpresa();
     }
-}
+}/*
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
@@ -84,7 +85,7 @@ function eliminarEmpresa()
 }
 
 // Función para obtener datos de la empresa
-function obtenerEmpresas()
+function obtenerEmpresa()
 {
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
@@ -114,6 +115,64 @@ function obtenerEmpresas()
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al obtener las empresas.']);
     }
+}
+// Optener datos para su edicion
+/*
+function obtenerEmpresa()
+{
+    global $firebaseProjectId, $firebaseApiKey;
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+    // Realizar la petición GET
+    $response = file_get_contents($url);
+
+    if ($response !== false) {
+        $data = json_decode($response, true);
+        // Verificar si existen documentos
+        if (isset($data['documents'])) {
+            $empresas = [];
+
+            // Recorrer los documentos y extraer sus datos
+            foreach ($data['documents'] as $document) {
+                $fields = $document['fields'];
+                $empresas[] = [
+                    'id' => $fields['id']['integerValue'],
+                    'noEmpresa' => $fields['noEmpresa']['stringValue'],
+                    'razonSocial' => $fields['razonSocial']['stringValue']
+                ];
+            }
+            // Devolver los datos procesados
+            echo json_encode(['success' => true, 'data' => $empresas]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No se encontraron empresas.']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener las empresas.']);
+    }
+}
+*/
+function guardarDatosEmpresa(){
+    session_start();
+// Verificar si la solicitud es POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Obtener los datos enviados por el cliente
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    if (isset($data['empresaId'])) {
+        // Guardar la empresa seleccionada en la sesión
+        $_SESSION['empresa'] = [
+            'id' => $data['empresaId'],
+            'idEmpresa' => $data['id']['stringValue'], 
+            'noEmpresa' => $data['noEmpresa']['stringValue'],  //0
+            'razonSocial' => $data['razonSocial']['stringValue']
+        ];
+
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se recibió el ID de la empresa.']);
+    }
+} else {
+    echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
+}
 }
 
 // Llamar a la función para obtener las empresas
