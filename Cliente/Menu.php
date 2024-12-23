@@ -133,7 +133,7 @@ session_destroy();*/
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-body">
-          <h2 class="card-title text-center">Informacion  de Empresa</h2>
+          <h2 class="card-title text-center">Informacion de Empresa</h2>
           <form action="">
             <label for="text">Id</label>
             <input type="text" name="id" id="id"><br>
@@ -144,7 +144,7 @@ session_destroy();*/
           </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
+          <button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
           <button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
         </div>
       </div>
@@ -157,7 +157,7 @@ session_destroy();*/
       <div class="modal-content">
         <div class="modal-body">
           <h2 class="card-title text-center">Informacion de Conexion</h2>
-          <form >
+          <form>
             <label for="text">host</label>
             <input type="text" name="host" id="host"><br>
             <label for="text">usuario</label>
@@ -169,7 +169,7 @@ session_destroy();*/
           </form>
         </div>
         <div class="modal-footer">
-        <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
           <button type="button" class="btn btn-primary" id="confirmarConexion">Guardar</button>
         </div>
       </div>
@@ -187,17 +187,18 @@ session_destroy();*/
       const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
       empresaModal.show();
     });
-
-    document.getElementById('confirmarEmpresa').addEventListener('click', function() {
-      const empresaSeleccionada = document.getElementById('empresaSelect').value;
-      if (empresaSeleccionada) {
-        alert(`Has seleccionado:   ${empresaSeleccionada}`);
-        const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
-        modal.hide();
-      } else {
-        alert('Por favor, selecciona una empresa.');
-      }
-    });
+    
+        document.getElementById('confirmarEmpresa').addEventListener('click', function() {
+          const empresaSeleccionada = document.getElementById('empresaSelect').value;
+          if (empresaSeleccionada) {
+            
+            alert(`Has seleccionado:   ${empresaSeleccionada}`);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+            modal.hide();
+          } else {
+            alert('Por favor, selecciona una empresa.');
+          }
+        });
   </script>
   <script src="JS/menu.js"></script>
 </body>

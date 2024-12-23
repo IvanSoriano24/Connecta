@@ -1,3 +1,4 @@
+let idEmpresarial;
 
 function cerrarModal(){
     const modal = bootstrap.Modal.getInstance(document.getElementById('infoEmpresa'));
@@ -8,11 +9,26 @@ function cerrarModalSae(){
         modal.hide();
 }
 
-function informaEmpresa(){
-    $.get('../Servidor/PHP/e.php', { action: 'get' }, function (response) {
+function informaEmpresa() {
+    /*$.get('../Servidor/PHP/e.php', { action: 'obtenerEmpresa' }, function (response) {
+        if (response.success && response.data) {
+            const empresa = response.data;
+            $('#id').val(empresa.id);
+            $('#noEmpresa').val(empresa.noEmpresa);
+            $('#razonSocial').val(empresa.razonSocial);
+        } else {
+            alert(response.message || 'Error al obtener los datos de la empresa.');
+        }
+    }, 'json');*/
+        $('#id').val(idEmpresarial.id);
+        $('#noEmpresa').val(idEmpresarial.noEmpresa);
+        $('#razonSocial').val(idEmpresarial.razonSocial);
+/*
+    $.get('../Servidor/PHP/empresas.php', { action: 'obtenerEmpresa' }, function (response) {
         if (response.success && response.data) {
             const empresas = response.data;
             if (empresas.length > 0) {
+                
                 const empresa = empresas[0];
                 $('#id').val(empresa.id);
                 $('#noEmpresa').val(empresa.noEmpresa);
@@ -23,7 +39,7 @@ function informaEmpresa(){
         } else {
             alert(response.message || 'Error al obtener los datos de la empresa.');
         }
-    }, 'json');
+    }, 'json');*/
 }
 function mostrarMenu(){
     document.getElementById("divContenedor").style.display = "block";
@@ -42,9 +58,14 @@ function cargarEmpresa() {
                 option.value = empresa.id;
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
                 empresaSelect.appendChild(option);
+                idEmpresarial = {
+                    id: empresa.id,
+                    noEmpresa: empresa.noEmpresa,
+                    razonSocial: empresa.razonSocial
+                }
             });
         } else {
-            alert(response.message || 'Error al obtener los datos de la empresa.');
+            alert(response.message || 'Error al obtener las empresas.');
         }
     }, 'json');
 }
@@ -80,7 +101,9 @@ function eliminarEmpresa() {
         }, 'json');
     }
 }
+
 $(document).ready(function () {
+
     document.getElementById('SAE').addEventListener('click', function() {
         const conexionModal = new bootstrap.Modal(document.getElementById('infoConexion'));
         conexionModal.show();
