@@ -191,14 +191,27 @@ session_destroy();*/
     document.getElementById('confirmarEmpresa').addEventListener('click', function() {
       const empresaSeleccionada = document.getElementById('empresaSelect').value;
       if (empresaSeleccionada != null) {
-        alert(`Has seleccionado:   ${empresaSeleccionada}`);
-        const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
-        modal.hide();
-        idEmpresarial = {
-          id: empresa.id,
-          noEmpresa: empresa.noEmpresa,
-          razonSocial: empresa.razonSocial
-        }
+
+        const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
+        
+        // Verificar que empresaOption no sea null
+        if (empresaOption) {
+            // Obtener los datos adicionales de la empresa utilizando los atributos data-*
+            const noEmpresa = empresaOption.getAttribute('data-no-empresa');
+            const razonSocial = empresaOption.getAttribute('data-razon-social');
+
+            alert(`Has seleccionado: ${noEmpresa} - ${razonSocial}`);
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+            modal.hide();
+
+            // Guardar los datos en la variable global
+            idEmpresarial = {
+                id: empresaSeleccionada,
+                noEmpresa: noEmpresa,
+                razonSocial: razonSocial
+            };
+          }
       } else {
         alert('Por favor, selecciona una empresa.');
       }
