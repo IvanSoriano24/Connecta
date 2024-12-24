@@ -1,96 +1,3 @@
-/*
-body {
-    font-family: Arial, sans-serif;
-    background-color: #7e7d7d;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
-
-#divContenedor {
-    background-color: #dfdede;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(11, 14, 20, 0.705);
-    width: 300px;
-    text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-#divContenedor:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 12px rgba(11, 14, 20, 0.705);
-}
-
-
-h4 {
-    margin-bottom: 35px;
-    color: #0e0e0e;
-}
-
-label {
-    display: block;
-    text-align: left;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #555;
-}
-
-input[type="text"], input[type="password"] {
-    width: 90%;
-    padding: 10px;
-    margin-bottom: 15px;
-    background-color: #cecbcb;
-    border: 1px solid #f1f1f1;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-input[type="text"]:focus, input[type="password"]:focus {
-    border-color: #acaeaf;
-    outline: none;
-}
-
-#divButton {
-    text-align: center;
-}
-
-
-
-input[type="submit"] {
-    background-color: #bebec2;
-    color: #080404;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 50px; 
-    cursor: pointer;
-    font-size: 14px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); 
-    transition: background-color 0.3s ease, transform 0.4s ease; 
-}
-
-input[type="submit"]:hover {
-    background-color: #eeeeee; 
-    transform: scale(1.1); 
-}
-s
-
-input[type="submit"]:hover {
-    background-color: #a9a9ac; 
-    transform: scale(1.1); 
-}
-
-.error {
-    color: rgb(224, 158, 158);
-    font-size: 12px;
-    margin-top: -10px;
-    margin-bottom
-    : 10px;
-    text-align: left;
-}
-*/
 
 #hero{
     min-height: 100vh;
@@ -117,7 +24,7 @@ video{
 
 body {
     font-family: Arial, sans-serif;
-    background-image: #7e7d7d;
+    background-image: #fffefe;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -126,24 +33,34 @@ body {
     }
     
     #divContenedor {
-    background-color: #777777;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(11, 14, 20, 0.705);
-    width: 300px;
-    text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative; z-index: 3;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        outline: 2px solid rgb(153, 219, 250); /* Usar outline para bordes internos */
+        box-shadow: 0 4px 6px rgba(68, 68, 68, 0.705);
+        width: 300px;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative; 
+        z-index: 3;
     }
+    
     
     #divContenedor:hover {
     transform: scale(1.05);
     box-shadow: 0 8px 12px rgba(11, 14, 20, 0.705);
     }
+
+    .txt{
+        font-family: Lato; font-size: 16px;
+    }
+
+    .txth1{
+        font-family: Lato; font-size: 22px;
+    }
     
     h4 {
-    margin-bottom: 35px;
-    color: #0e0e0e;
+    color: #646464;
     }
     
     label {
@@ -151,30 +68,31 @@ body {
     text-align: left;
     margin-bottom: 5px;
     font-size: 14px;
-    color: #555;
+    color: #1f1f1f;
     }
     
     input[type="text"], input[type="password"], input[type="email"] {
     width: 90%;
     padding: 10px;
     margin-bottom: 15px;
-    background-color: #cecbcb;
+    background-color: #cccccc94;
     border: 1px solid #f1f1f1;
     border-radius: 5px;
     font-size: 14px;
     }
     
     input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
-    border-color: #acaeaf;
+    border-color: #e0e0e0;
     outline: none;
     }
     
     #divButton {
     text-align: center;
+    
     }
     
     input[type="submit"], button {
-    background-color: #bebec2;
+    background-color: #c0c0c0;
     color: #080404;
     padding: 10px 20px;
     border: none;
@@ -186,7 +104,7 @@ body {
     }
     
     input[type="submit"]:hover, button:hover {
-    background-color: #a9a9ac;
+    background-color: #f7f7f7;
     transform: scale(1.1);
     }
     
@@ -228,7 +146,7 @@ body {
     cursor: pointer;
     font-size: 20px;
     font-weight: bold;
-    color: #888;
+    color: #ffffff;
     }
     
     .close-modal:hover {
@@ -238,6 +156,5 @@ body {
     #logo {
         width: 100px;
         height: auto;
-        margin-bottom: 20px;
-        border-radius: 10px;
+        position:static;
     }

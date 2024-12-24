@@ -1,10 +1,5 @@
 /* Estilo general */
-body {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.6;
-    background-color: #6061618f;
-    color: #333;
-  }
+
   
   /* Header Section */
   .header_section {
@@ -14,8 +9,8 @@ body {
 
   #logop {
 
-    width: 120px;
-    height: 80px;
+    width: 180px;
+    height: auto;
     
     margin-bottom: 20px;
     border-radius: 10px;
@@ -134,8 +129,9 @@ body {
   /* Estilo general de los modales */
 .modal-content {
   border-radius: 15px; /* Bordes redondeados */
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Sombra suave */
+  box-shadow: 0 8px 15px rgba(107, 107, 107, 0.801); /* Sombra suave */
   background-color: #f8f9fa; /* Fondo claro */
+  outline: 2px solid rgb(153, 219, 250);
   border: none;
 }
 
@@ -145,7 +141,7 @@ body {
   font-weight: bold;
   color: #343a40; /* Gris oscuro */
   margin-bottom: 20px;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1); /* Sombra en el texto */
+
 }
 
 /* Inputs del formulario */
@@ -158,14 +154,11 @@ body {
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.modal-body input:focus {
-  border-color: #007bff; /* Azul Bootstrap */
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Resplandor azul */
-  outline: none; /* Sin borde adicional */
-}
+
 
 /* Botones del modal */
 .modal-footer .btn {
+  background-color: grey;
   padding: 10px 20px;
   font-size: 16px;
   border-radius: 50px; /* Bordes redondeados */
@@ -174,7 +167,7 @@ body {
 
 /* Botón confirmar */
 .modal-footer .btn-primary {
-  background-color: #007bff; /* Azul Bootstrap */
+  background-color: #b1b1b1; /* Azul Bootstrap */
   border: none;
   color: #fff;
 }
@@ -210,7 +203,7 @@ body {
 
 /* Fondo del modal */
 .modal-backdrop.show {
-  background-color: rgba(0, 0, 0, 0.6); /* Fondo oscuro traslúcido */
+  background-color: rgba(92, 92, 92, 0.6); /* Fondo oscuro traslúcido */
 }
 
 /* Espaciado interno */

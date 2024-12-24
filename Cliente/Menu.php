@@ -24,6 +24,7 @@ session_destroy();*/
   <!-- bootstrap css -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link href="css/style1.css" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
   <link rel="stylesheet" href="CSS/selec.css">
 
   <title>Menu Principal</title>
@@ -62,19 +63,19 @@ session_destroy();*/
             <div class="d-flex mx-auto flex-column flex-lg-row align-items-center">
               <ul class="navbar-nav  ">
                 <li class="nav-item active">
-                  <a class="nav-link" href="cliente.html">Cliente <span class="sr-only"></span></a>
+                  <a class="nav-link txt" href="cliente.html">Cliente <span class="sr-only"></span></a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="productos.html">Productos </a>
+                  <a class="nav-link txt" href="productos.html">Productos </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="pedidos.html">Pedidos </a>
+                  <a class="nav-link txt" href="pedidos.html">Pedidos </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" id="cerrarSesion">Cerrar Sesion</a>
+                  <a class="nav-link txt" id="cerrarSesion">Cerrar Sesion</a>
                 </li>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="configuracionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a class="nav-link dropdown-toggle txt" href="#" id="configuracionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Configuración
                   </a>
                   <ul class="dropdown-menu" aria-labelledby="configuracionDropdown">
@@ -91,34 +92,42 @@ session_destroy();*/
 
             </div>
           </div>
+           <!-- BOTON MDCLOUD /////////////////////////////////////
           <a class="navbar-brand" href="">
-            <div id="divLogo">
+            <div id="divPrincipal">
               <img src="SRC/imagen.png" alt="Logo" id="logop">
             </div>
             <span>
-              <!-- TEXTO LOGO-->
+          
             </span>
           </a>
+
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
+           //////////////////////////////////////////-->
         </nav>
       </div>
     </header> <!-- Final del header section -->
   </div>
 
+
+
+    
+    
+
   <div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="text-center mb-4">
-          <h1 class="display-4 text-primary">Bienvenid@</h1>
+          <h1 class="display-4 text-primary txth1">Bienvenid@</h1>
           <!-- LA PARTE MOSTRARA SU PERFIL -->
         </div>
         <div class="modal-body">
-          <h2 class="card-title text-center">Selecciona Empresa</h2>
+          <h2 class="card-title text-center txth2">Selecciona Empresa</h2>
           <select class="form-select" id="empresaSelect" name="empresaSelect">
-            <option value="" selected disabled>Selecciona una empresa</option>
+            <option value="" selected disabled class="txt">Selecciona una empresa</option>
           </select>
         </div>
         <div class="modal-footer">
@@ -127,6 +136,8 @@ session_destroy();*/
       </div>
     </div>
   </div>
+
+  
 
   <!-- Formumario -->
   <div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
@@ -177,6 +188,14 @@ session_destroy();*/
   </div>
 
 
+         <!-- IMAGEN GRUPO INTERZENDA CENTRADA GRANDE  -->
+  <main class="hero_area">
+      <img src="SRC/imagen.png" alt="Logo central" id="main-logo">
+        <div class="maintxt text-center"> GRUPO <br> INTERZENDA</div>
+  </main>
+  
+
+
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
@@ -205,6 +224,8 @@ session_destroy();*/
         }
     });
   </script>
+
+
   <script src="JS/menu.js"></script>
 </body>
 

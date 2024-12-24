@@ -10,39 +10,45 @@ if (isset($_SESSION["usuario"])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="CSS/login.css">
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
     <script type="module" src="JS/Conectar.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <title>Inicio</title>
 </head>
 <body>
-<button id="checkConnection">Verificar Conexión</button> 
+
 
 
 <div class="containerP">
     <div id="divContenedor" class="form-container sign-up-container">
         <form id="form" method="POST" action="../Servidor/PHP/conexion.php">
             <div id="divLogo">
-                <img src="SRC/imagen.png" alt="Logo" id="logo">
+                <img src="SRC/imagen.png" alt="Logo" id="logo"> <br>
+                <span class= "txt">
+                 Grupo <br> Interzenda
+                </span>
             </div>
-            <h4>Inicio de Sesion</h4>
+
+            <h4 class="txth1">Inicio de Sesion</h4>
             <div id="divUsuario">
-                <label for="text">Nombre Usuario:  </label>
+                <label for="text" class="txt">Nombre Usuario:  </label>
                 <input type="text" name="usuario" id="usuario">
             </div>
         
             <div id="divPassword">
-                <label for="text">Contraseña</label>
+                <label for="text" class="txt">Contraseña</label>
                 <input type="password" name="password" id="password">
                 <span class="error" id="loginPasswordError"></span>
             </div>
 
             <div id="divButton">
-                <input type="submit" id="buttonSesion" name="buttonSesion">
+                <button type="submit" id="buttonSesion" name="buttonSesion" class="txt">Ingresar</button>
+                
             </div>
             <div>
                 <br>
-                <a class="w3-text-blue" id="recuperarContrasena">He olvidado mi contraseña</a>
+                <a  id="recuperarContrasena" class="txt">Olvide mi contraseña</a>
             </div>
             <input type="hidden" value="1" id="numFuncion", name="numFuncion">
         </form>
@@ -50,12 +56,12 @@ if (isset($_SESSION["usuario"])) {
 </div>
 <script type="module" src="JS/Conectar.js"></script>
 <script src="JS/java.js"></script>
-
+<!--
 <video muted autoplay loop>
     <source src="./video/fondo1.mp4" type= "video/mp4">
 </video>
 <div class="capa"> </div>
-
+-->
 </body>
 </html>
 

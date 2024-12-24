@@ -1,10 +1,13 @@
-/* Archivo: styles.css */
+
 
 /* Fondo general */
 body {
-    background-color: #484848; /* Fondo claro */
+    background-color: #ffffff; /* Fondo claro */
     font-family: 'Arial', sans-serif;
-    color: #343a40; /* Texto oscuro */
+    color: #ffffff; /* Texto oscuro */
+    align-items: center;
+    text-align: center;
+    
 }
 
 /* Título de bienvenida */
@@ -104,3 +107,42 @@ footer {
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
     transform: translateY(-5px); /* Efecto de elevación */
 }
+
+.header_section{
+background-color: rgb(255, 255, 255);
+}
+
+.nav-item{
+    background-color: rgba(87, 22, 87, 0.856);
+    margin: 0 15px;
+    padding: 5px 10px;
+    border-left: 1px solid #ccc; 
+}
+
+.main-logo{
+    display: block;
+    margin: 50px auto;
+    max-width: 700px;
+    width: 1200;
+    height: auto;
+}
+
+.maintxt{
+    font-size: 24px;
+    font-weight: bold;
+    color: #4A2378;
+}
+
+.txt{
+    font-family: Lato; font-size: 16px;
+}
+
+
+.txth2{
+    font-family: Lato; font-size: 22px;
+}
+
+.txth1{
+    font-family: Lato; font-size: 45px;
+}
+
