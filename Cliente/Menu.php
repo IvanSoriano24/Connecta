@@ -131,7 +131,7 @@ session_destroy();*/
           </select>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="confirmarEmpresa"> Confirmar</button>
+          <button type="button" class="btn btn-primary txt" id="confirmarEmpresa"> Confirmar</button>
         </div>
       </div>
     </div>
