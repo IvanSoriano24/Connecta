@@ -8,7 +8,6 @@ function cerrarModalSae(){
     const modal = bootstrap.Modal.getInstance(document.getElementById('infoConexion'));
         modal.hide();
 }
-
 function informaEmpresa() {
     /*$.get('../Servidor/PHP/e.php', { action: 'obtenerEmpresa' }, function (response) {
         if (response.success && response.data) {
@@ -57,8 +56,13 @@ function cargarEmpresa() {
                 const option = document.createElement('option');
                 option.value = empresa.id;
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
+
+                option.setAttribute('data-no-empresa', empresa.noEmpresa);
+                option.setAttribute('data-razon-social', empresa.razonSocial);
+
                 empresaSelect.appendChild(option);
             });
+
         } else {
             alert(response.message || 'Error al obtener las empresas.');
         }
@@ -98,6 +102,7 @@ function eliminarEmpresa() {
 }
 
 function probarConexionSAE() {
+    alert("Entra");
     const data = {
         action: 'probar',
         host: $('#host').val(),
@@ -105,9 +110,6 @@ function probarConexionSAE() {
         password: $('#password').val(),
         nombreBase: $('#nombreBase').val()
     };
-
-    console.log("Datos a enviar:", data);
-
     fetch('../Servidor/PHP/sae.php', {
         method: 'POST',
         headers: {
@@ -127,6 +129,41 @@ function probarConexionSAE() {
             alert('Conexión exitosa.');
         } else {
             alert('Error: ' + responseData.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error de la solicitud:", error);
+        alert('Error en la solicitud: ' + error.message);
+    });
+}
+function guardarConexionSAE() {
+    const data = {
+        action: 'guardar',
+        host: $('#host').val(),
+        usuarioSae: $('#usuarioSae').val(),
+        password: $('#password').val(),
+        nombreBase: $('#nombreBase').val(),
+        noEmpresa: $(idEmpresarial.noEmpresa) // Este campo debe ser incluido en el formulario
+    };
+    fetch('../Servidor/PHP/sae.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la respuesta del servidor');
+        }
+        return response.json();
+    })
+    .then(responseData => {
+        console.log("Respuesta del servidor:", responseData);
+        if (responseData.success) {
+            alert('Datos guardados exitosamente en Firebase.');
+        } else {
+            alert('Error al guardar: ' + responseData.message);
         }
     })
     .catch(error => {
@@ -167,6 +204,10 @@ $(document).ready(function () {
     });
 
     $('#confirmarConexion').click(function () {
+        guardarConexionSAE();
+    });
+    $('#probarConexion').click(function () {
+        alert("s");
         probarConexionSAE();
     });
     

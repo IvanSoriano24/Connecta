@@ -180,8 +180,9 @@ session_destroy();*/
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
+          <button type="button" class="btn btn-info" id="probarConexion">Probar</button> <!-- Pocisionar a la Izquierda -->
           <button type="button" class="btn btn-primary" id="confirmarConexion">Guardar</button>
+          <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
         </div>
       </div>
     </div>
@@ -208,20 +209,31 @@ session_destroy();*/
     });
     document.getElementById('confirmarEmpresa').addEventListener('click', function() {
       const empresaSeleccionada = document.getElementById('empresaSelect').value;
-     
-        if (empresaSeleccionada != null) {
+      if (empresaSeleccionada != null) {
 
-          alert(`Has seleccionado:   ${empresaSeleccionada}`);
-          const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
-          modal.hide();
-          idEmpresarial = {
-                    id: empresa.id,
-                    noEmpresa: empresa.noEmpresa,
-                    razonSocial: empresa.razonSocial
-                }
-        } else {
-          alert('Por favor, selecciona una empresa.');
-        }
+        const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
+        
+        // Verificar que empresaOption no sea null
+        if (empresaOption) {
+            // Obtener los datos adicionales de la empresa utilizando los atributos data-*
+            const noEmpresa = empresaOption.getAttribute('data-no-empresa');
+            const razonSocial = empresaOption.getAttribute('data-razon-social');
+
+            alert(`Has seleccionado: ${noEmpresa} - ${razonSocial}`);
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+            modal.hide();
+
+            // Guardar los datos en la variable global
+            idEmpresarial = {
+                id: empresaSeleccionada,
+                noEmpresa: noEmpresa,
+                razonSocial: razonSocial
+            };
+          }
+      } else {
+        alert('Por favor, selecciona una empresa.');
+      }
     });
   </script>
 
