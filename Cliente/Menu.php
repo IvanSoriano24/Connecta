@@ -118,7 +118,7 @@ session_destroy();*/
         <div class="modal-body">
           <h2 class="card-title text-center">Selecciona Empresa</h2>
           <select class="form-select" id="empresaSelect" name="empresaSelect">
-            <option selected disabled>Selecciona una empresa</option>
+            <option value="" selected disabled>Selecciona una empresa</option>
           </select>
         </div>
         <div class="modal-footer">
@@ -187,18 +187,23 @@ session_destroy();*/
       const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
       empresaModal.show();
     });
-    
-        document.getElementById('confirmarEmpresa').addEventListener('click', function() {
-          const empresaSeleccionada = document.getElementById('empresaSelect').value;
-          if (empresaSeleccionada) {
-            
-            alert(`Has seleccionado:   ${empresaSeleccionada}`);
-            const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
-            modal.hide();
-          } else {
-            alert('Por favor, selecciona una empresa.');
-          }
-        });
+    document.getElementById('confirmarEmpresa').addEventListener('click', function() {
+      const empresaSeleccionada = document.getElementById('empresaSelect').value;
+     
+        if (empresaSeleccionada != null) {
+
+          alert(`Has seleccionado:   ${empresaSeleccionada}`);
+          const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+          modal.hide();
+          idEmpresarial = {
+                    id: empresa.id,
+                    noEmpresa: empresa.noEmpresa,
+                    razonSocial: empresa.razonSocial
+                }
+        } else {
+          alert('Por favor, selecciona una empresa.');
+        }
+    });
   </script>
   <script src="JS/menu.js"></script>
 </body>

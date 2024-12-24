@@ -58,11 +58,6 @@ function cargarEmpresa() {
                 option.value = empresa.id;
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
                 empresaSelect.appendChild(option);
-                idEmpresarial = {
-                    id: empresa.id,
-                    noEmpresa: empresa.noEmpresa,
-                    razonSocial: empresa.razonSocial
-                }
             });
         } else {
             alert(response.message || 'Error al obtener las empresas.');
@@ -120,7 +115,12 @@ function probarConexionSAE() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la respuesta del servidor');
+        }
+        return response.json();
+    })
     .then(responseData => {
         console.log("Respuesta del servidor:", responseData);
         if (responseData.success) {
@@ -130,7 +130,8 @@ function probarConexionSAE() {
         }
     })
     .catch(error => {
-        console.log("Error de la solicitud:", error);
+        console.error("Error de la solicitud:", error);
+        alert('Error en la solicitud: ' + error.message);
     });
 }
 

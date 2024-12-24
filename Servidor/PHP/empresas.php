@@ -96,6 +96,7 @@ function listaEmpresas()
 
     if ($response !== false) {
         $data = json_decode($response, true);
+
         // Verificar si existen documentos
         if (isset($data['documents'])) {
             $empresas = [];
@@ -109,6 +110,11 @@ function listaEmpresas()
                     'razonSocial' => $fields['razonSocial']['stringValue'] ?? ''
                 ];
             }
+            usort($empresas, function ($a, $b) {
+                return strcmp($a['razonSocial'], $b['razonSocial']); 
+            });
+
+            // Responder con los datos ordenados
             echo json_encode(['success' => true, 'data' => $empresas]);
         } else {
             echo json_encode(['success' => false, 'message' => 'No se encontraron empresas.']);
@@ -116,7 +122,6 @@ function listaEmpresas()
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al obtener las empresas.']);
     }
-    //guardarDatosEmpresa();
 }
 // Optener datos para su edicion
 
