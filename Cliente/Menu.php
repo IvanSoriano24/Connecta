@@ -21,12 +21,15 @@ if (isset($_SESSION['usuario'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
   <!-- bootstrap css -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  
   <link href="css/style1.css" rel="stylesheet" />
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
   <link rel="stylesheet" href="CSS/selec.css">
+  <link rel="stylesheet" href="css/estilosmenu.css"> 
 
   <title>Menu Principal</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
   <style>
     body.modal-open .hero_area {
       filter: blur(5px);
@@ -39,54 +42,43 @@ if (isset($_SESSION['usuario'])) {
 
 
 <body>
-  <div class="hero_area">
-    <!-- header section strats -->
-    <header class="header_section">
-      <div class="container-fluid">
-        <nav class="navbar navbar-expand-lg custom_nav-container ">
-          <a class="navbar-brand" href="Menu.php">
-            <div id="divLogo">
-              <img src="SRC/imagen.png" alt="Logo" id="logop">
-            </div>
-            <span>
-              <!-- TEXTO LOGO-->
-            </span>
-          </a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
 
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <div class="d-flex mx-auto flex-column flex-lg-row align-items-center">
-              <ul class="navbar-nav  ">
-                <li class="nav-item active">
-                  <a class="nav-link txt" href="cliente.html">Cliente <span class="sr-only"></span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link txt" href="productos.html">Productos </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link txt" href="pedidos.html">Pedidos </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link txt" id="cerrarSesion">Cerrar Sesion</a>
-                </li>
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle txt" href="#" id="configuracionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Configuración
-                  </a>
-                  <ul class="dropdown-menu" aria-labelledby="configuracionDropdown">
-                    <li><a class="dropdown-item" id="Empresa">Empresa</a></li>
-                    <li><a class="dropdown-item" id="SAE">SAE</a></li>
-                  </ul>
-                </li>
-                <!-- Agregar otro titulo
-                <li class="nav-item">
-                  <a class="nav-link" href="logo.html"> Logo</a>
-                </li>
-                   </a>
-                 -->
+  <div class="hero_area">
+    <!--MENU  HEADER-->
+    <nav class="menu">
+      <section class="menu__container">
+      <a href=""><img src="SRC/imagen.png" alt="Logo" id="logop"> </a>
+
+        <ul class="menu__links">
+          <li class="menu__item">
+            <a href="cliente.html" class="menu__link txt">Inicio</a>
+          </li>
+          <li class="menu__item">
+            <a href="productos.html" class="menu__link txt">Credito</a>
+          </li>
+          <li class="menu__item">
+            <a href="pedidos.html" class="menu__link txt">Pedidos</a>
+          </li>
+          <li class="menu__item">
+            <a href="pedidos.html" class="menu__link txt">Guias</a>
+          </li>
+          <li class="menu__item">
+            <a href="#" class="menu__link txt" id="cerrarSesion">Cerrar Sesión</a>
+          </li>
+           <!--
+          <li class="menu__item menu__item--show">
+            <a href="#" class="menu__link  txt">Configuración <img src="assets/arrow.svg" class="menu__arrow"></a>
+            <ul class="menu__nesting">
+              <li class="menu__inside">
+                <a href="#" class="menu__link menu__link--inside" id="Empresa">Empresa</a>
+              </li>
+              <li class="menu__inside">
+                <a href="#" class="menu__link menu__link--inside" id="SAE">SAE</a>
+              </li>  
+            </ul> 
+          </li>
+                  -->
+        </ul>
 
             </div>
           </div>
@@ -111,16 +103,25 @@ if (isset($_SESSION['usuario'])) {
   </div>
 
 
+    <!-- IMAGEN GRUPO INTERZENDA CENTRADA GRANDE  -->
 
-    
-    
+    <main class="text-center my-5 hero_area">
+        <img src="SRC/imagen.png" alt="Logo Principal" width="700">
+        <h1 class="mt-4 txth2">GRUPO <br> INTERZENDA</h1>
+    </main>
 
-  <div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+     <!-- Footer -->
+    <footer>
+        <img src="SRC/imagen.png" class="logomdconnecta" alt="Logo">
+    </footer>
+
+   <!--MODAL SELECCION EMPRESA
+   <div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="text-center mb-4">
           <h1 class="display-4 text-primary txth1">Bienvenid@</h1>
-          <!-- LA PARTE MOSTRARA SU PERFIL -->
+
         </div>
         <div class="modal-body">
           <h2 class="card-title text-center txth2">Selecciona Empresa</h2>
@@ -133,7 +134,8 @@ if (isset($_SESSION['usuario'])) {
         </div>
       </div>
     </div>
-  </div>
+   </div>
+     -->
 
   
 
@@ -213,12 +215,7 @@ if (isset($_SESSION['usuario'])) {
   </div>
 
 
-         <!-- IMAGEN GRUPO INTERZENDA CENTRADA GRANDE  -->
-  <main class="hero_area">
-      <img src="SRC/imagen.png" alt="Logo central" id="main-logo">
-        <div class="maintxt text-center"> GRUPO <br> INTERZENDA</div>
-  </main>
-  
+ 
 
 
   <!-- JS Para la confirmacion empresa -->
@@ -263,5 +260,6 @@ if (isset($_SESSION['usuario'])) {
 
 
   <script src="JS/menu.js"></script>
+  <script src="JS/app.js"></script> 
 </body>
 </html>
