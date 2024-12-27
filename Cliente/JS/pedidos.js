@@ -3,7 +3,6 @@ function cargarPedidos() {
     $.get('../Servidor/PHP/pedido.php', { numFuncion: '4' }, function (response) {
         console.log("dentro");
       if (response.success && response.data) {
-        console.log('Respuesta del servidor:', response);
         const pedidos = response.data;
         const pedidosTable = document.getElementById('datosPedidos');
         pedidosTable.innerHTML = ''; // Limpia la tabla antes de agregar nuevos datos
@@ -11,20 +10,21 @@ function cargarPedidos() {
         // Recorrer los pedidos y agregarlos a la tabla
         pedidos.forEach(pedido => {
           const row = document.createElement('tr');
-
+        
+          // Asegúrate de que las propiedades existan en cada objeto
           row.innerHTML = `
-            <td>${pedido.id}</td>
-            <td>${pedido.cliente}</td>
-            <td>${pedido.total}</td>
-            <td>${pedido.fecha}</td>
+            <td>${pedido.id || 'N/A'}</td>
+            <td>${pedido.cliente || 'Sin cliente'}</td>
+            <td>${pedido.total || '0'}</td>
+            <td>${pedido.fecha || 'Sin fecha'}</td>
             <td>
               <button class="btnEditarPedido" data-id="${pedido.id}">Editar</button>
               <button class="btnCancelarPedido" data-id="${pedido.id}">Cancelar</button>
             </td>
           `;
-
+        
           pedidosTable.appendChild(row);
-        });
+        });        
 
         // Agregar eventos a los botones dinámicos
         agregarEventosBotones();
