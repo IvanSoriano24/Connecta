@@ -7,17 +7,6 @@
     padding: 1px 0;
   }
 
-  #logop {
-
-    width: 180px;
-    height: auto;
-    
-    margin-bottom: 20px;
-    border-radius: 10px;
-}
-
-
-  
 
   .custom_nav-container .nav_search-btn {
     width: 15px;
@@ -127,7 +116,8 @@
   }
   
   /* Estilo general de los modales */
-.modal-content {
+/* Estilo general de los modales */
+.custom-modal-content {
   border-radius: 15px; /* Bordes redondeados */
   box-shadow: 0 8px 15px rgba(107, 107, 107, 0.801); /* Sombra suave */
   background-color: #f8f9fa; /* Fondo claro */
@@ -136,16 +126,15 @@
 }
 
 /* Título del modal */
-.modal-body .card-title {
+.custom-modal-body .custom-card-title {
   font-size: 24px;
   font-weight: bold;
   color: #343a40; /* Gris oscuro */
   margin-bottom: 20px;
-
 }
 
 /* Inputs del formulario */
-.modal-body input {
+.custom-modal-body input {
   width: 100%;
   padding: 10px;
   margin-bottom: 15px;
@@ -154,11 +143,9 @@
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-
-
 /* Botones del modal */
-.modal-footer .btn {
-  background-color: grey;
+.custom-modal-footer .custom-btn {
+  background-color: rgb(132, 169, 172);
   padding: 10px 20px;
   font-size: 16px;
   border-radius: 50px; /* Bordes redondeados */
@@ -166,54 +153,54 @@
 }
 
 /* Botón confirmar */
-.modal-footer .btn-primary {
-  background-color: #b1b1b1; /* Azul Bootstrap */
+.custom-modal-footer .custom-btn-primary {
+  background-color: #4f8997; /* Azul */
   border: none;
   color: #fff;
 }
 
-.modal-footer .btn-primary:hover {
+.custom-modal-footer .custom-btn-primary:hover {
   background-color: #0056b3; /* Azul más oscuro */
   transform: scale(1.05); /* Efecto de zoom */
 }
 
 /* Botón cancelar */
-.modal-footer .btn-danger {
-  background-color: #dc3545; /* Rojo Bootstrap */
+.custom-modal-footer .custom-btn-danger {
+  background-color: #dc3545; /* Rojo */
   border: none;
   color: #fff;
 }
 
-.modal-footer .btn-danger:hover {
+.custom-modal-footer .custom-btn-danger:hover {
   background-color: #c82333; /* Rojo más oscuro */
   transform: scale(1.05); /* Efecto de zoom */
 }
 
 /* Animaciones para el modal */
-.modal.fade .modal-dialog {
+.custom-modal.fade .custom-modal-dialog {
   transform: translateY(-50px);
   opacity: 0;
   transition: transform 0.3s ease-out, opacity 0.3s ease-out;
 }
 
-.modal.show .modal-dialog {
+.custom-modal.show .custom-modal-dialog {
   transform: translateY(0);
   opacity: 1;
 }
 
 /* Fondo del modal */
-.modal-backdrop.show {
+.custom-modal-backdrop.show {
   background-color: rgba(92, 92, 92, 0.6); /* Fondo oscuro traslúcido */
 }
 
 /* Espaciado interno */
-.modal-body label {
+.custom-modal-body label {
   font-weight: bold;
   color: #495057; /* Gris oscuro */
   margin-bottom: 5px;
   display: block;
 }
 
-.modal-body form {
+.custom-modal-body form {
   margin-top: 10px;
 }
