@@ -1,121 +1,31 @@
-/* Estilo general */
 
-  
-  /* Header Section */
-  .header_section {
-    background-color: #343a40;
-    padding: 1px 0;
-  }
-
-
-  .custom_nav-container .nav_search-btn {
-    width: 15px;
-    height: 10px;
-    padding: 0;
-    border: none;
-  }
-
-  .header_section .nav-link {
-    color: #f8f9fa;
-    margin: 0 10px;
-    transition: color 0.3s;
-    font-size: 24px;
-  }
-  
-  .header_section .nav-link:hover {
-    color: #403985;
-  } 
-  
-
-
-  /* Slider Section */
-  .slider_section {
-    background-color: #ffffff;
-    padding: 30px 0;
-  }
-  
-  .slider_detail-box {
-    text-align: left;
-    color: #333;
-  }
-  
-  .slider_detail-box h1 {
-    font-size: 36px;
-    font-weight: bold;
-    margin-bottom: 15px;
-  }
-  
-  .slider_detail-box span {
-    color: #6e6e6e;
-  }
-  
-  .slider_detail-box p {
-    font-size: 16px;
-    margin-bottom: 20px;
-  }
-  
-  .btn-box .btn-1 {
-    background-color: #565657;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 5px;
-    text-decoration: none;
-    margin-right: 10px;
-    transition: background-color 0.3s;
-  }
-  
-  .btn-box .btn-1:hover {
-    background-color: #616263;
-  }
-  
-  .btn-box .btn-2 {
-    background-color: #6c757d;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 5px;
-    text-decoration: none;
-    transition: background-color 0.3s;
-  }
-  
-  .btn-box .btn-2:hover {
-    background-color: #5a6268;
-  }
-  
-  .slider_img-box img {
-    max-width: 100%;
-    border-radius: 10px;
-  }
-  
-  /* Carousel Indicators */
-  .carousel-indicators li {
-    background-color: #343a40;
-    border: none;
-    width: 12px;
-    height: 12px;
-    margin: 5px;
-    border-radius: 50%;
-  }
-  
-  .carousel-indicators .active {
-    background-color: #007bff;
-  }
-  
-  /*JN */
-  .dropdown-menu {
-    background-color: #343a40; 
-    border: none; 
-  }
-  
-  .dropdown-item {
-    color: #f8f9fa; 
-    transition: background-color 0.3s;
-  }
-  
-  .dropdown-item:hover {
-    background-color: #6c757d; 
-  }
-  
   /* Estilo general de los modales */
+
+
+  .text-primary {
+    color: #131313 !important; 
+}
+
+
+.txt{
+  font-family: Lato; font-size: 14px;
+}
+
+
+.txth2{
+  font-family: Lato; font-size: 50px;
+  color: #030203;
+}
+
+.txth1{
+  font-family: Lato; font-size: 45px;
+}
+
+
+
+
+
+
 /* Estilo general de los modales */
 .custom-modal-content {
   border-radius: 15px; /* Bordes redondeados */
@@ -160,7 +70,7 @@
 }
 
 .custom-modal-footer .custom-btn-primary:hover {
-  background-color: #0056b3; /* Azul más oscuro */
+  background-color: #e6e6e6; /* Azul más oscuro */
   transform: scale(1.05); /* Efecto de zoom */
 }
 
