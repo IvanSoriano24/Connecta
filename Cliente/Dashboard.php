@@ -106,18 +106,7 @@ session_destroy(); */
     			</ul>
 			</li>
 
-			<li>
-
-				<a>
-					<i class='bx bxs-cog' ></i>
-					<span class="text">Configuracion</span>
-
-				<a href="#">
-					<i class='bx bxs-file' ></i>
-					<span class="text">Reportes</span>
-
-				</a>
-			</li>
+			
 			<li>
 				<a class="logout" id="cerrarSesion">
 					<i class='bx bxs-log-out-circle' ></i>
