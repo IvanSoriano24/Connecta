@@ -67,13 +67,14 @@
   </style>
 
 </head>
+
 <body>
 
   <div class="hero_area">
     <!--MENU  HEADER-->
     <nav class="menu">
       <section class="menu__container">
-      <a href=""><img src="SRC/imagen.png" alt="Logo" id="logop"> </a>
+        <a href=""><img src="SRC/imagen.png" alt="Logo" id="logop"> </a>
 
         <ul class="menu__links">
           <li class="menu__item">
@@ -91,87 +92,89 @@
           <li class="menu__item">
             <a class="menu__link txt" id="cerrarSesion" name="cerrarSesion">Cerrar Sesión</a>
           </li>
-         </ul>
-         
-           <div class="menu__hamburguer">
-                <img src="assets/menu.svg" class="menu__img">
-            </div>
-           </section>
-        </nav>
-  </div>
+        </ul>
 
-    <div class="content-container">
-      <section>
-        <h2>Artículos</h2>
-        <div class="table-container">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Precio</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>001</td>
-                <td>$10.00</td>
-              </tr>
-              <tr>
-                <td>002</td>
-                <td>$15.00</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="menu__hamburguer">
+          <img src="assets/menu.svg" class="menu__img">
         </div>
       </section>
+    </nav>
+  </div>
 
-      <aside>
-        <div class="search-bar">
-          <input type="text" class="form-control" placeholder="Buscar...">
+  <div class="content-container">
+    <section>
+      <h2>Artículos</h2>
+      <div class="table-container">
+        <table id="tablaPedidos">
+          <thead>
+            <tr>
+              <th colspan="5">
+                <input type="button" id="btnCrearPedido" value="Crear Pedido">
+              </th>
+            </tr>
+            <tr>
+              <th>ID Pedido</th>
+              <th>Cliente</th>
+              <th>Total</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="datosPedidos">
+            <!-- Pedidos cargados dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <aside style="display: none;">
+      <div class="search-bar">
+        <input type="text" class="form-control" placeholder="Buscar...">
+      </div>
+      <div class="table-container">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Campo 1</th>
+              <th>Campo 2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Valor 1</td>
+              <td>Valor 2</td>
+            </tr>
+            <tr>
+              <td>Valor 3</td>
+              <td>Valor 4</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Footer -->
+  <!-- Footer Start -->
+  <div class="container-fluid pt-4 px-4">
+    <div class="bg-light rounded-top p-4">
+      <div class="row">
+        <div class="col-12 col-sm-6 text-center text-sm-start">
+          <img src="SRC/imagen.png" class="logomdconnecta" alt="Logo">
+          &copy; <a href="#"> MDCloud</a>, All Right Reserved.
         </div>
-        <div class="table-container">
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Campo 1</th>
-                <th>Campo 2</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Valor 1</td>
-                <td>Valor 2</td>
-              </tr>
-              <tr>
-                <td>Valor 3</td>
-                <td>Valor 4</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="col-12 col-sm-6 text-center text-sm-end">
+          De: <a> MDCONNECTA</a>
         </div>
-      </aside>
+      </div>
     </div>
-
-     <!-- Footer -->
-       <!-- Footer Start -->
-       <div class="container-fluid pt-4 px-4">
-                <div class="bg-light rounded-top p-4">
-                    <div class="row">
-                        <div class="col-12 col-sm-6 text-center text-sm-start">
-                        <img src="SRC/imagen.png" class="logomdconnecta" alt="Logo">
-                            &copy; <a href="#"> MDCloud</a>, All Right Reserved. 
-                        </div>
-                        <div class="col-12 col-sm-6 text-center text-sm-end">
-                            De: <a >  MDCONNECTA</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Footer End -->
-        </div>
+  </div>
+  <!-- Footer End -->
+  </div>
 
 
   <script src="JS/menu.js"></script>
-  <script src="JS/app.js"></script> 
+  <script src="JS/app.js"></script>
+  <script src="JS/pedidos.js"></script>
 </body>
 </html>
