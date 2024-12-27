@@ -4,7 +4,8 @@ require 'firebase.php';
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
     if ($action === 'get') {
-        listaEmpresas(); // Llamar a la función para obtener las empresas
+        $usuario = $_GET['usuario'];
+        listaEmpresas($usuario); // Llamar a la función para obtener las empresas
     }elseif ($action === 'obtenerEmpresa') {
         obtenerEmpresa(); // Llamar a la función para obtener una empresa específica
     }
@@ -86,43 +87,62 @@ function eliminarEmpresa()
 }
 
 // Función para obtener datos de la empresa
-function listaEmpresas()
-{
+function listaEmpresas($nombreUsuario) {
     global $firebaseProjectId, $firebaseApiKey;
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-
-    // Realizar la petición GET
-    $response = file_get_contents($url);
-
-    if ($response !== false) {
-        $data = json_decode($response, true);
+    // URL para consultar la colección EMP_USS
+    $urlEmpUs = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
+    $responseEmpUs = file_get_contents($urlEmpUs);
+    
+    if ($responseEmpUs !== false) {
+        $dataEmpUs = json_decode($responseEmpUs, true);
 
         // Verificar si existen documentos
-        if (isset($data['documents'])) {
-            $empresas = [];
+        if (isset($dataEmpUs['documents'])) {
+            $razonSocialEmpresas = [];
 
-            // Recorrer los documentos y extraer sus datos
-            foreach ($data['documents'] as $document) {
+            // Recorrer los documentos para encontrar las empresas asociadas al usuario
+            foreach ($dataEmpUs['documents'] as $document) {
                 $fields = $document['fields'];
-                $empresas[] = [
-                    'id' => $fields['id']['integerValue'] ?? null,
-                    'noEmpresa' => $fields['noEmpresa']['stringValue'] ?? '',
-                    'razonSocial' => $fields['razonSocial']['stringValue'] ?? ''
-                ];
-            }
-            usort($empresas, function ($a, $b) {
-                return strcmp($a['razonSocial'], $b['razonSocial']); 
-            });
 
-            // Responder con los datos ordenados
-            echo json_encode(['success' => true, 'data' => $empresas]);
+                // Verificar si el documento tiene el nombre del usuario
+                if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $nombreUsuario) {
+                    // Agregar la razón social de la empresa al arreglo
+                    $razonSocialEmpresas[] = $fields['empresa']['stringValue'];
+                }
+            }
+
+            // Si hay empresas asociadas al usuario
+            if (count($razonSocialEmpresas) > 0) {
+                // Ordenar las empresas alfabéticamente por la razón social
+                sort($razonSocialEmpresas);
+
+                // Preparar el resultado
+                $empresas = [];
+                foreach ($razonSocialEmpresas as $razonSocial) {
+                    $empresas[] = [
+                        'noEmpresa' => $fields['nomEmpresa']['stringValue'],
+                        'razonSocial' => $razonSocial
+                    ];
+                }
+                $_SESSION['empresaSelect'] = [
+                    'usuario' => $fields, 
+                    'razonSocial' => $razonSocial
+                ];
+
+                // Responder con las empresas filtradas
+                echo json_encode(['success' => true, 'data' => $empresas]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'El usuario no tiene empresas asociadas.']);
+            }
         } else {
-            echo json_encode(['success' => false, 'message' => 'No se encontraron empresas.']);
+            echo json_encode(['success' => false, 'message' => 'No se encontraron relaciones de empresas para este usuario.']);
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error al obtener las empresas.']);
+        echo json_encode(['success' => false, 'message' => 'Error al obtener las relaciones de empresas del usuario.']);
     }
 }
+
+
 // Optener datos para su edicion
 
 function obtenerEmpresa()

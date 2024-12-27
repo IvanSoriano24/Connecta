@@ -5,7 +5,7 @@ if (isset($_SESSION['usuario'])) {
   $nombreUsuario = $_SESSION['usuario']["nombre"];
   $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 
-  //$empresa = $_SESSION['empresa']['id'];
+  //$empresa = $_SESSION['empresa']['razonSocial'];
 
 } else {
   header('Location:../index.php');
@@ -106,7 +106,18 @@ session_destroy(); */
     			</ul>
 			</li>
 
-			
+			<li>
+
+				<a>
+					<i class='bx bxs-cog' ></i>
+					<span class="text">Configuracion</span>
+
+				<a href="#">
+					<i class='bx bxs-file' ></i>
+					<span class="text">Reportes</span>
+
+				</a>
+			</li>
 			<li>
 				<a class="logout" id="cerrarSesion">
 					<i class='bx bxs-log-out-circle' ></i>
@@ -303,6 +314,9 @@ session_destroy(); */
 
 
 
+	</section>
+	<!-- CONTENT -->
+</div>
     <div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -319,11 +333,12 @@ session_destroy(); */
           <button type="button" class="btn btn-primary txt" id="confirmarEmpresa"> Confirmar</button>
         </div>
        </div>
-    </div>
-   
-  
-  <!-- Modal para la INFORMACION EMPRESA 
-  <div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
+    </div>  
+
+
+
+	<!-- Formumario -->
+	<div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-body">
@@ -369,13 +384,41 @@ session_destroy(); */
         </div>
       </div>
     </div>
-  </div> 
-	-->
+  </div>
+
+  <!-- Conceccion a SAE -->
+  <div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h2 class="card-title text-center">Informacion de Conexion</h2>
+          <form>
+            <label for="text">host</label>
+            <input type="text" name="host" id="host"><br>
+            <label for="text">usuario</label>
+            <input type="text" name="usuarioSae" id="usuarioSae"><br>
+            <label for="text">password</label>
+            <input type="password" name="password" id="password"><br>
+            <label for="text">Nombre de base de datos</Base></label>
+            <input type="text" name="nombreBase" id="nombreBase">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-info" id="probarConexion">Probar</button> <!-- Pocisionar a la Izquierda -->
+          <button type="button" class="btn btn-primary" id="confirmarConexion">Guardar</button>
+          <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+	
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.getElementById('empresaModal').addEventListener('shown.bs.modal', function() {
-      cargarEmpresa();
+		var usuario = '<?php echo $nombreUsuario;  ?>';
+		cargarEmpresa(usuario);
     });
     document.addEventListener('DOMContentLoaded', function() {
       const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
@@ -400,7 +443,7 @@ session_destroy(); */
 
             // Guardar los datos en la variable global
             idEmpresarial = {
-                id: empresaSeleccionada,
+                //id: empresaSeleccionada,
                 noEmpresa: noEmpresa,
                 razonSocial: razonSocial
             };

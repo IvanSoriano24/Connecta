@@ -45,16 +45,16 @@ function mostrarMenu(){
 }
 
 // Función para cargar los datos de la empresa
-function cargarEmpresa() {
+function cargarEmpresa(usuario) {
     // Realiza una solicitud GET al servidor para obtener las empresas
-    $.get('../Servidor/PHP/empresas.php', { action: 'get' }, function (response) {
+    $.get('../Servidor/PHP/empresas.php', { action: 'get', usuario: usuario }, function (response) {
         if (response.success && response.data) {
             const empresas = response.data;
             const empresaSelect = document.getElementById('empresaSelect');
             empresaSelect.innerHTML = '<option selected disabled>Selecciona una empresa</option>';
             empresas.forEach((empresa) => {
                 const option = document.createElement('option');
-                option.value = empresa.id;
+                option.value = empresa.moEmpresa;
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
 
                 option.setAttribute('data-no-empresa', empresa.noEmpresa);
@@ -210,7 +210,6 @@ $(document).ready(function () {
     });
     
     $("#cerrarSesion").click(function () {
-        alert("Entra");
         if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
           $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
             window.location.href = "index.php"; // Redirigir al login
