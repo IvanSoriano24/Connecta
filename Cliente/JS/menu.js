@@ -102,7 +102,6 @@ function eliminarEmpresa() {
 }
 
 function probarConexionSAE() {
-    alert("Entra");
     const data = {
         action: 'probar',
         host: $('#host').val(),
@@ -174,7 +173,7 @@ function guardarConexionSAE() {
 
 
 $(document).ready(function () {
-
+/*
     document.getElementById('SAE').addEventListener('click', function() {
         const conexionModal = new bootstrap.Modal(document.getElementById('infoConexion'));
         conexionModal.show();
@@ -182,7 +181,7 @@ $(document).ready(function () {
     document.getElementById('Empresa').addEventListener('click', function() {
         const empresaModal = new bootstrap.Modal(document.getElementById('infoEmpresa'));
         empresaModal.show();
-    });
+    });*/
     $('#Empresa').click(function () {
         informaEmpresa(); // Llamar a la función que obtiene los datos
     });
@@ -207,11 +206,11 @@ $(document).ready(function () {
         guardarConexionSAE();
     });
     $('#probarConexion').click(function () {
-        alert("s");
         probarConexionSAE();
     });
     
     $("#cerrarSesion").click(function () {
+        alert("Entra");
         if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
           $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
             window.location.href = "index.php"; // Redirigir al login

@@ -1,8 +1,9 @@
 <?php
-session_start();
+session_start();/*
+
 if (isset($_SESSION['usuario'])) {
   if($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE'){
-    header('Location:.php');
+    header('Location:Dashboard.php');
     exit();
   }
   $nombreUsuario = $_SESSION['usuario']["nombre"];
@@ -10,7 +11,7 @@ if (isset($_SESSION['usuario'])) {
 
 } else {
   header('Location:../index.php');
-}
+}*/
 ?>
 
 <!DOCTYPE html>
@@ -63,7 +64,7 @@ if (isset($_SESSION['usuario'])) {
             <a href="pedidos.html" class="menu__link txt">Guias</a>
           </li>
           <li class="menu__item">
-            <a href="#" class="menu__link txt" id="cerrarSesion">Cerrar Sesión</a>
+            <a class="menu__link txt" id="cerrarSesion" name="cerrarSesion">Cerrar Sesión</a>
           </li>
            <!--
           <li class="menu__item menu__item--show">

@@ -92,7 +92,7 @@ session_destroy(); */
 				</a>
 			</li>
 			<li>
-				<a href="#" class="logout">
+				<a class="logout" id="cerrarSesion">
 					<i class='bx bxs-log-out-circle' ></i>
 					<span class="text">Cerrar Sesion</span>
 				</a>
@@ -100,8 +100,6 @@ session_destroy(); */
 		</ul>
 	</section>
 	<!-- SIDEBAR -->
-
-
 
 	<!-- CONTENT -->
 	<section id="content">

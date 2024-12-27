@@ -55,10 +55,10 @@ function login($funcion){
             if ($usuarioValido) {
                 //$tipUsuario = 'CLIENTE';
                 if($tipUsuario == 'CLIENTE'){
-                    header("Location: ../../Cliente/infoEmpresa.php");
+                    header("Location: ../../Cliente/menu.php");
                     exit();
                 }
-                header("Location: ../../Cliente/menu.php"); // Redirigir al dashboard
+                header("Location: ../../Cliente/Dashboard.php");
                 exit();
             } else {
                 echo "Correo o contraseña incorrectos.";
