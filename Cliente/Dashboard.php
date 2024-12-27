@@ -21,13 +21,13 @@ session_destroy(); */
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<!-- Bootsstrap  -->
-
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 	<!-- Boxicons -->
 	<link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
 	<!-- My CSS -->
 	<link rel="stylesheet" href="CSS/style.css">
-	
+	<link rel="stylesheet" href="CSS/style1.css">
 
 	<title>AdminHub</title>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -107,10 +107,10 @@ session_destroy(); */
 	<section id="content">
 		<!-- NAVBAR -->
 		<nav>
-			
+			<!--
 			<i class='bx bx-menu' ></i>
 			<a href="#" class="nav-link"></a>
-			<!--
+			
 			<form action="#">
 				<div class="form-input">
 					<input type="search" placeholder="Search...">
