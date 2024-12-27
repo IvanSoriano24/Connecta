@@ -36,19 +36,22 @@ function obtenerPedidos() {
         $pedidos = [];
         if (isset($data['documents'])) {
             foreach ($data['documents'] as $document) {
-                $pedido = $document['fields'];
-                $pedido['id'] = str_replace('projects/' . $firebaseProjectId . '/databases/(default)/documents/PEDIDOS/', '', $document['name']);
-                $pedidos[] = $pedido;
+                $fields = $document['fields'];
+                $pedidos[] = [
+                    'id' => str_replace('projects/' . $firebaseProjectId . '/databases/(default)/documents/PEDIDOS/', '', $document['name']),
+                    'cliente' => $fields['cliente']['stringValue'] ?? '',
+                    'total' => $fields['total']['stringValue'] ?? '',
+                    'fecha' => $fields['fecha']['stringValue'] ?? ''
+                ];
             }
         }
-        //echo json_encode(['success' => true, 'data' => $pedidos]);
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'data' => $pedidos]);
-
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al obtener los pedidos.']);
     }
 }
+
 
 function actualizarPedido($idPedido, $data) {
     global $firebaseProjectId, $firebaseApiKey;

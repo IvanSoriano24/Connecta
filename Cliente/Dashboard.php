@@ -2,13 +2,13 @@
 //$tipoUsuario = 2;
 session_start();
 if (isset($_SESSION['usuario'])) {
-  $nombreUsuario = $_SESSION['usuario']["nombre"];
-  $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+	$nombreUsuario = $_SESSION['usuario']["nombre"];
+	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 
-  //$empresa = $_SESSION['empresa']['razonSocial'];
+	//$empresa = $_SESSION['empresa']['razonSocial'];
 
 } else {
-  header('Location:../index.php');
+	header('Location:../index.php');
 }
 /*
 session_unset();
@@ -17,6 +17,7 @@ session_destroy(); */
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,13 +36,14 @@ session_destroy(); */
 
 
 	<style>
-    body.modal-open .hero_area {
-      filter: blur(5px);
-      /* Difumina el fondo mientras un modal está abierto */
-    }
-  </style>
+		body.modal-open .hero_area {
+			filter: blur(5px);
+			/* Difumina el fondo mientras un modal está abierto */
+		}
+	</style>
 
 </head>
+
 <body>
 
     <div class="hero_area">
@@ -145,14 +147,14 @@ session_destroy(); */
 				<img src="img/people.png">
 			</a>
 			-->
-		</nav>
-		<!-- fin NAVBAR -->
+			</nav>
+			<!-- fin NAVBAR -->
 
-		<!-- MAIN -->
+			<!-- MAIN -->
 
-		<main class="text-center my-5 hero_area">
-		
-			<!--
+			<main class="text-center my-5 hero_area">
+
+				<!--
 			<div class="head-title">
 				<div class="left">
 					<h1>Dashboard</h1>
@@ -197,7 +199,7 @@ session_destroy(); */
 			</ul>
 			 MAIN -->
 
-			<!-- 
+				<!-- 
 			<div class="table-data">
 				<div class="order">
 					<div class="head">
@@ -326,135 +328,136 @@ session_destroy(); */
 
 
 
-	<!-- Formumario -->
-	<div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-body">
-          <h2 class="card-title text-center">Informacion de Empresa</h2>
-          <form action="">
-            <label for="text">Id</label>
-            <input type="text" name="id" id="id"><br>
-            <label for="text">Numero de Empresa</label>
-            <input type="text" name="nomEmpresa" id="noEmpresa"><br>
-            <label for="text">Razon Social</label>
-            <input type="text" name="razonSocial" id="razonSocial"><br>
-            <label for="text">RFC:</label>
-            <input type="text" name="rfc" id="rfc"><br>
-            <label for="text">Poblacion:</label>
-            <input type="text" name="poblacion" id="poblacion"><br>
-            <label for="text">Regimen Fiscal:</label>
-            <input type="text" name="regimenFiscal" id="regimenFiscal"><br>
-            <label for="text">Num.Exterior:</label>
-            <input type="text" name="numExterior" id="numExterior"><br>
-            <label for="text">Num.Inerior:</label>
-            <input type="text" name="numInterior" id="numInterior"><br>
-            <label for="text">Entre Calle:</label>
-            <input type="text" name="entreCalle" id="entreCalle"><br>
-            <label for="text">Y Calle:</label>
-            <input type="text" name="yCalle" id="yCalle"><br>
-            <label for="text">Colonia:</label>
-            <input type="text" name="colonia" id="colonia"><br>
-            <label for="text">Referencia:</label>
-            <input type="text" name="referencia" id="referencia"><br>
-            <label for="text">Pais:</label>
-            <input type="text" name="pais" id="pais"><br>
-            <label for="text">Estado:</label>
-            <input type="text" name="estado" id="estado"><br>
-            <label for="text">Municipio:</label>
-            <input type="text" name="municipio" id="municipio"><br>
-            <label for="text">C.P:</label>
-            <input type="text" name="cp" id="cp"><br>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
-          <button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+		<!-- Formumario -->
+		<div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-body">
+						<h2 class="card-title text-center">Informacion de Empresa</h2>
+						<form action="">
+							<label for="text">Id</label>
+							<input type="text" name="id" id="id"><br>
+							<label for="text">Numero de Empresa</label>
+							<input type="text" name="nomEmpresa" id="noEmpresa"><br>
+							<label for="text">Razon Social</label>
+							<input type="text" name="razonSocial" id="razonSocial"><br>
+							<label for="text">RFC:</label>
+							<input type="text" name="rfc" id="rfc"><br>
+							<label for="text">Poblacion:</label>
+							<input type="text" name="poblacion" id="poblacion"><br>
+							<label for="text">Regimen Fiscal:</label>
+							<input type="text" name="regimenFiscal" id="regimenFiscal"><br>
+							<label for="text">Num.Exterior:</label>
+							<input type="text" name="numExterior" id="numExterior"><br>
+							<label for="text">Num.Inerior:</label>
+							<input type="text" name="numInterior" id="numInterior"><br>
+							<label for="text">Entre Calle:</label>
+							<input type="text" name="entreCalle" id="entreCalle"><br>
+							<label for="text">Y Calle:</label>
+							<input type="text" name="yCalle" id="yCalle"><br>
+							<label for="text">Colonia:</label>
+							<input type="text" name="colonia" id="colonia"><br>
+							<label for="text">Referencia:</label>
+							<input type="text" name="referencia" id="referencia"><br>
+							<label for="text">Pais:</label>
+							<input type="text" name="pais" id="pais"><br>
+							<label for="text">Estado:</label>
+							<input type="text" name="estado" id="estado"><br>
+							<label for="text">Municipio:</label>
+							<input type="text" name="municipio" id="municipio"><br>
+							<label for="text">C.P:</label>
+							<input type="text" name="cp" id="cp"><br>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
+						<button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
+					</div>
+				</div>
+			</div>
+		</div>
 
-  <!-- Conceccion a SAE -->
-  <div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-body">
-          <h2 class="card-title text-center">Informacion de Conexion</h2>
-          <form>
-            <label for="text">host</label>
-            <input type="text" name="host" id="host"><br>
-            <label for="text">usuario</label>
-            <input type="text" name="usuarioSae" id="usuarioSae"><br>
-            <label for="text">password</label>
-            <input type="password" name="password" id="password"><br>
-            <label for="text">Nombre de base de datos</Base></label>
-            <input type="text" name="nombreBase" id="nombreBase">
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-info" id="probarConexion">Probar</button> <!-- Pocisionar a la Izquierda -->
-          <button type="button" class="btn btn-primary" id="confirmarConexion">Guardar</button>
-          <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-	
-  <!-- JS Para la confirmacion empresa -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.getElementById('empresaModal').addEventListener('shown.bs.modal', function() {
-		var usuario = '<?php echo $nombreUsuario;  ?>';
-		cargarEmpresa(usuario);
-    });
-    document.addEventListener('DOMContentLoaded', function() {
-      const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
-      empresaModal.show();
-    });
-    document.getElementById('confirmarEmpresa').addEventListener('click', function() {
-      const empresaSeleccionada = document.getElementById('empresaSelect').value;
-      if (empresaSeleccionada != null) {
-
-        const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
-        
-        // Verificar que empresaOption no sea null
-        if (empresaOption) {
-            // Obtener los datos adicionales de la empresa utilizando los atributos data-*
-            const noEmpresa = empresaOption.getAttribute('data-no-empresa');
-            const razonSocial = empresaOption.getAttribute('data-razon-social');
-
-            alert(`Has seleccionado: ${noEmpresa} - ${razonSocial}`);
-
-            const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
-            modal.hide();
-
-            // Guardar los datos en la variable global
-            idEmpresarial = {
-                //id: empresaSeleccionada,
-                noEmpresa: noEmpresa,
-                razonSocial: razonSocial
-            };
-          }
-      } else {
-        alert('Por favor, selecciona una empresa.');
-      }
-    });
-  </script>
+		<!-- Conceccion a SAE -->
+		<div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-body">
+						<h2 class="card-title text-center">Informacion de Conexion</h2>
+						<form>
+							<label for="text">host</label>
+							<input type="text" name="host" id="host"><br>
+							<label for="text">usuario</label>
+							<input type="text" name="usuarioSae" id="usuarioSae"><br>
+							<label for="text">password</label>
+							<input type="password" name="password" id="password"><br>
+							<label for="text">Nombre de base de datos</Base></label>
+							<input type="text" name="nombreBase" id="nombreBase">
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-info" id="probarConexion">Probar</button> <!-- Pocisionar a la Izquierda -->
+						<button type="button" class="btn btn-primary" id="confirmarConexion">Guardar</button>
+						<button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
+					</div>
+				</div>
+			</div>
+		</div>
 
 
-    <script src="JS/menu.js"></script>
-    <script src="JS/app.js"></script> 
-	<script src="JS/script.js"></script>
+		<!-- JS Para la confirmacion empresa -->
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+		<script>
+			document.getElementById('empresaModal').addEventListener('shown.bs.modal', function() {
+				var usuario = '<?php echo $nombreUsuario;  ?>';
+				cargarEmpresa(usuario);
+			});
+			document.addEventListener('DOMContentLoaded', function() {
+				const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
+				empresaModal.show();
+			});
+			document.getElementById('confirmarEmpresa').addEventListener('click', function() {
+				const empresaSeleccionada = document.getElementById('empresaSelect').value;
+				if (empresaSeleccionada != null) {
+
+					const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
+
+					// Verificar que empresaOption no sea null
+					if (empresaOption) {
+						// Obtener los datos adicionales de la empresa utilizando los atributos data-*
+						const noEmpresa = empresaOption.getAttribute('data-no-empresa');
+						const razonSocial = empresaOption.getAttribute('data-razon-social');
+
+						alert(`Has seleccionado: ${noEmpresa} - ${razonSocial}`);
+
+						const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+						modal.hide();
+
+						// Guardar los datos en la variable global
+						idEmpresarial = {
+							//id: empresaSeleccionada,
+							noEmpresa: noEmpresa,
+							razonSocial: razonSocial
+						};
+					}
+				} else {
+					alert('Por favor, selecciona una empresa.');
+				}
+			});
+		</script>
+
+
+		<script src="JS/menu.js"></script>
+		<script src="JS/app.js"></script>
+		<script src="JS/script.js"></script>
 </body>
+
 </html>
 
 
 
 
 
-  <!-- Conceccion a SAE 
+<!-- Conceccion a SAE 
   <div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
