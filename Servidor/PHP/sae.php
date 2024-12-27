@@ -3,7 +3,6 @@ require 'firebase.php';
 
 function probarConexionSQLServer($host, $usuario, $password, $nombreBase) {
     try {
-        // Crear el DSN
         $dsn = "sqlsrv:Server=$host;Database=$nombreBase";
         $conn = new PDO($dsn, $usuario, $password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -22,7 +21,7 @@ function guardarEnFirebase($data, $firebaseProjectId, $firebaseApiKey) {
             'usuario' => ['stringValue' => $data['usuarioSae']],
             'password' => ['stringValue' => $data['password']],
             'nombreBase' => ['stringValue' => $data['nombreBase']],
-            'noEmpresa' => ['stringValue' => $data['noEmpresa']], // Agrega datos globales si los necesitas
+            'noEmpresa' => ['stringValue' => $data['noEmpresa']], 
         ],
     ];
     // Configuración de la solicitud HTTP
