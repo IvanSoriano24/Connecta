@@ -7,10 +7,13 @@
     box-sizing: border-box;
 }
 
-html{
-height: 100%;
-box-sizing: border-box;    
-}
+html,body{
+        height: 100%; /* Asegura que el cuerpo ocupe todo el viewport */
+        display: flex; /* Utiliza Flexbox para el layout principal */
+        flex-direction: column; /* Organiza los elementos en una columna */
+}  
+
+
 body{
     font-family: 'Lato', ;
     position: relative;
@@ -188,11 +191,29 @@ body{
 
 
 
-/*   FOOTTER  */
-footer {
-    background: #ffffff;
-    padding: 26px 0;
+/* Contenedor principal del contenido */
+.hero_area {
+    flex-shrink: 0; /* Evita que el header se reduzca */
 }
+
+.content-container {
+    flex: 1; /* Hace que este contenedor crezca para llenar el espacio disponible */
+    display: flex;
+    flex-direction: row; /* Mantén el contenido principal y el aside organizados */
+    overflow-y: auto;
+}
+
+/* Footer fijo al final */
+footer {
+    flex-shrink: 0; /* Impide que el footer se comprima */
+    background: #ffffff;
+    text-align: center;
+    padding: 26px 0;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1); /* Agrega un pequeño sombreado si deseas */
+}
+
+/*   FOOTTER  */
+
 
 .single-content {
     text-align: right;
