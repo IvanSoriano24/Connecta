@@ -86,6 +86,24 @@ session_destroy(); */
 		</ul>
 		<ul class="side-menu">
 			<li>
+
+
+
+ 	     <!--
+          <li class="menu__item menu__item--show">
+            <a href="#" class="menu__link  txt">Configuración <img src="assets/arrow.svg" class="menu__arrow"></a>
+            <ul class="menu__nesting">
+              <li class="menu__inside">
+                <a href="#" class="menu__link menu__link--inside" id="Empresa">Empresa</a>
+              </li>
+              <li class="menu__inside">
+                <a href="#" class="menu__link menu__link--inside" id="SAE">SAE</a>
+              </li>  
+            </ul> 
+          </li>
+            -->
+
+
 				<a href="#">
 					<i class='bx bxs-cog' ></i>
 					<span class="text">Configuracion</span>
