@@ -2,6 +2,7 @@
 
 function login($funcion){
     try{
+        $tipUsuario = '';
         session_start();
 
         $firebaseApiKey = "AIzaSyCh8BFeIi4JcAAe-aW8Z2odIqdytw-wnDA";
@@ -44,7 +45,7 @@ function login($funcion){
                         'tipoUsuario' => $fields['tipoUsuario']['stringValue'],  //6
                         'usuario' => $usuarioFirebase  //7
                     ];
-                    
+                    $tipUsuario = $_SESSION['usuario']['tipoUsuario'];
                     $usuarioValido = true;
                     break;
                 }
@@ -52,8 +53,13 @@ function login($funcion){
 
             // Redirigir según el resultado de la validación
             if ($usuarioValido) {
+                //$tipUsuario = 'CLIENTE';
+                if($tipUsuario == 'CLIENTE'){
+                    print_r("ola");
+                    header("Location: ../../Cliente/infoEmpresa.php");
+                    exit();
+                }
                 header("Location: ../../Cliente/menu.php"); // Redirigir al dashboard
-                //header("Location: ../../Cliente/Views/crudEmpresas.php"); //crudEmpresas w
                 exit();
             } else {
                 echo "Correo o contraseña incorrectos.";
@@ -74,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $funcion = $_POST["numFuncion"] ?? null;
     switch ($funcion) {
         case 1:
-            // login($funcion); // Ejemplo, no incluido aquí
+             login($funcion); // Ejemplo, no incluido aquí
             break;
         case 2:
             cerrarSesion();
