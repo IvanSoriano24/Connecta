@@ -90,7 +90,7 @@ if (isset($_SESSION['usuario'])) {
 
             </div>
           </div>
-           <!-- BOTON MDCLOUD /////////////////////////////////////
+           <!--
           <a class="navbar-brand" href="">
             <div id="divPrincipal">
               <img src="SRC/imagen.png" alt="Logo" id="logop">
@@ -104,7 +104,7 @@ if (isset($_SESSION['usuario'])) {
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
-           //////////////////////////////////////////-->
+           ¿-->
         </nav>
       </div>
     </header> <!-- Final del header section -->
@@ -264,5 +264,4 @@ if (isset($_SESSION['usuario'])) {
 
   <script src="JS/menu.js"></script>
 </body>
-
 </html>

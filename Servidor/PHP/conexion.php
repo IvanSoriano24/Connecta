@@ -55,7 +55,6 @@ function login($funcion){
             if ($usuarioValido) {
                 //$tipUsuario = 'CLIENTE';
                 if($tipUsuario == 'CLIENTE'){
-                    print_r("ola");
                     header("Location: ../../Cliente/infoEmpresa.php");
                     exit();
                 }
