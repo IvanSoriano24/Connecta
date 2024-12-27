@@ -28,6 +28,7 @@ session_destroy(); */
 	<!-- My CSS -->
 	<link rel="stylesheet" href="CSS/style.css">
 	<link rel="stylesheet" href="CSS/style1.css">
+	<link rel="stylesheet" href="CSS/selec.css">
 
 	<title>AdminHub</title>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -43,11 +44,11 @@ session_destroy(); */
 </head>
 <body>
 
-<div class="hero_area">
+    <div class="hero_area">
 
 
 	   <!-- SIDEBAR -->
-	<section id="sidebar">
+	  <section id="sidebar">
 		<a href="#" class="brand">
 			<i class='bx bxs-cloud'></i>
 			<span class="text">MDCloud</span>
@@ -62,13 +63,19 @@ session_destroy(); */
 			<li>
 				<a href="#">
 					<i class='bx bxs-shopping-bag-alt' ></i>
-					<span class="text">Mis pedidos</span>
+					<span class="text">Ventas</span>
 				</a>
 			</li>
 			<li>
 				<a href="#">
-					<i class='bx bxs-doughnut-chart' ></i>
-					<span class="text">Datos</span>
+					<i class='bx bxs-package' ></i>
+					<span class="text">Productos</span>
+				</a>
+			</li>
+			<li>
+				<a href="#">
+					<i class='bx bxs-user' ></i>
+					<span class="text">Mis Clientes</span>
 				</a>
 			</li>
 			<li>
@@ -79,31 +86,27 @@ session_destroy(); */
 			</li>
 			<li>
 				<a href="#">
-					<i class='bx bxs-group' ></i>
-					<span class="text">Clientes</span>
+					<i class='bx bxs-file' ></i>
+					<span class="text">Reportes</span>
 				</a>
 			</li>
 
 		</ul>
 		<ul class="side-menu">
-			
+
 		<li>
     			<a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
         			<i class='bx bxs-cog'></i>
         				<span class="text">Configuración</span>
     			</a>
     			<ul class="dropdown-menu">
-       					 <li><a class="dropdown-item" href="#">Información Empresa</a></li>
+       					 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#infoEmpresa" >Información Empresa</a></li>
+							
         				<li><a class="dropdown-item" href="#">Conexión SAE</a></li>
     			</ul>
 			</li>
 
-			<li>
-				<a href="#">
-					<i class='bx bxs-file' ></i>
-					<span class="text">Reportes</span>
-				</a>
-			</li>
+			
 			<li>
 				<a class="logout" id="cerrarSesion">
 					<i class='bx bxs-log-out-circle' ></i>
@@ -112,11 +115,11 @@ session_destroy(); */
 			</li>
 			
 		</ul>
-	</section>
-	<!-- SIDEBAR -->
+	  </section>
+	  <!-- SIDEBAR -->
 
-	<!-- CONTENT -->
-	<section id="content">
+	  <!-- CONTENT -->
+	  <section id="content">
 		<!-- NAVBAR -->
 		<nav>
 			<!--
@@ -288,9 +291,12 @@ session_destroy(); */
 			 -->
 		</main>
 		<!-- MAIN -->
-	</section>
-	<!-- CONTENT -->
-</div>
+	   </section>
+	   <!-- CONTENT -->
+        
+	
+	
+    </div>
 
 	
 	
@@ -316,8 +322,55 @@ session_destroy(); */
     </div>
    
   
-
-	
+  <!-- Modal para la INFORMACION EMPRESA 
+  <div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h2 class="card-title text-center">Informacion de Empresa</h2>
+          <form action="">
+            <label for="text">Id</label>
+            <input type="text" name="id" id="id"><br>
+            <label for="text">Numero de Empresa</label>
+            <input type="text" name="nomEmpresa" id="noEmpresa"><br>
+            <label for="text">Razon Social</label>
+            <input type="text" name="razonSocial" id="razonSocial"><br>
+            <label for="text">RFC:</label>
+            <input type="text" name="rfc" id="rfc"><br>
+            <label for="text">Poblacion:</label>
+            <input type="text" name="poblacion" id="poblacion"><br>
+            <label for="text">Regimen Fiscal:</label>
+            <input type="text" name="regimenFiscal" id="regimenFiscal"><br>
+            <label for="text">Num.Exterior:</label>
+            <input type="text" name="numExterior" id="numExterior"><br>
+            <label for="text">Num.Inerior:</label>
+            <input type="text" name="numInterior" id="numInterior"><br>
+            <label for="text">Entre Calle:</label>
+            <input type="text" name="entreCalle" id="entreCalle"><br>
+            <label for="text">Y Calle:</label>
+            <input type="text" name="yCalle" id="yCalle"><br>
+            <label for="text">Colonia:</label>
+            <input type="text" name="colonia" id="colonia"><br>
+            <label for="text">Referencia:</label>
+            <input type="text" name="referencia" id="referencia"><br>
+            <label for="text">Pais:</label>
+            <input type="text" name="pais" id="pais"><br>
+            <label for="text">Estado:</label>
+            <input type="text" name="estado" id="estado"><br>
+            <label for="text">Municipio:</label>
+            <input type="text" name="municipio" id="municipio"><br>
+            <label for="text">C.P:</label>
+            <input type="text" name="cp" id="cp"><br>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div> 
+	-->
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
@@ -368,55 +421,6 @@ session_destroy(); */
 
 
 
-  <!-- Formumario   INFORMACION EMPRESA 
-  <div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-body">
-          <h2 class="card-title text-center">Informacion de Empresa</h2>
-          <form action="">
-            <label for="text">Id</label>
-            <input type="text" name="id" id="id"><br>
-            <label for="text">Numero de Empresa</label>
-            <input type="text" name="nomEmpresa" id="noEmpresa"><br>
-            <label for="text">Razon Social</label>
-            <input type="text" name="razonSocial" id="razonSocial"><br>
-            <label for="text">RFC:</label>
-            <input type="text" name="rfc" id="rfc"><br>
-            <label for="text">Poblacion:</label>
-            <input type="text" name="poblacion" id="poblacion"><br>
-            <label for="text">Regimen Fiscal:</label>
-            <input type="text" name="regimenFiscal" id="regimenFiscal"><br>
-            <label for="text">Num.Exterior:</label>
-            <input type="text" name="numExterior" id="numExterior"><br>
-            <label for="text">Num.Inerior:</label>
-            <input type="text" name="numInterior" id="numInterior"><br>
-            <label for="text">Entre Calle:</label>
-            <input type="text" name="entreCalle" id="entreCalle"><br>
-            <label for="text">Y Calle:</label>
-            <input type="text" name="yCalle" id="yCalle"><br>
-            <label for="text">Colonia:</label>
-            <input type="text" name="colonia" id="colonia"><br>
-            <label for="text">Referencia:</label>
-            <input type="text" name="referencia" id="referencia"><br>
-            <label for="text">Pais:</label>
-            <input type="text" name="pais" id="pais"><br>
-            <label for="text">Estado:</label>
-            <input type="text" name="estado" id="estado"><br>
-            <label for="text">Municipio:</label>
-            <input type="text" name="municipio" id="municipio"><br>
-            <label for="text">C.P:</label>
-            <input type="text" name="cp" id="cp"><br>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
-          <button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
-        </div>
-      </div>
-    </div>
-  </div> 
-  -->
 
   <!-- Conceccion a SAE 
   <div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
