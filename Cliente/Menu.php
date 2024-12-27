@@ -58,7 +58,11 @@ if (isset($_SESSION['usuario'])) {
             <a href="productos.html" class="menu__link txt">Credito</a>
           </li>
           <li class="menu__item">
+<<<<<<< HEAD
             <a href="pedidos.php" class="menu__link txt">Pedidos</a>
+=======
+            <a href="Pedidos.php" class="menu__link txt">Pedidos</a>
+>>>>>>> 7f06afbc8ff8209099eb355ac37816aff288dee6
           </li>
           <li class="menu__item">
             <a href="pedidos.html" class="menu__link txt">Guias</a>
@@ -66,6 +70,7 @@ if (isset($_SESSION['usuario'])) {
           <li class="menu__item">
             <a class="menu__link txt" id="cerrarSesion" name="cerrarSesion">Cerrar Sesión</a>
           </li>
+
            <!--
           <li class="menu__item menu__item--show">
             <a href="#" class="menu__link  txt">Configuración <img src="assets/arrow.svg" class="menu__arrow"></a>
@@ -79,10 +84,9 @@ if (isset($_SESSION['usuario'])) {
             </ul> 
           </li>
                   -->
-        </ul>
+         </ul>
 
-            </div>
-          </div>
+         
            <!--
           <a class="navbar-brand" href="">
             <div id="divPrincipal">
@@ -97,10 +101,13 @@ if (isset($_SESSION['usuario'])) {
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
-           ¿-->
+           -->
+           <div class="menu__hamburguer">
+                <img src="assets/menu.svg" class="menu__img">
+            </div>
+    
+           </section> <!-- Final del header section -->
         </nav>
-      </div>
-    </header> <!-- Final del header section -->
   </div>
 
 
@@ -116,67 +123,10 @@ if (isset($_SESSION['usuario'])) {
         <img src="SRC/imagen.png" class="logomdconnecta" alt="Logo">
     </footer>
 
-   <!--MODAL SELECCION EMPRESA
-   <div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="text-center mb-4">
-          <h1 class="display-4 text-primary txth1">Bienvenid@</h1>
-
-        </div>
-        <div class="modal-body">
-          <h2 class="card-title text-center txth2">Selecciona Empresa</h2>
-          <select class="form-select" id="empresaSelect" name="empresaSelect">
-            <option value="" selected disabled class="txt">Selecciona una empresa</option>
-          </select>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary txt" id="confirmarEmpresa"> Confirmar</button>
-        </div>
-      </div>
-    </div>
-   </div>
-     -->
+  
 
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.getElementById('empresaModal').addEventListener('shown.bs.modal', function() {
-      cargarEmpresa();
-    });
-    document.addEventListener('DOMContentLoaded', function() {
-      const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
-      empresaModal.show();
-    });
-    document.getElementById('confirmarEmpresa').addEventListener('click', function() {
-      const empresaSeleccionada = document.getElementById('empresaSelect').value;
-      if (empresaSeleccionada != null) {
-
-        const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
-        
-        // Verificar que empresaOption no sea null
-        if (empresaOption) {
-            // Obtener los datos adicionales de la empresa utilizando los atributos data-*
-            const noEmpresa = empresaOption.getAttribute('data-no-empresa');
-            const razonSocial = empresaOption.getAttribute('data-razon-social');
-
-            alert(`Has seleccionado: ${noEmpresa} - ${razonSocial}`);
-
-            const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
-            modal.hide();
-
-            // Guardar los datos en la variable global
-            idEmpresarial = {
-                id: empresaSeleccionada,
-                noEmpresa: noEmpresa,
-                razonSocial: razonSocial
-            };
-          }
-      } else {
-        alert('Por favor, selecciona una empresa.');
-      }
-    });
-  </script>
 
 
   <script src="JS/menu.js"></script>
