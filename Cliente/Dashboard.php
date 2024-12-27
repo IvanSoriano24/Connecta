@@ -108,7 +108,7 @@ session_destroy(); */
 
 			
 			<li>
-				<a class="logout" id="cerrarSesion">
+				<a href="" class="logout" id="cerrarSesion">
 					<i class='bx bxs-log-out-circle' ></i>
 					<span class="text">Cerrar Sesion</span>
 				</a>
