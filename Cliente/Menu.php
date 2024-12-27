@@ -58,7 +58,7 @@ if (isset($_SESSION['usuario'])) {
             <a href="productos.html" class="menu__link txt">Credito</a>
           </li>
           <li class="menu__item">
-            <a href="pedidos.html" class="menu__link txt">Pedidos</a>
+            <a href="Pedidos.php" class="menu__link txt">Pedidos</a>
           </li>
           <li class="menu__item">
             <a href="pedidos.html" class="menu__link txt">Guias</a>

@@ -83,30 +83,27 @@ session_destroy(); */
 					<span class="text">Clientes</span>
 				</a>
 			</li>
+
+			<li>
+				<i class='bx bxs-cog' ></i>
+					<span class="text dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Configuracion  </span>
+					<!-- Default dropend button -->
+					<div class="btn-group dropend">
+  				           <ul class="dropdown-menu">
+    				        <!-- Dropdown menu links -->
+							<li> <a class="dropdown-item" href="#">Informacion Empresa</a></li>
+    						<li> <a class="dropdown-item" href="#">Conexion SAE</a></li> 		
+						    </ul>
+					</div>
+			</li>
+
 		</ul>
 		<ul class="side-menu">
+			
 			<li>
-
-
-
- 	     <!--
-          <li class="menu__item menu__item--show">
-            <a href="#" class="menu__link  txt">Configuración <img src="assets/arrow.svg" class="menu__arrow"></a>
-            <ul class="menu__nesting">
-              <li class="menu__inside">
-                <a href="#" class="menu__link menu__link--inside" id="Empresa">Empresa</a>
-              </li>
-              <li class="menu__inside">
-                <a href="#" class="menu__link menu__link--inside" id="SAE">SAE</a>
-              </li>  
-            </ul> 
-          </li>
-            -->
-
-
 				<a href="#">
-					<i class='bx bxs-cog' ></i>
-					<span class="text">Configuracion</span>
+					<i class='bx bxs-file' ></i>
+					<span class="text">Reportes</span>
 				</a>
 			</li>
 			<li>
@@ -115,6 +112,7 @@ session_destroy(); */
 					<span class="text">Cerrar Sesion</span>
 				</a>
 			</li>
+			
 		</ul>
 	</section>
 	<!-- SIDEBAR -->
@@ -368,3 +366,83 @@ session_destroy(); */
 	<script src="JS/script.js"></script>
 </body>
 </html>
+
+
+
+
+  <!-- Formumario   INFORMACION EMPRESA 
+  <div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h2 class="card-title text-center">Informacion de Empresa</h2>
+          <form action="">
+            <label for="text">Id</label>
+            <input type="text" name="id" id="id"><br>
+            <label for="text">Numero de Empresa</label>
+            <input type="text" name="nomEmpresa" id="noEmpresa"><br>
+            <label for="text">Razon Social</label>
+            <input type="text" name="razonSocial" id="razonSocial"><br>
+            <label for="text">RFC:</label>
+            <input type="text" name="rfc" id="rfc"><br>
+            <label for="text">Poblacion:</label>
+            <input type="text" name="poblacion" id="poblacion"><br>
+            <label for="text">Regimen Fiscal:</label>
+            <input type="text" name="regimenFiscal" id="regimenFiscal"><br>
+            <label for="text">Num.Exterior:</label>
+            <input type="text" name="numExterior" id="numExterior"><br>
+            <label for="text">Num.Inerior:</label>
+            <input type="text" name="numInterior" id="numInterior"><br>
+            <label for="text">Entre Calle:</label>
+            <input type="text" name="entreCalle" id="entreCalle"><br>
+            <label for="text">Y Calle:</label>
+            <input type="text" name="yCalle" id="yCalle"><br>
+            <label for="text">Colonia:</label>
+            <input type="text" name="colonia" id="colonia"><br>
+            <label for="text">Referencia:</label>
+            <input type="text" name="referencia" id="referencia"><br>
+            <label for="text">Pais:</label>
+            <input type="text" name="pais" id="pais"><br>
+            <label for="text">Estado:</label>
+            <input type="text" name="estado" id="estado"><br>
+            <label for="text">Municipio:</label>
+            <input type="text" name="municipio" id="municipio"><br>
+            <label for="text">C.P:</label>
+            <input type="text" name="cp" id="cp"><br>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div> 
+  -->
+
+  <!-- Conceccion a SAE 
+  <div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h2 class="card-title text-center">Informacion de Conexion</h2>
+          <form>
+            <label for="text">host</label>
+            <input type="text" name="host" id="host"><br>
+            <label for="text">usuario</label>
+            <input type="text" name="usuarioSae" id="usuarioSae"><br>
+            <label for="text">password</label>
+            <input type="password" name="password" id="password"><br>
+            <label for="text">Nombre de base de datos</Base></label>
+            <input type="text" name="nombreBase" id="nombreBase">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-info" id="probarConexion">Probar</button>    
+          <button type="button" class="btn btn-primary" id="confirmarConexion">Guardar</button>
+          <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  -->
