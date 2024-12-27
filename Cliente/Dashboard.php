@@ -84,22 +84,20 @@ session_destroy(); */
 				</a>
 			</li>
 
-			<li>
-				<i class='bx bxs-cog' ></i>
-					<span class="text dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"> Configuracion  </span>
-					<!-- Default dropend button -->
-					<div class="btn-group dropend">
-  				           <ul class="dropdown-menu">
-    				        <!-- Dropdown menu links -->
-							<li> <a class="dropdown-item" href="#">Informacion Empresa</a></li>
-    						<li> <a class="dropdown-item" href="#">Conexion SAE</a></li> 		
-						    </ul>
-					</div>
-			</li>
-
 		</ul>
 		<ul class="side-menu">
 			
+		<li>
+    			<a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        			<i class='bx bxs-cog'></i>
+        				<span class="text">Configuración</span>
+    			</a>
+    			<ul class="dropdown-menu">
+       					 <li><a class="dropdown-item" href="#">Información Empresa</a></li>
+        				<li><a class="dropdown-item" href="#">Conexión SAE</a></li>
+    			</ul>
+			</li>
+
 			<li>
 				<a href="#">
 					<i class='bx bxs-file' ></i>
