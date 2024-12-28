@@ -1,7 +1,6 @@
 
 function cargarPedidos() {
     $.get('../Servidor/PHP/pedido.php', { numFuncion: '4' }, function (response) {
-        console.log("dentro");
       if (response.success && response.data) {
         const pedidos = response.data;
         const pedidosTable = document.getElementById('datosPedidos');
@@ -36,13 +35,32 @@ function cargarPedidos() {
     }, 'json');
   }
 
+  function cargarDatosPedido(idPedido) {
+    $.get('../Servidor/PHP/pedido.php', { numFuncion: '5', idPedido: idPedido }, function (response) {
+      if (response.success && response.data) {
+        console.log(response.success);  // Verificar los datos que se obtienen
+        const pedido = response.data;
+        // Rellenar los campos del formulario con los datos del pedido
+        $('#idPedido').val(pedido.id);
+        $('#cliente').val(pedido.cliente);
+        $('#total').val(pedido.total);
+        $('#fecha').val(pedido.fecha);
+  
+        // Mostrar el formulario
+        $('#formularioEditarPedido').show();
+      } else {
+        console.error('Error al cargar los datos del pedido.');
+      }
+    }, 'json');
+}
+
+
   // Función para agregar eventos a los botones "Editar" y "Cancelar"
-  function agregarEventosBotones() {
+  function agregarEventosBotones() {    
     // Evento para editar pedido
     $('.btnEditarPedido').on('click', function () {
       const idPedido = $(this).data('id');
-      alert(`Editar Pedido ID: ${idPedido}`);
-      
+      cargarDatosPedido(idPedido);
     });
 
     // Evento para cancelar pedido
@@ -64,4 +82,39 @@ function cargarPedidos() {
       alert('Abrir formulario para crear pedido.');
       // Lógica para abrir el modal o formulario...
     });
+
+    $('#editarPedidoForm').on('submit', function (event) {
+      event.preventDefault(); // Evitar la recarga de la página
+      // Obtener los valores del formulario
+      const idPedido = $('#idPedido').val();
+      const cliente = $('#cliente').val();
+      const total = $('#total').val();
+      const fecha = $('#fecha').val();
+      // Crear un objeto con los datos actualizados
+      const datosActualizados = {
+        cliente: cliente,
+        total: total,
+        fecha: fecha
+      };
+      // Realizar la solicitud para actualizar el pedido
+      $.ajax({
+        url: '../Servidor/PHP/pedido.php',
+        method: 'POST',
+        data: {
+          numFuncion: '5', // Código para la actualización
+          id: idPedido,
+          datos: datosActualizados
+        },
+        success: function (response) {
+          if (response.success) {
+            alert('Pedido actualizado con éxito');
+            cargarPedidos(); // Recargar la lista de pedidos
+            $('#formularioEditarPedido').hide(); // Ocultar el formulario
+          } else {
+            alert('Error al actualizar el pedido');
+          }
+        }
+      });
+    });
+    
   });
