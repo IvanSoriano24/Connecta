@@ -172,6 +172,26 @@
   <!-- Footer End -->
   </div>
 
+<!-- Formulario de edición de pedido -->
+<div id="formularioEditarPedido" style="display:none;">
+  <h2>Editar Pedido</h2>
+  <form id="editarPedidoForm">
+    <label for="idPedido">ID Pedido</label>
+    <input type="text" id="idPedido" disabled>
+
+    <label for="cliente">Cliente</label>
+    <input type="text" id="cliente">
+
+    <label for="total">Total</label>
+    <input type="number" id="total">
+
+    <label for="fecha">Fecha</label>
+    <input type="date" id="fecha">
+
+    <button type="submit">Actualizar Pedido</button>
+    <button type="button" id="cerrarFormulario">Cancelar</button>
+  </form>
+</div>
 
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
