@@ -153,14 +153,14 @@ session_destroy(); */
 
         <div class="head-title">
           <div class="left">
-            <h1>Información Empresa</h1>
+            <h1>SAE</h1>
             <ul class="breadcrumb">
               <li>
                 <a href="Dashboard.php">Inicio</a>
               </li>
               <li><i class='bx bx-chevron-right'></i></li>
               <li>
-                <a href="#">Información Empresa</a>
+                <a href="#">SAE</a>
               </li>
             </ul>
           </div>
@@ -206,82 +206,36 @@ session_destroy(); */
               </div>
 
               <div class="form-row">
-                <label for="razonSocial">Razón Social:</label>
+                <label for="razonSocial">Host:</label>
                 <input type="text" name="razonSocial" id="razonSocial" value="AL BELLO MOBILE ">
               </div>
 
               <div class="form-row">
-                <label for="rfc">RFC:</label>
+                <label for="rfc">Puerto:</label>
                 <input type="text" name="rfc" id="rfc" value="BM0060822UT3">
               </div>
 
-              <div class="form-row">
-                <label for="regimenFiscal">Régimen Fiscal:</label>
-                <select name="regimenFiscal" id="regimenFiscal">
-                  <option value="1">Opcion 1</option>
-                  <!-- Agrega más opciones si es necesario -->
-                </select>
-              </div>
+              
 
               <div class="form-row">
-                <label for="numExterior">Num. Exterior:</label>
+                <label for="numExterior">Usuario:</label>
                 <input type="text" name="numExterior" id="numExterior">
-                <label for="numInterior">Num. Interior:</label>
-                <input type="text" name="numInterior" id="numInterior">
               </div>
-
-            
+              
               <div class="form-row">
-                <label for="entreCalle">Entre Calle:</label>
-                <input type="text" name="entreCalle" id="entreCalle">
-                <label for="yCalle">Y Calle:</label>
-                <input type="text" name="yCalle" id="yCalle">
-              </div>
-
-
-              <div class="form-row">
-                <label for="colonia">Colonia:</label>
-                <input type="text" name="colonia" id="colonia">
-              </div>
-
-              <div class="form-row">
-                <label for="referencia">Referencia:</label>
-                <input type="text" name="referencia" id="referencia">
-              </div>
-
-              <div class="form-row">
-                <label for="pais">País:</label>
-                <input type="text" name="pais" id="pais">
-                <label for="estado">Estado:</label>
-                <input type="text" name="estado" id="estado">
-              </div>
-
-              <div class="form-row">
-                
-              </div>
-
-              <div class="form-row">
-                <label for="municipio">Municipio:</label>
-                <input type="text" name="municipio" id="municipio">
-              </div>
-
-              <div class="form-row">
-                <label for="cp">Codigo Postal:</label>
-                <input type="text" name="cp" id="cp">
-              </div>
-
-              <div class="form-row">
-                <label for="poblacion">Población:</label>
-                <input type="text" name="poblacion" id="poblacion" value=".">
-              </div>
-
-              <div class="form-row">
-                <label for="claveCiec">Clave CIEC:</label>
+                <label for="claveCiec">Password:</label>
                 <div class="password-container">
                   <input type="password" name="claveCiec" id="claveCiec">
                   <button type="button" class="show-password">Mostrar</button>
                 </div>
               </div>
+
+              <div class="form-row">
+                <label for="poblacion">Nombre Base Datos:</label>
+                <input type="text" name="poblacion" id="poblacion" value=".">
+              </div>
+
+          
 
               <div class="form-buttons">
                 <button type="submit" class="btn-save">Guardar</button>
@@ -325,83 +279,3 @@ session_destroy(); */
 
 </html>
 
-
-
-
-
-
-
-
-<!-- Conceccion a SAE 
-  <div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-body">
-          <h2 class="card-title text-center">Informacion de Conexion</h2>
-          <form>
-            <label for="text">host</label>
-            <input type="text" name="host" id="host"><br>
-            <label for="text">usuario</label>
-            <input type="text" name="usuarioSae" id="usuarioSae"><br>
-            <label for="text">password</label>
-            <input type="password" name="password" id="password"><br>
-            <label for="text">Nombre de base de datos</Base></label>
-            <input type="text" name="nombreBase" id="nombreBase">
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-info" id="probarConexion">Probar</button>    
-          <button type="button" class="btn btn-primary" id="confirmarConexion">Guardar</button>
-          <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  -->
-
-
-<!-- 
-  <div class="modal-body">
-  <h2 class="card-title text-center">Informacion de Empresa</h2>
-  <form action="">
-    <label for="text">Id</label> 
-    <input type="text" name="id" id="id"><br>
-    <label for="text">Numero de Empresa</label>
-    <input type="text" name="nomEmpresa" id="noEmpresa"><br>
-    <label for="text">Razon Social</label>
-    <input type="text" name="razonSocial" id="razonSocial"><br>
-    <label for="text">RFC:</label>
-    <input type="text" name="rfc" id="rfc"><br>
-    <label for="text">Poblacion:</label>
-    <input type="text" name="poblacion" id="poblacion"><br>
-    <label for="text">Regimen Fiscal:</label>
-    <input type="text" name="regimenFiscal" id="regimenFiscal"><br>
-    <label for="text">Num.Exterior:</label>
-    <input type="text" name="numExterior" id="numExterior"><br>
-    <label for="text">Num.Inerior:</label>
-    <input type="text" name="numInterior" id="numInterior"><br>
-    <label for="text">Entre Calle:</label>
-    <input type="text" name="entreCalle" id="entreCalle"><br>
-    <label for="text">Y Calle:</label>
-    <input type="text" name="yCalle" id="yCalle"><br>
-    <label for="text">Colonia:</label>
-    <input type="text" name="colonia" id="colonia"><br>
-    <label for="text">Referencia:</label>
-    <input type="text" name="referencia" id="referencia"><br>
-    <label for="text">Pais:</label>
-    <input type="text" name="pais" id="pais"><br>
-    <label for="text">Estado:</label>
-    <input type="text" name="estado" id="estado"><br>
-    <label for="text">Municipio:</label>
-    <input type="text" name="municipio" id="municipio"><br>
-    <label for="text">C.P:</label>
-    <input type="text" name="cp" id="cp"><br>
-  </form>
-</div>
-
-<div class="modal-footer">
-  <button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
-  <button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
-</div>
-</div>
--->

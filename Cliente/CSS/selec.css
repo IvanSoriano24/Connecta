@@ -34,7 +34,7 @@ h1.display-4 {
 .card {
     border: none; 
     
-    background-color: #757373; /* Fondo blanco */
+    background-color: #5889e6; /* Fondo blanco */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
     padding: 20px;
 }
@@ -63,7 +63,7 @@ h1.display-4 {
 
 /* Botón */
 .btn-primary {
-    background-color: #566492; /* Azul primario */
+    background-color: #7ec8eb; /* Azul primario */
     border: none; /* Sin borde */
     border-radius: 50px; /* Bordes redondeados */
     padding: 12px 20px;
@@ -74,7 +74,7 @@ h1.display-4 {
 }
 
 .btn-primary:hover {
-    background-color: #636567; /* Azul más oscuro */
+    background-color: #ceecf3; /* Azul más oscuro */
     transform: scale(1.05); /* Efecto de zoom */
 }
 
@@ -111,7 +111,7 @@ background-color: rgb(255, 255, 255);
 
 .main-logo{
     display: block;
-    margin: 50px auto;
+    margin: 50px auto; 
     max-width: 700px;
     width: 1200;
     height: auto;
@@ -129,11 +129,87 @@ background-color: rgb(255, 255, 255);
 
 
 .txth2{
-    font-family: Lato; font-size: 50px;
-    color: #4A2378;
+    font-family: Lato; font-size: 45px;
+    color: #000000;
 }
 
 .txth1{
     font-family: Lato; font-size: 45px;
 }
 
+/*  Info Empresa   */ 
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .form-row label {
+    flex: 0 0 140px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  .form-row input,
+  .form-row select {
+    flex: 1;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .password-container {
+    display: flex;
+    align-items: center;
+  }
+
+  .password-container input {
+    flex: 1;
+  }
+
+  .password-container button {
+    margin-left: 10px;
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .password-container button:hover {
+    background-color: #0056b3;
+  }
+
+  .form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-save {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .btn-save:hover {
+    background-color: #218838;
+  }
+
+  .btn-cancel {
+    background-color: #dc3545;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .btn-cancel:hover {
+    background-color: #c82333;
+  }

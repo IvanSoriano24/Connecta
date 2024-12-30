@@ -28,7 +28,7 @@ session_destroy(); */
 
 	<!-- My CSS -->
 	<link rel="stylesheet" href="CSS/style.css">
-	<link rel="stylesheet" href="CSS/style1.css">
+	
 	<link rel="stylesheet" href="CSS/selec.css">
 
 	<title>AdminHub</title>
@@ -102,9 +102,9 @@ session_destroy(); */
         				<span class="text">Configuración</span>
     			</a>
     			<ul class="dropdown-menu">
-       					 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#infoEmpresa" >Información Empresa</a></li>
+       					 <li><a class="dropdown-item" href="infoEmpresa.php"  data-bs-target="#infoEmpresa" >Información Empresa</a></li>
 							
-        				<li><a class="dropdown-item" href="#">Conexión SAE</a></li>
+        				<li><a class="dropdown-item" href="ConexioSAE.php">Conexión SAE</a></li>
     			</ul>
 			</li>
 
@@ -313,6 +313,7 @@ session_destroy(); */
             <div class="modal-content">
                 <div class="text-center mb-4">
                  <h1 class="display-4 text-primary txth1">Bienvenid@</h1>
+				 <span id="tipoUsuario">  </span>
                  </div>
              <div class="modal-body">
               <h2 class="card-title text-center txth2">Selecciona Empresa</h2>
@@ -327,55 +328,6 @@ session_destroy(); */
     </div>  
 
 
-
-		<!-- Formumario -->
-		<div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
-			<div class="modal-dialog modal-dialog-centered">
-				<div class="modal-content">
-					<div class="modal-body">
-						<h2 class="card-title text-center">Informacion de Empresa</h2>
-						<form action="">
-							<label for="text">Id</label>
-							<input type="text" name="id" id="id"><br>
-							<label for="text">Numero de Empresa</label>
-							<input type="text" name="nomEmpresa" id="noEmpresa"><br>
-							<label for="text">Razon Social</label>
-							<input type="text" name="razonSocial" id="razonSocial"><br>
-							<label for="text">RFC:</label>
-							<input type="text" name="rfc" id="rfc"><br>
-							<label for="text">Poblacion:</label>
-							<input type="text" name="poblacion" id="poblacion"><br>
-							<label for="text">Regimen Fiscal:</label>
-							<input type="text" name="regimenFiscal" id="regimenFiscal"><br>
-							<label for="text">Num.Exterior:</label>
-							<input type="text" name="numExterior" id="numExterior"><br>
-							<label for="text">Num.Inerior:</label>
-							<input type="text" name="numInterior" id="numInterior"><br>
-							<label for="text">Entre Calle:</label>
-							<input type="text" name="entreCalle" id="entreCalle"><br>
-							<label for="text">Y Calle:</label>
-							<input type="text" name="yCalle" id="yCalle"><br>
-							<label for="text">Colonia:</label>
-							<input type="text" name="colonia" id="colonia"><br>
-							<label for="text">Referencia:</label>
-							<input type="text" name="referencia" id="referencia"><br>
-							<label for="text">Pais:</label>
-							<input type="text" name="pais" id="pais"><br>
-							<label for="text">Estado:</label>
-							<input type="text" name="estado" id="estado"><br>
-							<label for="text">Municipio:</label>
-							<input type="text" name="municipio" id="municipio"><br>
-							<label for="text">C.P:</label>
-							<input type="text" name="cp" id="cp"><br>
-						</form>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
-						<button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
-					</div>
-				</div>
-			</div>
-		</div>
 
 		<!-- Conceccion a SAE -->
 		<div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -449,6 +401,10 @@ session_destroy(); */
 		<script src="JS/menu.js"></script>
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
+
+		<script>
+            var tipoUsuario = '<?php echo $tipoUsuario ?>'
+        </script>
 </body>
 
 </html>
@@ -483,3 +439,4 @@ session_destroy(); */
     </div>
   </div>
   -->
+        
