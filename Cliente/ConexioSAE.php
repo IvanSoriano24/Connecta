@@ -202,37 +202,39 @@ session_destroy(); */
 
               <div class="form-row">
                 <label for="noEmpresa">No. Empresa:</label>
-                <input type="text" name="noEmpresa" id="noEmpresa" value="1" readonly>
+                <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="1" readonly>
               </div>
 
               <div class="form-row">
                 <label for="razonSocial">Host:</label>
-                <input type="text" name="razonSocial" id="razonSocial" value="AL BELLO MOBILE ">
+                <input class="input-mt"type="text" name="razonSocial" id="razonSocial" value="AL BELLO MOBILE ">
               </div>
 
               <div class="form-row">
                 <label for="rfc">Puerto:</label>
-                <input type="text" name="rfc" id="rfc" value="BM0060822UT3">
+                <input class="input-small" type="text" name="rfc" id="rfc" value="BM0060822UT3">
               </div>
 
               
 
               <div class="form-row">
                 <label for="numExterior">Usuario:</label>
-                <input type="text" name="numExterior" id="numExterior">
-              </div>
-              
-              <div class="form-row">
+                <input class="input-mt"type="text" name="numExterior" id="numExterior">
                 <label for="claveCiec">Password:</label>
+               
                 <div class="password-container">
-                  <input type="password" name="claveCiec" id="claveCiec">
+                  <input class="input-mt" type="password" name="claveCiec" id="claveCiec">
                   <button type="button" class="show-password">Mostrar</button>
                 </div>
+            </div>
+
+              <div class="form-row">
+              
               </div>
 
               <div class="form-row">
                 <label for="poblacion">Nombre Base Datos:</label>
-                <input type="text" name="poblacion" id="poblacion" value=".">
+                <input class="input-mt" type="text" name="poblacion" id="poblacion" value=".">
               </div>
 
           
