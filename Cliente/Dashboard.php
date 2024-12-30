@@ -1,12 +1,17 @@
 <?php
-//$tipoUsuario = 2;
 session_start();
 if (isset($_SESSION['usuario'])) {
 	$nombreUsuario = $_SESSION['usuario']["nombre"];
 	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 
-	//$empresa = $_SESSION['empresa']['razonSocial'];
+	$mostrarModal = isset($_SESSION['empresa']) ? false : true;
 
+	//$empresa = $_SESSION['empresa']['razonSocial'];
+	if (isset($_SESSION['empresa'])) {
+		$empresa = $_SESSION['empresa']['razonSocial'];
+		$idEmpresa = $_SESSION['empresa']['id'];
+		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+	}
 } else {
 	header('Location:../index.php');
 }
@@ -46,85 +51,85 @@ session_destroy(); */
 
 <body>
 
-    <div class="hero_area">
+	<div class="hero_area">
 
 
-	   <!-- SIDEBAR -->
-	  <section id="sidebar">
-		<a href="#" class="brand">
-			<i class='bx bxs-cloud'></i>
-			<span class="text">MDCloud</span>
-		</a>
-		<ul class="side-menu top">
-			<li class="active">
-				<a href="#">
-					<i class='bx bxs-dashboard' ></i>
-					<span class="text">Inicio</span>
-				</a>
-			</li>
-			<li>
-				<a href="#">
-					<i class='bx bxs-shopping-bag-alt' ></i>
-					<span class="text">Ventas</span>
-				</a>
-			</li>
-			<li>
-				<a href="#">
-					<i class='bx bxs-package' ></i>
-					<span class="text">Productos</span>
-				</a>
-			</li>
-			<li>
-				<a href="#">
-					<i class='bx bxs-user' ></i>
-					<span class="text">Mis Clientes</span>
-				</a>
-			</li>
-			<li>
-				<a href="#">
-					<i class='bx bxs-message-dots' ></i>
-					<span class="text">Mensajes</span>
-				</a>
-			</li>
-			<li>
-				<a href="#">
-					<i class='bx bxs-file' ></i>
-					<span class="text">Reportes</span>
-				</a>
-			</li>
+		<!-- SIDEBAR -->
+		<section id="sidebar">
+			<a href="#" class="brand">
+				<i class='bx bxs-cloud'></i>
+				<span class="text">MDCloud</span>
+			</a>
+			<ul class="side-menu top">
+				<li class="active">
+					<a href="#">
+						<i class='bx bxs-dashboard'></i>
+						<span class="text">Inicio</span>
+					</a>
+				</li>
+				<li>
+					<a href="#">
+						<i class='bx bxs-shopping-bag-alt'></i>
+						<span class="text">Ventas</span>
+					</a>
+				</li>
+				<li>
+					<a href="#">
+						<i class='bx bxs-package'></i>
+						<span class="text">Productos</span>
+					</a>
+				</li>
+				<li>
+					<a href="#">
+						<i class='bx bxs-user'></i>
+						<span class="text">Mis Clientes</span>
+					</a>
+				</li>
+				<li>
+					<a href="#">
+						<i class='bx bxs-message-dots'></i>
+						<span class="text">Mensajes</span>
+					</a>
+				</li>
+				<li>
+					<a href="#">
+						<i class='bx bxs-file'></i>
+						<span class="text">Reportes</span>
+					</a>
+				</li>
 
-		</ul>
-		<ul class="side-menu">
+			</ul>
+			<ul class="side-menu">
 
-		<li>
-    			<a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-        			<i class='bx bxs-cog'></i>
-        				<span class="text">Configuración</span>
-    			</a>
-    			<ul class="dropdown-menu">
-       					 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#infoEmpresa" >Información Empresa</a></li>
-							
-        				<li><a class="dropdown-item" href="#">Conexión SAE</a></li>
-    			</ul>
-			</li>
+				<li>
+					<a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+						<i class='bx bxs-cog'></i>
+						<span class="text">Configuración</span>
+					</a>
+					<ul class="dropdown-menu">
+						<li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#infoEmpresa">Información Empresa</a></li>
 
-			
-			<li>
-				<a href="" class="logout" id="cerrarSesion">
-					<i class='bx bxs-log-out-circle' ></i>
-					<span class="text">Cerrar Sesion</span>
-				</a>
-			</li>
-			
-		</ul>
-	  </section>
-	  <!-- SIDEBAR -->
+						<li><a class="dropdown-item" href="#">Conexión SAE</a></li>
+					</ul>
+				</li>
 
-	  <!-- CONTENT -->
-	  <section id="content">
-		<!-- NAVBAR -->
-		<nav>
-			<!--
+
+				<li>
+					<a href="" class="logout" id="cerrarSesion">
+						<i class='bx bxs-log-out-circle'></i>
+						<span class="text">Cerrar Sesion</span>
+					</a>
+				</li>
+
+			</ul>
+		</section>
+		<!-- SIDEBAR -->
+
+		<!-- CONTENT -->
+		<section id="content">
+			<!-- NAVBAR -->
+			<nav>
+				<!--
 			<i class='bx bx-menu' ></i>
 			<a href="#" class="nav-link"></a>
 			
@@ -291,43 +296,31 @@ session_destroy(); */
 			</div>
 
 			 -->
-		</main>
-		<!-- MAIN -->
-	   </section>
-	   <!-- CONTENT -->
-        
-	
-	
-    </div>
-
-	
-	
-
-
-
+			</main>
+			<!-- MAIN -->
+		</section>
+		<!-- CONTENT -->
+	</div>
 	</section>
 	<!-- CONTENT -->
-</div>
-    <div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-       <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="text-center mb-4">
-                 <h1 class="display-4 text-primary txth1">Bienvenid@</h1>
-                 </div>
-             <div class="modal-body">
-              <h2 class="card-title text-center txth2">Selecciona Empresa</h2>
-                <select class="form-select" id="empresaSelect" name="empresaSelect">
-                 <option value="" selected disabled class="txt">Selecciona una empresa</option>
-              </select>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary txt" id="confirmarEmpresa"> Confirmar</button>
-        </div>
-       </div>
-    </div>  
-
-
-
+	</div>
+	<div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" class="modal <?php echo $mostrarModal ? '' : 'd-none'; ?>">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="text-center mb-4">
+					<h1 class="display-4 text-primary txth1">Bienvenid@</h1>
+				</div>
+				<div class="modal-body">
+					<h2 class="card-title text-center txth2">Selecciona Empresa</h2>
+					<select class="form-select" id="empresaSelect" name="empresaSelect">
+						<option value="" selected disabled class="txt">Selecciona una empresa</option>
+					</select>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary txt" id="confirmarEmpresa"> Confirmar</button>
+				</div>
+			</div>
+		</div>
 		<!-- Formumario -->
 		<div class="modal fade" id="infoEmpresa" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="display:none;">
 			<div class="modal-dialog modal-dialog-centered">
@@ -376,7 +369,6 @@ session_destroy(); */
 				</div>
 			</div>
 		</div>
-
 		<!-- Conceccion a SAE -->
 		<div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
 			<div class="modal-dialog modal-dialog-centered">
@@ -412,9 +404,13 @@ session_destroy(); */
 				cargarEmpresa(usuario);
 			});
 			document.addEventListener('DOMContentLoaded', function() {
-				const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
-				empresaModal.show();
+				const empresaSeleccionada = <?php echo json_encode(isset($_SESSION['empresa']) ? $_SESSION['empresa'] : null); ?>;
+				if (empresaSeleccionada === null) {
+					const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
+					empresaModal.show();
+				}
 			});
+
 			document.getElementById('confirmarEmpresa').addEventListener('click', function() {
 				const empresaSeleccionada = document.getElementById('empresaSelect').value;
 				if (empresaSeleccionada != null) {
@@ -438,21 +434,26 @@ session_destroy(); */
 							noEmpresa: noEmpresa,
 							razonSocial: razonSocial
 						};
+						sesionEmpresa(idEmpresarial);
 					}
 				} else {
 					alert('Por favor, selecciona una empresa.');
 				}
 			});
 		</script>
-
-
 		<script src="JS/menu.js"></script>
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
 </body>
 
 </html>
-
+<!-- 
+				<script>
+            var empresa = '<?php // echo $nombreEmpresa 
+							?>'
+			console.log(empresa);
+        </script>
+		-->
 
 
 

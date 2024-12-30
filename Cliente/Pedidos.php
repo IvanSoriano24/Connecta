@@ -10,66 +10,15 @@
   
 
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
-  <link href="CSS/Estilos.css" rel="stylesheet">
   <link rel="stylesheet" href="css/estilosmenu.css"> 
 
 
   <title>Menu Principal</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-  <style>
-    
-
-    .hero_area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    footer {
-      background: #f8f9fa;
-      text-align: center;
-      padding: 10px;
-    }
-
-    .content-container {
-      display: flex;
-      flex: 1;
-    }
-
-    section {
-      flex: 2;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    aside {
-      flex: 1;
-      padding: 20px;
-      border-left: 1px solid #ddd;
-      overflow-y: auto;
-      background: #f9f9f9;
-    }
-
-    .table-container {
-      margin-bottom: 20px;
-    }
-
-    .search-bar {
-      margin-bottom: 15px;
-    }
-
-    header, footer {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-  </style>
-
 </head>
 
 <body>
-
   <div class="hero_area">
     <!--MENU  HEADER-->
     <nav class="menu">
@@ -78,7 +27,7 @@
 
         <ul class="menu__links">
           <li class="menu__item">
-            <a href="cliente.html" class="menu__link txt">Inicio</a>
+            <a href="Menu.php" class="menu__link txt">Inicio</a>
           </li>
           <li class="menu__item">
             <a href="productos.html" class="menu__link txt">Credito</a>
