@@ -17,6 +17,7 @@ function cargarPedidos() {
             <td>${pedido.cliente || 'Sin cliente'}</td>
             <td>${pedido.total || '0'}</td>
             <td>${pedido.fecha || 'Sin fecha'}</td>
+            <td>${pedido.estado || 'Sin estado'}</td>
             <td>
               <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.id}">Editar</button>
               <button class="btnCancelarPedido" data-id="${pedido.id}">Cancelar</button>
@@ -49,6 +50,7 @@ function cargarPedidos() {
             $('#cliente').val(pedido.cliente.stringValue);  // Accede al valor real
             $('#total').val(pedido.total.stringValue);  // Accede al valor real
             $('#fecha').val(pedido.fecha.stringValue); 
+            $('#estado').val(pedido.estado,stringValue);
 
             // Mostrar el formulario
             $('#formularioEditarPedido').show();
@@ -74,10 +76,25 @@ function cargarPedidos() {
       const idPedido = $(this).data('id');
       const confirmacion = confirm('¿Estás seguro de que quieres cancelar este pedido?');
       if (confirmacion) {
-        alert(`Cancelar Pedido ID: ${idPedido}`);
-        
+          $.post('../Servidor/PHP/pedido.php', {
+              numFuncion: '3',  // La función 3 es para cancelar el pedido
+              idPedido: idPedido
+          }, function (response) {
+              if (response.success) {
+                  alert('Pedido cancelado con éxito');
+                  location.reload();
+              } else {
+                  alert('Error al cancelar el pedido: ' + response.message);
+                  console.log('Error al cancelar el pedido: ' + response.message);
+              }
+          }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+              console.error('Error en la solicitud:', textStatus, errorThrown);
+              console.error('Respuesta del servidor:', jqXHR.responseText); // Verifica la respuesta del servidor
+              console.log('Error al cancelar el pedido. Verifica la consola para más detalles.');
+              alert('Error al cancelar el pedido. Verifica la consola para más detalles.');
+          });
       }
-    });
+  });  
   }
 
  $(document).ready(function () {

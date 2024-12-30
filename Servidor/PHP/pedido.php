@@ -42,7 +42,8 @@ function obtenerPedidos() {
                     'pedido' => $fields['pedido']['stringValue'] ?? '',
                     'cliente' => $fields['cliente']['stringValue'] ?? '',
                     'total' => $fields['total']['stringValue'] ?? '',
-                    'fecha' => $fields['fecha']['stringValue'] ?? ''
+                    'fecha' => $fields['fecha']['stringValue'] ?? '',
+                    'estado' => $fields['estado']['stringValue'] ?? ''
                 ];
             }
         }
@@ -53,30 +54,127 @@ function obtenerPedidos() {
     }
 }
 
-
 function actualizarPedido($idPedido, $data) {
     global $firebaseProjectId, $firebaseApiKey;
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/MONTOPEDIDO/$idPedido?key=$firebaseApiKey";
 
-    $options = [
-        'http' => [
-            'header'  => "Content-type: application/json",
-            'method'  => 'PATCH',
-            'content' => json_encode($data),
-        ]
-    ];
-    $context  = stream_context_create($options);
-    $response = @file_get_contents($url, false, $context);  // Usamos el "@" para evitar el warning si hay error
-    if ($response !== false) {
-        echo json_encode(['success' => true, 'message' => 'Pedido actualizado correctamente.']);
+    // Codificar el ID y la clave de la API para evitar errores de formato
+    $idPedido = urlencode($idPedido);
+    $firebaseApiKey = urlencode($firebaseApiKey);
+
+    // URL de Firestore para obtener los datos actuales del pedido
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS/$idPedido?key=$firebaseApiKey";
+    
+    // Obtener los datos actuales del pedido
+    $response = file_get_contents($url);
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los datos del pedido.']);
+        return;
+    }
+
+    // Decodificar la respuesta de Firestore
+    $currentData = json_decode($response, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        echo json_encode(['success' => false, 'message' => 'Error al decodificar los datos del pedido.']);
+        return;
+    }
+
+    // Verificar si se encontraron los datos del pedido
+    if (isset($currentData['fields'])) {
+        // Combinar los datos existentes con los nuevos datos
+        $updatedData = $currentData['fields'];
+
+        // Actualizar solo los campos proporcionados en $data
+        foreach ($data as $key => $value) {
+            $updatedData[$key] = ['stringValue' => $value];
+        }
+
+        // Preparar los datos finales para la actualización
+        $finalData = [
+            'fields' => $updatedData
+        ];
+
+        // Configuración para la solicitud PATCH
+        $updateUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS/$idPedido?key=$firebaseApiKey";
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json",
+                'method'  => 'PATCH',
+                'content' => json_encode($finalData),
+            ]
+        ];
+        $context  = stream_context_create($options);
+
+        // Ejecutar la solicitud de actualización
+        $response = file_get_contents($updateUrl, false, $context);
+
+        // Verificar la respuesta de la actualización
+        if ($response !== false) {
+            echo json_encode(['success' => true, 'message' => 'Pedido actualizado correctamente.']);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al actualizar el pedido.',
+                'error' => error_get_last()
+            ]);
+        }
     } else {
-        // Si la respuesta es false, significa que hubo un error al realizar la solicitud
-        $error = error_get_last(); // Obtener el último error ocurrido
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar el pedido.',
-            'error' => $error
-        ]);
+        echo json_encode(['success' => false, 'message' => 'Pedido no encontrado.']);
+    }
+}
+
+function cancelarPedido($idPedido) {
+    global $firebaseProjectId, $firebaseApiKey;
+    // Codificar el ID y la clave de la API para evitar errores de formato
+    $idPedido = urlencode($idPedido);
+    $firebaseApiKey = urlencode($firebaseApiKey);
+    // URL de Firestore para obtener los datos actuales del pedido
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS/$idPedido?key=$firebaseApiKey";
+    // Obtener los datos actuales del pedido
+    $response = file_get_contents($url);
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los datos del pedido.']);
+        return;
+    }
+    // Decodificar la respuesta de Firestore
+    $currentData = json_decode($response, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        echo json_encode(['success' => false, 'message' => 'Error al decodificar los datos del pedido.']);
+        return;
+    }
+    // Verificar si se encontraron los datos del pedido
+    if (isset($currentData['fields'])) {
+        // Combinar los datos existentes con el nuevo estado
+        $updatedData = $currentData['fields'];
+        // Actualizar el campo "estado" a "CANCELADO"
+        $updatedData['estado'] = ['stringValue' => 'CANCELADO'];
+        // Preparar los datos finales para la actualización
+        $finalData = [
+            'fields' => $updatedData
+        ];
+        // Configuración para la solicitud PATCH
+        $updateUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS/$idPedido?key=$firebaseApiKey";
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json",
+                'method'  => 'PATCH',
+                'content' => json_encode($finalData),
+            ]
+        ];
+        $context  = stream_context_create($options);
+        // Ejecutar la solicitud de actualización
+        $response = file_get_contents($updateUrl, false, $context);
+        // Verificar la respuesta de la actualización
+        if ($response !== false) {
+            echo json_encode(['success' => true, 'message' => 'Pedido cancelado correctamente.']);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al cancelar el pedido.',
+                'error' => error_get_last()
+            ]);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Pedido no encontrado.']);
     }
 }
 
@@ -145,10 +243,12 @@ switch ($funcion) {
 
     case 3: // Cancelar pedido
         $idPedido = $_POST['idPedido'];
-        $data = [
-            'estado' => ['stringValue' => 'Cancelado'],
-        ];
-        actualizarPedido($idPedido, $data);
+        /*$data = [
+            'fields' => [
+                'estado' => ['stringValue' => 'CANCELADO']
+            ]
+        ]; */       
+        cancelarPedido($idPedido);
         break;
 
     case 4: // Obtener pedidos

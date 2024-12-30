@@ -67,6 +67,7 @@
               <th>Cliente</th>
               <th>Total</th>
               <th>Fecha</th>
+              <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
