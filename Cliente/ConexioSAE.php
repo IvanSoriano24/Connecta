@@ -1,11 +1,15 @@
 <?php
-//$tipoUsuario = 2;
 session_start();
 if (isset($_SESSION['usuario'])) {
   $nombreUsuario = $_SESSION['usuario']["nombre"];
   $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 
   //$empresa = $_SESSION['empresa']['razonSocial'];
+  if (isset($_SESSION['empresa'])) {
+		$empresa = $_SESSION['empresa']['razonSocial'];
+		$idEmpresa = $_SESSION['empresa']['id'];
+		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+	}
 
 } else {
   header('Location:../index.php');
@@ -202,17 +206,17 @@ session_destroy(); */
 
               <div class="form-row">
                 <label for="noEmpresa">No. Empresa:</label>
-                <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="1" readonly>
+                <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
               </div>
 
               <div class="form-row">
                 <label for="razonSocial">Host:</label>
-                <input class="input-mt"type="text" name="razonSocial" id="razonSocial" value="AL BELLO MOBILE ">
+                <input class="input-mt"type="text" name="razonSocial" id="razonSocial" value="">
               </div>
 
               <div class="form-row">
                 <label for="rfc">Puerto:</label>
-                <input class="input-small" type="text" name="rfc" id="rfc" value="BM0060822UT3">
+                <input class="input-small" type="text" name="rfc" id="rfc" value="">
               </div>
 
               

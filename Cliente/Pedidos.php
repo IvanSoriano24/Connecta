@@ -63,9 +63,11 @@
             </tr>
             <tr>
               <th>ID Pedido</th>
+              <th>Pedidos</th>
               <th>Cliente</th>
               <th>Total</th>
               <th>Fecha</th>
+              <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -128,14 +130,17 @@
     <label for="idPedido">ID Pedido</label>
     <input type="text" id="idPedido" disabled>
 
+    <label for="idPedido">Pedidos</label>
+    <input type="text" id="pedidos">
+
     <label for="cliente">Cliente</label>
     <input type="text" id="cliente">
 
     <label for="total">Total</label>
-    <input type="number" id="total">
+    <input type="text" id="total">
 
     <label for="fecha">Fecha</label>
-    <input type="date" id="fecha">
+    <input type="text" id="fecha">
 
     <button type="submit">Actualizar Pedido</button>
     <button type="button" id="cerrarFormulario">Cancelar</button>
