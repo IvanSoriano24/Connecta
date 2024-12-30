@@ -1,43 +1,7 @@
-
-/* Fondo general 
-body {
-    background-color: #ffffff; 
-    font-family: 'Arial', sans-serif;
-    color: #ffffff; 
-    align-items: center;
-    text-align: center;
-    
-}
-*/
-/* Título de bienvenida */
-
-center{
-    color: #1a1919;
-}
-
-h1.display-4 {
-   
-    color: #575151;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); 
-}
-
 .text-primary {
     color: #131313 !important; 
 }
 
-/* Texto secundario */
-.lead {
-    color: #0f0f0f;
-}
-
-/* Tarjeta (Card) */
-.card {
-    border: none; 
-    
-    background-color: #5889e6; /* Fondo blanco */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    padding: 20px;
-}
 
 /* Título de la tarjeta */
 .card-title {
@@ -48,6 +12,7 @@ h1.display-4 {
 
 /* Select personalizado */
 .form-select {
+  
     border: 2px solid rgb(153, 219, 250);
     border-radius: 10px; 
     padding: 10px;
@@ -101,13 +66,7 @@ footer {
 background-color: rgb(255, 255, 255);
 }
 
-.nav-item{
-    background-color: rgba(87, 22, 87, 0.856);
-    border-radius: 1px;
-    margin: 0 3px;
-    padding: 5px 10px;
-   
-}
+
 
 .main-logo{
     display: block;
@@ -117,11 +76,7 @@ background-color: rgb(255, 255, 255);
     height: auto;
 }
 
-.maintxt{
-    font-size: 24px;
-    font-weight: bold;
-    color: #4A2378;
-}
+
 
 .txt{
     font-family: Lato; font-size: 14px;
@@ -129,7 +84,7 @@ background-color: rgb(255, 255, 255);
 
 
 .txth2{
-    font-family: Lato; font-size: 45px;
+    font-family: Lato; font-size: 35px;
     color: #000000;
 }
 

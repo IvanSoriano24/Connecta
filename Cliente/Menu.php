@@ -44,7 +44,6 @@ header('Location:../index.php');
 
 
 <body>
-
   <div class="hero_area">
     <!--MENU  HEADER-->
     <nav class="menu">
@@ -62,46 +61,17 @@ header('Location:../index.php');
             <a href="Pedidos.php" class="menu__link txt">Pedidos</a>
           </li>
           <li class="menu__item">
-            <a href="pedidos.html" class="menu__link txt">Guias</a>
+            <a href="pedidos.php" class="menu__link txt">Guias</a>
           </li>
           <li class="menu__item">
             <a class="menu__link txt" id="cerrarSesion" name="cerrarSesion">Cerrar Sesión</a>
           </li>
-
-          <!--
-          <li class="menu__item menu__item--show">
-            <a href="#" class="menu__link  txt">Configuración <img src="assets/arrow.svg" class="menu__arrow"></a>
-            <ul class="menu__nesting">
-              <li class="menu__inside">
-                <a href="#" class="menu__link menu__link--inside" id="Empresa">Empresa</a>
-              </li>
-              <li class="menu__inside">
-                <a href="#" class="menu__link menu__link--inside" id="SAE">SAE</a>
-              </li>  
-            </ul> 
-          </li>
-                  -->
         </ul>
-        <!--
-          <a class="navbar-brand" href="">
-            <div id="divPrincipal">
-              <img src="SRC/imagen.png" alt="Logo" id="logop">
-            </div>
-            <span>
-          
-            </span>
-          </a>
 
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-           -->
         <div class="menu__hamburguer">
           <img src="assets/menu.svg" class="menu__img">
         </div>
-
-      </section> <!-- Final del header section -->
+      </section>
     </nav>
   </div>
 
@@ -114,9 +84,21 @@ header('Location:../index.php');
   </main>
 
   <!-- Footer -->
-  <footer>
-    <img src="SRC/imagen.png" class="logomdconnecta" alt="Logo">
-  </footer>
+  <!-- Footer Start -->
+  <div class="container-fluid pt-4 px-4">
+    <div class="bg-light rounded-top p-4">
+      <div class="row">
+        <div class="col-12 col-sm-6 text-center text-sm-start">
+          <img src="SRC/imagen.png" class="logomdconnecta" alt="Logo">
+          &copy; <a href="#"> MDCloud</a>, All Right Reserved.
+        </div>
+        <div class="col-12 col-sm-6 text-center text-sm-end">
+          De: <a> MDCONNECTA</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Footer End -->
 
 
 

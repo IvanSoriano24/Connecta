@@ -592,26 +592,3 @@ body {
 		min-width: 420px;
 	}
 }
-
-
-
-.bootstrap-scope .modal-content {
-    border-radius: 5px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.bootstrap-scope .btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-}
-
-.bootstrap-scope .form-select {
-    border-radius: 4px;
-    padding: 10px;
-}
-
-.bootstrap-scope .text-primary {
-    color: #0d6efd !important;
-}
-
-/* Aplica cualquier otro estilo que necesites */
