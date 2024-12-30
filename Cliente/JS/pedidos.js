@@ -50,7 +50,6 @@ function cargarPedidos() {
             $('#cliente').val(pedido.cliente.stringValue);  // Accede al valor real
             $('#total').val(pedido.total.stringValue);  // Accede al valor real
             $('#fecha').val(pedido.fecha.stringValue); 
-            $('#estado').val(pedido.estado,stringValue);
 
             // Mostrar el formulario
             $('#formularioEditarPedido').show();
