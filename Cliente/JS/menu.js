@@ -54,7 +54,7 @@ function cargarEmpresa(usuario) {
             empresaSelect.innerHTML = '<option selected disabled>Selecciona una empresa</option>';
             empresas.forEach((empresa) => {
                 const option = document.createElement('option');
-                option.value = empresa.moEmpresa;
+                option.value = empresa.id;
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
 
                 option.setAttribute('data-no-empresa', empresa.noEmpresa);
@@ -169,6 +169,26 @@ function guardarConexionSAE() {
         console.error("Error de la solicitud:", error);
         alert('Error en la solicitud: ' + error.message);
     });
+}
+
+function sesionEmpresa(idEmpresarial) {
+    var id = idEmpresarial.id;
+    var noEmpresa = idEmpresarial.noEmpresa;
+    var razonSocial = idEmpresarial.razonSocial;
+
+    // Cambiar el formato de los datos enviados
+    $.get('../Servidor/PHP/empresas.php', { 
+        action: 'sesion', 
+        id: id,  // Pasar cada propiedad como parámetro separado
+        noEmpresa: noEmpresa,
+        razonSocial: razonSocial
+    }, function(response) {
+        if (response.success && response.data) {
+            console.log(response.data);
+        } else {
+            alert(response.message || 'Error al obtener las empresas.');
+        }
+    }, 'json');
 }
 
 

@@ -1,6 +1,5 @@
 <?php
 require 'firebase.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
     if ($action === 'get') {
@@ -8,6 +7,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         listaEmpresas($usuario); // Llamar a la función para obtener las empresas
     }elseif ($action === 'obtenerEmpresa') {
         obtenerEmpresa(); // Llamar a la función para obtener una empresa específica
+    }elseif ($action === 'sesion') {
+        // Cambiar para obtener los parámetros individuales
+        $data = [
+            'id' => $_GET['id'],
+            'noEmpresa' => $_GET['noEmpresa'],
+            'razonSocial' => $_GET['razonSocial']
+        ];
+        sesionEmpresa($data);
     }
 }
 
@@ -27,10 +34,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'delete': // Eliminar empresa
             eliminarEmpresa();
             break;
-        /*case 'guardarEmpresa':
-            guardarDatosEmpresa();*/
     }
-}/*
+}
+function sesionEmpresa($data) {
+    session_start();
+    // Guardar la empresa en la sesión
+    $_SESSION['empresa'] = [
+        'id' => $data['id'],
+        'noEmpresa' => $data['noEmpresa'],
+        'razonSocial' => $data['razonSocial']
+    ];
+
+    // Responder al cliente con los datos guardados
+    echo json_encode([
+        'success' => true,
+        'message' => 'Sesión de empresa guardada correctamente.',
+        'data' => $_SESSION['empresa']
+    ]);
+}
+
+/*
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
@@ -108,6 +131,7 @@ function listaEmpresas($nombreUsuario) {
                 if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $nombreUsuario) {
                     // Agregar la razón social de la empresa al arreglo
                     $razonSocialEmpresas[] = $fields['empresa']['stringValue'];
+                    //$id[] = $fields['id']['stringValue'];
                 }
             }
 
@@ -120,6 +144,7 @@ function listaEmpresas($nombreUsuario) {
                 $empresas = [];
                 foreach ($razonSocialEmpresas as $razonSocial) {
                     $empresas[] = [
+                        'id' => $fields['id']['stringValue'],
                         'noEmpresa' => $fields['nomEmpresa']['stringValue'],
                         'razonSocial' => $razonSocial
                     ];

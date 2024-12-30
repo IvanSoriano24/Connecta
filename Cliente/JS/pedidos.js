@@ -36,6 +36,7 @@ function cargarPedidos() {
   }
 
   function cargarDatosPedido(idPedido) {
+    alert(idPedido);
     $.get('../Servidor/PHP/pedido.php', { numFuncion: '5', idPedido: idPedido }, function (response) {
       if (response.success && response.data) {
         console.log(response.success);  // Verificar los datos que se obtienen
@@ -60,6 +61,7 @@ function cargarPedidos() {
     // Evento para editar pedido
     $('.btnEditarPedido').on('click', function () {
       const idPedido = $(this).data('id');
+      alert("presion");
       cargarDatosPedido(idPedido);
     });
 
