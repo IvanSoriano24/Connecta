@@ -50,11 +50,12 @@ function cargarEmpresa(usuario) {
     $.get('../Servidor/PHP/empresas.php', { action: 'get', usuario: usuario }, function (response) {
         if (response.success && response.data) {
             const empresas = response.data;
+            console.log(empresas);
             const empresaSelect = document.getElementById('empresaSelect');
             empresaSelect.innerHTML = '<option selected disabled>Selecciona una empresa</option>';
             empresas.forEach((empresa) => {
                 const option = document.createElement('option');
-                option.value = empresa.moEmpresa;
+                option.value = empresa.id;
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
 
                 option.setAttribute('data-no-empresa', empresa.noEmpresa);

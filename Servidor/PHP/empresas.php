@@ -108,6 +108,7 @@ function listaEmpresas($nombreUsuario) {
                 if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $nombreUsuario) {
                     // Agregar la razón social de la empresa al arreglo
                     $razonSocialEmpresas[] = $fields['empresa']['stringValue'];
+                    //$id[] = $fields['id']['stringValue'];
                 }
             }
 
@@ -120,6 +121,7 @@ function listaEmpresas($nombreUsuario) {
                 $empresas = [];
                 foreach ($razonSocialEmpresas as $razonSocial) {
                     $empresas[] = [
+                        'id' => $fields['id']['stringValue'],
                         'noEmpresa' => $fields['nomEmpresa']['stringValue'],
                         'razonSocial' => $razonSocial
                     ];

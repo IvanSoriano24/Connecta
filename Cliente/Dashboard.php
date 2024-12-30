@@ -434,7 +434,7 @@ session_destroy(); */
 
 						// Guardar los datos en la variable global
 						idEmpresarial = {
-							//id: empresaSeleccionada,
+							id: empresaSeleccionada,
 							noEmpresa: noEmpresa,
 							razonSocial: razonSocial
 						};
