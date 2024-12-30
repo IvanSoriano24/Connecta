@@ -202,17 +202,17 @@ if (isset($_SESSION['usuario'])) {
             <form action="">
               <div class="form-row">
                 <label for="noEmpresa">No. Empresa:</label>
-                <input type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
+                <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
               </div>
 
               <div class="form-row">
                 <label for="razonSocial">Razón Social:</label>
-                <input type="text" name="razonSocial" id="razonSocial" value="<?php echo $empresa ?>">
+                <input class="input-m" type="text" name="razonSocial" id="razonSocial" value="<?php echo $empresa ?>">
               </div>
 
               <div class="form-row">
                 <label for="rfc">RFC:</label>
-                <input type="text" name="rfc" id="rfc">
+                <input class="input-m"type="text" name="rfc" id="rfc">
               </div>
 
               <div class="form-row">
