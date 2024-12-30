@@ -308,12 +308,12 @@ session_destroy(); */
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content">
 				<div class="text-center mb-4">
-					<h1 class="display-4 text-primary txth1">Bienvenid@</h1>
+					<h1 class="display-4 text-primary txth1">Bienvenido</h1>
+					<h2 class="card-title text-center txth2"> <?php echo $tipoUsuario; ?> </h2>
 				</div>
 				<div class="modal-body">
-					<h2 class="card-title text-center txth2">Selecciona Empresa</h2>
 					<select class="form-select" id="empresaSelect" name="empresaSelect">
-						<option value="" selected disabled class="txt">Selecciona una empresa</option>
+						<option value="" selected disabled class="txt">Selecciona una Empresa</option>
 					</select>
 				</div>
 				<div class="modal-footer">
