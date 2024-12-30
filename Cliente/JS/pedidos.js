@@ -13,6 +13,7 @@ function cargarPedidos() {
           // Asegúrate de que las propiedades existan en cada objeto
           row.innerHTML = `
             <td>${pedido.id || 'N/A'}</td>
+            <td>${pedido.pedido || 'Sin pedidos'}</td>
             <td>${pedido.cliente || 'Sin cliente'}</td>
             <td>${pedido.total || '0'}</td>
             <td>${pedido.fecha || 'Sin fecha'}</td>
@@ -36,29 +37,29 @@ function cargarPedidos() {
   }
 
   function cargarDatosPedido(idPedido) {
-      $.get('../Servidor/PHP/pedido.php', { 
-        action: 'sesion', 
-        id: id,  
-        noEmpresa: noEmpresa,
-        razonSocial: razonSocial
-      }, function (response) { 
-      if (response.success && response.data) {
-        console.log(response.success);  // Verificar los datos que se obtienen
-        const pedido = response.data;
-        // Rellenar los campos del formulario con los datos del pedido
-        $('#idPedido').val(pedido.id);
-        $('#cliente').val(pedido.cliente);
-        $('#total').val(pedido.total);
-        $('#fecha').val(pedido.fecha);
-  
-        // Mostrar el formulario
-        $('#formularioEditarPedido').show();
-      } else {
-        console.error('Error al cargar los datos del pedido.');
-      }
-    }, 'json');
-}
+    $.get('../Servidor/PHP/pedido.php', { 
+        numFuncion: '5',
+        idPedido: idPedido
+    }, function(response) { 
+        if (response.success && response.data) {
+            const pedido = response.data;
+            // Rellenar los campos del formulario con los datos del pedido
+            $('#idPedido').val(pedido.id);
+            $('#pedidos').val(pedido.pedido.stringValue);  // Accede al valor real
+            $('#cliente').val(pedido.cliente.stringValue);  // Accede al valor real
+            $('#total').val(pedido.total.stringValue);  // Accede al valor real
+            $('#fecha').val(pedido.fecha.stringValue); 
 
+            // Mostrar el formulario
+            $('#formularioEditarPedido').show();
+        } else {
+            console.error('Error al cargar los datos del pedido:', response.message);
+        }
+    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Error en la solicitud:', textStatus, errorThrown);
+        console.error('Respuesta del servidor:', jqXHR.responseText); // Verifica la respuesta del servidor
+    });
+}
 
   // Función para agregar eventos a los botones "Editar" y "Cancelar"
   function agregarEventosBotones() {    
@@ -81,7 +82,6 @@ function cargarPedidos() {
 
  $(document).ready(function () {
     cargarPedidos();
-
     // Evento para crear pedido
     $('#btnCrearPedido').on('click', function () {
       alert('Abrir formulario para crear pedido.');
@@ -92,12 +92,14 @@ function cargarPedidos() {
       event.preventDefault(); // Evitar la recarga de la página
       // Obtener los valores del formulario
       const idPedido = $('#idPedido').val();
+      const pedido = $('#pedidos').val();
       const cliente = $('#cliente').val();
       const total = $('#total').val();
       const fecha = $('#fecha').val();
       // Crear un objeto con los datos actualizados
       const datosActualizados = {
         cliente: cliente,
+        pedido: pedido,
         total: total,
         fecha: fecha
       };
@@ -121,5 +123,7 @@ function cargarPedidos() {
         }
       });
     });
-    
+    $('#cerrarFormulario').on('click', function () {
+      $('#formularioEditarPedido').hide();
+    });
   });

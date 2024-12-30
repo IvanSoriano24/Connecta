@@ -39,6 +39,7 @@ function obtenerPedidos() {
                 $fields = $document['fields'];
                 $pedidos[] = [
                     'id' => str_replace('projects/' . $firebaseProjectId . '/databases/(default)/documents/PEDIDOS/', '', $document['name']),
+                    'pedido' => $fields['pedido']['stringValue'] ?? '',
                     'cliente' => $fields['cliente']['stringValue'] ?? '',
                     'total' => $fields['total']['stringValue'] ?? '',
                     'fecha' => $fields['fecha']['stringValue'] ?? ''
@@ -83,20 +84,30 @@ function obtenerPedido($idPedido) {
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS/$idPedido?key=$firebaseApiKey";
     $response = file_get_contents($url);    
+
+    // Asegúrate de que la respuesta sea válida
     if ($response !== false) {
         $data = json_decode($response, true);
         // Verificar si se encontró el pedido
         if (isset($data['fields'])) {
             $pedido = $data['fields'];
             $pedido['id'] = $idPedido; // Asignamos el idPedido manualmente
-            return $pedido;
+            //header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'data' => $pedido
+            ]);
         } else {
-            return null; // Si no se encuentra el pedido
+            // Si no se encuentra el pedido, enviar un mensaje de error
+            echo json_encode(['success' => false, 'message' => 'Pedido no encontrado.']);
         }
     } else {
-        return null; // Si hubo un error en la petición
+        // Si hubo un error en la respuesta de Firebase, enviar un mensaje de error
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los datos del pedido.']);
     }
 }
+
+
 
 //http://localhost/MDConnecta/Servidor/PHP/pedido.php?numFuncion=5?idPedido=FYOcALZA6k4v2UpXv6Ln
 
@@ -150,8 +161,8 @@ switch ($funcion) {
         break;
     
     case 5:
-        //$idPedido = $_GET['idPedido'];
-        $idPedido = "FYOcALZA6k4v2UpXv6Ln";
+        $idPedido = $_GET['idPedido'];
+        //$idPedido = "FYOcALZA6k4v2UpXv6Ln";
         obtenerPedido($idPedido);
         break;
 
