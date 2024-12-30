@@ -200,7 +200,6 @@ if (isset($_SESSION['usuario'])) {
               <i class='bx bx-filter'></i>
             </div>
             <form action="">
-
               <div class="form-row">
                 <label for="noEmpresa">No. Empresa:</label>
                 <input type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
@@ -222,60 +221,50 @@ if (isset($_SESSION['usuario'])) {
                   <option value="1">Opcion 1</option>
                   <!-- Agrega más opciones si es necesario -->
                 </select>
+                
+              </div>
+              <div class="form-row">
+                <label for="Calle">Calle:</label>
+                <input class="input-m" type="text" name="Calle" id="Calle">
               </div>
 
               <div class="form-row">
                 <label for="numExterior">Num. Exterior:</label>
-                <input type="text" name="numExterior" id="numExterior">
+                <input class="input-small"type="text" name="numExterior" id="numExterior">
                 <label for="numInterior">Num. Interior:</label>
-                <input type="text" name="numInterior" id="numInterior">
+                <input class="input-small" type="text" name="numInterior" id="numInterior">
+                <label for="entreCalle">Entre Calle:</label>
+                <input class="input-m" type="text" name="entreCalle" id="entreCalle">
               </div>
 
             
               <div class="form-row">
-                <label for="entreCalle">Entre Calle:</label>
-                <input type="text" name="entreCalle" id="entreCalle">
-                <label for="yCalle">Y Calle:</label>
-                <input type="text" name="yCalle" id="yCalle">
-              </div>
-
-
-              <div class="form-row">
                 <label for="colonia">Colonia:</label>
-                <input type="text" name="colonia" id="colonia">
-              </div>
-
-              <div class="form-row">
+                <input class="input-m" type="text" name="colonia" id="colonia">
                 <label for="referencia">Referencia:</label>
-                <input type="text" name="referencia" id="referencia">
+                <input class="input-m" type="text" name="referencia" id="referencia">
               </div>
 
+              
               <div class="form-row">
                 <label for="pais">País:</label>
-                <input type="text" name="pais" id="pais">
+                <input class="input-m" type="text" name="pais" id="pais">
                 <label for="estado">Estado:</label>
-                <input type="text" name="estado" id="estado">
-              </div>
-
-              <div class="form-row">
-                
-              </div>
-
-              <div class="form-row">
+                <input class="input-m" type="text" name="estado" id="estado">
                 <label for="municipio">Municipio:</label>
-                <input type="text" name="municipio" id="municipio">
+                <input class="input-m" type="text" name="municipio" id="municipio">
               </div>
 
               <div class="form-row">
                 <label for="cp">Codigo Postal:</label>
-                <input type="text" name="cp" id="cp">
+                <input class="input-m" type="text" name="cp" id="cp">
               </div>
 
               <div class="form-row">
                 <label for="poblacion">Población:</label>
-                <input type="text" name="poblacion" id="poblacion" value=".">
+                <input class="input-m" type="text" name="poblacion" id="poblacion" value=".">
               </div>
-
+<!--
               <div class="form-row">
                 <label for="claveCiec">Clave CIEC:</label>
                 <div class="password-container">
@@ -283,6 +272,7 @@ if (isset($_SESSION['usuario'])) {
                   <button type="button" class="show-password">Mostrar</button>
                 </div>
               </div>
+-->
 
               <div class="form-buttons">
                 <button type="submit" class="btn-save">Guardar</button>

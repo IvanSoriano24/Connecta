@@ -137,6 +137,7 @@ background-color: rgb(255, 255, 255);
     font-family: Lato; font-size: 45px;
 }
 
+
 /*  Info Empresa   */ 
 .form-row {
     display: flex;
@@ -146,13 +147,34 @@ background-color: rgb(255, 255, 255);
 
   .form-row label {
     flex: 0 0 140px;
-    font-weight: bold;
-    color: #555;
+   font-family: Lato;
+    color: #000000;
+  }
+  
+  .input-small{
+    width: 50px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
   }
 
-  .form-row input,
+  .input-m{
+    width: 100%;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  .input-mt{
+    width: 300px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+
+  
   .form-row select {
-    flex: 1;
+    
     padding: 4px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -213,3 +235,5 @@ background-color: rgb(255, 255, 255);
   .btn-cancel:hover {
     background-color: #c82333;
   }
+
+  
