@@ -62,7 +62,7 @@ session_destroy(); */
 			</a>
 			<ul class="side-menu top">
 				<li class="active">
-					<a href="#">
+					<a href="Dashboard.php">
 						<i class='bx bxs-dashboard'></i>
 						<span class="text">Inicio</span>
 					</a>
