@@ -17,7 +17,7 @@ function cargarPedidos() {
             <td>${pedido.total || '0'}</td>
             <td>${pedido.fecha || 'Sin fecha'}</td>
             <td>
-              <button class="btnEditarPedido" data-id="${pedido.id}">Editar</button>
+              <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.id}">Editar</button>
               <button class="btnCancelarPedido" data-id="${pedido.id}">Cancelar</button>
             </td>
           `;
@@ -36,8 +36,12 @@ function cargarPedidos() {
   }
 
   function cargarDatosPedido(idPedido) {
-    alert(idPedido);
-    $.get('../Servidor/PHP/pedido.php', { numFuncion: '5', idPedido: idPedido }, function (response) {
+      $.get('../Servidor/PHP/pedido.php', { 
+        action: 'sesion', 
+        id: id,  
+        noEmpresa: noEmpresa,
+        razonSocial: razonSocial
+      }, function (response) { 
       if (response.success && response.data) {
         console.log(response.success);  // Verificar los datos que se obtienen
         const pedido = response.data;
@@ -61,7 +65,6 @@ function cargarPedidos() {
     // Evento para editar pedido
     $('.btnEditarPedido').on('click', function () {
       const idPedido = $(this).data('id');
-      alert("presion");
       cargarDatosPedido(idPedido);
     });
 

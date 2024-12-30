@@ -9,37 +9,39 @@ function cerrarModalSae(){
         modal.hide();
 }
 function informaEmpresa() {
-    /*$.get('../Servidor/PHP/e.php', { action: 'obtenerEmpresa' }, function (response) {
+    console.log('Enviando datos al servidor...');
+    $.post('../Servidor/PHP/empresas.php', { 
+        action: 'sesion',
+        ed: '2' // Asegúrate de que este valor sea '2'
+    }, function(response) {
+        console.log('Respuesta del servidor:', response); // Verifica la respuesta en la consola
         if (response.success && response.data) {
-            const empresa = response.data;
-            $('#id').val(empresa.id);
-            $('#noEmpresa').val(empresa.noEmpresa);
-            $('#razonSocial').val(empresa.razonSocial);
+            console.log('Datos de la empresa:', response.data);
+            $('#noEmpresa').val(response.data.noEmpresa);
+            $('#razonSocial').val(response.data.razonSocial);
+            /*$('#rfc').val(response.data.rfc);
+            $('#regimenFiscal').val(response.data.regimenFiscal);
+            $('#numExterior').val(response.data.numExterior);
+            $('#numInterior').val(response.data.numInterior);
+            $('#entreCalle').val(response.data.entreCalle);
+            $('#yCalle').val(response.data.yCalle);
+            $('#colonia').val(response.data.colonia);
+            $('#referencia').val(response.data.referencia);
+            $('#pais').val(response.data.pais);
+            $('#estado').val(response.data.estado);
+            $('#municipio').val(response.data.municipio);
+            $('#cp').val(response.data.cp);
+            $('#poblacion').val(response.data.poblacion);
+            $('#claveCiec').val(response.data.claveCiec);*/
         } else {
-            alert(response.message || 'Error al obtener los datos de la empresa.');
+            console.warn('Error:', response.message || 'Error al obtener las empresas.');
+            alert(response.message || 'Error al obtener las empresas.');
         }
-    }, 'json');*/
-        $('#id').val(idEmpresarial.id);
-        $('#noEmpresa').val(idEmpresarial.noEmpresa);
-        $('#razonSocial').val(idEmpresarial.razonSocial);
-/*
-    $.get('../Servidor/PHP/empresas.php', { action: 'obtenerEmpresa' }, function (response) {
-        if (response.success && response.data) {
-            const empresas = response.data;
-            if (empresas.length > 0) {
-                
-                const empresa = empresas[0];
-                $('#id').val(empresa.id);
-                $('#noEmpresa').val(empresa.noEmpresa);
-                $('#razonSocial').val(empresa.razonSocial);
-            } else {
-                alert('No hay datos de la empresa, puedes crear una nueva.');
-            }
-        } else {
-            alert(response.message || 'Error al obtener los datos de la empresa.');
-        }
-    }, 'json');*/
+    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Error en la petición:', textStatus, errorThrown);
+    });
 }
+
 function mostrarMenu(){
     document.getElementById("divContenedor").style.display = "block";
 }
@@ -175,21 +177,39 @@ function sesionEmpresa(idEmpresarial) {
     var id = idEmpresarial.id;
     var noEmpresa = idEmpresarial.noEmpresa;
     var razonSocial = idEmpresarial.razonSocial;
-
-    // Cambiar el formato de los datos enviados
-    $.get('../Servidor/PHP/empresas.php', { 
+    
+  /*  console.log('Datos que se enviarán:', { 
         action: 'sesion', 
-        id: id,  // Pasar cada propiedad como parámetro separado
+        id: id, 
         noEmpresa: noEmpresa,
         razonSocial: razonSocial
-    }, function(response) {
-        if (response.success && response.data) {
-            console.log(response.data);
+    });  // Verificar los datos que se envían
+*/
+$.post('../Servidor/PHP/empresas.php', { 
+    action: 'sesion', 
+    id: id,  
+    noEmpresa: noEmpresa,
+    razonSocial: razonSocial
+}, function(response) {
+    console.log('Respuesta del servidor:', response); // Ver respuesta del servidor
+
+    if (response.success) {
+        if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
+            console.log('Datos recibidos correctamente:', response.data);
         } else {
-            alert(response.message || 'Error al obtener las empresas.');
+            alert('La respuesta no contiene datos de la empresa esperados.');
         }
-    }, 'json');
+    } else {
+        //alert(response.message || 'Error al guardar la sesión de empresa.');
+    }
+    
+}).fail(function(jqXHR, textStatus, errorThrown) {
+    console.log("Error en la solicitud: " + textStatus + ", " + errorThrown);
+    alert('Error al comunicar con el servidor.');
+});
 }
+
+
 
 
 $(document).ready(function () {
@@ -202,7 +222,7 @@ $(document).ready(function () {
         const empresaModal = new bootstrap.Modal(document.getElementById('infoEmpresa'));
         empresaModal.show();
     });*/
-    $('#Empresa').click(function () {
+    $('#informaEmpresa').click(function () {
         informaEmpresa(); // Llamar a la función que obtiene los datos
     });
     $('#cancelarModal').click(function () {

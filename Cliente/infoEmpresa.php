@@ -1,18 +1,19 @@
 <?php
-//$tipoUsuario = 2;
 session_start();
 if (isset($_SESSION['usuario'])) {
   $nombreUsuario = $_SESSION['usuario']["nombre"];
   $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 
   //$empresa = $_SESSION['empresa']['razonSocial'];
+  if (isset($_SESSION['empresa'])) {
+		$empresa = $_SESSION['empresa']['razonSocial'];
+		$idEmpresa = $_SESSION['empresa']['id'];
+		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+	}
 
 } else {
   header('Location:../index.php');
 }
-/*
-session_unset();
-session_destroy(); */
 ?>
 
 <!DOCTYPE html>
@@ -202,17 +203,17 @@ session_destroy(); */
 
               <div class="form-row">
                 <label for="noEmpresa">No. Empresa:</label>
-                <input type="text" name="noEmpresa" id="noEmpresa" value="1" readonly>
+                <input type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
               </div>
 
               <div class="form-row">
                 <label for="razonSocial">Razón Social:</label>
-                <input type="text" name="razonSocial" id="razonSocial" value="AL BELLO MOBILE ">
+                <input type="text" name="razonSocial" id="razonSocial" value="<?php echo $empresa ?>">
               </div>
 
               <div class="form-row">
                 <label for="rfc">RFC:</label>
-                <input type="text" name="rfc" id="rfc" value="BM0060822UT3">
+                <input type="text" name="rfc" id="rfc">
               </div>
 
               <div class="form-row">
@@ -360,48 +361,3 @@ session_destroy(); */
   -->
 
 
-<!-- 
-  <div class="modal-body">
-  <h2 class="card-title text-center">Informacion de Empresa</h2>
-  <form action="">
-    <label for="text">Id</label> 
-    <input type="text" name="id" id="id"><br>
-    <label for="text">Numero de Empresa</label>
-    <input type="text" name="nomEmpresa" id="noEmpresa"><br>
-    <label for="text">Razon Social</label>
-    <input type="text" name="razonSocial" id="razonSocial"><br>
-    <label for="text">RFC:</label>
-    <input type="text" name="rfc" id="rfc"><br>
-    <label for="text">Poblacion:</label>
-    <input type="text" name="poblacion" id="poblacion"><br>
-    <label for="text">Regimen Fiscal:</label>
-    <input type="text" name="regimenFiscal" id="regimenFiscal"><br>
-    <label for="text">Num.Exterior:</label>
-    <input type="text" name="numExterior" id="numExterior"><br>
-    <label for="text">Num.Inerior:</label>
-    <input type="text" name="numInterior" id="numInterior"><br>
-    <label for="text">Entre Calle:</label>
-    <input type="text" name="entreCalle" id="entreCalle"><br>
-    <label for="text">Y Calle:</label>
-    <input type="text" name="yCalle" id="yCalle"><br>
-    <label for="text">Colonia:</label>
-    <input type="text" name="colonia" id="colonia"><br>
-    <label for="text">Referencia:</label>
-    <input type="text" name="referencia" id="referencia"><br>
-    <label for="text">Pais:</label>
-    <input type="text" name="pais" id="pais"><br>
-    <label for="text">Estado:</label>
-    <input type="text" name="estado" id="estado"><br>
-    <label for="text">Municipio:</label>
-    <input type="text" name="municipio" id="municipio"><br>
-    <label for="text">C.P:</label>
-    <input type="text" name="cp" id="cp"><br>
-  </form>
-</div>
-
-<div class="modal-footer">
-  <button type="button" class="btn btn-danger close-modal" id="cancelarModal">Cancelar</button>
-  <button type="button" class="btn btn-primary" id="confirmarDatos">Confirmar</button>
-</div>
-</div>
--->

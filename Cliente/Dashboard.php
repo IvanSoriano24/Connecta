@@ -107,7 +107,7 @@ session_destroy(); */
 						<span class="text">Configuración</span>
 					</a>
 					<ul class="dropdown-menu">
-						<li><a class="dropdown-item" href="infoEmpresa.php" >Información Empresa</a></li>
+						<li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a></li>
 
 						<li><a class="dropdown-item" href="ConexionSAE.php">Conexión SAE</a></li>
 					</ul>
@@ -371,9 +371,13 @@ session_destroy(); */
 		<script src="JS/menu.js"></script>
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
-
 		<script>
-            var tipoUsuario = '<?php echo $tipoUsuario ?>'
+            var empresa = '<?php echo $empresa ?>'
+			var idEmpresa = '<?php echo $idEmpresa ?>'
+			var noEmpresa = '<?php echo $noEmpresa ?>'
+			console.log("Empresa: " + empresa);
+			console.log("ID: " + idEmpresa);
+			console.log("Numero: " + noEmpresa);
         </script>
 </body>
 

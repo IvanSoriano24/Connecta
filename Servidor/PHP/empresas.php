@@ -1,49 +1,79 @@
 <?php
 require 'firebase.php';
+
+session_start(); // Iniciar sesión al inicio del archivo
+/*var_dump($_SESSION);
+exit;*/
+
+// Verifica si el método de la solicitud es GET
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
     if ($action === 'get') {
         $usuario = $_GET['usuario'];
         listaEmpresas($usuario); // Llamar a la función para obtener las empresas
-    }elseif ($action === 'obtenerEmpresa') {
-        obtenerEmpresa(); // Llamar a la función para obtener una empresa específica
-    }elseif ($action === 'sesion') {
-        // Cambiar para obtener los parámetros individuales
-        $data = [
-            'id' => $_GET['id'],
-            'noEmpresa' => $_GET['noEmpresa'],
-            'razonSocial' => $_GET['razonSocial']
-        ];
-        sesionEmpresa($data);
     }
 }
 
+// Verifica si el método de la solicitud es POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'];
-
-    switch ($action) {
-        case 'save': // Crear o actualizar empresa
-            $data = [
-                'id' => $_POST['id'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'razonSocial' => $_POST['razonSocial']
-            ];
-            guardarEmpresa($data);
-            break;
-
-        case 'delete': // Eliminar empresa
-            eliminarEmpresa();
-            break;
+    $action = $_POST['action'] ?? '';
+    if ($action === 'sesion') {
+        // Aquí podrías poner un bloque try-catch o una validación para ver si los datos llegan bien
+        try {
+            if (isset($_POST['id'], $_POST['noEmpresa'], $_POST['razonSocial'])) {
+                $id = $_POST['id'];
+                $noEmpresa = $_POST['noEmpresa'];
+                $razonSocial = $_POST['razonSocial'];
+                // Lógica de sesión
+                $_SESSION['empresa'] = [
+                    'id' => $id,
+                    'noEmpresa' => $noEmpresa,
+                    'razonSocial' => $razonSocial
+                ];
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Sesión de empresa guardada correctamente.',
+                    'data' => $_SESSION['empresa']
+                ]);
+            } else if(isset($_POST['ed']) && $_POST['ed'] === '2'){
+                obtenerEmpresa();
+            }else {
+                echo json_encode(['success' => false, 'message' => 'Faltan parámetros.']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
     }
 }
-function sesionEmpresa($data) {
-    session_start();
+function obtenerEmpresa() {
+    // No es necesario volver a iniciar sesión aquí
+    if (isset($_SESSION['empresa'])) {
+        $empresa = $_SESSION['empresa'];
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'noEmpresa' => $empresa['noEmpresa'],
+                'razonSocial' => $empresa['razonSocial'],
+            ]
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No se encontró la empresa en la sesión.'
+        ]);
+    }
+}
+
+function sesionEmpresa($data)
+{
     // Guardar la empresa en la sesión
     $_SESSION['empresa'] = [
         'id' => $data['id'],
         'noEmpresa' => $data['noEmpresa'],
         'razonSocial' => $data['razonSocial']
     ];
+
+    //header('Content-Type: application/json');
 
     // Responder al cliente con los datos guardados
     echo json_encode([
@@ -53,23 +83,12 @@ function sesionEmpresa($data) {
     ]);
 }
 
-/*
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $action = $_GET['action'];
-
-    if ($action === 'get') {
-        obtenerEmpresa();
-    }
-}
-*/
-
 // Función para guardar o actualizar empresa
 function guardarEmpresa($data)
 {
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-    // Verificar si existe un ID fijo (opcionalmente podrías generar IDs automáticos)
+    
     $options = [
         'http' => [
             'header'  => "Content-type: application/json",
@@ -110,37 +129,25 @@ function eliminarEmpresa()
 }
 
 // Función para obtener datos de la empresa
-function listaEmpresas($nombreUsuario) {
+function listaEmpresas($nombreUsuario)
+{
     global $firebaseProjectId, $firebaseApiKey;
-    // URL para consultar la colección EMP_USS
     $urlEmpUs = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
     $responseEmpUs = file_get_contents($urlEmpUs);
-    
+
     if ($responseEmpUs !== false) {
         $dataEmpUs = json_decode($responseEmpUs, true);
-
-        // Verificar si existen documentos
         if (isset($dataEmpUs['documents'])) {
             $razonSocialEmpresas = [];
-
-            // Recorrer los documentos para encontrar las empresas asociadas al usuario
             foreach ($dataEmpUs['documents'] as $document) {
                 $fields = $document['fields'];
-
-                // Verificar si el documento tiene el nombre del usuario
                 if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $nombreUsuario) {
-                    // Agregar la razón social de la empresa al arreglo
                     $razonSocialEmpresas[] = $fields['empresa']['stringValue'];
-                    //$id[] = $fields['id']['stringValue'];
                 }
             }
 
-            // Si hay empresas asociadas al usuario
             if (count($razonSocialEmpresas) > 0) {
-                // Ordenar las empresas alfabéticamente por la razón social
                 sort($razonSocialEmpresas);
-
-                // Preparar el resultado
                 $empresas = [];
                 foreach ($razonSocialEmpresas as $razonSocial) {
                     $empresas[] = [
@@ -150,11 +157,9 @@ function listaEmpresas($nombreUsuario) {
                     ];
                 }
                 $_SESSION['empresaSelect'] = [
-                    'usuario' => $fields, 
+                    'usuario' => $fields,
                     'razonSocial' => $razonSocial
                 ];
-
-                // Responder con las empresas filtradas
                 echo json_encode(['success' => true, 'data' => $empresas]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'El usuario no tiene empresas asociadas.']);
@@ -167,57 +172,6 @@ function listaEmpresas($nombreUsuario) {
     }
 }
 
+// Función para obtener los datos de la empresa
 
-// Optener datos para su edicion
-
-function obtenerEmpresa()
-{
-    global $firebaseProjectId, $firebaseApiKey;
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-    // Realizar la petición GET
-    $response = file_get_contents($url);
-
-    if ($response !== false) {
-        $data = json_decode($response, true);
-        // Verificar si existen documentos
-        if (isset($data['documents'])) {
-            $empresas = [];
-
-            // Recorrer los documentos y extraer sus datos
-            foreach ($data['documents'] as $document) {
-                $fields = $document['fields'];
-                $empresas[] = [
-                    'id' => $fields['id']['integerValue'],
-                    'noEmpresa' => $fields['noEmpresa']['stringValue'],
-                    'razonSocial' => $fields['razonSocial']['stringValue']
-                ];
-            }
-            // Devolver los datos procesados
-            echo json_encode(['success' => true, 'data' => $empresas]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'No se encontraron empresas.']);
-        }
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error al obtener las empresas.']);
-    }
-}
-function guardarDatosEmpresa()
-{
-    session_start();
-    $data = json_decode(file_get_contents('php://input'), true);
-
-    if (isset($data['empresaId'])) {
-        $_SESSION['empresa'] = [
-            'id' => $data['empresaId'],
-            'noEmpresa' => $data['noEmpresa'],
-            'razonSocial' => $data['razonSocial']
-        ];
-
-        echo json_encode(['success' => true]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'No se recibió el ID de la empresa.']);
-    }
-}
-
-// Llamar a la función para obtener las empresas
-//$empresas = obtenerEmpresas();
+?>

@@ -82,10 +82,9 @@ function actualizarPedido($idPedido, $data) {
 function obtenerPedido($idPedido) {
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS/$idPedido?key=$firebaseApiKey";
-    $response = file_get_contents($url);
+    $response = file_get_contents($url);    
     if ($response !== false) {
         $data = json_decode($response, true);
-
         // Verificar si se encontró el pedido
         if (isset($data['fields'])) {
             $pedido = $data['fields'];
@@ -151,7 +150,8 @@ switch ($funcion) {
         break;
     
     case 5:
-        $idPedido = $_GET['idPedido'];
+        //$idPedido = $_GET['idPedido'];
+        $idPedido = "FYOcALZA6k4v2UpXv6Ln";
         obtenerPedido($idPedido);
         break;
 
