@@ -19,7 +19,7 @@ function informaEmpresa() {
             console.log('Datos de la empresa:', response.data);
             $('#noEmpresa').val(response.data.noEmpresa);
             $('#razonSocial').val(response.data.razonSocial);
-            /*$('#rfc').val(response.data.rfc);
+            $('#rfc').val(response.data.rfc);
             $('#regimenFiscal').val(response.data.regimenFiscal);
             $('#numExterior').val(response.data.numExterior);
             $('#numInterior').val(response.data.numInterior);
@@ -32,7 +32,7 @@ function informaEmpresa() {
             $('#municipio').val(response.data.municipio);
             $('#cp').val(response.data.cp);
             $('#poblacion').val(response.data.poblacion);
-            $('#claveCiec').val(response.data.claveCiec);*/
+            $('#claveCiec').val(response.data.claveCiec);
         } else {
             console.warn('Error:', response.message || 'Error al obtener las empresas.');
             alert(response.message || 'Error al obtener las empresas.');
@@ -50,11 +50,13 @@ function mostrarMenu(){
 function cargarEmpresa(usuario) {
     // Realiza una solicitud GET al servidor para obtener las empresas
     $.get('../Servidor/PHP/empresas.php', { action: 'get', usuario: usuario }, function (response) {
+        ///
         if (response.success && response.data) {
             const empresas = response.data;
             const empresaSelect = document.getElementById('empresaSelect');
             empresaSelect.innerHTML = '<option selected disabled>Selecciona una empresa</option>';
             empresas.forEach((empresa) => {
+                console.log(empresas);
                 const option = document.createElement('option');
                 option.value = empresa.id;
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
@@ -69,6 +71,7 @@ function cargarEmpresa(usuario) {
             alert(response.message || 'Error al obtener las empresas.');
         }
     }, 'json');
+    ///
 }
 
 

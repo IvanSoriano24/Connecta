@@ -47,18 +47,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try{
             $data = [
                 'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'noEmpresa' => $_POST['noEmpresa'],
-                'razonSocial' => $_POST['noEmpresa']
+                'razonSocial' => $_POST['razonSocial'],
+                'rfc' => $_POST['rfc'],
+                'regimenFiscal' => $_POST['regimenFiscal'],
+                'calle' => $_POST['calle'],
+                'numExterior' => $_POST['numExterior'],
+                'numInterior' => $_POST['numInterior'],
+                'entreCalle' => $_POST['entreCalle'],
+                'colonia' => $_POST['colonia'],
+                'referencia' => $_POST['referencia'],
+                'pais' => $_POST['pais'],
+                'estado' => $_POST['estado'],
+                'municipio' => $_POST['municipio'],
+                'codigoPostal' => $_POST['codigoPostal'],
+                'poblacion' => $_POST['poblacion']
             ];
             guardarEmpresa($data);
         }  catch (Exception $e) {
@@ -147,8 +149,7 @@ function eliminarEmpresa(){
 }
 
 // Función para obtener datos de la empresa
-function listaEmpresas($nombreUsuario)
-{
+function listaEmpresas($nombreUsuario) {
     global $firebaseProjectId, $firebaseApiKey;
     $urlEmpUs = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
     $responseEmpUs = file_get_contents($urlEmpUs);
@@ -156,27 +157,29 @@ function listaEmpresas($nombreUsuario)
     if ($responseEmpUs !== false) {
         $dataEmpUs = json_decode($responseEmpUs, true);
         if (isset($dataEmpUs['documents'])) {
-            $razonSocialEmpresas = [];
+            $empresas = [];
             foreach ($dataEmpUs['documents'] as $document) {
                 $fields = $document['fields'];
+
+                // Verificar que el usuario coincida
                 if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $nombreUsuario) {
-                    $razonSocialEmpresas[] = $fields['empresa']['stringValue'];
+                    $empresas[] = [
+                        'id' => isset($fields['id']['stringValue']) ? $fields['id']['stringValue'] : "N/A", // Validar id
+                        'noEmpresa' => isset($fields['noEmpresa']['stringValue']) ? $fields['noEmpresa']['stringValue'] : "No especificado", // Validar noEmpresa
+                        'razonSocial' => isset($fields['empresa']['stringValue']) ? $fields['empresa']['stringValue'] : "Sin Razón Social" // Validar razonSocial
+                    ];
                 }
             }
 
-            if (count($razonSocialEmpresas) > 0) {
-                sort($razonSocialEmpresas);
-                $empresas = [];
-                foreach ($razonSocialEmpresas as $razonSocial) {
-                    $empresas[] = [
-                        'id' => $fields['id']['stringValue'],
-                        'noEmpresa' => $fields['nomEmpresa']['stringValue'],
-                        'razonSocial' => $razonSocial
-                    ];
-                }
+            if (count($empresas) > 0) {
+                // Ordenar por razón social si es necesario
+                usort($empresas, function ($a, $b) {
+                    return strcmp($a['razonSocial'], $b['razonSocial']);
+                });
+
                 $_SESSION['empresaSelect'] = [
-                    'usuario' => $fields,
-                    'razonSocial' => $razonSocial
+                    'usuario' => $nombreUsuario,
+                    'empresas' => $empresas
                 ];
                 echo json_encode(['success' => true, 'data' => $empresas]);
             } else {
@@ -189,6 +192,8 @@ function listaEmpresas($nombreUsuario)
         echo json_encode(['success' => false, 'message' => 'Error al obtener las relaciones de empresas del usuario.']);
     }
 }
+
+
 
 // Función para obtener los datos de la empresa
 
