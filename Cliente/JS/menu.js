@@ -79,6 +79,7 @@ function guardarEmpresa() {
         id: $('#id').val(),
         noEmpresa: $('#noEmpresa').val(),
         razonSocial: $('#razonSocial').val()
+        
     };
     $.post('../Servidor/PHP/empresas.php', data, function (response) {
         if (response.success) {
