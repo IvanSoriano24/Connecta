@@ -72,24 +72,7 @@ function cargarEmpresa(usuario) {
 }
 
 
-// Función para guardar o actualizar la empresa
-function guardarEmpresa() {
-    const data = {
-        action: 'save',
-        // id: $('#id').val(),
-        noEmpresa: $('#noEmpresa').val(),
-        razonSocial: $('#razonSocial').val()
-        
 
-    };
-    $.post('../Servidor/PHP/empresas.php', data, function (response) {
-        if (response.success) {
-            alert('Empresa guardada correctamente.');
-        } else {
-            alert('Error al guardar la empresa.');
-        }
-    }, 'json');
-}
 
 // Función para guardar o actualizar la empresa
 function guardarEmpresa() {
