@@ -275,32 +275,18 @@ if (isset($_SESSION['usuario'])) {
 -->
 
               <div class="form-buttons">
-                <button type="submit" class="btn-save">Guardar</button>
+                <button type="submit" class="btn-save" id="confirmarDatos">Guardar</button>
                 <button type="button" class="btn-cancel">Cancelar</button>
               </div>
             </form>
           </div>
         </div>
   </div>
-
-
-
-
-
   </main>
   <!-- MAIN -->
   </section>
   <!-- CONTENT -->
-
-
-
   </div>
-
-
-
-
-
-
   </section>
   <!-- CONTENT -->
 

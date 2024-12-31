@@ -15,7 +15,7 @@ if (isset($_SESSION["usuario"])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="CSS/login.css">
     <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
-    <script type="module" src="JS/Conectar.js"></script>
+    <!--<script type="module" src="JS/Conectar.js"></script>-->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <title>Inicio</title>
@@ -58,7 +58,6 @@ if (isset($_SESSION["usuario"])) {
         </form>
     </div>
 </div>
-<script type="module" src="JS/Conectar.js"></script>
 <script src="JS/java.js"></script>
 <!--
 <video muted autoplay loop>
