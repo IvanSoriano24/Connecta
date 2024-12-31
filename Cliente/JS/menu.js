@@ -81,6 +81,7 @@ function cargarEmpresa(usuario) {
 function guardarEmpresa() {
     const data = {
         action: 'save',
+        id: $('#id').val(),
         noEmpresa: $('#noEmpresa').val(),
         razonSocial: $('#razonSocial').val(),
         rfc: $('#rfc').val(),

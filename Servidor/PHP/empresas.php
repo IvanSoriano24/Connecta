@@ -44,8 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
     }elseif($action === 'save'){
+        echo "Si";
         try{
             $data = [
+                'id' => $_POST['id'],
                 'noEmpresa' => $_POST['noEmpresa'],
                 'razonSocial' => $_POST['razonSocial'],
                 'rfc' => $_POST['rfc'],
@@ -70,23 +72,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Función para guardar o actualizar empresa
-function guardarEmpresa($data){
+function guardarEmpresa($data) {
     global $firebaseProjectId, $firebaseApiKey;
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+
+    // Validar que exista el ID de la empresa para determinar si se guarda o actualiza
+    $idEmpresa = isset($data['noEmpresa']) ? $data['noEmpresa'] : null;
+
+    // Si hay un ID, actualizamos un documento existente; de lo contrario, creamos uno nuevo
+    $url = $idEmpresa 
+        ? "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS/$idEmpresa?key=$firebaseApiKey" 
+        : "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+
+    // Construir el cuerpo de la solicitud con los datos del formulario
+    $fieldsToSave = [
+        'id' => ['stringValue' => $data['id']],
+        'noEmpresa' => ['stringValue' => $data['noEmpresa']],
+        'razonSocial' => ['stringValue' => $data['razonSocial']],
+        'RFC' => ['stringValue' => $data['rfc']],
+        'regimenFiscal' => ['stringValue' => $data['regimenFiscal']],
+        'calle' => ['stringValue' => $data['Calle']],
+        'numExterior' => ['stringValue' => $data['numExterior']],
+        'numInterior' => ['stringValue' => $data['numInterior']],
+        'entreCalle' => ['stringValue' => $data['entreCalle']],
+        'colonia' => ['stringValue' => $data['colonia']],
+        'referencia' => ['stringValue' => $data['referencia']],
+        'pais' => ['stringValue' => $data['pais']],
+        'estado' => ['stringValue' => $data['estado']],
+        'municipio' => ['stringValue' => $data['municipio']],
+        'cp' => ['stringValue' => $data['cp']],
+        'poblacion' => ['stringValue' => $data['poblacion']]
+    ];
+
+    // Construir el payload en formato JSON
+    $payload = json_encode(['fields' => $fieldsToSave]);
+
+    // Configurar las opciones de la solicitud HTTP
     $options = [
         'http' => [
-            'header'  => "Content-type: application/json",
-            'method'  => 'PATCH', // PATCH actualiza o agrega campos
-            'content' => json_encode($data),
+            'header'  => "Content-type: application/json\r\n",
+            'method'  => $idEmpresa ? 'PATCH' : 'POST', // PATCH para actualizar, POST para crear
+            'content' => $payload
         ]
     ];
+
+    // Crear el contexto de la solicitud
     $context  = stream_context_create($options);
+
+    // Realizar la solicitud a Firestore
     $response = file_get_contents($url, false, $context);
 
     if ($response !== false) {
-        echo json_encode(['success' => true, 'message' => 'Empresa guardada correctamente.']);
+        echo json_encode(['success' => true, 'message' => 'Empresa guardada/actualizada correctamente.']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error al guardar la empresa.']);
+        echo json_encode(['success' => false, 'message' => 'Error al guardar/actualizar la empresa.']);
     }
 }
 
