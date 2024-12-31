@@ -98,14 +98,23 @@ function guardarEmpresa() {
         codigoPostal: $('#codigoPostal').val(),
         poblacion: $('#poblacion').val()
     };
-
-    $.post('../Servidor/PHP/empresas.php', data, function (response) {
-        if (response.success) {
-            alert('Empresa guardada correctamente.');
-        } else {
-            alert('Error al guardar la empresa.');
+    $.ajax({
+        url: '../Servidor/PHP/empresas.php',
+        type: 'POST',
+        data: data,
+        dataType: 'json',
+        success: function (response) {
+            if (response.success) {
+                alert('Empresa guardada correctamente.');
+            } else {
+                alert('Error al guardar la empresa: ' + response.message);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor.');
         }
-    }, 'json');
+    });
 }
 
 

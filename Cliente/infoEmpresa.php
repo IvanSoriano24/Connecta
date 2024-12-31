@@ -199,7 +199,7 @@ if (isset($_SESSION['usuario'])) {
               <!--<i class='bx bx-search'></i> -->
               <i class='bx bx-filter'></i>
             </div>
-            <form action="">
+            <form>
               <div class="form-row">
                 <input type="text" name="id" id="id" value="<?php echo $idEmpresa ?>" hidden>
                 <label for="noEmpresa">No. Empresa:</label>
