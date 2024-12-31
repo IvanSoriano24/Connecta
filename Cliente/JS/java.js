@@ -101,6 +101,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const usuario = document.getElementById("usuario");
     const password = document.getElementById("password");
 
+    // Verifica si hay un parámetro 'error' en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    
+    if (error) {
+        // Mostrar el mensaje de error como un alert
+        alert("Correo o contraseña incorrectos.");
+    }
+
     form.addEventListener("submit", (event) => {
         event.preventDefault(); // Prevenir el envío del formulario
         let valid = true;
@@ -134,3 +143,4 @@ document.addEventListener("DOMContentLoaded", () => {
         input.parentElement.appendChild(error);
     }
 });
+

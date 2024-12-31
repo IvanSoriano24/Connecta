@@ -43,8 +43,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
+    }elseif($action === 'save'){
+        try{
+            $data = [
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $_POST['noEmpresa'],
+                'razonSocial' => $_POST['noEmpresa']
+            ];
+            guardarEmpresa($data);
+        }  catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
     }
 }
+
+// Función para guardar o actualizar empresa
+function guardarEmpresa($data){
+    global $firebaseProjectId, $firebaseApiKey;
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+    $options = [
+        'http' => [
+            'header'  => "Content-type: application/json",
+            'method'  => 'PATCH', // PATCH actualiza o agrega campos
+            'content' => json_encode($data),
+        ]
+    ];
+    $context  = stream_context_create($options);
+    $response = file_get_contents($url, false, $context);
+
+    if ($response !== false) {
+        echo json_encode(['success' => true, 'message' => 'Empresa guardada correctamente.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al guardar la empresa.']);
+    }
+}
+
 function obtenerEmpresa() {
     // No es necesario volver a iniciar sesión aquí
     if (isset($_SESSION['empresa'])) {
@@ -82,33 +125,8 @@ function sesionEmpresa($data)
         'data' => $_SESSION['empresa']
     ]);
 }
-
-// Función para guardar o actualizar empresa
-function guardarEmpresa($data)
-{
-    global $firebaseProjectId, $firebaseApiKey;
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-    
-    $options = [
-        'http' => [
-            'header'  => "Content-type: application/json",
-            'method'  => 'PATCH', // PATCH actualiza o agrega campos
-            'content' => json_encode($data),
-        ]
-    ];
-    $context  = stream_context_create($options);
-    $response = file_get_contents($url, false, $context);
-
-    if ($response !== false) {
-        echo json_encode(['success' => true, 'message' => 'Empresa guardada correctamente.']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error al guardar la empresa.']);
-    }
-}
-
 // Función para eliminar empresa
-function eliminarEmpresa()
-{
+function eliminarEmpresa(){
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
 
