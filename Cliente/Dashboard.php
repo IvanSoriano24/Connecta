@@ -109,7 +109,7 @@ session_destroy(); */
 					<ul class="dropdown-menu">
 						<li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a></li>
 
-						<li><a class="dropdown-item" href="ConexionSAE.php">Conexión SAE</a></li>
+						<li><a class="dropdown-item" href="ConexioSAE.php">Conexión SAE</a></li>
 					</ul>
 				</li>
 

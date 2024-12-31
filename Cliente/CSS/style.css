@@ -52,6 +52,8 @@ body {
 
 /* SIDEBAR */
 #sidebar {
+	scrollbar-width: thin; /* Ancho de la barra de desplazamiento */
+	scrollbar-color: var(--dark-grey) var(--light); /* Color del pulgar y del fondo */
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -64,9 +66,8 @@ body {
 	overflow-x: hidden;
 	scrollbar-width: none;
 }
-#sidebar::--webkit-scrollbar {
-	display: 8px;
-}
+
+
 #sidebar.hide {
 	width: 60px;
 }
