@@ -137,7 +137,7 @@ body{
     width: 36px;
 }
 
-@media (max-width:1000px){
+@media (max-width:1320px){
     .menu__hamburguer{
         display: flex;
     }

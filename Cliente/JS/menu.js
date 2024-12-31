@@ -72,14 +72,29 @@ function cargarEmpresa(usuario) {
 }
 
 
+
+
 // Función para guardar o actualizar la empresa
 function guardarEmpresa() {
     const data = {
         action: 'save',
-        id: $('#id').val(),
         noEmpresa: $('#noEmpresa').val(),
-        razonSocial: $('#razonSocial').val()
+        razonSocial: $('#razonSocial').val(),
+        rfc: $('#rfc').val(),
+        regimenFiscal: $('#regimenFiscal').val(),
+        calle: $('#calle').val(),
+        numExterior: $('#numExterior').val(),
+        numInterior: $('#numInterior').val(),
+        entreCalle: $('#entreCalle').val(),
+        colonia: $('#colonia').val(),
+        referencia: $('#referencia').val(),
+        pais: $('#pais').val(),
+        estado: $('#estado').val(),
+        municipio: $('#municipio').val(),
+        codigoPostal: $('#codigoPostal').val(),
+        poblacion: $('#poblacion').val()
     };
+
     $.post('../Servidor/PHP/empresas.php', data, function (response) {
         if (response.success) {
             alert('Empresa guardada correctamente.');
@@ -88,6 +103,7 @@ function guardarEmpresa() {
         }
     }, 'json');
 }
+
 
 // Función para eliminar la empresa
 function eliminarEmpresa() {

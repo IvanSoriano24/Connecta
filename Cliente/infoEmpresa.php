@@ -225,7 +225,7 @@ if (isset($_SESSION['usuario'])) {
               </div>
               <div class="form-row">
                 <label for="Calle">Calle:</label>
-                <input class="input-m" type="text" name="Calle" id="Calle">
+                <input class="input-m" type="text" name="Calle" id="calle">
               </div>
 
               <div class="form-row">
@@ -257,7 +257,7 @@ if (isset($_SESSION['usuario'])) {
 
               <div class="form-row">
                 <label for="cp">Codigo Postal:</label>
-                <input class="input-m" type="text" name="cp" id="cp">
+                <input class="input-m" type="text" name="cp" id="codigoPostal">
               </div>
 
               <div class="form-row">
