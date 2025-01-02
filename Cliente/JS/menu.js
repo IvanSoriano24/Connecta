@@ -245,7 +245,7 @@ $.post('../Servidor/PHP/empresas.php', {
  // Función para validar campos vacíos
 function validateForm() {
     const fields = [
-        'razonSocial', 'rfc', 'calle', 'numExterior', 
+        'rfc', 'calle', 'numExterior', 
         'colonia', 'referencia', 'pais', 
         'estado', 'municipio', 'codigoPostal', 'poblacion'
     ];
