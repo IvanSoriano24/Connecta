@@ -80,7 +80,7 @@ function obtenerEmpresa() {
             $datosCompletos = obtenerDatosEmpresa($empresa['noEmpresa']);
             if ($datosCompletos) {
                 $empresa = array_merge($empresa, $datosCompletos);
-                $_SESSION['empresa'] = $empresa; // Actualiza la sesión con los datos completos
+                $_SESSION['empresa'] = $empresa; 
             }
         }
         header('Content-Type: application/json');
@@ -138,7 +138,6 @@ function obtenerDatosEmpresa($noEmpresa) {
     }
     return $empresaData;
 }
-
 
 // Función para guardar o actualizar empresa
 function guardarEmpresa($data) {

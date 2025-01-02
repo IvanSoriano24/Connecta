@@ -238,7 +238,7 @@ session_destroy(); */
 
               <div class="form-row">
                 <label for="nombreBase">Nombre Base Datos:</label>
-                <input class="input-mt" type="text" name="nombreBase" id="nombreBase" value=".">
+                <input class="input-mt" type="text" name="nombreBase" id="nombreBase" value="">
               </div>
 
           
