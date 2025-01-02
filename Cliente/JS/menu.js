@@ -137,6 +137,9 @@ function eliminarEmpresa() {
 }
  
 function probarConexionSAE() {
+    if (!validateForm2()) {
+        return; // Si la validación falla, no se envía el formulario
+    }
     const data = {
         action: 'probar',
         host: $('#host').val(),
@@ -255,7 +258,30 @@ function validateForm() {
         const input = document.getElementById(field);
         if (input && input.value.trim() === '') {
             input.classList.add('input-error');
-            input.placeholder = `Campo Vacio`;
+            input.placeholder = `Campo Obligatorio`;
+            isValid = false;
+        } else {
+            input.classList.remove('input-error');
+            input.placeholder = '';
+        }
+    }
+    
+    return isValid;
+}
+
+function validateForm2() {
+    const fields = [
+        'host', 'puerto', 'usuarioSae', 
+        'password', 'nombreBase'
+    ];
+    
+    let isValid = true;
+    
+    for (let field of fields) {
+        const input = document.getElementById(field);
+        if (input && input.value.trim() === '') {
+            input.classList.add('input-error');
+            input.placeholder = `Campo Obligatorio`;
             isValid = false;
         } else {
             input.classList.remove('input-error');

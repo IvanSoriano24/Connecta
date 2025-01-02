@@ -213,7 +213,7 @@ session_destroy(); */
               </div>
               <div class="form-row">
                 <label for="puerto">Puerto:</label>
-                <input class="input-small" type="text" name="" id="" value="">
+                <input class="input-small" type="text" name="" id="puerto" value="">
               </div>
               <div class="form-row">
                 <label for="usuarioSae">Usuario:</label>
@@ -232,7 +232,7 @@ session_destroy(); */
               </div>
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
-                 <button type="submit" class="btn-save">Guardar</button> 
+                 <button type="submit" class="btn-save" id="confirmarConexion">Guardar</button> 
                 <button type="button" class="btn-cancel">Cancelar</button>
               </div>
             </form>
