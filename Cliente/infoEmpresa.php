@@ -201,14 +201,14 @@ if (isset($_SESSION['usuario'])) {
             </div>
             <form>
               <div class="form-row">
-                <input type="text" name="id" id="id" value="<?php echo $idEmpresa ?>" hidden>
+                <input type="text" name="idDocumento" id="idDocumento" hidden>
                 <label for="noEmpresa">No. Empresa:</label>
-                <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
+                <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="" readonly>
               </div>
 
               <div class="form-row">
                 <label for="razonSocial">Razón Social:</label>
-                <input class="input-m" type="text" name="razonSocial" id="razonSocial" value="<?php echo $empresa ?>">
+                <input class="input-m" type="text" name="razonSocial" id="razonSocial" value="">
               </div>
 
               <div class="form-row">
@@ -226,7 +226,7 @@ if (isset($_SESSION['usuario'])) {
               </div>
               <div class="form-row">
                 <label for="Calle">Calle:</label>
-                <input class="input-m" type="text" name="Calle" id="calle">
+                <input class="input-m" type="text" name="calle" id="calle">
               </div>
 
               <div class="form-row">
@@ -258,12 +258,12 @@ if (isset($_SESSION['usuario'])) {
 
               <div class="form-row">
                 <label for="cp">Codigo Postal:</label>
-                <input class="input-m" type="text" name="cp" id="codigoPostal">
+                <input class="input-m" type="text" name="codigoPostal" id="codigoPostal">
               </div>
 
               <div class="form-row">
                 <label for="poblacion">Población:</label>
-                <input class="input-m" type="text" name="poblacion" id="poblacion" value=".">
+                <input class="input-m" type="text" name="poblacion" id="poblacion">
               </div>
 <!--
               <div class="form-row">
@@ -294,7 +294,11 @@ if (isset($_SESSION['usuario'])) {
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
-
+  <script>
+    $(document).ready(function () {
+    informaEmpresa();  // Llamada a la función cuando la página de la empresa se ha cargado.
+  });
+  </script>
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
   <script src="JS/script.js"></script>

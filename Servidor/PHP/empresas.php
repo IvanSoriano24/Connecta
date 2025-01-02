@@ -1,10 +1,10 @@
 <?php
 require 'firebase.php';
-
+ 
 session_start(); // Iniciar sesión al inicio del archivo
 /*var_dump($_SESSION);
 exit;*/
-
+ 
 // Verifica si el método de la solicitud es GET
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
@@ -14,13 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         listaEmpresas($usuario); // Llamar a la función para obtener las empresas
     }
 }
-
+ 
 // Verifica si el método de la solicitud es POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $action = $_POST['action'] ?? '';
     if ($action === 'sesion') {
-        // Aquí podrías poner un bloque try-catch o una validación para ver si los datos llegan bien
         try {
             if (isset($_POST['id'], $_POST['noEmpresa'], $_POST['razonSocial'])) {
                 $id = $_POST['id'];
@@ -72,22 +70,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+function obtenerEmpresa() {
+    // Verifica si la empresa está en la sesión
+    if (isset($_SESSION['empresa'])) {
+        $empresa = $_SESSION['empresa'];
+        // Si faltan datos en la sesión, busca los datos en la base de datos
+        if (empty($empresa['rfc']) || empty($empresa['regimenFiscal']) || empty($empresa['calle']) || empty($empresa['numExterior']) || empty($empresa['numInterior'])
+        || empty($empresa['entreCalle']) || empty($empresa['colonia']) || empty($empresa['referencia']) || empty($empresa['pais']) || empty($empresa['estado'])
+        || empty($empresa['municipio']) || empty($empresa['codigoPostal']) || empty($empresa['poblacion'])) {
+            $datosCompletos = obtenerDatosEmpresa($empresa['noEmpresa']);
+            if ($datosCompletos) {
+                $empresa = array_merge($empresa, $datosCompletos);
+                $_SESSION['empresa'] = $empresa; // Actualiza la sesión con los datos completos
+            }
+        }
+        echo json_encode([
+            'success' => true,
+            'data' => $empresa
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No se encontró la empresa en la sesión.'
+        ]);
+    }
+}
+// Ejemplo de función para obtener los datos desde Firebase
+function obtenerDatosEmpresa($noEmpresa) {
+    global $firebaseProjectId, $firebaseApiKey;
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+    // Realizar la consulta a Firebase para obtener los datos
+    $response = file_get_contents($url);
+    if ($response === false) {
+        return false; // Error en la petición
+    }
+    
+    $data = json_decode($response, true);
+    $empresaData = null;
+
+    if (isset($data['documents'])) {
+        foreach ($data['documents'] as $document) {
+            $fields = $document['fields'];
+            if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+                $empresaData = [
+                    'rfc' => $fields['rfc']['stringValue'],
+                    'regimenFiscal' => $fields['regimenFiscal']['stringValue'],
+                    'calle' => $fields['calle']['stringValue'],
+                    'numExterior' => $fields['numExterior']['stringValue'],
+                    'numInterior' => $fields['numInterior']['stringValue'],
+                    'entreCalle' => $fields['entreCalle']['stringValue'],
+                    'colonia' => $fields['colonia']['stringValue'],
+                    'referencia' => $fields['referencia']['stringValue'],
+                    'pais' => $fields['pais']['stringValue'],
+                    'estado' => $fields['estado']['stringValue'],
+                    'municipio' => $fields['municipio']['stringValue'],
+                    'codigoPostal' => $fields['codigoPostal']['stringValue'],
+                    'poblacion' => $fields['poblacion']['stringValue']
+                ];
+                break; 
+            }
+        }
+    }
+    return $empresaData;
+}
+
+
 // Función para guardar o actualizar empresa
 function guardarEmpresa($data) {
     global $firebaseProjectId, $firebaseApiKey;
-
-    // Validar que exista el ID de la empresa para determinar si se guarda o actualiza
-    $idEmpresa = isset($data['noEmpresa']) ? $data['noEmpresa'] : null;
-
-    // Si hay un ID, actualizamos un documento existente; de lo contrario, creamos uno nuevo
-    $url = $idEmpresa 
-        ? "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS/$idEmpresa?key=$firebaseApiKey" 
-        : "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-
-    // Construir el cuerpo de la solicitud con los datos del formulario
+ 
+    // URL base para Firestore
+    $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+ 
+    // URL para buscar en la colección EMPRESAS
+    $urlBuscar = $urlBase . "/EMPRESAS?key=$firebaseApiKey";
+ 
+    // Realizar la consulta para obtener todos los documentos de la colección
+    $responseBuscar = file_get_contents($urlBuscar);
+    if ($responseBuscar === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener documentos de la colección.']);
+        return;
+    }
+ 
+    $dataBuscar = json_decode($responseBuscar, true);
+ 
+    // Buscar el documento que tenga el campo noEmpresa igual al valor recibido
+    $documentoId = null;
+    if (isset($dataBuscar['documents'])) {
+        foreach ($dataBuscar['documents'] as $document) {
+            $fields = $document['fields'];
+            if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $data['noEmpresa']) {
+                $documentoId = basename($document['name']); // Extraemos el ID del documento
+                break;
+            }
+        }
+    }
+ 
+    // Si no se encuentra el documento, devolver un error
+    if ($documentoId === null) {
+        echo json_encode(['success' => false, 'message' => 'No se encontró un documento con el noEmpresa proporcionado.']);
+        return;
+    }
+ 
+    // Construir la URL del documento encontrado para actualizarlo
+    $urlActualizar = "$urlBase/EMPRESAS/$documentoId?key=$firebaseApiKey";
+ 
+    // Los campos que deseas actualizar/agregar
     $fieldsToSave = [
-        'id' => ['stringValue' => $data['id']],
-        'noEmpresa' => ['stringValue' => $data['noEmpresa']],
         'razonSocial' => ['stringValue' => $data['razonSocial']],
         'rfc' => ['stringValue' => $data['rfc']],
         'regimenFiscal' => ['stringValue' => $data['regimenFiscal']],
@@ -103,51 +192,32 @@ function guardarEmpresa($data) {
         'codigoPostal' => ['stringValue' => $data['codigoPostal']],
         'poblacion' => ['stringValue' => $data['poblacion']]
     ];
-
-    // Construir el payload en formato JSON
+ 
     $payload = json_encode(['fields' => $fieldsToSave]);
-
-    // Configurar las opciones de la solicitud HTTP
+ 
+    // Configurar la solicitud HTTP para actualizar
     $options = [
         'http' => [
             'header'  => "Content-type: application/json\r\n",
-            'method'  => $idEmpresa ? 'PATCH' : 'POST', // PATCH para actualizar, POST para crear
+            'method'  => 'PATCH', // PATCH para actualizar el documento existente
             'content' => $payload
         ]
     ];
-
-    // Crear el contexto de la solicitud
-    $context  = stream_context_create($options);
-
-    // Realizar la solicitud a Firestore
-    $response = file_get_contents($url, false, $context);
-
-    if ($response !== false) {
-        echo json_encode(['success' => true, 'message' => 'Empresa guardada/actualizada correctamente.']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error al guardar/actualizar la empresa.']);
+ 
+    $context = stream_context_create($options);
+ 
+    // Realizar la solicitud para actualizar el documento
+    try {
+        $responseActualizar = file_get_contents($urlActualizar, false, $context);
+        if ($responseActualizar === false) {
+            throw new Exception('Error al conectar con Firestore para actualizar el documento.');
+        }
+        echo json_encode(['success' => true, 'message' => 'Documento actualizado correctamente.']);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
-
-function obtenerEmpresa() {
-    // No es necesario volver a iniciar sesión aquí
-    if (isset($_SESSION['empresa'])) {
-        $empresa = $_SESSION['empresa'];
-        echo json_encode([
-            'success' => true,
-            'data' => [
-                'noEmpresa' => $empresa['noEmpresa'],
-                'razonSocial' => $empresa['razonSocial'],
-            ]
-        ]);
-    } else {
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se encontró la empresa en la sesión.'
-        ]);
-    }
-}
-
+ 
 function sesionEmpresa($data)
 {
     // Guardar la empresa en la sesión
@@ -156,9 +226,9 @@ function sesionEmpresa($data)
         'noEmpresa' => $data['noEmpresa'],
         'razonSocial' => $data['razonSocial']
     ];
-
+ 
     //header('Content-Type: application/json');
-
+ 
     // Responder al cliente con los datos guardados
     echo json_encode([
         'success' => true,
@@ -170,7 +240,7 @@ function sesionEmpresa($data)
 function eliminarEmpresa(){
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-
+ 
     $options = [
         'http' => [
             'header'  => "Content-type: application/json",
@@ -179,27 +249,27 @@ function eliminarEmpresa(){
     ];
     $context  = stream_context_create($options);
     $response = file_get_contents($url, false, $context);
-
+ 
     if ($response !== false) {
         echo json_encode(['success' => true, 'message' => 'Empresa eliminada correctamente.']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al eliminar la empresa.']);
     }
 }
-
+ 
 // Función para obtener datos de la empresa
 function listaEmpresas($nombreUsuario) {
     global $firebaseProjectId, $firebaseApiKey;
     $urlEmpUs = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
     $responseEmpUs = file_get_contents($urlEmpUs);
-
+ 
     if ($responseEmpUs !== false) {
         $dataEmpUs = json_decode($responseEmpUs, true);
         if (isset($dataEmpUs['documents'])) {
             $empresas = [];
             foreach ($dataEmpUs['documents'] as $document) {
                 $fields = $document['fields'];
-
+ 
                 // Verificar que el usuario coincida
                 if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $nombreUsuario) {
                     $empresas[] = [
@@ -209,13 +279,13 @@ function listaEmpresas($nombreUsuario) {
                     ];
                 }
             }
-
+ 
             if (count($empresas) > 0) {
                 // Ordenar por razón social si es necesario
                 usort($empresas, function ($a, $b) {
                     return strcmp($a['razonSocial'], $b['razonSocial']);
                 });
-
+ 
                 $_SESSION['empresaSelect'] = [
                     'usuario' => $nombreUsuario,
                     'empresas' => $empresas
@@ -231,9 +301,5 @@ function listaEmpresas($nombreUsuario) {
         echo json_encode(['success' => false, 'message' => 'Error al obtener las relaciones de empresas del usuario.']);
     }
 }
-
-
-
-// Función para obtener los datos de la empresa
-
+ 
 ?>

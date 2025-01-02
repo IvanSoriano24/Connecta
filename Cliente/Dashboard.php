@@ -377,7 +377,7 @@ session_destroy(); */
 			var noEmpresa = '<?php echo $noEmpresa ?>'
 			console.log("Empresa: " + empresa);
 			console.log("ID: " + idEmpresa);
-			console.log("Numero: " + noEmpresa);
+			console.log("Numero: " + noEmpresa); 
         </script>
 </body>
 

@@ -61,6 +61,7 @@ function login($funcion){
                 header("Location: ../../Cliente/Dashboard.php");
                 exit();
             } else {
+                echo "Correo o contraseña incorrectos.";
                 header("Location: ../../Cliente/index.php?error=1");
                 exit();
             }
