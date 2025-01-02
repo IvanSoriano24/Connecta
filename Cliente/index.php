@@ -5,7 +5,7 @@ if (isset($_SESSION["usuario"])) {
         header('Location:.php');
         exit();
     }
-    header('Location:menu.php');
+    header('Location:Dashboard.php');
 }
 ?>
 <!DOCTYPE html>

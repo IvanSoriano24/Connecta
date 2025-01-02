@@ -242,7 +242,30 @@ $.post('../Servidor/PHP/empresas.php', {
 });
 }
  
- 
+ // Función para validar campos vacíos
+function validateForm() {
+    const fields = [
+        'razonSocial', 'rfc', 'calle', 'numExterior', 
+        'colonia', 'referencia', 'pais', 
+        'estado', 'municipio', 'codigoPostal', 'poblacion'
+    ];
+    
+    let isValid = true;
+    
+    for (let field of fields) {
+        const input = document.getElementById(field);
+        if (input && input.value.trim() === '') {
+            input.classList.add('input-error');
+            input.placeholder = `Campo Vacio`;
+            isValid = false;
+        } else {
+            input.classList.remove('input-error');
+            input.placeholder = '';
+        }
+    }
+    
+    return isValid;
+}
  
  
 $(document).ready(function () {

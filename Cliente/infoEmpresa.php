@@ -218,7 +218,8 @@ if (isset($_SESSION['usuario'])) {
 
               <div class="form-row">
                 <label for="regimenFiscal">Régimen Fiscal:</label>
-                <select name="regimenFiscal" id="regimenFiscal">
+                <select name="regimenFiscal" id="regimenFiscal" placeholder="Selecciona opcion">
+                  <option value="*"></option>
                   <option value="1">Opción 1</option>
                   <!-- Agrega más opciones si es necesario -->
                 </select>
@@ -226,7 +227,7 @@ if (isset($_SESSION['usuario'])) {
 
               <div class="form-row">
                 <label for="Calle">Calle:</label>
-                <input class="input-m" type="text" name="calle" id="calle">
+                <input class="input-m" type="text" name="calle" id="calle" placeholder="Calle">
               </div>
 
               <div class="form-row">
@@ -256,12 +257,12 @@ if (isset($_SESSION['usuario'])) {
 
               <div class="form-row">
                 <label for="cp">Codigo Postal:</label>
-                <input class="input-m" type="text" name="codigoPostal" id="codigoPostal">
+                <input class="input-m" type="text" name="codigoPostal" id="codigoPostal" placeholder="Codigo Postal">
               </div>
 
               <div class="form-row">
                 <label for="poblacion">Población:</label>
-                <input class="input-m" type="text" name="poblacion" id="poblacion">
+                <input class="input-m" type="text" name="poblacion" id="poblacion" placeholder="Poblacion">
               </div>
 
               <div class="form-buttons">
