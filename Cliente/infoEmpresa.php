@@ -201,7 +201,7 @@ if (isset($_SESSION['usuario'])) {
             </div>
             <form onsubmit="return validateForm()">
               <div class="form-row">
-                <input type="text" name="idDocumento" id="idDocumento" hidden>
+                <input type="text" name="id" id="id" value="<?php echo $idEmpresa ?>" hidden>
                 <label for="noEmpresa">No. Empresa:</label>
                 <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
               </div>
