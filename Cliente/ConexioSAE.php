@@ -210,24 +210,24 @@ session_destroy(); */
               </div>
 
               <div class="form-row">
-                <label for="razonSocial">Host:</label>
-                <input class="input-mt"type="text" name="razonSocial" id="razonSocial" value="">
+                <label for="host">Host:</label>
+                <input class="input-mt"type="text" name="host" id="host" value="">
               </div>
 
               <div class="form-row">
-                <label for="rfc">Puerto:</label>
-                <input class="input-small" type="text" name="rfc" id="rfc" value="">
+                <label for="puerto">Puerto:</label>
+                <input class="input-small" type="text" name="" id="" value="">
               </div>
 
               
 
               <div class="form-row">
-                <label for="numExterior">Usuario:</label>
-                <input class="input-mt"type="text" name="numExterior" id="numExterior">
-                <label for="claveCiec">Password:</label>
+                <label for="usuarioSae">Usuario:</label>
+                <input class="input-mt"type="text" name="usuarioSae" id="usuarioSae">
+                <label for="password">Password:</label>
                
                 <div class="password-container">
-                  <input class="input-mt" type="password" name="claveCiec" id="claveCiec">
+                  <input class="input-mt" type="password" name="password" id="password">
                   <button type="button" class="show-password">Mostrar</button>
                 </div>
             </div>
@@ -237,8 +237,8 @@ session_destroy(); */
               </div>
 
               <div class="form-row">
-                <label for="poblacion">Nombre Base Datos:</label>
-                <input class="input-mt" type="text" name="poblacion" id="poblacion" value=".">
+                <label for="nombreBase">Nombre Base Datos:</label>
+                <input class="input-mt" type="text" name="nombreBase" id="nombreBase" value=".">
               </div>
 
           
