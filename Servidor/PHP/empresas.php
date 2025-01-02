@@ -8,6 +8,7 @@ exit;*/
 // Verifica si el método de la solicitud es GET
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
+    var_dump($action);
     if ($action === 'get') {
         $usuario = $_GET['usuario'];
         listaEmpresas($usuario); // Llamar a la función para obtener las empresas
@@ -16,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 // Verifica si el método de la solicitud es POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $action = $_POST['action'] ?? '';
     if ($action === 'sesion') {
         // Aquí podrías poner un bloque try-catch o una validación para ver si los datos llegan bien
@@ -44,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
     }elseif($action === 'save'){
-        echo "Si";
         try{
             $data = [
                 'id' => $_POST['id'],
@@ -114,7 +115,7 @@ function guardarEmpresa($data) {
     // Los campos que deseas actualizar/agregar
     $fieldsToSave = [
         'razonSocial' => ['stringValue' => $data['razonSocial']],
-        'RFC' => ['stringValue' => $data['rfc']],
+        'rfc' => ['stringValue' => $data['rfc']],
         'regimenFiscal' => ['stringValue' => $data['regimenFiscal']],
         'calle' => ['stringValue' => $data['calle']],
         'numExterior' => ['stringValue' => $data['numExterior']],
