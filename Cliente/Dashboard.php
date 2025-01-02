@@ -349,9 +349,8 @@ session_destroy(); */
 						// Obtener los datos adicionales de la empresa utilizando los atributos data-*
 						const noEmpresa = empresaOption.getAttribute('data-no-empresa');
 						const razonSocial = empresaOption.getAttribute('data-razon-social');
-
 						alert(`Has seleccionado: ${noEmpresa} - ${razonSocial}`);
-
+						seleccionarEmpresa(noEmpresa);
 						const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
 						modal.hide();
 

@@ -35,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'data' => $_SESSION['empresa']
                 ]);
             } else if(isset($_POST['ed']) && $_POST['ed'] === '2'){
-                obtenerEmpresa();
+                $noEmpresa = $_POST['noEmpresa'];
+                obtenerEmpresa($noEmpresa);
             }else {
                 echo json_encode(['success' => false, 'message' => 'Faltan parámetros.']);
             }
@@ -69,75 +70,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-function obtenerEmpresa() {
-    // Verifica si la empresa está en la sesión
-    if (isset($_SESSION['empresa'])) {
-        $empresa = $_SESSION['empresa'];
-        // Si faltan datos en la sesión, busca los datos en la base de datos
-        if (empty($empresa['rfc']) || empty($empresa['regimenFiscal']) || empty($empresa['calle']) || empty($empresa['numExterior']) || empty($empresa['numInterior'])
-        || empty($empresa['entreCalle']) || empty($empresa['colonia']) || empty($empresa['referencia']) || empty($empresa['pais']) || empty($empresa['estado'])
-        || empty($empresa['municipio']) || empty($empresa['codigoPostal']) || empty($empresa['poblacion'])) {
-            $datosCompletos = obtenerDatosEmpresa($empresa['noEmpresa']);
-            if ($datosCompletos) {
-                $empresa = array_merge($empresa, $datosCompletos);
-                $_SESSION['empresa'] = $empresa; 
-            }
+function obtenerEmpresa($noEmpresa) {
+    // Verifica si el número de empresa fue proporcionado
+    if (!empty($noEmpresa)) {
+        // Intenta obtener los datos desde Firebase
+        $datosCompletos = obtenerDatosEmpresa($noEmpresa);
+
+        if ($datosCompletos) {
+            // Si los datos son obtenidos correctamente, guarda la empresa en la sesión
+            $_SESSION['empresa'] = $datosCompletos;
+            return responderJson(true, 'Datos de la empresa obtenidos correctamente.', $datosCompletos);
+        } else {
+            return responderJson(false, 'No se encontraron datos para la empresa especificada.');
         }
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => true,
-            'data' => $empresa  // Verifica que $empresa contenga los datos esperados
-        ]);
     } else {
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se encontró la empresa en la sesión.'
-        ]);
+        return responderJson(false, 'El número de empresa no fue proporcionado.');
     }
 }
-// Ejemplo de función para obtener los datos desde Firebase
+
+// Función para obtener los datos desde Firebase
 function obtenerDatosEmpresa($noEmpresa) {
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-    
-    // Realizar la consulta a Firebase para obtener los datos
-    $response = file_get_contents($url);
+
+    // Configura el contexto de la solicitud para manejar errores y tiempo de espera
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 10 // Tiempo máximo de espera en segundos
+        ]
+    ]);
+
+    // Realizar la consulta a Firebase
+    $response = @file_get_contents($url, false, $context);
     if ($response === false) {
         return false; // Error en la petición
     }
-    
-    // Verifica el contenido de la respuesta
+
+    // Decodifica la respuesta JSON
     $data = json_decode($response, true);
+    if (!isset($data['documents'])) {
+        return false; // No se encontraron documentos
+    }
 
-    $empresaData = null;
-
-    if (isset($data['documents'])) {
-        foreach ($data['documents'] as $document) {
-            $fields = $document['fields'];
-            if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
-                $empresaData = [
-                    'id' => $fields['id']['stringValue'],
-                    'rfc' => $fields['rfc']['stringValue'],
-                    'regimenFiscal' => $fields['regimenFiscal']['stringValue'],
-                    'calle' => $fields['calle']['stringValue'],
-                    'numExterior' => $fields['numExterior']['stringValue'],
-                    'numInterior' => $fields['numInterior']['stringValue'],
-                    'entreCalle' => $fields['entreCalle']['stringValue'],
-                    'colonia' => $fields['colonia']['stringValue'],
-                    'referencia' => $fields['referencia']['stringValue'],
-                    'pais' => $fields['pais']['stringValue'],
-                    'estado' => $fields['estado']['stringValue'],
-                    'municipio' => $fields['municipio']['stringValue'],
-                    'codigoPostal' => $fields['codigoPostal']['stringValue'],
-                    'poblacion' => $fields['poblacion']['stringValue']
-                ];
-                break;
-            }
+    // Busca los datos de la empresa por noEmpresa
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+            return [
+                'noEmpresa' => $fields['noEmpresa']['stringValue'] ?? null,
+                'id' => $fields['id']['stringValue'] ?? null,
+                'razonSocial' => $fields['razonSocial']['stringValue'] ?? null,
+                'rfc' => $fields['rfc']['stringValue'] ?? null,
+                'regimenFiscal' => $fields['regimenFiscal']['stringValue'] ?? null,
+                'calle' => $fields['calle']['stringValue'] ?? null,
+                'numExterior' => $fields['numExterior']['stringValue'] ?? null,
+                'numInterior' => $fields['numInterior']['stringValue'] ?? null,
+                'entreCalle' => $fields['entreCalle']['stringValue'] ?? null,
+                'colonia' => $fields['colonia']['stringValue'] ?? null,
+                'referencia' => $fields['referencia']['stringValue'] ?? null,
+                'pais' => $fields['pais']['stringValue'] ?? null,
+                'estado' => $fields['estado']['stringValue'] ?? null,
+                'municipio' => $fields['municipio']['stringValue'] ?? null,
+                'codigoPostal' => $fields['codigoPostal']['stringValue'] ?? null,
+                'poblacion' => $fields['poblacion']['stringValue'] ?? null
+            ];
         }
     }
-    return $empresaData;
+
+    return false; // No se encontró la empresa
 }
+
+// Función para responder en formato JSON
+function responderJson($success, $message, $data = null) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => $success,
+        'message' => $message,
+        'data' => $data
+    ]);
+    exit;
+}
+
 
 // Función para guardar o actualizar empresa
 function guardarEmpresa($data) {

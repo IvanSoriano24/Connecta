@@ -9,17 +9,17 @@ function cerrarModalSae() {
     modal.hide();
 }
 function informaEmpresa() {
+    const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
     $.post('../Servidor/PHP/empresas.php', {
         action: 'sesion',
-        ed: '2' 
+        ed: '2',
+        noEmpresa: noEmpresa
     }, function(response) {
         if (response.success && response.data) {
             const data = response.data;
             
             // Verifica la estructura de los datos en el console.log
             //console.log(data);  // Esto te mostrará el objeto completo
-
-            // Si la estructura está bien, entonces se procede con el alert
             $('#noEmpresa').val(data.noEmpresa);
             $('#razonSocial').val(data.razonSocial);
             $('#rfc').val(data.rfc);
@@ -74,7 +74,13 @@ function cargarEmpresa(usuario) {
         }
     }, 'json');
 }
+function seleccionarEmpresa(noEmpresa) {
+    // Guarda el número de empresa en sessionStorage
+    sessionStorage.setItem('noEmpresaSeleccionada', noEmpresa);
 
+    // Opcionalmente, puedes mostrar una alerta de confirmación
+    console.log('Empresa seleccionada:', noEmpresa);
+}
  
 // Función para guardar o actualizar la empresa
 function guardarEmpresa() {
@@ -118,9 +124,6 @@ function guardarEmpresa() {
         }
     });
 }
- 
- 
- 
  
 // Función para eliminar la empresa
 function eliminarEmpresa() {
@@ -266,7 +269,12 @@ function validateForm() {
     return isValid;
 }
  
- 
+function limpiarCacheEmpresa() {
+    sessionStorage.removeItem('noEmpresaSeleccionada');
+    console.log('Cache de la empresa limpiado.');
+}
+
+
 $(document).ready(function () {
 /*
     document.getElementById('SAE').addEventListener('click', function() {
@@ -307,6 +315,7 @@ $(document).ready(function () {
     $("#cerrarSesion").click(function () {
         if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
             $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
+                limpiarCacheEmpresa();
                 window.location.href = "index.php"; // Redirigir al login
             }).fail(function () {
                 alert("Error al intentar cerrar sesión.");
