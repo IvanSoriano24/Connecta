@@ -187,6 +187,17 @@ background-color: rgb(255, 255, 255);
     cursor: pointer;
   }
 
+  .btn-probarco {
+    background-color: #5292f1;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+
+
   .btn-cancel:hover {
     background-color: #c82333;
   }
