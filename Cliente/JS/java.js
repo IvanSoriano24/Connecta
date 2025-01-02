@@ -17,7 +17,7 @@
     const database = firebase.database();
 
 // Función para verificar la conexión
-document.getElementById('checkConnection').addEventListener('click', () => {
+document.getElementById('checkConnection')?.addEventListener('click', () => {
     database.ref('.info/connected').on('value', (snapshot) => {
         if (snapshot.val() === true) {
             alert('Conexión exitosa a Firebase');
