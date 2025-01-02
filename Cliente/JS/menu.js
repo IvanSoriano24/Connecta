@@ -30,7 +30,7 @@ function informaEmpresa() {
             $('#pais').val(response.data.pais);
             $('#estado').val(response.data.estado);
             $('#municipio').val(response.data.municipio);
-            $('#cp').val(response.data.cp);
+            $('#codigoPostal').val(response.data.cp);
             $('#poblacion').val(response.data.poblacion);
             $('#claveCiec').val(response.data.claveCiec);
         } else {
@@ -81,8 +81,7 @@ function cargarEmpresa(usuario) {
 function guardarEmpresa() {
     const data = {
         action: 'save',
-        id: $('#id').val(),
-        noEmpresa: $('#noEmpresa').val(),
+        noEmpresa: $('#noEmpresa').val(), // Aquí se manda el noEmpresa
         razonSocial: $('#razonSocial').val(),
         rfc: $('#rfc').val(),
         regimenFiscal: $('#regimenFiscal').val(),
@@ -105,9 +104,9 @@ function guardarEmpresa() {
         dataType: 'json',
         success: function (response) {
             if (response.success) {
-                alert('Empresa guardada correctamente.');
+                alert('Documento actualizado correctamente.');
             } else {
-                alert('Error al guardar la empresa: ' + response.message);
+                alert('Error: ' + response.message);
             }
         },
         error: function (xhr, status, error) {
@@ -116,6 +115,8 @@ function guardarEmpresa() {
         }
     });
 }
+
+
 
 
 // Función para eliminar la empresa
