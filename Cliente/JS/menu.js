@@ -20,7 +20,6 @@ function informaEmpresa() {
             console.log(data);  // Esto te mostrará el objeto completo
 
             // Si la estructura está bien, entonces se procede con el alert
-            alert(data.colonia);  // Aquí debería funcionar si los datos están correctos
             $('#noEmpresa').val(data.noEmpresa);
             $('#razonSocial').val(data.razonSocial);
             $('#rfc').val(data.rfc);
@@ -84,6 +83,7 @@ function guardarEmpresa() {
     }
     const data = {
         action: 'save',
+        id: 'id',
         noEmpresa: $('#noEmpresa').val(), // Aquí se manda el noEmpresa
         razonSocial: $('#razonSocial').val(),
         rfc: $('#rfc').val(),

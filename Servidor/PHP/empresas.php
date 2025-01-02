@@ -117,6 +117,7 @@ function obtenerDatosEmpresa($noEmpresa) {
             $fields = $document['fields'];
             if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
                 $empresaData = [
+                    'id' => $fields['id']['stringValue'],
                     'rfc' => $fields['rfc']['stringValue'],
                     'regimenFiscal' => $fields['regimenFiscal']['stringValue'],
                     'calle' => $fields['calle']['stringValue'],
@@ -152,6 +153,8 @@ function guardarEmpresa($data) {
         : "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
     // Construir el cuerpo de la solicitud con los datos del formulario
     $fieldsToSave = [
+        'id' => ['stringValue' => $data['id']],
+        'noEmpresa' => ['stringValue' => $data['noEmpresa']],
         'razonSocial' => ['stringValue' => $data['razonSocial']],
         'rfc' => ['stringValue' => $data['rfc']],
         'regimenFiscal' => ['stringValue' => $data['regimenFiscal']],
