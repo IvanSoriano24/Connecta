@@ -77,9 +77,6 @@ function cargarEmpresa(usuario) {
 function seleccionarEmpresa(noEmpresa) {
     // Guarda el número de empresa en sessionStorage
     sessionStorage.setItem('noEmpresaSeleccionada', noEmpresa);
-
-    // Opcionalmente, puedes mostrar una alerta de confirmación
-    console.log('Empresa seleccionada:', noEmpresa);
 }
  
 // Función para guardar o actualizar la empresa

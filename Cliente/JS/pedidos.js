@@ -80,8 +80,8 @@ function cargarPedidos() {
               idPedido: idPedido
           }, function (response) {
               if (response.success) {
-                  alert('Pedido cancelado con éxito');
-                  location.reload();
+                location.reload();
+                alert('Pedido cancelado con éxito');
               } else {
                   alert('Error al cancelar el pedido: ' + response.message);
                   console.log('Error al cancelar el pedido: ' + response.message);
