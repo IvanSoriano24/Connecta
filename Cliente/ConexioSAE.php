@@ -203,46 +203,33 @@ session_destroy(); */
               <i class='bx bx-filter'></i>
             </div>
             <form action="">
-
               <div class="form-row">
                 <label for="noEmpresa">No. Empresa:</label>
                 <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
               </div>
-
               <div class="form-row">
                 <label for="host">Host:</label>
                 <input class="input-mt"type="text" name="host" id="host" value="">
               </div>
-
               <div class="form-row">
                 <label for="puerto">Puerto:</label>
                 <input class="input-small" type="text" name="" id="" value="">
               </div>
-
-              
-
               <div class="form-row">
                 <label for="usuarioSae">Usuario:</label>
                 <input class="input-mt"type="text" name="usuarioSae" id="usuarioSae">
                 <label for="txt">Password:</label>
                 <input class="input-mt" type="password" name="password" id="password">
-                <div class="password-container">
-                  
+                <div class="password-container">                 
                   <!-- <button type="button" class="show-password">Mostrar</button> -->
                 </div>
             </div>
-
               <div class="form-row">
-              
               </div>
-
               <div class="form-row">
                 <label for="nombreBase">Nombre Base Datos:</label>
                 <input class="input-mt" type="text" name="nombreBase" id="nombreBase" value="">
               </div>
-
-          
-
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
                  <button type="submit" class="btn-save">Guardar</button> 
@@ -276,8 +263,15 @@ session_destroy(); */
 
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-
-
+  <script>
+    const numeroEmpresa = '<?php echo $noEmpresa ?>';  // Este número debería ser el que obtienes de la sesión o base de datos.
+    const inputNombreBase = document.getElementById('nombreBase');
+    inputNombreBase.addEventListener('blur', function() {
+        if (this.value.trim() !== '') {
+            this.value =  this.value + numeroEmpresa
+        }
+    });
+</script>
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
   <script src="JS/script.js"></script>

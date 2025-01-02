@@ -378,14 +378,6 @@ session_destroy(); */
 		<script src="JS/menu.js"></script>
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
-		<script>
-			var empresa = '<?php echo $empresa ?>'
-			var idEmpresa = '<?php echo $idEmpresa ?>'
-			var noEmpresa = '<?php echo $noEmpresa ?>'
-			console.log("Empresa: " + empresa);
-			console.log("ID: " + idEmpresa);
-			console.log("Numero: " + noEmpresa);
-		</script>
 </body>
 
 </html>
