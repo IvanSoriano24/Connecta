@@ -138,44 +138,16 @@ function obtenerDatosEmpresa($noEmpresa) {
 // Función para guardar o actualizar empresa
 function guardarEmpresa($data) {
     global $firebaseProjectId, $firebaseApiKey;
- 
-    // URL base para Firestore
-    $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
- 
-    // URL para buscar en la colección EMPRESAS
-    $urlBuscar = $urlBase . "/EMPRESAS?key=$firebaseApiKey";
- 
-    // Realizar la consulta para obtener todos los documentos de la colección
-    $responseBuscar = file_get_contents($urlBuscar);
-    if ($responseBuscar === false) {
-        echo json_encode(['success' => false, 'message' => 'Error al obtener documentos de la colección.']);
-        return;
-    }
- 
-    $dataBuscar = json_decode($responseBuscar, true);
- 
-    // Buscar el documento que tenga el campo noEmpresa igual al valor recibido
-    $documentoId = null;
-    if (isset($dataBuscar['documents'])) {
-        foreach ($dataBuscar['documents'] as $document) {
-            $fields = $document['fields'];
-            if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $data['noEmpresa']) {
-                $documentoId = basename($document['name']); // Extraemos el ID del documento
-                break;
-            }
-        }
-    }
- 
-    // Si no se encuentra el documento, devolver un error
-    if ($documentoId === null) {
-        echo json_encode(['success' => false, 'message' => 'No se encontró un documento con el noEmpresa proporcionado.']);
-        return;
-    }
- 
-    // Construir la URL del documento encontrado para actualizarlo
-    $urlActualizar = "$urlBase/EMPRESAS/$documentoId?key=$firebaseApiKey";
- 
-    // Los campos que deseas actualizar/agregar
+
+    // Validar que exista el ID de la empresa para determinar si se guarda o actualiza
+    $idEmpresa = isset($data['noEmpresa']) ? $data['noEmpresa'] : null;
+
+    // Si hay un ID, actualizamos un documento existente; de lo contrario, creamos uno nuevo
+    $url = $idEmpresa 
+        ? "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS/$idEmpresa?key=$firebaseApiKey" 
+        : "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+
+    // Construir el cuerpo de la solicitud con los datos del formulario
     $fieldsToSave = [
         'razonSocial' => ['stringValue' => $data['razonSocial']],
         'rfc' => ['stringValue' => $data['rfc']],
@@ -192,10 +164,11 @@ function guardarEmpresa($data) {
         'codigoPostal' => ['stringValue' => $data['codigoPostal']],
         'poblacion' => ['stringValue' => $data['poblacion']]
     ];
- 
+
+    // Construir el payload en formato JSON
     $payload = json_encode(['fields' => $fieldsToSave]);
- 
-    // Configurar la solicitud HTTP para actualizar
+
+    // Configurar las opciones de la solicitud HTTP
     $options = [
         'http' => [
             'header'  => "Content-type: application/json\r\n",
@@ -203,18 +176,36 @@ function guardarEmpresa($data) {
             'content' => $payload
         ]
     ];
- 
-    $context = stream_context_create($options);
- 
-    // Realizar la solicitud para actualizar el documento
-    try {
-        $responseActualizar = file_get_contents($urlActualizar, false, $context);
-        if ($responseActualizar === false) {
-            throw new Exception('Error al conectar con Firestore para actualizar el documento.');
-        }
-        echo json_encode(['success' => true, 'message' => 'Documento actualizado correctamente.']);
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+
+    // Crear el contexto de la solicitud
+    $context  = stream_context_create($options);
+
+    // Realizar la solicitud a Firestore
+    $response = file_get_contents($url, false, $context);
+
+    if ($response !== false) {
+        echo json_encode(['success' => true, 'message' => 'Empresa guardada/actualizada correctamente.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al guardar/actualizar la empresa.']);
+    }
+}
+
+function obtenerEmpresa() {
+    // No es necesario volver a iniciar sesión aquí
+    if (isset($_SESSION['empresa'])) {
+        $empresa = $_SESSION['empresa'];
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'noEmpresa' => $empresa['noEmpresa'],
+                'razonSocial' => $empresa['razonSocial'],
+            ]
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No se encontró la empresa en la sesión.'
+        ]);
     }
 }
  

@@ -6,10 +6,10 @@ if (isset($_SESSION['usuario'])) {
 
   //$empresa = $_SESSION['empresa']['razonSocial'];
   if (isset($_SESSION['empresa'])) {
-		$empresa = $_SESSION['empresa']['razonSocial'];
-		$idEmpresa = $_SESSION['empresa']['id'];
-		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
-	}
+    $empresa = $_SESSION['empresa']['razonSocial'];
+    $idEmpresa = $_SESSION['empresa']['id'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+  }
 
 } else {
   header('Location:../index.php');
@@ -199,7 +199,7 @@ if (isset($_SESSION['usuario'])) {
               <!--<i class='bx bx-search'></i> -->
               <i class='bx bx-filter'></i>
             </div>
-            <form>
+            <form onsubmit="return validateForm()">
               <div class="form-row">
                 <input type="text" name="idDocumento" id="idDocumento" hidden>
                 <label for="noEmpresa">No. Empresa:</label>
@@ -213,17 +213,17 @@ if (isset($_SESSION['usuario'])) {
 
               <div class="form-row">
                 <label for="rfc">RFC:</label>
-                <input class="input-m"type="text" name="rfc" id="rfc">
+                <input class="input-m" type="text" name="rfc" id="rfc" placeholder="RFC">
               </div>
 
               <div class="form-row">
                 <label for="regimenFiscal">Régimen Fiscal:</label>
                 <select name="regimenFiscal" id="regimenFiscal">
-                  <option value="1">Opcion 1</option>
+                  <option value="1">Opción 1</option>
                   <!-- Agrega más opciones si es necesario -->
                 </select>
-                
               </div>
+
               <div class="form-row">
                 <label for="Calle">Calle:</label>
                 <input class="input-m" type="text" name="calle" id="calle">
@@ -231,29 +231,27 @@ if (isset($_SESSION['usuario'])) {
 
               <div class="form-row">
                 <label for="numExterior">Num. Exterior:</label>
-                <input class="input-small"type="text" name="numExterior" id="numExterior">
+                <input class="input-small" type="text" name="numExterior" id="numExterior" placeholder="Num. Exterior">
                 <label for="numInterior">Num. Interior:</label>
-                <input class="input-small" type="text" name="numInterior" id="numInterior">
+                <input class="input-small" type="text" name="numInterior" id="numInterior" placeholder="Num. Interior">
                 <label for="entreCalle">Entre Calle:</label>
-                <input class="input-m" type="text" name="entreCalle" id="entreCalle">
+                <input class="input-m" type="text" name="entreCalle" id="entreCalle" placeholder="Entre Calle">
               </div>
 
-            
               <div class="form-row">
                 <label for="colonia">Colonia:</label>
-                <input class="input-m" type="text" name="colonia" id="colonia">
+                <input class="input-m" type="text" name="colonia" id="colonia" placeholder="Colonia">
                 <label for="referencia">Referencia:</label>
-                <input class="input-m" type="text" name="referencia" id="referencia">
+                <input class="input-m" type="text" name="referencia" id="referencia" placeholder="Referencia">
               </div>
 
-              
               <div class="form-row">
                 <label for="pais">País:</label>
-                <input class="input-m" type="text" name="pais" id="pais">
+                <input class="input-m" type="text" name="pais" id="pais" placeholder="País">
                 <label for="estado">Estado:</label>
-                <input class="input-m" type="text" name="estado" id="estado">
+                <input class="input-m" type="text" name="estado" id="estado" placeholder="Estado">
                 <label for="municipio">Municipio:</label>
-                <input class="input-m" type="text" name="municipio" id="municipio">
+                <input class="input-m" type="text" name="municipio" id="municipio" placeholder="Municipio">
               </div>
 
               <div class="form-row">
@@ -265,15 +263,6 @@ if (isset($_SESSION['usuario'])) {
                 <label for="poblacion">Población:</label>
                 <input class="input-m" type="text" name="poblacion" id="poblacion">
               </div>
-<!--
-              <div class="form-row">
-                <label for="claveCiec">Clave CIEC:</label>
-                <div class="password-container">
-                  <input type="password" name="claveCiec" id="claveCiec">
-                  <button type="button" class="show-password">Mostrar</button>
-                </div>
-              </div>
--->
 
               <div class="form-buttons">
                 <button type="submit" class="btn-save" id="confirmarDatos">Guardar</button>
@@ -340,5 +329,3 @@ if (isset($_SESSION['usuario'])) {
     </div>
   </div>
   -->
-
-

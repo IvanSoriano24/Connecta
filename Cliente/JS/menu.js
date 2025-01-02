@@ -2,11 +2,11 @@ let idEmpresarial;
  
 function cerrarModal(){
     const modal = bootstrap.Modal.getInstance(document.getElementById('infoEmpresa'));
-        modal.hide();
+    modal.hide();
 }
-function cerrarModalSae(){
+function cerrarModalSae() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('infoConexion'));
-        modal.hide();
+    modal.hide();
 }
 function informaEmpresa() {
     $.post('../Servidor/PHP/empresas.php', {
@@ -35,7 +35,7 @@ function informaEmpresa() {
             console.warn('Error:', response.message || 'Error al obtener las empresas.');
             alert(response.message || 'Error al obtener las empresas.');
         }
-    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
         console.error('Error en la petición:', textStatus, errorThrown);
     });
 }
@@ -74,6 +74,9 @@ function cargarEmpresa(usuario) {
  
 // Función para guardar o actualizar la empresa
 function guardarEmpresa() {
+    if (!validateForm()) {
+        return; // Si la validación falla, no se envía el formulario
+    }
     const data = {
         action: 'save',
         noEmpresa: $('#noEmpresa').val(), // Aquí se manda el noEmpresa
@@ -82,8 +85,8 @@ function guardarEmpresa() {
         regimenFiscal: $('#regimenFiscal').val(),
         calle: $('#calle').val(),
         numExterior: $('#numExterior').val(),
-        numInterior: $('#numInterior').val(),
-        entreCalle: $('#entreCalle').val(),
+        numInterior: $('#numInterior').val() || '*',
+        entreCalle: $('#entreCalle').val() || '*',
         colonia: $('#colonia').val(),
         referencia: $('#referencia').val(),
         pais: $('#pais').val(),
@@ -143,24 +146,24 @@ function probarConexionSAE() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-        }
-        return response.json();
-    })
-    .then(responseData => {
-        console.log("Respuesta del servidor:", responseData);
-        if (responseData.success) {
-            alert('Conexión exitosa.');
-        } else {
-            alert('Error: ' + responseData.message);
-        }
-    })
-    .catch(error => {
-        console.error("Error de la solicitud:", error);
-        alert('Error en la solicitud: ' + error.message);
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(responseData => {
+            console.log("Respuesta del servidor:", responseData);
+            if (responseData.success) {
+                alert('Conexión exitosa.');
+            } else {
+                alert('Error: ' + responseData.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error de la solicitud:", error);
+            alert('Error en la solicitud: ' + error.message);
+        });
 }
 function guardarConexionSAE() {
     const data = {
@@ -178,24 +181,24 @@ function guardarConexionSAE() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-        }
-        return response.json();
-    })
-    .then(responseData => {
-        console.log("Respuesta del servidor:", responseData);
-        if (responseData.success) {
-            alert('Datos guardados exitosamente en Firebase.');
-        } else {
-            alert('Error al guardar: ' + responseData.message);
-        }
-    })
-    .catch(error => {
-        console.error("Error de la solicitud:", error);
-        alert('Error en la solicitud: ' + error.message);
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(responseData => {
+            console.log("Respuesta del servidor:", responseData);
+            if (responseData.success) {
+                alert('Datos guardados exitosamente en Firebase.');
+            } else {
+                alert('Error al guardar: ' + responseData.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error de la solicitud:", error);
+            alert('Error en la solicitud: ' + error.message);
+        });
 }
  
 function sesionEmpresa(idEmpresarial) {
@@ -222,7 +225,7 @@ $.post('../Servidor/PHP/empresas.php', {
         if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
             console.log('Datos recibidos correctamente:', response.data);
         } else {
-            alert('La respuesta no contiene datos de la empresa esperados.');
+            //alert(response.message || 'Error al guardar la sesión de empresa.');
         }
     } else {
         //alert(response.message || 'Error al guardar la sesión de empresa.');
@@ -276,11 +279,11 @@ $(document).ready(function () {
    
     $("#cerrarSesion").click(function () {
         if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
-          $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
-            window.location.href = "index.php"; // Redirigir al login
-          }).fail(function () {
-            alert("Error al intentar cerrar sesión.");
-          });
+            $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
+                window.location.href = "index.php"; // Redirigir al login
+            }).fail(function () {
+                alert("Error al intentar cerrar sesión.");
+            });
         }
       });
 });
