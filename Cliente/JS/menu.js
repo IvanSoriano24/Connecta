@@ -17,7 +17,7 @@ function informaEmpresa() {
             const data = response.data;
             
             // Verifica la estructura de los datos en el console.log
-            console.log(data);  // Esto te mostrará el objeto completo
+            //console.log(data);  // Esto te mostrará el objeto completo
 
             // Si la estructura está bien, entonces se procede con el alert
             $('#noEmpresa').val(data.noEmpresa);
@@ -83,7 +83,7 @@ function guardarEmpresa() {
     }
     const data = {
         action: 'save',
-        id: 'id',
+        id:  $('#id').val(),
         noEmpresa: $('#noEmpresa').val(), // Aquí se manda el noEmpresa
         razonSocial: $('#razonSocial').val(),
         rfc: $('#rfc').val(),
@@ -224,11 +224,9 @@ $.post('../Servidor/PHP/empresas.php', {
     noEmpresa: noEmpresa,
     razonSocial: razonSocial
 }, function(response) {
-    console.log('Respuesta del servidor:', response); // Ver respuesta del servidor
- 
     if (response.success) {
         if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
-            console.log('Datos recibidos correctamente:', response.data);
+            console.log(response.data);
         } else {
             //alert(response.message || 'Error al guardar la sesión de empresa.');
         }

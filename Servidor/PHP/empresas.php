@@ -198,8 +198,10 @@ function guardarEmpresa($data) {
         'codigoPostal' => ['stringValue' => $data['codigoPostal']],
         'poblacion' => ['stringValue' => $data['poblacion']]
     ];
+
     // Construir el payload en formato JSON
     $payload = json_encode(['fields' => $fieldsToSave]);
+
     // Configurar las opciones de la solicitud HTTP
     $options = [
         'http' => [
@@ -208,19 +210,42 @@ function guardarEmpresa($data) {
             'content' => $payload
         ]
     ];
+    
     // Crear el contexto de la solicitud
     $context  = stream_context_create($options);
 
-     try {
+    try {
         $responseActualizar = file_get_contents($urlActualizar, false, $context);
         if ($responseActualizar === false) {
             throw new Exception('Error al conectar con Firestore para actualizar el documento.');
         }
-        echo json_encode(['success' => true, 'message' => 'Documento actualizado correctamente.']);
+        
+        // Actualiza los datos en la sesión después de guardar en Firebase
+        $_SESSION['empresa'] = [
+            'id' => $data['id'],
+            'noEmpresa' => $data['noEmpresa'],
+            'razonSocial' => $data['razonSocial'],
+            'rfc' => $data['rfc'],
+            'regimenFiscal' => $data['regimenFiscal'],
+            'calle' => $data['calle'],
+            'numExterior' => $data['numExterior'],
+            'numInterior' => $data['numInterior'],
+            'entreCalle' => $data['entreCalle'],
+            'colonia' => $data['colonia'],
+            'referencia' => $data['referencia'],
+            'pais' => $data['pais'],
+            'estado' => $data['estado'],
+            'municipio' => $data['municipio'],
+            'codigoPostal' => $data['codigoPostal'],
+            'poblacion' => $data['poblacion']
+        ];
+
+        echo json_encode(['success' => true, 'message' => 'Documento actualizado correctamente y sesión de empresa actualizada.']);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
+
 function sesionEmpresa($data)
 {
     // Guardar la empresa en la sesión
