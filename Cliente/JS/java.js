@@ -1,4 +1,4 @@
-
+src="https://cdn.jsdelivr.net/npm/sweetalert2@11"
 
     // Configuración de Firebase
     const firebaseConfig = {
@@ -107,7 +107,12 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (error) {
         // Mostrar el mensaje de error como un alert
-        alert("Correo o contraseña incorrectos.");
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Correo o contraseña incorrectos.",
+            confirmButtonColor: "#3085d6"
+        });
     }
 
     form.addEventListener("submit", (event) => {
@@ -132,7 +137,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (valid) {
             form.submit(); // Enviar formulario si todo está válido
         } else {
-            alert("Por favor, llena todos los campos.");
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Algo salió mal. Por favor, revisa los campos e inténtalo de nuevo.",
+                confirmButtonColor: "#3085d6"
+            });
         }
     });
 

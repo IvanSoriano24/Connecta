@@ -32,9 +32,10 @@ if (isset($_SESSION['usuario'])) {
   <link rel="stylesheet" href="CSS/style.css">
 
   <link rel="stylesheet" href="CSS/selec.css">
-
-  <title>AdminHub</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <title>AdminHub</title>
+
 
 
 

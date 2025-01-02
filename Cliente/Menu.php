@@ -47,7 +47,7 @@ if (isset($_SESSION['usuario'])) {
     <!--MENU  HEADER-->
     <nav class="menu">
       <section class="menu__container">
-        <a href=""><img src="SRC/imagen.png" alt="Logo" id="logop"> </a>
+        <a href=""><img src="SRC/imagen.png" alt="Logo" id="logop" href="Menu.php"> </a>
 
         <ul class="menu__links">
           <li class="menu__item">
@@ -89,10 +89,10 @@ if (isset($_SESSION['usuario'])) {
       <div class="row">
         <div class="col-12 col-sm-6 text-center text-sm-start">
           <img src="SRC/imagen.png" class="logomdconnecta" alt="Logo">
-          &copy; <a href="#"> MDCloud</a>, All Right Reserved.
+          <!-- &copy; <a href="#"> MDCloud</a>, All Right Reserved. -->
         </div>
         <div class="col-12 col-sm-6 text-center text-sm-end">
-          De: <a> MDCONNECTA</a>
+           <a> MDCONNECTA</a>
         </div>
       </div>
     </div>
