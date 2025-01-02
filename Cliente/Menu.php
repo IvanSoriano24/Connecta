@@ -1,17 +1,16 @@
 <?php
-session_start();/*
+session_start();
 
 if (isset($_SESSION['usuario'])) {
-if($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE'){
-header('Location:Dashboard.php');
-exit();
-}
-$nombreUsuario = $_SESSION['usuario']["nombre"];
-$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
-
+  if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+    header('Location:Dashboard.php');
+    exit();
+  }
+  $nombreUsuario = $_SESSION['usuario']["nombre"];
+  $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 } else {
-header('Location:../index.php');
-}*/
+  header('Location:../index.php');
+}
 ?>
 
 <!DOCTYPE html>
