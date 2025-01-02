@@ -213,12 +213,12 @@ if (isset($_SESSION['usuario'])) {
 
               <div class="form-row">
                 <label for="rfc">RFC:</label>
-                <input class="input-m" type="text" name="rfc" id="rfc" placeholder="RFC">
+                <input class="input-m" type="text" name="rfc" id="rfc" placeholder="RFC" value="">
               </div>
 
               <div class="form-row">
                 <label for="regimenFiscal">Régimen Fiscal:</label>
-                <select name="regimenFiscal" id="regimenFiscal" placeholder="Selecciona opcion">
+                <select name="regimenFiscal" id="regimenFiscal" placeholder="Selecciona opcion" value="">
                   <option value="*"></option>
                   <option value="1">Opción 1</option>
                   <!-- Agrega más opciones si es necesario -->
