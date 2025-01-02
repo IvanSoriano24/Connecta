@@ -224,11 +224,11 @@ session_destroy(); */
               <div class="form-row">
                 <label for="usuarioSae">Usuario:</label>
                 <input class="input-mt"type="text" name="usuarioSae" id="usuarioSae">
-                <label for="password">Password:</label>
-               
+                <label for="txt">Password:</label>
+                <input class="input-mt" type="password" name="password" id="password">
                 <div class="password-container">
-                  <input class="input-mt" type="password" name="password" id="password">
-                  <button type="button" class="show-password">Mostrar</button>
+                  
+                  <!-- <button type="button" class="show-password">Mostrar</button> -->
                 </div>
             </div>
 
@@ -245,7 +245,7 @@ session_destroy(); */
 
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
-                <button type="submit" class="btn-save">Guardar</button>
+                <!-- <button type="submit" class="btn-save">Guardar</button> -->
                 <button type="button" class="btn-cancel">Cancelar</button>
               </div>
             </form>
