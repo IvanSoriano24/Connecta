@@ -23,7 +23,7 @@
     <!--MENU  HEADER-->
     <nav class="menu">
       <section class="menu__container">
-        <a href=""><img src="SRC/imagen.png" alt="Logo" id="logop"> </a>
+        <a href="Menu.php"><img src="SRC/imagen.png" alt="Logo" id="logop"> </a>
 
         <ul class="menu__links">
           <li class="menu__item">
@@ -57,12 +57,12 @@
         <table id="tablaPedidos">
           <thead>
             <tr>
-              <th colspan="5">
+              <th colspan="7">
                 <input type="button" id="btnCrearPedido" value="Crear Pedido">
               </th>
             </tr>
             <tr>
-              <th>ID Pedido</th>
+              <!--<th>ID Pedido</th>-->
               <th>Pedidos</th>
               <th>Cliente</th>
               <th>Total</th>
@@ -72,7 +72,7 @@
             </tr>
           </thead>
           <tbody id="datosPedidos">
-            <!-- Pedidos cargados dinámicamente -->
+            <!-- Pedidos cargados dinámicamente --> 
           </tbody>
         </table>
       </div>

@@ -10,9 +10,9 @@ function cargarPedidos() {
         pedidos.forEach(pedido => {
           const row = document.createElement('tr');
         
-          // Asegúrate de que las propiedades existan en cada objeto
+          // Asegúrate de que las propiedades existan en cada objeto <td>${pedido.id || 'N/A'}</td>
           row.innerHTML = `
-            <td>${pedido.id || 'N/A'}</td>
+            
             <td>${pedido.pedido || 'Sin pedidos'}</td>
             <td>${pedido.cliente || 'Sin cliente'}</td>
             <td>${pedido.total || '0'}</td>

@@ -18,6 +18,7 @@ function guardarEnFirebase($data, $firebaseProjectId, $firebaseApiKey) {
     $payload = [
         'fields' => [
             'host' => ['stringValue' => $data['host']],
+            'puerto' => ['stringValue' => $data['puerto']],
             'usuario' => ['stringValue' => $data['usuarioSae']],
             'password' => ['stringValue' => $data['password']],
             'nombreBase' => ['stringValue' => $data['nombreBase']],
@@ -51,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'probar': // Probar conexión a SQL Server
             $data = [
                 'host' => $input['host'],
+                'puerto' => $input['puerto'],
                 'usuarioSae' => $input['usuarioSae'],
                 'password' => $input['password'],
                 'nombreBase' => $input['nombreBase']
@@ -63,12 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'guardar': // Guardar datos si la conexión es exitosa
             $data = [
                 'host' => $input['host'],
+                'puerto' => $input['puerto'],
                 'usuarioSae' => $input['usuarioSae'],
                 'password' => $input['password'],
                 'nombreBase' => $input['nombreBase'],
                 'noEmpresa' => $input['noEmpresa']
             ];
-
             // Probar la conexión primero
             $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase']);
             if ($resultadoConexion['success']) {

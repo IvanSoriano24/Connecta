@@ -140,6 +140,7 @@ function probarConexionSAE() {
     const data = {
         action: 'probar',
         host: $('#host').val(),
+        puerto: $('#usuarioSae').val(),
         usuarioSae: $('#usuarioSae').val(),
         password: $('#password').val(),
         nombreBase: $('#nombreBase').val()
