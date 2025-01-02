@@ -15,7 +15,12 @@ function informaEmpresa() {
     }, function(response) {
         if (response.success && response.data) {
             const data = response.data;
-            alert(data.colonia);
+            
+            // Verifica la estructura de los datos en el console.log
+            console.log(data);  // Esto te mostrará el objeto completo
+
+            // Si la estructura está bien, entonces se procede con el alert
+            alert(data.colonia);  // Aquí debería funcionar si los datos están correctos
             $('#noEmpresa').val(data.noEmpresa);
             $('#razonSocial').val(data.razonSocial);
             $('#rfc').val(data.rfc);
@@ -39,6 +44,7 @@ function informaEmpresa() {
         console.error('Error en la petición:', textStatus, errorThrown);
     });
 }
+
  
 function mostrarMenu(){
     document.getElementById("divContenedor").style.display = "block";
@@ -48,29 +54,28 @@ function mostrarMenu(){
 function cargarEmpresa(usuario) {
     // Realiza una solicitud GET al servidor para obtener las empresas
     $.get('../Servidor/PHP/empresas.php', { action: 'get', usuario: usuario }, function (response) {
-        ///
+
         if (response.success && response.data) {
             const empresas = response.data;
             const empresaSelect = document.getElementById('empresaSelect');
             empresaSelect.innerHTML = '<option selected disabled>Selecciona una empresa</option>';
             empresas.forEach((empresa) => {
-                console.log(empresas);
+
                 const option = document.createElement('option');
                 option.value = empresa.id;
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
- 
                 option.setAttribute('data-no-empresa', empresa.noEmpresa);
                 option.setAttribute('data-razon-social', empresa.razonSocial);
- 
+
                 empresaSelect.appendChild(option);
             });
- 
+
         } else {
             alert(response.message || 'Error al obtener las empresas.');
         }
     }, 'json');
-    ///
 }
+
  
 // Función para guardar o actualizar la empresa
 function guardarEmpresa() {

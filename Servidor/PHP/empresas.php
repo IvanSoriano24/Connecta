@@ -8,7 +8,6 @@ exit;*/
 // Verifica si el método de la solicitud es GET
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
-    var_dump($action);
     if ($action === 'get') {
         $usuario = $_GET['usuario'];
         listaEmpresas($usuario); // Llamar a la función para obtener las empresas
@@ -84,11 +83,13 @@ function obtenerEmpresa() {
                 $_SESSION['empresa'] = $empresa; // Actualiza la sesión con los datos completos
             }
         }
+        header('Content-Type: application/json');
         echo json_encode([
             'success' => true,
-            'data' => $empresa
+            'data' => $empresa  // Verifica que $empresa contenga los datos esperados
         ]);
     } else {
+        header('Content-Type: application/json');
         echo json_encode([
             'success' => false,
             'message' => 'No se encontró la empresa en la sesión.'
@@ -99,13 +100,16 @@ function obtenerEmpresa() {
 function obtenerDatosEmpresa($noEmpresa) {
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+    
     // Realizar la consulta a Firebase para obtener los datos
     $response = file_get_contents($url);
     if ($response === false) {
         return false; // Error en la petición
     }
     
+    // Verifica el contenido de la respuesta
     $data = json_decode($response, true);
+
     $empresaData = null;
 
     if (isset($data['documents'])) {
@@ -127,7 +131,7 @@ function obtenerDatosEmpresa($noEmpresa) {
                     'codigoPostal' => $fields['codigoPostal']['stringValue'],
                     'poblacion' => $fields['poblacion']['stringValue']
                 ];
-                break; 
+                break;
             }
         }
     }
@@ -146,7 +150,6 @@ function guardarEmpresa($data) {
     $url = $idEmpresa 
         ? "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS/$idEmpresa?key=$firebaseApiKey" 
         : "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-
     // Construir el cuerpo de la solicitud con los datos del formulario
     $fieldsToSave = [
         'razonSocial' => ['stringValue' => $data['razonSocial']],
@@ -164,10 +167,8 @@ function guardarEmpresa($data) {
         'codigoPostal' => ['stringValue' => $data['codigoPostal']],
         'poblacion' => ['stringValue' => $data['poblacion']]
     ];
-
     // Construir el payload en formato JSON
     $payload = json_encode(['fields' => $fieldsToSave]);
-
     // Configurar las opciones de la solicitud HTTP
     $options = [
         'http' => [
@@ -176,36 +177,14 @@ function guardarEmpresa($data) {
             'content' => $payload
         ]
     ];
-
     // Crear el contexto de la solicitud
     $context  = stream_context_create($options);
-
     // Realizar la solicitud a Firestore
     $response = file_get_contents($url, false, $context);
-
     if ($response !== false) {
         echo json_encode(['success' => true, 'message' => 'Empresa guardada/actualizada correctamente.']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al guardar/actualizar la empresa.']);
-    }
-}
-
-function obtenerEmpresa() {
-    // No es necesario volver a iniciar sesión aquí
-    if (isset($_SESSION['empresa'])) {
-        $empresa = $_SESSION['empresa'];
-        echo json_encode([
-            'success' => true,
-            'data' => [
-                'noEmpresa' => $empresa['noEmpresa'],
-                'razonSocial' => $empresa['razonSocial'],
-            ]
-        ]);
-    } else {
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se encontró la empresa en la sesión.'
-        ]);
     }
 }
  
@@ -270,13 +249,11 @@ function listaEmpresas($nombreUsuario) {
                     ];
                 }
             }
- 
             if (count($empresas) > 0) {
                 // Ordenar por razón social si es necesario
                 usort($empresas, function ($a, $b) {
                     return strcmp($a['razonSocial'], $b['razonSocial']);
                 });
- 
                 $_SESSION['empresaSelect'] = [
                     'usuario' => $nombreUsuario,
                     'empresas' => $empresas
@@ -292,5 +269,4 @@ function listaEmpresas($nombreUsuario) {
         echo json_encode(['success' => false, 'message' => 'Error al obtener las relaciones de empresas del usuario.']);
     }
 }
- 
 ?>
