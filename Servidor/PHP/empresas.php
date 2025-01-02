@@ -111,7 +111,6 @@ function obtenerDatosEmpresa($noEmpresa) {
     if (!isset($data['documents'])) {
         return false; // No se encontraron documentos
     }
-
     // Busca los datos de la empresa por noEmpresa
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];

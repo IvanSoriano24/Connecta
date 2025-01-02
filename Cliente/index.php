@@ -2,7 +2,7 @@
 session_start();
 if (isset($_SESSION["usuario"])) {
     if($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE'){
-        header('Location:.php');
+        header('Location:Menu.php');
         exit();
     }
     header('Location:Dashboard.php');

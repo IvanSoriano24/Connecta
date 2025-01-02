@@ -1,8 +1,16 @@
 <?php
 session_start();
 if (isset($_SESSION['usuario'])) {
+	if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
+		header('Location:Menu.php');
+		exit();
+	  }
 	$nombreUsuario = $_SESSION['usuario']["nombre"];
 	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+		header('Location:Dashboard.php');
+		exit();
+	}
 
 	$mostrarModal = isset($_SESSION['empresa']) ? false : true;
 
@@ -33,7 +41,7 @@ session_destroy(); */
 
 	<!-- My CSS -->
 	<link rel="stylesheet" href="CSS/style.css">
-	
+
 	<link rel="stylesheet" href="CSS/selec.css">
 
 	<title>AdminHub</title>
@@ -371,13 +379,13 @@ session_destroy(); */
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
 		<script>
-            var empresa = '<?php echo $empresa ?>'
+			var empresa = '<?php echo $empresa ?>'
 			var idEmpresa = '<?php echo $idEmpresa ?>'
 			var noEmpresa = '<?php echo $noEmpresa ?>'
 			console.log("Empresa: " + empresa);
 			console.log("ID: " + idEmpresa);
-			console.log("Numero: " + noEmpresa); 
-        </script>
+			console.log("Numero: " + noEmpresa);
+		</script>
 </body>
 
 </html>
@@ -418,4 +426,3 @@ session_destroy(); */
     </div>
   </div>
   -->
-        
