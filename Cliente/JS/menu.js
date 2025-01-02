@@ -1,19 +1,19 @@
 let idEmpresarial;
 
-function cerrarModal(){
+function cerrarModal() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('infoEmpresa'));
-        modal.hide();
+    modal.hide();
 }
-function cerrarModalSae(){
+function cerrarModalSae() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('infoConexion'));
-        modal.hide();
+    modal.hide();
 }
 function informaEmpresa() {
     console.log('Enviando datos al servidor...');
-    $.post('../Servidor/PHP/empresas.php', { 
+    $.post('../Servidor/PHP/empresas.php', {
         action: 'sesion',
         ed: '2' // Asegúrate de que este valor sea '2'
-    }, function(response) {
+    }, function (response) {
         console.log('Respuesta del servidor:', response); // Verifica la respuesta en la consola
         if (response.success && response.data) {
             console.log('Datos de la empresa:', response.data);
@@ -37,12 +37,12 @@ function informaEmpresa() {
             console.warn('Error:', response.message || 'Error al obtener las empresas.');
             alert(response.message || 'Error al obtener las empresas.');
         }
-    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
         console.error('Error en la petición:', textStatus, errorThrown);
     });
 }
 
-function mostrarMenu(){
+function mostrarMenu() {
     document.getElementById("divContenedor").style.display = "block";
 }
 
@@ -79,6 +79,9 @@ function cargarEmpresa(usuario) {
 
 // Función para guardar o actualizar la empresa
 function guardarEmpresa() {
+    if (!validateForm()) {
+        return; // Si la validación falla, no se envía el formulario
+    }
     const data = {
         action: 'save',
         noEmpresa: $('#noEmpresa').val(), // Aquí se manda el noEmpresa
@@ -87,8 +90,8 @@ function guardarEmpresa() {
         regimenFiscal: $('#regimenFiscal').val(),
         calle: $('#calle').val(),
         numExterior: $('#numExterior').val(),
-        numInterior: $('#numInterior').val(),
-        entreCalle: $('#entreCalle').val(),
+        numInterior: $('#numInterior').val() || '*',
+        entreCalle: $('#entreCalle').val() || '*',
         colonia: $('#colonia').val(),
         referencia: $('#referencia').val(),
         pais: $('#pais').val(),
@@ -114,6 +117,32 @@ function guardarEmpresa() {
             alert('Error al conectar con el servidor.');
         }
     });
+}
+
+
+// Función para validar campos vacíos
+function validateForm() {
+    const fields = [
+        'razonSocial', 'rfc', 'regimenFiscal', 'calle', 'numExterior',
+        'colonia', 'referencia', 'pais',
+        'estado', 'municipio', 'codigoPostal', 'poblacion'
+    ];
+
+    let isValid = true;
+
+    for (let field of fields) {
+        const input = document.getElementById(field);
+        if (input && input.value.trim() === '') {
+            input.classList.add('input-error');
+            input.placeholder = `Rellena Campo`;
+            isValid = false;
+        } else {
+            input.classList.remove('input-error');
+            input.placeholder = '';
+        }
+    }
+
+    return isValid;
 }
 
 
@@ -148,24 +177,24 @@ function probarConexionSAE() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-        }
-        return response.json();
-    })
-    .then(responseData => {
-        console.log("Respuesta del servidor:", responseData);
-        if (responseData.success) {
-            alert('Conexión exitosa.');
-        } else {
-            alert('Error: ' + responseData.message);
-        }
-    })
-    .catch(error => {
-        console.error("Error de la solicitud:", error);
-        alert('Error en la solicitud: ' + error.message);
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(responseData => {
+            console.log("Respuesta del servidor:", responseData);
+            if (responseData.success) {
+                alert('Conexión exitosa.');
+            } else {
+                alert('Error: ' + responseData.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error de la solicitud:", error);
+            alert('Error en la solicitud: ' + error.message);
+        });
 }
 function guardarConexionSAE() {
     const data = {
@@ -183,75 +212,74 @@ function guardarConexionSAE() {
         },
         body: JSON.stringify(data)
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-        }
-        return response.json();
-    })
-    .then(responseData => {
-        console.log("Respuesta del servidor:", responseData);
-        if (responseData.success) {
-            alert('Datos guardados exitosamente en Firebase.');
-        } else {
-            alert('Error al guardar: ' + responseData.message);
-        }
-    })
-    .catch(error => {
-        console.error("Error de la solicitud:", error);
-        alert('Error en la solicitud: ' + error.message);
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(responseData => {
+            console.log("Respuesta del servidor:", responseData);
+            if (responseData.success) {
+                alert('Datos guardados exitosamente en Firebase.');
+            } else {
+                alert('Error al guardar: ' + responseData.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error de la solicitud:", error);
+            alert('Error en la solicitud: ' + error.message);
+        });
 }
 
 function sesionEmpresa(idEmpresarial) {
     var id = idEmpresarial.id;
     var noEmpresa = idEmpresarial.noEmpresa;
     var razonSocial = idEmpresarial.razonSocial;
-    
-  /*  console.log('Datos que se enviarán:', { 
-        action: 'sesion', 
-        id: id, 
+
+    /*  console.log('Datos que se enviarán:', { 
+          action: 'sesion', 
+          id: id, 
+          noEmpresa: noEmpresa,
+          razonSocial: razonSocial
+      });  // Verificar los datos que se envían
+  */
+    $.post('../Servidor/PHP/empresas.php', {
+        action: 'sesion',
+        id: id,
         noEmpresa: noEmpresa,
         razonSocial: razonSocial
-    });  // Verificar los datos que se envían
-*/
-$.post('../Servidor/PHP/empresas.php', { 
-    action: 'sesion', 
-    id: id,  
-    noEmpresa: noEmpresa,
-    razonSocial: razonSocial
-}, function(response) {
-    console.log('Respuesta del servidor:', response); // Ver respuesta del servidor
+    }, function (response) {
+        console.log('Respuesta del servidor:', response); // Ver respuesta del servidor
 
-    if (response.success) {
-        if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
-            console.log('Datos recibidos correctamente:', response.data);
+        if (response.success) {
+            if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
+                console.log('Datos recibidos correctamente:', response.data);
+            } else {
+                alert('La respuesta no contiene datos de la empresa esperados.');
+            }
         } else {
-            alert('La respuesta no contiene datos de la empresa esperados.');
+            //alert(response.message || 'Error al guardar la sesión de empresa.');
         }
-    } else {
-        //alert(response.message || 'Error al guardar la sesión de empresa.');
-    }
-    
-}).fail(function(jqXHR, textStatus, errorThrown) {
-    console.log("Error en la solicitud: " + textStatus + ", " + errorThrown);
-    alert('Error al comunicar con el servidor.');
-});
+
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.log("Error en la solicitud: " + textStatus + ", " + errorThrown);
+        alert('Error al comunicar con el servidor.');
+    });
 }
 
 
 
-
 $(document).ready(function () {
-/*
-    document.getElementById('SAE').addEventListener('click', function() {
-        const conexionModal = new bootstrap.Modal(document.getElementById('infoConexion'));
-        conexionModal.show();
-      });
-    document.getElementById('Empresa').addEventListener('click', function() {
-        const empresaModal = new bootstrap.Modal(document.getElementById('infoEmpresa'));
-        empresaModal.show();
-    });*/
+    /*
+        document.getElementById('SAE').addEventListener('click', function() {
+            const conexionModal = new bootstrap.Modal(document.getElementById('infoConexion'));
+            conexionModal.show();
+          });
+        document.getElementById('Empresa').addEventListener('click', function() {
+            const empresaModal = new bootstrap.Modal(document.getElementById('infoEmpresa'));
+            empresaModal.show();
+        });*/
     $('#informaEmpresa').click(function () {
         informaEmpresa(); // Llamar a la función que obtiene los datos
     });
@@ -261,7 +289,7 @@ $(document).ready(function () {
     $('#cancelarModalSae').click(function () {
         cerrarModalSae();
     });
-    
+
     // Guardar o actualizar empresa
     $('#confirmarDatos').click(function () {
         guardarEmpresa();
@@ -278,14 +306,14 @@ $(document).ready(function () {
     $('#probarConexion').click(function () {
         probarConexionSAE();
     });
-    
+
     $("#cerrarSesion").click(function () {
         if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
-          $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
-            window.location.href = "index.php"; // Redirigir al login
-          }).fail(function () {
-            alert("Error al intentar cerrar sesión.");
-          });
+            $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
+                window.location.href = "index.php"; // Redirigir al login
+            }).fail(function () {
+                alert("Error al intentar cerrar sesión.");
+            });
         }
-      });
+    });
 });
