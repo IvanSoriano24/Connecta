@@ -397,14 +397,46 @@ $(document).ready(function () {
     $('#confirmarConexion').click(function () {
         guardarConexionSAE();
     });
-    $("#cerrarSesion").click(function () {
-        if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
-            $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
-                limpiarCacheEmpresa();
-                window.location.href = "index.php"; // Redirigir al login
-            }).fail(function () {
-                alert("Error al intentar cerrar sesión.");
-            });
-        }
-      });
+
+    $('#Ayuda').click(function () {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Ayuda',
+            text: 'Aquí puedes poner el mensaje de ayuda que desees mostrar a los usuarios.',
+            icon: 'info',
+            confirmButtonText: 'Entendido'
+        });
+    });
+
+    $("#cerrarSesion").click(function (event) {
+        event.preventDefault(); // Prevenir el comportamiento por defecto del botón
+    
+        // Mostrar el overlay
+        $("#overlay").show();
+    
+        Swal.fire({
+            title: '¿Estás seguro de que quieres cerrar sesión?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cerrar sesión',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            // Ocultar el overlay después de la respuesta de SweetAlert
+            $("#overlay").hide();
+    
+            if (result.isConfirmed) {
+                $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
+                    limpiarCacheEmpresa();
+                    window.location.href = "index.php"; // Redirigir al login
+                }).fail(function () {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error al intentar cerrar sesión.',
+                        icon: 'error'
+                    });
+                });
+            }
+        });
+    });
+    
 });
