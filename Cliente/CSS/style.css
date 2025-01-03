@@ -347,7 +347,7 @@ body {
 	color: var(--blue);
 	pointer-events: unset;
 }
-#content main .head-title .btn-download {
+#content main .head-title .btn-download  {
 	height: 36px;
 	padding: 0 16px;
 	border-radius: 36px;
@@ -358,6 +358,10 @@ body {
 	align-items: center;
 	grid-gap: 10px;
 	font-weight: 500;
+}
+
+.btn-addC{
+	background-color: green;
 }
 
 

@@ -70,7 +70,7 @@ session_destroy(); */
           </a>
         </li>
         <li>
-          <a href="#">
+          <a href="Productos.php">
             <i class='bx bxs-package'></i>
             <span class="text">Productos</span>
           </a>

@@ -63,7 +63,7 @@ if (isset($_SESSION['usuario'])) {
           </a>
         </li>
         <li>
-          <a href="#">
+          <a href="Productos.php">
             <i class='bx bxs-package'></i>
             <span class="text">Productos</span>
           </a>
@@ -195,7 +195,7 @@ if (isset($_SESSION['usuario'])) {
               <h3></h3>
               <!--<i class='bx bx-search'></i> -->
               <!-- <i class='bx bx-filter' > Campos Obligatorios </i> -->
-              <a class='bx bx-message-rounded-error'> Campos Obligatorios </a>
+              <a class=''> Campos Obligatorios * </a>
 
             </div>
             <form onsubmit="return validateForm()">
@@ -206,20 +206,20 @@ if (isset($_SESSION['usuario'])) {
               </div>
 
               <div class="form-row">
-              <a class='bx bx-message-rounded-error'></a>
-                <label for="razonSocial">Razón Social:</label>
+              <!-- <a class='bx bx-message-rounded-error'></a> -->
+                <label for="razonSocial">Razón Social: <a class='bx'> *</a></label>
                 <input class="input-m" type="text" name="razonSocial" id="razonSocial" values="" readonly>
               </div>
 
               <div class="form-row">
-                <a class='bx bx-message-rounded-error'></a>
-                <label for="rfc">RFC:</label>
+                <!-- <a class='bx bx-message-rounded-error'></a> -->
+                <label for="rfc">RFC:<a class='bx'> *</a></label>
                 <input class="input-m" type="text" name="rfc" id="rfc" placeholder="RFC" value="">
               </div>
 
               <div class="form-row">
-                <a class='bx bx-message-rounded-error'></a>
-                <label for="regimenFiscal">Régimen Fiscal:</label>
+                <!-- <a class='bx bx-message-rounded-error'></a> -->
+                <label for="regimenFiscal">Régimen Fiscal: <a class='bx'>*</a></label>
                 <select name="regimenFiscal" id="regimenFiscal" placeholder="Selecciona opcion" value="">
 
                   <option>626.- Regimen Simplificado de Confianza</option>
@@ -258,8 +258,8 @@ if (isset($_SESSION['usuario'])) {
               </div>
 
               <div class="form-row">
-              <a class='bx bx-message-rounded-error'></a>
-                <label for="cp">Codigo Postal:</label>
+              <!-- <a class='bx bx-message-rounded-error'></a> -->
+                <label for="cp">Codigo Postal: <a class='bx'> *</a></label>
                 <input class="input-m" type="text" name="codigoPostal" id="codigoPostal" placeholder="Codigo Postal">
               </div>
 

@@ -96,10 +96,16 @@ function cargarPedidos() {
   });  
   }
 
+function altaPedido(){
+  
+}
+
+
  $(document).ready(function () {
     cargarPedidos();
     // Evento para crear pedido
     $('#btnCrearPedido').on('click', function () {
+      altaPedido();
       alert('Abrir formulario para crear pedido.');
       // Lógica para abrir el modal o formulario...
     });
