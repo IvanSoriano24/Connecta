@@ -120,7 +120,7 @@ session_destroy(); */
 						<li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a>
 						</li>
 
-						<li><a class="dropdown-item" href="ConexioSAE.php" id="infoSae">Conexión SAE</a></li>
+						<li><a class="dropdown-item" href="ConexioSAE.php">Conexión SAE</a></li>
 					</ul>
 				</li>
 
@@ -405,5 +405,4 @@ session_destroy(); */
 			console.log(empresa);
 		</script>
 		-->
-
 

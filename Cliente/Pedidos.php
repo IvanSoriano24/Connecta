@@ -11,6 +11,7 @@
 
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
   <link rel="stylesheet" href="css/estilosmenu.css"> 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
   <title>Menu Principal</title>

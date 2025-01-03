@@ -1,6 +1,6 @@
 let idEmpresarial;
- 
-function cerrarModal(){
+
+function cerrarModal() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('infoEmpresa'));
     modal.hide();
 }
@@ -14,10 +14,10 @@ function informaEmpresa() {
         action: 'sesion',
         ed: '2',
         noEmpresa: noEmpresa
-    }, function(response) {
+    }, function (response) {
         if (response.success && response.data) {
             const data = response.data;
-            
+
             // Verifica la estructura de los datos en el console.log
             //console.log(data);  // Esto te mostrará el objeto completo
             $('#noEmpresa').val(data.noEmpresa);
@@ -44,11 +44,11 @@ function informaEmpresa() {
     });
 }
 
- 
-function mostrarMenu(){
+
+function mostrarMenu() {
     document.getElementById("divContenedor").style.display = "block";
 }
- 
+
 // Función para cargar los datos de la empresa
 function cargarEmpresa(usuario) {
     // Realiza una solicitud GET al servidor para obtener las empresas
@@ -81,7 +81,7 @@ function seleccionarEmpresa(noEmpresa) {
     // Opcionalmente, puedes mostrar una alerta de confirmación
     console.log('Empresa seleccionada:', noEmpresa);
 }
- 
+
 // Función para guardar o actualizar la empresa
 function guardarEmpresa() {
     if (!validateForm()) {
@@ -89,7 +89,7 @@ function guardarEmpresa() {
     }
     const data = {
         action: 'save',
-        id:  $('#id').val(),
+        id: $('#id').val(),
         noEmpresa: $('#noEmpresa').val(), // Aquí se manda el noEmpresa
         razonSocial: $('#razonSocial').val(),
         rfc: $('#rfc').val(),
@@ -113,28 +113,38 @@ function guardarEmpresa() {
         dataType: 'json',
         success: function (response) {
             if (response.success) {
-                alert('Documento actualizado correctamente.');
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: 'Documento actualizado correctamente.',
+                    icon: 'success'
+                });
             } else {
-                alert('Error: ' + response.message);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error: ' + response.message,
+                    icon: 'error'
+                });
             }
         },
         error: function (xhr, status, error) {
-            console.error('Error:', error);
-            alert('Error al conectar con el servidor.');
+            console.error('Error al enviar la solicitud', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Ocurrió un error al guardar la empresa.',
+                icon: 'error'
+            });
         }
     });
 }
 
- // Función para validar campos vacíos
- function validateForm() {
+// Función para validar campos vacíos
+function validateForm() {
     const fields = [
-        'rfc', 'calle', 'numExterior', 
-        'colonia', 'referencia', 'pais', 
-        'estado', 'municipio', 'codigoPostal', 'poblacion'
+        'razonSocial','rfc','regimenFiscal','codigoPostal' 
     ];
-    
+
     let isValid = true;
-    
+
     for (let field of fields) {
         const input = document.getElementById(field);
         if (input && input.value.trim() === '') {
@@ -146,11 +156,11 @@ function guardarEmpresa() {
             input.placeholder = '';
         }
     }
-    
+
     return isValid;
 }
 
- 
+
 // Función para eliminar la empresa
 function eliminarEmpresa() {
     if (confirm('¿Estás seguro de que deseas eliminar la empresa?')) {
@@ -164,7 +174,7 @@ function eliminarEmpresa() {
         }, 'json');
     }
 }
- 
+
 function probarConexionSAE() {
     if (!validateForm2()) {
         return; // Si la validación falla, no se envía el formulario
@@ -284,24 +294,20 @@ $.post('../Servidor/PHP/empresas.php', {
         } else {
             //alert(response.message || 'Error al guardar la sesión de empresa.');
         }
-    } else {
-        //alert(response.message || 'Error al guardar la sesión de empresa.');
-    }
-   
-}).fail(function(jqXHR, textStatus, errorThrown) {
-    console.log("Error en la solicitud: " + textStatus + ", " + errorThrown);
-    alert('Error al comunicar con el servidor.');
-});
+    }}).fail(function (jqXHR, textStatus, errorThrown) {
+        console.log("Error en la solicitud: " + textStatus + ", " + errorThrown);
+        alert('Error al comunicar con el servidor.');
+    });
 }
- 
+
 function validateForm2() {
     const fields = [
-        'host', 'puerto', 'usuarioSae', 
+        'host', 'puerto', 'usuarioSae',
         'password', 'nombreBase'
     ];
-    
+
     let isValid = true;
-    
+
     for (let field of fields) {
         const input = document.getElementById(field);
         if (input && input.value.trim() === '') {
@@ -313,7 +319,7 @@ function validateForm2() {
             input.placeholder = '';
         }
     }
-    
+
     return isValid;
 }
 /*function infoSae() {
@@ -354,15 +360,15 @@ function limpiarCacheEmpresa() {
 
 
 $(document).ready(function () {
-/*
-    document.getElementById('SAE').addEventListener('click', function() {
-        const conexionModal = new bootstrap.Modal(document.getElementById('infoConexion'));
-        conexionModal.show();
-      });
-    document.getElementById('Empresa').addEventListener('click', function() {
-        const empresaModal = new bootstrap.Modal(document.getElementById('infoEmpresa'));
-        empresaModal.show();
-    });*/
+    /*
+        document.getElementById('SAE').addEventListener('click', function() {
+            const conexionModal = new bootstrap.Modal(document.getElementById('infoConexion'));
+            conexionModal.show();
+          });
+        document.getElementById('Empresa').addEventListener('click', function() {
+            const empresaModal = new bootstrap.Modal(document.getElementById('infoEmpresa'));
+            empresaModal.show();
+        });*/
     /*$('#informaEmpresa').click(function () {
         informaEmpresa(); // Llamar a la función que obtiene los datos
     });*/
@@ -372,12 +378,13 @@ $(document).ready(function () {
     $('#cancelarModalSae').click(function () {
         cerrarModalSae();
     });
-   
+
     // Guardar o actualizar empresa
     $('#confirmarDatos').click(function () {
+        event.preventDefault();
         guardarEmpresa();
     });
- 
+
     // Eliminar empresa
     $('#eliminarEmpresa').click(function () {
         eliminarEmpresa();
