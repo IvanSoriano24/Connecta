@@ -27,6 +27,8 @@ if (isset($_SESSION['usuario'])) {
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
   <link rel="stylesheet" href="CSS/selec.css">
   <link rel="stylesheet" href="css/estilosmenu.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
   <title>Menu Principal</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

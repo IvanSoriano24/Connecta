@@ -30,16 +30,12 @@ if (isset($_SESSION['usuario'])) {
 
   <!-- My CSS -->
   <link rel="stylesheet" href="CSS/style.css">
-
   <link rel="stylesheet" href="CSS/selec.css">
+  <!-- Script -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <title>AdminHub</title>
-
-
-
-
-
 </head>
 
 <body>
@@ -198,7 +194,9 @@ if (isset($_SESSION['usuario'])) {
             <div class="head">
               <h3></h3>
               <!--<i class='bx bx-search'></i> -->
-              <i class='bx bx-filter'></i>
+              <!-- <i class='bx bx-filter' > Campos Obligatorios </i> -->
+              <a class='bx bx-message-rounded-error'> Campos Obligatorios </a>
+
             </div>
             <form onsubmit="return validateForm()">
               <div class="form-row">
@@ -208,20 +206,23 @@ if (isset($_SESSION['usuario'])) {
               </div>
 
               <div class="form-row">
+              <a class='bx bx-message-rounded-error'></a>
                 <label for="razonSocial">Razón Social:</label>
-                <input class="input-m" type="text" name="razonSocial" id="razonSocial" values ="" readonly>
+                <input class="input-m" type="text" name="razonSocial" id="razonSocial" values="" readonly>
               </div>
 
               <div class="form-row">
+                <a class='bx bx-message-rounded-error'></a>
                 <label for="rfc">RFC:</label>
                 <input class="input-m" type="text" name="rfc" id="rfc" placeholder="RFC" value="">
               </div>
 
               <div class="form-row">
+                <a class='bx bx-message-rounded-error'></a>
                 <label for="regimenFiscal">Régimen Fiscal:</label>
                 <select name="regimenFiscal" id="regimenFiscal" placeholder="Selecciona opcion" value="">
-                  <option value="*"></option>
-                  <option value="1">Opción 1</option>
+
+                  <option>626.- Regimen Simplificado de Confianza</option>
                   <!-- Agrega más opciones si es necesario -->
                 </select>
               </div>
@@ -257,6 +258,7 @@ if (isset($_SESSION['usuario'])) {
               </div>
 
               <div class="form-row">
+              <a class='bx bx-message-rounded-error'></a>
                 <label for="cp">Codigo Postal:</label>
                 <input class="input-m" type="text" name="codigoPostal" id="codigoPostal" placeholder="Codigo Postal">
               </div>
@@ -264,6 +266,7 @@ if (isset($_SESSION['usuario'])) {
               <div class="form-row">
                 <label for="poblacion">Población:</label>
                 <input class="input-m" type="text" name="poblacion" id="poblacion" placeholder="Poblacion">
+                <button class='bx bx-help-circle' id="Ayuda"></button>
               </div>
 
               <div class="form-buttons">
@@ -287,8 +290,8 @@ if (isset($_SESSION['usuario'])) {
 
   <script>
     $(document).ready(function () {
-    informaEmpresa();  // Llamada a la función cuando la página de la empresa se ha cargado.
-  });
+      informaEmpresa();  // Llamada a la función cuando la página de la empresa se ha cargado.
+    });
   </script>
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
@@ -297,37 +300,3 @@ if (isset($_SESSION['usuario'])) {
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-<!-- Conceccion a SAE 
-  <div class="modal fade" id="infoConexion" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-body">
-          <h2 class="card-title text-center">Informacion de Conexion</h2>
-          <form>
-            <label for="text">host</label>
-            <input type="text" name="host" id="host"><br>
-            <label for="text">usuario</label>
-            <input type="text" name="usuarioSae" id="usuarioSae"><br>
-            <label for="text">password</label>
-            <input type="password" name="password" id="password"><br>
-            <label for="text">Nombre de base de datos</Base></label>
-            <input type="text" name="nombreBase" id="nombreBase">
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-info" id="probarConexion">Probar</button>    
-          <button type="button" class="btn btn-primary" id="confirmarConexion">Guardar</button>
-          <button type="button" class="btn btn-danger" id="cancelarModalSae">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  -->
