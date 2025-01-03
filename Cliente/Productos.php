@@ -110,28 +110,28 @@ session_destroy(); */
 
 			</ul>
 			<ul class="side-menu">
+				<?php
+				if ($tipoUsuario == "ADMINISTRADOR") { ?>
+					<li>
+						<a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+							<i class='bx bxs-cog'></i>
+							<span class="text">Configuración</span>
+						</a>
+						<ul class="dropdown-menu">
+							<li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a>
+							</li>
 
-				<li>
-					<a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-						<i class='bx bxs-cog'></i>
-						<span class="text">Configuración</span>
-					</a>
-					<ul class="dropdown-menu">
-						<li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a>
-						</li>
-
-						<li><a class="dropdown-item" href="ConexioSAE.php">Conexión SAE</a></li>
-					</ul>
-				</li>
-
-
+							<li><a class="dropdown-item" href="ConexioSAE.php" id="infoSae">Conexión SAE</a></li>
+						</ul>
+					</li>
+				<?php }
+				?>
 				<li>
 					<a href="" class="logout" id="cerrarSesion">
 						<i class='bx bxs-log-out-circle'></i>
 						<span class="text">Cerrar Sesion</span>
 					</a>
 				</li>
-
 			</ul>
 		</section>
 		<!-- SIDEBAR -->

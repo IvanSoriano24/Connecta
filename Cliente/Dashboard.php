@@ -5,12 +5,12 @@ if (isset($_SESSION['usuario'])) {
 		header('Location:Menu.php');
 		exit();
 	}
-	$nombreUsuario = $_SESSION['usuario']["nombre"];
+	$nombreUsuario = $_SESSION['usuario']["usuario"];
+	$nombre = $_SESSION['usuario']["nombre"];
 	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
-	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+	/*if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
 		header('Location:Dashboard.php');
-		exit();
-	}
+	}*/
 
 	$mostrarModal = isset($_SESSION['empresa']) ? false : true;
 
@@ -399,9 +399,8 @@ session_destroy(); */
 
 </html>
 <!-- 
-				<script>
-			var empresa = '<?php // echo $nombreEmpresa 
-							?>'
-			console.log(empresa);
-		</script>
+			<script>
+			var usuario = '<?php echo $tipoUsuario ?>'
+			console.log("Usuario" + usuario);
+		</script>	
 		-->
