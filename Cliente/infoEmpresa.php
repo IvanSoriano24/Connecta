@@ -268,7 +268,7 @@ if (isset($_SESSION['usuario'])) {
 
               <div class="form-buttons">
                 <button type="submit" class="btn-save" id="confirmarDatos">Guardar</button>
-                <button type="button" class="btn-cancel"><a href="Dashboard.php">Cancelar</a></button>
+                <button type="button" class="btn-cancel">Cancelar</button>
               </div>
             </form>
           </div>

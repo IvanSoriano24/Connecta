@@ -77,6 +77,9 @@ function cargarEmpresa(usuario) {
 function seleccionarEmpresa(noEmpresa) {
     // Guarda el número de empresa en sessionStorage
     sessionStorage.setItem('noEmpresaSeleccionada', noEmpresa);
+
+    // Opcionalmente, puedes mostrar una alerta de confirmación
+    console.log('Empresa seleccionada:', noEmpresa);
 }
  
 // Función para guardar o actualizar la empresa
@@ -121,6 +124,32 @@ function guardarEmpresa() {
         }
     });
 }
+
+ // Función para validar campos vacíos
+ function validateForm() {
+    const fields = [
+        'rfc', 'calle', 'numExterior', 
+        'colonia', 'referencia', 'pais', 
+        'estado', 'municipio', 'codigoPostal', 'poblacion'
+    ];
+    
+    let isValid = true;
+    
+    for (let field of fields) {
+        const input = document.getElementById(field);
+        if (input && input.value.trim() === '') {
+            input.classList.add('input-error');
+            input.placeholder = `Campo Obligatorio`;
+            isValid = false;
+        } else {
+            input.classList.remove('input-error');
+            input.placeholder = '';
+        }
+    }
+    
+    return isValid;
+}
+
  
 // Función para eliminar la empresa
 function eliminarEmpresa() {
@@ -244,31 +273,6 @@ $.post('../Servidor/PHP/empresas.php', {
 });
 }
  
- // Función para validar campos vacíos
-function validateForm() {
-    const fields = [
-        'rfc', 'calle', 'numExterior', 
-        'colonia', 'referencia', 'pais', 
-        'estado', 'municipio', 'codigoPostal', 'poblacion'
-    ];
-    
-    let isValid = true;
-    
-    for (let field of fields) {
-        const input = document.getElementById(field);
-        if (input && input.value.trim() === '') {
-            input.classList.add('input-error');
-            input.placeholder = `Campo Obligatorio`;
-            isValid = false;
-        } else {
-            input.classList.remove('input-error');
-            input.placeholder = '';
-        }
-    }
-    
-    return isValid;
-}
-
 function validateForm2() {
     const fields = [
         'host', 'puerto', 'usuarioSae', 
