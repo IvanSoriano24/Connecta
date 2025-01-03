@@ -261,7 +261,6 @@ function informaSae(){
         success: function(response) {
             if (response.success && response.data) {
                 const data = response.data;
-                console.log(data.id);
                 $('#idDocumento').val(data.id);
                 $('#host').val(data.host);
                 $('#puerto').val(data.puerto);
