@@ -204,53 +204,74 @@ function probarConexionSAE() {
         });
 }
 function guardarConexionSAE() {
+    const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
     const data = {
         action: 'guardar',
+        idDocumento: $('#idDocumento').val(),
         host: $('#host').val(),
+        puerto: $('#puerto').val(),
         usuarioSae: $('#usuarioSae').val(),
         password: $('#password').val(),
         nombreBase: $('#nombreBase').val(),
-        noEmpresa: $(idEmpresarial.noEmpresa) // Este campo debe ser incluido en el formulario
+        noEmpresa: noEmpresa
     };
-    fetch('../Servidor/PHP/sae.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error en la respuesta del servidor');
-            }
-            return response.json();
-        })
-        .then(responseData => {
-            console.log("Respuesta del servidor:", responseData);
-            if (responseData.success) {
-                alert('Datos guardados exitosamente en Firebase.');
+    $.ajax({
+        url: '../Servidor/PHP/sae.php',
+        type: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        dataType: 'json',
+        success: function (response) {
+            console.log('Respuesta del servidor:', response); // Verifica lo que devuelve el servidor
+            if (response.success) {
+                alert('Conexión actualizada correctamente.');
             } else {
-                alert('Error al guardar: ' + responseData.message);
+                alert('Error: ' + response.message);
             }
-        })
-        .catch(error => {
-            console.error("Error de la solicitud:", error);
-            alert('Error en la solicitud: ' + error.message);
-        });
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', xhr.responseText); // Mostrar respuesta completa para debug
+            alert('Error al conectar con el servidor: ' + error);
+        }
+    });
+    alert("Realizando Cambios");
 }
- 
+function informaSae(){
+    const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
+    const data = {
+        action: 'mostrar',
+        noEmpresa: noEmpresa
+    };
+    $.ajax({
+        url: '../Servidor/PHP/sae.php',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        success: function(response) {
+            if (response.success && response.data) {
+                const data = response.data;
+                console.log(data.id);
+                $('#idDocumento').val(data.id);
+                $('#host').val(data.host);
+                $('#puerto').val(data.puerto);
+                $('#usuarioSae').val(data.usuarioSae);
+                $('#nombreBase').val(data.nombreBase);
+            } else {
+                console.warn('Error:', response.message || 'Error al obtener la conexión.');
+                alert(response.message || 'Error al obtener la conexión.');
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error en la petición:', textStatus, errorThrown);
+        }
+    });
+}
+
 function sesionEmpresa(idEmpresarial) {
     var id = idEmpresarial.id;
     var noEmpresa = idEmpresarial.noEmpresa;
     var razonSocial = idEmpresarial.razonSocial;
-   
-  /*  console.log('Datos que se enviarán:', {
-        action: 'sesion',
-        id: id,
-        noEmpresa: noEmpresa,
-        razonSocial: razonSocial
-    });  // Verificar los datos que se envían
-*/
 $.post('../Servidor/PHP/empresas.php', {
     action: 'sesion',
     id: id,  
@@ -295,7 +316,37 @@ function validateForm2() {
     
     return isValid;
 }
- 
+/*function infoSae() {
+    const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
+    const data = {
+        action: 'mostrar',
+        noEmpresa: noEmpresa
+    };
+    $.ajax({
+        url: '../Servidor/PHP/sae.php',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        success: function(response) {
+            if (response.success && response.data) {
+                const data = response.data;
+                console.log(data);  // Esto te mostrará el objeto completo
+                $('#host').val(data.host);
+                $('#puerto').val(data.puerto);
+                $('#usuarioSae').val(data.usuarioSae);
+                $('#nombreBase').val(data.nombreBase);
+            } else {
+                console.warn('Error:', response.message || 'Error al obtener la conexión.');
+                alert(response.message || 'Error al obtener la conexión.');
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error en la petición:', textStatus, errorThrown);
+        }
+    });
+}*/
+
 function limpiarCacheEmpresa() {
     sessionStorage.removeItem('noEmpresaSeleccionada');
     console.log('Cache de la empresa limpiado.');
@@ -331,14 +382,15 @@ $(document).ready(function () {
     $('#eliminarEmpresa').click(function () {
         eliminarEmpresa();
     });
- 
-    $('#confirmarConexion').click(function () {
-        guardarConexionSAE();
-    });
+    /*$('#infoSae').click(function () {
+        infoSae();
+    });*/
     $('#probarConexion').click(function () {
         probarConexionSAE();
     });
-   
+    $('#confirmarConexion').click(function () {
+        guardarConexionSAE();
+    });
     $("#cerrarSesion").click(function () {
         if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
             $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {

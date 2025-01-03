@@ -207,6 +207,7 @@ session_destroy(); */
               <div class="form-row">
                 <label for="noEmpresa">No. Empresa:</label>
                 <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
+                <input class="input-small" type="text" name="idDocumento" id="idDocumento" value="" hidden>
               </div>
               <div class="form-row">
                 <label for="host">Host:</label>
@@ -214,7 +215,7 @@ session_destroy(); */
               </div>
               <div class="form-row">
                 <label for="puerto">Puerto:</label>
-                <input class="input-small" type="text" name="" id="puerto" value="">
+                <input class="input-small" type="text" name="puerto" id="puerto" value="">
               </div>
               <div class="form-row">
                 <label for="usuarioSae">Usuario:</label>
@@ -241,35 +242,30 @@ session_destroy(); */
         </div>
   </div>
 
-
-
-
-
   </main>
   <!-- MAIN -->
   </section>
   <!-- CONTENT -->
-
-
-
   </div>
-
-
-
-
-
-
   </section>
   <!-- CONTENT -->
 
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    $(document).ready(function () {
+    informaSae(); 
+  });
+  </script>
+  <script>
     const numeroEmpresa = '<?php echo $noEmpresa ?>';  // Este número debería ser el que obtienes de la sesión o base de datos.
     const inputNombreBase = document.getElementById('nombreBase');
     inputNombreBase.addEventListener('blur', function() {
         if (this.value.trim() !== '') {
-            this.value =  this.value + numeroEmpresa
+            // Verifica si el número de empresa ya está al final
+            if (!this.value.endsWith(numeroEmpresa)) {
+                this.value = this.value + numeroEmpresa;  // Agrega el número de empresa al final
+            }
         }
     });
 </script>
