@@ -97,7 +97,7 @@ function cargarPedidos() {
   }
 
 function altaPedido(){
-  
+
 }
 
 
@@ -108,6 +108,10 @@ function altaPedido(){
       altaPedido();
       alert('Abrir formulario para crear pedido.');
       // Lógica para abrir el modal o formulario...
+    });
+
+    $('#guardarFactura').on('click', function () {
+      altaPedido();
     });
 
     $('#editarPedidoForm').on('submit', function (event) {

@@ -206,15 +206,18 @@ session_destroy(); */
                                 <div class="form-row">
                                     <label for="factura">Factura:</label>
                                     <input class="input-mt" type="text" name="factura" id="factura" readonly>
-                                    
+
                                     <label for="numero">Número:</label>
                                     <input class="input-mt" type="text" name="numero" id="numero" readonly>
-                                    
+
                                     <label for="fecha">Fecha: </label>
                                     <input class="input-mt" type="date" name="diaAlta" id="diaAlta">
-                                    
+
                                     <label for="cliente">Cliente: </label>
-                                    <input class="input-mt" type="text" name="cliente" id="cliente">
+                                    <select name="cliente" id="cliente" placeholder="Selecciona opcion">
+                                        <option></option>
+                                        <!-- Agrega más opciones si es necesario -->
+                                    </select>
                                 </div>
 
                                 <!-- Segunda fila -->
@@ -245,7 +248,7 @@ session_destroy(); */
                                     <input class="input-mt" type="text" name="colonia" id="colonia">
 
                                     <label for="numI">Num. Int.</label>
-                                    <input class="input-mt" type="text" name="numI" id="numI" >
+                                    <input class="input-mt" type="text" name="numI" id="numI">
 
                                     <label for="vendedor">Vendedor: <a class='bx'>*</a></label>
                                     <input class="input-mt" type="text" name="vendedor" id="vendedor">
@@ -288,12 +291,35 @@ session_destroy(); */
 
                                 <!-- Sección de botones -->
                                 <div class="form-buttons">
-                                    <button type="submit" class="btn-save" id="confirmarDatos">Guardar</button>
+                                    <button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
                                     <button type="button" class="btn-cancel">Cancelar</button>
                                 </div>
                             </form>
                         </div>
                     </div>
+                    <div class="table-data">
+                        <div class="order">
+                            <div class="head">
+                                <h3></h3>
+                                <i class='bx bx-search'></i>
+                                <i class='bx bx-filter'></i>
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Cantidad</th>
+                                        <th>Almacen</th>
+                                        <th>Producto</th>
+                                        <th>Unidad</th>
+                                        <th>Clave SAT</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
 
 
 

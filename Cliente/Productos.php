@@ -109,29 +109,30 @@ session_destroy(); */
 				</li>
 
 			</ul>
+
 			<ul class="side-menu">
+				<?php
+				if ($tipoUsuario == "ADMINISTRADOR") { ?>
+					<li>
+						<a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+							<i class='bx bxs-cog'></i>
+							<span class="text">Configuración</span>
+						</a>
+						<ul class="dropdown-menu">
+							<li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a>
+							</li>
 
-				<li>
-					<a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-						<i class='bx bxs-cog'></i>
-						<span class="text">Configuración</span>
-					</a>
-					<ul class="dropdown-menu">
-						<li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a>
-						</li>
-
-						<li><a class="dropdown-item" href="ConexioSAE.php">Conexión SAE</a></li>
-					</ul>
-				</li>
-
-
+							<li><a class="dropdown-item" href="ConexioSAE.php" id="infoSae">Conexión SAE</a></li>
+						</ul>
+					</li>
+				<?php }
+				?>
 				<li>
 					<a href="" class="logout" id="cerrarSesion">
 						<i class='bx bxs-log-out-circle'></i>
 						<span class="text">Cerrar Sesion</span>
 					</a>
 				</li>
-
 			</ul>
 		</section>
 		<!-- SIDEBAR -->
@@ -169,94 +170,94 @@ session_destroy(); */
 			<!-- MAIN -->
 
 			<main class="text-center my-5 hero_area">
-				
-			<div class="head-title">
-				<div class="left">
-					<h1>Pedidos</h1>
-					<ul class="breadcrumb">
-						<li>
-							<a href="#">Inicio</a>
-						</li>
-						<li><i class='bx bx-chevron-right' ></i></li>
-						<li>
-							<a class="" href="Usuarios.php">Productos</a>
-						</li>
-					</ul>
-				</div>
 
-				<a href="#" class="btn-download">
-					<i class='bx bxs-cloud-download' ></i>
-					<span class="text">Descargar Documento</span>
-				</a>
-				<a href="altaPedido.php" class="btn-download">
-					<i class='bx bxs-file-plus' ></i>
-					<span class="text">Crear Pedido</span>
-				</a>
-				<div class="table-data">
-				<div class="order">
-					<div class="head">
-						<h3></h3>
-						<!-- <i class='bx bx-search' ></i> -->
-						<!-- <i class='bx bx-filter' ></i> -->
+				<div class="head-title">
+					<div class="left">
+						<h1>Pedidos</h1>
+						<ul class="breadcrumb">
+							<li>
+								<a href="#">Inicio</a>
+							</li>
+							<li><i class='bx bx-chevron-right'></i></li>
+							<li>
+								<a class="" href="Usuarios.php">Productos</a>
+							</li>
+						</ul>
 					</div>
-					<table>
-						<thead>
-							<tr>
-								<th></th>
-								<th></th>
-								<th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>
-									
-									<p></p>
-								</td>
-								<td></td>
-								<td><span class="status completed"></span></td>
-							</tr>
-							<tr>
-								<td>
-									
-									<p></p>
-								</td>
-								<td></td>
-								<td><span class="status pending"></span></td>
-							</tr>
-							<tr>
-								<td>
-									
-									<p></p>
-								</td>
-								<td></td>
-								<td><span class="status process"></span></td>
-							</tr>
-							<tr>
-								<td>
-									
-									<p></p>
-								</td>
-								<td></td>
-								<td><span class="status pending"></span></td>
-							</tr>
-							<tr>
-								<td>
-									
-									<p></p>
-								</td>
-								<td> </td>
-								<td><span class="status completed"></span></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
 
-			
-		
+					<a href="#" class="btn-download">
+						<i class='bx bxs-cloud-download'></i>
+						<span class="text">Descargar Documento</span>
+					</a>
+					<a href="altaPedido.php" class="btn-download">
+						<i class='bx bxs-file-plus'></i>
+						<span class="text">Crear Pedido</span>
+					</a>
+					<!-- <div class="table-data">
+						<div class="order">
+							<div class="head">
+								<h3></h3>
+								<i class='bx bx-search' ></i>
+								<i class='bx bx-filter' ></i>
+							</div>
+							<table>
+								<thead>
+									<tr>
+										<th></th>
+										<th></th>
+										<th></th>
+										<th></th>
+										<th></th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>
+
+											<p></p>
+										</td>
+										<td></td>
+										<td><span class="status completed"></span></td>
+									</tr>
+									<tr>
+										<td>
+
+											<p></p>
+										</td>
+										<td></td>
+										<td><span class="status pending"></span></td>
+									</tr>
+									<tr>
+										<td>
+
+											<p></p>
+										</td>
+										<td></td>
+										<td><span class="status process"></span></td>
+									</tr>
+									<tr>
+										<td>
+
+											<p></p>
+										</td>
+										<td></td>
+										<td><span class="status pending"></span></td>
+									</tr>
+									<tr>
+										<td>
+
+											<p></p>
+										</td>
+										<td> </td>
+										<td><span class="status completed"></span></td>
+									</tr>
+								</tbody>
+							</table>
+						</div> -->
+
+
+
 			</main>
 			<!-- MAIN -->
 		</section>
@@ -355,4 +356,3 @@ session_destroy(); */
 			console.log(empresa);
 		</script>
 		-->
-

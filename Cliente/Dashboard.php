@@ -339,11 +339,11 @@ session_destroy(); */
 		<!-- JS Para la confirmacion empresa -->
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 		<script>
-			document.getElementById('empresaModal').addEventListener('shown.bs.modal', function() {
+			document.getElementById('empresaModal').addEventListener('shown.bs.modal', function () {
 				var usuario = '<?php echo $nombreUsuario; ?>';
 				cargarEmpresa(usuario);
 			});
-			document.addEventListener('DOMContentLoaded', function() {
+			document.addEventListener('DOMContentLoaded', function () {
 				const empresaSeleccionada = <?php echo json_encode(isset($_SESSION['empresa']) ? $_SESSION['empresa'] : null); ?>;
 				if (empresaSeleccionada === null) {
 					const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
@@ -351,7 +351,7 @@ session_destroy(); */
 				}
 			});
 
-			document.getElementById('confirmarEmpresa').addEventListener('click', function() {
+			document.getElementById('confirmarEmpresa').addEventListener('click', function () {
 				const empresaSeleccionada = document.getElementById('empresaSelect').value;
 				if (empresaSeleccionada != null) {
 
@@ -401,7 +401,7 @@ session_destroy(); */
 <!-- 
 				<script>
 			var empresa = '<?php // echo $nombreEmpresa 
-							?>'
+			?>'
 			console.log(empresa);
 		</script>
 		-->
