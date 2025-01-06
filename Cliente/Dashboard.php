@@ -11,9 +11,7 @@ if (isset($_SESSION['usuario'])) {
 	/*if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
 		header('Location:Dashboard.php');
 	}*/
-
 	$mostrarModal = isset($_SESSION['empresa']) ? false : true;
-
 	//$empresa = $_SESSION['empresa']['razonSocial'];
 	if (isset($_SESSION['empresa'])) {
 		$empresa = $_SESSION['empresa']['razonSocial'];
@@ -22,12 +20,7 @@ if (isset($_SESSION['usuario'])) {
 	}
 } else {
 	header('Location:../index.php');
-}
-/*
-session_unset();
-session_destroy(); */
-?>
-
+} ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -39,17 +32,12 @@ session_destroy(); */
 		integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 	<!-- Boxicons -->
 	<link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
-
 	<!-- My CSS -->
 	<link rel="stylesheet" href="CSS/style.css">
-
 	<link rel="stylesheet" href="CSS/selec.css">
-
 	<title>AdminHub</title>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
 	<style>
 		body.modal-open .hero_area {
 			filter: blur(5px);
@@ -60,9 +48,19 @@ session_destroy(); */
 </head>
 
 <body>
-
 	<div class="hero_area">
-
+		<!-- Navbar -->
+		<section id="navbar">
+			<nav class="navbar navbar-light bg-light">
+				<a class="navbar-brand" href="#">
+				</a>
+				<!-- Botón alineado a la derecha data-bs-toggle="modal"-->
+				<button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#nuevoModal">
+					<a href="Usuarios.php">Usuarios</a>
+				</button>
+			</nav>
+		</section>
+		<!-- Navbar -->
 
 		<!-- SIDEBAR -->
 		<section id="sidebar">
@@ -90,7 +88,7 @@ session_destroy(); */
 					</a>
 				</li>
 				<li>
-					<a href="Usuarios.php">
+					<a href="Clientes.php">
 						<i class='bx bxs-user'></i>
 						<span class="text">Mis Clientes</span>
 					</a>
@@ -109,7 +107,6 @@ session_destroy(); */
 				</li>
 
 			</ul>
-
 			<ul class="side-menu">
 				<?php
 				if ($tipoUsuario == "ADMINISTRADOR") { ?>
@@ -136,181 +133,6 @@ session_destroy(); */
 			</ul>
 		</section>
 		<!-- SIDEBAR -->
-
-		<!-- CONTENT -->
-		<section id="content">
-			<!-- NAVBAR -->
-			<nav>
-				<!--
-			<i class='bx bx-menu' ></i>
-			<a href="#" class="nav-link"></a>
-			
-			<form action="#">
-				<div class="form-input">
-					<input type="search" placeholder="Search...">
-					<button type="submit" class="search-btn"><i class='bx bx-search' ></i></button>
-				</div>
-			</form>
-							   
-			<input type="checkbox" id="switch-mode" hidden>
-			<label for="switch-mode" class="switch-mode"></label>
-			
-			<a href="#" class="notification">
-				<i class='bx bxs-bell' ></i>
-				<span class="num">8</span>
-			</a>
-
-			<a href="#" class="profile">
-				<img src="img/people.png">
-			</a>
-			-->
-			</nav>
-			<!-- fin NAVBAR -->
-
-			<!-- MAIN -->
-
-			<main class="text-center my-5 hero_area">
-
-				<!--
-			<div class="head-title">
-				<div class="left">
-					<h1>Dashboard</h1>
-					<ul class="breadcrumb">
-						<li>
-							<a href="#">Dashboard</a>
-						</li>
-						<li><i class='bx bx-chevron-right' ></i></li>
-						<li>
-							<a class="active" href="#">Home</a>
-						</li>
-					</ul>
-				</div>
-				<a href="#" class="btn-download">
-					<i class='bx bxs-cloud-download' ></i>
-					<span class="text">Download PDF</span>
-				</a>
-			</div>
-
-			<ul class="box-info">
-				<li>
-					<i class='bx bxs-calendar-check' ></i>
-					<span class="text">
-						<h3>1020</h3>
-						<p>New Order</p>
-					</span>
-				</li>
-				<li>
-					<i class='bx bxs-group' ></i>
-					<span class="text">
-						<h3>2834</h3>
-						<p>Visitors</p>
-					</span>
-				</li>
-				<li>
-					<i class='bx bxs-dollar-circle' ></i>
-					<span class="text">
-						<h3>$2543</h3>
-						<p>Total Sales</p>
-					</span>
-				</li>
-			</ul>
-			 MAIN -->
-
-				<!-- 
-			<div class="table-data">
-				<div class="order">
-					<div class="head">
-						<h3>Recent Orders</h3>
-						<i class='bx bx-search' ></i>
-						<i class='bx bx-filter' ></i>
-					</div>
-					<table>
-						<thead>
-							<tr>
-								<th>User</th>
-								<th>Date Order</th>
-								<th>Status</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status completed">Completed</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status pending">Pending</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status process">Process</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status pending">Pending</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status completed">Completed</span></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div class="todo">
-					<div class="head">
-						<h3>Todos</h3>
-						<i class='bx bx-plus' ></i>
-						<i class='bx bx-filter' ></i>
-					</div>
-					<ul class="todo-list">
-						<li class="completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="not-completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-						<li class="not-completed">
-							<p>Todo List</p>
-							<i class='bx bx-dots-vertical-rounded' ></i>
-						</li>
-					</ul>
-				</div>
-			</div>
-
-			 -->
-			</main>
-			<!-- MAIN -->
-		</section>
 		<!-- CONTENT -->
 	</div>
 	</section>
@@ -334,24 +156,21 @@ session_destroy(); */
 				</div>
 			</div>
 		</div>
-
-
 		<!-- JS Para la confirmacion empresa -->
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 		<script>
-			document.getElementById('empresaModal').addEventListener('shown.bs.modal', function () {
+			document.getElementById('empresaModal').addEventListener('shown.bs.modal', function() {
 				var usuario = '<?php echo $nombreUsuario; ?>';
 				cargarEmpresa(usuario);
 			});
-			document.addEventListener('DOMContentLoaded', function () {
+			document.addEventListener('DOMContentLoaded', function() {
 				const empresaSeleccionada = <?php echo json_encode(isset($_SESSION['empresa']) ? $_SESSION['empresa'] : null); ?>;
 				if (empresaSeleccionada === null) {
 					const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
 					empresaModal.show();
 				}
 			});
-
-			document.getElementById('confirmarEmpresa').addEventListener('click', function () {
+			document.getElementById('confirmarEmpresa').addEventListener('click', function() {
 				const empresaSeleccionada = document.getElementById('empresaSelect').value;
 				if (empresaSeleccionada != null) {
 
@@ -398,10 +217,3 @@ session_destroy(); */
 </body>
 
 </html>
-<!-- 
-				<script>
-			var empresa = '<?php // echo $nombreEmpresa 
-							?>'
-			console.log(empresa);
-		</script>
-		-->

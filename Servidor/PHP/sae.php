@@ -125,8 +125,9 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
                 'data' => [
                     'id' => $documentId, // Solo el ID del documento
                     'host' => $fields['host']['stringValue'],
-                    'puerto' => $fields['puerto']['stringValue'],
+                    'puerto' => $fields['puerto']['stringValue'], 
                     'usuarioSae' => $fields['usuario']['stringValue'],
+                    'password' => $fields['password']['stringValue'],
                     'nombreBase' => $fields['nombreBase']['stringValue']
                 ]
             ];

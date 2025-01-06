@@ -262,6 +262,7 @@ function informaSae(){
                 $('#host').val(data.host);
                 $('#puerto').val(data.puerto);
                 $('#usuarioSae').val(data.usuarioSae);
+                $('#password').val(data.password);
                 $('#nombreBase').val(data.nombreBase);
             } else {
                 console.warn('Error:', response.message || 'Error al obtener la conexión.');
@@ -315,59 +316,61 @@ function validateForm2() {
             input.placeholder = '';
         }
     }
-
     return isValid;
 }
-/*function infoSae() {
-    const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
-    const data = {
-        action: 'mostrar',
-        noEmpresa: noEmpresa
-    };
+function datosUsuarios(tipoUsuario, usuario) {
     $.ajax({
-        url: '../Servidor/PHP/sae.php',
+        url: '../Servidor/PHP/usuarios.php', 
         type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        dataType: 'json',
+        data: { usuarioLogueado: tipoUsuario, usuario: usuario, numFuncion: '3' },
         success: function(response) {
-            if (response.success && response.data) {
-                const data = response.data;
-                console.log(data);  // Esto te mostrará el objeto completo
-                $('#host').val(data.host);
-                $('#puerto').val(data.puerto);
-                $('#usuarioSae').val(data.usuarioSae);
-                $('#nombreBase').val(data.nombreBase);
+            if (response.success) {
+                mostrarUsuarios(response.data); // Llama a otra función para mostrar los usuarios en la página
             } else {
-                console.warn('Error:', response.message || 'Error al obtener la conexión.');
-                alert(response.message || 'Error al obtener la conexión.');
+                console.log(response.message);
+                alert('Error: ' + response.message);
             }
         },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.error('Error en la petición:', textStatus, errorThrown);
+        error: function() {
+            alert('Error en la solicitud AJAX.');
         }
     });
-}*/
+}
+function mostrarUsuarios(usuarios) {
+    var tablaClientes = $('#tablaUsuarios'); // Seleccionamos el cuerpo de la tabla donde se insertarán los usuarios
+    tablaClientes.empty(); // Limpiamos cualquier dato anterior en la tabla
+    // Ordenamos los usuarios por nombreCompleto de forma alfabética
+    usuarios.sort(function(a, b) {
+        var nombreA = a.nombreCompleto.toUpperCase(); // Convertimos a mayúsculas para evitar problemas con el orden
+        var nombreB = b.nombreCompleto.toUpperCase();
+    
+        if (nombreA < nombreB) {
+            return -1; // Si nombreA es menor, se coloca primero
+        }
+        if (nombreA > nombreB) {
+            return 1; // Si nombreA es mayor, se coloca después
+        }
+        return 0; // Si son iguales, no cambia el orden
+    });
+    // Recorremos la lista de usuarios y generamos las filas de la tabla
+    usuarios.forEach(function(usuario) {
+        var fila = '<tr>';
+        fila += '<td>' + usuario.nombreCompleto + '</td>';
+        fila += '<td>' + usuario.correo + '</td>';
+        fila += '<td>' + usuario.estatus + '</td>';
+        fila += '<td>' + usuario.rol + '</td>';
+        fila += '</tr>';
+        // Insertamos la fila en el cuerpo de la tabla
+        tablaClientes.append(fila);
+    });
+}
+
 
 function limpiarCacheEmpresa() {
     sessionStorage.removeItem('noEmpresaSeleccionada');
     console.log('Cache de la empresa limpiado.');
 }
-
-
 $(document).ready(function () {
-    /*
-        document.getElementById('SAE').addEventListener('click', function() {
-            const conexionModal = new bootstrap.Modal(document.getElementById('infoConexion'));
-            conexionModal.show();
-          });
-        document.getElementById('Empresa').addEventListener('click', function() {
-            const empresaModal = new bootstrap.Modal(document.getElementById('infoEmpresa'));
-            empresaModal.show();
-        });*/
-    /*$('#informaEmpresa').click(function () {
-        informaEmpresa(); // Llamar a la función que obtiene los datos
-    });*/
     $('#cancelarModal').click(function () {
         cerrarModal();
     });
