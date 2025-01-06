@@ -109,6 +109,7 @@ session_destroy(); */
 				</li>
 
 			</ul>
+
 			<ul class="side-menu">
 				<?php
 				if ($tipoUsuario == "ADMINISTRADOR") { ?>
@@ -169,98 +170,76 @@ session_destroy(); */
 			<!-- MAIN -->
 
 			<main class="text-center my-5 hero_area">
-				
-			<div class="head-title">
-				<div class="left">
-					<h1>Usuarios</h1>
-					<ul class="breadcrumb">
-						<li>
-							<a href="#">Inicio</a>
-						</li>
-						<li><i class='bx bx-chevron-right' ></i></li>
-						<li>
-							<a class="" href="Usuarios.php">Clientes</a>
-						</li>
-					</ul>
-				</div>
 
-				<i href="#" class="btn-download">
-					<i class='bx bxs-file-plus' ></i>
-					<span class="text">Agregar Cliente</span>
-				</i>
-				
-
-			
-			<div class="table-data">
-				<div class="order">
-					<div class="head">
-						<h3>Usuarios</h3>
-						<i class='bx bx-search' ></i>
-						<i class='bx bx-filter' ></i>
+				<div class="head-title">
+					<div class="left">
+						<h1>Pedidos</h1>
+						<ul class="breadcrumb">
+							<li>
+								<a href="#">Inicio</a>
+							</li>
+							<li><i class='bx bx-chevron-right'></i></li>
+							<li>
+								<a class="" href="Ventas.php">Ventas</a>
+							</li>
+						</ul>
 					</div>
-					<table>
-						<thead>
-							<tr>
-								<th>User</th>
-								<th>Date Order</th>
-								<th>Status</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status completed">Completed</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status pending">Pending</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status process">Process</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status pending">Pending</span></td>
-							</tr>
-							<tr>
-								<td>
-									<img src="img/people.png">
-									<p>John Doe</p>
-								</td>
-								<td>01-10-2021</td>
-								<td><span class="status completed">Completed</span></td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				
+					<div class="button-container">
+						<a href="altaPedido.php" class="btn-crear">
+							<i class='bx bxs-file-plus'></i>
+							<span class="text">Crear Pedido</span>
+						</a>
+						<a href="modificarPedido.php" class="btn-modificar">
+							<i class='bx bxs-edit'></i>
+							<span class="text">Modificar Pedido</span>
+						</a>
+						<a href="eliminarPedido.php" class="btn-eliminar">
+							<i class='bx bxs-file-plus'></i>
+							<span class="text">Eliminar Pedido</span>
+						</a>
+					</div>
 
-			
+					<!-- TABLA PEDIDOS  -->
+					<div class="table-data">
+						<div class="order">
+							<div class="head">
+								<h3></h3>
+								<i class='bx bx-search'></i>
+								<!-- <i class='bx bx-filter'></i> -->
+							</div>
+							<table>
+								<thead>
+									<tr>
+										<th>Tipo</th>
+										<th>Clave</th>
+										<th>Cliente</th>
+										<th>Nombre</th>
+										<th>Estatus</th>
+										<th>Su pedido</th>
+										<th>Fecha Elaboracion</th>
+										<th>Subtotal</th>
+										<th>Total de Comisiones</th>
+										<th>Numero de almacen</th>
+										<th>Forma de Envio del Documento</th>
+										<th>Importe total</th>
+										<th>Nombre del vendedor</th>
+									</tr>
+								</thead>
+								<tbody>
+								
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
 			</main>
 			<!-- MAIN -->
 		</section>
 		<!-- CONTENT -->
 	</div>
-	</section>
+
 	<!-- CONTENT -->
-	</div>
+
 	<div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true"
 		data-bs-backdrop="static" data-bs-keyboard="false" class="modal <?php echo $mostrarModal ? '' : 'd-none'; ?>">
 		<div class="modal-dialog modal-dialog-centered">
@@ -351,4 +330,3 @@ session_destroy(); */
 			console.log(empresa);
 		</script>
 		-->
-

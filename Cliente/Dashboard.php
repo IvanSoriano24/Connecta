@@ -78,7 +78,7 @@ session_destroy(); */
 					</a>
 				</li>
 				<li>
-					<a href="#">
+					<a href="Ventas.php">
 						<i class='bx bxs-shopping-bag-alt'></i>
 						<span class="text">Ventas</span>
 					</a>

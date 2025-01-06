@@ -110,29 +110,29 @@ session_destroy(); */
 
             </ul>
             <ul class="side-menu">
-				<?php
-				if ($tipoUsuario == "ADMINISTRADOR") { ?>
-					<li>
-						<a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-							<i class='bx bxs-cog'></i>
-							<span class="text">Configuración</span>
-						</a>
-						<ul class="dropdown-menu">
-							<li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a>
-							</li>
+                <?php
+                if ($tipoUsuario == "ADMINISTRADOR") { ?>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class='bx bxs-cog'></i>
+                            <span class="text">Configuración</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a>
+                            </li>
 
-							<li><a class="dropdown-item" href="ConexioSAE.php" id="infoSae">Conexión SAE</a></li>
-						</ul>
-					</li>
-				<?php }
-				?>
-				<li>
-					<a href="" class="logout" id="cerrarSesion">
-						<i class='bx bxs-log-out-circle'></i>
-						<span class="text">Cerrar Sesion</span>
-					</a>
-				</li>
-			</ul>
+                            <li><a class="dropdown-item" href="ConexioSAE.php" id="infoSae">Conexión SAE</a></li>
+                        </ul>
+                    </li>
+                <?php }
+                ?>
+                <li>
+                    <a href="" class="logout" id="cerrarSesion">
+                        <i class='bx bxs-log-out-circle'></i>
+                        <span class="text">Cerrar Sesion</span>
+                    </a>
+                </li>
+            </ul>
         </section>
         <!-- SIDEBAR -->
 
@@ -168,7 +168,7 @@ session_destroy(); */
 
             <!-- MAIN -->
 
-            <main class="text-center my-5 hero_area">
+            <main class="text-center">
 
                 <diV class="head-title">
                     <div class="left">
@@ -180,82 +180,85 @@ session_destroy(); */
 
                             <li><i class='bx bx-chevron-right'></i></li>
                             <li>
-                                <a class="" href="Usuarios.php">Productos</a>
+                                <a class="" href="Ventas.php">Ventas</a>
                             </li>
                             <li><i class='bx bx-chevron-right'></i></li>
                             <li>
-                                <a class="" href="Usuarios.php">Alta Pedidos</a>
+                                <a class="" href="altaPedido.php">Alta Pedidos</a>
                             </li>
                         </ul>
                     </div>
 
-                    <a href="#" class="btn-download">
-                        <i class='bx bxs-cloud-download'></i>
-                        <span class="text">Descargar Documento</span>
-                    </a>
+
 
                     <div class="table-data">
                         <div class="order">
                             <div class="head">
-                                <h3>Factura</h3>
+                                <h3>Documento</h3>
                                 <a class=''>Campos Obligatorios *</a>
                             </div>
 
-                            <form onsubmit="return validateForm()">
+                            <form class="form-container" onsubmit="return validateForm()">
                                 <!-- Primera fila -->
-                                <div class="form-row">
-                                    <label for="factura">Factura:</label>
-                                    <input class="input-mt" type="text" name="factura" id="factura" readonly>
+                                <div>
+                                    <label for="factura">Pedido: </label>
+                                    <select class="input-mt" name="factura" id="factura">
+                                        <option>Directo</option>
+                                    </select>
 
-                                    <label for="numero">Número:</label>
-                                    <input class="input-mt" type="text" name="numero" id="numero" readonly>
+                                    <label for="numero">Número</label>
+                                    <input class="input-mt" type="text" name="numero" id="numero">
 
-                                    <label for="fecha">Fecha: </label>
+                                    <label for="fecha">Fecha </label>
                                     <input class="input-mt" type="date" name="diaAlta" id="diaAlta">
 
-                                    <label for="cliente">Cliente: </label>
-                                    <select name="cliente" id="cliente" placeholder="Selecciona opcion">
+                                    <label for="cliente">Cliente </label>
+                                    <select class="input-mt" name="cliente" id="cliente"
+                                        placeholder="Selecciona opcion">
                                         <option></option>
                                         <!-- Agrega más opciones si es necesario -->
                                     </select>
                                 </div>
 
                                 <!-- Segunda fila -->
-                                <div class="form-row">
-                                    <label for="rfc">RFC: <a class='bx'> *</a></label>
+                                <div >
+                                    <label for="rfc">RFC <a class='bx'> *</a></label>
                                     <input class="input-mt" type="text" name="rfc" id="rfc">
-                                    <label for="nombre">Nombre: <a class='bx'> *</a></label>
+                                    <label for="nombre">Nombre <a class='bx'> *</a></label>
                                     <input class="input-mt" type="text" name="nombre" id="nombre">
-                                    <label for="nombre">Esquema:</label>
+                                    <label for="nombre">Su Pedido </label>
                                     <input class="input-mt" type="text" name="nombre" id="nombre">
                                 </div>
 
                                 <!-- Tercera fila -->
-                                <div class="form-row">
-                                    <label for="calle">Calle:</label>
-                                    <input class="input-l" type="text" name="calle" id="calle">
+                                <div>
+                                    <label for="calle">Calle </label>
+                                    <input class="input-mt" type="text" name="calle" id="calle">
 
-                                    <label for="numE">Num. ext.</label>
+                                    <label for="numE">Num. ext. </label>
                                     <input class="input-mt" type="text" name="numE" id="numE">
 
-                                    <label for="descuento">Descuento</label>
+                                    <label for="descuento">Esquema </label>
                                     <input class="input-mt" type="text" name="descuento" id="descuento">
+
                                 </div>
 
                                 <!-- Cuarta fila -->
-                                <div class="form-row">
+                                <div>
                                     <label for="colonia">Colonia:</label>
                                     <input class="input-mt" type="text" name="colonia" id="colonia">
 
                                     <label for="numI">Num. Int.</label>
                                     <input class="input-mt" type="text" name="numI" id="numI">
 
-                                    <label for="vendedor">Vendedor: <a class='bx'>*</a></label>
-                                    <input class="input-mt" type="text" name="vendedor" id="vendedor">
+                                    <label for="descuento">Descuento </label>
+                                    <input class="input-mt" type="text" name="descuento" id="descuento">
+
+
                                 </div>
 
                                 <!-- Quinta fila -->
-                                <div class="form-row">
+                                <div>
                                     <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
                                     <input class="input-mt" type="text" name="codigoPostal" id="codigoPostal">
 
@@ -265,28 +268,48 @@ session_destroy(); */
                                     <label for="pais">Pais: <a class='bx'>*</a></label>
                                     <input class="input-mt" type="text" name="pais" id="pais">
 
-                                    <label for="comision">Comision: <a class='bx'>*</a></label>
-                                    <input class="input-mt" type="text" name="comision" id="comision">
-
+                                    <label for="descuentofin">Descuento Fin </label>
+                                    <input class="input-mt" type="text" name="descuentofin" id="descuentofin">
                                 </div>
 
                                 <!-- Sexta fila -->
-                                <div class="form-row">
+                                <div >
                                     <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
                                     <input class="input-m" type="text" name="regimenFiscal" id="regimenFiscal">
-                                    <input class="input-m" type="text" name="" id=""
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
-                                    <label for="tipoCambio">T. cambio:</label>
-                                    <input class="input-m" type="text" name="tipoCambio" id="tipoCambio">
+
+                                    <label for="entrega">Entrega </label>
+                                    <input class="input-mt" type="date" name="entrega" id="entrega">
+
+                                    <label for="vendedor">Vendedor: </label>
+                                    <input class="input-mt" type="text" name="vendedor" id="vendedor">
+
                                 </div>
 
                                 <!-- Septima Fila -->
-                                <div class="form-row">
-                                    <label for="moneda">Moneda:</label>
-                                    <input class="input-m" type="text" name="moneda" id="moneda">
-                                    <input class="input-m" type="text" name="" id=""
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="Dolares" readonly>
+                                <div >
+                                    <label for="condicion">Condicion </label>
+                                    <input class="input-mt" type="text" name="condicion" id="condicion">
+
+
+
+                                    <label for="comision">Comision </label>
+                                    <input class="input-mt" type="text" name="comision" id="comision">
+                                </div>
+                                <!-- Octava Fila -->
+                                <div >
+                                    <label for="enviar">Enviar a </label>
+                                    <input class="input-mt" type="text" name="enviar" id="enviar">
+
+                                    <label for="almacen">Almacen </label>
+                                    <input class="input-mt" type="text" name="almacen" id="almacen"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="1" readonly>
+                                </div>
+                                <!-- Novena Fila -->
+                                <div >
+                                    <label for="destinatario">Destinatario </label>
+                                    <input class="input-mt" type="text" name="destinatario" id="destinatario"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
                                 </div>
 
                                 <!-- Sección de botones -->
@@ -297,31 +320,6 @@ session_destroy(); */
                             </form>
                         </div>
                     </div>
-                    <div class="table-data">
-                        <div class="order">
-                            <div class="head">
-                                <h3></h3>
-                                <i class='bx bx-search'></i>
-                                <i class='bx bx-filter'></i>
-                            </div>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Cantidad</th>
-                                        <th>Almacen</th>
-                                        <th>Producto</th>
-                                        <th>Unidad</th>
-                                        <th>Clave SAT</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                </tbody>
-                            </table>
-                        </div>
-
-
 
             </main>
             <!-- MAIN -->

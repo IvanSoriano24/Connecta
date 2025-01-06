@@ -78,7 +78,7 @@ session_destroy(); */
 					</a>
 				</li>
 				<li>
-					<a href="#">
+					<a href="Ventas.php">
 						<i class='bx bxs-shopping-bag-alt'></i>
 						<span class="text">Ventas</span>
 					</a>
@@ -173,7 +173,7 @@ session_destroy(); */
 
 				<div class="head-title">
 					<div class="left">
-						<h1>Pedidos</h1>
+						<h1>Inventario</h1>
 						<ul class="breadcrumb">
 							<li>
 								<a href="#">Inicio</a>
@@ -185,76 +185,7 @@ session_destroy(); */
 						</ul>
 					</div>
 
-					<a href="#" class="btn-download">
-						<i class='bx bxs-cloud-download'></i>
-						<span class="text">Descargar Documento</span>
-					</a>
-					<a href="altaPedido.php" class="btn-download">
-						<i class='bx bxs-file-plus'></i>
-						<span class="text">Crear Pedido</span>
-					</a>
-					<!-- <div class="table-data">
-						<div class="order">
-							<div class="head">
-								<h3></h3>
-								<i class='bx bx-search' ></i>
-								<i class='bx bx-filter' ></i>
-							</div>
-							<table>
-								<thead>
-									<tr>
-										<th></th>
-										<th></th>
-										<th></th>
-										<th></th>
-										<th></th>
-										<th></th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td>
-
-											<p></p>
-										</td>
-										<td></td>
-										<td><span class="status completed"></span></td>
-									</tr>
-									<tr>
-										<td>
-
-											<p></p>
-										</td>
-										<td></td>
-										<td><span class="status pending"></span></td>
-									</tr>
-									<tr>
-										<td>
-
-											<p></p>
-										</td>
-										<td></td>
-										<td><span class="status process"></span></td>
-									</tr>
-									<tr>
-										<td>
-
-											<p></p>
-										</td>
-										<td></td>
-										<td><span class="status pending"></span></td>
-									</tr>
-									<tr>
-										<td>
-
-											<p></p>
-										</td>
-										<td> </td>
-										<td><span class="status completed"></span></td>
-									</tr>
-								</tbody>
-							</table>
-						</div> -->
+                    
 
 
 

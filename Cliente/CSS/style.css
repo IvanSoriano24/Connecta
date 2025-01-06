@@ -359,6 +359,48 @@ body {
 	grid-gap: 10px;
 	font-weight: 500;
 }
+#content main .head-title {
+    display: flex;
+    align-items: center;
+}
+
+
+/* Botones Eliminar Agregar y Editar */
+.button-container {
+    display: flex;
+    align-items: center;
+}
+.button-container .btn-crear,
+.button-container .btn-modificar,
+.button-container .btn-eliminar {
+    height: 36px;
+    padding: 0 8px;
+    border-radius: 36px;
+    color: var(--light);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    grid-gap: 5px;
+    margin-right: 5px; /* Reducir el espacio entre los botones */
+    font-weight: 500;
+}
+
+.button-container .btn-crear {
+    background-color: #26882b;
+}
+
+.button-container .btn-modificar {
+    background-color: #3C91E6;
+}
+
+.button-container .btn-eliminar {
+    background-color: #fc2f2f;
+}
+
+/* Eliminar el margen derecho del último botón */
+.button-container .btn-eliminar {
+    margin-right: 0;
+}
 
 .btn-addC{
 	background-color: green;
@@ -412,6 +454,28 @@ body {
 }
 
 
+/* Estructura de filas del formulario */
+.form-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Cuatro columnas */
+    gap: 16px; /* Espaciado entre elementos */
+    width: 100%;
+    background: #e0e0e0; /* Fondo claro */
+    padding: 20px;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+
+.form-container input,
+.form-container select {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
 
 
 
@@ -460,6 +524,7 @@ body {
 }
 #content main .table-data .order table td {
 	padding: 16px 0;
+	text-align: left;
 }
 #content main .table-data .order table tr td:first-child {
 	display: flex;
