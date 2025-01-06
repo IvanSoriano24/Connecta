@@ -69,7 +69,7 @@ if (isset($_SESSION['usuario'])) {
           </a>
         </li>
         <li>
-          <a href="Usuarios.php">
+         <a href="#">
             <i class='bx bxs-user'></i>
             <span class="text">Mis Clientes</span>
           </a>
@@ -146,7 +146,7 @@ if (isset($_SESSION['usuario'])) {
 
       <!-- MAIN -->
 
-      <main class="text-center my-5 hero_area">
+      <main class="text-center ">
 
 
         <div class="head-title">

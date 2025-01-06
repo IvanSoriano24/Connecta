@@ -49,19 +49,7 @@ if (isset($_SESSION['usuario'])) {
 
 <body>
 	<div class="hero_area">
-		<!-- Navbar -->
-		<section id="navbar">
-			<nav class="navbar navbar-light bg-light">
-				<a class="navbar-brand" href="#">
-				</a>
-				<!-- Botón alineado a la derecha data-bs-toggle="modal"-->
-				<button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#nuevoModal">
-					<a href="Usuarios.php">Usuarios</a>
-				</button>
-			</nav>
-		</section>
-		<!-- Navbar -->
-
+		
 		<!-- SIDEBAR -->
 		<section id="sidebar">
 			<a href="#" class="brand">
@@ -88,7 +76,7 @@ if (isset($_SESSION['usuario'])) {
 					</a>
 				</li>
 				<li>
-					<a href="Clientes.php">
+					<a href="#">
 						<i class='bx bxs-user'></i>
 						<span class="text">Mis Clientes</span>
 					</a>
@@ -134,6 +122,26 @@ if (isset($_SESSION['usuario'])) {
 		</section>
 		<!-- SIDEBAR -->
 		<!-- CONTENT -->
+		<section id="content">
+            <!-- NAVBAR -->
+            <nav style="display: flex; justify-content: flex-end;">
+
+                <section id="navbar">
+                    <a class="navbar-brand" href="#"></a>
+                    <!-- Botón alineado a la derecha -->
+                    <button class="btn btn-secondary" style="background-color: #49A1DF; color: white;">
+                        <i class='bx bxs-user'></i>
+                        <a class="brand" href="Usuarios.php" style="color: white;">Usuarios</a>
+                    </button>
+                </section>
+            </nav>
+            <!-- MAIN -->
+            <main class="text-center my-5 hero_area">
+                
+            </main>
+            <!-- MAIN -->
+        </section>
+        <!-- CONTENT -->
 	</div>
 	</section>
 	<!-- CONTENT -->

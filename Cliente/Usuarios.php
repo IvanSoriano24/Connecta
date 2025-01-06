@@ -55,18 +55,9 @@ if (isset($_SESSION['usuario'])) {
 </head>
 
 <body>
-    <div class="hero_area">
-        <!-- Navbar -->
-        <section id="navbar">
-            <nav class="navbar navbar-light bg-light">
-                <a class="navbar-brand" href="#"></a>
-                <!-- Botón alineado a la derecha -->
-                <button class="btn btn-secondary"
-                    <?php echo isset($_SESSION['usuario']) ? 'disabled' : ''; ?>>
-                    Usuarios
-                </button>
-            </nav>
-        </section>
+    <div class="">
+
+
         <!-- SIDEBAR -->
         <section id="sidebar">
             <a href="#" class="brand">
@@ -81,7 +72,7 @@ if (isset($_SESSION['usuario'])) {
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="Ventas.php">
                         <i class='bx bxs-shopping-bag-alt'></i>
                         <span class="text">Ventas</span>
                     </a>
@@ -93,7 +84,7 @@ if (isset($_SESSION['usuario'])) {
                     </a>
                 </li>
                 <li>
-                    <a href="Usuarios.php">
+                    <a href="#">
                         <i class='bx bxs-user'></i>
                         <span class="text">Mis Clientes</span>
                     </a>
@@ -139,10 +130,18 @@ if (isset($_SESSION['usuario'])) {
         <!-- CONTENT -->
         <section id="content">
             <!-- NAVBAR -->
-            <nav>
+            <nav style="display: flex; justify-content: flex-end;">
+                <section id="navbar">
+                    <a class="navbar-brand" href="#"></a>
+                    <!-- Botón alineado a la derecha -->
+                    <button class="btn btn-secondary" style="background-color: #49A1DF; color: white;">
+                        <i class='bx bxs-user'></i>
+                        <a class="brand" href="Usuarios.php" style="color: white;">Usuarios</a>
+                    </button>
+                </section>
             </nav>
             <!-- MAIN -->
-            <main class="text-center my-5 hero_area">
+            <main class="text-center">
                 <div class="modal-header">
                     <h2 class="modal-title" id="clientes">Gestión de Usuarios</h5>
                 </div>
@@ -153,7 +152,8 @@ if (isset($_SESSION['usuario'])) {
                         <button class="btn btn-warning" id="editarUsuarioBtn">Editar</button>
                         <button class="btn btn-info" id="btnAsociarEmpresa" disabled>Asociar Empresa</button>
                         <button class="btn btn-secondary" id="btnExportar" disabled>Exportar</button>
-                        <button class="btn btn-danger" id="btnSalir" onclick="window.location.href='Dashboard.php';">Salir</button>
+                        <button class="btn btn-danger" id="btnSalir"
+                            onclick="window.location.href='Dashboard.php';">Salir</button>
                     </div>
                     <!-- Área para mostrar los datos de los clientes -->
                     <div class="table-responsive">
@@ -164,7 +164,6 @@ if (isset($_SESSION['usuario'])) {
                                     <th>Correo</th>
                                     <th>Estatus</th>
                                     <th>Rol</th>
-                                    <th>Opciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaUsuarios">
@@ -263,14 +262,14 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             var tipoUsuario = '<?php echo $tipoUsuario; ?>';
             var usuario = '<?php echo $usuario; ?>';
             datosUsuarios(tipoUsuario, usuario); // Llamada a la función cuando la página de la empresa se ha cargado.
         });
     </script>
-    </section>
-    <script src="JS/usuarios.js"></script>
+	</section>
+
 </body>
 
 </html>
