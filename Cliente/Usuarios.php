@@ -131,7 +131,7 @@ if (isset($_SESSION['usuario'])) {
         <section id="content">
             <!-- NAVBAR -->
             <nav style="display: flex; justify-content: flex-end;">
-               
+
                 <section id="navbar">
                     <a class="navbar-brand" href="#"></a>
                     <!-- Botón alineado a la derecha -->
@@ -157,20 +157,27 @@ if (isset($_SESSION['usuario'])) {
                             onclick="window.location.href='Dashboard.php';">Salir</button>
                     </div>
                     <!-- Área para mostrar los datos de los clientes -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Nombre Completo</th>
-                                    <th>Correo</th>
-                                    <th>Estatus</th>
-                                    <th>Rol</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaUsuarios">
-                                <!-- Aquí se llenarán los datos dinámicamente con JavaScript -->
-                            </tbody>
-                        </table>
+                    <div class="table-data">
+                        <div class="order">
+                            <div class="head">
+                                <h3></h3>
+                                <i class='bx bx-search'></i>
+                                <!-- <i class='bx bx-filter'></i> -->
+                            </div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre Completo</th>
+                                        <th>Correo</th>
+                                        <th>Estatus</th>
+                                        <th>Rol</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaUsuarios">
+                                    <!-- Aquí se llenarán los datos dinámicamente con JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </main>
