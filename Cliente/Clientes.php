@@ -220,30 +220,108 @@ session_destroy(); */
 	</div>
 	</section>
 	<!-- CONTENT -->
+	<div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Agregar Usuario</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close" id="cerrarModal">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<form class="form-container" onsubmit="return validateForm()">
+					<!-- Primera fila -->
+					<div>
+						<label for="factura">Clave: </label>
+						<input type="text">
+						<label for="numero">Nombre</label>
+						<input class="input-mt" type="text" name="numero" id="numero">
+						<label for="fecha">Estatus </label>
+						<button value="Activo"></button>
+						<label for="saldo">Saldo</label>
+						<input type="text">
+					</div>
+					<!-- Segunda fila -->
+					<div>
+						<label for="rfc">RFC <a class='bx'></a></label>
+						<input class="input-mt" type="text" name="rfc" id="rfc">
+						<label for="nombre">Calle <a class='bx'> *</a></label>
+						<input class="input-mt" type="text" name="nombre" id="nombre">
+						<label for="nombre">Num. ext</label>
+						<input class="input-mt" type="text" name="nombre" id="nombre">
+					</div>
+					<!-- Tercera fila -->
+					<div>
+						<label for="calle">Regimen fiscal </label>
+						<input class="input-mt" type="text" name="calle" id="calle">
+						<label for="numE">Num. int. </label>
+						<input class="input-mt" type="text" name="numE" id="numE">
+					</div>
+					<!-- Cuarta fila -->
+					<div>
+						<label for="colonia">C.U.R.P.:</label>
+						<input class="input-mt" type="text" name="colonia" id="colonia">
+						<label for="descuento">Entre Calle </label>
+						<input class="input-mt" type="text" name="descuento" id="descuento">
+					</div>
+					<!-- Quinta fila -->
+					<div>
+						<label for="codigoPostal">Y calle:<a class='bx'>*</a></label>
+						<input class="input-mt" type="text" name="codigoPostal" id="codigoPostal">
+						<label for="poblacion">Nacionalidad:</label>
+						<input class="input-mt" type="text" name="poblacion" id="poblacion">
+						<label for="pais">Estado: <a class='bx'>*</a></label>
+						<input class="input-mt" type="text" name="pais" id="pais">
+						<label for="pais">poblacion: <a class='bx'>*</a></label>
+						<input class="input-mt" type="text" name="pais" id="pais">
+					</div>
+					<!-- Sexta fila -->
+					<div>
+						<label for="regimenFiscal">Pais: <a class='bx'> *</a></label>
+						<input class="input-m" type="text" name="regimenFiscal" id="regimenFiscal">
+						<label for="entrega">Codigo Postal </label>
+						<input class="input-mt" type="date" name="entrega" id="entrega">
+						<label for="vendedor">Municipio: </label>
+						<input class="input-mt" type="text" name="vendedor" id="vendedor">
+						<label for="vendedor">colonia: </label>
+						<input class="input-mt" type="text" name="vendedor" id="vendedor">
+					</div>
+					<!-- Septima Fila -->
+					<div>
+						<label for="condicion">Condicion </label>
+						<input class="input-mt" type="text" name="condicion" id="condicion">
+						<label for="comision">Comision </label>
+						<input class="input-mt" type="text" name="comision" id="comision">
+					</div>
+					<!-- Octava Fila -->
+					<div>
+						<label for="enviar">Enviar a </label>
+						<input class="input-mt" type="text" name="enviar" id="enviar">
+
+						<label for="almacen">Almacen </label>
+						<input class="input-mt" type="text" name="almacen" id="almacen"
+							style="background-color: #e0e0e0; margin-left: 10px;" value="1" readonly>
+					</div>
+					<!-- Novena Fila -->
+					<div>
+						<label for="destinatario">Destinatario </label>
+						<input class="input-mt" type="text" name="destinatario" id="destinatario"
+							style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+					</div>
+					<!-- Sección de botones -->
+					<div class="form-buttons">
+						<button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
+						<button type="button" class="btn-cancel">Cancelar</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 	<!-- JS Para la confirmacion empresa -->
 	<script src="JS/menu.js"></script>
 	<script src="JS/app.js"></script>
 	<script src="JS/script.js"></script>
-	<script src="JS/clientes.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-	<script>
-		$(document).ready(function() {
-			informaEmpresa(); // Llamada a la función cuando la página de la empresa se ha cargado.
-		});
-	</script>
-	<script>
-		document.getElementById('empresaModal').addEventListener('shown.bs.modal', function() {
-			//var usuario = '<?php echo $nombreUsuario; ?>';
-			cargarEmpresa(usuario);
-		});
-		document.addEventListener('DOMContentLoaded', function() {
-			const empresaSeleccionada = <?php echo json_encode(isset($_SESSION['empresa']) ? $_SESSION['empresa'] : null); ?>;
-			if (empresaSeleccionada === null) {
-				const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
-				empresaModal.show();
-			}
-		});
-	</script>
 </body>
 
 </html>

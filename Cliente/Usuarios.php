@@ -84,7 +84,7 @@ if (isset($_SESSION['usuario'])) {
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="Clientes.php">
                         <i class='bx bxs-user'></i>
                         <span class="text">Mis Clientes</span>
                     </a>
@@ -149,7 +149,6 @@ if (isset($_SESSION['usuario'])) {
                     <!-- Botones de acciones principales -->
                     <div class="d-flex justify-content-between mb-3">
                         <button class="btn btn-success" id="btnAgregar">Agregar</button>
-                        <button class="btn btn-warning" id="editarUsuarioBtn">Editar</button>
                         <button class="btn btn-info" id="btnAsociarEmpresa" disabled>Asociar Empresa</button>
                         <button class="btn btn-secondary" id="btnExportar" disabled>Exportar</button>
                         <button class="btn btn-danger" id="btnSalir"
@@ -269,11 +268,7 @@ if (isset($_SESSION['usuario'])) {
         });
     </script>
     </section>
-<<<<<<< HEAD
     <script src="JS/usuarios.js"></script>
-=======
-
->>>>>>> 8fb25ce85c53fa0b00f4db235a327d26ededc618
 </body>
 
 </html>

@@ -55,14 +55,14 @@ function editarUsuario(idUsuario) {
 
                 if (data.success) {
                     // Si la respuesta es exitosa, mostramos los datos en el modal
-                    $('#usuario').text(data.data.usuario);
-                    $('#nombreUsuario').text(data.data.nombre);
-                    $('#apellidosUsuario').text(data.data.apellido);
-                    $('#correoUsuario').text(data.data.correo);
-                    $('#contrasenaUsuario').text(data.data.password);
-                    $('#rolUsuario').text(data.data.tipoUsuario);
-                    $('#telefonoUsuario').text(data.data.telefono);
-                    $('#estatusUsuario').text(data.data.estatus);
+                    $('#usuario').val(data.data.usuario);
+                    $('#nombreUsuario').val(data.data.nombre);
+                    $('#apellidosUsuario').val(data.data.apellido);
+                    $('#correoUsuario').val(data.data.correo);
+                    $('#contrasenaUsuario').val(data.data.password);
+                    $('#rolUsuario').val(data.data.tipoUsuario);
+                    $('#telefonoUsuario').val(data.data.telefono);
+                    $('#estatusUsuario').val(data.data.estatus);
 
                     // Mostrar el modal
                     $('#usuarioModal').modal('show');
@@ -100,8 +100,21 @@ function cargarEmpresas() {
         }
     }, 'json');
 }
+function limpiarFormulario() {
+    $('#idUsuario').val('');
+    $('#usuario').val('');
+    $('#nombreUsuario').val('');
+    $('#apellidosUsuario').val('');
+    $('#correoUsuario').val('');
+    $('#contrasenaUsuario').val('');
+    $('#telefonoUsuario').val('');
+    $('#rolUsuario').val('');  // Si es un select, también se debe resetear
+    $('#selectEmpresa').val('');  // Si es un select, también se debe resetear
+    $('#detallesEmpresa').val('');  // Limpiar el textarea
+}
 // Función para abrir el modal
 document.getElementById('btnAgregar').addEventListener('click', () => {
+    limpiarFormulario();
     // Usar las funciones de Bootstrap para abrir el modal
     $('#usuarioModal').modal('show');
     // Eliminar el aria-hidden cuando se muestra el modal
@@ -113,6 +126,7 @@ document.getElementById('btnAgregar').addEventListener('click', () => {
 
 // Función para cerrar el modal cuando se haga clic en el botón de cerrar
 document.getElementById('cerrarModal').addEventListener('click', () => {
+    limpiarFormulario();
     // Usar las funciones de Bootstrap para cerrar el modal
     $('#usuarioModal').modal('hide');
     // Restaurar el aria-hidden al cerrar el modal
