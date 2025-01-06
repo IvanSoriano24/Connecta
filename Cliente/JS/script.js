@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         item.addEventListener('click', function () {
             allSideMenu.forEach(i => {
                 i.parentElement.classList.remove('active');
-            });
+            });  
             li.classList.add('active');
         });
     });

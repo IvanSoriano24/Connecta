@@ -173,30 +173,73 @@ session_destroy(); */
 
 				<div class="head-title">
 					<div class="left">
-						<h1>Inventario</h1>
+						<h1>Pedidos</h1>
 						<ul class="breadcrumb">
 							<li>
 								<a href="#">Inicio</a>
 							</li>
 							<li><i class='bx bx-chevron-right'></i></li>
 							<li>
-								<a class="" href="Usuarios.php">Productos</a>
+								<a class="" href="Ventas.php">Ventas</a>
 							</li>
 						</ul>
 					</div>
+					<div class="button-container">
+						<a href="altaPedido.php" class="btn-crear">
+							<i class='bx bxs-file-plus'></i>
+							<span class="text">Crear Pedido</span>
+						</a>
+						<a href="modificarPedido.php" class="btn-modificar">
+							<i class='bx bxs-edit'></i>
+							<span class="text">Modificar Pedido</span>
+						</a>
+						<a href="eliminarPedido.php" class="btn-eliminar">
+							<i class='bx bxs-file-plus'></i>
+							<span class="text">Eliminar Pedido</span>
+						</a>
+					</div>
 
-                    
-
-
-
+					<!-- TABLA PEDIDOS  -->
+					<div class="table-data">
+						<div class="order">
+							<div class="head">
+								<h3></h3>
+								<i class='bx bx-search'></i>
+								<!-- <i class='bx bx-filter'></i> -->
+							</div>
+							<table>
+								<thead>
+									<tr>
+										<th>Tipo</th>
+										<th>Clave</th>
+										<th>Cliente</th>
+										<th>Nombre</th>
+										<th>Estatus</th>
+										<th>Su pedido</th>
+										<th>Fecha Elaboracion</th>
+										<th>Subtotal</th>
+										<th>Total de Comisiones</th>
+										<th>Numero de almacen</th>
+										<th>Forma de Envio del Documento</th>
+										<th>Importe total</th>
+										<th>Nombre del vendedor</th>
+									</tr>
+								</thead>
+								<tbody>
+								
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
 			</main>
 			<!-- MAIN -->
 		</section>
 		<!-- CONTENT -->
 	</div>
-	</section>
+
 	<!-- CONTENT -->
-	</div>
+
 	<div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true"
 		data-bs-backdrop="static" data-bs-keyboard="false" class="modal <?php echo $mostrarModal ? '' : 'd-none'; ?>">
 		<div class="modal-dialog modal-dialog-centered">

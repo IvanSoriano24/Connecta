@@ -96,10 +96,6 @@ function cargarPedidos() {
   });  
   }
 
-function altaPedido(){
-
-}
-
 
  $(document).ready(function () {
     cargarPedidos();
