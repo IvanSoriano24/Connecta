@@ -76,7 +76,7 @@ session_destroy(); */
           </a>
         </li>
         <li>
-          <a href="Usuarios.php">
+          <a href="#">
             <i class='bx bxs-user'></i>
             <span class="text">Mis Clientes</span>
           </a>

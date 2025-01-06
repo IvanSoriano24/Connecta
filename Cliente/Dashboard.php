@@ -54,9 +54,9 @@ if (isset($_SESSION['usuario'])) {
 			<nav class="navbar navbar-light bg-light">
 				<a class="navbar-brand" href="#">
 				</a>
-				<!-- Botón alineado a la derecha data-bs-toggle="modal"-->
-				<button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#nuevoModal">
-					<a href="Usuarios.php">Usuarios</a>
+				<button class="btn btn-secondary" style="background-color: #49A1DF; color: white;">
+					<i class='bx bxs-user'></i>
+					<a class="brand" href="Usuarios.php" style="color: white;">Usuarios</a>
 				</button>
 			</nav>
 		</section>
@@ -88,7 +88,7 @@ if (isset($_SESSION['usuario'])) {
 					</a>
 				</li>
 				<li>
-					<a href="Clientes.php">
+					<a href="#">
 						<i class='bx bxs-user'></i>
 						<span class="text">Mis Clientes</span>
 					</a>
