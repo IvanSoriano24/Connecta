@@ -131,7 +131,6 @@ if (isset($_SESSION['usuario'])) {
         <section id="content">
             <!-- NAVBAR -->
             <nav style="display: flex; justify-content: flex-end;">
-
                 <section id="navbar">
                     <a class="navbar-brand" href="#"></a>
                     <!-- Botón alineado a la derecha -->
@@ -142,7 +141,7 @@ if (isset($_SESSION['usuario'])) {
                 </section>
             </nav>
             <!-- MAIN -->
-            <main class="text-center my-5 hero_area">
+            <main class="text-center">
                 <div class="modal-header">
                     <h2 class="modal-title" id="clientes">Gestión de Usuarios</h5>
                 </div>

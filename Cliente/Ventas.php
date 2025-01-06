@@ -169,7 +169,7 @@ session_destroy(); */
 
 			<!-- MAIN -->
 
-			<main class="text-center my-5 hero_area">
+			<main class="text-center ">
 
 				<div class="head-title">
 					<div class="left">
