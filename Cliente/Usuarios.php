@@ -164,13 +164,13 @@ if (isset($_SESSION['usuario'])) {
                                     <th>Correo</th>
                                     <th>Estatus</th>
                                     <th>Rol</th>
+                                    <th>Opciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaUsuarios">
                                 <!-- Aquí se llenarán los datos dinámicamente con JavaScript -->
                             </tbody>
                         </table>
-                    </div>
                 </div>
             </main>
             <!-- MAIN -->
@@ -268,8 +268,12 @@ if (isset($_SESSION['usuario'])) {
             datosUsuarios(tipoUsuario, usuario); // Llamada a la función cuando la página de la empresa se ha cargado.
         });
     </script>
-	</section>
+    </section>
+<<<<<<< HEAD
+    <script src="JS/usuarios.js"></script>
+=======
 
+>>>>>>> 8fb25ce85c53fa0b00f4db235a327d26ededc618
 </body>
 
 </html>
