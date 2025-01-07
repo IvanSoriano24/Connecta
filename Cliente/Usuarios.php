@@ -155,6 +155,47 @@ if (isset($_SESSION['usuario'])) {
                             onclick="window.location.href='Dashboard.php';">Salir</button>
                     </div>
                     <!-- Área para mostrar los datos de los clientes -->
+                    <div class="table-data">
+                        <div class="order">
+                            <div class="head">
+                                <h3></h3>
+                                <i class='bx bx-search'></i>
+                                <!-- <i class='bx bx-filter'></i> -->
+                            </div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre Completo</th>
+                                        <th>Correo</th>
+                                        <th>Estatus</th>
+                                        <th>Rol</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaUsuarios">
+                                    <!-- Aquí se llenarán los datos dinámicamente con JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="todo">
+                            <div class="head">
+                                <h3>Permisos</h3>
+                                <!-- <i class='bx bx-plus'></i> -->
+                                <!-- <i class='bx bx-filter'></i> -->
+                            </div>
+                            <ul class="todo-list">
+                                
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+
+    </div>
+    </main>
+    <!-- MAIN -->
+    </section>
+    <!-- CONTENT -->
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>

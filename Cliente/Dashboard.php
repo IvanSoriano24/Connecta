@@ -76,7 +76,7 @@ if (isset($_SESSION['usuario'])) {
 					</a>
 				</li>
 				<li>
-					<a href="#">
+					<a href="Clientes.php">
 						<i class='bx bxs-user'></i>
 						<span class="text">Mis Clientes</span>
 					</a>

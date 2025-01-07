@@ -6,10 +6,10 @@ if (isset($_SESSION['usuario'])) {
 
   //$empresa = $_SESSION['empresa']['razonSocial'];
   if (isset($_SESSION['empresa'])) {
-		$empresa = $_SESSION['empresa']['razonSocial'];
-		$idEmpresa = $_SESSION['empresa']['id'];
-		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
-	}
+    $empresa = $_SESSION['empresa']['razonSocial'];
+    $idEmpresa = $_SESSION['empresa']['id'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+  }
 
 } else {
   header('Location:../index.php');
@@ -38,7 +38,7 @@ session_destroy(); */
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <title>AdminHub</title>
-  
+
 
 
 
@@ -124,30 +124,16 @@ session_destroy(); */
     <!-- CONTENT -->
     <section id="content">
       <!-- NAVBAR -->
-      <nav>
-        <!--
-      <i class='bx bx-menu' ></i>
-      <a href="#" class="nav-link"></a>
-      
-      <form action="#">
-        <div class="form-input">
-          <input type="search" placeholder="Search...">
-          <button type="submit" class="search-btn"><i class='bx bx-search' ></i></button>
-        </div>
-      </form>
-                         
-      <input type="checkbox" id="switch-mode" hidden>
-      <label for="switch-mode" class="switch-mode"></label>
-      
-      <a href="#" class="notification">
-        <i class='bx bxs-bell' ></i>
-        <span class="num">8</span>
-      </a>
+      <nav style="display: flex; justify-content: flex-end;">
 
-      <a href="#" class="profile">
-        <img src="img/people.png">
-      </a>
-      -->
+        <section id="navbar">
+          <a class="navbar-brand" href="#"></a>
+          <!-- Botón alineado a la derecha -->
+          <button class="btn btn-secondary" style="background-color: #49A1DF; color: white;">
+            <i class='bx bxs-user'></i>
+            <a class="brand" href="Usuarios.php" style="color: white;">Usuarios</a>
+          </button>
+        </section>
       </nav>
       <!-- fin NAVBAR -->
 
@@ -206,12 +192,13 @@ session_destroy(); */
             <form action="">
               <div class="form-row">
                 <label for="noEmpresa">No. Empresa:</label>
-                <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>" readonly>
+                <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>"
+                  readonly>
                 <input class="input-small" type="text" name="idDocumento" id="idDocumento" value="" hidden>
               </div>
               <div class="form-row">
                 <label for="host">Host:</label>
-                <input class="input-mt"type="text" name="host" id="host" value="">
+                <input class="input-mt" type="text" name="host" id="host" value="">
               </div>
               <div class="form-row">
                 <label for="puerto">Puerto:</label>
@@ -219,13 +206,13 @@ session_destroy(); */
               </div>
               <div class="form-row">
                 <label for="usuarioSae">Usuario:</label>
-                <input class="input-mt"type="text" name="usuarioSae" id="usuarioSae">
+                <input class="input-mt" type="text" name="usuarioSae" id="usuarioSae">
                 <label for="txt">Password:</label>
                 <input class="input-mt" type="password" name="password" id="password">
-                <div class="password-container">                 
+                <div class="password-container">
                   <!-- <button type="button" class="show-password">Mostrar</button> -->
                 </div>
-            </div>
+              </div>
               <div class="form-row">
               </div>
               <div class="form-row">
@@ -234,7 +221,7 @@ session_destroy(); */
               </div>
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
-                 <button type="submit" class="btn-save" id="confirmarConexion">Guardar</button> 
+                <button type="submit" class="btn-save" id="confirmarConexion">Guardar</button>
                 <button type="button" class="btn-cancel">Cancelar</button>
               </div>
             </form>
@@ -254,21 +241,21 @@ session_destroy(); */
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     $(document).ready(function () {
-    informaSae(); 
-  });
+      informaSae();
+    });
   </script>
   <script>
     const numeroEmpresa = '<?php echo $noEmpresa ?>';  // Este número debería ser el que obtienes de la sesión o base de datos.
     const inputNombreBase = document.getElementById('nombreBase');
-    inputNombreBase.addEventListener('blur', function() {
-        if (this.value.trim() !== '') {
-            // Verifica si el número de empresa ya está al final
-            if (!this.value.endsWith(numeroEmpresa)) {
-                this.value = this.value + numeroEmpresa;  // Agrega el número de empresa al final
-            }
+    inputNombreBase.addEventListener('blur', function () {
+      if (this.value.trim() !== '') {
+        // Verifica si el número de empresa ya está al final
+        if (!this.value.endsWith(numeroEmpresa)) {
+          this.value = this.value + numeroEmpresa;  // Agrega el número de empresa al final
         }
+      }
     });
-</script>
+  </script>
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
   <script src="JS/script.js"></script>
@@ -276,4 +263,3 @@ session_destroy(); */
 </body>
 
 </html>
-
