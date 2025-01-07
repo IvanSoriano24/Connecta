@@ -164,9 +164,7 @@ session_destroy(); */
 			<!-- fin NAVBAR -->
 
 			<!-- MAIN -->
-
 			<main class="text-center my-5 hero_area">
-
 				<div class="head-title">
 					<div class="left">
 						<h1>Usuarios</h1>
@@ -180,14 +178,10 @@ session_destroy(); */
 							</li>
 						</ul>
 					</div>
-
 					<i href="#" class="btn-download">
 						<i class='bx bxs-file-plus'></i>
 						<span class="text">Agregar Cliente</span>
 					</i>
-
-
-
 					<div class="table-data">
 						<div class="order">
 							<div class="head">
@@ -199,17 +193,16 @@ session_destroy(); */
 								<thead>
 									<tr>
 										<th>Clave</th>
-										<th>Estatus</th>
 										<th>Nombre</th>
 										<th>Calle</th>
 										<th>Telefono</th>
 										<th>Saldo</th>
 										<th>Estado Datos Timbrado</th>
 										<th>Nombre Comercial</th>
+										<th>Visualizar</th>
 									</tr>
 								</thead>
 								<tbody id="datosClientes">
-
 								</tbody>
 							</table>
 						</div>
@@ -327,13 +320,14 @@ session_destroy(); */
 	<script src="JS/app.js"></script>
 	<script src="JS/script.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="JS/clientes.js"></script>
+	
 </body>
 
 </html>
 <!-- 
-				<script>
-			var empresa = '<?php // echo $nombreEmpresa 
-							?>'
+			<script>
+			var empresa = '<?php //echo $noEmpresa ?>'
 			console.log(empresa);
-		</script>
+		</script>	
 		-->

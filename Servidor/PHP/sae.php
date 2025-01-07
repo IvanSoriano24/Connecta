@@ -108,11 +108,9 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
         return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
     }
     $documents = json_decode($result, true);
-
     if (!isset($documents['documents'])) {
         return ['success' => false, 'message' => 'No se encontraron documentos'];
     }
-
     // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
@@ -181,7 +179,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $resultado = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
             echo json_encode($resultado);
             break;
-        
         default:
             echo json_encode(['success' => false, 'message' => 'Acción no soportada']);
             break;

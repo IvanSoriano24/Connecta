@@ -170,7 +170,7 @@ if (isset($_SESSION['usuario'])) {
                                 <!-- Aquí se llenarán los datos dinámicamente con JavaScript -->
                             </tbody>
                         </table>
-                </div>
+                    </div>
             </main>
             <!-- MAIN -->
         </section>
@@ -208,7 +208,7 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                     <div class="mb-2">
                                         <label for="correoUsuario" class="form-label">Correo Electrónico</label>
-                                        <input type="email" id="correoUsuario" class="form-control">
+                                        <input type="text" id="correoUsuario" class="form-control">
                                     </div>
                                     <div class="mb-2">
                                         <label for="contrasenaUsuario" class="form-label">Contraseña</label>
@@ -216,12 +216,16 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                     <div class="mb-2">
                                         <label for="telefonoUsuario" class="form-label">Telefono</label>
-                                        <input type="password" id="telefonoUsuario" class="form-control">
+                                        <input type="text" id="telefonoUsuario" class="form-control">
                                     </div>
                                     <div class="mb-2">
                                         <label for="rolUsuario" class="form-label">Rol</label>
                                         <select id="rolUsuario" class="form-select">
                                             <option selected disabled>Selecciona un rol</option>
+                                            <option value="VENDEDOR">VENDEDOR</option>
+                                            <option value="ALMACENISTA">ALMACENISTA</option>
+                                            <option value="FACTURISTA">FACTURISTA</option>
+                                            <option value="VENDEDOR">VENDEDOR</option>
                                             <!-- Aquí se llenará dinámicamente con los roles -->
                                         </select>
                                     </div>
@@ -240,16 +244,30 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                     <!-- Textarea para información adicional -->
                                     <div class="mb-4">
-                                        <label for="detallesEmpresa" class="form-label">Detalles de Empresa</label>
-                                        <textarea id="detallesEmpresa" class="form-control" rows="4" disabled></textarea>
+                                        <!--<label for="detallesEmpresa" class="form-label">Detalles de Empresa</label>
+                                        <textarea id="detallesEmpresa" class="form-control" rows="4" disabled></textarea>-->
+                                        <h6>Empresas Seleccionadas</h6>
+                                        <table class="table table-bordered" id="tablaEmpresas">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID Empresa</th>
+                                                    <th>Razón Social</th>
+                                                    <th>Número Empresa</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Las filas se llenarán dinámicamente -->
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary" id="guardarDatosBtn">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
@@ -261,7 +279,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             var tipoUsuario = '<?php echo $tipoUsuario; ?>';
             var usuario = '<?php echo $usuario; ?>';
             datosUsuarios(tipoUsuario, usuario); // Llamada a la función cuando la página de la empresa se ha cargado.

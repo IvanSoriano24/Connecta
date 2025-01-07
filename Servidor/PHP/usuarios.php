@@ -113,13 +113,10 @@ function optenerEmpresas(){
     // Configuración de Firebase
     global $firebaseProjectId, $firebaseApiKey;
     $urlEmpUs = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-
     // Realizar la solicitud a Firebase
     $responseEmpUs = file_get_contents($urlEmpUs);
-
     if ($responseEmpUs !== false) {
         $dataEmpUs = json_decode($responseEmpUs, true);
-
         if (isset($dataEmpUs['documents'])) {
             $empresas = [];
             foreach ($dataEmpUs['documents'] as $document) {
@@ -132,7 +129,6 @@ function optenerEmpresas(){
                     'razonSocial' => isset($fields['razonSocial']['stringValue']) ? $fields['razonSocial']['stringValue'] : "Sin Razón Social"
                 ];
             }
-
             // Verificar si se encontraron empresas
             if (count($empresas) > 0) {
                 // Ordenar por razón social
@@ -177,11 +173,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 
 switch ($funcion) {
     case 1:
-        $data = [
-            /*
-            DATOS
-            'dato' => $fields['dato']['tipoDato'],
-            */];
+        $empresas = json_decode($_POST['empresas'], true);
+
+        // Validar que los datos no estén vacíos
+        if (empty($usuarioLogueado) || empty($empresas)) {
+            echo json_encode(['success' => false, 'message' => 'Datos vacíos.']);
+            exit();
+        }
+    
+        // Guardar los datos en Firebase o la base de datos
         agregarUsuario($data);
         break;
 

@@ -86,20 +86,27 @@ function cargarEmpresas() {
             const empresas = response.data;
             const empresaSelect = document.getElementById('selectEmpresa'); // Select donde se llenarán las empresas
             empresaSelect.innerHTML = '<option selected disabled>Selecciona una empresa</option>'; // Opción inicial
+
             // Iterar sobre las empresas y agregarlas al select
             empresas.forEach((empresa) => {
                 const option = document.createElement('option');
                 option.value = empresa.id; // Valor de la opción
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`; // Texto visible en el select
+
+                // Agregar atributos data-* para detalles adicionales
+                option.setAttribute('data-razon-social', empresa.razonSocial);
+                option.setAttribute('data-id', empresa.id);
+                option.setAttribute('data-numero', empresa.noEmpresa);
+
                 empresaSelect.appendChild(option); // Agregar la opción al select
             });
-
         } else {
             // Mostrar mensaje de error si no se obtuvieron empresas
             alert(response.message || 'Error al obtener las empresas.');
         }
     }, 'json');
 }
+
 function limpiarFormulario() {
     $('#idUsuario').val('');
     $('#usuario').val('');
@@ -143,3 +150,89 @@ document.getElementById('agregarEmpresaBtn').addEventListener('click', () => {
     console.log('Empresa seleccionada:', selectedEmpresa);
 });
 
+$(document).ready(function () {
+    $('#agregarEmpresaBtn').on('click', function () {
+        const selectedOption = $('#selectEmpresa').find('option:selected'); // Obtener la opción seleccionada
+        // Verificar que se haya seleccionado una empresa válida
+        if (selectedOption.val() === null || selectedOption.val() === "Selecciona una empresa") {
+            alert('Por favor, selecciona una empresa antes de agregar.');
+            return;
+        }
+
+        // Extraer los atributos de la opción seleccionada
+        const razonSocial = selectedOption.data('razon-social');
+        const idEmpresa = selectedOption.data('id');
+        const numeroEmpresa = selectedOption.data('numero');
+
+        // Verificar si la empresa ya fue agregada
+        const existe = $(`#tablaEmpresas tbody tr[data-id="${idEmpresa}"]`).length > 0;
+        if (existe) {
+            alert('Esta empresa ya ha sido agregada.');
+            return;
+        }
+
+        // Crear una nueva fila con los datos de la empresa
+        const nuevaFila = `
+            <tr data-id="${idEmpresa}">
+                <td>${idEmpresa}</td>
+                <td>${razonSocial}</td>
+                <td>${numeroEmpresa}</td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm eliminarEmpresaBtn">Eliminar</button>
+                </td>
+            </tr>
+        `;
+        // Agregar la fila a la tabla
+        $('#tablaEmpresas tbody').append(nuevaFila);
+    });
+
+    // Detectar clic en los botones "Eliminar" dentro de la tabla
+    $('#tablaEmpresas').on('click', '.eliminarEmpresaBtn', function () {
+        // Eliminar la fila correspondiente
+        $(this).closest('tr').remove();
+    });
+
+    $('#guardarDatosBtn').on('click', function () {
+        const empresasSeleccionadas = [];
+        // Obtener todas las empresas seleccionadas de la tabla
+        $('#tablaEmpresas tbody tr').each(function () {
+            const idEmpresa = $(this).find('td:nth-child(1)').text();
+            const razonSocial = $(this).find('td:nth-child(2)').text();
+            const numeroEmpresa = $(this).find('td:nth-child(3)').text();
+
+            empresasSeleccionadas.push({
+                id: idEmpresa,
+                empresa: razonSocial,
+                noEmpresa: numeroEmpresa,
+            });
+        });
+        // Validar que haya datos para guardar
+        if (empresasSeleccionadas.length === 0) {
+            alert('No hay empresas seleccionadas para guardar.');
+            return;
+        }
+        // Enviar los datos al servidor mediante AJAX
+        $.ajax({
+            url: '../Servidor/PHP/usuarios.php',
+            type: 'POST',
+            data: {
+                numFuncion: 1, // Función para guardar
+                empresas: JSON.stringify(empresasSeleccionadas),
+                datosUsuario: JSON.stringify(empresasSeleccionadas),
+            },
+            success: function (response) {
+                const res = JSON.parse(response);
+                if (res.success) {
+                    alert('Datos guardados exitosamente.');
+                    // Opcional: Limpiar tabla después de guardar
+                    $('#tablaEmpresas tbody').empty();
+                } else {
+                    alert(res.message || 'Error al guardar los datos.');
+                }
+            },
+            error: function () {
+                alert('Error al realizar la solicitud.');
+            },
+        });
+    });
+});
