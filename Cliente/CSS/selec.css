@@ -127,7 +127,12 @@ background-color: rgb(255, 255, 255);
     border-radius: 5px;
   }
 
-
+  .input-larg{
+    width: 900px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
   
   .form-row select {
     
