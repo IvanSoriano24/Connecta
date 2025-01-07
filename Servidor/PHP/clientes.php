@@ -74,15 +74,45 @@ function mostrarClientes($conexionData)
         // Arreglo para almacenar los datos de clientes
         $clientes = [];
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            foreach ($row as $key => $value) {
+                // Limpiar espacios en blanco solo si el valor no es null
+                if ($value !== null && is_string($value)) {
+                    $value = trim($value); // Eliminar espacios en blanco al principio y al final
+
+                    // Verificar si el valor no está vacío antes de intentar convertirlo
+                    if (!empty($value)) {
+                        // Detectar la codificación del valor
+                        $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
+
+                        // Si la codificación no se puede detectar o no es UTF-8, convertir la codificación
+                        if ($encoding && $encoding !== 'UTF-8') {
+                            $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                        }
+                    }
+                } elseif ($value === null) {
+                    // Si el valor es null, asignar un valor predeterminado
+                    $value = '';
+                }
+
+                // Asignar el valor limpio al campo correspondiente
+                $row[$key] = $value;
+            }
             $clientes[] = $row;
         }
         // Liberar recursos y cerrar la conexión
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
         // Retornar los datos en formato JSON
-        header('Content-Type: application/json');
-        $response = ['success' => true, 'data' => $clientes];
+        if (empty($clientes)) {
+            echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
+            die();
+        }
+     
+        //var_dump($response);
+        //$response = ['success' => true, 'data' => $clientes];
+        //var_dump($clientes);
         // Comprobación para posibles errores de codificación JSON
+        // Verificar errores de codificación JSON antes de enviar
         if (json_last_error() !== JSON_ERROR_NONE) {
             echo json_encode([
                 'success' => false,
@@ -90,8 +120,9 @@ function mostrarClientes($conexionData)
             ]);
             die();
         }
-        echo json_encode($response);
-        die();
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(['success' => true, 'data' => $clientes]);
+        //exit();
     } catch (Exception $e) {
         // Si hay algún error, devuelves un error en formato JSON
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -110,21 +141,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 }
 switch ($funcion) {
     case 1:
+        /*
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
-        }
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        }*/
+        //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $noEmpresa = '01';
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
-            exit;
+            break;
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         mostrarClientes($conexionData);
         break;
-
     case 2: // Editar pedido
         $idPedido = $_POST['idPedido'];
         $data = [
