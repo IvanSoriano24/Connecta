@@ -173,7 +173,7 @@ session_destroy(); */
 						<label for="pais">Pais: <a class='bx'></a></label>
 						<input class="input-m" type="text" name="pais" id="pais">
 						<label for="codigoPostal">Codigo Postal </label>
-						<input class="input-mt" type="date" name="codigoPostal" id="entcodigoPostalrega">
+						<input class="input-mt" type="date" name="codigoPostal" id="codigoPostal">
 						<label for="municipio">Municipio: </label>
 						<input class="input-mt" type="text" name="municipio" id="municipio">
 						<label for="colonia">Colonia: </label>
@@ -198,7 +198,7 @@ session_destroy(); */
 						<label for="zona">Zona </label>
 						<input class="input-mt" type="text" name="zona" id="zona">
 						<label for="fax">Fax</label>
-						<input class="input-mt" type="text" name="fax" id="fax">l>
+						<input class="input-mt" type="text" name="fax" id="fax">
 					</div>
 					<div>
 						<label for="paginaWeb">Pagina Web</label>
