@@ -63,7 +63,7 @@ session_destroy(); */
     <!-- SIDEBAR -->
     <?php include 'sidebar.php'; ?>
     <div class="hero_area">
-        <section id="content" >
+        <section id="content">
             <!-- MAIN -->
             <main class="text-center">
 
@@ -93,109 +93,116 @@ session_destroy(); */
                                 <a class=''>Campos Obligatorios *</a>
                             </div>
 
-                            <form class="form-container" onsubmit="return validateForm()">
+                            <form onsubmit="return validateForm()">
                                 <!-- Primera fila -->
-                                <div>
+                                <div class="form-row">
                                     <label for="factura">Pedido: </label>
                                     <select class="input-mt" name="factura" id="factura">
                                         <option>Directo</option>
                                     </select>
-                                    <label for="rfc">RFC <a class='bx'> *</a></label>
-                                    <input class="input-mt" type="text" name="rfc" id="rfc">
 
-                                    <label for="calle">Calle </label>
-                                    <input class="input-mt" type="text" name="calle" id="calle"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
-                                    <label for="colonia">Colonia:</label>
-                                    <input class="input-mt" type="text" name="colonia" id="colonia"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
-                                    <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
-                                    <input class="input-mt" type="text" name="codigoPostal" id="codigoPostal"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
-                                    <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
-                                    <input class="input-m" type="text" name="regimenFiscal" id="regimenFiscal"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
-                                    <label for="condicion">Condicion </label>
-                                    <input class="input-mt" type="text" name="condicion" id="condicion">
-
-                                    <label for="enviar">Enviar a </label>
-                                    <input class="input-mt" type="text" name="enviar" id="enviar">
-
-                                    <label for="destinatario">Destinatario </label>
-                                    <input class="input-mt" type="text" name="destinatario" id="destinatario"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                </div>
-
-                                <!-- Segunda fila -->
-                                <div>
                                     <label for="numero">Número</label>
                                     <input class="input-mt" type="text" name="numero" id="numero">
 
+                                    <label for="fecha">Fecha </label>
+                                    <input class="input-mt" type="date" name="diaAlta" id="diaAlta">
+
+                                    <label for="cliente">Cliente </label>
+                                    <input class="input-mt" name="cliente" id="cliente" autocomplete="">
+                                </div>
+
+                                <div class="form-row">
+                                    <label for="rfc">RFC <a class='bx'> *</a></label>
+                                    <input class="input-mt" type="text" name="rfc" id="rfc">
 
                                     <label for="nombre">Nombre <a class='bx'> *</a></label>
                                     <input class="input-mt input-largo" type="text" name="nombre" id="nombre">
 
-                                    <label for="poblacion">Población:</label>
-                                    <input class="input-mt" type="text" name="poblacion" id="poblacion"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+                                    <label for="nombre">Su Pedido </label>
+                                    <input class="input-mt" type="text" name="nombre" id="nombre">
+
                                 </div>
 
-                                <!-- Tercera fila -->
-                                <div>
-                                    <label for="fecha">Fecha </label>
-                                    <input class="input-mt" type="date" name="diaAlta" id="diaAlta">
+                                <div class="form-row">
+                                    <label for="calle">Calle </label>
+                                    <input class="input-mt" type="text" name="calle" id="calle"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
                                     <label for="numE">Num. ext. </label>
                                     <input class="input-mt" type="text" name="numE" id="numE"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+
+                                    <label for="descuento">Esquema </label>
+                                    <input class="input-mt" type="text" name="descuento" id="descuento">
+                                </div>
+
+                                <div class="form-row">
+                                    <label for="colonia">Colonia:</label>
+                                    <input class="input-mt" type="text" name="colonia" id="colonia"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
                                     <label for="numI">Num. Int.</label>
                                     <input class="input-mt" type="text" name="numI" id="numI"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
+                                    <label for="descuento">Descuento </label>
+                                    <input class="input-mt" type="text" name="descuento" id="descuento">
+
+                                </div>
+
+                                <div class="form-row">
+
+                                    <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
+                                    <input class="input-mt" type="text" name="codigoPostal" id="codigoPostal"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+
+                                    <label for="poblacion">Población:</label>
+                                    <input class="input-mt" type="text" name="poblacion" id="poblacion"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+
                                     <label for="pais">Pais: <a class='bx'>*</a></label>
                                     <input class="input-mt" type="text" name="pais" id="pais"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+
+                                    <label for="descuentofin">Descuento Fin </label>
+                                    <input class="input-mt" type="text" name="descuentofin" id="descuentofin">
+                                </div>
+
+                                <div class="form-row">
+                                    <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="regimenFiscal" id="regimenFiscal"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
                                     <label for="entrega">Entrega </label>
                                     <input class="input-mt" type="date" name="entrega" id="entrega">
 
+                                    <label for="vendedor">Vendedor </label>
+                                    <input class="input-mt" type="text" name="vendedor" id="vendedor">
+
+                                </div>
+
+                                <div class="form-row">
+                                    <label for="condicion">Condicion </label>
+                                    <input class="input-mt" type="text" name="condicion" id="condicion">
+
+                                    <label for="comision">Comision </label>
+                                    <input class="input-mt" type="text" name="comision" id="comision">
+                                </div>
+
+                                <div class="form-row">
+                                    <label for="enviar">Enviar a </label>
+                                    <input class="input-mt" type="text" name="enviar" id="enviar">
 
                                     <label for="almacen">Almacen </label>
                                     <input class="input-mt" type="text" name="almacen" id="almacen"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="1" readonly>
 
-
                                 </div>
 
-                                <!-- Cuarta fila -->
-                                <div>
-                                    <label for="cliente">Cliente </label>
-                                    <input class="input-mt" name="cliente" id="cliente" autocomplete="">
-
-
-
-                                    <label for="nombre">Su Pedido </label>
-                                    <input class="input-mt" type="text" name="nombre" id="nombre">
-
-                                    <label for="descuento">Esquema </label>
-                                    <input class="input-mt" type="text" name="descuento" id="descuento">
-
-                                    <label for="descuento">Descuento </label>
-                                    <input class="input-mt" type="text" name="descuento" id="descuento">
-
-                                    <label for="descuentofin">Descuento Fin </label>
-                                    <input class="input-mt" type="text" name="descuentofin" id="descuentofin">
-
-                                    <label for="vendedor">Vendedor </label>
-                                    <input class="input-mt" type="text" name="vendedor" id="vendedor">
-
-                                    <label for="comision">Comision </label>
-                                    <input class="input-mt" type="text" name="comision" id="comision">
+                                <div class="form-row">
+                                    <label for="destinatario">Destinatario </label>
+                                    <input class="input-mt" type="text" name="destinatario" id="destinatario"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
                                 </div>
 
 
