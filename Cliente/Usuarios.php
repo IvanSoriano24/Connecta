@@ -57,7 +57,7 @@ if (isset($_SESSION['usuario'])) {
 <body>
     <div class="">
         <!-- SIDEBAR -->
-		<?php include 'sidebar.php'; ?>
+        <?php include 'sidebar.php'; ?>
         <!-- CONTENT -->
         <section id="content">
             <!-- MAIN -->
@@ -65,66 +65,42 @@ if (isset($_SESSION['usuario'])) {
                 <div class="modal-header">
                     <h2 class="modal-title" id="clientes">Gestión de Usuarios</h5>
                 </div>
-                <div class="modal-body">
-                    <!-- Botones de acciones principales -->
-                    <div class="d-flex justify-content-between mb-3">
-                        <button class="btn btn-success" id="btnAgregar">Agregar</button>
-                        <button class="btn btn-info" id="btnAsociarEmpresa" disabled>Asociar Empresa</button>
-                        <button class="btn btn-secondary" id="btnExportar" disabled>Exportar</button>
-                        <button class="btn btn-danger" id="btnSalir"
-                            onclick="window.location.href='Dashboard.php';">Salir</button>
-                    </div>
-                    <!-- Área para mostrar los datos de los clientes -->
-                    <div class="table-data">
-                        <div class="order">
-                            <div class="head">
-                                <h3></h3>
-                                <i class='bx bx-search'></i>
-                                <!-- <i class='bx bx-filter'></i> -->
-                            </div>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Nombre Completo</th>
-                                        <th>Correo</th>
-                                        <th>Estatus</th>
-                                        <th>Rol</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tablaUsuarios">
-                                    <!-- Aquí se llenarán los datos dinámicamente con JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
 
-                        <div class="todo">
-                            <div class="head">
-                                <h3>Permisos</h3>
-                                <!-- <i class='bx bx-plus'></i> -->
-                                <!-- <i class='bx bx-filter'></i> -->
-                            </div>
-                            <ul class="todo-list">
-                                
-                            </ul>
-                        </div>
-                    </div>
+                <!-- Botones de acciones principales -->
+                <div class="d-flex justify-content-between mb-3">
+
+                    <button class="btn btn-success" id="btnAgregar">
+                        <i class='bx bxs-user-plus'></i> Agregar
+                    </button>
+
+                    <button class="btn btn-info" id="btnAsociarEmpresa" disabled>
+                        <i class='bx bxs-building-house'></i> Asociar Empresa
+                    </button>
+
+                    <button class="btn btn-secondary" id="btnExportar" disabled>
+                        <i class='bx bxs-export'></i> Exportar
+                    </button>
+
+                    <button class="btn btn-danger" id="btnSalir" onclick="window.location.href='Dashboard.php';">
+                        <i class='bx bxs-exit'></i> Salir
+                    </button>
+
                 </div>
-
-
-    </div>
-    </main>
-    <!-- MAIN -->
-    </section>
-    <!-- CONTENT -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
+                <!-- Área para mostrar los datos de los clientes -->
+                <div class="table-data">
+                    <div class="order">
+                        <div class="head">
+                            <h3></h3>
+                            <i class='bx bx-search'></i>
+                            <!-- <i class='bx bx-filter'></i> -->
+                        </div>
+                        <table class="table">
                             <thead>
                                 <tr>
                                     <th>Nombre Completo</th>
                                     <th>Correo</th>
                                     <th>Estatus</th>
                                     <th>Rol</th>
-                                    <th>Opciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaUsuarios">
@@ -132,11 +108,22 @@ if (isset($_SESSION['usuario'])) {
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- <div class="todo">
+                        <div class="head">
+                            <h3>Permisos</h3>
+                          
+                        </div>
+                        <ul class="todo-list">
+
+                        </ul>
+                    </div> -->
+                </div>
+                <!-- MAIN -->
             </main>
-            <!-- MAIN -->
         </section>
-        <!-- CONTENT -->
     </div>
+    <!-- MODAL AGREGAR -->
     <div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -200,7 +187,8 @@ if (isset($_SESSION['usuario'])) {
                                             <!-- Aquí se llenará dinámicamente con las empresas -->
                                         </select>
                                         <div class="mb-1">
-                                            <button id="agregarEmpresaBtn" type="button" class="btn btn-primary">Agregar</button>
+                                            <button id="agregarEmpresaBtn" type="button"
+                                                class="btn btn-primary">Agregar</button>
                                         </div>
                                     </div>
                                     <!-- Textarea para información adicional -->
@@ -227,20 +215,22 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cerrarModal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            id="cerrarModal">Cerrar</button>
                         <button type="submit" class="btn btn-primary" id="guardarDatosBtn">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
     <!-- JS Para la confirmacion empresa -->
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             var tipoUsuario = '<?php echo $tipoUsuario; ?>';
             var usuario = '<?php echo $usuario; ?>';
             datosUsuarios(tipoUsuario, usuario); // Llamada a la función cuando la página de la empresa se ha cargado.

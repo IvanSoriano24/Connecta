@@ -459,7 +459,6 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* Cuatro columnas iguales */
     gap: 16px; /* Espaciado entre elementos */
-    background: #f3f3f3; /* Fondo claro */
     padding: 20px;
     border-radius: 10px;
     box-sizing: border-box;
