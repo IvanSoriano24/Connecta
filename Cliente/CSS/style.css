@@ -465,11 +465,6 @@ body {
 }
 
 
-.input-largo {
-    grid-column: span 2; /* Ocupa dos columnas */
-    width: calc(100% + 20px); /* Hazlo más ancho que los inputs regulares */
-    margin-right: 10px; /* Espaciado con los elementos de la fila */
-}
 .form-buttons {
     text-align: center;
     margin-top: 16px;

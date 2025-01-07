@@ -98,7 +98,7 @@ session_destroy(); */
                                 <div class="form-row">
                                     <label for="factura">Pedido: </label>
                                     <select class="input-mt" name="factura" id="factura">
-                                        <option>Directo</option>
+                                        <option></option>
                                     </select>
 
                                     <label for="numero">Número</label>
@@ -116,7 +116,7 @@ session_destroy(); */
                                     <input class="input-mt" type="text" name="rfc" id="rfc">
 
                                     <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                    <input class="input-mt input-largo" type="text" name="nombre" id="nombre">
+                                    <input class="input-larg" type="text" name="nombre" id="nombre">
 
                                     <label for="nombre">Su Pedido </label>
                                     <input class="input-mt" type="text" name="nombre" id="nombre">
@@ -125,11 +125,11 @@ session_destroy(); */
 
                                 <div class="form-row">
                                     <label for="calle">Calle </label>
-                                    <input class="input-mt" type="text" name="calle" id="calle"
+                                    <input class="input-larg" type="text" name="calle" id="calle"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
                                     <label for="numE">Num. ext. </label>
-                                    <input class="input-mt" type="text" name="numE" id="numE"
+                                    <input class="input-small" type="text" name="numE" id="numE"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
                                     <label for="descuento">Esquema </label>
@@ -138,11 +138,11 @@ session_destroy(); */
 
                                 <div class="form-row">
                                     <label for="colonia">Colonia:</label>
-                                    <input class="input-mt" type="text" name="colonia" id="colonia"
+                                    <input class="input-larg" type="text" name="colonia" id="colonia"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
                                     <label for="numI">Num. Int.</label>
-                                    <input class="input-mt" type="text" name="numI" id="numI"
+                                    <input class="input-small" type="text" name="numI" id="numI"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
                                     <label for="descuento">Descuento </label>
@@ -170,7 +170,7 @@ session_destroy(); */
 
                                 <div class="form-row">
                                     <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
-                                    <input class="input-m" type="text" name="regimenFiscal" id="regimenFiscal"
+                                    <input class="input-mt" type="text" name="regimenFiscal" id="regimenFiscal"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
                                     <label for="entrega">Entrega </label>
@@ -183,7 +183,7 @@ session_destroy(); */
 
                                 <div class="form-row">
                                     <label for="condicion">Condicion </label>
-                                    <input class="input-mt" type="text" name="condicion" id="condicion">
+                                    <input class="input-larg" type="text" name="condicion" id="condicion">
 
                                     <label for="comision">Comision </label>
                                     <input class="input-mt" type="text" name="comision" id="comision">
@@ -191,7 +191,7 @@ session_destroy(); */
 
                                 <div class="form-row">
                                     <label for="enviar">Enviar a </label>
-                                    <input class="input-mt" type="text" name="enviar" id="enviar">
+                                    <input class="input-larg" type="text" name="enviar" id="enviar">
 
                                     <label for="almacen">Almacen </label>
                                     <input class="input-mt" type="text" name="almacen" id="almacen"
@@ -201,7 +201,7 @@ session_destroy(); */
 
                                 <div class="form-row">
                                     <label for="destinatario">Destinatario </label>
-                                    <input class="input-mt" type="text" name="destinatario" id="destinatario"
+                                    <input class="input-larg" type="text" name="destinatario" id="destinatario"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
                                 </div>
 
