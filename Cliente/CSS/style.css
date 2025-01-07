@@ -386,15 +386,15 @@ body {
 }
 
 .button-container .btn-crear {
-    background-color: #26882b;
+    background-color: #4ab150;
 }
 
 .button-container .btn-modificar {
-    background-color: #3C91E6;
+    background-color: #4485c5;
 }
 
 .button-container .btn-eliminar {
-    background-color: #fc2f2f;
+    background-color: #dd2a2a;
 }
 
 /* Eliminar el margen derecho del último botón */
@@ -457,26 +457,54 @@ body {
 /* Estructura de filas del formulario */
 .form-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Cuatro columnas */
+    grid-template-columns: repeat(4, 1fr); /* Cuatro columnas iguales */
     gap: 16px; /* Espaciado entre elementos */
-    width: 100%;
-    background: #e0e0e0; /* Fondo claro */
+    background: #f3f3f3; /* Fondo claro */
     padding: 20px;
-    box-sizing: border-box;
-    border-radius: 8px;
-}
-
-.form-container input,
-.form-container select {
-    width: 100%;
-    padding: 6px 10px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 10px;
     box-sizing: border-box;
 }
 
 
+.input-largo {
+    grid-column: span 2; /* Ocupa dos columnas */
+    width: calc(100% + 20px); /* Hazlo más ancho que los inputs regulares */
+    margin-right: 10px; /* Espaciado con los elementos de la fila */
+}
+.form-buttons {
+    text-align: center;
+    margin-top: 16px;
+}
+
+.btn-save {
+    padding: 10px 20px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    padding: 10px 20px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+input[readonly] {
+    background-color: #e0e0e0;
+    color: #7a7a7a;
+    border-color: #d3d3d3;
+}
+
+.form-buttons {
+    grid-column: span 4; /* Ocupa todo el ancho */
+    text-align: center;
+    margin-top: 10px;
+}
 
 
 #content main .table-data {

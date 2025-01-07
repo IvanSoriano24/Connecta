@@ -90,7 +90,7 @@ session_destroy(); */
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="Clientes.php">
                         <i class='bx bxs-user'></i>
                         <span class="text">Mis Clientes</span>
                     </a>
@@ -139,30 +139,17 @@ session_destroy(); */
         <!-- CONTENT -->
         <section id="content">
             <!-- NAVBAR -->
-            <nav>
-                <!--
-            <i class='bx bx-menu' ></i>
-            <a href="#" class="nav-link"></a>
-            
-            <form action="#">
-                <div class="form-input">
-                    <input type="search" placeholder="Search...">
-                    <button type="submit" class="search-btn"><i class='bx bx-search' ></i></button>
-                </div>
-            </form>
-                               
-            <input type="checkbox" id="switch-mode" hidden>
-            <label for="switch-mode" class="switch-mode"></label>
-            
-            <a href="#" class="notification">
-                <i class='bx bxs-bell' ></i>
-                <span class="num">8</span>
-            </a>
+            <!-- NAVBAR -->
+            <nav style="display: flex; justify-content: flex-end;">
 
-            <a href="#" class="profile">
-                <img src="img/people.png">
-            </a>
-            -->
+                <section id="navbar">
+                    <a class="navbar-brand" href="#"></a>
+                    <!-- Botón alineado a la derecha -->
+                    <button class="btn btn-secondary" style="background-color: #49A1DF; color: white;">
+                        <i class='bx bxs-user'></i>
+                        <a class="brand" href="Usuarios.php" style="color: white;">Usuarios</a>
+                    </button>
+                </section>
             </nav>
             <!-- fin NAVBAR -->
 
@@ -189,8 +176,6 @@ session_destroy(); */
                         </ul>
                     </div>
 
-
-
                     <div class="table-data">
                         <div class="order">
                             <div class="head">
@@ -205,112 +190,104 @@ session_destroy(); */
                                     <select class="input-mt" name="factura" id="factura">
                                         <option>Directo</option>
                                     </select>
+                                    <label for="rfc">RFC <a class='bx'> *</a></label>
+                                    <input class="input-mt" type="text" name="rfc" id="rfc">
 
-                                    <label for="numero">Número</label>
-                                    <input class="input-mt" type="text" name="numero" id="numero">
+                                    <label for="calle">Calle </label>
+                                    <input class="input-mt" type="text" name="calle" id="calle"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
-                                    <label for="fecha">Fecha </label>
-                                    <input class="input-mt" type="date" name="diaAlta" id="diaAlta">
+                                    <label for="colonia">Colonia:</label>
+                                    <input class="input-mt" type="text" name="colonia" id="colonia"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
-                                    <label for="cliente">Cliente </label>
-                                    <select class="input-mt" name="cliente" id="cliente"
-                                        placeholder="Selecciona opcion">
-                                        <option></option>
-                                        <!-- Agrega más opciones si es necesario -->
-                                    </select>
+                                    <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
+                                    <input class="input-mt" type="text" name="codigoPostal" id="codigoPostal"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+
+                                    <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="regimenFiscal" id="regimenFiscal"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+
+                                    <label for="condicion">Condicion </label>
+                                    <input class="input-mt" type="text" name="condicion" id="condicion">
+
+                                    <label for="enviar">Enviar a </label>
+                                    <input class="input-mt" type="text" name="enviar" id="enviar">
+
+                                    <label for="destinatario">Destinatario </label>
+                                    <input class="input-mt" type="text" name="destinatario" id="destinatario"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
                                 </div>
 
                                 <!-- Segunda fila -->
-                                <div >
-                                    <label for="rfc">RFC <a class='bx'> *</a></label>
-                                    <input class="input-mt" type="text" name="rfc" id="rfc">
+                                <div>
+                                    <label for="numero">Número</label>
+                                    <input class="input-mt" type="text" name="numero" id="numero">
+
+
                                     <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                    <input class="input-mt" type="text" name="nombre" id="nombre">
-                                    <label for="nombre">Su Pedido </label>
-                                    <input class="input-mt" type="text" name="nombre" id="nombre">
+                                    <input class="input-mt input-largo" type="text" name="nombre" id="nombre">
+
+                                    <label for="poblacion">Población:</label>
+                                    <input class="input-mt" type="text" name="poblacion" id="poblacion"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
                                 </div>
 
                                 <!-- Tercera fila -->
                                 <div>
-                                    <label for="calle">Calle </label>
-                                    <input class="input-mt" type="text" name="calle" id="calle">
+                                    <label for="fecha">Fecha </label>
+                                    <input class="input-mt" type="date" name="diaAlta" id="diaAlta">
 
                                     <label for="numE">Num. ext. </label>
-                                    <input class="input-mt" type="text" name="numE" id="numE">
+                                    <input class="input-mt" type="text" name="numE" id="numE"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
 
-                                    <label for="descuento">Esquema </label>
-                                    <input class="input-mt" type="text" name="descuento" id="descuento">
+                                    <label for="numI">Num. Int.</label>
+                                    <input class="input-mt" type="text" name="numI" id="numI"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+
+                                    <label for="pais">Pais: <a class='bx'>*</a></label>
+                                    <input class="input-mt" type="text" name="pais" id="pais"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+
+                                    <label for="entrega">Entrega </label>
+                                    <input class="input-mt" type="date" name="entrega" id="entrega">
+
+
+                                    <label for="almacen">Almacen </label>
+                                    <input class="input-mt" type="text" name="almacen" id="almacen"
+                                        style="background-color: #e0e0e0; margin-left: 10px;" value="1" readonly>
+
 
                                 </div>
 
                                 <!-- Cuarta fila -->
                                 <div>
-                                    <label for="colonia">Colonia:</label>
-                                    <input class="input-mt" type="text" name="colonia" id="colonia">
+                                    <label for="cliente">Cliente </label>
+                                    <input class="input-mt" name="cliente" id="cliente" autocomplete="">
+                                        
+                                    
 
-                                    <label for="numI">Num. Int.</label>
-                                    <input class="input-mt" type="text" name="numI" id="numI">
+                                    <label for="nombre">Su Pedido </label>
+                                    <input class="input-mt" type="text" name="nombre" id="nombre">
+
+                                    <label for="descuento">Esquema </label>
+                                    <input class="input-mt" type="text" name="descuento" id="descuento">
 
                                     <label for="descuento">Descuento </label>
                                     <input class="input-mt" type="text" name="descuento" id="descuento">
 
-
-                                </div>
-
-                                <!-- Quinta fila -->
-                                <div>
-                                    <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
-                                    <input class="input-mt" type="text" name="codigoPostal" id="codigoPostal">
-
-                                    <label for="poblacion">Población:</label>
-                                    <input class="input-mt" type="text" name="poblacion" id="poblacion">
-
-                                    <label for="pais">Pais: <a class='bx'>*</a></label>
-                                    <input class="input-mt" type="text" name="pais" id="pais">
-
                                     <label for="descuentofin">Descuento Fin </label>
                                     <input class="input-mt" type="text" name="descuentofin" id="descuentofin">
-                                </div>
 
-                                <!-- Sexta fila -->
-                                <div >
-                                    <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
-                                    <input class="input-m" type="text" name="regimenFiscal" id="regimenFiscal">
-
-
-                                    <label for="entrega">Entrega </label>
-                                    <input class="input-mt" type="date" name="entrega" id="entrega">
-
-                                    <label for="vendedor">Vendedor: </label>
+                                    <label for="vendedor">Vendedor </label>
                                     <input class="input-mt" type="text" name="vendedor" id="vendedor">
-
-                                </div>
-
-                                <!-- Septima Fila -->
-                                <div >
-                                    <label for="condicion">Condicion </label>
-                                    <input class="input-mt" type="text" name="condicion" id="condicion">
-
-
 
                                     <label for="comision">Comision </label>
                                     <input class="input-mt" type="text" name="comision" id="comision">
                                 </div>
-                                <!-- Octava Fila -->
-                                <div >
-                                    <label for="enviar">Enviar a </label>
-                                    <input class="input-mt" type="text" name="enviar" id="enviar">
 
-                                    <label for="almacen">Almacen </label>
-                                    <input class="input-mt" type="text" name="almacen" id="almacen"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="1" readonly>
-                                </div>
-                                <!-- Novena Fila -->
-                                <div >
-                                    <label for="destinatario">Destinatario </label>
-                                    <input class="input-mt" type="text" name="destinatario" id="destinatario"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                </div>
 
                                 <!-- Sección de botones -->
                                 <div class="form-buttons">
@@ -318,6 +295,7 @@ session_destroy(); */
                                     <button type="button" class="btn-cancel">Cancelar</button>
                                 </div>
                             </form>
+
                         </div>
                     </div>
             </main>

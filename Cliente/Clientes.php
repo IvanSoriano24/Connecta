@@ -75,7 +75,7 @@ session_destroy(); */
 					</a>
 				</li>
 				<li>
-					<a href="#">
+					<a href="Ventas.php">
 						<i class='bx bxs-shopping-bag-alt'></i>
 						<span class="text">Ventas</span>
 					</a>
@@ -135,33 +135,19 @@ session_destroy(); */
 
 		<!-- CONTENT -->
 		<section id="content">
+			
 			<!-- NAVBAR -->
-			<nav>
-				<!--
-			<i class='bx bx-menu' ></i>
-			<a href="#" class="nav-link"></a>
-			
-			<form action="#">
-				<div class="form-input">
-					<input type="search" placeholder="Search...">
-					<button type="submit" class="search-btn"><i class='bx bx-search' ></i></button>
-				</div>
-			</form>
-							   
-			<input type="checkbox" id="switch-mode" hidden>
-			<label for="switch-mode" class="switch-mode"></label>
-			
-			<a href="#" class="notification">
-				<i class='bx bxs-bell' ></i>
-				<span class="num">8</span>
-			</a>
+			<nav style="display: flex; justify-content: flex-end;">
 
-			<a href="#" class="profile">
-				<img src="img/people.png">
-			</a>
-			-->
+				<section id="navbar">
+					<a class="navbar-brand" href="#"></a>
+					<!-- Botón alineado a la derecha -->
+					<button class="btn btn-secondary" style="background-color: #49A1DF; color: white;">
+						<i class='bx bxs-user'></i>
+						<a class="brand" href="Usuarios.php" style="color: white;">Usuarios</a>
+					</button>
+				</section>
 			</nav>
-			<!-- fin NAVBAR -->
 
 			<!-- MAIN -->
 
@@ -181,11 +167,20 @@ session_destroy(); */
 						</ul>
 					</div>
 
-					<i href="#" class="btn-download">
-						<i class='bx bxs-file-plus'></i>
-						<span class="text">Agregar Cliente</span>
-					</i>
-
+					<div class="button-container">
+						<a href="CrearCliente.php" class="btn-crear">
+							<i class='bx bxs-user-plus'></i>
+							<span class="text">Crear Cliente</span>
+						</a>
+						<a href="modificarPedido.php" class="btn-modificar">
+							<i class='bx bxs-edit'></i>
+							<span class="text">Modificar Cliente</span>
+						</a>
+						<a href="eliminarPedido.php" class="btn-eliminar">
+							<i class='bx bxs-user-minus'></i>
+							<span class="text">Eliminar Cliente</span>
+						</a>
+					</div>
 
 
 					<div class="table-data">
@@ -219,6 +214,7 @@ session_destroy(); */
 		<!-- CONTENT -->
 	</div>
 	</section>
+
 	<!-- CONTENT -->
 	<div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="modal-dialog modal-lg" role="document">
@@ -235,7 +231,7 @@ session_destroy(); */
 						<label for="factura">Clave: </label>
 						<input type="text">
 						<label for="numero">Nombre</label>
-						<input class="input-mt" type="text" name="numero" id="numero">
+						<input class="input-m" type="text" name="numero" id="numero">
 						<label for="fecha">Estatus </label>
 						<button value="Activo"></button>
 						<label for="saldo">Saldo</label>
@@ -272,7 +268,7 @@ session_destroy(); */
 						<input class="input-mt" type="text" name="poblacion" id="poblacion">
 						<label for="pais">Estado: <a class='bx'>*</a></label>
 						<input class="input-mt" type="text" name="pais" id="pais">
-						<label for="pais">poblacion: <a class='bx'>*</a></label>
+						<label for="pais">Poblacion: <a class='bx'>*</a></label>
 						<input class="input-mt" type="text" name="pais" id="pais">
 					</div>
 					<!-- Sexta fila -->
@@ -333,7 +329,7 @@ session_destroy(); */
 <!-- 
 				<script>
 			var empresa = '<?php // echo $nombreEmpresa 
-							?>'
+			?>'
 			console.log(empresa);
 		</script>
 		-->
