@@ -283,30 +283,35 @@ session_destroy(); */
 						<input class="input-mt" type="date" name="entrega" id="entrega">
 						<label for="vendedor">Municipio: </label>
 						<input class="input-mt" type="text" name="vendedor" id="vendedor">
-						<label for="vendedor">colonia: </label>
+						<label for="vendedor">Colonia: </label>
 						<input class="input-mt" type="text" name="vendedor" id="vendedor">
 					</div>
 					<!-- Septima Fila -->
 					<div>
-						<label for="condicion">Condicion </label>
+						<label for="condicion">Referencia </label>
 						<input class="input-mt" type="text" name="condicion" id="condicion">
-						<label for="comision">Comision </label>
-						<input class="input-mt" type="text" name="comision" id="comision">
 					</div>
 					<!-- Octava Fila -->
 					<div>
-						<label for="enviar">Enviar a </label>
+						<label for="enviar">Clasificacion</label>
 						<input class="input-mt" type="text" name="enviar" id="enviar">
 
-						<label for="almacen">Almacen </label>
+						<label for="almacen">Telefono </label>
 						<input class="input-mt" type="text" name="almacen" id="almacen"
 							style="background-color: #e0e0e0; margin-left: 10px;" value="1" readonly>
+
 					</div>
 					<!-- Novena Fila -->
 					<div>
-						<label for="destinatario">Destinatario </label>
+						<label for="destinatario">Zona </label>
 						<input class="input-mt" type="text" name="destinatario" id="destinatario"
 							style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
+						<label for="enviar">Fax</label>
+						<input class="input-mt" type="text" name="enviar" id="enviar">l>
+					</div>
+					<div>
+						<label for="enviar">Pagina Web</label>
+						<input class="input-mt" type="text" name="enviar" id="enviar">
 					</div>
 					<!-- Sección de botones -->
 					<div class="form-buttons">
