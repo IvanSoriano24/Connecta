@@ -29,7 +29,41 @@ session_destroy(); */
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+<style>
+	/* Asegura que el modal sea más grande y ocupe un 90% del ancho de la pantalla */
+	.modal-dialog {
+		max-width: 90%;
+		margin: 30px auto;
+	}
+
+	/* Establece una altura mínima en el formulario y permite desplazamiento */
+	.form-container {
+		max-height: none; /* Elimina la limitación de altura para que no corte el formulario */
+		overflow-y: auto; /* Permite el desplazamiento vertical si es necesario */
+	}
+
+	/* Asegura que el contenido del modal ocupe el 90% de la altura de la ventana */
+	.modal-content {
+		max-height: 90vh; /* 90% de la altura de la ventana */
+		overflow-y: auto; /* Si el contenido es grande, se agregará un scrollbar */
+	}
+
+	/* Espaciado entre las filas */
+	.row {
+		margin-bottom: 1rem;
+	}
+
+	/* Asegura que los inputs ocupen todo el ancho disponible */
+	.form-control {
+		width: 100%;
+	}
+
+	/* Ajustes de margen para los elementos */
+	.input-mt {
+		margin-top: 10px;
+	}
+</style>
 
 <head>
 	<meta charset="UTF-8">
@@ -80,7 +114,7 @@ session_destroy(); */
 							</li>
 						</ul>
 					</div>
-				
+
 					<div class="table-data">
 						<div class="order">
 							<div class="head">
@@ -114,7 +148,7 @@ session_destroy(); */
 
 	<!-- CONTENT -->
 	<div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-		<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-dialog modal-xl" role="document"> <!-- Cambié modal-lg por modal-xl -->
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title">Agregar Usuario</h5>
@@ -122,110 +156,165 @@ session_destroy(); */
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<form class="form-container" onsubmit="return validateForm()">
+				<form class="form-container">
 					<!-- Primera fila -->
-					<div>
-						<label for="Clace">Clave: </label>
-						<input type="text" id="clave">
-						<label for="nombre">Nombre</label>
-						<input class="input-m" type="text" name="nombre" id="nombre">
-						<label for="estatus">Estatus </label>
-						<input type="text" name="estatus" id="estatus">
-						<label for="saldo">Saldo</label>
-						<input type="text" id="saldo">
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="clave">Clave: </label>
+							<input type="text" id="clave" class="form-control">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="nombre">Nombre</label>
+							<input class="form-control" type="text" name="nombre" id="nombre">
+						</div>
 					</div>
 					<!-- Segunda fila -->
-					<div>
-						<label for="rfc">RFC <a class='bx'></a></label>
-						<input class="input-mt" type="text" name="rfc" id="rfc">
-						<label for="calle">Calle <a class='bx'> *</a></label>
-						<input class="input-mt" type="text" name="calle" id="calle">
-						<label for="numE">Num. ext</label>
-						<input class="input-mt" type="text" name="numE" id="numE">
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="estatus">Estatus</label>
+							<input type="text" name="estatus" id="estatus" class="form-control">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="saldo">Saldo</label>
+							<input type="text" id="saldo" class="form-control">
+						</div>
 					</div>
 					<!-- Tercera fila -->
-					<div>
-						<label for="regimenFiscal">Regimen fiscal </label>
-						<input class="input-mt" type="text" name="regimenFiscal" id="regimenFiscal">
-						<label for="numI">Num. int. </label>
-						<input class="input-mt" type="text" name="numI" id="numI">
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="rfc">RFC</label>
+							<input class="form-control" type="text" name="rfc" id="rfc">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="regimenFiscal">Regimen fiscal</label>
+							<input class="form-control" type="text" name="regimenFiscal" id="regimenFiscal">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="curp">C.U.R.P.:</label>
+							<input class="form-control" type="text" name="curp" id="curp">
+						</div>
 					</div>
 					<!-- Cuarta fila -->
-					<div>
-						<label for="curp">C.U.R.P.:</label>
-						<input class="input-mt" type="text" name="curp" id="curp">
-						<label for="entreCalle">Entre Calle </label>
-						<input class="input-mt" type="text" name="entreCalle" id="entreCalle">
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="calle">Calle</label>
+							<input class="form-control" type="text" name="calle" id="calle">
+						</div>
 					</div>
 					<!-- Quinta fila -->
-					<div>
-						<label for="yCalle">Y calle:<a class='bx'></a></label>
-						<input class="input-mt" type="text" name="yCalle" id="yCalle">
-						<label for="nacionalidad">Nacionalidad:</label>
-						<input class="input-mt" type="text" name="nacionalidad" id="nacionalidad">
-						<label for="estado">Estado: <a class='bx'></a></label>
-						<input class="input-mt" type="text" name="estado" id="estado">
-						<label for="poblacion">Poblacion: <a class='bx'></a></label>
-						<input class="input-mt" type="text" name="poblacion" id="poblacion">
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="numE">Num. ext</label>
+							<input class="form-control" type="text" name="numE" id="numE">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="numI">Num. int.</label>
+							<input class="form-control" type="text" name="numI" id="numI">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="entreCalle">Entre Calle</label>
+							<input class="form-control" type="text" name="entreCalle" id="entreCalle">
+						</div>
 					</div>
 					<!-- Sexta fila -->
-					<div>
-						<label for="pais">Pais: <a class='bx'></a></label>
-						<input class="input-m" type="text" name="pais" id="pais">
-						<label for="codigoPostal">Codigo Postal </label>
-						<input class="input-mt" type="date" name="codigoPostal" id="codigoPostal">
-						<label for="municipio">Municipio: </label>
-						<input class="input-mt" type="text" name="municipio" id="municipio">
-						<label for="colonia">Colonia: </label>
-						<input class="input-mt" type="text" name="colonia" id="colonia">
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="yCalle">Y calle:</label>
+							<input class="form-control" type="text" name="yCalle" id="yCalle">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="pais">Pais:</label>
+							<input class="form-control" type="text" name="pais" id="pais">
+						</div>
 					</div>
-					<!-- Septima Fila -->
-					<div>
-						<label for="referencia">Referencia </label>
-						<input class="input-mt" type="text" name="referencia" id="referencia">
+					<!-- Septima fila -->
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="nacionalidad">Nacionalidad:</label>
+							<input class="form-control" type="text" name="nacionalidad" id="nacionalidad">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="codigoPostal">Codigo Postal:</label>
+							<input class="form-control" type="date" name="codigoPostal" id="codigoPostal">
+						</div>
 					</div>
-					<!-- Octava Fila -->
-					<div>
-						<label for="clasificacion">Clasificacion</label>
-						<input class="input-mt" type="text" name="clasificacion" id="clasificacion">
-
-						<label for="telefono">Telefono </label>
-						<input class="input-mt" type="text" name="telefono" id="telefono">
-
+					<!-- Octava fila -->
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="estado">Estado:</label>
+							<input class="form-control" type="text" name="estado" id="estado">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="municipio">Municipio:</label>
+							<input class="form-control" type="text" name="municipio" id="municipio">
+						</div>
 					</div>
-					<!-- Novena Fila -->
-					<div>
-						<label for="zona">Zona </label>
-						<input class="input-mt" type="text" name="zona" id="zona">
-						<label for="fax">Fax</label>
-						<input class="input-mt" type="text" name="fax" id="fax">
+					<!-- Novena fila -->
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="poblacion">Poblacion:</label>
+							<input class="form-control" type="text" name="poblacion" id="poblacion">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="colonia">Colonia:</label>
+							<input class="form-control" type="text" name="colonia" id="colonia">
+						</div>
 					</div>
-					<div>
-						<label for="paginaWeb">Pagina Web</label>
-						<input class="input-mt" type="text" name="paginaWeb" id="paginaWeb">
+					<!-- Decima fila -->
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="referencia">Referencia:</label>
+							<input class="form-control" type="text" name="referencia" id="referencia">
+						</div>
 					</div>
-					<!-- Sección de botones -->
-					<div class="form-buttons">
-						<!--<button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
-						<button type="button" class="btn-cancel">Cancelar</button>-->
+					<!-- Onceaba fila -->
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="clasificacion">Clasificacion:</label>
+							<input class="form-control" type="text" name="clasificacion" id="clasificacion">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="zona">Zona:</label>
+							<input class="form-control" type="text" name="zona" id="zona">
+						</div>
+					</div>
+					<!-- Doceaba fila -->
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="telefono">Telefono:</label>
+							<input class="form-control" type="text" name="telefono" id="telefono">
+						</div>
+						<div class="col-6 mb-3">
+							<label for="fax">Fax:</label>
+							<input class="form-control" type="text" name="fax" id="fax">
+						</div>
+					</div>
+					<!-- Página Web -->
+					<div class="row">
+						<div class="col-6 mb-3">
+							<label for="paginaWeb">Pagina Web:</label>
+							<input class="form-control" type="text" name="paginaWeb" id="paginaWeb">
+						</div>
 					</div>
 				</form>
 			</div>
 		</div>
 	</div>
+
 	<!-- JS Para la confirmacion empresa -->
 	<script src="JS/menu.js"></script>
 	<script src="JS/app.js"></script>
 	<script src="JS/script.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="JS/clientes.js"></script>
-	
+
 </body>
 
 </html>
 <!-- 
 			<script>
-			var empresa = '<?php //echo $noEmpresa ?>'
+			var empresa = '<?php //echo $noEmpresa 
+							?>'
 			console.log(empresa);
 		</script>	
 		-->
