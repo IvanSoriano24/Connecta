@@ -84,7 +84,7 @@ if (isset($_SESSION['usuario'])) {
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="Clientes.php">
                         <i class='bx bxs-user'></i>
                         <span class="text">Mis Clientes</span>
                     </a>
@@ -149,7 +149,6 @@ if (isset($_SESSION['usuario'])) {
                     <!-- Botones de acciones principales -->
                     <div class="d-flex justify-content-between mb-3">
                         <button class="btn btn-success" id="btnAgregar">Agregar</button>
-                        <button class="btn btn-warning" id="btnEditar">Editar</button>
                         <button class="btn btn-info" id="btnAsociarEmpresa" disabled>Asociar Empresa</button>
                         <button class="btn btn-secondary" id="btnExportar" disabled>Exportar</button>
                         <button class="btn btn-danger" id="btnSalir"
@@ -197,12 +196,110 @@ if (isset($_SESSION['usuario'])) {
     <!-- MAIN -->
     </section>
     <!-- CONTENT -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Nombre Completo</th>
+                                    <th>Correo</th>
+                                    <th>Estatus</th>
+                                    <th>Rol</th>
+                                    <th>Opciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaUsuarios">
+                                <!-- Aquí se llenarán los datos dinámicamente con JavaScript -->
+                            </tbody>
+                        </table>
+                </div>
+            </main>
+            <!-- MAIN -->
+        </section>
+        <!-- CONTENT -->
+    </div>
+    <div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Usuario</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="cerrarModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="agregarUsuarioForm">
+                    <div class="modal-body">
+                        <!-- Formulario de usuario -->
+                        <div class="container mt-4">
+                            <div class="row">
+                                <!-- Columna izquierda para datos del usuario -->
+                                <div class="col-md-5">
+                                    <h5 class="mb-2">Datos del Usuario</h5>
+                                    <div class="mb-2">
+                                        <input type="text" id="idUsuario" hidden>
+                                        <label for="usuario" class="form-label">Usuario</label>
+                                        <input type="text" id="usuario" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="nombreUsuario" class="form-label">Nombre</label>
+                                        <input type="text" id="nombreUsuario" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="apellidosUsuario" class="form-label">Apellidos</label>
+                                        <input type="text" id="apellidosUsuario" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="correoUsuario" class="form-label">Correo Electrónico</label>
+                                        <input type="email" id="correoUsuario" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="contrasenaUsuario" class="form-label">Contraseña</label>
+                                        <input type="password" id="contrasenaUsuario" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="telefonoUsuario" class="form-label">Telefono</label>
+                                        <input type="password" id="telefonoUsuario" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="rolUsuario" class="form-label">Rol</label>
+                                        <select id="rolUsuario" class="form-select">
+                                            <option selected disabled>Selecciona un rol</option>
+                                            <!-- Aquí se llenará dinámicamente con los roles -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Columna derecha para select y datos de empresas -->
+                                <div class="col-md-7">
+                                    <div class="mb-3">
+                                        <label for="selectEmpresa" class="form-label">Seleccionar Empresa</label>
+                                        <select id="selectEmpresa" class="form-select">
+                                            <option selected disabled>Selecciona una empresa</option>
+                                            <!-- Aquí se llenará dinámicamente con las empresas -->
+                                        </select>
+                                        <div class="mb-1">
+                                            <button id="agregarEmpresaBtn" type="button" class="btn btn-primary">Agregar</button>
+                                        </div>
+                                    </div>
+                                    <!-- Textarea para información adicional -->
+                                    <div class="mb-4">
+                                        <label for="detallesEmpresa" class="form-label">Detalles de Empresa</label>
+                                        <textarea id="detallesEmpresa" class="form-control" rows="4" disabled></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <!-- JS Para la confirmacion empresa -->
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
-    <script src="JS/clientes.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function () {
@@ -212,7 +309,7 @@ if (isset($_SESSION['usuario'])) {
         });
     </script>
     </section>
-
+    <script src="JS/usuarios.js"></script>
 </body>
 
 </html>

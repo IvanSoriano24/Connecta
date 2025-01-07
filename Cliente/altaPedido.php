@@ -320,7 +320,6 @@ session_destroy(); */
                             </form>
                         </div>
                     </div>
-
             </main>
             <!-- MAIN -->
         </section>
