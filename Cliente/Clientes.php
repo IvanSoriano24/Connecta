@@ -212,91 +212,89 @@ session_destroy(); */
 				<form class="form-container" onsubmit="return validateForm()">
 					<!-- Primera fila -->
 					<div>
-						<label for="factura">Clave: </label>
-						<input type="text">
-						<label for="numero">Nombre</label>
-						<input class="input-m" type="text" name="numero" id="numero">
-						<label for="fecha">Estatus </label>
-						<button value="Activo"></button>
+						<label for="Clace">Clave: </label>
+						<input type="text" id="clave">
+						<label for="nombre">Nombre</label>
+						<input class="input-m" type="text" name="nombre" id="nombre">
+						<label for="estatus">Estatus </label>
+						<input type="text" name="estatus" id="estatus">
 						<label for="saldo">Saldo</label>
-						<input type="text">
+						<input type="text" id="saldo">
 					</div>
 					<!-- Segunda fila -->
 					<div>
 						<label for="rfc">RFC <a class='bx'></a></label>
 						<input class="input-mt" type="text" name="rfc" id="rfc">
-						<label for="nombre">Calle <a class='bx'> *</a></label>
-						<input class="input-mt" type="text" name="nombre" id="nombre">
-						<label for="nombre">Num. ext</label>
-						<input class="input-mt" type="text" name="nombre" id="nombre">
+						<label for="calle">Calle <a class='bx'> *</a></label>
+						<input class="input-mt" type="text" name="calle" id="calle">
+						<label for="numE">Num. ext</label>
+						<input class="input-mt" type="text" name="numE" id="numE">
 					</div>
 					<!-- Tercera fila -->
 					<div>
-						<label for="calle">Regimen fiscal </label>
-						<input class="input-mt" type="text" name="calle" id="calle">
-						<label for="numE">Num. int. </label>
-						<input class="input-mt" type="text" name="numE" id="numE">
+						<label for="regimenFiscal">Regimen fiscal </label>
+						<input class="input-mt" type="text" name="regimenFiscal" id="regimenFiscal">
+						<label for="numI">Num. int. </label>
+						<input class="input-mt" type="text" name="numI" id="numI">
 					</div>
 					<!-- Cuarta fila -->
 					<div>
-						<label for="colonia">C.U.R.P.:</label>
-						<input class="input-mt" type="text" name="colonia" id="colonia">
-						<label for="descuento">Entre Calle </label>
-						<input class="input-mt" type="text" name="descuento" id="descuento">
+						<label for="curp">C.U.R.P.:</label>
+						<input class="input-mt" type="text" name="curp" id="curp">
+						<label for="entreCalle">Entre Calle </label>
+						<input class="input-mt" type="text" name="entreCalle" id="entreCalle">
 					</div>
 					<!-- Quinta fila -->
 					<div>
-						<label for="codigoPostal">Y calle:<a class='bx'>*</a></label>
-						<input class="input-mt" type="text" name="codigoPostal" id="codigoPostal">
-						<label for="poblacion">Nacionalidad:</label>
+						<label for="yCalle">Y calle:<a class='bx'></a></label>
+						<input class="input-mt" type="text" name="yCalle" id="yCalle">
+						<label for="nacionalidad">Nacionalidad:</label>
+						<input class="input-mt" type="text" name="nacionalidad" id="nacionalidad">
+						<label for="estado">Estado: <a class='bx'></a></label>
+						<input class="input-mt" type="text" name="estado" id="estado">
+						<label for="poblacion">Poblacion: <a class='bx'></a></label>
 						<input class="input-mt" type="text" name="poblacion" id="poblacion">
-						<label for="pais">Estado: <a class='bx'>*</a></label>
-						<input class="input-mt" type="text" name="pais" id="pais">
-						<label for="pais">Poblacion: <a class='bx'>*</a></label>
-						<input class="input-mt" type="text" name="pais" id="pais">
 					</div>
 					<!-- Sexta fila -->
 					<div>
-						<label for="regimenFiscal">Pais: <a class='bx'> *</a></label>
-						<input class="input-m" type="text" name="regimenFiscal" id="regimenFiscal">
-						<label for="entrega">Codigo Postal </label>
-						<input class="input-mt" type="date" name="entrega" id="entrega">
-						<label for="vendedor">Municipio: </label>
-						<input class="input-mt" type="text" name="vendedor" id="vendedor">
-						<label for="vendedor">Colonia: </label>
-						<input class="input-mt" type="text" name="vendedor" id="vendedor">
+						<label for="pais">Pais: <a class='bx'></a></label>
+						<input class="input-m" type="text" name="pais" id="pais">
+						<label for="codigoPostal">Codigo Postal </label>
+						<input class="input-mt" type="date" name="codigoPostal" id="entcodigoPostalrega">
+						<label for="municipio">Municipio: </label>
+						<input class="input-mt" type="text" name="municipio" id="municipio">
+						<label for="colonia">Colonia: </label>
+						<input class="input-mt" type="text" name="colonia" id="colonia">
 					</div>
 					<!-- Septima Fila -->
 					<div>
-						<label for="condicion">Referencia </label>
-						<input class="input-mt" type="text" name="condicion" id="condicion">
+						<label for="referencia">Referencia </label>
+						<input class="input-mt" type="text" name="referencia" id="referencia">
 					</div>
 					<!-- Octava Fila -->
 					<div>
-						<label for="enviar">Clasificacion</label>
-						<input class="input-mt" type="text" name="enviar" id="enviar">
+						<label for="clasificacion">Clasificacion</label>
+						<input class="input-mt" type="text" name="clasificacion" id="clasificacion">
 
-						<label for="almacen">Telefono </label>
-						<input class="input-mt" type="text" name="almacen" id="almacen"
-							style="background-color: #e0e0e0; margin-left: 10px;" value="1" readonly>
+						<label for="telefono">Telefono </label>
+						<input class="input-mt" type="text" name="telefono" id="telefono">
 
 					</div>
 					<!-- Novena Fila -->
 					<div>
-						<label for="destinatario">Zona </label>
-						<input class="input-mt" type="text" name="destinatario" id="destinatario"
-							style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-						<label for="enviar">Fax</label>
-						<input class="input-mt" type="text" name="enviar" id="enviar">l>
+						<label for="zona">Zona </label>
+						<input class="input-mt" type="text" name="zona" id="zona">
+						<label for="fax">Fax</label>
+						<input class="input-mt" type="text" name="fax" id="fax">l>
 					</div>
 					<div>
-						<label for="enviar">Pagina Web</label>
-						<input class="input-mt" type="text" name="enviar" id="enviar">
+						<label for="paginaWeb">Pagina Web</label>
+						<input class="input-mt" type="text" name="paginaWeb" id="paginaWeb">
 					</div>
 					<!-- Sección de botones -->
 					<div class="form-buttons">
-						<button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
-						<button type="button" class="btn-cancel">Cancelar</button>
+						<!--<button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
+						<button type="button" class="btn-cancel">Cancelar</button>-->
 					</div>
 				</form>
 			</div>

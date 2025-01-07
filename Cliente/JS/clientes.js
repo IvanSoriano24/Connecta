@@ -1,3 +1,59 @@
+// Función para agregar eventos a los botones dinámicos
+function agregarEventosBotones() {
+    const botonesVisualizar = document.querySelectorAll('.btnVisualizarCliente');
+    
+    botonesVisualizar.forEach(boton => {
+        boton.addEventListener('click', function () {
+            const clienteId = this.getAttribute('data-id');
+            
+            // Realizamos la petición AJAX para obtener los datos del cliente
+            fetch(`../Servidor/PHP/clientes.php?clave=${clienteId}&numFuncion=2`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const cliente = data.cliente;
+
+                        // Asignamos los valores de los campos del cliente
+                        document.getElementById('clave').value = cliente.CLAVE;
+                        document.getElementById('nombre').value = cliente.NOMBRE;
+                        document.getElementById('estatus').value = cliente.ESTATUS;
+                        document.getElementById('saldo').value = cliente.SALDO;
+                        document.getElementById('rfc').value = cliente.RFC;
+                        document.getElementById('calle').value = cliente.CALLE;
+                        document.getElementById('numE').value = cliente.NUMEXT;
+                        document.getElementById('regimenFiscal').value = cliente.REGIMENFISCAL;
+                        document.getElementById('numI').value = cliente.NUMINT;
+                        document.getElementById('curp').value = cliente.CURP;
+                        document.getElementById('entreCalle').value = cliente.ENTRECALLE;
+                        document.getElementById('yCalle').value = cliente.YCALLE;
+                        document.getElementById('nacionalidad').value = cliente.NACIONALIDAD;
+                        document.getElementById('estado').value = cliente.ESTADO;
+                        document.getElementById('poblacion').value = cliente.POBLACION;
+                        document.getElementById('pais').value = cliente.PAIS;
+                        document.getElementById('codigoPostal').value = cliente.CODIGOPOSTAL;
+                        document.getElementById('municipio').value = cliente.MUNICIPIO;
+                        document.getElementById('colonia').value = cliente.COLONIA;
+                        document.getElementById('referencia').value = cliente.REFERENCIA;
+                        document.getElementById('clasificacion').value = cliente.CLASIFICACION;
+                        document.getElementById('telefono').value = cliente.TELEFONO;
+                        document.getElementById('zona').value = cliente.ZONA;
+                        document.getElementById('fax').value = cliente.FAX;
+                        document.getElementById('paginaWeb').value = cliente.PAGINAWEB;
+
+                        // Mostrar el modal si se está utilizando
+                        $('#usuarioModal').modal('show'); // Asegúrate de que estás usando jQuery y Bootstrap para este modal
+                    } else {
+                        alert('Error al obtener la información del cliente');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener los datos del cliente:', error);
+                    alert('Hubo un error al intentar cargar la información del cliente.');
+                });
+        });
+    });
+}
+
 $.post('../Servidor/PHP/clientes.php', { numFuncion: '1' }, function (response) {
     try {
         // Verifica si response es una cadena (string) que necesita ser parseada
@@ -41,17 +97,3 @@ $.post('../Servidor/PHP/clientes.php', { numFuncion: '1' }, function (response) 
     console.error('Error en la solicitud:', textStatus, errorThrown);
     console.log('Detalles de la respuesta JSON:', jqXHR.responseText);
 });
-
-// Función para agregar eventos a los botones dinámicos
-function agregarEventosBotones() {
-    // Asumimos que cada botón "Visualizar" tiene una clase llamada "btnVisualizarCliente"
-    const botonesVisualizar = document.querySelectorAll('.btnVisualizarCliente');
-    
-    botonesVisualizar.forEach(boton => {
-        boton.addEventListener('click', function () {
-            const clienteId = this.getAttribute('data-id');
-            // Aquí puedes manejar la visualización del cliente, por ejemplo, abriendo una ventana modal
-            console.log(`Visualizando cliente con ID: ${clienteId}`);
-        });
-    });
-}
