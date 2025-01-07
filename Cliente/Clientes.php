@@ -19,6 +19,7 @@ if (isset($_SESSION['usuario'])) {
 		$empresa = $_SESSION['empresa']['razonSocial'];
 		$idEmpresa = $_SESSION['empresa']['id'];
 		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+		$claveVendedor = $_SESSION['empresa']['claveVendedor'];
 	}
 } else {
 	header('Location:../index.php');
@@ -308,13 +309,14 @@ session_destroy(); */
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="JS/clientes.js"></script>
 
+	<script>
+			var claveVendedor = '<?php echo $claveVendedor 
+							?>'
+			console.log("vendedor: " + claveVendedor);
+		</script>	
 </body>
 
 </html>
 <!-- 
-			<script>
-			var empresa = '<?php //echo $noEmpresa 
-							?>'
-			console.log(empresa);
-		</script>	
+			
 		-->

@@ -106,6 +106,7 @@ if (isset($_SESSION['usuario'])) {
 						// Obtener los datos adicionales de la empresa utilizando los atributos data-*
 						const noEmpresa = empresaOption.getAttribute('data-no-empresa');
 						const razonSocial = empresaOption.getAttribute('data-razon-social');
+						const claveVendedor = empresaOption.getAttribute('data-clave-vendedor');
 
 						// Usar SweetAlert en lugar de alert
 						Swal.fire({
@@ -121,7 +122,8 @@ if (isset($_SESSION['usuario'])) {
 							idEmpresarial = {
 								id: empresaSeleccionada,
 								noEmpresa: noEmpresa,
-								razonSocial: razonSocial
+								razonSocial: razonSocial,
+								claveVendedor: claveVendedor
 							};
 							sesionEmpresa(idEmpresarial);
 						});

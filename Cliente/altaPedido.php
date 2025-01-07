@@ -102,7 +102,7 @@ session_destroy(); */
                                     </select>
 
                                     <label for="numero">Número</label>
-                                    <input class="input-mt" type="text" name="numero" id="numero">
+                                    <input class="input-mt" type="text" name="numero" id="numero" readonly>
 
                                     <label for="fecha">Fecha </label>
                                     <input class="input-mt" type="date" name="diaAlta" id="diaAlta">

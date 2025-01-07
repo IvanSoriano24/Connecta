@@ -1,6 +1,7 @@
 
 function cargarPedidos() {
-    $.get('../Servidor/PHP/pedido.php', { numFuncion: '4' }, function (response) {
+  alert("o");
+    $.get('../Servidor/PHP/pedidos.php', { numFuncion: '4' }, function (response) {
       if (response.success && response.data) {
         const pedidos = response.data;
         const pedidosTable = document.getElementById('datosPedidos');
@@ -23,7 +24,6 @@ function cargarPedidos() {
               <button class="btnCancelarPedido" data-id="${pedido.id}">Cancelar</button>
             </td>
           `;
-        
           pedidosTable.appendChild(row);
         });        
 

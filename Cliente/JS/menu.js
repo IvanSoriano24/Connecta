@@ -65,6 +65,7 @@ function cargarEmpresa(usuario) {
                 option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
                 option.setAttribute('data-no-empresa', empresa.noEmpresa);
                 option.setAttribute('data-razon-social', empresa.razonSocial);
+                option.setAttribute('data-clave-vendedor', empresa.claveVendedor);
 
                 empresaSelect.appendChild(option);
             });
@@ -279,11 +280,13 @@ function sesionEmpresa(idEmpresarial) {
     var id = idEmpresarial.id;
     var noEmpresa = idEmpresarial.noEmpresa;
     var razonSocial = idEmpresarial.razonSocial;
+    var claveVendedor = idEmpresarial.claveVendedor;
 $.post('../Servidor/PHP/empresas.php', {
     action: 'sesion',
     id: id,  
     noEmpresa: noEmpresa,
-    razonSocial: razonSocial
+    razonSocial: razonSocial,
+    claveVendedor: claveVendedor
 }, function(response) {
     if (response.success) {
         if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {

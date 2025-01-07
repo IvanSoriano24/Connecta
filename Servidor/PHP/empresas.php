@@ -23,11 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $id = $_POST['id'];
                 $noEmpresa = $_POST['noEmpresa'];
                 $razonSocial = $_POST['razonSocial'];
+                $claveVendedor = $_POST['claveVendedor'];
                 // Lógica de sesión
                 $_SESSION['empresa'] = [
                     'id' => $id,
                     'noEmpresa' => $noEmpresa,
-                    'razonSocial' => $razonSocial
+                    'razonSocial' => $razonSocial,
+                    'claveVendedor' => $claveVendedor
                 ];
                 echo json_encode([
                     'success' => true,
@@ -314,7 +316,8 @@ function listaEmpresas($nombreUsuario) {
                     $empresas[] = [
                         'id' => isset($fields['id']['stringValue']) ? $fields['id']['stringValue'] : "N/A", // Validar id
                         'noEmpresa' => isset($fields['noEmpresa']['stringValue']) ? $fields['noEmpresa']['stringValue'] : "No especificado", // Validar noEmpresa
-                        'razonSocial' => isset($fields['empresa']['stringValue']) ? $fields['empresa']['stringValue'] : "Sin Razón Social" // Validar razonSocial
+                        'razonSocial' => isset($fields['empresa']['stringValue']) ? $fields['empresa']['stringValue'] : "Sin Razón Social", // Validar razonSocial
+                        'claveVendedor' => isset($fields['claveVendedor']['stringValue']) ? $fields['claveVendedor']['stringValue'] : "Vendedor sin Clave"
                     ];
                 }
             }
