@@ -43,33 +43,62 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 }
 
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarClientes($conexionData){
+function mostrarClientes($conexionData)
+{
     try {
-        $serverName = $conexionData['host']; // Ejemplo: "187.188.133.4,35"
+        //session_start();
+
+        // Validar si el número de empresa está definido en la sesión
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+
+        // Obtener el número de empresa de la sesión
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+
+        // Validar el formato del número de empresa (asegurarse de que sea numérico)
+        if (!is_numeric($noEmpresa)) {
+            echo json_encode(['success' => false, 'message' => 'El número de empresa no es válido']);
+            exit;
+        }
+
+        // Configuración de conexión
+        $serverName = $conexionData['host'];
         $connectionInfo = [
-            "Database" => $conexionData['nombreBase'],
+            "Database" => $conexionData['nombreBase'], // Nombre de la base de datos
             "UID" => $conexionData['usuario'],
             "PWD" => $conexionData['password']
         ];
         $conn = sqlsrv_connect($serverName, $connectionInfo);
+
         if ($conn === false) {
-            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos']));
+            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
         }
-        // Consulta SQL para obtener los datos
+
+        // Construir el nombre de la tabla dinámicamente usando el número de empresa
+        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+        // Consulta SQL para obtener los clientes activos
         $sql = "SELECT 
-            CLAVE,  
-            NOMBRE, 
-            CALLE, 
-            TELEFONO, 
-            SALDO, 
-            VAL_RFC AS EstadoDatosTimbrado, 
-            NOMBRECOMERCIAL 
-        FROM 
-            [SAE90Empre01].[dbo].[CLIE01];";
+                    CLAVE,  
+                    NOMBRE, 
+                    CALLE, 
+                    TELEFONO, 
+                    SALDO, 
+                    VAL_RFC AS EstadoDatosTimbrado, 
+                    NOMBRECOMERCIAL 
+                FROM 
+                    $nombreTabla
+                WHERE 
+                    STATUS = 'A';";
+
+        // Ejecutar la consulta
         $stmt = sqlsrv_query($conn, $sql);
         if ($stmt === false) {
-            die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta']));
+            die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
+
         // Arreglo para almacenar los datos de clientes
         $clientes = [];
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
@@ -98,37 +127,28 @@ function mostrarClientes($conexionData){
             }
             $clientes[] = $row;
         }
+
         // Liberar recursos y cerrar la conexión
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
+
         // Retornar los datos en formato JSON
         if (empty($clientes)) {
             echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
-            die();
+            exit;
         }
 
-        //var_dump($response);
-        //$response = ['success' => true, 'data' => $clientes];
-        //var_dump($clientes);
-        // Comprobación para posibles errores de codificación JSON
-        // Verificar errores de codificación JSON antes de enviar
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Error de codificación JSON: ' . json_last_error_msg()
-            ]);
-            die();
-        }
         header('Content-Type: application/json; charset=UTF-8');
         echo json_encode(['success' => true, 'data' => $clientes]);
-        //exit();
+
     } catch (Exception $e) {
         // Si hay algún error, devuelves un error en formato JSON
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
 
-function mostrarClienteEspecifico($clave, $conexionData){
+function mostrarClienteEspecifico($clave, $conexionData)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -139,28 +159,32 @@ function mostrarClienteEspecifico($clave, $conexionData){
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
-        die(print_r(sqlsrv_errors(), true)); // Verifica la conexión
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
+
     // Limpiar la clave y convertirla a UTF-8
     $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-    $clave = str_pad($clave, 10, ' '); // Agregar espacios si es necesario para cumplir con VARCHAR(10)
 
     // Crear la consulta SQL con un parámetro
     $sql = "SELECT TOP (1) [CLAVE], [STATUS], [NOMBRE], [RFC], [CALLE], [NUMINT], [NUMEXT], 
                     [CRUZAMIENTOS], [COLONIA], [CODIGO], [LOCALIDAD], [MUNICIPIO], [ESTADO], 
                     [PAIS], [NACIONALIDAD], [REFERDIR], [TELEFONO], [CLASIFIC], [FAX], [PAG_WEB], 
                     [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO] 
-            FROM [SAE90Empre01].[dbo].[CLIE01] 
-            WHERE LTRIM(RTRIM([CLAVE])) = ?";
+            FROM [SAE90Empre02].[dbo].[CLIE02] 
+            WHERE CAST(LTRIM(RTRIM([CLAVE])) AS NVARCHAR(MAX)) = CAST(? AS NVARCHAR(MAX))";
+
     // Preparar el parámetro
     $params = array($clave);
+
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(print_r(sqlsrv_errors(), true)); // Verifica si hay errores en la consulta
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
     }
+
     // Obtener los resultados
     $cliente = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
     // Verificar si encontramos el cliente
     if ($cliente) {
         echo json_encode([
@@ -170,10 +194,12 @@ function mostrarClienteEspecifico($clave, $conexionData){
     } else {
         echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
     }
+
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -208,6 +234,7 @@ switch ($funcion) {
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -215,7 +242,7 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $clave = $_GET['clave'];
-        mostrarClienteEspecifico($clave, $conexionData);
+        mostrarClienteEspecifico($clave, $conexionData, $noEmpresa);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

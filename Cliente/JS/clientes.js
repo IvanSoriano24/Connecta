@@ -1,3 +1,4 @@
+const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
 // Función para agregar eventos a los botones dinámicos
 function agregarEventosBotones() {
     const botonesVisualizar = document.querySelectorAll('.btnVisualizarCliente');
@@ -54,7 +55,7 @@ function agregarEventosBotones() {
     });
 }
 
-$.post('../Servidor/PHP/clientes.php', { numFuncion: '1' }, function (response) {
+$.post('../Servidor/PHP/clientes.php', { numFuncion: '1',noEmpresa: noEmpresa }, function (response) {
     try {
         // Verifica si response es una cadena (string) que necesita ser parseada
         if (typeof response === 'string') {
