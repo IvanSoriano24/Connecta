@@ -54,7 +54,10 @@ function agregarEventosBotones() {
         });
     });
 }
-
+function cerrarModal() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('usuarioModal'));
+    modal.hide();
+}
 $.post('../Servidor/PHP/clientes.php', { numFuncion: '1',noEmpresa: noEmpresa }, function (response) {
     try {
         // Verifica si response es una cadena (string) que necesita ser parseada
@@ -97,4 +100,10 @@ $.post('../Servidor/PHP/clientes.php', { numFuncion: '1',noEmpresa: noEmpresa },
 }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
     console.error('Error en la solicitud:', textStatus, errorThrown);
     console.log('Detalles de la respuesta JSON:', jqXHR.responseText);
+});
+
+$(document).ready(function () {
+    $('#cerrarModal').click(function () {
+        cerrarModal();
+    });
 });
