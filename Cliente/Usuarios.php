@@ -177,12 +177,26 @@ if (isset($_SESSION['usuario'])) {
                                 </tbody>
                             </table>
                         </div>
+
+                        <div class="todo">
+                            <div class="head">
+                                <h3>Permisos</h3>
+                                <!-- <i class='bx bx-plus'></i> -->
+                                <!-- <i class='bx bx-filter'></i> -->
+                            </div>
+                            <ul class="todo-list">
+                                
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </main>
-            <!-- MAIN -->
-        </section>
-        <!-- CONTENT -->
+
+
+    </div>
+    </main>
+    <!-- MAIN -->
+    </section>
+    <!-- CONTENT -->
     </div>
     <!-- JS Para la confirmacion empresa -->
     <script src="JS/menu.js"></script>
