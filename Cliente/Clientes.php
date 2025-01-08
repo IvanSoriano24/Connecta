@@ -39,14 +39,18 @@ session_destroy(); */
 
 	/* Establece una altura mínima en el formulario y permite desplazamiento */
 	.form-container {
-		max-height: none; /* Elimina la limitación de altura para que no corte el formulario */
-		overflow-y: auto; /* Permite el desplazamiento vertical si es necesario */
+		max-height: none;
+		/* Elimina la limitación de altura para que no corte el formulario */
+		overflow-y: auto;
+		/* Permite el desplazamiento vertical si es necesario */
 	}
 
 	/* Asegura que el contenido del modal ocupe el 90% de la altura de la ventana */
 	.modal-content {
-		max-height: 90vh; /* 90% de la altura de la ventana */
-		overflow-y: auto; /* Si el contenido es grande, se agregará un scrollbar */
+		max-height: 90vh;
+		/* 90% de la altura de la ventana */
+		overflow-y: auto;
+		/* Si el contenido es grande, se agregará un scrollbar */
 	}
 
 	/* Espaciado entre las filas */
@@ -103,7 +107,7 @@ session_destroy(); */
 			<main class="text-center">
 				<div class="head-title">
 					<div class="left">
-						<h1>Usuarios</h1>
+						<h1>Clientes</h1>
 						<ul class="breadcrumb">
 							<li>
 								<a href="#">Inicio</a>
@@ -118,7 +122,7 @@ session_destroy(); */
 					<div class="table-data">
 						<div class="order">
 							<div class="head">
-								<h3>Usuarios</h3>
+								<h3>Clientes</h3>
 								<i class='bx bx-search'></i>
 								<i class='bx bx-filter'></i>
 							</div>
@@ -148,165 +152,182 @@ session_destroy(); */
 
 	<!-- CONTENT -->
 	<div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-		<div class="modal-dialog modal-xl" role="document"> <!-- Cambié modal-lg por modal-xl -->
+		<div class="modal-dialog modal-xl" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title">Agregar Usuario</h5>
+					<h5 class="modal-title">Cliente</h5>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close" id="cerrarModal">
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<form class="form-container">
-					<!-- Primera fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="clave">Clave: </label>
-							<input type="text" id="clave" class="form-control">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="nombre">Nombre</label>
-							<input class="form-control" type="text" name="nombre" id="nombre">
+				<div class="modal-body">
+					<ul class="nav nav-tabs" role="tablist">
+						<li class="nav-item">
+							<a class="nav-link active" id="datosGenerales-tab" data-toggle="tab" href="#datosGenerales"
+								role="tab" aria-controls="datosGenerales" aria-selected="true">Datos Generales</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link active" id="datosGenerales-tab" data-toggle="tab" href="#datosGenerales"
+								role="tab" aria-controls="datosGenerales" aria-selected="true">Datos Ventas</a>
+						</li>
+					</ul>
+
+
+					<div class="tab-content">
+						<!-- Datos Generales -->
+						<div class="tab-pane fade show active" id="datosGenerales" role="tabpanel">
+							<!-- Primera fila -->
+							<div class="row">
+								<div class="">
+									<label for="clave" style="margin-right: 5px;">Clave: </label>
+									<input class="input-mo" type="text" id="clave" style="margin-right: 20px;">
+
+									<label for="nombre" style="margin-right: 5px;">Nombre</label>
+									<input class="input-mt" type="text" name="nombre" id="nombre">
+								</div>
+								<div>
+									<label for="estatus" style="margin-right: 5px;">Estatus</label>
+									<input type="text" name="estatus" id="estatus" class="input-mt"
+										style="margin-right: 5px;">
+
+									<label for="saldo" style="margin-right: 5px;">Saldo</label>
+									<input type="text" id="saldo" class="input-mt" style="margin-right: 5px;">
+								</div>
+							</div>
+							<br>
+
+							<!-- Segunda fila -->
+							<div class="row">
+
+							</div>
+
+							<!-- Datos Generales -->
+							<div class="tab-pane fade show active" id="datosGenerales" role="tabpanel">
+								<div class="form-group row">
+									<div class="col-4">
+										<label for="rfc">RFC</label>
+										<input type="text" id="rfc" class="form-control">
+									</div>
+									<div class="col-4">
+										<label for="regimenFiscal">Régimen Fiscal</label>
+										<input type="text" id="regimenFiscal" class="form-control">
+									</div>
+									<div class="col-4">
+										<label for="curp">C.U.R.P.</label>
+										<input type="text" id="curp" class="form-control">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-6">
+										<label for="calle">Calle</label>
+										<input type="text" id="calle" class="form-control">
+									</div>
+									<div class="col-3">
+										<label for="numE">Num. Ext</label>
+										<input type="text" id="numE" class="form-control">
+									</div>
+									<div class="col-3">
+										<label for="numI">Num. Int</label>
+										<input type="text" id="numI" class="form-control">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-4">
+										<label for="entreCalle">Entre Calle</label>
+										<input type="text" id="entreCalle" class="form-control">
+									</div>
+									<div class="col-4">
+										<label for="yCalle">Y Calle</label>
+										<input type="text" id="yCalle" class="form-control">
+									</div>
+									<div class="col-4">
+										<label for="pais">País</label>
+										<input type="text" id="pais" class="form-control">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-4">
+										<label for="nacionalidad">Nacionalidad</label>
+										<input type="text" id="nacionalidad" class="form-control">
+									</div>
+									<div class="col-4">
+										<label for="estado">Estado</label>
+										<input type="text" id="estado" class="form-control">
+									</div>
+									<div class="col-4">
+										<label for="codigoPostal">Código Postal</label>
+										<input type="text" id="codigoPostal" class="form-control">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-6">
+										<label for="municipio">Municipio</label>
+										<input type="text" id="municipio" class="form-control">
+									</div>
+									<div class="col-6 ">
+										<label for="poblacion">Poblacion:</label>
+										<input class="form-control" type="text" name="poblacion" id="poblacion">
+									</div>
+									<div class="col-6">
+										<label for="colonia">Colonia</label>
+										<input type="text" id="colonia" class="form-control">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-6">
+										<label for="referencia">Referencia</label>
+										<input type="text" id="referencia" class="form-control">
+									</div>
+									<div class="col-6">
+										<label for="clasificacion">Clasificación</label>
+										<input type="text" id="clasificacion" class="form-control">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-6">
+										<label for="zona">Zona</label>
+										<input type="text" id="zona" class="form-control">
+									</div>
+									<div class="col-6">
+										<label for="telefono">Teléfono</label>
+										<input type="text" id="telefono" class="form-control">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-6">
+										<label for="fax">Fax</label>
+										<input type="text" id="fax" class="form-control">
+									</div>
+									<div class="col-6">
+										<label for="paginaWeb">Página Web</label>
+										<input type="text" id="paginaWeb" class="form-control">
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
-					<!-- Segunda fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="estatus">Estatus</label>
-							<input type="text" name="estatus" id="estatus" class="form-control">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="saldo">Saldo</label>
-							<input type="text" id="saldo" class="form-control">
-						</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+						<button type="button" class="btn btn-primary">Guardar</button>
 					</div>
-					<!-- Tercera fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="rfc">RFC</label>
-							<input class="form-control" type="text" name="rfc" id="rfc">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="regimenFiscal">Regimen fiscal</label>
-							<input class="form-control" type="text" name="regimenFiscal" id="regimenFiscal">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="curp">C.U.R.P.:</label>
-							<input class="form-control" type="text" name="curp" id="curp">
-						</div>
-					</div>
-					<!-- Cuarta fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="calle">Calle</label>
-							<input class="form-control" type="text" name="calle" id="calle">
-						</div>
-					</div>
-					<!-- Quinta fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="numE">Num. ext</label>
-							<input class="form-control" type="text" name="numE" id="numE">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="numI">Num. int.</label>
-							<input class="form-control" type="text" name="numI" id="numI">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="entreCalle">Entre Calle</label>
-							<input class="form-control" type="text" name="entreCalle" id="entreCalle">
-						</div>
-					</div>
-					<!-- Sexta fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="yCalle">Y calle:</label>
-							<input class="form-control" type="text" name="yCalle" id="yCalle">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="pais">Pais:</label>
-							<input class="form-control" type="text" name="pais" id="pais">
-						</div>
-					</div>
-					<!-- Septima fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="nacionalidad">Nacionalidad:</label>
-							<input class="form-control" type="text" name="nacionalidad" id="nacionalidad">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="codigoPostal">Codigo Postal:</label>
-							<input class="form-control" type="date" name="codigoPostal" id="codigoPostal">
-						</div>
-					</div>
-					<!-- Octava fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="estado">Estado:</label>
-							<input class="form-control" type="text" name="estado" id="estado">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="municipio">Municipio:</label>
-							<input class="form-control" type="text" name="municipio" id="municipio">
-						</div>
-					</div>
-					<!-- Novena fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="poblacion">Poblacion:</label>
-							<input class="form-control" type="text" name="poblacion" id="poblacion">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="colonia">Colonia:</label>
-							<input class="form-control" type="text" name="colonia" id="colonia">
-						</div>
-					</div>
-					<!-- Decima fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="referencia">Referencia:</label>
-							<input class="form-control" type="text" name="referencia" id="referencia">
-						</div>
-					</div>
-					<!-- Onceaba fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="clasificacion">Clasificacion:</label>
-							<input class="form-control" type="text" name="clasificacion" id="clasificacion">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="zona">Zona:</label>
-							<input class="form-control" type="text" name="zona" id="zona">
-						</div>
-					</div>
-					<!-- Doceaba fila -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="telefono">Telefono:</label>
-							<input class="form-control" type="text" name="telefono" id="telefono">
-						</div>
-						<div class="col-6 mb-3">
-							<label for="fax">Fax:</label>
-							<input class="form-control" type="text" name="fax" id="fax">
-						</div>
-					</div>
-					<!-- Página Web -->
-					<div class="row">
-						<div class="col-6 mb-3">
-							<label for="paginaWeb">Pagina Web:</label>
-							<input class="form-control" type="text" name="paginaWeb" id="paginaWeb">
-						</div>
-					</div>
-				</form>
+				</div>
 			</div>
 		</div>
-	</div>
 
-	<!-- JS Para la confirmacion empresa -->
-	<script src="JS/menu.js"></script>
-	<script src="JS/app.js"></script>
-	<script src="JS/script.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="JS/clientes.js"></script>
+
+		<!-- JS Para la confirmacion empresa -->
+		<script src="JS/menu.js"></script>
+		<script src="JS/app.js"></script>
+		<script src="JS/script.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+		<script src="JS/clientes.js"></script>
 
 </body>
 
@@ -314,7 +335,7 @@ session_destroy(); */
 <!-- 
 			<script>
 			var empresa = '<?php //echo $noEmpresa 
-							?>'
+			?>'
 			console.log(empresa);
 		</script>	
 		-->
