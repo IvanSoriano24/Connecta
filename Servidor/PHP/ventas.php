@@ -79,38 +79,45 @@ function mostrarPedidos($conexionData){
         if ($tipoUsuario === 'ADMINISTRADOR') {
             // Si el usuario es administrador, mostrar todos los clientes
             $sql = "SELECT 
-                    TIP_DOC AS Tipo,
-                    CVE_DOC AS Clave,
-                    CVE_CLPV AS Cliente,
-                    (SELECT NOMBRE FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
-                    STATUS AS Estatus,
-                    CVE_PEDI AS SuPedido,
-                    FECHAELAB AS FechaElaboracion,
-                    CAN_TOT AS Subtotal,
-                    COM_TOT AS TotalComisiones,
-                    NUM_ALMA AS NumeroAlmacen,
-                    FORMAENVIO AS FormaEnvio,
-                    IMPORTE AS ImporteTotal,
-                    (SELECT NOMBRE FROM VEND02 WHERE VEND02.CVE_VEND = FACTP02.CVE_VEND) AS NombreVendedor
-                FROM $nombreTabla";
-             $stmt = sqlsrv_query($conn, $sql);
+            TIP_DOC AS Tipo,
+                CVE_DOC AS Clave,
+                CVE_CLPV AS Cliente,
+                (SELECT MAX(NOMBRE) FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
+                STATUS AS Estatus,
+                CVE_PEDI AS SuPedido,
+                FECHAELAB AS FechaElaboracion,
+                CAN_TOT AS Subtotal,
+                COM_TOT AS TotalComisiones,
+                NUM_ALMA AS NumeroAlmacen,
+                FORMAENVIO AS FormaEnvio,
+                IMPORTE AS ImporteTotal,
+                (SELECT MAX(NOMBRE) FROM VEND02 WHERE VEND02.CVE_VEND = FACTP02.CVE_VEND) AS NombreVendedor
+            FROM $nombreTabla
+            WHERE STATUS IN ('E', 'O')";
+            $stmt = sqlsrv_query($conn, $sql);
         } else {
             // Si el usuario no es administrador, filtrar por el número de vendedor
-            /*$sql = "SELECT 
-                        CLAVE,  
-                        NOMBRE, 
-                        CALLE, 
-                        TELEFONO, 
-                        SALDO, 
-                        VAL_RFC AS EstadoDatosTimbrado, 
-                        NOMBRECOMERCIAL 
-                    FROM 
-                        $nombreTabla
-                    WHERE 
-                        STATUS = 'A' AND CVE_VEND = ?;";
-            $params = [intval($claveVendedor)]; // Si CVE_VEND es un número
-            $stmt = sqlsrv_query($conn, $sql, $params);*/
+            $sql = "SELECT 
+            TIP_DOC AS Tipo,
+                CVE_DOC AS Clave,
+                CVE_CLPV AS Cliente,
+                (SELECT MAX(NOMBRE) FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
+                STATUS AS Estatus,
+                CVE_PEDI AS SuPedido,
+                FECHAELAB AS FechaElaboracion,
+                CAN_TOT AS Subtotal,
+                COM_TOT AS TotalComisiones,
+                NUM_ALMA AS NumeroAlmacen,
+                FORMAENVIO AS FormaEnvio,
+                IMPORTE AS ImporteTotal,
+                (SELECT MAX(NOMBRE) FROM VEND02 WHERE VEND02.CVE_VEND = FACTP02.CVE_VEND) AS NombreVendedor
+            FROM $nombreTabla
+            WHERE STATUS IN ('E', 'O') AND CVE_VEND = ?;";
+            $params = [intval($claveVendedor)]; 
+            $stmt = sqlsrv_query($conn, $sql, $params);
         }
+        //var_dump($conn);
+        //var_dump($sql);
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
