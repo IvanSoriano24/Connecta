@@ -216,6 +216,7 @@ session_destroy(); */
 		<script src="JS/menu.js"></script>
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
+		<script src="JS/ventas.js"></script>
 </body>
 
 </html>

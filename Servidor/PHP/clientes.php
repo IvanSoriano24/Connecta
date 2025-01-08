@@ -43,25 +43,24 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 }
 
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarClientes($conexionData)
-{
+function mostrarClientes($conexionData){
     try {
         //session_start();
-
         // Validar si el número de empresa está definido en la sesión
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
         }
-
         // Obtener el número de empresa de la sesión
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-
         // Validar el formato del número de empresa (asegurarse de que sea numérico)
         if (!is_numeric($noEmpresa)) {
             echo json_encode(['success' => false, 'message' => 'El número de empresa no es válido']);
             exit;
         }
+        // Obtener tipo de usuario y clave de vendedor desde la sesión
+        $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
+        $claveVendedor = $_SESSION['empresa']['claveVendedor'];
 
         // Configuración de conexión
         $serverName = $conexionData['host'];
@@ -71,34 +70,48 @@ function mostrarClientes($conexionData)
             "PWD" => $conexionData['password']
         ];
         $conn = sqlsrv_connect($serverName, $connectionInfo);
-
         if ($conn === false) {
             die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
         }
 
         // Construir el nombre de la tabla dinámicamente usando el número de empresa
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+        // Construir la consulta SQL
+        if ($tipoUsuario === 'AMINISTRADOR') {
+            // Si el usuario es administrador, mostrar todos los clientes
+            $sql = "SELECT 
+                        CLAVE,  
+                        NOMBRE, 
+                        CALLE, 
+                        TELEFONO, 
+                        SALDO, 
+                        VAL_RFC AS EstadoDatosTimbrado, 
+                        NOMBRECOMERCIAL 
+                    FROM 
+                        $nombreTabla
+                    WHERE 
+                        STATUS = 'A';";
+             $stmt = sqlsrv_query($conn, $sql);
+        } else {
+            // Si el usuario no es administrador, filtrar por el número de vendedor
+            $sql = "SELECT 
+                        CLAVE,  
+                        NOMBRE, 
+                        CALLE, 
+                        TELEFONO, 
+                        SALDO, 
+                        VAL_RFC AS EstadoDatosTimbrado, 
+                        NOMBRECOMERCIAL 
+                    FROM 
+                        $nombreTabla
+                    WHERE 
+                        STATUS = 'A' AND CVE_VEND = ?;";
+            $stmt = sqlsrv_query($conn, $sql, [$claveVendedor]);
+        }
 
-        // Consulta SQL para obtener los clientes activos
-        $sql = "SELECT 
-                    CLAVE,  
-                    NOMBRE, 
-                    CALLE, 
-                    TELEFONO, 
-                    SALDO, 
-                    VAL_RFC AS EstadoDatosTimbrado, 
-                    NOMBRECOMERCIAL 
-                FROM 
-                    $nombreTabla
-                WHERE 
-                    STATUS = 'A';";
-
-        // Ejecutar la consulta
-        $stmt = sqlsrv_query($conn, $sql);
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
-
         // Arreglo para almacenar los datos de clientes
         $clientes = [];
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
@@ -127,20 +140,16 @@ function mostrarClientes($conexionData)
             }
             $clientes[] = $row;
         }
-
         // Liberar recursos y cerrar la conexión
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
-
         // Retornar los datos en formato JSON
         if (empty($clientes)) {
             echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
             exit;
         }
-
         header('Content-Type: application/json; charset=UTF-8');
         echo json_encode(['success' => true, 'data' => $clientes]);
-
     } catch (Exception $e) {
         // Si hay algún error, devuelves un error en formato JSON
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
