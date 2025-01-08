@@ -119,7 +119,7 @@ session_destroy(); */
 					<div class="table-data">
 						<div class="order">
 							<div class="head">
-								<h3>Usuarios</h3>
+								<h3>Clientes</h3>
 								<i class='bx bx-search'></i>
 								<i class='bx bx-filter'></i>
 							</div>
@@ -146,7 +146,6 @@ session_destroy(); */
 		<!-- CONTENT -->
 	</div>
 	</section>
-
 	<!-- CONTENT -->
 	<div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="modal-dialog modal-xl" role="document"> <!-- Cambié modal-lg por modal-xl -->

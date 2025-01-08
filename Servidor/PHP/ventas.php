@@ -43,7 +43,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 }
 
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarClientes($conexionData){
+function mostrarPedidos($conexionData){
     try {
         //session_start();
         // Validar si el número de empresa está definido en la sesión
@@ -61,7 +61,6 @@ function mostrarClientes($conexionData){
         // Obtener tipo de usuario y clave de vendedor desde la sesión
         $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
         $claveVendedor = $_SESSION['empresa']['claveVendedor'];
-
         // Configuración de conexión
         $serverName = $conexionData['host'];
         $connectionInfo = [
@@ -74,28 +73,30 @@ function mostrarClientes($conexionData){
             die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
         }
         $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
-
         // Construir el nombre de la tabla dinámicamente usando el número de empresa
-        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
         // Construir la consulta SQL
         if ($tipoUsuario === 'ADMINISTRADOR') {
             // Si el usuario es administrador, mostrar todos los clientes
             $sql = "SELECT 
-                        CLAVE,  
-                        NOMBRE, 
-                        CALLE, 
-                        TELEFONO, 
-                        SALDO, 
-                        VAL_RFC AS EstadoDatosTimbrado, 
-                        NOMBRECOMERCIAL 
-                    FROM 
-                        $nombreTabla
-                    WHERE 
-                        STATUS = 'A';";
+                    TIP_DOC AS Tipo,
+                    CVE_DOC AS Clave,
+                    CVE_CLPV AS Cliente,
+                    (SELECT NOMBRE FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
+                    STATUS AS Estatus,
+                    CVE_PEDI AS SuPedido,
+                    FECHAELAB AS FechaElaboracion,
+                    CAN_TOT AS Subtotal,
+                    COM_TOT AS TotalComisiones,
+                    NUM_ALMA AS NumeroAlmacen,
+                    FORMAENVIO AS FormaEnvio,
+                    IMPORTE AS ImporteTotal,
+                    (SELECT NOMBRE FROM VEND02 WHERE VEND02.CVE_VEND = FACTP02.CVE_VEND) AS NombreVendedor
+                FROM $nombreTabla";
              $stmt = sqlsrv_query($conn, $sql);
         } else {
             // Si el usuario no es administrador, filtrar por el número de vendedor
-            $sql = "SELECT 
+            /*$sql = "SELECT 
                         CLAVE,  
                         NOMBRE, 
                         CALLE, 
@@ -108,7 +109,7 @@ function mostrarClientes($conexionData){
                     WHERE 
                         STATUS = 'A' AND CVE_VEND = ?;";
             $params = [intval($claveVendedor)]; // Si CVE_VEND es un número
-            $stmt = sqlsrv_query($conn, $sql, $params);
+            $stmt = sqlsrv_query($conn, $sql, $params);*/
         }
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
@@ -157,7 +158,7 @@ function mostrarClientes($conexionData){
     }
 }
 
-function mostrarClienteEspecifico($clave, $conexionData)
+function mostrarPedidoEspecifico($clave, $conexionData)
 {
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
@@ -180,7 +181,7 @@ function mostrarClienteEspecifico($clave, $conexionData)
                     [CRUZAMIENTOS], [COLONIA], [CODIGO], [LOCALIDAD], [MUNICIPIO], [ESTADO], 
                     [PAIS], [NACIONALIDAD], [REFERDIR], [TELEFONO], [CLASIFIC], [FAX], [PAG_WEB], 
                     [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO] 
-            FROM [SAE90Empre02].[dbo].[CLIE02] 
+            FROM [SAE90Empre02].[dbo].[FACTP02] 
             WHERE CAST(LTRIM(RTRIM([CLAVE])) AS NVARCHAR(MAX)) = CAST(? AS NVARCHAR(MAX))";
 
     // Preparar el parámetro
@@ -235,7 +236,7 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        mostrarClientes($conexionData);
+        mostrarPedidos($conexionData);
         break;
     case 2: // 
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -252,7 +253,7 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $clave = $_GET['clave'];
-        mostrarClienteEspecifico($clave, $conexionData, $noEmpresa);
+        mostrarPedidoEspecifico($clave, $conexionData, $noEmpresa);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
