@@ -82,7 +82,7 @@ function mostrarPedidos($conexionData){
                     TIP_DOC AS Tipo,
                     CVE_DOC AS Clave,
                     CVE_CLPV AS Cliente,
-                    (SELECT NOMBRE FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
+                    (SELECT MAX(NOMBRE) FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
                     STATUS AS Estatus,
                     CVE_PEDI AS SuPedido,
                     FECHAELAB AS FechaElaboracion,
@@ -111,6 +111,8 @@ function mostrarPedidos($conexionData){
             $params = [intval($claveVendedor)]; // Si CVE_VEND es un número
             $stmt = sqlsrv_query($conn, $sql, $params);*/
         }
+        //var_dump($conn);
+        //var_dump($sql);
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
