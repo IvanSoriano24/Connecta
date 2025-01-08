@@ -91,6 +91,7 @@ function mostrarClientes($conexionData){
                         $nombreTabla
                     WHERE 
                         STATUS = 'A';";
+             $stmt = sqlsrv_query($conn, $sql);
         } else {
             // Si el usuario no es administrador, filtrar por el número de vendedor
             $sql = "SELECT 
@@ -105,10 +106,9 @@ function mostrarClientes($conexionData){
                         $nombreTabla
                     WHERE 
                         STATUS = 'A' AND CVE_VEND = ?;";
+            $stmt = sqlsrv_query($conn, $sql, [$claveVendedor]);
         }
-        // Ejecutar la consulta
-        $params = ($tipoUsuario !== 'admin') ? [$claveVendedor] : [];
-        $stmt = sqlsrv_query($conn, $sql, $params);
+
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
@@ -143,7 +143,6 @@ function mostrarClientes($conexionData){
         // Liberar recursos y cerrar la conexión
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
-
         // Retornar los datos en formato JSON
         if (empty($clientes)) {
             echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
