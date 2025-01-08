@@ -232,8 +232,8 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function guardarPedido($conexionData)
-{
+function guardarPedido($conexionData){
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -246,7 +246,7 @@ function guardarPedido($conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     // Capturar los datos del formulario
     $factura = $_POST['factura'];
     $numero = $_POST['numero'];
@@ -274,7 +274,7 @@ function guardarPedido($conexionData)
     $destinatario = $_POST['destinatario'];
 
     // Crear la consulta SQL para insertar los datos en la base de datos
-    $sql = "INSERT INTO pedidos (
+    $sql = "INSERT INTO  $nombreTabla(
         factura, numero, diaAlta, cliente, rfc, nombre, suPedido, calle, numE, descuento, 
         colonia, numI, codigoPostal, poblacion, pais, descuentofin, regimenFiscal, entrega, 
         vendedor, condicion, comision, enviar, almacen, destinatario
@@ -376,7 +376,8 @@ function obtenerClientePedido($clave, $conexionData, $cliente){
     $sql = "SELECT DISTINCT 
             [CLAVE], 
             [NOMBRE], 
-            [CALLE], 
+            [CALLE],
+            [RFC], 
             [NUMINT], 
             [NUMEXT], 
             [COLONIA],

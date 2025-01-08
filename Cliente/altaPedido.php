@@ -202,7 +202,7 @@ if (isset($_SESSION['usuario'])) {
                                 <!-- Sección de botones -->
                                 <div class="form-buttons">
                                     <button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
-                                    <button type="button" class="btn-cancel">Cancelar</button>
+                                    <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
                             </form>
 
@@ -269,13 +269,14 @@ if (isset($_SESSION['usuario'])) {
                                             $('#rfc').val(selectedClient.RFC);
                                             $('#nombre').val(selectedClient.NOMBRE);
                                             $('#calle').val(selectedClient.CALLE);
-                                            $('#numE').val(selectedClient.NUMERO_EXT);
+                                            $('#numE').val(selectedClient.NUMEXT);
+                                            $('#numI').val(selectedClient.NUMINT);
                                             $('#colonia').val(selectedClient.COLONIA);
                                             $('#codigoPostal').val(selectedClient.CODIGO);
-                                            $('#poblacion').val(selectedClient.POBLACION);
+                                            $('#poblacion').val(selectedClient.LOCALIDAD);
                                             $('#pais').val(selectedClient.PAIS);
                                             $('#regimenFiscal').val(selectedClient.REGIMEN_FISCAL);
-                                            $('#destinatario').val(selectedClient.DESTINATARIO);
+                                            //$('#destinatario').val(selectedClient.DESTINATARIO);
                                         });
 
                                     suggestionsList.append(listItem);

@@ -160,6 +160,9 @@ $('#filtroFecha').change(function () {
     var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
     cargarPedidos(filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
 });
+$('#cancelarPedido').click(function() {
+    window.location.href = "ventas.php";
+});
 // Asegurarse de que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', function () {
     // Detectar el clic en el enlace para "Crear Pedido"
