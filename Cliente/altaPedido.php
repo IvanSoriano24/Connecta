@@ -24,9 +24,6 @@ if (isset($_SESSION['usuario'])) {
 } else {
     header('Location:../index.php');
 }
-/*
-session_unset();
-session_destroy(); */
 ?>
 
 <!DOCTYPE html>
@@ -49,16 +46,41 @@ session_destroy(); */
     <title>Alta Pedidos</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
-
-    <style>
-        body.modal-open .hero_area {
-            filter: blur(5px);
-            /* Difumina el fondo mientras un modal está abierto */
-        }
-    </style>
 
 </head>
+<style>
+    .suggestions-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        border: 1px solid #ccc;
+        border-top: none;
+        background-color: white;
+        position: absolute;
+        width: 100%;
+        /* Asegura que ocupe el mismo ancho que el input */
+        max-height: 200px;
+        /* Para limitar la altura */
+        overflow-y: auto;
+        /* Añade scroll si hay muchas sugerencias */
+        z-index: 1000;
+        display: none;
+        /* Se oculta inicialmente */
+        box-sizing: border-box;
+        /* Asegura que el padding no afecte el ancho */
+    }
+
+    .suggestions-list li {
+        padding: 8px;
+        cursor: pointer;
+    }
+
+    .suggestions-list li:hover {
+        background-color: #f0f0f0;
+    }
+</style>
 
 <body>
     <!-- SIDEBAR -->
@@ -106,7 +128,8 @@ session_destroy(); */
                                     <label for="fecha">Fecha </label>
                                     <input class="input-mt" type="date" name="diaAlta" id="diaAlta">
                                     <label for="cliente">Cliente </label>
-                                    <input class="input-mt" name="cliente" id="cliente" autocomplete="">
+                                    <input class="input-mt" name="cliente" id="cliente" autocomplete="" />
+                                    <ul id="clientesSugeridos" class="suggestions-list"></ul>
                                 </div>
                                 <div class="form-row">
                                     <label for="rfc">RFC <a class='bx'> *</a></label>
@@ -190,61 +213,77 @@ session_destroy(); */
             <!-- CONTENT -->
         </section>
     </div>
-
     <!-- CONTENT -->
     </div>
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/ventas.js"></script>
     <script>
         $(document).ready(function() {
-            // Detectar cuando el usuario escribe en el campo cliente
             $('#cliente').on('input', function() {
-                var cliente = $(this).val(); // Obtener el valor actual del campo
-                var clave = '<?php echo $claveVendedor ?>'; // Obtener la clave del vendedor
-                // Si el campo cliente no está vacío
+                var cliente = $(this).val();
+                var clave = '<?php echo $claveVendedor ?>';
+                var $clienteInput = $(this);
+
+                // Si el texto ingresado tiene más de 2 caracteres
                 if (cliente.length > 2) {
                     $.ajax({
-                        url: '../Servidor/PHP/ventas.php', // Cambia a tu ruta de consulta
+                        url: '../Servidor/PHP/ventas.php',
                         type: 'POST',
                         data: {
                             cliente: cliente,
-                            numFuncion: '4', // Es numero que el backend espera
+                            numFuncion: '4',
                             clave: clave
                         },
                         success: function(response) {
-                            // Limpiar resultados anteriores
-                            $('#clientesSugeridos').empty();
-                            // Verifica si la respuesta tiene datos
-                            if (response.length > 0) {
-                                // Recorrer los resultados y mostrarlos en la interfaz
-                                response.forEach(function(cliente) {
-                                    $('#clientesSugeridos').append('<div class="cliente-sugerido" data-id="' + cliente.CLAVE + '">' + cliente.NOMBRE + '</div>');
+                            console.log(response);
+                            try {
+                                if (typeof response === 'string') {
+                                    response = JSON.parse(response);
+                                }
+                            } catch (e) {
+                                console.error("Error al parsear la respuesta JSON", e);
+                            }
+
+                            if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
+                                var suggestions = response.cliente.map(function(cliente) {
+                                    return cliente.NOMBRE;
                                 });
 
-                                // Agregar evento para seleccionar un cliente
-                                $('.cliente-sugerido').on('click', function() {
-                                    var selectedCliente = $(this).text();
-                                    $('#cliente').val(selectedCliente);
-                                    $('#clientesSugeridos').empty(); // Limpiar sugerencias
+                                // Mostrar las sugerencias debajo del input
+                                var suggestionsList = $('#clientesSugeridos');
+                                suggestionsList.empty().show();
+
+                                suggestions.forEach(function(suggestion) {
+                                    var listItem = $('<li></li>')
+                                        .text(suggestion)
+                                        .on('click', function() {
+                                            $clienteInput.val(suggestion);
+                                            suggestionsList.empty().hide();
+                                        });
+
+                                    suggestionsList.append(listItem);
                                 });
                             } else {
-                                $('#clientesSugeridos').html('<div>No se encontraron clientes.</div>');
+                                $('#clientesSugeridos').empty().hide();
                             }
-                        },
-                        error: function() {
-                            $('#clientesSugeridos').html('<div>Error al buscar clientes.</div>');
                         }
                     });
                 } else {
-                    // Limpiar los resultados si el campo cliente está vacío o tiene menos de 3 caracteres
-                    $('#clientesSugeridos').empty();
+                    $('#clientesSugeridos').empty().hide();
+                }
+            });
+
+            // Cerrar la lista de sugerencias si se hace clic fuera del input
+            $(document).on('click', function(event) {
+                if (!$(event.target).closest('#cliente').length) {
+                    $('#clientesSugeridos').empty().hide();
                 }
             });
         });
     </script>
-
 </body>
 
 </html>

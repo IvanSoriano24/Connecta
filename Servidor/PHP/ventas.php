@@ -369,17 +369,27 @@ function obtenerClientePedido($clave, $conexionData, $cliente){
     // Limpiar la entrada del cliente y clave, y convertirla a UTF-8
     $cliente = mb_convert_encoding(trim($cliente), 'UTF-8');
     $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+
     // Agregar % a la entrada del cliente para búsqueda parcial
     $cliente = '%' . $cliente . '%';
-    // Consulta SQL con parámetros
-    $sql = "SELECT DISTINCT [CLAVE], [NOMBRE] 
-            FROM [SAE90Empre02].[dbo].[CLIE02] 
-            WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER(?) 
-            AND [CVE_VEND] = ?";
-    // Parámetros para la consulta
-    $params = array($cliente, $clave);
-    // Ejecutar la consulta SQL
-    $stmt = sqlsrv_query($conn, $sql, $params);
+    // Consulta SQL 
+    $sql = "SELECT DISTINCT 
+            [CLAVE], 
+            [NOMBRE], 
+            [CALLE], 
+            [NUMINT], 
+            [NUMEXT], 
+            [COLONIA], 
+            [LOCALIDAD], 
+            [MUNICIPIO], 
+            [ESTADO], 
+            [PAIS],
+            [TELEFONO]
+        FROM [SAE90Empre02].[dbo].[CLIE02] 
+        WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER('$cliente') 
+          AND [CVE_VEND] = $clave";
+
+    $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
     }
@@ -390,7 +400,11 @@ function obtenerClientePedido($clave, $conexionData, $cliente){
     }
     // Verificar si se encontraron clientes y devolver la respuesta
     if (count($clientes) > 0) {
-        echo json_encode($clientes);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'cliente' => $clientes
+        ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontraron clientes.']);
     }
@@ -470,7 +484,6 @@ switch ($funcion) {
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
-
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
