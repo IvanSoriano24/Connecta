@@ -226,7 +226,6 @@ if (isset($_SESSION['usuario'])) {
                 var cliente = $(this).val();
                 var clave = '<?php echo $claveVendedor ?>';
                 var $clienteInput = $(this);
-
                 // Si el texto ingresado tiene más de 2 caracteres
                 if (cliente.length > 2) {
                     $.ajax({
