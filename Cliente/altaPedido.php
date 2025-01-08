@@ -19,6 +19,7 @@ if (isset($_SESSION['usuario'])) {
         $empresa = $_SESSION['empresa']['razonSocial'];
         $idEmpresa = $_SESSION['empresa']['id'];
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveVendedor = $_SESSION['empresa']['claveVendedor'];
     }
 } else {
     header('Location:../index.php');
@@ -98,114 +99,83 @@ session_destroy(); */
                                 <div class="form-row">
                                     <label for="factura">Pedido: </label>
                                     <select class="input-mt" name="factura" id="factura">
-                                        <option></option>
+                                        <option value="Directo">Directo</option>
                                     </select>
-
                                     <label for="numero">Número</label>
-                                    <input class="input-mt" type="text" name="numero" id="numero" readonly>
-
+                                    <input class="input-mt" type="text" name="numero" id="numero" readonly> <!--Folio-->
                                     <label for="fecha">Fecha </label>
                                     <input class="input-mt" type="date" name="diaAlta" id="diaAlta">
-
                                     <label for="cliente">Cliente </label>
                                     <input class="input-mt" name="cliente" id="cliente" autocomplete="">
                                 </div>
-
                                 <div class="form-row">
                                     <label for="rfc">RFC <a class='bx'> *</a></label>
                                     <input class="input-mt" type="text" name="rfc" id="rfc">
-
                                     <label for="nombre">Nombre <a class='bx'> *</a></label>
                                     <input class="input-larg" type="text" name="nombre" id="nombre">
-
                                     <label for="nombre">Su Pedido </label>
                                     <input class="input-mt" type="text" name="nombre" id="nombre">
-
                                 </div>
-
                                 <div class="form-row">
                                     <label for="calle">Calle </label>
                                     <input class="input-larg" type="text" name="calle" id="calle"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
                                     <label for="numE">Num. ext. </label>
                                     <input class="input-small" type="text" name="numE" id="numE"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
                                     <label for="descuento">Esquema </label>
                                     <input class="input-mt" type="text" name="descuento" id="descuento">
                                 </div>
-
                                 <div class="form-row">
                                     <label for="colonia">Colonia:</label>
                                     <input class="input-larg" type="text" name="colonia" id="colonia"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
                                     <label for="numI">Num. Int.</label>
                                     <input class="input-small" type="text" name="numI" id="numI"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
                                     <label for="descuento">Descuento </label>
                                     <input class="input-mt" type="text" name="descuento" id="descuento">
-
                                 </div>
-
                                 <div class="form-row">
-
                                     <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
                                     <input class="input-mt" type="text" name="codigoPostal" id="codigoPostal"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
                                     <label for="poblacion">Población:</label>
                                     <input class="input-mt" type="text" name="poblacion" id="poblacion"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
                                     <label for="pais">Pais: <a class='bx'>*</a></label>
                                     <input class="input-mt" type="text" name="pais" id="pais"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
                                     <label for="descuentofin">Descuento Fin </label>
                                     <input class="input-mt" type="text" name="descuentofin" id="descuentofin">
                                 </div>
-
                                 <div class="form-row">
                                     <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
                                     <input class="input-mt" type="text" name="regimenFiscal" id="regimenFiscal"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-
                                     <label for="entrega">Entrega </label>
                                     <input class="input-mt" type="date" name="entrega" id="entrega">
-
                                     <label for="vendedor">Vendedor </label>
                                     <input class="input-mt" type="text" name="vendedor" id="vendedor">
-
                                 </div>
-
                                 <div class="form-row">
                                     <label for="condicion">Condicion </label>
                                     <input class="input-larg" type="text" name="condicion" id="condicion">
-
                                     <label for="comision">Comision </label>
                                     <input class="input-mt" type="text" name="comision" id="comision">
                                 </div>
-
                                 <div class="form-row">
                                     <label for="enviar">Enviar a </label>
                                     <input class="input-larg" type="text" name="enviar" id="enviar">
-
                                     <label for="almacen">Almacen </label>
                                     <input class="input-mt" type="text" name="almacen" id="almacen"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="1" readonly>
-
                                 </div>
-
                                 <div class="form-row">
                                     <label for="destinatario">Destinatario </label>
                                     <input class="input-larg" type="text" name="destinatario" id="destinatario"
                                         style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
                                 </div>
-
-
                                 <!-- Sección de botones -->
                                 <div class="form-buttons">
                                     <button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
@@ -223,86 +193,58 @@ session_destroy(); */
 
     <!-- CONTENT -->
     </div>
-    <div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true"
-        data-bs-backdrop="static" data-bs-keyboard="false" class="modal <?php echo $mostrarModal ? '' : 'd-none'; ?>">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="text-center mb-4">
-                    <h1 class="display-4 text-primary txth1">Bienvenido</h1>
-                    <h2 class="card-title text-center txth2"> <?php echo $tipoUsuario; ?> </h2>
-                </div>
-                <div class="modal-body">
-                    <select class="form-select" id="empresaSelect" name="empresaSelect">
-                        <option value="" selected disabled class="txt">Selecciona una Empresa</option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary txt" id="confirmarEmpresa"> Confirmar</button>
-                </div>
-            </div>
-        </div>
+    <script src="JS/menu.js"></script>
+    <script src="JS/app.js"></script>
+    <script src="JS/script.js"></script>
+    <script src="JS/ventas.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Detectar cuando el usuario escribe en el campo cliente
+            $('#cliente').on('input', function() {
+                var cliente = $(this).val(); // Obtener el valor actual del campo
+                var clave = '<?php echo $claveVendedor ?>'; // Obtener la clave del vendedor
+                // Si el campo cliente no está vacío
+                if (cliente.length > 2) {
+                    $.ajax({
+                        url: '../Servidor/PHP/ventas.php', // Cambia a tu ruta de consulta
+                        type: 'POST',
+                        data: {
+                            cliente: cliente,
+                            numFuncion: '4', // Es numero que el backend espera
+                            clave: clave
+                        },
+                        success: function(response) {
+                            // Limpiar resultados anteriores
+                            $('#clientesSugeridos').empty();
+                            // Verifica si la respuesta tiene datos
+                            if (response.length > 0) {
+                                // Recorrer los resultados y mostrarlos en la interfaz
+                                response.forEach(function(cliente) {
+                                    $('#clientesSugeridos').append('<div class="cliente-sugerido" data-id="' + cliente.CLAVE + '">' + cliente.NOMBRE + '</div>');
+                                });
 
-
-        <!-- JS Para la confirmacion empresa -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            document.getElementById('empresaModal').addEventListener('shown.bs.modal', function () {
-                var usuario = '<?php echo $nombreUsuario; ?>';
-                cargarEmpresa(usuario);
-            });
-            document.addEventListener('DOMContentLoaded', function () {
-                const empresaSeleccionada = <?php echo json_encode(isset($_SESSION['empresa']) ? $_SESSION['empresa'] : null); ?>;
-                if (empresaSeleccionada === null) {
-                    const empresaModal = new bootstrap.Modal(document.getElementById('empresaModal'));
-                    empresaModal.show();
-                }
-            });
-
-            document.getElementById('confirmarEmpresa').addEventListener('click', function () {
-                const empresaSeleccionada = document.getElementById('empresaSelect').value;
-                if (empresaSeleccionada != null) {
-
-                    const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
-
-                    // Verificar que empresaOption no sea null
-                    if (empresaOption) {
-                        // Obtener los datos adicionales de la empresa utilizando los atributos data-*
-                        const noEmpresa = empresaOption.getAttribute('data-no-empresa');
-                        const razonSocial = empresaOption.getAttribute('data-razon-social');
-
-                        // Usar SweetAlert en lugar de alert
-                        Swal.fire({
-                            title: 'Has seleccionado:',
-                            text: `${noEmpresa} - ${razonSocial}`,
-                            icon: 'success'
-                        }).then(() => {
-                            seleccionarEmpresa(noEmpresa);
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
-                            modal.hide();
-
-                            // Guardar los datos en la variable global
-                            idEmpresarial = {
-                                id: empresaSeleccionada,
-                                noEmpresa: noEmpresa,
-                                razonSocial: razonSocial
-                            };
-                            sesionEmpresa(idEmpresarial);
-                        });
-                    }
-                } else {
-                    // Usar SweetAlert en lugar de alert
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Por favor, selecciona una empresa.',
-                        icon: 'error'
+                                // Agregar evento para seleccionar un cliente
+                                $('.cliente-sugerido').on('click', function() {
+                                    var selectedCliente = $(this).text();
+                                    $('#cliente').val(selectedCliente);
+                                    $('#clientesSugeridos').empty(); // Limpiar sugerencias
+                                });
+                            } else {
+                                $('#clientesSugeridos').html('<div>No se encontraron clientes.</div>');
+                            }
+                        },
+                        error: function() {
+                            $('#clientesSugeridos').html('<div>Error al buscar clientes.</div>');
+                        }
                     });
+                } else {
+                    // Limpiar los resultados si el campo cliente está vacío o tiene menos de 3 caracteres
+                    $('#clientesSugeridos').empty();
                 }
             });
+        });
+    </script>
 
-        </script>
-        <script src="JS/menu.js"></script>
-        <script src="JS/app.js"></script>
-        <script src="JS/script.js"></script>
 </body>
 
 </html>

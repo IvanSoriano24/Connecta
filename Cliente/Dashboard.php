@@ -17,6 +17,7 @@ if (isset($_SESSION['usuario'])) {
 		$empresa = $_SESSION['empresa']['razonSocial'];
 		$idEmpresa = $_SESSION['empresa']['id'];
 		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+		$claveVendedor = $_SESSION['empresa']['claveVendedor'];
 	}
 } else {
 	header('Location:../index.php');
@@ -142,5 +143,4 @@ if (isset($_SESSION['usuario'])) {
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
 </body>
-
 </html>

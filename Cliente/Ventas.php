@@ -30,6 +30,7 @@ session_destroy(); */
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,6 +52,7 @@ session_destroy(); */
 		}
 	</style>
 </head>
+
 <body>
 	<div class="hero_area">
 		<!-- SIDEBAR -->
@@ -73,7 +75,7 @@ session_destroy(); */
 						</ul>
 					</div>
 					<div class="button-container">
-						<a href="altaPedido.php" class="btn-crear">
+						<a class="btn-crear" id="altaPedido">
 							<i class='bx bxs-file-plus'></i>
 							<span class="text">Crear Pedido</span>
 						</a>
@@ -95,6 +97,16 @@ session_destroy(); */
 								<i class='bx bx-search'></i>
 								<!-- <i class='bx bx-filter'></i> -->
 							</div>
+							<tr>
+								<td>
+									<select id="filtroFecha">
+										<option value="Hoy">Hoy</option>
+										<option value="Mes">Mes</option>
+										<option value="Mes Anterior">Mes Anterior</option>
+										<option value="Todos">Todos</option>
+									</select>
+								</td>
+							</tr>
 							<table>
 								<thead>
 									<tr>
@@ -103,7 +115,6 @@ session_destroy(); */
 										<th>Cliente</th>
 										<th>Nombre</th>
 										<th>Estatus</th>
-										<th>Su pedido</th>
 										<th>Fecha Elaboracion</th>
 										<th>Subtotal</th>
 										<th>Total de Comisiones</th>
@@ -111,10 +122,10 @@ session_destroy(); */
 										<th>Forma de Envio del Documento</th>
 										<th>Importe total</th>
 										<th>Nombre del vendedor</th>
+										<th>Opciones</th>
 									</tr>
 								</thead>
 								<tbody id="datosPedidos">
-
 								</tbody>
 							</table>
 						</div>
@@ -126,38 +137,24 @@ session_destroy(); */
 		<!-- CONTENT -->
 	</div>
 	<!-- CONTENT -->
-	<div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true"
-		data-bs-backdrop="static" data-bs-keyboard="false" class="modal <?php echo $mostrarModal ? '' : 'd-none'; ?>">
-		<div class="modal-dialog modal-dialog-centered">
-			<div class="modal-content">
-				<div class="text-center mb-4">
-					<h1 class="display-4 text-primary txth1">Bienvenido</h1>
-					<h2 class="card-title text-center txth2"> <?php echo $tipoUsuario; ?> </h2>
-				</div>
-				<div class="modal-body">
-					<select class="form-select" id="empresaSelect" name="empresaSelect">
-						<option value="" selected disabled class="txt">Selecciona una Empresa</option>
-					</select>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-primary txt" id="confirmarEmpresa"> Confirmar</button>
-				</div>
-			</div>
-		</div>
-
-		<!-- JS Para la confirmacion empresa -->
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-		<script src="JS/menu.js"></script>
-		<script src="JS/app.js"></script>
-		<script src="JS/script.js"></script>
-		<script src="JS/ventas.js"></script>
+	<!-- JS Para la confirmacion empresa -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="JS/menu.js"></script>
+	<script src="JS/app.js"></script>
+	<script src="JS/script.js"></script>
+	<script src="JS/ventas.js"></script>
+	<script>
+		$(document).ready(function() {
+			datosPedidos();
+		});
+	</script>
 </body>
 
 </html>
 <!-- 
 				<script>
 			var empresa = '<?php // echo $nombreEmpresa 
-			?>'
+							?>'
 			console.log(empresa);
 		</script>
 		-->

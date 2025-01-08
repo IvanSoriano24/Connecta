@@ -43,9 +43,11 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 }
 
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarPedidos($conexionData){
+function mostrarPedidos($conexionData, $filtroFecha)
+{
+    $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
+    //$filtroFecha = "Mes";
     try {
-        //session_start();
         // Validar si el número de empresa está definido en la sesión
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
@@ -84,7 +86,6 @@ function mostrarPedidos($conexionData){
                 CVE_CLPV AS Cliente,
                 (SELECT MAX(NOMBRE) FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
                 STATUS AS Estatus,
-                CVE_PEDI AS SuPedido,
                 FECHAELAB AS FechaElaboracion,
                 CAN_TOT AS Subtotal,
                 COM_TOT AS TotalComisiones,
@@ -94,6 +95,16 @@ function mostrarPedidos($conexionData){
                 (SELECT MAX(NOMBRE) FROM VEND02 WHERE VEND02.CVE_VEND = FACTP02.CVE_VEND) AS NombreVendedor
             FROM $nombreTabla
             WHERE STATUS IN ('E', 'O')";
+            if ($filtroFecha == 'Hoy') {
+                // Consulta para el día actual
+                $sql .= " AND CAST(FECHAELAB AS DATE) = CAST(GETDATE() AS DATE)";
+            } elseif ($filtroFecha == 'Mes') {
+                // Consulta para el mes actual
+                $sql .= " AND MONTH(FECHAELAB) = MONTH(GETDATE()) AND YEAR(FECHAELAB) = YEAR(GETDATE())";
+            } elseif ($filtroFecha == 'Mes Anterior') {
+                // Consulta para el mes anterior
+                $sql .= " AND MONTH(FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE()))";
+            } // Si el filtro es 'Todos', no se agrega ningún filtro adicional
             $stmt = sqlsrv_query($conn, $sql);
         } else {
             // Si el usuario no es administrador, filtrar por el número de vendedor
@@ -103,7 +114,6 @@ function mostrarPedidos($conexionData){
                 CVE_CLPV AS Cliente,
                 (SELECT MAX(NOMBRE) FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
                 STATUS AS Estatus,
-                CVE_PEDI AS SuPedido,
                 FECHAELAB AS FechaElaboracion,
                 CAN_TOT AS Subtotal,
                 COM_TOT AS TotalComisiones,
@@ -112,10 +122,21 @@ function mostrarPedidos($conexionData){
                 IMPORTE AS ImporteTotal,
                 (SELECT MAX(NOMBRE) FROM VEND02 WHERE VEND02.CVE_VEND = FACTP02.CVE_VEND) AS NombreVendedor
             FROM $nombreTabla
-            WHERE STATUS IN ('E', 'O') AND CVE_VEND = ?;";
-            $params = [intval($claveVendedor)]; 
+            WHERE STATUS IN ('E', 'O') AND CVE_VEND = ?";
+            if ($filtroFecha == 'Hoy') {
+                // Consulta para el día actual
+                $sql .= " AND CAST(FECHAELAB AS DATE) = CAST(GETDATE() AS DATE)";
+            } elseif ($filtroFecha == 'Mes') {
+                // Consulta para el mes actual
+                $sql .= " AND MONTH(FECHAELAB) = MONTH(GETDATE()) AND YEAR(FECHAELAB) = YEAR(GETDATE())";
+            } elseif ($filtroFecha == 'Mes Anterior') {
+                // Consulta para el mes anterior
+                $sql .= " AND MONTH(FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE()))";
+            } // Si el filtro es 'Todos', no se agrega ningún filtro adicional
+            $params = [intval($claveVendedor)];
             $stmt = sqlsrv_query($conn, $sql, $params);
         }
+
         //var_dump($conn);
         //var_dump($sql);
         if ($stmt === false) {
@@ -154,7 +175,7 @@ function mostrarPedidos($conexionData){
         sqlsrv_close($conn);
         // Retornar los datos en formato JSON
         if (empty($clientes)) {
-            echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
+            echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
             exit;
         }
         header('Content-Type: application/json; charset=UTF-8');
@@ -179,10 +200,8 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
     // Limpiar la clave y convertirla a UTF-8
     $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-
     // Crear la consulta SQL con un parámetro
     $sql = "SELECT TOP (1) [CLAVE], [STATUS], [NOMBRE], [RFC], [CALLE], [NUMINT], [NUMEXT], 
                     [CRUZAMIENTOS], [COLONIA], [CODIGO], [LOCALIDAD], [MUNICIPIO], [ESTADO], 
@@ -190,16 +209,13 @@ function mostrarPedidoEspecifico($clave, $conexionData)
                     [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO] 
             FROM [SAE90Empre02].[dbo].[FACTP02] 
             WHERE CAST(LTRIM(RTRIM([CLAVE])) AS NVARCHAR(MAX)) = CAST(? AS NVARCHAR(MAX))";
-
     // Preparar el parámetro
     $params = array($clave);
-
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
     }
-
     // Obtener los resultados
     $cliente = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
@@ -212,12 +228,176 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     } else {
         echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
     }
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function guardarPedido($conexionData)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Capturar los datos del formulario
+    $factura = $_POST['factura'];
+    $numero = $_POST['numero'];
+    $diaAlta = $_POST['diaAlta'];
+    $cliente = $_POST['cliente'];
+    $rfc = $_POST['rfc'];
+    $nombre = $_POST['nombre'];
+    $suPedido = $_POST['nombre']; // Nota: hay dos campos 'nombre', podrías renombrarlos en tu HTML
+    $calle = $_POST['calle'];
+    $numE = $_POST['numE'];
+    $descuento = $_POST['descuento'];
+    $colonia = $_POST['colonia'];
+    $numI = $_POST['numI'];
+    $codigoPostal = $_POST['codigoPostal'];
+    $poblacion = $_POST['poblacion'];
+    $pais = $_POST['pais'];
+    $descuentofin = $_POST['descuentofin'];
+    $regimenFiscal = $_POST['regimenFiscal'];
+    $entrega = $_POST['entrega'];
+    $vendedor = $_POST['vendedor'];
+    $condicion = $_POST['condicion'];
+    $comision = $_POST['comision'];
+    $enviar = $_POST['enviar'];
+    $almacen = $_POST['almacen'];
+    $destinatario = $_POST['destinatario'];
+
+    // Crear la consulta SQL para insertar los datos en la base de datos
+    $sql = "INSERT INTO pedidos (
+        factura, numero, diaAlta, cliente, rfc, nombre, suPedido, calle, numE, descuento, 
+        colonia, numI, codigoPostal, poblacion, pais, descuentofin, regimenFiscal, entrega, 
+        vendedor, condicion, comision, enviar, almacen, destinatario
+    ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    )";
+
+    // Preparar los parámetros para la consulta
+    $params = [
+        $factura,
+        $numero,
+        $diaAlta,
+        $cliente,
+        $rfc,
+        $nombre,
+        $suPedido,
+        $calle,
+        $numE,
+        $descuento,
+        $colonia,
+        $numI,
+        $codigoPostal,
+        $poblacion,
+        $pais,
+        $descuentofin,
+        $regimenFiscal,
+        $entrega,
+        $vendedor,
+        $condicion,
+        $comision,
+        $enviar,
+        $almacen,
+        $destinatario
+    ];
+
+    // Ejecutar la consulta
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al guardar el pedido', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Si todo salió bien, retornar éxito
+    echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
 
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+function obtenerFolioSiguiente($conexionData)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8" // Aseguramos que todo sea manejado en UTF-8
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    // Consulta SQL para obtener el siguiente folio
+    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente FROM FOLIOSF02 WHERE TIP_DOC = 'P'";
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener el siguiente folio
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $folioSiguiente = $row ? $row['FolioSiguiente'] : null;
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    // Retornar el folio siguiente
+    return $folioSiguiente;
+}
 
+function obtenerClientePedido($clave, $conexionData, $cliente){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8" // Aseguramos que todo sea manejado en UTF-8
+    ];
+    // Intentar conectarse a la base de datos
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    // Limpiar la entrada del cliente y clave, y convertirla a UTF-8
+    $cliente = mb_convert_encoding(trim($cliente), 'UTF-8');
+    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+    // Agregar % a la entrada del cliente para búsqueda parcial
+    $cliente = '%' . $cliente . '%';
+    // Consulta SQL con parámetros
+    $sql = "SELECT DISTINCT [CLAVE], [NOMBRE] 
+            FROM [SAE90Empre02].[dbo].[CLIE02] 
+            WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER(?) 
+            AND [CVE_VEND] = ?";
+    // Parámetros para la consulta
+    $params = array($cliente, $clave);
+    // Ejecutar la consulta SQL
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener los resultados de la consulta
+    $clientes = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $clientes[] = $row; // Almacenar cada cliente en el array
+    }
+    // Verificar si se encontraron clientes y devolver la respuesta
+    if (count($clientes) > 0) {
+        echo json_encode($clientes);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes.']);
+    }
+    // Liberar recursos y cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -243,7 +423,8 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        mostrarPedidos($conexionData);
+        $filtroFecha = $_POST['filtroFecha'];
+        mostrarPedidos($conexionData, $filtroFecha);
         break;
     case 2: // 
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -252,7 +433,7 @@ switch ($funcion) {
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
-        
+
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -261,6 +442,44 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $clave = $_GET['clave'];
         mostrarPedidoEspecifico($clave, $conexionData, $noEmpresa);
+        break;
+    case 3:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        $folioSiguiente = obtenerFolioSiguiente($conexionData);
+        if ($folioSiguiente !== null) {
+            echo json_encode(['success' => true, 'folioSiguiente' => $folioSiguiente]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No se pudo obtener el siguiente folio']);
+        }
+        break;
+    case 4:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        $clave = $_POST['clave'];
+        $cliente = $_POST['cliente'];
+        obtenerClientePedido($clave, $conexionData, $cliente);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
