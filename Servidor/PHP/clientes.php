@@ -157,8 +157,7 @@ function mostrarClientes($conexionData){
     }
 }
 
-function mostrarClienteEspecifico($clave, $conexionData)
-{
+function mostrarClienteEspecifico($clave, $conexionData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [

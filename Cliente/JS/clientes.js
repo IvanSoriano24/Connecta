@@ -35,40 +35,40 @@ function agregarEventosBotones() {
     botonesVisualizar.forEach(boton => {
         boton.addEventListener('click', function () {
             const clienteId = this.getAttribute('data-id');
-
             // Realizamos la petición AJAX para obtener los datos del cliente
             fetch(`../Servidor/PHP/clientes.php?clave=${clienteId}&numFuncion=2`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         const cliente = data.cliente;
-
+                        console.log(cliente);
                         // Asignamos los valores de los campos del cliente
-                        document.getElementById('clave').value = cliente.CLAVE;
-                        document.getElementById('nombre').value = cliente.NOMBRE;
-                        document.getElementById('estatus').value = cliente.ESTATUS;
-                        document.getElementById('saldo').value = cliente.SALDO;
-                        document.getElementById('rfc').value = cliente.RFC;
-                        document.getElementById('calle').value = cliente.CALLE;
-                        document.getElementById('numE').value = cliente.NUMEXT;
-                        document.getElementById('regimenFiscal').value = cliente.REGIMENFISCAL;
-                        document.getElementById('numI').value = cliente.NUMINT;
-                        document.getElementById('curp').value = cliente.CURP;
-                        document.getElementById('entreCalle').value = cliente.ENTRECALLE;
-                        document.getElementById('yCalle').value = cliente.YCALLE;
-                        document.getElementById('nacionalidad').value = cliente.NACIONALIDAD;
-                        document.getElementById('estado').value = cliente.ESTADO;
-                        document.getElementById('poblacion').value = cliente.POBLACION;
-                        document.getElementById('pais').value = cliente.PAIS;
-                        document.getElementById('codigoPostal').value = cliente.CODIGOPOSTAL;
-                        document.getElementById('municipio').value = cliente.MUNICIPIO;
-                        document.getElementById('colonia').value = cliente.COLONIA;
-                        document.getElementById('referencia').value = cliente.REFERENCIA;
-                        document.getElementById('clasificacion').value = cliente.CLASIFICACION;
-                        document.getElementById('telefono').value = cliente.TELEFONO;
-                        document.getElementById('zona').value = cliente.ZONA;
-                        document.getElementById('fax').value = cliente.FAX;
-                        document.getElementById('paginaWeb').value = cliente.PAGINAWEB;
+                        // Asignar los valores de los campos del cliente, con valores por defecto si están indefinidos
+                        document.getElementById('clave').value = cliente.CLAVE || 'Sin clave';
+                        document.getElementById('nombre').value = cliente.NOMBRE || 'Sin nombre';
+                        document.getElementById('estatus').value = cliente.CLASIFIC || 'Sin clasificación';
+                        document.getElementById('saldo').value = cliente.SALDO || '0';
+                        document.getElementById('rfc').value = cliente.RFC || 'Sin RFC';
+                        document.getElementById('calle').value = cliente.CALLE || 'Sin calle';
+                        document.getElementById('numE').value = cliente.NUMEXT || 'Sin número exterior';
+                        document.getElementById('regimenFiscal').value = cliente.REGIMENFISCAL || 'Sin régimen fiscal';
+                        document.getElementById('numI').value = cliente.NUMINT || 'Sin número interior';
+                        document.getElementById('curp').value = cliente.CURP || 'Sin CURP';
+                        document.getElementById('entreCalle').value = cliente.ENTRECALLE || 'Sin entre calle';
+                        document.getElementById('yCalle').value = cliente.YCALLE || 'Sin calle';
+                        document.getElementById('nacionalidad').value = cliente.NACIONALIDAD || 'Sin nacionalidad';
+                        document.getElementById('estado').value = cliente.ESTADO || 'Sin estado';
+                        document.getElementById('poblacion').value = cliente.POBLACION || 'Sin población';
+                        document.getElementById('pais').value = cliente.PAIS || 'Sin país';
+                        document.getElementById('codigoPostal').value = cliente.CODIGOPOSTAL || 'Sin código postal';
+                        document.getElementById('municipio').value = cliente.MUNICIPIO || 'Sin municipio';
+                        document.getElementById('colonia').value = cliente.COLONIA || 'Sin colonia';
+                        document.getElementById('referencia').value = cliente.REFERENCIA || 'Sin referencia';
+                        document.getElementById('clasificacion').value = cliente.CLASIFICACION || 'Sin clasificación';
+                        document.getElementById('telefono').value = cliente.TELEFONO || 'Sin teléfono';
+                        document.getElementById('zona').value = cliente.ZONA || 'Sin zona';
+                        document.getElementById('fax').value = cliente.FAX || 'Sin fax';
+                        document.getElementById('paginaWeb').value = cliente.PAGINAWEB || 'Sin página web';
 
                         // Mostrar el modal si se está utilizando
                         $('#usuarioModal').modal('show'); // Asegúrate de que estás usando jQuery y Bootstrap para este modal
