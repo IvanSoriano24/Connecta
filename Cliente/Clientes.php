@@ -31,42 +31,11 @@ session_destroy(); */
 
 <!DOCTYPE html>
 <html lang="es">
+
 <style>
-	/* Asegura que el modal sea más grande y ocupe un 90% del ancho de la pantalla */
-	.modal-dialog {
-		max-width: 90%;
-		margin: 30px auto;
-	}
-
-	/* Establece una altura mínima en el formulario y permite desplazamiento */
-	.form-container {
-		max-height: none;
-		/* Elimina la limitación de altura para que no corte el formulario */
-		overflow-y: auto;
-		/* Permite el desplazamiento vertical si es necesario */
-	}
-
-	/* Asegura que el contenido del modal ocupe el 90% de la altura de la ventana */
-	.modal-content {
-		max-height: 90vh;
-		/* 90% de la altura de la ventana */
-		overflow-y: auto;
-		/* Si el contenido es grande, se agregará un scrollbar */
-	}
-
-	/* Espaciado entre las filas */
-	.row {
-		margin-bottom: 1rem;
-	}
-
-	/* Asegura que los inputs ocupen todo el ancho disponible */
-	.form-control {
-		width: 100%;
-	}
-
-	/* Ajustes de margen para los elementos */
-	.input-mt {
-		margin-top: 10px;
+	.form-row .form-group {
+		padding-bottom: 15px;
+		/* Ajusta el espacio entre los elementos */
 	}
 </style>
 
@@ -149,64 +118,62 @@ session_destroy(); */
 		</section>
 		<!-- CONTENT -->
 	</div>
+
+
 	</section>
 	<!-- CONTENT -->
 	<div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="modal-dialog modal-xl" role="document">
-			<div class="modal-content">
+			<div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
 				<div class="modal-header">
-					<h5 class="modal-title">Cliente</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close" id="cerrarModal">
-						<span aria-hidden="true">&times;</span>
-					</button>
+					<h5 class="modal-title">Clientes</h5>
+					<i class="cerrar-modal bx bx-x"
+						style="position: absolute; top: 10px; right: 10px; font-size: 34px; " data-dismiss="modal"
+						aria-label="Close"></i>
 				</div>
+				<!-- ESTATICO -->
+				<div class="modal-static">
+					<div class="form-group row">
+						<div class="col-4">
+							<label for="clave" style="margin-right: 5px;">Clave:</label>
+							<input class="input-mo form-control" type="text" id="clave">
+						</div>
+						<div class="col-4">
+							<label for="nombre" style="margin-right: 5px;">Nombre:</label>
+							<input class="input-mt form-control " type="text" name="nombre" id="nombre">
+						</div>
+					</div>
+
+					<div class="form-group row">
+						<div class="col-4">
+							<label for="estatus" style="margin-right: 5px;">Estatus:</label>
+							<input type="text" name="estatus" id="estatus" class="input-mo form-control">
+						</div>
+						<div class="col-4">
+							<label for="saldo" style="margin-right: 5px;">Saldo:</label>
+							<input type="text" id="saldo" class="input-mt form-control">
+						</div>
+					</div>
+				</div>
+
 				<div class="modal-body">
-					<ul class="nav nav-tabs" role="tablist">
-						<li class="nav-item">
-							<a class="nav-link active" id="datosGenerales-tab" data-toggle="tab" href="#datosGenerales"
-								role="tab" aria-controls="datosGenerales" aria-selected="true">Datos Generales</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link active" id="datosGenerales-tab" data-toggle="tab" href="#datosGenerales"
-								role="tab" aria-controls="datosGenerales" aria-selected="true">Datos Ventas</a>
-						</li>
-					</ul>
+					<!-- Navegacion Pestañas -->
+					<div class="btn-group mb-3" role="group">
+						<button class="btn  btn-secondary" id="btnDatosGenerales">Datos Generales</button>
+						<button class="btn  btn-secondary" id="btnDatosVentas">Datos Ventas</button>
+					</div>
+					<br>
 
-
-					<div class="tab-content">
-						<!-- Datos Generales -->
-						<div class="tab-pane fade show active" id="datosGenerales" role="tabpanel">
-							<!-- Primera fila -->
-							<div class="row">
-								<div class="">
-									<label for="clave" style="margin-right: 5px;">Clave: </label>
-									<input class="input-mo" type="text" id="clave" style="margin-right: 20px;">
-
-									<label for="nombre" style="margin-right: 5px;">Nombre</label>
-									<input class="input-mt" type="text" name="nombre" id="nombre">
-								</div>
-								<div>
-									<label for="estatus" style="margin-right: 5px;">Estatus</label>
-									<input type="text" name="estatus" id="estatus" class="input-mt"
-										style="margin-right: 5px;">
-
-									<label for="saldo" style="margin-right: 5px;">Saldo</label>
-									<input type="text" id="saldo" class="input-mt" style="margin-right: 5px;">
-								</div>
-							</div>
-							<br>
-
-							<!-- Segunda fila -->
-							<div class="row">
-
-							</div>
-
+					<!-- Datos Generales -->
+					<div id="formDatosGenerales" style="display: block;">
+						<h5 class="section-title">Datos Generales</h5>
+						<div class="tab-pane fade show active" role="tabpanel">
 							<!-- Datos Generales -->
 							<div class="tab-pane fade show active" id="datosGenerales" role="tabpanel">
 								<div class="form-group row">
 									<div class="col-4">
 										<label for="rfc">RFC</label>
-										<input type="text" id="rfc" class="form-control">
+										<input type="text" id="rfc" class="input-m">
 									</div>
 									<div class="col-4">
 										<label for="regimenFiscal">Régimen Fiscal</label>
@@ -313,34 +280,168 @@ session_destroy(); */
 							</div>
 						</div>
 					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-						<button type="button" class="btn btn-primary">Guardar</button>
+
+
+					<!-- FIN DATOS GENERALES -->
+					<div id="formDatosVentas" style="display: none;">
+						<h5 class="section-title">Datos Ventas</h5>
+						<div class="form-group row">
+							<!-- Contenedor de información de crédito -->
+							<div class="col-md-6">
+								<div class="container mt-4"
+									style="border: 2px solid rgb(240, 240, 240); padding: 20px; background-color: #f9f9f9;">
+									<h6 class="mb-4">Información Crédito</h6>
+									<form>
+										<div class="form-row">
+											<div class="form-group col-md-6">
+												<div class="form-check">
+													<input type="checkbox" class="form-check-input" id="manejoCredito">
+													<label class="form-check-label" for="manejoCredito">Manejo de
+														Crédito</label>
+												</div>
+											</div>
+
+											<div class="form-group col-md-6">
+												<label for="diaRevision">Día de Revisión:</label>
+												<input type="number" class="input-fo" id="diaRevision" disabled>
+											</div>
+										</div>
+
+										<div class="form-row mb-3">
+											<div class="form-group col-md-6">
+												<label for="diasCredito">Días de Crédito</label>
+												<input type="number" class="input-fo" id="diasCredito" disabled>
+											</div>
+
+											<div class="form-group col-md-6">
+												<label for="diaPago">Día de Pago</label>
+												<input type="text" class="input-fo" id="diaPago" disabled>
+											</div>
+										</div>
+
+										<div class="form-row mb-3">
+											<div class="form-group col-md-6">
+												<label for="limiteCredito">Límite de Crédito</label>
+												<input type="text" class="input-fo" id="limiteCredito" disabled>
+											</div>
+
+											<div class="form-group col-md-6">
+												<label for="saldo">Saldo</label>
+												<input type="text" class="input-fo" id="saldo">
+											</div>
+										</div>
+
+										<div class="form-group">
+											<label for="metodoPago">Método de Pago</label>
+											<input type="text" class="form-control" id="metodoPago">
+										</div>
+
+										<div class="form-group">
+											<label for="numeroCuenta">Número de Cuenta</label>
+											<input type="text" class="form-control" id="numeroCuenta">
+										</div>
+									</form>
+								</div>
+							</div>
+
+							<!-- Campos fuera del contenedor  -->
+							<div class="col-md-6">
+								<div class="form-row mb-3">
+									<div class="form-group col-md-6">
+										<label for="vendedor">Vendedor:</label>
+										<div class="input-group" style="margin-right: 20px;">
+											<input type="text" class="input-fo" id="vendedor">
+											<!-- <div class="input-group-append">
+												<span class="input-group-text"></span>
+											</div> -->
+										</div>
+									</div>
+
+									<div class="form-group col-md-6">
+										<label for="descuento">% Descuento:</label>
+										<div class="input-group" style="margin-right: 20px;">
+											<input type="number" class="input-fo" id="descuento">
+											<!-- <div class="input-group-append">
+												<span class="input-group-text">%</span>
+											</div> -->
+										</div>
+									</div>
+								</div>
+
+								<div class="form-row mb-3">
+									<div class="form-group col-md-6">
+										<label for="cuentaContable">Cuenta Contable:</label>
+										<div class="input-group" style="margin-right: 20px;">
+											<input type="text" class="input-fo" id="cuentaContable">
+										</div>
+									</div>
+
+									<div class="form-group col-md-6">
+										<label for="listaPrecios">Lista de Precios:</label>
+										<div class="input-group" style="margin-right: 20px;">
+											<input type="text" class="input-fo" id="listaPrecios">
+										</div>
+									</div>
+								</div>
+
+								<div class="form-row mb-3">
+									<div class="form-group col-md-6">
+										<label for="documentoModelo">Documento Modelo:</label>
+										<div class="input-group" style="margin-right: 20px;">
+											<input type="text" class="form-control" id="documentoModelo">
+										</div>
+									</div>
+								</div>
+							</div>
+
+
+						</div>
 					</div>
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="cerrar-modal btn-cancel">Cancelar</button>
 				</div>
 			</div>
 		</div>
-
-
-		<!-- JS Para la confirmacion empresa -->
-		<script src="JS/menu.js"></script>
-		<script src="JS/app.js"></script>
-		<script src="JS/script.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-		<script src="JS/clientes.js"></script>
+	</div>
 
 	<script>
-			var claveVendedor = '<?php echo $claveVendedor 
-							?>'
-			console.log("vendedor: " + claveVendedor);
-		</script>	
+		// Selecciona el checkbox y los campos de entrada
+		const manejoCreditoCheckbox = document.getElementById('manejoCredito');
+		const inputFields = ['diasCredito', 'limiteCredito', 'diaRevision', 'diaPago'].map(id => document.getElementById(id));
+
+		// Añade un evento para activar/desactivar los campos
+		manejoCreditoCheckbox.addEventListener('change', () => {
+			const isChecked = manejoCreditoCheckbox.checked;
+
+			// Activa o desactiva los campos según el estado del checkbox
+			inputFields.forEach(input => {
+				input.disabled = !isChecked;
+			});
+		});
+	</script>
+
+
+	<!-- JS Para la confirmacion empresa -->
+	<script src="JS/menu.js"></script>
+	<script src="JS/app.js"></script>
+	<script src="JS/script.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="JS/clientes.js"></script>
+
+	<script>
+		var claveVendedor = '<?php echo $claveVendedor
+			?>'
+		console.log("vendedor: " + claveVendedor);
+	</script>
 </body>
 
 </html>
 <!-- 
 			<script>
 			var empresa = '<?php //echo $noEmpresa 
-							?>'
+			?>'
 			console.log(empresa);
 		</script>	
 		-->
