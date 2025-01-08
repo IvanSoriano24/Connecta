@@ -256,12 +256,26 @@ if (isset($_SESSION['usuario'])) {
                                 var suggestionsList = $('#clientesSugeridos');
                                 suggestionsList.empty().show();
 
-                                suggestions.forEach(function(suggestion) {
+                                suggestions.forEach(function(suggestion, index) {
                                     var listItem = $('<li></li>')
                                         .text(suggestion)
                                         .on('click', function() {
+                                            // Al seleccionar un cliente, llenar los campos del formulario
                                             $clienteInput.val(suggestion);
                                             suggestionsList.empty().hide();
+
+                                            // Llenar otros campos con la información del cliente seleccionado
+                                            var selectedClient = response.cliente[index];
+                                            $('#rfc').val(selectedClient.RFC);
+                                            $('#nombre').val(selectedClient.NOMBRE);
+                                            $('#calle').val(selectedClient.CALLE);
+                                            $('#numE').val(selectedClient.NUMERO_EXT);
+                                            $('#colonia').val(selectedClient.COLONIA);
+                                            $('#codigoPostal').val(selectedClient.CODIGO);
+                                            $('#poblacion').val(selectedClient.POBLACION);
+                                            $('#pais').val(selectedClient.PAIS);
+                                            $('#regimenFiscal').val(selectedClient.REGIMEN_FISCAL);
+                                            $('#destinatario').val(selectedClient.DESTINATARIO);
                                         });
 
                                     suggestionsList.append(listItem);
