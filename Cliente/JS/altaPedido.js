@@ -24,7 +24,6 @@ function agregarFilaPartidas() {
         alert("Debe seleccionar un cliente primero.");
         return;
     }
-
     const tablaProductos = document.querySelector("#tablaProductos tbody");
 
     // Verificar si alguna fila tiene un producto y cantidad mayor a 0 antes de agregar una nueva
@@ -38,7 +37,6 @@ function agregarFilaPartidas() {
             return;
         }
     }
-
     // Crear una nueva fila
     const nuevaFila = document.createElement("tr");
     nuevaFila.innerHTML = `
@@ -117,7 +115,7 @@ function obtenerProductos(input) {
     xhr.send();
 }
 
-function mostrarListaProductos(productos, input) {
+/*function mostrarListaProductos(productos, input) {
     const tablaProductos = document.querySelector("#tablalistaProductos tbody");
     tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
 
@@ -143,33 +141,40 @@ function mostrarListaProductos(productos, input) {
                 campoCantidad.value = 0; // Opcional: asignar un valor inicial
             }
 
-            await completarPrecioProducto(producto.CVE_ART, fila);
+            
             
         };
 
         // Agregar la fila a la tabla
         tablaProductos.appendChild(fila);
     });
-}
-async function completarPrecioProducto(cveArt, fila) {
+}*/
+async function completarPrecioProducto(cveArt, filaTabla) {
     try {
-        const listaPrecio = document.getElementsByClassName("listaPrecios").value;
-        const cvePrecio = listaPrecio || "1";
-        
-        const precio = await obtenerPrecioProducto(cveArt, cvePrecio, fila); // Implementa la lógica para obtener el precio
+        // Obtener la lista de precios correctamente
+        const listaPrecioElement = document.querySelector(".listaPrecios");
+        const cvePrecio = listaPrecioElement ? listaPrecioElement.value : "1";
+
+        // Obtener el precio del producto
+        const precio = await obtenerPrecioProducto(cveArt, cvePrecio);
         if (!precio) {
             alert("No se pudo obtener el precio del producto.");
             return;
         }
-        const precioInput = fila.querySelector(".precioUnidad");
+        // Seleccionar el input correspondiente dentro de la fila
+        const precioInput = filaTabla.querySelector(".precioUnidad");
+
         if (precioInput) {
             precioInput.value = parseFloat(precio).toFixed(2); // Establecer el precio con 2 decimales
-            precioInput.readOnly = true;
-        } 
+        } else {
+            console.error("No se encontró el campo 'precioUnidad' en la fila.");
+            console.log(fila.outerHTML);
+        }
     } catch (error) {
         console.error("Error al completar el precio del producto:", error);
     }
 }
+
 
 // Función para obtener el precio del producto
 async function obtenerPrecioProducto(claveProducto, listaPrecioCliente) {
@@ -202,38 +207,6 @@ function validateFormulario() {
    }else{
     return false;
    }
-}
-function validarPartidas() {
-    const tablaProductos = document.querySelector("#tablaProductos tbody");
-    const filas = tablaProductos.querySelectorAll("tr");
-    let validacionCorrecta = true;
-
-    // Recorre todas las filas de la tabla
-    for (let fila of filas) {
-        const productoInput = fila.querySelector('td #producto'); // Campo de producto
-        const cantidadInput = fila.querySelector("td #cantidad"); // Campo de cantidad
-        const precioUnidadInput = fila.querySelector("td #precioUnidad"); // Campo de precio unidad
-
-        // Verifica que el producto esté seleccionado
-        if (productoInput.value.trim() === "") {
-            alert("Debe seleccionar un producto en alguna de las partidas.");
-            validacionCorrecta = false; // Marca que la validación no es correcta
-            break; // Sale del ciclo al encontrar un error
-        }
-        // Verifica que la cantidad sea mayor a 0
-        if (cantidadInput.value <= 0) {
-            alert("La cantidad debe ser mayor a 0 en todas las partidas.");
-            validacionCorrecta = false;
-            break;
-        }
-        // Verifica que el precio unidad sea mayor a 0
-        if (precioUnidadInput.value <= 0) {
-            alert("El precio por unidad debe ser mayor a 0 en todas las partidas.");
-            validacionCorrecta = false;
-            break;
-        }
-    }
-    return validacionCorrecta;
 }
 function guardarPerdido(){
     alert("Se guarda");
@@ -277,7 +250,7 @@ function obtenerProductos(input) {
     xhr.send();
 }
 
-function mostrarListaProductos(productos, input) {
+/*function mostrarListaProductos(productos, input) {
     const tablaProductos = document.querySelector("#tablalistaProductos tbody");
     tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
 
@@ -325,7 +298,7 @@ function mostrarListaProductos(productos, input) {
         // Agregar la fila a la tabla
         tablaProductos.appendChild(fila);
     });
-}
+}*/
 
 // FUNCION PARA LISTAR Productos 
 function mostrarListaProductos(productos, input) {
@@ -336,24 +309,18 @@ function mostrarListaProductos(productos, input) {
     // Función para renderizar productos
     function renderProductos(filtro = "") {
         tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
-
         const criterio = filtroCriterio.value; // Obtener criterio seleccionado
         const productosFiltrados = productos.filter(producto =>
             producto[criterio].toLowerCase().includes(filtro.toLowerCase())
         );
-
         productosFiltrados.forEach(function (producto) {
             const fila = document.createElement("tr");
-
             const celdaClave = document.createElement("td");
             celdaClave.textContent = producto.CVE_ART;
-
             const celdaDescripcion = document.createElement("td");
             celdaDescripcion.textContent = producto.DESCR;
-
             const celdaExist = document.createElement("td");
             celdaExist.textContent = producto.EXIST;
-
             // const celdaLinea = document.createElement("td");
             // celdaLinea.textContent = producto.LIN_PROD;
 
@@ -362,15 +329,13 @@ function mostrarListaProductos(productos, input) {
 
             // const celdaClaveAlterna = document.createElement("td");
             // celdaClaveAlterna.textContent = producto.CVE_ALT;
-
             fila.appendChild(celdaClave);
             fila.appendChild(celdaDescripcion);
             fila.appendChild(celdaExist);
             // fila.appendChild(celdaLinea);
             // fila.appendChild(celdaDisponible);
             // fila.appendChild(celdaClaveAlterna);
-
-            fila.onclick = function () {
+            fila.onclick = async function () {
                 input.value = producto.DESCR;
 
                 const filaTabla = input.closest("tr");
@@ -385,11 +350,10 @@ function mostrarListaProductos(productos, input) {
                     campoCantidad.readOnly = false;
                     campoCantidad.value = 0; // Valor inicial opcional
                 }
-
                 // Cerrar el modal
                 cerrarModal();
+                await completarPrecioProducto(producto.CVE_ART, filaTabla);
             };
-
             tablaProductos.appendChild(fila);
         });
     }
@@ -402,7 +366,6 @@ function mostrarListaProductos(productos, input) {
     // Renderizar productos inicialmente
     renderProductos();
 }
-
 
 // Cierra el modal usando la API de Bootstrap
 function cerrarModal() {
