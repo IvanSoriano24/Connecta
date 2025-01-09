@@ -18,31 +18,13 @@ function showCustomerSuggestions() {
     sugerencias.innerHTML = ""; // Limpiar las sugerencias
 }
 
-// Llamada AJAX para obtener las partidas del cliente seleccionado
-function obtenerPartidas(clienteId) {
-    // Simula la llamada AJAX para obtener las partidas del cliente
-    // Aquí deberías reemplazarlo con tu propia lógica para hacer la consulta a tu servidor
-    const partidas = [
-        { cantidad: 2, producto: "Producto A", unidad: "kg", desc1: "10%", desc2: "5%", ieps: "0.5", iva: "16%", comision: "5%", precioUnitario: "100", subtotal: "200" },
-        { cantidad: 1, producto: "Producto B", unidad: "pz", desc1: "15%", desc2: "10%", ieps: "1", iva: "16%", comision: "4%", precioUnitario: "150", subtotal: "150" }
-    ];
-
-    // Limpiar la tabla de partidas antes de agregar nuevas (esto ahora no se hace automáticamente)
-     const tablaProductos = document.querySelector("#tablaProductos tbody");
-    tablaProductos.innerHTML = ""; // Limpiar tabla antes de agregar nuevas filas
-
-    // No agregar las partidas automáticamente, solo cuando se hace clic o tabula hacia la tabla
-}
-
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
     if (!clienteSeleccionado) {
         alert("Debe seleccionar un cliente primero.");
         return;
     }
-
     const tablaProductos = document.querySelector("#tablaProductos tbody");
-    
     // Verificar si alguna fila tiene un producto y cantidad mayor a 0 antes de agregar una nueva
     const filas = tablaProductos.querySelectorAll("tr");
     for (let fila of filas) {
@@ -55,54 +37,91 @@ function agregarFilaPartidas() {
             return;
         }
     }
-
     const nuevaFila = document.createElement("tr");
     nuevaFila.innerHTML = `
-        <td><input type="number" value="1" readonly /></td>
-        <td><input type="text" placeholder="Seleccionar producto..." onfocus="mostrarProductos(this)" /></td>
-        <td><input type="text" readonly /></td>
-        <td><input type="number" value="0" /></td>
-        <td><input type="number" value="0" /></td>
-        <td><input type="number" value="0" readonly /></td>
-        <td><input type="number" value="0" /></td>
-        <td><input type="number" value="0" /></td>
-        <td><input type="number" value="0" /></td>
-        <td><input type="number" value="0" /></td>
-        <td><input type="number" value="0" /></td>
-        <td><input type="number" value="0" /></td>
+        <td><input type="number" class="cantidad" value="0" readonly /></td>
+        <td><input type="text" class="producto" placeholder="Seleccionar producto..." onfocus="mostrarProductos(this)" /></td>
+        <td><input type="text" class="unidad" readonly /></td>
+        <td><input type="number" class="descuento1" value="0" /></td>
+        <td><input type="number" class="descuento2" value="0" /></td>
+        <td><input type="number" class="ieps" value="0" readonly /></td>
+        <td><input type="number" class="blanco1" value="0" /></td>
+        <td><input type="number" class="blanco2" value="0" /></td>
+        <td><input type="number" class="iva" value="0" /></td>
+        <td><input type="number" class="comision" value="0" /></td>
+        <td><input type="number" class="precioUnidad" value="0" /></td>
+        <td><input type="number" class="subtotalPartida" value="0" /></td>
     `;
 
     tablaProductos.appendChild(nuevaFila);
 }
 
-// Muestra la lista de productos cuando el campo de producto está enfocado
 function mostrarProductos(input) {
     const modal = document.getElementById("modalProductos");
     modal.style.display = "block";
 
-    // Simula productos disponibles
-    const productos = ["Producto A", "Producto B", "Producto C"];
-    const listaProductos = document.getElementById("listaProductos");
+    // Llamar a la función AJAX para obtener los productos desde el servidor
+    obtenerProductos(input);
+}
 
-    listaProductos.innerHTML = "";
-    productos.forEach((producto) => {
+function obtenerProductos(input) {
+    const numFuncion = 5; // Número de función para identificar la acción (en este caso obtener productos)
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            if (response.success) {
+                // Procesamos la respuesta de los productos
+                mostrarListaProductos(response.productos, input);
+            } else {
+                alert("Error: " + response.message);
+            }
+        } else {
+            alert("Hubo un problema con la consulta de productos.");
+        }
+    };
+
+    xhr.onerror = function () {
+        alert("Hubo un problema con la conexión.");
+    };
+
+    xhr.send();
+}
+
+function mostrarListaProductos(productos, input) {
+    const listaProductos = document.getElementById("listaProductos");
+    listaProductos.innerHTML = ""; // Limpiar la lista antes de agregar nuevos productos
+
+    productos.forEach(function (producto) {
         const listItem = document.createElement("li");
-        listItem.textContent = producto;
-        listItem.onclick = () => {
-            input.value = producto;
-            modal.style.display = "none";
+        listItem.textContent = `${producto.DESCR}`;
+        listItem.onclick = function () {
+            input.value = producto.DESCR; // Asignar el nombre del producto al campo de entrada
+
+            // Asignar el valor de la unidad al campo de Unidad correspondiente en la tabla
+            const fila = input.closest("tr"); // Encuentra la fila de la tabla
+            const campoUnidad = fila.querySelector("td .unidad"); // Busca el campo con la clase 'unidad'
+            if (campoUnidad) {
+                campoUnidad.value = producto.UNI_MED; // Asigna el valor de la unidad
+            }
+
+            // Cerrar el modal
+            document.getElementById("modalProductos").style.display = "none";
 
             // Desbloquear el campo de cantidad de la fila correspondiente
-            const fila = input.closest("tr"); // Encuentra la fila de la tabla
-            const campoCantidad = fila.querySelector("td input[type='number']"); // Encuentra el campo de cantidad
+            const campoCantidad = fila.querySelector("td input[class='cantidad']"); // Encuentra el campo de cantidad
             if (campoCantidad) {
                 campoCantidad.readOnly = false; // Desbloquea el campo de cantidad
-                campoCantidad.value = 1; // Opcional: asignar un valor inicial si es necesario
+                campoCantidad.value = 0; // Opcional: asignar un valor inicial si es necesario
             }
         };
         listaProductos.appendChild(listItem);
     });
 }
+
 
 // Cierra el modal
 function cerrarModal() {
@@ -114,16 +133,15 @@ function cerrarModal() {
 document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
 // Añadir el evento a la tabla de partidas para agregar una fila cuando el usuario haga clic o tabule hacia ella
 // Agrega la fila de partidas al hacer clic o al tabular hacia la zona
-//document.getElementById("tablaProductos").addEventListener("click", agregarFilaPartidas, true);
 // Agrega la fila de partidas al hacer clic o al tabular hacia la zona
-document.getElementById("tablaProductos").addEventListener("click", function() {
+document.getElementById("divProductos").addEventListener("click", function() {
     agregarFilaPartidas();
 }, { once: true });
-
 document.getElementById("tablaProductos").addEventListener("keydown", function(event) {
     if (event.key === "Tab") {  // Verifica si la tecla presionada es el tabulador
         agregarFilaPartidas();
     }
 });
-
-
+document.getElementById("cerrarModal").addEventListener("click", function() {
+    cerrarModal();
+});
