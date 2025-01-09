@@ -1,20 +1,26 @@
 <style>
- .brand { display: flex; 
-    justify-content: center; 
-    align-items: center; } 
- .small-image { 
-    width: 100%; 
-    height: auto; }
+    .brand {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .small-image {
+        width: 100%;
+        height: auto;
+    }
 </style>
 <!-- sidebar.php -->
 <section id="layout">
 </section>
 <section id="sidebar">
-<a href="#" class="brand">
-    <img src="SRC/logomd.png" alt="" style="width: 100px; height: auto;">
-</a>
+
 
     <ul class="side-menu top">
+        <a href="#" class="brand">
+            <img src="SRC/logomd.png" alt="" style="width: 170px; height: auto;">
+        </a>
+        <br>
         <li class="active">
             <a href="Dashboard.php">
                 <i class='bx bxs-dashboard'></i>
@@ -74,15 +80,15 @@
     </ul>
 </section>
 <!-- NAVBAR -->
+<!-- <nav>
     <section id="navbar" style="background-color:#F9F9F9; padding: 10px;">
         <div style="display: flex; justify-content: flex-end; align-items: center;">
-        <h4 style="margin-top: 10px; text-align: left;">Nombre de la Empresa</h4>
-
+            <h4 style="margin-top: 10px; text-align: left;">Nombre de la Empresa</h4>
             <button class="btn btn-secondary" style="background-color: #49A1DF; color: white;">
                 <i class='bx bxs-user'></i>
                 <a class="brand" href="Usuarios.php" style="color: white;">Usuarios</a>
             </button>
-         </div>
+        </div>
     </section>
-
+</nav> -->
 </section>
