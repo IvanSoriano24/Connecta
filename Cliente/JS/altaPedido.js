@@ -46,10 +46,7 @@ function agregarFilaPartidas() {
          <td>
             <div class="d-flex flex-column position-relative">
                 <div class="d-flex align-items-center">
-                     <input 
-                type="text" 
-                class="producto " 
-                placeholder="Seleccionar producto..." 
+                     <input type="text" class="producto " placeholder="" 
                 oninput="mostrarSugerencias(this)" />
                     <button 
                 type="button" 
@@ -77,49 +74,7 @@ function agregarFilaPartidas() {
     tablaProductos.appendChild(nuevaFila);
 }
 
-function mostrarSugerencias(input) {
-    const listaSugerencias = input.parentElement.nextElementSibling; // La lista desplegable asociada al input
-    const texto = input.value.toLowerCase(); // Texto ingresado en el campo
-    listaSugerencias.innerHTML = ""; // Limpiar sugerencias anteriores
 
-    // Simulación de datos de productos (esto puede ser dinámico según tu servidor)
-    const productos = [
-        { CVE_ART: "clave1", DESCR: "Producto 1", UNI_MED: "Unidad 1" },
-        { CVE_ART: "clave2", DESCR: "Producto 2", UNI_MED: "Unidad 2" },
-        { CVE_ART: "clave3", DESCR: "Producto 3", UNI_MED: "Unidad 3" },
-    ];
-
-    // Filtrar productos por clave que coincidan con el texto ingresado
-    const productosFiltrados = productos.filter(producto => 
-        producto.CVE_ART.toLowerCase().includes(texto)
-    );
-
-    // Si hay coincidencias, mostrar las sugerencias
-    if (productosFiltrados.length > 0 && texto !== "") {
-        listaSugerencias.classList.remove("d-none");
-        productosFiltrados.forEach(function (producto) {
-            const item = document.createElement("li");
-            item.textContent = producto.CVE_ART; // Mostrar solo la clave
-            item.classList.add("py-1", "px-2", "suggestion-item", "hover-bg-light");
-            item.style.cursor = "pointer";
-
-            // Al hacer clic en una sugerencia, rellenar el campo y cerrar la lista
-            item.onclick = function () {
-                input.value = producto.CVE_ART; // Asignar clave al input
-                const fila = input.closest("tr");
-                const descripcion = fila.querySelector(".unidad"); // Campo de descripción
-                if (descripcion) {
-                    descripcion.value = producto.DESCR; // Asignar descripción
-                }
-                listaSugerencias.classList.add("d-none"); // Ocultar sugerencias
-            };
-
-            listaSugerencias.appendChild(item);
-        });
-    } else {
-        listaSugerencias.classList.add("d-none"); // Ocultar si no hay coincidencias
-    }
-}
 
 // Función para mostrar el modal
 function mostrarProductos(input) {
