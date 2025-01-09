@@ -102,7 +102,7 @@ session_destroy(); */
 										<th>Clave</th>
 										<th>Nombre</th>
 										<th>Calle</th>
-										
+
 										<th>Saldo</th>
 										<th>Estado Datos Timbrado</th>
 										<th>Nombre Comercial</th>
@@ -113,6 +113,7 @@ session_destroy(); */
 								</tbody>
 							</table>
 						</div>
+					</div>
 			</main>
 			<!-- MAIN -->
 		</section>
@@ -237,7 +238,8 @@ session_destroy(); */
 									</div>
 									<div class="col-6 ">
 										<label for="poblacion">Poblacion:</label>
-										<input class="form-control" type="text" name="poblacion" id="poblacion" readonly1>
+										<input class="form-control" type="text" name="poblacion" id="poblacion"
+											readonly1>
 									</div>
 									<div class="col-6">
 										<label for="colonia">Colonia</label>
@@ -303,14 +305,16 @@ session_destroy(); */
 
 											<div class="form-group col-md-6">
 												<label for="diaRevision">Día de Revisión:</label>
-												<input type="number" class="input-fo" id="diaRevision" disabled readonly1>
+												<input type="number" class="input-fo" id="diaRevision" disabled
+													readonly1>
 											</div>
 										</div>
 
 										<div class="form-row mb-3">
 											<div class="form-group col-md-6">
 												<label for="diasCredito">Días de Crédito</label>
-												<input type="number" class="input-fo" id="diasCredito" disabled readonly1>
+												<input type="number" class="input-fo" id="diasCredito" disabled
+													readonly1>
 											</div>
 
 											<div class="form-group col-md-6">
@@ -322,7 +326,8 @@ session_destroy(); */
 										<div class="form-row mb-3">
 											<div class="form-group col-md-6">
 												<label for="limiteCredito">Límite de Crédito</label>
-												<input type="text" class="input-fo" id="limiteCredito" disabled readonly1>
+												<input type="text" class="input-fo" id="limiteCredito" disabled
+													readonly1>
 											</div>
 
 											<div class="form-group col-md-6">

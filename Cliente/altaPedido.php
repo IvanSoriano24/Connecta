@@ -55,7 +55,27 @@ if (isset($_SESSION['usuario'])) {
         position: relative;
         width: 100%;
     }
+        position: relative;
+        width: 100%;
+    }
 
+    .suggestions-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        border: 1px solid #ccc;
+        border-top: none;
+        background-color: white;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-sizing: border-box;
+    }
     .suggestions-list {
         list-style: none;
         margin: 0;
@@ -78,7 +98,14 @@ if (isset($_SESSION['usuario'])) {
         padding: 8px;
         cursor: pointer;
     }
+    .suggestions-list li {
+        padding: 8px;
+        cursor: pointer;
+    }
 
+    .suggestions-list li:hover {
+        background-color: #f0f0f0;
+    }
     .suggestions-list li:hover {
         background-color: #f0f0f0;
     }
@@ -94,13 +121,28 @@ if (isset($_SESSION['usuario'])) {
         display: none;
         /* Escondemos la X por defecto */
     }
+    .clear-input {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #888;
+        pointer-events: all;
+        display: none;
+        /* Escondemos la X por defecto */
+    }
 
+    .clear-input:hover {
+        color: #333;
+    }
     .clear-input:hover {
         color: #333;
     }
 </style>
 
 <body>
+    <div class="flex">
     <!-- SIDEBAR -->
     <?php include 'sidebar.php'; ?>
     <div class="hero_area">
@@ -108,7 +150,7 @@ if (isset($_SESSION['usuario'])) {
             <!-- MAIN -->
             <main class="text-center">
 
-                <diV class="head-title">
+                <div class="head-title">
                     <div class="left">
                         <h1>Alta de Pedidos</h1>
                         <ul class="breadcrumb">
@@ -260,6 +302,9 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                         </div>
                     </div>
+                </div>
+
+
             </main>
             <!-- MAIN -->
             <!-- CONTENT -->
@@ -299,22 +344,22 @@ if (isset($_SESSION['usuario'])) {
                                 console.error("Error al parsear la respuesta JSON", e);
                             }
 
-                            if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                                var suggestions = response.cliente.map(function(cliente) {
-                                    return cliente.NOMBRE;
-                                });
+                                if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
+                                    var suggestions = response.cliente.map(function (cliente) {
+                                        return cliente.NOMBRE;
+                                    });
 
-                                // Mostrar las sugerencias debajo del input
-                                var suggestionsList = $('#clientesSugeridos');
-                                suggestionsList.empty().show();
+                                    // Mostrar las sugerencias debajo del input
+                                    var suggestionsList = $('#clientesSugeridos');
+                                    suggestionsList.empty().show();
 
-                                suggestions.forEach(function(suggestion, index) {
-                                    var listItem = $('<li></li>')
-                                        .text(suggestion)
-                                        .on('click', function() {
-                                            // Al seleccionar un cliente, llenar los campos del formulario
-                                            $clienteInput.val(suggestion);
-                                            suggestionsList.empty().hide();
+                                    suggestions.forEach(function (suggestion, index) {
+                                        var listItem = $('<li></li>')
+                                            .text(suggestion)
+                                            .on('click', function () {
+                                                // Al seleccionar un cliente, llenar los campos del formulario
+                                                $clienteInput.val(suggestion);
+                                                suggestionsList.empty().hide();
 
                                             // Llenar otros campos con la información del cliente seleccionado
                                             var selectedClient = response.cliente[index];
