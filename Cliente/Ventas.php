@@ -85,7 +85,7 @@ session_destroy(); */
 						</a>
 						<a href="eliminarPedido.php" class="btn-eliminar">
 							<i class='bx bxs-file-plus'></i>
-							<span class="text">Eliminar Pedido</span>
+							<span class="text">Cancelar Pedido</span>
 						</a>
 					</div>
 
