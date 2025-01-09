@@ -102,7 +102,7 @@ session_destroy(); */
 										<th>Clave</th>
 										<th>Nombre</th>
 										<th>Calle</th>
-										<th>Telefono</th>
+										
 										<th>Saldo</th>
 										<th>Estado Datos Timbrado</th>
 										<th>Nombre Comercial</th>
@@ -136,22 +136,22 @@ session_destroy(); */
 					<div class="form-group row">
 						<div class="col-4">
 							<label for="clave" style="margin-right: 5px;">Clave:</label>
-							<input class="input-mo form-control" type="text" id="clave">
+							<input class="input-mo form-control" type="text" id="clave" readonly1>
 						</div>
 						<div class="col-4">
 							<label for="nombre" style="margin-right: 5px;">Nombre:</label>
-							<input class="input-mt form-control " type="text" name="nombre" id="nombre">
+							<input class="input-mt form-control " type="text" name="nombre" id="nombre" readonly1>
 						</div>
 					</div>
 
 					<div class="form-group row">
 						<div class="col-4">
 							<label for="estatus" style="margin-right: 5px;">Estatus:</label>
-							<input type="text" name="estatus" id="estatus" class="input-mo form-control">
+							<input type="text" name="estatus" id="estatus" class="input-mo form-control" readonly1>
 						</div>
 						<div class="col-4">
 							<label for="saldo" style="margin-right: 5px;">Saldo:</label>
-							<input type="text" id="saldo" class="input-mt form-control">
+							<input type="text" id="saldo" class="input-mt form-control" readonly1>
 						</div>
 					</div>
 				</div>
@@ -173,108 +173,108 @@ session_destroy(); */
 								<div class="form-group row">
 									<div class="col-4">
 										<label for="rfc">RFC</label>
-										<input type="text" id="rfc" class="input-m">
+										<input type="text" id="rfc" class="input-m" readonly1>
 									</div>
 									<div class="col-4">
 										<label for="regimenFiscal">Régimen Fiscal</label>
-										<input type="text" id="regimenFiscal" class="form-control">
+										<input type="text" id="regimenFiscal" class="form-control" readonly1>
 									</div>
 									<div class="col-4">
 										<label for="curp">C.U.R.P.</label>
-										<input type="text" id="curp" class="form-control">
+										<input type="text" id="curp" class="form-control" readonly1>
 									</div>
 								</div>
 
 								<div class="form-group row">
 									<div class="col-6">
 										<label for="calle">Calle</label>
-										<input type="text" id="calle" class="form-control">
+										<input type="text" id="calle" class="form-control" readonly1>
 									</div>
 									<div class="col-3">
 										<label for="numE">Num. Ext</label>
-										<input type="text" id="numE" class="form-control">
+										<input type="text" id="numE" class="form-control" readonly1>
 									</div>
 									<div class="col-3">
 										<label for="numI">Num. Int</label>
-										<input type="text" id="numI" class="form-control">
+										<input type="text" id="numI" class="form-control" readonly1>
 									</div>
 								</div>
 
 								<div class="form-group row">
 									<div class="col-4">
 										<label for="entreCalle">Entre Calle</label>
-										<input type="text" id="entreCalle" class="form-control">
+										<input type="text" id="entreCalle" class="form-control" readonly1>
 									</div>
 									<div class="col-4">
 										<label for="yCalle">Y Calle</label>
-										<input type="text" id="yCalle" class="form-control">
+										<input type="text" id="yCalle" class="form-control" readonly1>
 									</div>
 									<div class="col-4">
 										<label for="pais">País</label>
-										<input type="text" id="pais" class="form-control">
+										<input type="text" id="pais" class="form-control" readonly1>
 									</div>
 								</div>
 
 								<div class="form-group row">
 									<div class="col-4">
 										<label for="nacionalidad">Nacionalidad</label>
-										<input type="text" id="nacionalidad" class="form-control">
+										<input type="text" id="nacionalidad" class="form-control" readonly1>
 									</div>
 									<div class="col-4">
 										<label for="estado">Estado</label>
-										<input type="text" id="estado" class="form-control">
+										<input type="text" id="estado" class="form-control" readonly1>
 									</div>
 									<div class="col-4">
 										<label for="codigoPostal">Código Postal</label>
-										<input type="text" id="codigoPostal" class="form-control">
+										<input type="text" id="codigoPostal" class="form-control" readonly1>
 									</div>
 								</div>
 
 								<div class="form-group row">
 									<div class="col-6">
 										<label for="municipio">Municipio</label>
-										<input type="text" id="municipio" class="form-control">
+										<input type="text" id="municipio" class="form-control" readonly1>
 									</div>
 									<div class="col-6 ">
 										<label for="poblacion">Poblacion:</label>
-										<input class="form-control" type="text" name="poblacion" id="poblacion">
+										<input class="form-control" type="text" name="poblacion" id="poblacion" readonly1>
 									</div>
 									<div class="col-6">
 										<label for="colonia">Colonia</label>
-										<input type="text" id="colonia" class="form-control">
+										<input type="text" id="colonia" class="form-control" readonly1>
 									</div>
 								</div>
 
 								<div class="form-group row">
 									<div class="col-6">
 										<label for="referencia">Referencia</label>
-										<input type="text" id="referencia" class="form-control">
+										<input type="text" id="referencia" class="form-control" readonly1>
 									</div>
 									<div class="col-6">
 										<label for="clasificacion">Clasificación</label>
-										<input type="text" id="clasificacion" class="form-control">
+										<input type="text" id="clasificacion" class="form-control" readonly1>
 									</div>
 								</div>
 
 								<div class="form-group row">
 									<div class="col-6">
 										<label for="zona">Zona</label>
-										<input type="text" id="zona" class="form-control">
+										<input type="text" id="zona" class="form-control" readonly1>
 									</div>
 									<div class="col-6">
 										<label for="telefono">Teléfono</label>
-										<input type="text" id="telefono" class="form-control">
+										<input type="text" id="telefono" class="form-control" readonly1>
 									</div>
 								</div>
 
 								<div class="form-group row">
 									<div class="col-6">
 										<label for="fax">Fax</label>
-										<input type="text" id="fax" class="form-control">
+										<input type="text" id="fax" class="form-control" readonly1>
 									</div>
 									<div class="col-6">
 										<label for="paginaWeb">Página Web</label>
-										<input type="text" id="paginaWeb" class="form-control">
+										<input type="text" id="paginaWeb" class="form-control" readonly1>
 									</div>
 								</div>
 							</div>
@@ -303,42 +303,42 @@ session_destroy(); */
 
 											<div class="form-group col-md-6">
 												<label for="diaRevision">Día de Revisión:</label>
-												<input type="number" class="input-fo" id="diaRevision" disabled>
+												<input type="number" class="input-fo" id="diaRevision" disabled readonly1>
 											</div>
 										</div>
 
 										<div class="form-row mb-3">
 											<div class="form-group col-md-6">
 												<label for="diasCredito">Días de Crédito</label>
-												<input type="number" class="input-fo" id="diasCredito" disabled>
+												<input type="number" class="input-fo" id="diasCredito" disabled readonly1>
 											</div>
 
 											<div class="form-group col-md-6">
 												<label for="diaPago">Día de Pago</label>
-												<input type="text" class="input-fo" id="diaPago" disabled>
+												<input type="text" class="input-fo" id="diaPago" disabled readonly1>
 											</div>
 										</div>
 
 										<div class="form-row mb-3">
 											<div class="form-group col-md-6">
 												<label for="limiteCredito">Límite de Crédito</label>
-												<input type="text" class="input-fo" id="limiteCredito" disabled>
+												<input type="text" class="input-fo" id="limiteCredito" disabled readonly1>
 											</div>
 
 											<div class="form-group col-md-6">
 												<label for="saldo">Saldo</label>
-												<input type="text" class="input-fo" id="saldo">
+												<input type="text" class="input-fo" id="saldo" readonly1>
 											</div>
 										</div>
 
 										<div class="form-group">
 											<label for="metodoPago">Método de Pago</label>
-											<input type="text" class="form-control" id="metodoPago">
+											<input type="text" class="form-control" id="metodoPago" readonly1>
 										</div>
 
 										<div class="form-group">
 											<label for="numeroCuenta">Número de Cuenta</label>
-											<input type="text" class="form-control" id="numeroCuenta">
+											<input type="text" class="form-control" id="numeroCuenta" readonly1>
 										</div>
 									</form>
 								</div>
@@ -350,7 +350,7 @@ session_destroy(); */
 									<div class="form-group col-md-6">
 										<label for="vendedor">Vendedor:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="input-fo" id="vendedor">
+											<input type="text" class="input-fo" id="vendedor" readonly1>
 											<!-- <div class="input-group-append">
 												<span class="input-group-text"></span>
 											</div> -->
@@ -360,7 +360,7 @@ session_destroy(); */
 									<div class="form-group col-md-6">
 										<label for="descuento">% Descuento:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="number" class="input-fo" id="descuento">
+											<input type="number" class="input-fo" id="descuento" readonly1>
 											<!-- <div class="input-group-append">
 												<span class="input-group-text">%</span>
 											</div> -->
@@ -372,14 +372,14 @@ session_destroy(); */
 									<div class="form-group col-md-6">
 										<label for="cuentaContable">Cuenta Contable:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="input-fo" id="cuentaContable">
+											<input type="text" class="input-fo" id="cuentaContable" readonly1>
 										</div>
 									</div>
 
 									<div class="form-group col-md-6">
 										<label for="listaPrecios">Lista de Precios:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="input-fo" id="listaPrecios">
+											<input type="text" class="input-fo" id="listaPrecios" readonly1>
 										</div>
 									</div>
 								</div>
@@ -388,7 +388,7 @@ session_destroy(); */
 									<div class="form-group col-md-6">
 										<label for="documentoModelo">Documento Modelo:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="form-control" id="documentoModelo">
+											<input type="text" class="form-control" id="documentoModelo" readonly1>
 										</div>
 									</div>
 								</div>

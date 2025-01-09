@@ -494,6 +494,11 @@ input[readonly] {
     border-color: #d3d3d3;
 }
 
+input[readonly1] {
+    
+    pointer-events: none; /* Deshabilita la interacción del usuario */
+}
+
 .form-buttons {
     grid-column: span 4; /* Ocupa todo el ancho */
     text-align: center;
@@ -539,13 +544,14 @@ input[readonly] {
 	border-collapse: collapse;
 }
 #content main .table-data .order table th {
-	padding-bottom: 12px;
+	padding: 16px 12px; /* Aumenta el padding */
+	/* padding-bottom: 12px; */
 	font-size: 13px;
 	text-align: left;
 	border-bottom: 1px solid var(--grey);
 }
 #content main .table-data .order table td {
-	padding: 16px 0;
+	padding: 16px 12px; /* Aumenta el padding */
 	text-align: left;
 }
 #content main .table-data .order table tr td:first-child {
