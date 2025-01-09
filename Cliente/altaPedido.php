@@ -145,6 +145,8 @@ if (isset($_SESSION['usuario'])) {
     <?php include 'sidebar.php'; ?>
     <div class="hero_area">
         <section id="content">
+            <!-- NAVBAR -->
+            <?php include 'navbar.php'; ?>
             <!-- MAIN -->
             <main class="text-center">
 
