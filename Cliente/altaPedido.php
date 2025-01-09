@@ -52,52 +52,52 @@ if (isset($_SESSION['usuario'])) {
 </head>
 <style>
     .input-container {
-    position: relative;
-    width: 100%;
-}
+        position: relative;
+        width: 100%;
+    }
 
-.suggestions-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border: 1px solid #ccc;
-    border-top: none;
-    background-color: white;
-    position: absolute;
-    top: 100%; 
-    left: 0; 
-    width: 100%; 
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000; 
-    display: none;
-    box-sizing: border-box;
-}
+    .suggestions-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        border: 1px solid #ccc;
+        border-top: none;
+        background-color: white;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+        box-sizing: border-box;
+    }
 
-.suggestions-list li {
-    padding: 8px;
-    cursor: pointer;
-}
+    .suggestions-list li {
+        padding: 8px;
+        cursor: pointer;
+    }
 
-.suggestions-list li:hover {
-    background-color: #f0f0f0;
-}
+    .suggestions-list li:hover {
+        background-color: #f0f0f0;
+    }
 
-.clear-input {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 16px;
-    color: #888;
-    pointer-events: all;
-    display: none; /* Escondemos la X por defecto */
-}
+    .clear-input {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: #888;
+        pointer-events: all;
+        display: none;
+        /* Escondemos la X por defecto */
+    }
 
-.clear-input:hover {
-    color: #333;
-}
-
+    .clear-input:hover {
+        color: #333;
+    }
 </style>
 
 <body>
@@ -115,7 +115,6 @@ if (isset($_SESSION['usuario'])) {
                             <li>
                                 <a href="#">Inicio</a>
                             </li>
-
                             <li><i class='bx bx-chevron-right'></i></li>
                             <li>
                                 <a class="" href="Ventas.php">Ventas</a>
@@ -133,7 +132,6 @@ if (isset($_SESSION['usuario'])) {
                                 <h3>Documento</h3>
                                 <a class=''>Campos Obligatorios *</a>
                             </div>
-
                             <form onsubmit="return validateForm()">
                                 <!-- Primera fila -->
                                 <div class="form-row">
@@ -154,7 +152,6 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
 
                                 </div>
-
                                 <div class="form-row">
                                     <label for="rfc">RFC <a class='bx'> *</a></label>
                                     <input class="input-mt" type="text" name="rfc" id="rfc">
@@ -228,8 +225,39 @@ if (isset($_SESSION['usuario'])) {
                                     <button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
+                                <div id="productos">
+                                    <table id="tabla-productos" class="tabla-productos">
+                                        <thead>
+                                            <tr>
+                                                <th>Cant.</th>
+                                                <th>Producto</th>
+                                                <th>Unidad</th>
+                                                <th>Descc.1</th>
+                                                <th>Descc.2</th>
+                                                <th>I.E.P.S</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th>I.V.A</th>
+                                                <th>Comision</th>
+                                                <th>Prec.Unit</th>
+                                                <th>Subtotal por Partida</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Aquí se agregarán dinámicamente las filas de las partidas -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </form>
-
+                            <div id="modal-productos" class="modal" style="display: none;">
+                                <div class="modal-content">
+                                    <span class="close" id="cerrar-modal">&times;</span>
+                                    <h3>Selecciona un Producto</h3>
+                                    <ul id="lista-productos">
+                                        <!-- Aquí se llenará dinámicamente la lista de productos -->
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
             </main>
@@ -244,6 +272,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/ventas.js"></script>
+    <script src="JS/altaPedido.js"></script>
     <script>
         $(document).ready(function() {
             $('#cliente').on('input', function() {
@@ -302,43 +331,43 @@ if (isset($_SESSION['usuario'])) {
                                             //$('#destinatario').val(selectedClient.DESTINATARIO);
                                         });
 
-                                suggestionsList.append(listItem);
-                            });
-                        } else {
-                            $('#clientesSugeridos').empty().hide();
+                                    suggestionsList.append(listItem);
+                                });
+                            } else {
+                                $('#clientesSugeridos').empty().hide();
+                            }
                         }
-                    }
-                });
-            } else {
-                $('#clientesSugeridos').empty().hide();
-            }
-        });
+                    });
+                } else {
+                    $('#clientesSugeridos').empty().hide();
+                }
+            });
 
-        // Cerrar la lista de sugerencias si se hace clic fuera del input
-        $(document).on('click', function (event) {
-            if (!$(event.target).closest('#cliente').length) {
-                $('#clientesSugeridos').empty().hide();
-            }
-        });
+            // Cerrar la lista de sugerencias si se hace clic fuera del input
+            $(document).on('click', function(event) {
+                if (!$(event.target).closest('#cliente').length) {
+                    $('#clientesSugeridos').empty().hide();
+                }
+            });
 
-        // Al hacer clic en la X, borrar el valor del input y los demás campos
-        $('#clearInput').on('click', function () {
-            $('#cliente').val(''); // Borra el valor del input
-            $('#rfc').val(''); // Borra el valor de RFC
-            $('#nombre').val(''); // Borra el valor de nombre
-            $('#calle').val(''); // Borra el valor de calle
-            $('#numE').val(''); // Borra el valor de número externo
-            $('#colonia').val(''); // Borra el valor de colonia
-            $('#codigoPostal').val(''); // Borra el valor de código postal
-            $('#poblacion').val(''); // Borra el valor de población
-            $('#pais').val(''); // Borra el valor de país
-            $('#regimenFiscal').val(''); // Borra el valor de régimen fiscal
-            $('#destinatario').val(''); // Borra el valor de destinatario
-            $('#clientesSugeridos').empty().hide(); // Oculta las sugerencias
-            $(this).hide(); // Oculta la X
+            // Al hacer clic en la X, borrar el valor del input y los demás campos
+            $('#clearInput').on('click', function() {
+                $('#cliente').val(''); // Borra el valor del input
+                $('#rfc').val(''); // Borra el valor de RFC
+                $('#nombre').val(''); // Borra el valor de nombre
+                $('#calle').val(''); // Borra el valor de calle
+                $('#numE').val(''); // Borra el valor de número externo
+                $('#colonia').val(''); // Borra el valor de colonia
+                $('#codigoPostal').val(''); // Borra el valor de código postal
+                $('#poblacion').val(''); // Borra el valor de población
+                $('#pais').val(''); // Borra el valor de país
+                $('#regimenFiscal').val(''); // Borra el valor de régimen fiscal
+                $('#destinatario').val(''); // Borra el valor de destinatario
+                $('#clientesSugeridos').empty().hide(); // Oculta las sugerencias
+                $(this).hide(); // Oculta la X
+            });
         });
-    });
-</script>
+    </script>
 
 
 </body>
