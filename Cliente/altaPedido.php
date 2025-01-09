@@ -268,7 +268,6 @@ if (isset($_SESSION['usuario'])) {
                                     <button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
-<<<<<<< HEAD
                                 <div id="divProductos">
                                     <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
                                         <thead>
@@ -302,40 +301,6 @@ if (isset($_SESSION['usuario'])) {
                                     </ul>
                                 </div>
                             </div>
-=======
-                            </form>
-                            <br>
-                            <!-- <div class="head">
-                                <h3></h3>
-                                <i class='bx bx-search'></i>
-                                <i class='bx bx-filter'></i>
-                            </div> -->
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>O</th>
-                                        <th>A</th>
-                                        <th>Cant.</th>
-
-                                        <th>Producto</th>
-                                        <th>Unidad</th>
-                                        <th>Desc. 1</th>
-                                        <th>Desc. 2</th>
-                                        <th>I.E.P.S</th>
-                                        <th></th>
-                                        <th></th>
-                                        <th>I.V.A</th>
-                                        <th>Comisión</th>
-                                        <th>Precio Unitario</th>
-                                        <th>Subtotal por Partida</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="datosClientes">
-                                </tbody>
-                            </table>
-
->>>>>>> fa43146e8c5d613c6b6883a42f798b0d931ba84f
                         </div>
                     </div>
                 </div>
