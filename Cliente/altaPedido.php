@@ -167,24 +167,6 @@ if (isset($_SESSION['usuario'])) {
                             </li>
                         </ul>
                     </div>
-                    <div class="head-title">
-                        <div class="left">
-                            <h1>Alta de Pedidos</h1>
-                            <ul class="breadcrumb">
-                                <li>
-                                    <a href="#">Inicio</a>
-                                </li>
-
-                                <li><i class='bx bx-chevron-right'></i></li>
-                                <li>
-                                    <a class="" href="Ventas.php">Ventas</a>
-                                </li>
-                                <li><i class='bx bx-chevron-right'></i></li>
-                                <li>
-                                    <a class="" href="altaPedido.php">Alta Pedidos</a>
-                                </li>
-                            </ul>
-                        </div>
 
                     <div class="table-data">
                         <div class="order">
