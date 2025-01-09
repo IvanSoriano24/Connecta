@@ -174,6 +174,33 @@ function datosPedidos() {
         console.log('Detalles de la respuesta JSON:', jqXHR.responseText);
     });
 }
+function obtenerDatosPedido(pedidoID) {
+    $.post('../Servidor/PHP/ventas.php', {
+        numFuncion: '2',  // Suponiendo que '2' es la función en el servidor que obtiene los datos del pedido
+        pedidoID: pedidoID
+    }, function(response) {
+        if (response.success) {
+            console.log('Datos del pedido:', response.cliente);
+            
+            // Prellenar los campos con los datos obtenidos
+            document.getElementById('nombre').value = response.cliente.NOMBRE || '';  // Asignar el valor del campo NOMBRE
+            document.getElementById('rfc').value = response.cliente.RFC || '';        // Asignar el valor del campo RFC
+            document.getElementById('calle').value = response.cliente.CALLE || '';    // Asignar el valor del campo CALLE
+            document.getElementById('numE').value = response.cliente.NUMEXT || '';    // Asignar el valor del campo NUMEXT
+            document.getElementById('colonia').value = response.cliente.COLONIA || ''; // Asignar el valor del campo COLONIA
+            document.getElementById('codigoPostal').value = response.cliente.CODIGO || '';  // Asignar el valor del campo CODIGO (CP)
+            document.getElementById('pais').value = response.cliente.PAIS || '';      // Asignar el valor del campo PAIS
+            document.getElementById('regimenFiscal').value = response.cliente.CVE_ZONA || ''; // Asignar el valor del campo CVE_ZONA
+            document.getElementById('vendedor').value = response.cliente.FAX || '';    // Asignar el valor del campo FAX (suponiendo que se refiere al vendedor)
+
+            // Continúa prellenando los demás campos según sea necesario
+        } else {
+            console.error('Error al obtener datos del pedido:', response.message);
+        }
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Error en la solicitud:', textStatus, errorThrown);
+    });
+}
 
 // Función para obtener el siguiente folio
 function obtenerFolioSiguiente() {
@@ -212,6 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
         altaPedidoBtn.addEventListener('click', function (e) {
             // Prevenir el comportamiento por defecto (redirigir)
             e.preventDefault();
+            console.log('Redirigiendo a altaPedido.php...');
             // Redirigir a la página 'altaPedido.php' sin parámetro
             window.location.href = 'altaPedido.php'; // CORRECCIÓN AQUÍ
         });
@@ -219,6 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Verificar si estamos en la página de creación o edición de pedidos
     if (window.location.pathname.includes('altaPedido.php')) {
+        console.log('Estás en la página de altaPedido.php');
         // Si es edición, obtén el pedidoID y carga los datos del pedido si existe
         const urlParams = new URLSearchParams(window.location.search);
         const pedidoID = urlParams.get('pedidoID');
@@ -227,8 +256,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // Aquí iría la lógica para obtener los datos del pedido y prellenar el formulario
             obtenerDatosPedido(pedidoID);
         } else {
+            console.log('Creando un nuevo pedido...');
             // Aquí puedes manejar la lógica para la creación de un nuevo pedido
             obtenerFolioSiguiente();
         }
     }
 });
+

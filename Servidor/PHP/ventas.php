@@ -41,9 +41,31 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
+function obtenerPedidoEspecifico($clave, $conexionData)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8" // Aseguramos que todo sea manejado en UTF-8
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
 
+    // Limpiar la clave y convertirla a UTF-8
+    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+}
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarPedidos($conexionData, $filtroFecha){
+function mostrarPedidos($conexionData, $filtroFecha)
+{
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     //$filtroFecha = "Mes";
     try {
@@ -200,13 +222,14 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     }
     // Limpiar la clave y convertirla a UTF-8
     $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     // Crear la consulta SQL con un parámetro
     $sql = "SELECT TOP (1) [CLAVE], [STATUS], [NOMBRE], [RFC], [CALLE], [NUMINT], [NUMEXT], 
-                    [CRUZAMIENTOS], [COLONIA], [CODIGO], [LOCALIDAD], [MUNICIPIO], [ESTADO], 
-                    [PAIS], [NACIONALIDAD], [REFERDIR], [TELEFONO], [CLASIFIC], [FAX], [PAG_WEB], 
-                    [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO] 
-            FROM [SAE90Empre02].[dbo].[FACTP02] 
-            WHERE CAST(LTRIM(RTRIM([CLAVE])) AS NVARCHAR(MAX)) = CAST(? AS NVARCHAR(MAX))";
+        [CRUZAMIENTOS], [COLONIA], [CODIGO], [LOCALIDAD], [MUNICIPIO], [ESTADO], 
+        [PAIS], [NACIONALIDAD], [REFERDIR], [TELEFONO], [CLASIFIC], [FAX], [PAG_WEB], 
+        [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO] 
+    FROM [SAE90Empre02].[dbo].[FACTP02] 
+    WHERE CAST(LTRIM(RTRIM([CLAVE])) AS NVARCHAR(MAX)) = CAST(? AS NVARCHAR(MAX))";
     // Preparar el parámetro
     $params = array($clave);
     // Ejecutar la consulta
@@ -230,8 +253,9 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function guardarPedido($conexionData){
-    
+function guardarPedido($conexionData)
+{
+
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -352,7 +376,8 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 
-function obtenerClientePedido($clave, $conexionData, $cliente){
+function obtenerClientePedido($clave, $conexionData, $cliente)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -450,14 +475,13 @@ switch ($funcion) {
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
-
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        $clave = $_GET['clave'];
+        $clave = $_POST['pedidoID'];
         mostrarPedidoEspecifico($clave, $conexionData, $noEmpresa);
         break;
     case 3:

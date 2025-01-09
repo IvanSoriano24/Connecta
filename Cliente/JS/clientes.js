@@ -27,7 +27,6 @@ btnDatosVentas.addEventListener('click', () => {
 
 const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
 
-
 // Función para agregar eventos a los botones dinámicos
 function agregarEventosBotones() {
     const botonesVisualizar = document.querySelectorAll('.btnVisualizarCliente');
