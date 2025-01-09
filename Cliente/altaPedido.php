@@ -54,7 +54,6 @@ if (isset($_SESSION['usuario'])) {
     .input-container {
         position: relative;
         width: 100%;
-    }
         position: relative;
         width: 100%;
     }
@@ -267,8 +266,8 @@ if (isset($_SESSION['usuario'])) {
                                     <button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
-                                <div id="productos">
-                                    <table id="tabla-productos" class="tabla-productos">
+                                <div id="divProductos">
+                                    <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
                                         <thead>
                                             <tr>
                                                 <th>Cant.</th>
@@ -291,11 +290,11 @@ if (isset($_SESSION['usuario'])) {
                                     </table>
                                 </div>
                             </form>
-                            <div id="modal-productos" class="modal" style="display: none;">
+                            <div id="modalProductos" class="modal" style="display: none;">
                                 <div class="modal-content">
                                     <span class="close" id="cerrar-modal">&times;</span>
                                     <h3>Selecciona un Producto</h3>
-                                    <ul id="lista-productos">
+                                    <ul id="listaProductos">
                                         <!-- Aquí se llenará dinámicamente la lista de productos -->
                                     </ul>
                                 </div>
