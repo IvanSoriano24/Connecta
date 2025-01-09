@@ -87,6 +87,16 @@ function cerrarModal() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('usuarioModal'));
     modal.hide();
 }
+
+$(document).ready(function () {
+    $('.cerrar-modal').click(function () {
+        cerrarModal();
+    });
+});
+
+function cerrarModal() {
+    $('#usuarioModal').modal('hide');
+}
 $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa }, function (response) {
     try {
         // Verifica si response es una cadena (string) que necesita ser parseada
@@ -100,31 +110,36 @@ $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa }
                 const clientesTable = document.getElementById('datosClientes');
                 clientesTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
                 clientes.forEach(cliente => {
+                    const saldoFormateado = `$${parseFloat(cliente.SALDO || 0).toFixed(2).toLocaleString('es-MX')}`;
+                    // Cambiar aquí: solo asigna la palomita si existe el valor en EstadoDatosTimbrado
+                    const estadoTimbrado = cliente.EstadoDatosTimbrado ? 
+                        "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>" : 
+                        ''; // Si está vacío, no muestra nada
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${cliente.CLAVE || 'Sin clave'}</td>
                         <td>${cliente.NOMBRE || 'Sin nombre'}</td>
                         <td>${cliente.CALLE || 'Sin calle'}</td>
-                        <td>${cliente.TELEFONO || 'Sin teléfono'}</td>
-                        <td>${cliente.SALDO || '0'}</td>
-                        <td>${cliente.EstadoDatosTimbrado || 'Sin estado'}</td>
+                        <td style="text-align: right;">${saldoFormateado}</td>
+                        <td>${estadoTimbrado}</td>
                         <td>${cliente.NOMBRECOMERCIAL || 'Sin nombre comercial'}</td>
                         <td>
-  <button class="btnVisualizarCliente" name="btnVisualizarCliente" data-id="${cliente.CLAVE}" style="
-        display: inline-flex;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        font-family: Lato;
-        color: #fff;
-        background-color: #007bff;
-        border: none;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    ">
-        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar
-    </button>                        </td>
+                            <button class="btnVisualizarCliente" name="btnVisualizarCliente" data-id="${cliente.CLAVE}" style="
+                                display: inline-flex;
+                                align-items: center;
+                                padding: 0.5rem 1rem;
+                                font-size: 1rem;
+                                font-family: Lato;
+                                color: #fff;
+                                background-color: #007bff;
+                                border: none;
+                                border-radius: 0.25rem;
+                                cursor: pointer;
+                                transition: background-color 0.3s ease;
+                            ">
+                                <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar
+                            </button>
+                        </td>
                     `;
                     clientesTable.appendChild(row);
                 });
@@ -144,12 +159,7 @@ $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa }
     console.log('Detalles de la respuesta JSON:', jqXHR.responseText);
 });
 
-$(document).ready(function () {
-    $('.cerrar-modal').click(function () {
-        cerrarModal();
-    });
-});
 
-function cerrarModal() {
-    $('#usuarioModal').modal('hide');
-}
+
+
+
