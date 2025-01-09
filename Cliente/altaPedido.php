@@ -318,6 +318,7 @@ if (isset($_SESSION['usuario'])) {
 
                                             // Llenar otros campos con la información del cliente seleccionado
                                             var selectedClient = response.cliente[index];
+                                            $('#cliente').val(selectedClient.CLAVE);
                                             $('#rfc').val(selectedClient.RFC);
                                             $('#nombre').val(selectedClient.NOMBRE);
                                             $('#calle').val(selectedClient.CALLE);

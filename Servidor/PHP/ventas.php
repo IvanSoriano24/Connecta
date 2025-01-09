@@ -376,8 +376,7 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 
-function obtenerClientePedido($clave, $conexionData, $cliente)
-{
+function obtenerClientePedido($clave, $conexionData, $cliente){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],

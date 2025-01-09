@@ -1,120 +1,79 @@
+let clienteSeleccionado = false;
 
+        // Función para manejar la selección de cliente
+        function showCustomerSuggestions() {
+            const clienteInput = document.getElementById("cliente");
+            const sugerencias = document.getElementById("clientesSugeridos");
 
-document.addEventListener("DOMContentLoaded", () => {
-    const tablaProductos = document.getElementById("tabla-productos").querySelector("tbody");
-    const modalProductos = document.getElementById("modal-productos");
-    const cerrarModal = document.getElementById("cerrar-modal");
-    let clienteSeleccionado = false; // Variable para controlar si hay cliente seleccionado
+            // Simula sugerencias de clientes (puedes reemplazar con datos reales)
+            const clientes = ["Cliente 1", "Cliente 2", "Cliente 3"];
+            const searchText = clienteInput.value.toLowerCase();
 
-    // Simulación de cliente seleccionado (reemplazar con lógica real)
-    const seleccionarCliente = () => {
-        clienteSeleccionado = true; // Marcar que hay cliente seleccionado
-        console.log("Cliente seleccionado. Ahora puedes agregar partidas.");
-    };
+            sugerencias.innerHTML = "";
+            if (searchText.length > 0) {
+                clientes.forEach((cliente) => {
+                    if (cliente.toLowerCase().includes(searchText)) {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = cliente;
+                        listItem.onclick = () => {
+                            clienteInput.value = cliente;
+                            sugerencias.innerHTML = "";
+                            clienteSeleccionado = true; // Cliente seleccionado
+                        };
+                        sugerencias.appendChild(listItem);
+                    }
+                });
+            }
+        }
 
-    // Evento para simular selección de cliente
-    document.getElementById("cliente").addEventListener("change", seleccionarCliente);
+        // Maneja la creación de la fila de partidas
+        function agregarFilaPartidas() {
+            if (!clienteSeleccionado) {
+                alert("Debe seleccionar un cliente primero.");
+                return;
+            }
 
-    // Función para agregar una nueva fila dinámicamente
-    const agregarFila = () => {
-        const nuevaFila = document.createElement("tr");
-        nuevaFila.innerHTML = `
-            <td><input type="number" value="1" readonly></td>
-            <td>
-                <input type="text" class="campo-producto" placeholder="Seleccionar producto">
-            </td>
-            <td><input type="text" readonly></td>
-            <td><input type="number" value="0" readonly></td>
-            <td><input type="number" value="0" readonly></td>
-            <td><input type="number" value="0" readonly></td>
-            <td></td>
-            <td></td>
-            <td><input type="number" value="0" readonly></td>
-            <td><input type="number" value="0" readonly></td>
-            <td><input type="number" value="0" readonly></td>
-            <td><input type="number" value="0" readonly></td>
-        `;
+            const tablaProductos = document.querySelector("#tablaProductos tbody");
+            const nuevaFila = document.createElement("tr");
 
-        // Agregar evento al campo de producto
-        const campoProducto = nuevaFila.querySelector(".campo-producto");
-        campoProducto.addEventListener("focus", mostrarModal);
-        tablaProductos.appendChild(nuevaFila);
-    };
+            nuevaFila.innerHTML = `
+                <td><input type="number" value="1" readonly /></td>
+                <td><input type="text" placeholder="Seleccionar producto..." onfocus="mostrarProductos(this)" /></td>
+                <td><input type="text" readonly /></td>
+                <td><input type="number" value="0" /></td>
+                <td><input type="number" value="0" /></td>
+                <td><input type="number" value="0" readonly /></td>
+            `;
 
-    // Función para mostrar el modal
-    const mostrarModal = (event) => {
-        modalProductos.style.display = "block";
+            tablaProductos.appendChild(nuevaFila);
+        }
 
-        // Guardar el input donde se seleccionará el producto
-        const inputProducto = event.target;
+        // Muestra la lista de productos cuando el campo de producto está enfocado
+        function mostrarProductos(input) {
+            const modal = document.getElementById("modalProductos");
+            modal.style.display = "block";
 
-        // Llenar dinámicamente la lista de productos
-        const listaProductos = document.getElementById("lista-productos");
-        listaProductos.innerHTML = `
-            <li data-producto="Producto 1" data-unidad="Unidad 1">Producto 1</li>
-            <li data-producto="Producto 2" data-unidad="Unidad 2">Producto 2</li>
-            <li data-producto="Producto 3" data-unidad="Unidad 3">Producto 3</li>
-        `;
+            // Simula productos disponibles
+            const productos = ["Producto A", "Producto B", "Producto C"];
+            const listaProductos = document.getElementById("listaProductos");
 
-        // Agregar evento a los elementos de la lista
-        listaProductos.querySelectorAll("li").forEach((item) => {
-            item.addEventListener("click", () => {
-                seleccionarProducto(inputProducto, item.dataset.producto, item.dataset.unidad);
+            listaProductos.innerHTML = "";
+            productos.forEach((producto) => {
+                const listItem = document.createElement("li");
+                listItem.textContent = producto;
+                listItem.onclick = () => {
+                    input.value = producto;
+                    modal.style.display = "none";
+                };
+                listaProductos.appendChild(listItem);
             });
-        });
-    };
-
-    // Función para ocultar el modal
-    const ocultarModal = () => {
-        modalProductos.style.display = "none";
-    };
-
-    // Función para seleccionar un producto
-    const seleccionarProducto = (inputProducto, producto, unidad) => {
-        // Asignar el producto al input correspondiente
-        inputProducto.value = producto;
-
-        // Buscar la fila correspondiente y asignar la unidad
-        const fila = inputProducto.closest("tr");
-        const inputUnidad = fila.querySelector("td:nth-child(3) input");
-        inputUnidad.value = unidad;
-
-        // Cerrar el modal
-        ocultarModal();
-
-        // Si estamos en la última fila, agregar una nueva fila
-        const ultimaFila = tablaProductos.lastElementChild;
-        if (fila === ultimaFila) {
-            agregarFila();
-        }
-    };
-
-    // Agregar evento para cerrar el modal
-    cerrarModal.addEventListener("click", ocultarModal);
-
-    // Detectar clic o tab en la sección de partidas
-    const areaPartidas = document.getElementById("tabla-productos");
-    areaPartidas.addEventListener("click", () => {
-        if (!clienteSeleccionado) {
-            alert("Primero selecciona un cliente antes de agregar partidas.");
-            return;
         }
 
-        // Si no hay filas en la tabla, agregar la primera fila
-        if (tablaProductos.children.length === 0) {
-            agregarFila();
-        }
-    });
-
-    areaPartidas.addEventListener("focusin", () => {
-        if (!clienteSeleccionado) {
-            alert("Primero selecciona un cliente antes de agregar partidas.");
-            return;
+        // Cierra el modal
+        function cerrarModal() {
+            const modal = document.getElementById("modalProductos");
+            modal.style.display = "none";
         }
 
-        // Si no hay filas en la tabla, agregar la primera fila
-        if (tablaProductos.children.length === 0) {
-            agregarFila();
-        }
-    });
-});
+        // Agrega la fila de partidas al hacer clic
+        document.getElementById("productos").addEventListener("click", agregarFilaPartidas);
