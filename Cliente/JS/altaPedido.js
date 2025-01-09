@@ -76,15 +76,7 @@ function agregarFilaPartidas() {
 
 
 
-// Función para mostrar el modal
-function mostrarProductos(input) {
-    // Abre el modal de productos
-    const modalProductos = new bootstrap.Modal(document.getElementById('modalProductos'));
-    modalProductos.show();
 
-    // Llamar a la función AJAX para obtener los productos desde el servidor
-    obtenerProductos(input);
-}
 
 // Ocultar sugerencias al hacer clic fuera del input
 document.addEventListener("click", function (e) {
@@ -97,14 +89,6 @@ document.addEventListener("click", function (e) {
 });
 
 
-// Boton para mostrar Productos
-function mostrarProductos(input) {
-    // Abre el modal de productos automáticamente
-    const modalProductos = new bootstrap.Modal(document.getElementById('modalProductos'));
-    modalProductos.show();
-    // Llamar a la función AJAX para obtener los productos desde el servidor
-    obtenerProductos(input);
-}
 
 function obtenerProductos(input) {
     const numFuncion = 5; // Número de función para identificar la acción (en este caso obtener productos)
@@ -254,10 +238,169 @@ function validarPartidas() {
 function guardarPerdido(){
     alert("Se guarda");
 }
-// Cierra el modal
-function cerrarModal() {
-    const modal = document.getElementById("modalProductos");
-    modal.style.display = "none";
+
+// Boton para mostrar Productos
+function mostrarProductos(input) {
+    // Abre el modal de productos automáticamente
+    const modalProductos = new bootstrap.Modal(document.getElementById('modalProductos'));
+    modalProductos.show();
+
+
+    // Llamar a la función AJAX para obtener los productos desde el servidor
+    obtenerProductos(input);
+}
+
+function obtenerProductos(input) {
+    const numFuncion = 5; // Número de función para identificar la acción (en este caso obtener productos)
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            if (response.success) {
+                // Procesamos la respuesta de los productos
+                mostrarListaProductos(response.productos, input);
+            } else {
+                alert("Error: " + response.message);
+            }
+        } else {
+            alert("Hubo un problema con la consulta de productos.");
+        }
+    };
+
+    xhr.onerror = function () {
+        alert("Hubo un problema con la conexión.");
+    };
+
+    xhr.send();
+}
+
+function mostrarListaProductos(productos, input) {
+    const tablaProductos = document.querySelector("#tablalistaProductos tbody");
+    tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
+
+    productos.forEach(function (producto) {
+        // Crear una nueva fila para cada producto
+        const fila = document.createElement("tr");
+
+        // Crear y agregar celdas para cada columna
+        const celdaClave = document.createElement("td");
+        celdaClave.textContent = producto.CVE_ART;
+
+        const celdaDescripcion = document.createElement("td");
+        celdaDescripcion.textContent = producto.DESCR;
+
+        const celdaExist = document.createElement("td");
+        celdaExists.textContent = producto.EXIST;
+
+        // Agregar celdas a la fila
+        fila.appendChild(celdaClave);
+        fila.appendChild(celdaDescripcion);
+        fila.appendChild(celdaExist);
+
+        // Agregar evento de selección de producto
+        fila.onclick = function () {
+            input.value = producto.DESCR; // Asignar descripción al campo de entrada
+
+            // Asignar el valor de la unidad al campo de Unidad correspondiente en la tabla
+            const filaTabla = input.closest("tr"); // Encuentra la fila de la tabla
+            const campoUnidad = filaTabla.querySelector(".unidad"); // Busca el campo con la clase 'unidad'
+            if (campoUnidad) {
+                campoUnidad.value = producto.UNI_MED; // Asigna el valor de la unidad
+            }
+
+            // Cerrar el modal
+            document.getElementById("modalProductos").style.display = "none";
+
+            // Desbloquear el campo de cantidad de la fila correspondiente
+            const campoCantidad = filaTabla.querySelector("input.cantidad"); // Encuentra el campo de cantidad
+            if (campoCantidad) {
+                campoCantidad.readOnly = false; // Desbloquea el campo de cantidad
+                campoCantidad.value = 0; // Opcional: asignar un valor inicial
+            }
+        };
+
+        // Agregar la fila a la tabla
+        tablaProductos.appendChild(fila);
+    });
+}
+
+// FUNCION PARA LISTAR Productos 
+function mostrarListaProductos(productos, input) {
+    const tablaProductos = document.querySelector("#tablalistaProductos tbody");
+    const campoBusqueda = document.getElementById("campoBusqueda");
+    const filtroCriterio = document.getElementById("filtroCriterio");
+
+    // Función para renderizar productos
+    function renderProductos(filtro = "") {
+        tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
+
+        const criterio = filtroCriterio.value; // Obtener criterio seleccionado
+        const productosFiltrados = productos.filter(producto =>
+            producto[criterio].toLowerCase().includes(filtro.toLowerCase())
+        );
+
+        productosFiltrados.forEach(function (producto) {
+            const fila = document.createElement("tr");
+
+            const celdaClave = document.createElement("td");
+            celdaClave.textContent = producto.CVE_ART;
+
+            const celdaDescripcion = document.createElement("td");
+            celdaDescripcion.textContent = producto.DESCR;
+
+            const celdaExist = document.createElement("td");
+            celdaExist.textContent = producto.EXIST;
+
+            // const celdaLinea = document.createElement("td");
+            // celdaLinea.textContent = producto.LIN_PROD;
+
+            // const celdaDisponible = document.createElement("td");
+            // celdaDisponible.textContent = producto.DISPONIBLE;
+
+            // const celdaClaveAlterna = document.createElement("td");
+            // celdaClaveAlterna.textContent = producto.CVE_ALT;
+
+            fila.appendChild(celdaClave);
+            fila.appendChild(celdaDescripcion);
+            fila.appendChild(celdaExist);
+            // fila.appendChild(celdaLinea);
+            // fila.appendChild(celdaDisponible);
+            // fila.appendChild(celdaClaveAlterna);
+
+            fila.onclick = function () {
+                input.value = producto.DESCR;
+
+                const filaTabla = input.closest("tr");
+                const campoUnidad = filaTabla.querySelector(".unidad");
+                if (campoUnidad) {
+                    campoUnidad.value = producto.UNI_MED;
+                }
+
+                // Desbloquear el campo de cantidad
+                const campoCantidad = filaTabla.querySelector("input.cantidad");
+                if (campoCantidad) {
+                    campoCantidad.readOnly = false;
+                    campoCantidad.value = 0; // Valor inicial opcional
+                }
+
+                // Cerrar el modal
+                cerrarModal();
+            };
+
+            tablaProductos.appendChild(fila);
+        });
+    }
+
+    // Evento para actualizar la tabla al escribir en el campo de búsqueda
+    campoBusqueda.addEventListener("input", () => {
+        renderProductos(campoBusqueda.value);
+    });
+
+    // Renderizar productos inicialmente
+    renderProductos();
 }
 
 
@@ -268,7 +411,6 @@ function cerrarModal() {
         modal.hide();
     }
 }
-
 
 // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
