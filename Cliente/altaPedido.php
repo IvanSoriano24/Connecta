@@ -230,11 +230,12 @@ if (isset($_SESSION['usuario'])) {
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
                             </form>
-                            <div class="head">
+                            <br>
+                            <!-- <div class="head">
                                 <h3></h3>
                                 <i class='bx bx-search'></i>
                                 <i class='bx bx-filter'></i>
-                            </div>
+                            </div> -->
                             <table>
                                 <thead>
                                     <tr>
