@@ -65,6 +65,8 @@ session_destroy(); */
 		<?php include 'sidebar.php'; ?>
 		<!-- CONTENT -->
 		<section id="content">
+			<!-- NAVBAR -->
+			<?php include 'navbar.php'; ?>
 			<!-- MAIN -->
 			<main class="text-center my-5 hero_area">
 				<div class="head-title">

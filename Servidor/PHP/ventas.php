@@ -450,7 +450,7 @@ function obtenerProductos($conexionData)
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL
-    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [LIN_PROD], [UNI_MED]
+    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED] 
         FROM $nombreTabla";
 
     $stmt = sqlsrv_query($conn, $sql);

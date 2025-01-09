@@ -45,7 +45,8 @@ if (isset($_SESSION['usuario'])) {
     <?php include 'sidebar.php'; ?>
     <!-- CONTENT -->
     <section id="content">
-
+      <!-- NAVBAR -->
+      <?php include 'navbar.php'; ?>
       <!-- MAIN -->
       <main class="text-center ">
 

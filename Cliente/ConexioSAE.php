@@ -52,6 +52,8 @@ session_destroy(); */
 
     <!-- CONTENT -->
     <section id="content">
+       <!-- NAVBAR -->
+       <?php include 'navbar.php'; ?>
       <!-- MAIN -->
       <main class="text-center ">
         <div class="head-title">

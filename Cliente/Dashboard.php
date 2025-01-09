@@ -53,6 +53,7 @@ if (isset($_SESSION['usuario'])) {
 	<?php include 'sidebar.php'; ?>
 		<!-- CONTENT -->
 		<section id="content">
+		<?php include 'navbar.php'; ?>
             <!-- MAIN -->
             <main class="text-center my-5 hero_area">
                 
