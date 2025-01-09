@@ -157,8 +157,7 @@ function mostrarClientes($conexionData){
     }
 }
 
-function mostrarClienteEspecifico($clave, $conexionData)
-{
+function mostrarClienteEspecifico($clave, $conexionData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -174,13 +173,14 @@ function mostrarClienteEspecifico($clave, $conexionData)
 
     // Limpiar la clave y convertirla a UTF-8
     $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     // Crear la consulta SQL con un parámetro
     $sql = "SELECT TOP (1) [CLAVE], [STATUS], [NOMBRE], [RFC], [CALLE], [NUMINT], [NUMEXT], 
                     [CRUZAMIENTOS], [COLONIA], [CODIGO], [LOCALIDAD], [MUNICIPIO], [ESTADO], 
                     [PAIS], [NACIONALIDAD], [REFERDIR], [TELEFONO], [CLASIFIC], [FAX], [PAG_WEB], 
                     [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO] 
-            FROM [SAE90Empre02].[dbo].[CLIE02] 
+            FROM $nombreTabla 
             WHERE CAST(LTRIM(RTRIM([CLAVE])) AS NVARCHAR(MAX)) = CAST(? AS NVARCHAR(MAX))";
 
     // Preparar el parámetro

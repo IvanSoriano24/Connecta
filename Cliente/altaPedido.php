@@ -226,7 +226,7 @@ if (isset($_SESSION['usuario'])) {
                                 <!-- Sección de botones -->
                                 <div class="form-buttons">
                                     <button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
-                                    <button type="button" class="btn-cancel">Cancelar</button>
+                                    <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
                             </form>
 
@@ -245,70 +245,62 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/ventas.js"></script>
     <script>
-    $(document).ready(function () {
-        // Mostrar la X cuando el input tiene texto
-        $('#cliente').on('input', function () {
-            var cliente = $(this).val();
-            var clave = '<?php echo $claveVendedor ?>';
-            var $clienteInput = $(this);
-
-            // Mostrar u ocultar la X dependiendo de si el input tiene texto
-            if (cliente.length > 0) {
-                $('#clearInput').show(); // Mostrar la X si hay texto
-            } else {
-                $('#clearInput').hide(); // Ocultar la X si el input está vacío
-            }
-
-            // Si el texto ingresado tiene más de 2 caracteres
-            if (cliente.length > 2) {
-                $.ajax({
-                    url: '../Servidor/PHP/ventas.php',
-                    type: 'POST',
-                    data: {
-                        cliente: cliente,
-                        numFuncion: '4',
-                        clave: clave
-                    },
-                    success: function (response) {
-                        console.log(response);
-                        try {
-                            if (typeof response === 'string') {
-                                response = JSON.parse(response);
+        $(document).ready(function() {
+            $('#cliente').on('input', function() {
+                var cliente = $(this).val();
+                var clave = '<?php echo $claveVendedor ?>';
+                var $clienteInput = $(this);
+                // Si el texto ingresado tiene más de 2 caracteres
+                if (cliente.length > 2) {
+                    $.ajax({
+                        url: '../Servidor/PHP/ventas.php',
+                        type: 'POST',
+                        data: {
+                            cliente: cliente,
+                            numFuncion: '4',
+                            clave: clave
+                        },
+                        success: function(response) {
+                            console.log(response);
+                            try {
+                                if (typeof response === 'string') {
+                                    response = JSON.parse(response);
+                                }
+                            } catch (e) {
+                                console.error("Error al parsear la respuesta JSON", e);
                             }
-                        } catch (e) {
-                            console.error("Error al parsear la respuesta JSON", e);
-                        }
 
-                        if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                            var suggestions = response.cliente.map(function (cliente) {
-                                return cliente.NOMBRE;
-                            });
+                            if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
+                                var suggestions = response.cliente.map(function(cliente) {
+                                    return cliente.NOMBRE;
+                                });
 
-                            // Mostrar las sugerencias debajo del input
-                            var suggestionsList = $('#clientesSugeridos');
-                            suggestionsList.empty().show();
+                                // Mostrar las sugerencias debajo del input
+                                var suggestionsList = $('#clientesSugeridos');
+                                suggestionsList.empty().show();
 
-                            suggestions.forEach(function (suggestion, index) {
-                                var listItem = $('<li></li>')
-                                    .text(suggestion)
-                                    .on('click', function () {
-                                        // Al seleccionar un cliente, llenar los campos del formulario
-                                        $clienteInput.val(suggestion);
-                                        suggestionsList.empty().hide();
+                                suggestions.forEach(function(suggestion, index) {
+                                    var listItem = $('<li></li>')
+                                        .text(suggestion)
+                                        .on('click', function() {
+                                            // Al seleccionar un cliente, llenar los campos del formulario
+                                            $clienteInput.val(suggestion);
+                                            suggestionsList.empty().hide();
 
-                                        // Llenar otros campos con la información del cliente seleccionado
-                                        var selectedClient = response.cliente[index];
-                                        $('#rfc').val(selectedClient.RFC);
-                                        $('#nombre').val(selectedClient.NOMBRE);
-                                        $('#calle').val(selectedClient.CALLE);
-                                        $('#numE').val(selectedClient.NUMERO_EXT);
-                                        $('#colonia').val(selectedClient.COLONIA);
-                                        $('#codigoPostal').val(selectedClient.CODIGO);
-                                        $('#poblacion').val(selectedClient.POBLACION);
-                                        $('#pais').val(selectedClient.PAIS);
-                                        $('#regimenFiscal').val(selectedClient.REGIMEN_FISCAL);
-                                        $('#destinatario').val(selectedClient.DESTINATARIO);
-                                    });
+                                            // Llenar otros campos con la información del cliente seleccionado
+                                            var selectedClient = response.cliente[index];
+                                            $('#rfc').val(selectedClient.RFC);
+                                            $('#nombre').val(selectedClient.NOMBRE);
+                                            $('#calle').val(selectedClient.CALLE);
+                                            $('#numE').val(selectedClient.NUMEXT);
+                                            $('#numI').val(selectedClient.NUMINT);
+                                            $('#colonia').val(selectedClient.COLONIA);
+                                            $('#codigoPostal').val(selectedClient.CODIGO);
+                                            $('#poblacion').val(selectedClient.LOCALIDAD);
+                                            $('#pais').val(selectedClient.PAIS);
+                                            $('#regimenFiscal').val(selectedClient.REGIMEN_FISCAL);
+                                            //$('#destinatario').val(selectedClient.DESTINATARIO);
+                                        });
 
                                 suggestionsList.append(listItem);
                             });

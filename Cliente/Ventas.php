@@ -147,6 +147,7 @@ session_destroy(); */
 		$(document).ready(function() {
 			datosPedidos();
 		});
+		
 	</script>
 </body>
 

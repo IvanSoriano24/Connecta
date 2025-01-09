@@ -43,8 +43,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 }
 
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarPedidos($conexionData, $filtroFecha)
-{
+function mostrarPedidos($conexionData, $filtroFecha){
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     //$filtroFecha = "Mes";
     try {
@@ -76,7 +75,9 @@ function mostrarPedidos($conexionData, $filtroFecha)
         }
         $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
         // Construir el nombre de la tabla dinámicamente usando el número de empresa
-        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
         // Construir la consulta SQL
         if ($tipoUsuario === 'ADMINISTRADOR') {
             // Si el usuario es administrador, mostrar todos los clientes
@@ -84,7 +85,7 @@ function mostrarPedidos($conexionData, $filtroFecha)
             TIP_DOC AS Tipo,
                 CVE_DOC AS Clave,
                 CVE_CLPV AS Cliente,
-                (SELECT MAX(NOMBRE) FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
+                (SELECT MAX(NOMBRE) FROM $nombreTabla WHERE $nombreTabla.CLAVE = $nombreTabla2.CVE_CLPV) AS Nombre,
                 STATUS AS Estatus,
                 FECHAELAB AS FechaElaboracion,
                 CAN_TOT AS Subtotal,
@@ -92,8 +93,8 @@ function mostrarPedidos($conexionData, $filtroFecha)
                 NUM_ALMA AS NumeroAlmacen,
                 FORMAENVIO AS FormaEnvio,
                 IMPORTE AS ImporteTotal,
-                (SELECT MAX(NOMBRE) FROM VEND02 WHERE VEND02.CVE_VEND = FACTP02.CVE_VEND) AS NombreVendedor
-            FROM $nombreTabla
+                (SELECT MAX(NOMBRE) FROM $nombreTabla3 WHERE $nombreTabla3.CVE_VEND = $nombreTabla2.CVE_VEND) AS NombreVendedor
+            FROM $nombreTabla2
             WHERE STATUS IN ('E', 'O')";
             if ($filtroFecha == 'Hoy') {
                 // Consulta para el día actual
@@ -112,7 +113,7 @@ function mostrarPedidos($conexionData, $filtroFecha)
             TIP_DOC AS Tipo,
                 CVE_DOC AS Clave,
                 CVE_CLPV AS Cliente,
-                (SELECT MAX(NOMBRE) FROM CLIE02 WHERE CLIE02.CLAVE = FACTP02.CVE_CLPV) AS Nombre,
+                (SELECT MAX(NOMBRE) FROM $nombreTabla WHERE $nombreTabla.CLAVE = $nombreTabla2.CVE_CLPV) AS Nombre,
                 STATUS AS Estatus,
                 FECHAELAB AS FechaElaboracion,
                 CAN_TOT AS Subtotal,
@@ -120,8 +121,8 @@ function mostrarPedidos($conexionData, $filtroFecha)
                 NUM_ALMA AS NumeroAlmacen,
                 FORMAENVIO AS FormaEnvio,
                 IMPORTE AS ImporteTotal,
-                (SELECT MAX(NOMBRE) FROM VEND02 WHERE VEND02.CVE_VEND = FACTP02.CVE_VEND) AS NombreVendedor
-            FROM $nombreTabla
+                (SELECT MAX(NOMBRE) FROM $nombreTabla3 WHERE $nombreTabla3.CVE_VEND = $nombreTabla2.CVE_VEND) AS NombreVendedor
+            FROM $nombreTabla2
             WHERE STATUS IN ('E', 'O') AND CVE_VEND = ?";
             if ($filtroFecha == 'Hoy') {
                 // Consulta para el día actual
@@ -136,9 +137,6 @@ function mostrarPedidos($conexionData, $filtroFecha)
             $params = [intval($claveVendedor)];
             $stmt = sqlsrv_query($conn, $sql, $params);
         }
-
-        //var_dump($conn);
-        //var_dump($sql);
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
@@ -232,8 +230,8 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function guardarPedido($conexionData)
-{
+function guardarPedido($conexionData){
+    
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -246,7 +244,8 @@ function guardarPedido($conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     // Capturar los datos del formulario
     $factura = $_POST['factura'];
     $numero = $_POST['numero'];
@@ -274,7 +273,7 @@ function guardarPedido($conexionData)
     $destinatario = $_POST['destinatario'];
 
     // Crear la consulta SQL para insertar los datos en la base de datos
-    $sql = "INSERT INTO pedidos (
+    $sql = "INSERT INTO  $nombreTabla(
         factura, numero, diaAlta, cliente, rfc, nombre, suPedido, calle, numE, descuento, 
         colonia, numI, codigoPostal, poblacion, pais, descuentofin, regimenFiscal, entrega, 
         vendedor, condicion, comision, enviar, almacen, destinatario
@@ -373,10 +372,13 @@ function obtenerClientePedido($clave, $conexionData, $cliente){
     // Agregar % a la entrada del cliente para búsqueda parcial
     $cliente = '%' . $cliente . '%';
     // Consulta SQL 
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT DISTINCT 
             [CLAVE], 
             [NOMBRE], 
-            [CALLE], 
+            [CALLE],
+            [RFC], 
             [NUMINT], 
             [NUMEXT], 
             [COLONIA],
@@ -386,7 +388,7 @@ function obtenerClientePedido($clave, $conexionData, $cliente){
             [ESTADO], 
             [PAIS],
             [TELEFONO]
-        FROM [SAE90Empre02].[dbo].[CLIE02] 
+        FROM $nombreTabla 
         WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER('$cliente') 
           AND [CVE_VEND] = $clave";
 
