@@ -295,7 +295,7 @@ if (isset($_SESSION['usuario'])) {
                             </form>
                             <div id="modalProductos" class="modal" style="display: none;">
                                 <div class="modal-content">
-                                    <span class="close" id="cerrar-modal">&times;</span>
+                                    <span class="close" id="cerrarModal">&times;</span>
                                     <h3>Selecciona un Producto</h3>
                                     <ul id="listaProductos">
                                         <!-- Aquí se llenará dinámicamente la lista de productos -->
@@ -320,6 +320,7 @@ if (isset($_SESSION['usuario'])) {
         <script src="JS/script.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="JS/ventas.js"></script>
+        <script src="JS/altaPedido.js"></script>
         <script>
             $(document).ready(function () {
                 $('#cliente').on('input', function () {

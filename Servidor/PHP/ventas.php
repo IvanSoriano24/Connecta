@@ -6,8 +6,7 @@ error_reporting(E_ALL);
 require 'firebase.php';
 session_start();
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
-{
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -206,8 +205,7 @@ function mostrarPedidos($conexionData, $filtroFecha)
     }
 }
 
-function mostrarPedidoEspecifico($clave, $conexionData)
-{
+function mostrarPedidoEspecifico($clave, $conexionData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -399,19 +397,8 @@ function obtenerClientePedido($clave, $conexionData, $cliente){
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT DISTINCT 
-            [CLAVE], 
-            [NOMBRE], 
-            [CALLE],
-            [RFC], 
-            [NUMINT], 
-            [NUMEXT], 
-            [COLONIA],
-            [CODIGO], 
-            [LOCALIDAD], 
-            [MUNICIPIO], 
-            [ESTADO], 
-            [PAIS],
-            [TELEFONO]
+            [CLAVE], [NOMBRE], [CALLE],[RFC], [NUMINT], [NUMEXT], [COLONIA],[CODIGO], 
+            [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS],[TELEFONO]
         FROM $nombreTabla 
         WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER('$cliente') 
           AND [CVE_VEND] = $clave";
@@ -439,6 +426,51 @@ function obtenerClientePedido($clave, $conexionData, $cliente){
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+
+function obtenerProductos($conexionData) {
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+
+    // Intentar conectarse a la base de datos
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta SQL
+    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [LIN_PROD], [UNI_MED]
+        FROM $nombreTabla";
+
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    $productos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $productos[] = $row;
+    }
+
+    if (count($productos) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'productos' => $productos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+    }
+
+    // Liberar recursos y cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -519,6 +551,21 @@ switch ($funcion) {
         $clave = $_POST['clave'];
         $cliente = $_POST['cliente'];
         obtenerClientePedido($clave, $conexionData, $cliente);
+        break;
+    case 5:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        obtenerProductos($conexionData);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
