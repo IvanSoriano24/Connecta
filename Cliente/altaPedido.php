@@ -267,6 +267,41 @@ if (isset($_SESSION['usuario'])) {
                                     <button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
+<<<<<<< HEAD
+                                <div id="divProductos">
+                                    <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
+                                        <thead>
+                                            <tr>
+                                                <th>Cant.</th>
+                                                <th>Producto</th>
+                                                <th>Unidad</th>
+                                                <th>Descc.1</th>
+                                                <th>Descc.2</th>
+                                                <th>I.E.P.S</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th>I.V.A</th>
+                                                <th>Comision</th>
+                                                <th>Prec.Unit</th>
+                                                <th>Subtotal por Partida</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Aquí se agregarán dinámicamente las filas de las partidas -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </form>
+                            <div id="modalProductos" class="modal" style="display: none;">
+                                <div class="modal-content">
+                                    <span class="close" id="cerrar-modal">&times;</span>
+                                    <h3>Selecciona un Producto</h3>
+                                    <ul id="listaProductos">
+                                        <!-- Aquí se llenará dinámicamente la lista de productos -->
+                                    </ul>
+                                </div>
+                            </div>
+=======
                             </form>
                             <br>
                             <!-- <div class="head">
@@ -299,6 +334,7 @@ if (isset($_SESSION['usuario'])) {
                                 </tbody>
                             </table>
 
+>>>>>>> fa43146e8c5d613c6b6883a42f798b0d931ba84f
                         </div>
                     </div>
                 </div>
