@@ -54,9 +54,8 @@ if (isset($_SESSION['usuario'])) {
     .input-container {
         position: relative;
         width: 100%;
-        position: relative;
-        width: 100%;
     }
+  
 
     .suggestions-list {
         list-style: none;
