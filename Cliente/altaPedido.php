@@ -189,7 +189,7 @@ if (isset($_SESSION['usuario'])) {
                                 <a class=''>Campos Obligatorios *</a>
                             </div>
 
-                            <form onsubmit="return validateForm()">
+                            <form>
                                 <!-- Primera fila -->
                                 <div class="form-row">
                                     <label for="factura">Pedido: </label>
@@ -281,9 +281,10 @@ if (isset($_SESSION['usuario'])) {
                                 </div>
                                 <!-- Sección de botones -->
                                 <div class="form-buttons">
-                                    <button type="submit" class="btn-save" id="guardarFactura">Guardar</button>
+                                    <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
+                                <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
                                 <div id="divProductos">
                                     <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
                                         <thead>
@@ -421,20 +422,22 @@ if (isset($_SESSION['usuario'])) {
                                             $clienteInput.val(suggestion);
                                             suggestionsList.empty().hide();
 
-                                            // Llenar otros campos con la información del cliente seleccionado
-                                            var selectedClient = response.cliente[index];
-                                            $('#rfc').val(selectedClient.RFC);
-                                            $('#nombre').val(selectedClient.NOMBRE);
-                                            $('#calle').val(selectedClient.CALLE);
-                                            $('#numE').val(selectedClient.NUMEXT);
-                                            $('#numI').val(selectedClient.NUMINT);
-                                            $('#colonia').val(selectedClient.COLONIA);
-                                            $('#codigoPostal').val(selectedClient.CODIGO);
-                                            $('#poblacion').val(selectedClient.LOCALIDAD);
-                                            $('#pais').val(selectedClient.PAIS);
-                                            $('#regimenFiscal').val(selectedClient.REGIMEN_FISCAL);
-                                            //$('#destinatario').val(selectedClient.DESTINATARIO);
-                                        });
+                                                // Llenar otros campos con la información del cliente seleccionado
+                                                var selectedClient = response.cliente[index];
+                                                $('#rfc').val(selectedClient.RFC);
+                                                $('#nombre').val(selectedClient.NOMBRE);
+                                                $('#calle').val(selectedClient.CALLE);
+                                                $('#numE').val(selectedClient.NUMEXT);
+                                                $('#numI').val(selectedClient.NUMINT);
+                                                $('#colonia').val(selectedClient.COLONIA);
+                                                $('#codigoPostal').val(selectedClient.CODIGO);
+                                                $('#poblacion').val(selectedClient.LOCALIDAD);
+                                                $('#pais').val(selectedClient.PAIS);
+                                                $('#regimenFiscal').val(selectedClient.REGIMEN_FISCAL);
+                                                $('#cliente').val(selectedClient.CLAVE);
+                                                $('#listaPrecios').val(selectedClient.LISTA_PREC);
+                                                //$('#destinatario').val(selectedClient.DESTINATARIO);
+                                            });
 
                                     suggestionsList.append(listItem);
                                 });

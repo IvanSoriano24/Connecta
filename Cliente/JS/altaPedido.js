@@ -102,8 +102,6 @@ function mostrarProductos(input) {
     // Abre el modal de productos automáticamente
     const modalProductos = new bootstrap.Modal(document.getElementById('modalProductos'));
     modalProductos.show();
-
-
     // Llamar a la función AJAX para obtener los productos desde el servidor
     obtenerProductos(input);
 }
@@ -140,28 +138,10 @@ function mostrarListaProductos(productos, input) {
     tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
 
     productos.forEach(function (producto) {
-        // Crear una nueva fila para cada producto
-        const fila = document.createElement("tr");
-
-        // Crear y agregar celdas para cada columna
-        const celdaClave = document.createElement("td");
-        celdaClave.textContent = producto.CVE_ART;
-
-        const celdaDescripcion = document.createElement("td");
-        celdaDescripcion.textContent = producto.DESCR;
-
-        const celdaExist = document.createElement("td");
-        celdaExists.textContent = producto.EXIST;
-
-        // Agregar celdas a la fila
-        fila.appendChild(celdaClave);
-        fila.appendChild(celdaDescripcion);
-        fila.appendChild(celdaExist);
-
-        // Agregar evento de selección de producto
-        fila.onclick = function () {
-            input.value = producto.DESCR; // Asignar descripción al campo de entrada
-
+        const listItem = document.createElement("li");
+        listItem.textContent = `${producto.DESCR}`;
+        listItem.onclick = async function () {
+            input.value = producto.DESCR; // Asignar el nombre del producto al campo de entrada
             // Asignar el valor de la unidad al campo de Unidad correspondiente en la tabla
             const filaTabla = input.closest("tr"); // Encuentra la fila de la tabla
             const campoUnidad = filaTabla.querySelector(".unidad"); // Busca el campo con la clase 'unidad'
@@ -178,87 +158,106 @@ function mostrarListaProductos(productos, input) {
                 campoCantidad.readOnly = false; // Desbloquea el campo de cantidad
                 campoCantidad.value = 0; // Opcional: asignar un valor inicial
             }
+
+            await completarPrecioProducto(producto.CVE_ART, fila);
+            
         };
 
         // Agregar la fila a la tabla
         tablaProductos.appendChild(fila);
     });
 }
-
-// FUNCION PARA LISTAR Productos 
-function mostrarListaProductos(productos, input) {
-    const tablaProductos = document.querySelector("#tablalistaProductos tbody");
-    const campoBusqueda = document.getElementById("campoBusqueda");
-    const filtroCriterio = document.getElementById("filtroCriterio");
-
-    // Función para renderizar productos
-    function renderProductos(filtro = "") {
-        tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
-
-        const criterio = filtroCriterio.value; // Obtener criterio seleccionado
-        const productosFiltrados = productos.filter(producto =>
-            producto[criterio].toLowerCase().includes(filtro.toLowerCase())
-        );
-
-        productosFiltrados.forEach(function (producto) {
-            const fila = document.createElement("tr");
-
-            const celdaClave = document.createElement("td");
-            celdaClave.textContent = producto.CVE_ART;
-
-            const celdaDescripcion = document.createElement("td");
-            celdaDescripcion.textContent = producto.DESCR;
-
-            const celdaExist = document.createElement("td");
-            celdaExist.textContent = producto.EXIST;
-
-            // const celdaLinea = document.createElement("td");
-            // celdaLinea.textContent = producto.LIN_PROD;
-
-            // const celdaDisponible = document.createElement("td");
-            // celdaDisponible.textContent = producto.DISPONIBLE;
-
-            // const celdaClaveAlterna = document.createElement("td");
-            // celdaClaveAlterna.textContent = producto.CVE_ALT;
-
-            fila.appendChild(celdaClave);
-            fila.appendChild(celdaDescripcion);
-            fila.appendChild(celdaExist);
-            // fila.appendChild(celdaLinea);
-            // fila.appendChild(celdaDisponible);
-            // fila.appendChild(celdaClaveAlterna);
-
-            fila.onclick = function () {
-                input.value = producto.DESCR;
-
-                const filaTabla = input.closest("tr");
-                const campoUnidad = filaTabla.querySelector(".unidad");
-                if (campoUnidad) {
-                    campoUnidad.value = producto.UNI_MED;
-                }
-
-                // Desbloquear el campo de cantidad
-                const campoCantidad = filaTabla.querySelector("input.cantidad");
-                if (campoCantidad) {
-                    campoCantidad.readOnly = false;
-                    campoCantidad.value = 0; // Valor inicial opcional
-                }
-
-                // Cerrar el modal
-                cerrarModal();
-            };
-
-            tablaProductos.appendChild(fila);
-        });
+async function completarPrecioProducto(cveArt, fila) {
+    try {
+        const listaPrecio = document.getElementsByClassName("listaPrecios").value;
+        const cvePrecio = listaPrecio || "1";
+        
+        const precio = await obtenerPrecioProducto(cveArt, cvePrecio, fila); // Implementa la lógica para obtener el precio
+        if (!precio) {
+            alert("No se pudo obtener el precio del producto.");
+            return;
+        }
+        const precioInput = fila.querySelector(".precioUnidad");
+        if (precioInput) {
+            precioInput.value = parseFloat(precio).toFixed(2); // Establecer el precio con 2 decimales
+            precioInput.readOnly = true;
+        } 
+    } catch (error) {
+        console.error("Error al completar el precio del producto:", error);
     }
+}
 
-    // Evento para actualizar la tabla al escribir en el campo de búsqueda
-    campoBusqueda.addEventListener("input", () => {
-        renderProductos(campoBusqueda.value);
-    });
+// Función para obtener el precio del producto
+async function obtenerPrecioProducto(claveProducto, listaPrecioCliente) {
+    try {
+        const response = await $.get('../Servidor/PHP/ventas.php', {
+            numFuncion: '6', // Cambia según la función que uses en tu PHP
+            claveProducto: claveProducto,
+            listaPrecioCliente: listaPrecioCliente
+        });
+        if (response.success) {
+            return response.precio; // Retorna el precio
+        } else {
+            alert(response.message); // Muestra el mensaje de error
+            return null;
+        }
+    } catch (error) {
+        console.error("Error al obtener el precio del producto:", error);
+        return null;
+    }
+}
 
-    // Renderizar productos inicialmente
-    renderProductos();
+function validateFormulario() {
+    const clienteInput = document.getElementById("cliente"); // Campo del cliente
+    if (!clienteInput.value.trim()) {
+        alert("Debe seleccionar un cliente.");
+        return false;
+    }
+   if(validarPartidas()){
+    guardarPerdido();
+   }else{
+    return false;
+   }
+}
+function validarPartidas() {
+    const tablaProductos = document.querySelector("#tablaProductos tbody");
+    const filas = tablaProductos.querySelectorAll("tr");
+    let validacionCorrecta = true;
+
+    // Recorre todas las filas de la tabla
+    for (let fila of filas) {
+        const productoInput = fila.querySelector('td #producto'); // Campo de producto
+        const cantidadInput = fila.querySelector("td #cantidad"); // Campo de cantidad
+        const precioUnidadInput = fila.querySelector("td #precioUnidad"); // Campo de precio unidad
+
+        // Verifica que el producto esté seleccionado
+        if (productoInput.value.trim() === "") {
+            alert("Debe seleccionar un producto en alguna de las partidas.");
+            validacionCorrecta = false; // Marca que la validación no es correcta
+            break; // Sale del ciclo al encontrar un error
+        }
+        // Verifica que la cantidad sea mayor a 0
+        if (cantidadInput.value <= 0) {
+            alert("La cantidad debe ser mayor a 0 en todas las partidas.");
+            validacionCorrecta = false;
+            break;
+        }
+        // Verifica que el precio unidad sea mayor a 0
+        if (precioUnidadInput.value <= 0) {
+            alert("El precio por unidad debe ser mayor a 0 en todas las partidas.");
+            validacionCorrecta = false;
+            break;
+        }
+    }
+    return validacionCorrecta;
+}
+function guardarPerdido(){
+    alert("Se guarda");
+}
+// Cierra el modal
+function cerrarModal() {
+    const modal = document.getElementById("modalProductos");
+    modal.style.display = "none";
 }
 
 
@@ -284,6 +283,9 @@ document.getElementById("tablaProductos").addEventListener("keydown", function (
         agregarFilaPartidas();
     }
 });
-document.getElementById("cerrarModal").addEventListener("click", function () {
-    cerrarModal();
+
+$(document).ready(function () {
+    $('#guardarPedido').click(function () {
+        validateFormulario();
+    });
 });
