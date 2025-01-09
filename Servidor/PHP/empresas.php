@@ -303,14 +303,12 @@ function listaEmpresas($nombreUsuario) {
     global $firebaseProjectId, $firebaseApiKey;
     $urlEmpUs = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
     $responseEmpUs = file_get_contents($urlEmpUs);
- 
     if ($responseEmpUs !== false) {
         $dataEmpUs = json_decode($responseEmpUs, true);
         if (isset($dataEmpUs['documents'])) {
             $empresas = [];
             foreach ($dataEmpUs['documents'] as $document) {
                 $fields = $document['fields'];
- 
                 // Verificar que el usuario coincida
                 if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $nombreUsuario) {
                     $empresas[] = [
@@ -324,7 +322,7 @@ function listaEmpresas($nombreUsuario) {
             if (count($empresas) > 0) {
                 // Ordenar por razón social si es necesario
                 usort($empresas, function ($a, $b) {
-                    return strcmp($a['razonSocial'], $b['razonSocial']);
+                    return strcmp($a['noEmpresa'], $b['noEmpresa']);
                 });
                 $_SESSION['empresaSelect'] = [
                     'usuario' => $nombreUsuario,
