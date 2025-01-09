@@ -55,9 +55,7 @@ if (isset($_SESSION['usuario'])) {
         position: relative;
         width: 100%;
     }
-        position: relative;
-        width: 100%;
-    }
+  
 
     .suggestions-list {
         list-style: none;
