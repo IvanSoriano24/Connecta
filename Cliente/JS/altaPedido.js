@@ -206,9 +206,6 @@ async function obtenerPrecioProducto(claveProducto, listaPrecioCliente) {
         return null;
     }
 }
-function guardarPerdido(){
-    alert("Se guarda");
-}
 
 // Boton para mostrar Productos
 function mostrarProductos(input) {
@@ -323,9 +320,10 @@ function guardarPerdido() {
     // Obtener la información del formulario y las partidas
     const formularioData = obtenerDatosFormulario();
     const partidasData = obtenerDatosPartidas();
-
+    console.log(formularioData);
+    console.log(partidasData);
     // Hacer algo con los datos (enviar al backend, por ejemplo)
-    enviarDatosBackend(formularioData, partidasData);
+    //enviarDatosBackend(formularioData, partidasData);
 }
 function validarFormulario() {
     // Validar los campos obligatorios
@@ -414,7 +412,7 @@ function enviarDatosBackend(formularioData, partidasData) {
     const datos = {
         formulario: formularioData,
         partidas: partidasData
-    };/*
+    };
     fetch('../Servidor/PHP/ventas.php', {
         method: 'POST',
         headers: {
@@ -425,11 +423,14 @@ function enviarDatosBackend(formularioData, partidasData) {
     .then(response => response.json())
     .then(data => {
         console.log('Datos enviados correctamente:', data);
+        alert('Pedido guardado exitosamente');
+        // O redirigir al usuario a otra página
+        window.location.href = 'Ventas.php';
         // Puedes mostrar un mensaje de éxito o redirigir al usuario
     })
     .catch(error => {
         console.error('Error al enviar los datos:', error);
-    });*/
+    });
 }
 
 
