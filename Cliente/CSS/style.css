@@ -454,15 +454,7 @@ body {
 }
 
 
-/* Estructura de filas del formulario */
-.form-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Cuatro columnas iguales */
-    gap: 16px; /* Espaciado entre elementos */
-    padding: 20px;
-    border-radius: 10px;
-    box-sizing: border-box;
-}
+
 
 
 .form-buttons {
