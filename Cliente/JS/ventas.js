@@ -223,6 +223,11 @@ function obtenerFolioSiguiente() {
         console.log("Error de AJAX: " + error);
     });
 }
+function obtenerFecha() {
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    document.getElementById('diaAlta').value = formattedDate;
+}
 
 $('#filtroFecha').change(function () {
     var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
@@ -247,7 +252,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Verificar si estamos en la página de creación o edición de pedidos
     if (window.location.pathname.includes('altaPedido.php')) {
-        console.log('Estás en la página de altaPedido.php');
         // Si es edición, obtén el pedidoID y carga los datos del pedido si existe
         const urlParams = new URLSearchParams(window.location.search);
         const pedidoID = urlParams.get('pedidoID');
@@ -256,6 +260,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Aquí iría la lógica para obtener los datos del pedido y prellenar el formulario
             obtenerDatosPedido(pedidoID);
         } else {
+            obtenerFecha();
             console.log('Creando un nuevo pedido...');
             // Aquí puedes manejar la lógica para la creación de un nuevo pedido
             obtenerFolioSiguiente();

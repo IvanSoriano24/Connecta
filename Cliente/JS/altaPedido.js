@@ -207,22 +207,6 @@ async function obtenerPrecioProducto(claveProducto, listaPrecioCliente) {
     }
 }
 
-function validateFormulario() {
-    const clienteInput = document.getElementById("cliente"); // Campo del cliente
-    if (!clienteInput.value.trim()) {
-        alert("Debe seleccionar un cliente.");
-        return false;
-    }
-   if(validarPartidas()){
-    guardarPerdido();
-   }else{
-    return false;
-   }
-}
-function guardarPerdido(){
-    alert("Se guarda");
-}
-
 // Boton para mostrar Productos
 function mostrarProductos(input) {
     // Abre el modal de productos automáticamente
@@ -318,6 +302,138 @@ function cerrarModal() {
     }
 }
 
+function guardarPerdido() {
+    // Primero, validar el formulario
+    const formularioValido = validarFormulario();
+    if (!formularioValido) {
+        alert("Por favor, completa el formulario correctamente.");
+        return;
+    }
+
+    // Luego, validar las partidas
+    const partidasValidas = validarPartidas();
+    if (!partidasValidas) {
+        alert("Por favor, completa las partidas correctamente.");
+        return;
+    }
+
+    // Obtener la información del formulario y las partidas
+    const formularioData = obtenerDatosFormulario();
+    const partidasData = obtenerDatosPartidas();
+    console.log(formularioData);
+    console.log(partidasData);
+    // Hacer algo con los datos (enviar al backend, por ejemplo)
+    //enviarDatosBackend(formularioData, partidasData);
+}
+function validarFormulario() {
+    // Validar los campos obligatorios
+    const cliente = document.getElementById('cliente').value.trim();
+    const nombre = document.getElementById('nombre').value.trim();
+    const rfc = document.getElementById('rfc').value.trim();
+    const codigoPostal = document.getElementById('codigoPostal').value.trim();
+    const calle = document.getElementById('calle').value.trim();
+    const colonia = document.getElementById('colonia').value.trim();
+
+    // Validación de los campos obligatorios
+    if (!cliente || !nombre || !rfc || !codigoPostal || !calle || !colonia) {
+        return false;  // Si algún campo obligatorio está vacío, el formulario no es válido
+    }
+
+    return true;  // Todos los campos obligatorios están completos
+}
+function validarPartidas() {
+    // Aquí validas las partidas
+    // Asegúrate de que cada fila en la tabla de productos esté completa y válida
+    let valido = true;
+    const filas = document.querySelectorAll('#tablaProductos tbody tr');
+    filas.forEach(fila => {
+        const cantidad = fila.querySelector('.cantidad').value.trim();
+        const producto = fila.querySelector('.producto').value.trim();
+        const unidad = fila.querySelector('.unidad').value.trim();
+
+        if (!cantidad || !producto || !unidad) {
+            valido = false;  // Si algún campo de la partida está vacío, no es válida
+        }
+    });
+
+    return valido;
+}
+function obtenerDatosFormulario() {
+    // Aquí obtienes los datos del formulario, por ejemplo:
+    const formularioData = {
+        factura: document.getElementById('factura').value,
+        numero: document.getElementById('numero').value,
+        diaAlta: document.getElementById('diaAlta').value,
+        cliente: document.getElementById('cliente').value,
+        rfc: document.getElementById('rfc').value,
+        nombre: document.getElementById('nombre').value,
+        calle: document.getElementById('calle').value,
+        numE: document.getElementById('numE').value,
+        numI: document.getElementById('numI').value,
+        descuento: document.getElementById('descuento').value,
+        colonia: document.getElementById('colonia').value,
+        codigoPostal: document.getElementById('codigoPostal').value,
+        poblacion: document.getElementById('poblacion').value,
+        pais: document.getElementById('pais').value,
+        regimenFiscal: document.getElementById('regimenFiscal').value,
+        entrega: document.getElementById('entrega').value,
+        vendedor: document.getElementById('vendedor').value,
+        condicion: document.getElementById('condicion').value,
+        comision: document.getElementById('comision').value,
+        enviar: document.getElementById('enviar').value,
+        almacen: document.getElementById('almacen').value,
+        destinatario: document.getElementById('destinatario').value,
+    };
+    return formularioData;
+}
+function obtenerDatosPartidas() {
+    // Aquí obtienes las partidas de la tabla
+    const partidasData = [];
+    const filas = document.querySelectorAll('#tablaProductos tbody tr');
+    filas.forEach(fila => {
+        const partida = {
+            cantidad: fila.querySelector('.cantidad').value,
+            producto: fila.querySelector('.producto').value,
+            unidad: fila.querySelector('.unidad').value,
+            descuento1: fila.querySelector('.descuento1').value,
+            descuento2: fila.querySelector('.descuento2').value,
+            ieps: fila.querySelector('.ieps').value,
+            iva: fila.querySelector('.iva').value,
+            comision: fila.querySelector('.comision').value,
+            precioUnitario: fila.querySelector('.precioUnidad').value,
+            subtotal: fila.querySelector('.subtotalPartida').value,
+        };
+        partidasData.push(partida);
+    });
+    return partidasData;
+}
+function enviarDatosBackend(formularioData, partidasData) {
+    // Aquí puedes enviar los datos al backend usando fetch, AJAX, etc.
+    const datos = {
+        formulario: formularioData,
+        partidas: partidasData
+    };
+    fetch('../Servidor/PHP/ventas.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Datos enviados correctamente:', data);
+        alert('Pedido guardado exitosamente');
+        // O redirigir al usuario a otra página
+        window.location.href = 'Ventas.php';
+        // Puedes mostrar un mensaje de éxito o redirigir al usuario
+    })
+    .catch(error => {
+        console.error('Error al enviar los datos:', error);
+    });
+}
+
+
 // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
 
@@ -332,5 +448,6 @@ document.getElementById("tablaProductos").addEventListener("keydown", function (
 
 $(document).ready(function () {
     $('#guardarPedido').click(function () {
+        guardarPerdido();
     });
 });
