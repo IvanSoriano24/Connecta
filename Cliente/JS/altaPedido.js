@@ -58,8 +58,6 @@ function agregarFilaPartidas() {
         <td><input type="number" class="descuento1" value="0" /></td>
         <td><input type="number" class="descuento2" value="0" /></td>
         <td><input type="number" class="ieps" value="0" readonly /></td>
-        <td><input type="number" class="blanco1" value="0" /></td>
-        <td><input type="number" class="blanco2" value="0" /></td>
         <td><input type="number" class="iva" value="0" /></td>
         <td><input type="number" class="comision" value="0" /></td>
         <td><input type="number" class="precioUnidad" value="0" /></td>
@@ -67,6 +65,8 @@ function agregarFilaPartidas() {
     `;
 
     tablaProductos.appendChild(nuevaFila);
+    const cantidadInput = nuevaFila.querySelector(".cantidad");
+    cantidadInput.addEventListener("input", () => calcularSubtotal(nuevaFila));
 }
 
 // Ocultar sugerencias al hacer clic fuera del input
@@ -78,8 +78,6 @@ document.addEventListener("click", function (e) {
         }
     });
 });
-
-
 
 function obtenerProductos(input) {
     const numFuncion = 5; // Número de función para identificar la acción (en este caso obtener productos)
@@ -302,6 +300,18 @@ function mostrarListaProductos(productos, input) {
     renderProductos();
 }
 
+function calcularSubtotal(fila) {
+    const cantidadInput = fila.querySelector(".cantidad");
+    const precioInput = fila.querySelector(".precioUnidad");
+    const subtotalInput = fila.querySelector(".subtotalPartida");
+
+    const cantidad = parseFloat(cantidadInput.value) || 0; // Manejar valores no numéricos
+    const precio = parseFloat(precioInput.value) || 0;
+
+    const subtotal = cantidad * precio;
+    subtotalInput.value = subtotal.toFixed(2); // Actualizar el subtotal con dos decimales
+}
+
 // Cierra el modal usando la API de Bootstrap
 function cerrarModal() {
     const modal = bootstrap.Modal.getInstance(document.getElementById("modalProductos"));
@@ -324,6 +334,5 @@ document.getElementById("tablaProductos").addEventListener("keydown", function (
 
 $(document).ready(function () {
     $('#guardarPedido').click(function () {
-        validateFormulario();
     });
 });
