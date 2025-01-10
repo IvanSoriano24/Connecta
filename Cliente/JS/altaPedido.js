@@ -22,15 +22,13 @@ function agregarFilaPartidas() {
         return;
     }
     const tablaProductos = document.querySelector("#tablaProductos tbody");
-
     // Verificar si alguna fila tiene un producto y cantidad mayor a 0 antes de agregar una nueva
     const filas = tablaProductos.querySelectorAll("tr");
     for (let fila of filas) {
-        const productoInput = fila.querySelector("td input[type='text']"); // Campo de producto
-        const cantidadInput = fila.querySelector("td input[type='number']"); // Campo de cantidad
-
-        if (productoInput.value.trim() === "" || cantidadInput.value <= 0) {
-            alert("Debe seleccionar un producto y asegurar que la cantidad sea mayor a 0.");
+        const productoInput = fila.querySelector(".producto"); // Campo de producto
+        const totalInput = fila.querySelector(".subtotalPartida");
+        if (productoInput.value.trim() === "" || totalInput.value <= 0) {
+            alert("Debe llenar los campos correspondientes");
             return;
         }
     }
@@ -55,13 +53,13 @@ function agregarFilaPartidas() {
         </td>
 
         <td><input type="text" class="unidad" readonly /></td>
-        <td><input type="number" class="descuento1" value="0" /></td>
-        <td><input type="number" class="descuento2" value="0" /></td>
+        <td><input type="number" class="descuento1" value="0" readonly /></td>
+        <td><input type="number" class="descuento2" value="0" readonly /></td>
         <td><input type="number" class="ieps" value="0" readonly /></td>
         <td><input type="number" class="iva" value="0" /></td>
-        <td><input type="number" class="comision" value="0" /></td>
+        <td><input type="number" class="comision" value="0" readonly /></td>
         <td><input type="number" class="precioUnidad" value="0" /></td>
-        <td><input type="number" class="subtotalPartida" value="0" /></td>
+        <td><input type="number" class="subtotalPartida" value="0" readonly /></td>
     `;
 
     tablaProductos.appendChild(nuevaFila);
@@ -323,9 +321,9 @@ function cerrarModal() {
 // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
 
-document.getElementById("divProductos").addEventListener("click", function () {
+document.getElementById("añadirPartida").addEventListener("click", function () {
     agregarFilaPartidas();
-}, { once: true });
+});
 document.getElementById("tablaProductos").addEventListener("keydown", function (event) {
     if (event.key === "Tab") {  // Verifica si la tecla presionada es el tabulador
         agregarFilaPartidas();
