@@ -114,41 +114,38 @@ function obtenerProductos(input) {
 
     xhr.send();
 }
+function obtenerImpuesto(cveEsqImpu) {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: '../Servidor/PHP/ventas.php',  // Ruta del archivo PHP en el backend
+            type: 'POST',
+            data: { cveEsqImpu: cveEsqImpu, numFuncion: '7' },
+            success: function(response) {
+                // Convertir la respuesta JSON a un objeto
+                const data = JSON.parse(response);
 
-/*function mostrarListaProductos(productos, input) {
-    const tablaProductos = document.querySelector("#tablalistaProductos tbody");
-    tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
+                if (data.success) {
+                    const impuesto1 = data.IMPUESTO1;
+                    const impuesto2 = data.IMPUESTO2;
+                    const impuesto4 = data.IMPUESTO4;
+                    console.log('Impuesto 1 (IEPS):', impuesto1);
+                    console.log('Impuesto 2 (IEPS):', impuesto2);
+                    console.log('Impuesto 4 (IVA):', impuesto4);
 
-    productos.forEach(function (producto) {
-        const listItem = document.createElement("li");
-        listItem.textContent = `${producto.DESCR}`;
-        listItem.onclick = async function () {
-            input.value = producto.DESCR; // Asignar el nombre del producto al campo de entrada
-            // Asignar el valor de la unidad al campo de Unidad correspondiente en la tabla
-            const filaTabla = input.closest("tr"); // Encuentra la fila de la tabla
-            const campoUnidad = filaTabla.querySelector(".unidad"); // Busca el campo con la clase 'unidad'
-            if (campoUnidad) {
-                campoUnidad.value = producto.UNI_MED; // Asigna el valor de la unidad
+                    // Retornar los datos resueltos para continuar con el cálculo
+                    resolve({ impuesto1, impuesto2, impuesto4 });
+                } else {
+                    // En caso de error, rechazar la promesa
+                    reject('Error al obtener los impuestos: ' + data.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                reject('Error en la solicitud AJAX: ' + error);
             }
-
-            // Cerrar el modal
-            document.getElementById("modalProductos").style.display = "none";
-
-            // Desbloquear el campo de cantidad de la fila correspondiente
-            const campoCantidad = filaTabla.querySelector("input.cantidad"); // Encuentra el campo de cantidad
-            if (campoCantidad) {
-                campoCantidad.readOnly = false; // Desbloquea el campo de cantidad
-                campoCantidad.value = 0; // Opcional: asignar un valor inicial
-            }
-
-            
-            
-        };
-
-        // Agregar la fila a la tabla
-        tablaProductos.appendChild(fila);
+        });
     });
-}*/
+}
+
 async function completarPrecioProducto(cveArt, filaTabla) {
     try {
         // Obtener la lista de precios correctamente
@@ -170,6 +167,8 @@ async function completarPrecioProducto(cveArt, filaTabla) {
             console.error("No se encontró el campo 'precioUnidad' en la fila.");
             console.log(fila.outerHTML);
         }
+        var CVE_ESQIMPU = document.getElementById("CVE_ESQIMPU");
+        const impuestos = await obtenerImpuesto(CVE_ESQIMPU);
     } catch (error) {
         console.error("Error al completar el precio del producto:", error);
     }
@@ -222,7 +221,7 @@ function mostrarProductos(input) {
     // Llamar a la función AJAX para obtener los productos desde el servidor
     obtenerProductos(input);
 }
-
+/*
 function obtenerProductos(input) {
     const numFuncion = 5; // Número de función para identificar la acción (en este caso obtener productos)
     const xhr = new XMLHttpRequest();
@@ -248,7 +247,7 @@ function obtenerProductos(input) {
     };
 
     xhr.send();
-}
+}*/
 
 /*function mostrarListaProductos(productos, input) {
     const tablaProductos = document.querySelector("#tablalistaProductos tbody");
@@ -337,13 +336,12 @@ function mostrarListaProductos(productos, input) {
             // fila.appendChild(celdaClaveAlterna);
             fila.onclick = async function () {
                 input.value = producto.DESCR;
-
+                $('#CVE_ESQIMPU').val(producto.CVE_ESQIMPU);
                 const filaTabla = input.closest("tr");
                 const campoUnidad = filaTabla.querySelector(".unidad");
                 if (campoUnidad) {
                     campoUnidad.value = producto.UNI_MED;
                 }
-
                 // Desbloquear el campo de cantidad
                 const campoCantidad = filaTabla.querySelector("input.cantidad");
                 if (campoCantidad) {
@@ -357,12 +355,10 @@ function mostrarListaProductos(productos, input) {
             tablaProductos.appendChild(fila);
         });
     }
-
     // Evento para actualizar la tabla al escribir en el campo de búsqueda
     campoBusqueda.addEventListener("input", () => {
         renderProductos(campoBusqueda.value);
     });
-
     // Renderizar productos inicialmente
     renderProductos();
 }

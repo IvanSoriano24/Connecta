@@ -285,6 +285,7 @@ if (isset($_SESSION['usuario'])) {
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
                                 <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
+                                <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
                                 <div id="divProductos">
                                     <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
                                         <thead>

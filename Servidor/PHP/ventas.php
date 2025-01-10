@@ -430,8 +430,7 @@ function obtenerClientePedido($clave, $conexionData, $cliente)
     sqlsrv_close($conn);
 }
 
-function obtenerProductos($conexionData)
-{
+function obtenerProductos($conexionData){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -447,10 +446,9 @@ function obtenerProductos($conexionData)
     }
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL
-    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED] 
+    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU]
         FROM $nombreTabla";
 
     $stmt = sqlsrv_query($conn, $sql);
@@ -476,49 +474,7 @@ function obtenerProductos($conexionData)
     sqlsrv_close($conn);
 }
 
-function obtenerPreciosCliente($conexionData, $clave)
-{
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
-    ];
-
-    // Intentar conectarse a la base de datos
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-    if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
-    }
-    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-    $sql = "SELECT TOP (1) [CLAVE], [LISTA_PREC] FROM $nombreTabla WHERE [CLAVE] = ?";
-    $params = [$clave];
-
-    $stmt = sqlsrv_query($conn, $sql, $params);
-    if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
-    }
-
-    $cliente = [];
-    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $cliente[] = $row;
-    }
-
-    if (count($cliente) > 0) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'productos' => $cliente]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes.']);
-    }
-    // Liberar recursos y cerrar la conexión
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
-}
-
-function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente){
+function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $noEmpresa){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -535,10 +491,48 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
     $listaPrecio = $listaPrecioCliente ? intval($listaPrecioCliente) : 1;
     $claveProducto = mb_convert_encoding(trim($claveProducto), 'UTF-8');
     //$claveProducto = "'". $claveProducto . "'";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PRECIO_X_PROD" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT [PRECIO] 
-            FROM [PRECIO_X_PROD02] 
+            FROM $nombreTabla
             WHERE [CVE_ART] = ? AND [CVE_PRECIO] = ?";
     $params = [$claveProducto, $listaPrecio];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    $precio = null;
+    if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $precio = $row['PRECIO'];
+    }
+    header('Content-Type: application/json');
+    if ($precio !== null) {
+        echo json_encode(['success' => true, 'precio' => (float)$precio]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontró el precio del producto.']);
+    }
+    // Liberar recursos y cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+
+function obtenerImpuesto($conexionData, $clave){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    // Intentar conectarse a la base de datos
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+    //$claveProducto = "'". $claveProducto . "'";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[IMPU" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "SELECT IMPUESTO1, IMPUESTO2, IMPUESTO4 FROM $nombreTabla WHERE CVE_ESQIMPU = ?";
+    $params = [$clave];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
@@ -558,7 +552,6 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -670,8 +663,25 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $claveProducto = $_GET['claveProducto'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];
-        obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente);
+        obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $noEmpresa);
         break;
+        case 7:
+            if (!isset($_SESSION['empresa']['noEmpresa'])) {
+                echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+                exit;
+            }
+            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+            $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+            if (!$conexionResult['success']) {
+                echo json_encode($conexionResult);
+                break;
+            }
+            // Mostrar los clientes usando los datos de conexión obtenidos
+            $conexionData = $conexionResult['data'];
+            $claveProducto = $_POST['claveProducto'];
+            $listaPrecioCliente = $_POST['listaPrecioCliente'];
+            obtenerImpuesto($conexionData, $clave, $noEmpresa);
+            break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;
