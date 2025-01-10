@@ -335,7 +335,7 @@ function mostrarListaProductos(productos, input) {
             // fila.appendChild(celdaDisponible);
             // fila.appendChild(celdaClaveAlterna);
             fila.onclick = async function () {
-                input.value = producto.DESCR;
+                input.value = producto.CVE_ART;
                 $('#CVE_ESQIMPU').val(producto.CVE_ESQIMPU);
                 const filaTabla = input.closest("tr");
                 const campoUnidad = filaTabla.querySelector(".unidad");
