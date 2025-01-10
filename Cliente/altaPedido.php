@@ -337,8 +337,8 @@ if (isset($_SESSION['usuario'])) {
             <main class="text-center">
 
                 <div class="head-title">
-                    <div class="left">
-                        <h1>Alta de Pedidos</h1>
+                    <!-- <div class="left">
+                        <h4>Alta de Pedidos</h4>
                         <ul class="breadcrumb">
                             <li>
                                 <a href="#">Inicio</a>
@@ -352,12 +352,12 @@ if (isset($_SESSION['usuario'])) {
                                 <a class="" href="altaPedido.php">Alta Pedidos</a>
                             </li>
                         </ul>
-                    </div>
+                    </div> -->
 
                     <div class="table-data">
                         <div class="order">
                             <div class="head">
-                                <h3>Documento</h3>
+                                <h3>Alta Pedido</h3>
                                 <a class=''>Campos Obligatorios *</a>
                             </div>
 
@@ -532,7 +532,7 @@ if (isset($_SESSION['usuario'])) {
                                 </form>
 
                                 <!-- 5th row: 2 buttons -->
-                                <div class="button-container">
+                                <div class="form-buttons">
                                     <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
