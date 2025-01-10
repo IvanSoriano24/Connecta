@@ -514,8 +514,10 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+ 
+function obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa) {
+    ob_start(); // Inicia el buffer de salida para evitar texto adicional
 
-function obtenerImpuesto($conexionData, $clave){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -523,32 +525,44 @@ function obtenerImpuesto($conexionData, $clave){
         "PWD" => $conexionData['password'],
         "CharacterSet" => "UTF-8"
     ];
-    // Intentar conectarse a la base de datos
+
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
+        header('Content-Type: application/json; charset=utf-8');
+        ob_end_clean();
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-    //$claveProducto = "'". $claveProducto . "'";
+
+    $cveEsqImpu = mb_convert_encoding(trim($cveEsqImpu), 'UTF-8');
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[IMPU" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT IMPUESTO1, IMPUESTO2, IMPUESTO4 FROM $nombreTabla WHERE CVE_ESQIMPU = ?";
-    $params = [$clave];
+    $params = [$cveEsqImpu];
+
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
+        header('Content-Type: application/json; charset=utf-8');
+        ob_end_clean();
         die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
     }
-    $precio = null;
+
+    $impuestos = null;
     if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $precio = $row['PRECIO'];
+        $impuestos = [
+            'IMPUESTO1' => (float)$row['IMPUESTO1'],
+            'IMPUESTO2' => (float)$row['IMPUESTO2'],
+            'IMPUESTO4' => (float)$row['IMPUESTO4']
+        ];
     }
-    //var_dump($precio);
-    header('Content-Type: application/json');
-    if ($precio !== null) {
-        echo json_encode(['success' => true, 'precio' => (float)$precio]);
+
+    header('Content-Type: application/json; charset=utf-8');
+    ob_end_clean(); // Limpia cualquier salida antes de enviar la respuesta
+
+    if ($impuestos !== null) {
+        echo json_encode(['success' => true, 'impuestos' => $impuestos]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontró el precio del producto.']);
+        echo json_encode(['success' => false, 'message' => 'No se encontraron impuestos para la clave especificada.']);
     }
-    // Liberar recursos y cerrar la conexión
+
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
@@ -678,9 +692,8 @@ switch ($funcion) {
             }
             // Mostrar los clientes usando los datos de conexión obtenidos
             $conexionData = $conexionResult['data'];
-            $claveProducto = $_POST['claveProducto'];
-            $listaPrecioCliente = $_POST['listaPrecioCliente'];
-            obtenerImpuesto($conexionData, $clave, $noEmpresa);
+            $cveEsqImpu = $_POST['cveEsqImpu'];
+            obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa);
             break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

@@ -152,6 +152,55 @@ if (isset($_SESSION['usuario'])) {
         color: #333;
     }
 
+    /* */
+    /* General styling for input fields */
+    input {
+        padding: 5px;
+        font-size: 12px;
+        /* Reduce font size */
+        height: 30px;
+        /* Make inputs smaller */
+    }
+
+    /* Specific input field adjustments for smaller size */
+    .cantidad,
+    .ieps,
+    .subtotalPartida,
+    .iva {
+        width: 60px;
+        /* Narrow width */
+    }
+
+    .unidad,
+    .subtotalPartida,
+    .comision,
+    .precioUnidad {
+        width: 80px;
+        /* Slightly wider for these fields */
+    }
+
+    /* Styling for the "producto" field to keep it normal size */
+    .producto {
+        width: 150px;
+        /* Default size for the product field */
+    }
+
+    /* Styling for the suggestion list to ensure it looks correct */
+    .lista-sugerencias {
+        max-height: 150px;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+
+    .suggestion-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    .suggestions-list li {
+        padding: 8px;
+        cursor: pointer;
+    }
+
 
     /* PRUEBA */
 
@@ -487,30 +536,32 @@ if (isset($_SESSION['usuario'])) {
                                     <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
-                            </div>
-                            <div id="divProductos">
-                                <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
-                                    <thead>
-                                        <tr>
-                                            <th>Cant.</th>
-                                            <th>Producto</th>
-                                            <th>Unidad</th>
-                                            <th>Desc.1</th>
-                                            <th>Desc.2</th>
-                                            <th>I.E.P.S</th>
-                                            <th></th>
-                                            <th></th>
-                                            <th>I.V.A</th>
-                                            <th>Comision</th>
-                                            <th>Prec.Unit</th>
-                                            <th>Subtotal por Partida</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Aquí se agregarán dinámicamente las filas de las partidas -->
-                                    </tbody>
-                                </table>
-                            </div>
+                                <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
+                                <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
+                                <div id="divProductos">
+                                    <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
+                                        <thead>
+                                            <tr>
+                                                <th>Cant.</th>
+                                                <th>Producto</th>
+                                                <th>Unidad</th>
+                                                <th>Desc.1</th>
+                                                <th>Desc.2</th>
+                                                <th>I.E.P.S</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th>I.V.A</th>
+                                                <th>Comision</th>
+                                                <th>Prec.Unit</th>
+                                                <th>Subtotal por Partida</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Aquí se agregarán dinámicamente las filas de las partidas -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -582,8 +633,8 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/ventas.js"></script>
     <script src="JS/altaPedido.js"></script>
     <script>
-        $(document).ready(function () {
-            $('#cliente').on('input', function () {
+        $(document).ready(function() {
+            $('#cliente').on('input', function() {
                 var cliente = $(this).val();
                 var clave = '<?php echo $claveVendedor ?>';
                 var $clienteInput = $(this);
@@ -597,7 +648,7 @@ if (isset($_SESSION['usuario'])) {
                             numFuncion: '4',
                             clave: clave
                         },
-                        success: function (response) {
+                        success: function(response) {
                             console.log(response);
                             try {
                                 if (typeof response === 'string') {
@@ -608,7 +659,7 @@ if (isset($_SESSION['usuario'])) {
                             }
 
                             if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                                var suggestions = response.cliente.map(function (cliente) {
+                                var suggestions = response.cliente.map(function(cliente) {
                                     return cliente.NOMBRE;
                                 });
 
@@ -616,10 +667,10 @@ if (isset($_SESSION['usuario'])) {
                                 var suggestionsList = $('#clientesSugeridos');
                                 suggestionsList.empty().show();
 
-                                suggestions.forEach(function (suggestion, index) {
+                                suggestions.forEach(function(suggestion, index) {
                                     var listItem = $('<li></li>')
                                         .text(suggestion)
-                                        .on('click', function () {
+                                        .on('click', function() {
                                             // Al seleccionar un cliente, llenar los campos del formulario
                                             $clienteInput.val(suggestion);
                                             suggestionsList.empty().hide();
@@ -654,14 +705,14 @@ if (isset($_SESSION['usuario'])) {
             });
 
             // Cerrar la lista de sugerencias si se hace clic fuera del input
-            $(document).on('click', function (event) {
+            $(document).on('click', function(event) {
                 if (!$(event.target).closest('#cliente').length) {
                     $('#clientesSugeridos').empty().hide();
                 }
             });
 
             // Al hacer clic en la X, borrar el valor del input y los demás campos
-            $('#clearInput').on('click', function () {
+            $('#clearInput').on('click', function() {
                 $('#cliente').val(''); // Borra el valor del input
                 $('#rfc').val(''); // Borra el valor de RFC
                 $('#nombre').val(''); // Borra el valor de nombre
