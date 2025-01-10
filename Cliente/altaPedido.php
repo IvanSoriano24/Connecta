@@ -299,184 +299,6 @@ if (isset($_SESSION['usuario'])) {
 
                 <div class="card-body ">
 
-                    <form class="form-container">
-                        <!-- 1st row: 4 inputs (2 select, 2 text) -->
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="factura">Pedido: </label>
-                                <select name="factura" id="factura">
-                                    <option value="Directo">Directo</option>
-                                </select>
-                            </div>
-                            <div class="form-element">
-                                <label for="numero">Número</label>
-                                <input type="text" name="numero" id="numero" readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="fecha">Fecha </label>
-                                <input type="date" name="diaAlta" id="diaAlta">
-                            </div>
-                            <div class="form-element">
-                                <label for="cliente">Cliente </label>
-                                <div class="input-container" style="position: relative;">
-                                    <input name="cliente" id="cliente" autocomplete="" />
-                                    <button type="button" class="btn ms-2"
-                                            onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))">
-                                            <i class="bx bx-search"></i>
-                                        </button>
-                                    <span id="clearInput" class="clear-input"
-                                        style="cursor: pointer; display: none;">&#10005;</span>
-                                    <ul id="clientesSugeridos" class="suggestions-list"></ul>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="rfc">RFC <a class='bx'> *</a></label>
-                                <input type="text" name="rfc" id="rfc">
-                            </div>
-                            <div class="form-element">
-                                <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                <input type="text" name="nombre" id="nombre">
-                            </div>
-                            <div class="form-element">
-                                <label></label>
-                            </div>
-                            <div class="form-element">
-                                <label for="nombre">Su Pedido </label>
-                                <input type="text" name="nombre" id="nombre">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="calle">Calle </label>
-                                <input type="text" name="calle" id="calle" style="background-color: #e0e0e0; " value=""
-                                    readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="numE">Num. ext. </label>
-                                <input type="text" name="numE" id="numE" style="background-color: #e0e0e0; " value=""
-                                    readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="numI">Num. Int.</label>
-                                <input type="text" name="numI" id="numI" style="background-color: #e0e0e0; " value=""
-                                    readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="descuento">Esquema </label>
-                                <input type="text" name="descuento" id="descuento">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="colonia">Colonia:</label>
-                                <input type="text" name="colonia" id="colonia"
-                                    style="background-color: #e0e0e0; width: 470px;" value="" readonly>
-                            </div>
-                            <div class="form-element">
-                                <label></label>
-                            </div>
-                            <div class="form-element">
-                                <label for="descuento">Descuento </label>
-                                <input type="text" name="descuento" id="descuento">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
-                                <input type="text" name="codigoPostal" id="codigoPostal"
-                                    style="background-color: #e0e0e0; " value="" readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="poblacion">Población:</label>
-                                <input type="text" name="poblacion" id="poblacion" style="background-color: #e0e0e0; "
-                                    value="" readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="pais">Pais: <a class='bx'>*</a></label>
-                                <input type="text" name="pais" id="pais" style="background-color: #e0e0e0; " value=""
-                                    readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="descuentofin">Descuento Fin </label>
-                                <input type="text" name="descuentofin" id="descuentofin">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
-                                <input type="text" name="regimenFiscal" id="regimenFiscal"
-                                    style="background-color: #e0e0e0; " value="" readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="">.</label>
-                                <input type="text" name="regimenFiscal" id="regimenFiscal"
-                                    style="background-color: #e0e0e0; " value="" readonly>
-                            </div>
-
-                            <div class="form-element">
-                                <label for="entrega">Entrega </label>
-                                <input type="date" name="entrega" id="entrega">
-                            </div>
-                            <div class="form-element">
-                                <label for="vendedor">Vendedor </label>
-                                <input type="text" name="vendedor" id="vendedor" value="<?php echo $claveVendedor ?>"
-                                    readonly>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="condicion">Condicion </label>
-                                <input type="text" name="condicion" style="width: 470px;" id="condicion">
-                            </div>
-                            <div class="form-element"></div>
-                            <div class="form-element">
-                                <label for="comision">Comision </label>
-                                <input type="text" name="comision" id="comision">
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="enviar">Enviar a </label>
-                                <input type="text" name="enviar" style="width:470px;" id="enviar">
-                            </div>
-                            <div class="form-element"></div>
-
-                            <div class="form-element">
-                                <label for="almacen">Almacen </label>
-                                <input type="text" name="almacen" id="almacen" style="background-color: #e0e0e0;"
-                                    value="1" readonly>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="destinatario">Destinatario </label>
-                                <input type="text" name="destinatario" id="destinatario"
-                                    style="background-color: #e0e0e0; width: 470px; " value="" readonly>
-                            </div>
-                            <div class="form-buttons">
-                                <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
-                                <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
-                            </div>
-                            <div class="form-element"></div>
-                        </div>
-                    </form>
-
-                    <!-- 5th row: 2 buttons -->
-
-                    <div class="table-data">
-                        <div class="order">
-<<<<<<< HEAD
-                            <div class="head">
-                                <h3>Alta Pedido</h3>
-                                <a class=''>Campos Obligatorios *</a>
-                            </div>
-
                             <div class="card-body">
                                 <form class="form-container">
                                     <!-- 1st row: 4 inputs (2 select, 2 text) -->
@@ -540,7 +362,7 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                         <div class="form-element">
                                             <label for="descuento">Esquema </label>
-                                            <input type="text" name="descuento" id="descuento" value="0" readonly>
+                                            <input type="text" name="descuento" id="descuento">
                                         </div>
                                     </div>
                                     <div class="row">
@@ -590,59 +412,61 @@ if (isset($_SESSION['usuario'])) {
                                                 style="background-color: #e0e0e0; " value="" readonly>
                                         </div>
 
-                                        <div class="form-element">
-                                            <label for="entrega">Entrega </label>
-                                            <input type="date" name="entrega" id="entrega">
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="vendedor">Vendedor </label>
-                                            <input type="text" name="vendedor" id="vendedor" value="<?php echo $claveVendedor ?>" readonly>
-                                        </div>
-                                    </div>
+                            <div class="form-element">
+                                <label for="entrega">Entrega </label>
+                                <input type="date" name="entrega" id="entrega">
+                            </div>
+                            <div class="form-element">
+                                <label for="vendedor">Vendedor </label>
+                                <input type="text" name="vendedor" id="vendedor" value="<?php echo $claveVendedor ?>"
+                                    readonly>
+                            </div>
+                        </div>
 
-                                    <div class="row">
-                                        <div class="form-element">
-                                            <label for="condicion">Condicion </label>
-                                            <input type="text" name="condicion" style="width: 470px;" id="condicion">
-                                        </div>
-                                        <div class="form-element"></div>
-                                        <div class="form-element">
-                                            <label for="comision">Comision </label>
-                                            <input type="text" name="comision" id="comision">
-                                        </div>
-                                    </div>
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="condicion">Condicion </label>
+                                <input type="text" name="condicion" style="width: 470px;" id="condicion">
+                            </div>
+                            <div class="form-element"></div>
+                            <div class="form-element">
+                                <label for="comision">Comision </label>
+                                <input type="text" name="comision" id="comision">
+                            </div>
+                        </div>
 
-                                    <div class="row">
-                                        <div class="form-element">
-                                            <label for="enviar">Enviar a </label>
-                                            <input type="text" name="enviar" style="width:470px;" id="enviar">
-                                        </div>
-                                        <div class="form-element"></div>
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="enviar">Enviar a </label>
+                                <input type="text" name="enviar" style="width:470px;" id="enviar">
+                            </div>
+                            <div class="form-element"></div>
 
-                                        <div class="form-element">
-                                            <label for="almacen">Almacen </label>
-                                            <input type="text" name="almacen" id="almacen"
-                                                style="background-color: #e0e0e0;" value="1" readonly>
-                                        </div>
-                                    </div>
+                            <div class="form-element">
+                                <label for="almacen">Almacen </label>
+                                <input type="text" name="almacen" id="almacen" style="background-color: #e0e0e0;"
+                                    value="1" readonly>
+                            </div>
+                        </div>
 
-                                    <div class="row">
-                                        <div class="form-element">
-                                            <label for="destinatario">Destinatario </label>
-                                            <input type="text" name="destinatario" id="destinatario"
-                                                style="background-color: #e0e0e0; width: 470px; " value="" readonly>
-                                        </div>
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="destinatario">Destinatario </label>
+                                <input type="text" name="destinatario" id="destinatario"
+                                    style="background-color: #e0e0e0; width: 470px; " value="" readonly>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
+                                <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
+                            </div>
+                            <div class="form-element"></div>
+                        </div>
+                    </form>
 
-                                        <div class="form-element"></div>
-                                    </div>
+                    <!-- 5th row: 2 buttons -->
 
-                                </form>
-
-                                <!-- 5th row: 2 buttons -->
-                                <div class="form-buttons">
-                                    <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
-                                    <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
-=======
+                    <div class="table-data">
+                        <div class="order">
                             <div class="table-container">
                                 <div class="table-wrapper">
                                     <button type="button" class="btn-secondary" id="añadirPartida">Añadir
@@ -666,7 +490,6 @@ if (isset($_SESSION['usuario'])) {
                                             <!-- Filas dinámicas -->
                                         </tbody>
                                     </table>
->>>>>>> 05ba15b655677d40aaeab39444aeb270da97fc5f
                                 </div>
 
                                 <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly
