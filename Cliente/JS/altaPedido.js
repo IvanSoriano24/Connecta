@@ -7,9 +7,6 @@ function showCustomerSuggestions() {
     const clienteInputValue = clienteInput.value; // Obtienes el valor del campo de texto
     const sugerencias = document.getElementById("clientesSugeridos");
     console.log("Cliente: " + clienteInputValue);
-
-    // Aquí ya no necesitas hacer ninguna búsqueda ni consulta, ya que tienes el cliente seleccionado
-    // Usas directamente el cliente que escribiste en el input
     const cliente = { id: 1, nombre: clienteInputValue }; // El cliente ya está en el input, solo lo tomas
     clienteId = cliente.id; // Asigna el ID del cliente
     clienteSeleccionado = true; // Marca que el cliente está seleccionado
@@ -72,10 +69,6 @@ function agregarFilaPartidas() {
     tablaProductos.appendChild(nuevaFila);
 }
 
-
-
-
-
 // Ocultar sugerencias al hacer clic fuera del input
 document.addEventListener("click", function (e) {
     const listas = document.querySelectorAll(".lista-sugerencias");
@@ -114,29 +107,30 @@ function obtenerProductos(input) {
 
     xhr.send();
 }
-function obtenerImpuesto(cveEsqImpu) {
+async function obtenerImpuesto(cveEsqImpu) {
     return new Promise((resolve, reject) => {
         $.ajax({
-            url: '../Servidor/PHP/ventas.php',  // Ruta del archivo PHP en el backend
+            url: '../Servidor/PHP/ventas.php',
             type: 'POST',
             data: { cveEsqImpu: cveEsqImpu, numFuncion: '7' },
             success: function(response) {
-                // Convertir la respuesta JSON a un objeto
-                const data = JSON.parse(response);
+                console.log('Respuesta del servidor:', response); // Muestra la respuesta directamente
+                try {
+                    // Usa el objeto directamente
+                    if (response.success) {
+                        const { IMPUESTO1, IMPUESTO2, IMPUESTO4 } = response.impuestos;
+                        console.log('Impuesto 1 (IEPS):', IMPUESTO1);
+                        console.log('Impuesto 2 (IEPS):', IMPUESTO2);
+                        console.log('Impuesto 4 (IVA):', IMPUESTO4);
 
-                if (data.success) {
-                    const impuesto1 = data.IMPUESTO1;
-                    const impuesto2 = data.IMPUESTO2;
-                    const impuesto4 = data.IMPUESTO4;
-                    console.log('Impuesto 1 (IEPS):', impuesto1);
-                    console.log('Impuesto 2 (IEPS):', impuesto2);
-                    console.log('Impuesto 4 (IVA):', impuesto4);
-
-                    // Retornar los datos resueltos para continuar con el cálculo
-                    resolve({ impuesto1, impuesto2, impuesto4 });
-                } else {
-                    // En caso de error, rechazar la promesa
-                    reject('Error al obtener los impuestos: ' + data.error);
+                        resolve({ impuesto1: IMPUESTO1, impuesto2: IMPUESTO2, impuesto4: IMPUESTO4 });
+                    } else {
+                        console.error('Error del servidor:', response.message);
+                        reject('Error del servidor: ' + response.message);
+                    }
+                } catch (error) {
+                    console.error('Error al procesar la respuesta:', error);
+                    reject('Error al procesar la respuesta: ' + error.message);
                 }
             },
             error: function(xhr, status, error) {
@@ -151,7 +145,6 @@ async function completarPrecioProducto(cveArt, filaTabla) {
         // Obtener la lista de precios correctamente
         const listaPrecioElement = document.querySelector(".listaPrecios");
         const cvePrecio = listaPrecioElement ? listaPrecioElement.value : "1";
-
         // Obtener el precio del producto
         const precio = await obtenerPrecioProducto(cveArt, cvePrecio);
         if (!precio) {
@@ -160,15 +153,38 @@ async function completarPrecioProducto(cveArt, filaTabla) {
         }
         // Seleccionar el input correspondiente dentro de la fila
         const precioInput = filaTabla.querySelector(".precioUnidad");
-
         if (precioInput) {
             precioInput.value = parseFloat(precio).toFixed(2); // Establecer el precio con 2 decimales
+            precioInput.readOnly = true;
         } else {
             console.error("No se encontró el campo 'precioUnidad' en la fila.");
-            console.log(fila.outerHTML);
+            console.log(filaTabla.outerHTML);
         }
-        var CVE_ESQIMPU = document.getElementById("CVE_ESQIMPU");
+        // Obtener y manejar impuestos
+        var CVE_ESQIMPU = document.getElementById("CVE_ESQIMPU").value; // Asegurarse de usar el valor
+        if (!CVE_ESQIMPU) {
+            console.error("CVE_ESQIMPU no tiene un valor válido.");
+            return;
+        }
         const impuestos = await obtenerImpuesto(CVE_ESQIMPU);
+
+        // Obtén los campos de la fila
+        const impuesto1Input = filaTabla.querySelector(".ieps");
+        //const impuesto2Input = filaTabla.querySelector(".descuento2");
+        const impuesto4Input = filaTabla.querySelector(".iva");
+
+        // Verifica si los campos existen y asigna los valores de los impuestos
+        if (impuesto1Input && impuesto4Input) {
+            impuesto1Input.value = parseFloat(impuestos.impuesto1);
+            impuesto4Input.value = parseFloat(impuestos.impuesto4);
+            impuesto1Input.readOnly = true;
+            impuesto4Input.readOnly = true;
+        } else {
+            console.error("No se encontraron uno o más campos 'descuento' en la fila.");
+            console.log(filaTabla.outerHTML);
+        }
+        
+        // Maneja los impuestos como sea necesario
     } catch (error) {
         console.error("Error al completar el precio del producto:", error);
     }
@@ -221,83 +237,6 @@ function mostrarProductos(input) {
     // Llamar a la función AJAX para obtener los productos desde el servidor
     obtenerProductos(input);
 }
-/*
-function obtenerProductos(input) {
-    const numFuncion = 5; // Número de función para identificar la acción (en este caso obtener productos)
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            const response = JSON.parse(xhr.responseText);
-            if (response.success) {
-                // Procesamos la respuesta de los productos
-                mostrarListaProductos(response.productos, input);
-            } else {
-                alert("Error: " + response.message);
-            }
-        } else {
-            alert("Hubo un problema con la consulta de productos.");
-        }
-    };
-
-    xhr.onerror = function () {
-        alert("Hubo un problema con la conexión.");
-    };
-
-    xhr.send();
-}*/
-
-/*function mostrarListaProductos(productos, input) {
-    const tablaProductos = document.querySelector("#tablalistaProductos tbody");
-    tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
-
-    productos.forEach(function (producto) {
-        // Crear una nueva fila para cada producto
-        const fila = document.createElement("tr");
-
-        // Crear y agregar celdas para cada columna
-        const celdaClave = document.createElement("td");
-        celdaClave.textContent = producto.CVE_ART;
-
-        const celdaDescripcion = document.createElement("td");
-        celdaDescripcion.textContent = producto.DESCR;
-
-        const celdaExist = document.createElement("td");
-        celdaExists.textContent = producto.EXIST;
-
-        // Agregar celdas a la fila
-        fila.appendChild(celdaClave);
-        fila.appendChild(celdaDescripcion);
-        fila.appendChild(celdaExist);
-
-        // Agregar evento de selección de producto
-        fila.onclick = function () {
-            input.value = producto.DESCR; // Asignar descripción al campo de entrada
-
-            // Asignar el valor de la unidad al campo de Unidad correspondiente en la tabla
-            const filaTabla = input.closest("tr"); // Encuentra la fila de la tabla
-            const campoUnidad = filaTabla.querySelector(".unidad"); // Busca el campo con la clase 'unidad'
-            if (campoUnidad) {
-                campoUnidad.value = producto.UNI_MED; // Asigna el valor de la unidad
-            }
-
-            // Cerrar el modal
-            document.getElementById("modalProductos").style.display = "none";
-
-            // Desbloquear el campo de cantidad de la fila correspondiente
-            const campoCantidad = filaTabla.querySelector("input.cantidad"); // Encuentra el campo de cantidad
-            if (campoCantidad) {
-                campoCantidad.readOnly = false; // Desbloquea el campo de cantidad
-                campoCantidad.value = 0; // Opcional: asignar un valor inicial
-            }
-        };
-
-        // Agregar la fila a la tabla
-        tablaProductos.appendChild(fila);
-    });
-}*/
 
 // FUNCION PARA LISTAR Productos 
 function mostrarListaProductos(productos, input) {
@@ -373,9 +312,7 @@ function cerrarModal() {
 
 // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
-// Añadir el evento a la tabla de partidas para agregar una fila cuando el usuario haga clic o tabule hacia ella
-// Agrega la fila de partidas al hacer clic o al tabular hacia la zona
-// Agrega la fila de partidas al hacer clic o al tabular hacia la zona
+
 document.getElementById("divProductos").addEventListener("click", function () {
     agregarFilaPartidas();
 }, { once: true });
