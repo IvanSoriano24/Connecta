@@ -336,6 +336,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
                                 <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
                                 <div id="divProductos">
+                                    <button type="button" class="btn-primary" id="añadirPartida">Añadir Partida</button>
                                     <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
                                         <thead>
                                             <tr>
