@@ -389,7 +389,6 @@ if (isset($_SESSION['usuario'])) {
                                             </div>
                                         </div>
                                     </div>
-
                                     <div class="row">
                                         <div class="form-element">
                                             <label for="rfc">RFC <a class='bx'> *</a></label>
@@ -401,14 +400,12 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                         <div class="form-element">
                                             <label></label>
-
                                         </div>
                                         <div class="form-element">
                                             <label for="nombre">Su Pedido </label>
                                             <input type="text" name="nombre" id="nombre">
                                         </div>
                                     </div>
-
                                     <div class="row">
                                         <div class="form-element">
                                             <label for="calle">Calle </label>
@@ -430,24 +427,20 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="text" name="descuento" id="descuento">
                                         </div>
                                     </div>
-
                                     <div class="row">
                                         <div class="form-element">
                                             <label for="colonia">Colonia:</label>
                                             <input type="text" name="colonia" id="colonia"
                                                 style="background-color: #e0e0e0; width: 470px;" value="" readonly>
                                         </div>
-
                                         <div class="form-element">
                                             <label></label>
                                         </div>
-
                                         <div class="form-element">
                                             <label for="descuento">Descuento </label>
                                             <input type="text" name="descuento" id="descuento">
                                         </div>
                                     </div>
-
                                     <div class="row">
                                         <div class="form-element">
                                             <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
@@ -469,8 +462,6 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="text" name="descuentofin" id="descuentofin">
                                         </div>
                                     </div>
-
-
                                     <div class="row">
                                         <div class="form-element">
                                             <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
@@ -489,7 +480,7 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                         <div class="form-element">
                                             <label for="vendedor">Vendedor </label>
-                                            <input type="text" name="vendedor" id="vendedor">
+                                            <input type="text" name="vendedor" id="vendedor" value="<?php echo $claveVendedor ?>" readonly>
                                         </div>
                                     </div>
 
@@ -538,31 +529,30 @@ if (isset($_SESSION['usuario'])) {
                                 </div>
                                 </form>
                             </div>
-
                             <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
-                                <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
-                                <div id="divProductos">
-                                    <button type="button" class="btn-primary" id="añadirPartida">Añadir Partida</button>
-                                    <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
-                                        <thead>
-                                            <tr>
-                                                <th>Cant.</th>
-                                                <th>Producto</th>
-                                                <th>Unidad</th>
-                                                <th>Desc.1</th>
-                                                <th>Desc.2</th>
-                                                <th>I.E.P.S</th>
-                                                <th>I.V.A</th>
-                                                <th>Comision</th>
-                                                <th>Prec.Unit</th>
-                                                <th>Subtotal por Partida</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Aquí se agregarán dinámicamente las filas de las partidas -->
-                                        </tbody>
-                                    </table>
-                                </div>
+                            <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
+                            <div id="divProductos">
+                                <br><button type="button" class="btn-primary" id="añadirPartida">Añadir Partida</button>
+                                <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
+                                    <thead>
+                                        <tr>
+                                            <th>Cant.</th>
+                                            <th>Producto</th>
+                                            <th>Unidad</th>
+                                            <th>Desc.1</th>
+                                            <th>Desc.2</th>
+                                            <th>I.E.P.S</th>
+                                            <th>I.V.A</th>
+                                            <th>Comision</th>
+                                            <th>Prec.Unit</th>
+                                            <th>Subtotal por Partida</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Aquí se agregarán dinámicamente las filas de las partidas -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -634,8 +624,8 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/ventas.js"></script>
     <script src="JS/altaPedido.js"></script>
     <script>
-        $(document).ready(function () {
-            $('#cliente').on('input', function () {
+        $(document).ready(function() {
+            $('#cliente').on('input', function() {
                 var cliente = $(this).val();
                 var clave = '<?php echo $claveVendedor ?>';
                 var $clienteInput = $(this);
@@ -649,7 +639,7 @@ if (isset($_SESSION['usuario'])) {
                             numFuncion: '4',
                             clave: clave
                         },
-                        success: function (response) {
+                        success: function(response) {
                             console.log(response);
                             try {
                                 if (typeof response === 'string') {
@@ -660,7 +650,7 @@ if (isset($_SESSION['usuario'])) {
                             }
 
                             if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                                var suggestions = response.cliente.map(function (cliente) {
+                                var suggestions = response.cliente.map(function(cliente) {
                                     return cliente.NOMBRE;
                                 });
 
@@ -668,10 +658,10 @@ if (isset($_SESSION['usuario'])) {
                                 var suggestionsList = $('#clientesSugeridos');
                                 suggestionsList.empty().show();
 
-                                suggestions.forEach(function (suggestion, index) {
+                                suggestions.forEach(function(suggestion, index) {
                                     var listItem = $('<li></li>')
                                         .text(suggestion)
-                                        .on('click', function () {
+                                        .on('click', function() {
                                             // Al seleccionar un cliente, llenar los campos del formulario
                                             $clienteInput.val(suggestion);
                                             suggestionsList.empty().hide();
@@ -706,14 +696,14 @@ if (isset($_SESSION['usuario'])) {
             });
 
             // Cerrar la lista de sugerencias si se hace clic fuera del input
-            $(document).on('click', function (event) {
+            $(document).on('click', function(event) {
                 if (!$(event.target).closest('#cliente').length) {
                     $('#clientesSugeridos').empty().hide();
                 }
             });
 
             // Al hacer clic en la X, borrar el valor del input y los demás campos
-            $('#clearInput').on('click', function () {
+            $('#clearInput').on('click', function() {
                 $('#cliente').val(''); // Borra el valor del input
                 $('#rfc').val(''); // Borra el valor de RFC
                 $('#nombre').val(''); // Borra el valor de nombre
