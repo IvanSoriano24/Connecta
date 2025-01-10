@@ -549,8 +549,6 @@ if (isset($_SESSION['usuario'])) {
                                                 <th>Desc.1</th>
                                                 <th>Desc.2</th>
                                                 <th>I.E.P.S</th>
-                                                <th></th>
-                                                <th></th>
                                                 <th>I.V.A</th>
                                                 <th>Comision</th>
                                                 <th>Prec.Unit</th>
