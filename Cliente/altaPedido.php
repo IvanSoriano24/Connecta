@@ -400,8 +400,8 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="text" name="nombre" id="nombre">
                                         </div>
                                         <div class="form-element">
-                                            <label ></label>
-                                          
+                                            <label></label>
+
                                         </div>
                                         <div class="form-element">
                                             <label for="nombre">Su Pedido </label>
@@ -437,9 +437,9 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="text" name="colonia" id="colonia"
                                                 style="background-color: #e0e0e0; width: 470px;" value="" readonly>
                                         </div>
-                                       
+
                                         <div class="form-element">
-                                            <label ></label>
+                                            <label></label>
                                         </div>
 
                                         <div class="form-element">
@@ -479,10 +479,10 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                         <div class="form-element">
                                             <label for="">.</label>
-                                        <input type="text" name="regimenFiscal" id="regimenFiscal"
-                                        style="background-color: #e0e0e0; " value="" readonly>
+                                            <input type="text" name="regimenFiscal" id="regimenFiscal"
+                                                style="background-color: #e0e0e0; " value="" readonly>
                                         </div>
-                                        
+
                                         <div class="form-element">
                                             <label for="entrega">Entrega </label>
                                             <input type="date" name="entrega" id="entrega">
@@ -525,7 +525,7 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="text" name="destinatario" id="destinatario"
                                                 style="background-color: #e0e0e0; width: 470px; " value="" readonly>
                                         </div>
-                                        
+
                                         <div class="form-element"></div>
                                     </div>
 
@@ -536,7 +536,10 @@ if (isset($_SESSION['usuario'])) {
                                     <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
-                                <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
+                                </form>
+                            </div>
+
+                            <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
                                 <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
                                 <div id="divProductos">
                                     <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
@@ -561,7 +564,6 @@ if (isset($_SESSION['usuario'])) {
                                         </tbody>
                                     </table>
                                 </div>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -633,8 +635,8 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/ventas.js"></script>
     <script src="JS/altaPedido.js"></script>
     <script>
-        $(document).ready(function() {
-            $('#cliente').on('input', function() {
+        $(document).ready(function () {
+            $('#cliente').on('input', function () {
                 var cliente = $(this).val();
                 var clave = '<?php echo $claveVendedor ?>';
                 var $clienteInput = $(this);
@@ -648,7 +650,7 @@ if (isset($_SESSION['usuario'])) {
                             numFuncion: '4',
                             clave: clave
                         },
-                        success: function(response) {
+                        success: function (response) {
                             console.log(response);
                             try {
                                 if (typeof response === 'string') {
@@ -659,7 +661,7 @@ if (isset($_SESSION['usuario'])) {
                             }
 
                             if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                                var suggestions = response.cliente.map(function(cliente) {
+                                var suggestions = response.cliente.map(function (cliente) {
                                     return cliente.NOMBRE;
                                 });
 
@@ -667,10 +669,10 @@ if (isset($_SESSION['usuario'])) {
                                 var suggestionsList = $('#clientesSugeridos');
                                 suggestionsList.empty().show();
 
-                                suggestions.forEach(function(suggestion, index) {
+                                suggestions.forEach(function (suggestion, index) {
                                     var listItem = $('<li></li>')
                                         .text(suggestion)
-                                        .on('click', function() {
+                                        .on('click', function () {
                                             // Al seleccionar un cliente, llenar los campos del formulario
                                             $clienteInput.val(suggestion);
                                             suggestionsList.empty().hide();
@@ -705,14 +707,14 @@ if (isset($_SESSION['usuario'])) {
             });
 
             // Cerrar la lista de sugerencias si se hace clic fuera del input
-            $(document).on('click', function(event) {
+            $(document).on('click', function (event) {
                 if (!$(event.target).closest('#cliente').length) {
                     $('#clientesSugeridos').empty().hide();
                 }
             });
 
             // Al hacer clic en la X, borrar el valor del input y los demás campos
-            $('#clearInput').on('click', function() {
+            $('#clearInput').on('click', function () {
                 $('#cliente').val(''); // Borra el valor del input
                 $('#rfc').val(''); // Borra el valor de RFC
                 $('#nombre').val(''); // Borra el valor de nombre
