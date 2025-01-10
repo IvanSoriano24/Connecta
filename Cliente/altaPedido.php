@@ -151,6 +151,55 @@ if (isset($_SESSION['usuario'])) {
     .clear-input:hover {
         color: #333;
     }
+
+    /* */
+    /* General styling for input fields */
+    input {
+        padding: 5px;
+        font-size: 12px;
+        /* Reduce font size */
+        height: 30px;
+        /* Make inputs smaller */
+    }
+
+    /* Specific input field adjustments for smaller size */
+    .cantidad,
+    .ieps,
+    .subtotalPartida,
+    .iva {
+        width: 60px;
+        /* Narrow width */
+    }
+
+    .unidad,
+    .subtotalPartida,
+    .comision,
+    .precioUnidad {
+        width: 80px;
+        /* Slightly wider for these fields */
+    }
+
+    /* Styling for the "producto" field to keep it normal size */
+    .producto {
+        width: 150px;
+        /* Default size for the product field */
+    }
+
+    /* Styling for the suggestion list to ensure it looks correct */
+    .lista-sugerencias {
+        max-height: 150px;
+        overflow-y: auto;
+        z-index: 1000;
+    }
+
+    .suggestion-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    .suggestions-list li {
+        padding: 8px;
+        cursor: pointer;
+    }
 </style>
 
 <body>
@@ -379,8 +428,8 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/ventas.js"></script>
     <script src="JS/altaPedido.js"></script>
     <script>
-        $(document).ready(function () {
-            $('#cliente').on('input', function () {
+        $(document).ready(function() {
+            $('#cliente').on('input', function() {
                 var cliente = $(this).val();
                 var clave = '<?php echo $claveVendedor ?>';
                 var $clienteInput = $(this);
@@ -394,7 +443,7 @@ if (isset($_SESSION['usuario'])) {
                             numFuncion: '4',
                             clave: clave
                         },
-                        success: function (response) {
+                        success: function(response) {
                             console.log(response);
                             try {
                                 if (typeof response === 'string') {
@@ -405,7 +454,7 @@ if (isset($_SESSION['usuario'])) {
                             }
 
                             if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                                var suggestions = response.cliente.map(function (cliente) {
+                                var suggestions = response.cliente.map(function(cliente) {
                                     return cliente.NOMBRE;
                                 });
 
@@ -413,30 +462,30 @@ if (isset($_SESSION['usuario'])) {
                                 var suggestionsList = $('#clientesSugeridos');
                                 suggestionsList.empty().show();
 
-                                suggestions.forEach(function (suggestion, index) {
+                                suggestions.forEach(function(suggestion, index) {
                                     var listItem = $('<li></li>')
                                         .text(suggestion)
-                                        .on('click', function () {
+                                        .on('click', function() {
                                             // Al seleccionar un cliente, llenar los campos del formulario
                                             $clienteInput.val(suggestion);
                                             suggestionsList.empty().hide();
 
-                                                // Llenar otros campos con la información del cliente seleccionado
-                                                var selectedClient = response.cliente[index];
-                                                $('#rfc').val(selectedClient.RFC);
-                                                $('#nombre').val(selectedClient.NOMBRE);
-                                                $('#calle').val(selectedClient.CALLE);
-                                                $('#numE').val(selectedClient.NUMEXT);
-                                                $('#numI').val(selectedClient.NUMINT);
-                                                $('#colonia').val(selectedClient.COLONIA);
-                                                $('#codigoPostal').val(selectedClient.CODIGO);
-                                                $('#poblacion').val(selectedClient.LOCALIDAD);
-                                                $('#pais').val(selectedClient.PAIS);
-                                                $('#regimenFiscal').val(selectedClient.REGIMEN_FISCAL);
-                                                $('#cliente').val(selectedClient.CLAVE);
-                                                $('#listaPrecios').val(selectedClient.LISTA_PREC);
-                                                //$('#destinatario').val(selectedClient.DESTINATARIO);
-                                            });
+                                            // Llenar otros campos con la información del cliente seleccionado
+                                            var selectedClient = response.cliente[index];
+                                            $('#rfc').val(selectedClient.RFC);
+                                            $('#nombre').val(selectedClient.NOMBRE);
+                                            $('#calle').val(selectedClient.CALLE);
+                                            $('#numE').val(selectedClient.NUMEXT);
+                                            $('#numI').val(selectedClient.NUMINT);
+                                            $('#colonia').val(selectedClient.COLONIA);
+                                            $('#codigoPostal').val(selectedClient.CODIGO);
+                                            $('#poblacion').val(selectedClient.LOCALIDAD);
+                                            $('#pais').val(selectedClient.PAIS);
+                                            $('#regimenFiscal').val(selectedClient.REGIMEN_FISCAL);
+                                            $('#cliente').val(selectedClient.CLAVE);
+                                            $('#listaPrecios').val(selectedClient.LISTA_PREC);
+                                            //$('#destinatario').val(selectedClient.DESTINATARIO);
+                                        });
 
                                     suggestionsList.append(listItem);
                                 });
@@ -451,14 +500,14 @@ if (isset($_SESSION['usuario'])) {
             });
 
             // Cerrar la lista de sugerencias si se hace clic fuera del input
-            $(document).on('click', function (event) {
+            $(document).on('click', function(event) {
                 if (!$(event.target).closest('#cliente').length) {
                     $('#clientesSugeridos').empty().hide();
                 }
             });
 
             // Al hacer clic en la X, borrar el valor del input y los demás campos
-            $('#clearInput').on('click', function () {
+            $('#clearInput').on('click', function() {
                 $('#cliente').val(''); // Borra el valor del input
                 $('#rfc').val(''); // Borra el valor de RFC
                 $('#nombre').val(''); // Borra el valor de nombre
