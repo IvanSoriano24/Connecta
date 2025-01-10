@@ -103,13 +103,14 @@ function obtenerProductos(input) {
 
     xhr.send();
 }
+
 async function obtenerImpuesto(cveEsqImpu) {
     return new Promise((resolve, reject) => {
         $.ajax({
             url: '../Servidor/PHP/ventas.php',
             type: 'POST',
             data: { cveEsqImpu: cveEsqImpu, numFuncion: '7' },
-            success: function(response) {
+            success: function (response) {
                 console.log('Respuesta del servidor:', response); // Muestra la respuesta directamente
                 try {
                     // Usa el objeto directamente
@@ -129,7 +130,7 @@ async function obtenerImpuesto(cveEsqImpu) {
                     reject('Error al procesar la respuesta: ' + error.message);
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 reject('Error en la solicitud AJAX: ' + error);
             }
         });
@@ -179,7 +180,7 @@ async function completarPrecioProducto(cveArt, filaTabla) {
             console.error("No se encontraron uno o más campos 'descuento' en la fila.");
             console.log(filaTabla.outerHTML);
         }
-        
+
         // Maneja los impuestos como sea necesario
     } catch (error) {
         console.error("Error al completar el precio del producto:", error);
@@ -420,18 +421,103 @@ function enviarDatosBackend(formularioData, partidasData) {
         },
         body: JSON.stringify(datos)
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Datos enviados correctamente:', data);
-        alert('Pedido guardado exitosamente');
-        // O redirigir al usuario a otra página
-        window.location.href = 'Ventas.php';
-        // Puedes mostrar un mensaje de éxito o redirigir al usuario
-    })
-    .catch(error => {
-        console.error('Error al enviar los datos:', error);
+        .then(response => response.json())
+        .then(data => {
+            console.log('Datos enviados correctamente:', data);
+            alert('Pedido guardado exitosamente');
+            // O redirigir al usuario a otra página
+            window.location.href = 'Ventas.php';
+            // Puedes mostrar un mensaje de éxito o redirigir al usuario
+        })
+        .catch(error => {
+            console.error('Error al enviar los datos:', error);
+        });
+}
+
+
+// MODAL MOSTRAR CLIENTES
+
+// Variables globales
+let clientesData = []; // Para almacenar los datos originales de los clientes
+
+// Función para abrir el modal y cargar los clientes
+function abrirModalClientes() {
+    const modalElement = document.getElementById('modalClientes');
+    const modal = new bootstrap.Modal(modalElement);
+    const datosClientes = document.getElementById('datosClientes');
+
+    // Solicitar datos al servidor
+    $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: '123' }, function (response) {
+        try {
+            if (response.success && response.data) {
+                clientesData = response.data; // Guardar los datos originales
+                datosClientes.innerHTML = ''; // Limpiar la tabla
+
+                // Renderizar los datos en la tabla
+                renderClientes(clientesData);
+            } else {
+                datosClientes.innerHTML = '<tr><td colspan="4">No se encontraron clientes</td></tr>';
+            }
+        } catch (error) {
+            console.error('Error al cargar clientes:', error);
+        }
+    });
+
+    modal.show();
+}
+
+// Función para renderizar los clientes en la tabla
+function renderClientes(clientes) {
+    const datosClientes = document.getElementById('datosClientes');
+    datosClientes.innerHTML = '';
+    clientes.forEach(cliente => {
+        datosClientes.innerHTML += `
+            <tr>
+                <td>${cliente.CLAVE}</td>
+                <td>${cliente.NOMBRE}</td>
+                <td>${cliente.TELEFONO || 'Sin teléfono'}</td>
+                <td>$${parseFloat(cliente.SALDO || 0).toFixed(2)}</td>
+            </tr>
+        `;
     });
 }
+
+// Filtrar clientes según la entrada de búsqueda
+function filtrarClientes() {
+    const criterio = document.getElementById('filtroCriterioClientes').value;
+    const busqueda = document.getElementById('campoBusquedaClientes').value.toLowerCase();
+
+    const clientesFiltrados = clientesData.filter(cliente => {
+        const valor = cliente[criterio]?.toLowerCase() || '';
+        return valor.includes(busqueda);
+    });
+
+    renderClientes(clientesFiltrados);
+}
+
+
+// Función para seleccionar un cliente y colocarlo en el input
+function seleccionarCliente(cliente) {
+    const inputCliente = document.getElementById('cliente');
+    inputCliente.value = `${cliente.CLAVE} - ${cliente.NOMBRE}`; // Formato personalizado
+    cerrarModalClientes(); // Cierra el modal al seleccionar
+}
+// Vincular los eventos de búsqueda y cambio de criterio
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('campoBusquedaClientes').addEventListener('input', filtrarClientes);
+    document.getElementById('filtroCriterioClientes').addEventListener('change', filtrarClientes);
+});
+
+// Función para cerrar el modal
+function cerrarModalClientes() {
+    const modalElement = document.getElementById('modalClientes');
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    modal.hide();
+}
+
+
+
+
 
 
 // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella

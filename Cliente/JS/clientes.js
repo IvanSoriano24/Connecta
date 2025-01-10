@@ -96,6 +96,7 @@ $(document).ready(function () {
 function cerrarModal() {
     $('#usuarioModal').modal('hide');
 }
+
 $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa }, function (response) {
     try {
         // Verifica si response es una cadena (string) que necesita ser parseada

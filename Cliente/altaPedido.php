@@ -319,15 +319,15 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element">
                                 <label for="cliente">Cliente </label>
                                 <div class="input-container" style="position: relative;">
-                                    <input name="cliente" id="cliente" autocomplete="" />
-                                    <button type="button" class="btn ms-2"
-                                            onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))">
+                                    <div style="display: flex; align-items: center;">
+                                        <input name="cliente" id="cliente" autocomplete="" />
+                                        <button type="button" class="btn ms-2" onclick="abrirModalClientes()">
                                             <i class="bx bx-search"></i>
                                         </button>
+                                    </div>
                                     <span id="clearInput" class="clear-input"
-                                        style="cursor: pointer; display: none;">&#10005;</span>
+                                        style="cursor: pointer; display: none;">✕</span>
                                     <ul id="clientesSugeridos" class="suggestions-list"></ul>
-                                    
                                 </div>
                             </div>
                         </div>
@@ -567,6 +567,60 @@ if (isset($_SESSION['usuario'])) {
         </div>
     </div>
 
+    <!-- Modal clientes -->
+    <div  id="modalClientes" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title">Ayuda Clientes</h5>
+                    <button type="button" class="btn-close" onclick="cerrarModalClientes()"></button>
+                </div>
+                <!-- Filtro Estático -->
+                <div class="modal-static">
+                    <div class="form-group row">
+                        <div class="col-4">
+                            <label for="filtroCriterioClientes" class="form-label">Filtrar por:</label>
+                            <select id="filtroCriterioClientes" class="form-control">
+                                <option value="CLAVE">Clave</option>
+                                <option value="NOMBRE">Nombre</option>
+                            </select>
+                        </div>
+                        <div class="col-8">
+                            <label for="campoBusquedaClientes" class="form-label">Buscar:</label>
+                            <input type="search" id="campoBusquedaClientes" class="form-control" placeholder="Escribe aquí...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <!-- Lista de Productos -->
+                    <div id="">
+                        <table id="" name="tablalistaProductos" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Clave</th>
+                                    <th>Nombre</th>
+                                    <th>Telefono</th>
+                                    <th>Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="datosClientes">
+                                <!-- Contenido dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <!-- <button type="button" class=" btn-cancel" onclick="cerrarModal()">C</button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
     <script src="JS/menu.js"></script>
@@ -575,6 +629,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/ventas.js"></script>
     <script src="JS/altaPedido.js"></script>
+    <script src="JS/clientes.js"></script>
     <script>
         $(document).ready(function () {
             $('#cliente').on('input', function () {
