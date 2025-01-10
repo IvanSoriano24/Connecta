@@ -24,9 +24,6 @@ if (isset($_SESSION['usuario'])) {
 } else {
 	header('Location:../index.php');
 }
-/*
-session_unset();
-session_destroy(); */
 ?>
 
 <!DOCTYPE html>
@@ -138,18 +135,18 @@ session_destroy(); */
 					<div class="form-group row">
 						<div class="col-4">
 							<label for="clave" style="margin-right: 5px;">Clave:</label>
-							<input class="input-mo form-control" type="text" id="clave" readonly1>
+							<input class="input-mo form-control" type="text" id="clave"readonly1>
 						</div>
 						<div class="col-4">
 							<label for="nombre" style="margin-right: 5px;">Nombre:</label>
-							<input class="input-mt form-control " type="text" name="nombre" id="nombre" readonly1>
+							<input class="input-mt form-control" type="text" name="nombre" id="nombre" readonly1>
 						</div>
 					</div>
 
 					<div class="form-group row">
 						<div class="col-4">
 							<label for="estatus" style="margin-right: 5px;">Estatus:</label>
-							<input type="text" name="estatus" id="estatus" class="input-mo form-control" readonly1>
+							<input class="input-mo form-control" type="text" id="estatus" readonly1>
 						</div>
 						<div class="col-4">
 							<label for="saldo" style="margin-right: 5px;">Saldo:</label>
@@ -332,8 +329,8 @@ session_destroy(); */
 											</div>
 
 											<div class="form-group col-md-6">
-												<label for="saldo">Saldo</label>
-												<input type="text" class="input-fo" id="saldo" readonly1>
+												<label for="saldoVentas">Saldo</label>
+												<input type="text" class="input-fo" id="saldoVentas" readonly1>
 											</div>
 										</div>
 
@@ -356,7 +353,7 @@ session_destroy(); */
 									<div class="form-group col-md-6">
 										<label for="vendedor">Vendedor:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="input-fo" id="vendedor" readonly1>
+											<input type="text" class="input-fo" id="vendedor" value="<?php echo $claveVendedor ?>" readonly1>
 											<!-- <div class="input-group-append">
 												<span class="input-group-text"></span>
 											</div> -->
@@ -376,25 +373,9 @@ session_destroy(); */
 
 								<div class="form-row mb-3">
 									<div class="form-group col-md-6">
-										<label for="cuentaContable">Cuenta Contable:</label>
-										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="input-fo" id="cuentaContable" readonly1>
-										</div>
-									</div>
-
-									<div class="form-group col-md-6">
 										<label for="listaPrecios">Lista de Precios:</label>
 										<div class="input-group" style="margin-right: 20px;">
 											<input type="text" class="input-fo" id="listaPrecios" readonly1>
-										</div>
-									</div>
-								</div>
-
-								<div class="form-row mb-3">
-									<div class="form-group col-md-6">
-										<label for="documentoModelo">Documento Modelo:</label>
-										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="form-control" id="documentoModelo" readonly1>
 										</div>
 									</div>
 								</div>

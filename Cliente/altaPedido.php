@@ -424,7 +424,7 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                         <div class="form-element">
                                             <label for="descuento">Esquema </label>
-                                            <input type="text" name="descuento" id="descuento">
+                                            <input type="text" name="descuento" id="descuento" value="0" readonly>
                                         </div>
                                     </div>
                                     <div class="row">

@@ -45,7 +45,7 @@ function agregarEventosBotones() {
                         // Asignar los valores de los campos del cliente, con valores por defecto si están indefinidos
                         document.getElementById('clave').value = cliente.CLAVE || 'Sin clave';
                         document.getElementById('nombre').value = cliente.NOMBRE || 'Sin nombre';
-                        document.getElementById('estatus').value = cliente.CLASIFIC || 'Sin clasificación';
+                        document.getElementById('estatus').value = cliente.STATUS || 'Sin clasificación';
                         document.getElementById('saldo').value = cliente.SALDO || '0';
                         document.getElementById('rfc').value = cliente.RFC || 'Sin RFC';
                         document.getElementById('calle').value = cliente.CALLE || 'Sin calle';
@@ -68,6 +68,18 @@ function agregarEventosBotones() {
                         document.getElementById('zona').value = cliente.ZONA || 'Sin zona';
                         document.getElementById('fax').value = cliente.FAX || 'Sin fax';
                         document.getElementById('paginaWeb').value = cliente.PAGINAWEB || 'Sin página web';
+
+                        //document.getElementById('manejoCredito').value = cliente.CON_CREDITO;
+                        document.getElementById('manejoCredito').checked = cliente.CON_CREDITO === "S";
+                        document.getElementById('diaRevision').value = cliente.DIAREV || 'Sin página web';
+                        document.getElementById('diasCredito').value = cliente.DIASCRED || 'Sin página web';
+                        document.getElementById('diaPago').value = cliente.DIAPAGO || '';
+                        //document.getElementById('limiteCredito').value = cliente.PAGINAWEB || 'Sin página web';
+                        document.getElementById('saldoVentas').value = cliente.SALDO || 'Sin página web';
+                        document.getElementById('metodoPago').value = cliente.METODODEPAGO || 'Sin página web';
+
+                        document.getElementById('listaPrecios').value = cliente.LISTA_PREC || '1';
+                        document.getElementById('descuento').value = cliente.DESCUENTO || 'Sin página web';
 
                         // Mostrar el modal si se está utilizando
                         $('#usuarioModal').modal('show'); // Asegúrate de que estás usando jQuery y Bootstrap para este modal

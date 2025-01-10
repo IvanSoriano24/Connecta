@@ -129,6 +129,7 @@
     border-left: 3px solid var(--light);
     border-radius: 0 30px 30px 0;
     outline: none;
+    
 }
 
 .sidebar .navbar .navbar-nav .nav-link:hover,
