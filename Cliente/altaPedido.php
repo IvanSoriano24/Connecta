@@ -200,6 +200,129 @@ if (isset($_SESSION['usuario'])) {
         padding: 8px;
         cursor: pointer;
     }
+
+
+    /* PRUEBA */
+
+
+    .card-body {
+        width: 100%;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .form-container .row {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .form-element {
+        flex-grow: 1;
+        flex-basis: calc(20% - 10px);
+        margin: 0;
+        padding: 0;
+    }
+
+    .form-element.textarea {
+        flex-basis: calc(60% - 10px);
+    }
+
+    .form-element.number-input {
+        flex-basis: calc(40% - 10px);
+    }
+
+    label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    input,
+    select,
+    textarea {
+        /*width: 100%;*/
+        /*padding: 5px 10px;*/
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    input[type=number] {
+        -webkit-appearance: none;
+        margin: 0;
+        -moz-appearance: textfield;
+    }
+
+    input[readonly] {
+        color: -internal-light-dark(graytext, rgb(170, 170, 170));
+        opacity: 0.7;
+        cursor: default;
+        outline: none;
+    }
+
+    textarea {
+        height: 6em;
+        resize: none;
+    }
+
+    .button-container {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 3px;
+        margin: 0 10px;
+    }
+
+    #CodigoGuarnicion .form-element:nth-child(1) {
+        flex-grow: 1;
+    }
+
+    #CodigoGuarnicion .form-element:nth-child(2) {
+        flex-grow: 10;
+    }
+
+    #CodigoGuarnicion .form-element:nth-child(2) input {
+        width: 59%;
+    }
+
+    @media (max-width: 671px) {
+        #CodigoGuarnicion .form-element:nth-child(1) {
+            flex-grow: 1;
+        }
+
+        #CodigoGuarnicion .form-element:nth-child(2) {
+            flex-grow: 1;
+        }
+
+        #CodigoGuarnicion .form-element:nth-child(2) input {
+            width: auto;
+        }
+    }
 </style>
 
 <body>
@@ -238,98 +361,178 @@ if (isset($_SESSION['usuario'])) {
                                 <a class=''>Campos Obligatorios *</a>
                             </div>
 
-                            <form>
-                                <!-- Primera fila -->
-                                <div class="form-row">
-                                    <label for="factura">Pedido: </label>
-                                    <select class="input-mt" name="factura" id="factura">
-                                        <option value="Directo">Directo</option>
-                                    </select>
-                                    <label for="numero">Número</label>
-                                    <input class="input-mt" type="text" name="numero" id="numero" readonly>
-                                    <!--Folio-->
-                                    <label for="fecha">Fecha </label>
-                                    <input class="input-mt" type="date" name="diaAlta" id="diaAlta">
-                                    <label for="cliente">Cliente </label>
-                                    <div class="input-container" style="position: relative;">
-                                        <input class="input-mt" name="cliente" id="cliente" autocomplete="" />
-                                        <span id="clearInput" class="clear-input"
-                                            style="cursor: pointer; display: none;">&#10005;</span>
-                                        <ul id="clientesSugeridos" class="suggestions-list"></ul>
+                            <div class="card-body">
+                                <form class="form-container">
+                                    <!-- 1st row: 4 inputs (2 select, 2 text) -->
+                                    <div class="row">
+                                        <div class="form-element">
+                                            <label for="factura">Pedido: </label>
+                                            <select name="factura" id="factura">
+                                                <option value="Directo">Directo</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="numero">Número</label>
+                                            <input type="text" name="numero" id="numero" readonly>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="fecha">Fecha </label>
+                                            <input type="date" name="diaAlta" id="diaAlta">
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="cliente">Cliente </label>
+                                            <div class="input-container" style="position: relative;">
+                                                <input name="cliente" id="cliente" autocomplete="" />
+                                                <span id="clearInput" class="clear-input"
+                                                    style="cursor: pointer; display: none;">&#10005;</span>
+                                                <ul id="clientesSugeridos" class="suggestions-list"></ul>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                </div>
+                                    <div class="row">
+                                        <div class="form-element">
+                                            <label for="rfc">RFC <a class='bx'> *</a></label>
+                                            <input type="text" name="rfc" id="rfc">
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="nombre">Nombre <a class='bx'> *</a></label>
+                                            <input type="text" name="nombre" id="nombre">
+                                        </div>
+                                        <div class="form-element">
+                                            <label ></label>
+                                          
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="nombre">Su Pedido </label>
+                                            <input type="text" name="nombre" id="nombre">
+                                        </div>
+                                    </div>
 
-                                <div class="form-row">
-                                    <label for="rfc">RFC <a class='bx'> *</a></label>
-                                    <input class="input-mt" type="text" name="rfc" id="rfc">
-                                    <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                    <input class="input-larg" type="text" name="nombre" id="nombre">
-                                    <label for="nombre">Su Pedido </label>
-                                    <input class="input-mt" type="text" name="nombre" id="nombre">
-                                </div>
-                                <div class="form-row">
-                                    <label for="calle">Calle </label>
-                                    <input class="input-larg" type="text" name="calle" id="calle"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                    <label for="numE">Num. ext. </label>
-                                    <input class="input-small" type="text" name="numE" id="numE"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                    <label for="descuento">Esquema </label>
-                                    <input class="input-mt" type="text" name="descuento" id="descuento">
-                                </div>
-                                <div class="form-row">
-                                    <label for="colonia">Colonia:</label>
-                                    <input class="input-larg" type="text" name="colonia" id="colonia"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                    <label for="numI">Num. Int.</label>
-                                    <input class="input-small" type="text" name="numI" id="numI"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                    <label for="descuento">Descuento </label>
-                                    <input class="input-mt" type="text" name="descuento" id="descuento">
-                                </div>
-                                <div class="form-row">
-                                    <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
-                                    <input class="input-mt" type="text" name="codigoPostal" id="codigoPostal"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                    <label for="poblacion">Población:</label>
-                                    <input class="input-mt" type="text" name="poblacion" id="poblacion"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                    <label for="pais">Pais: <a class='bx'>*</a></label>
-                                    <input class="input-mt" type="text" name="pais" id="pais"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                    <label for="descuentofin">Descuento Fin </label>
-                                    <input class="input-mt" type="text" name="descuentofin" id="descuentofin">
-                                </div>
-                                <div class="form-row">
-                                    <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
-                                    <input class="input-mt" type="text" name="regimenFiscal" id="regimenFiscal"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                    <label for="entrega">Entrega </label>
-                                    <input class="input-mt" type="date" name="entrega" id="entrega">
-                                    <label for="vendedor">Vendedor </label>
-                                    <input class="input-mt" type="text" name="vendedor" id="vendedor">
-                                </div>
-                                <div class="form-row">
-                                    <label for="condicion">Condicion </label>
-                                    <input class="input-larg" type="text" name="condicion" id="condicion">
-                                    <label for="comision">Comision </label>
-                                    <input class="input-mt" type="text" name="comision" id="comision">
-                                </div>
-                                <div class="form-row">
-                                    <label for="enviar">Enviar a </label>
-                                    <input class="input-larg" type="text" name="enviar" id="enviar">
-                                    <label for="almacen">Almacen </label>
-                                    <input class="input-mt" type="text" name="almacen" id="almacen"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="1" readonly>
-                                </div>
-                                <div class="form-row">
-                                    <label for="destinatario">Destinatario </label>
-                                    <input class="input-larg" type="text" name="destinatario" id="destinatario"
-                                        style="background-color: #e0e0e0; margin-left: 10px;" value="" readonly>
-                                </div>
-                                <!-- Sección de botones -->
-                                <div class="form-buttons">
+                                    <div class="row">
+                                        <div class="form-element">
+                                            <label for="calle">Calle </label>
+                                            <input type="text" name="calle" id="calle"
+                                                style="background-color: #e0e0e0; " value="" readonly>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="numE">Num. ext. </label>
+                                            <input type="text" name="numE" id="numE" style="background-color: #e0e0e0; "
+                                                value="" readonly>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="numI">Num. Int.</label>
+                                            <input type="text" name="numI" id="numI" style="background-color: #e0e0e0; "
+                                                value="" readonly>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="descuento">Esquema </label>
+                                            <input type="text" name="descuento" id="descuento">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="form-element">
+                                            <label for="colonia">Colonia:</label>
+                                            <input type="text" name="colonia" id="colonia"
+                                                style="background-color: #e0e0e0; width: 470px;" value="" readonly>
+                                        </div>
+                                       
+                                        <div class="form-element">
+                                            <label ></label>
+                                        </div>
+
+                                        <div class="form-element">
+                                            <label for="descuento">Descuento </label>
+                                            <input type="text" name="descuento" id="descuento">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="form-element">
+                                            <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
+                                            <input type="text" name="codigoPostal" id="codigoPostal"
+                                                style="background-color: #e0e0e0; " value="" readonly>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="poblacion">Población:</label>
+                                            <input type="text" name="poblacion" id="poblacion"
+                                                style="background-color: #e0e0e0; " value="" readonly>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="pais">Pais: <a class='bx'>*</a></label>
+                                            <input type="text" name="pais" id="pais" style="background-color: #e0e0e0; "
+                                                value="" readonly>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="descuentofin">Descuento Fin </label>
+                                            <input type="text" name="descuentofin" id="descuentofin">
+                                        </div>
+                                    </div>
+
+
+                                    <div class="row">
+                                        <div class="form-element">
+                                            <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
+                                            <input type="text" name="regimenFiscal" id="regimenFiscal"
+                                                style="background-color: #e0e0e0; " value="" readonly>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="">.</label>
+                                        <input type="text" name="regimenFiscal" id="regimenFiscal"
+                                        style="background-color: #e0e0e0; " value="" readonly>
+                                        </div>
+                                        
+                                        <div class="form-element">
+                                            <label for="entrega">Entrega </label>
+                                            <input type="date" name="entrega" id="entrega">
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="vendedor">Vendedor </label>
+                                            <input type="text" name="vendedor" id="vendedor">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="form-element">
+                                            <label for="condicion">Condicion </label>
+                                            <input type="text" name="condicion" style="width: 470px;" id="condicion">
+                                        </div>
+                                        <div class="form-element"></div>
+                                        <div class="form-element">
+                                            <label for="comision">Comision </label>
+                                            <input type="text" name="comision" id="comision">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="form-element">
+                                            <label for="enviar">Enviar a </label>
+                                            <input type="text" name="enviar" style="width:470px;" id="enviar">
+                                        </div>
+                                        <div class="form-element"></div>
+
+                                        <div class="form-element">
+                                            <label for="almacen">Almacen </label>
+                                            <input type="text" name="almacen" id="almacen"
+                                                style="background-color: #e0e0e0;" value="1" readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="form-element">
+                                            <label for="destinatario">Destinatario </label>
+                                            <input type="text" name="destinatario" id="destinatario"
+                                                style="background-color: #e0e0e0; width: 470px; " value="" readonly>
+                                        </div>
+                                        
+                                        <div class="form-element"></div>
+                                    </div>
+
+                                </form>
+
+                                <!-- 5th row: 2 buttons -->
+                                <div class="button-container">
                                     <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                                 </div>
@@ -346,6 +549,8 @@ if (isset($_SESSION['usuario'])) {
                                                 <th>Desc.1</th>
                                                 <th>Desc.2</th>
                                                 <th>I.E.P.S</th>
+                                                <th></th>
+                                                <th></th>
                                                 <th>I.V.A</th>
                                                 <th>Comision</th>
                                                 <th>Prec.Unit</th>
