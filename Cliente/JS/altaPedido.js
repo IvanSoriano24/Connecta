@@ -292,17 +292,17 @@ function tiempoEspera(){
 function guardarPerdido() {
     // Primero, validar el formulario
     const formularioValido = validarFormulario();
-    if (!formularioValido) {
+   /* if (!formularioValido) {
         alert("Por favor, completa el formulario correctamente.");
         return;
-    }
+    }*/
 
     // Luego, validar las partidas
     const partidasValidas = validarPartidas();
-    if (!partidasValidas) {
+    /*if (!partidasValidas) {
         alert("Por favor, completa las partidas correctamente.");
         return;
-    }
+    }*/
 
     // Obtener la información del formulario y las partidas
     const formularioData = obtenerDatosFormulario();
@@ -428,7 +428,6 @@ function enviarDatosBackend(formularioData, partidasData) {
     });
     alert("Termina");
 }
-
 
 function filtrarClientes() {
     const criterio = document.getElementById('filtroCriterioClientes').value;

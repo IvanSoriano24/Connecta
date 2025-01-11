@@ -398,8 +398,10 @@ function guardarPartidas($conexionData, $formularioData, $partidasData) {
             $TOT_PARTIDA,
             $DESCR_ART
         ];
+        var_dump($sql);
         // Ejecutar la consulta
         $stmt = sqlsrv_query($conn, $sql, $params);
+        var_dump($stmt);
         if ($stmt === false) {
             sqlsrv_rollback($conn); // Hacer rollback si algo falla
             die(json_encode(['success' => false, 'message' => 'Error al insertar la partida', 'errors' => sqlsrv_errors()]));
