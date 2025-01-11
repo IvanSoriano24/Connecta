@@ -319,15 +319,16 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element">
                                 <label for="cliente">Cliente </label>
                                 <div class="input-container" style="position: relative;">
-                                    <input name="cliente" id="cliente" autocomplete="" />
-                                    <button type="button" class="btn ms-2"
-                                            onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))">
+                                    <div style="display: flex; align-items: center;">
+                                        <input name="cliente" id="cliente" autocomplete="" />
+                                        <button type="button" class="btn ms-2" onclick="abrirModalClientes()">
                                             <i class="bx bx-search"></i>
                                         </button>
+                                    </div>
                                     <span id="clearInput" class="clear-input"
                                         style="cursor: pointer; display: none;">&#10005;</span>
                                     <ul id="clientesSugeridos" class="suggestions-list"></ul>
-                                    
+
                                 </div>
                             </div>
                         </div>
@@ -568,7 +569,7 @@ if (isset($_SESSION['usuario'])) {
     </div>
 
     <!-- Modal clientes -->
-    <div  id="modalClientes" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div id="modalClientes" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
                 <!-- Modal Header -->
@@ -588,7 +589,8 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                         <div class="col-8">
                             <label for="campoBusquedaClientes" class="form-label">Buscar:</label>
-                            <input type="search" id="campoBusquedaClientes" class="form-control" placeholder="Escribe aquí...">
+                            <input type="search" id="campoBusquedaClientes" class="form-control"
+                                placeholder="Escribe aquí...">
                         </div>
                     </div>
                 </div>
