@@ -299,118 +299,122 @@ if (isset($_SESSION['usuario'])) {
 
                 <div class="card-body ">
 
-                            <div class="card-body">
-                                <form class="form-container">
-                                    <!-- 1st row: 4 inputs (2 select, 2 text) -->
-                                    <div class="row">
-                                        <div class="form-element">
-                                            <label for="factura">Pedido: </label>
-                                            <select name="factura" id="factura">
-                                                <option value="Directo">Directo</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="numero">Número</label>
-                                            <input type="text" name="numero" id="numero" readonly>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="fecha">Fecha </label>
-                                            <input type="date" name="diaAlta" id="diaAlta">
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="cliente">Cliente </label>
-                                            <div class="input-container" style="position: relative;">
-                                                <input name="cliente" id="cliente" autocomplete="" />
-                                                <span id="clearInput" class="clear-input"
-                                                    style="cursor: pointer; display: none;">&#10005;</span>
-                                                <ul id="clientesSugeridos" class="suggestions-list"></ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="form-element">
-                                            <label for="rfc">RFC <a class='bx'> *</a></label>
-                                            <input type="text" name="rfc" id="rfc">
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                            <input type="text" name="nombre" id="nombre">
-                                        </div>
-                                        <div class="form-element">
-                                            <label></label>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="nombre">Su Pedido </label>
-                                            <input type="text" name="nombre" id="nombre">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="form-element">
-                                            <label for="calle">Calle </label>
-                                            <input type="text" name="calle" id="calle"
-                                                style="background-color: #e0e0e0; " value="" readonly>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="numE">Num. ext. </label>
-                                            <input type="text" name="numE" id="numE" style="background-color: #e0e0e0; "
-                                                value="" readonly>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="numI">Num. Int.</label>
-                                            <input type="text" name="numI" id="numI" style="background-color: #e0e0e0; "
-                                                value="" readonly>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="descuento">Esquema </label>
-                                            <input type="text" name="descuento" id="descuento">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="form-element">
-                                            <label for="colonia">Colonia:</label>
-                                            <input type="text" name="colonia" id="colonia"
-                                                style="background-color: #e0e0e0; width: 470px;" value="" readonly>
-                                        </div>
-                                        <div class="form-element">
-                                            <label></label>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="descuento">Descuento </label>
-                                            <input type="text" name="descuento" id="descuento">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="form-element">
-                                            <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
-                                            <input type="text" name="codigoPostal" id="codigoPostal"
-                                                style="background-color: #e0e0e0; " value="" readonly>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="poblacion">Población:</label>
-                                            <input type="text" name="poblacion" id="poblacion"
-                                                style="background-color: #e0e0e0; " value="" readonly>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="pais">Pais: <a class='bx'>*</a></label>
-                                            <input type="text" name="pais" id="pais" style="background-color: #e0e0e0; "
-                                                value="" readonly>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="descuentofin">Descuento Fin </label>
-                                            <input type="text" name="descuentofin" id="descuentofin">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="form-element">
-                                            <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
-                                            <input type="text" name="regimenFiscal" id="regimenFiscal"
-                                                style="background-color: #e0e0e0; " value="" readonly>
-                                        </div>
-                                        <div class="form-element">
-                                            <label for="">.</label>
-                                            <input type="text" name="regimenFiscal" id="regimenFiscal"
-                                                style="background-color: #e0e0e0; " value="" readonly>
-                                        </div>
+                    <form class="form-container">
+                        <!-- 1st row: 4 inputs (2 select, 2 text) -->
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="factura">Pedido: </label>
+                                <select name="factura" id="factura">
+                                    <option value="Directo">Directo</option>
+                                </select>
+                            </div>
+                            <div class="form-element">
+                                <label for="numero">Número</label>
+                                <input type="text" name="numero" id="numero" readonly>
+                            </div>
+                            <div class="form-element">
+                                <label for="fecha">Fecha </label>
+                                <input type="date" name="diaAlta" id="diaAlta">
+                            </div>
+                            <div class="form-element">
+                                <label for="cliente">Cliente </label>
+                                <div class="input-container" style="position: relative;">
+                                    <input name="cliente" id="cliente" autocomplete="" />
+                                    <button type="button" class="btn ms-2"
+                                            onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))">
+                                            <i class="bx bx-search"></i>
+                                        </button>
+                                    <span id="clearInput" class="clear-input"
+                                        style="cursor: pointer; display: none;">&#10005;</span>
+                                    <ul id="clientesSugeridos" class="suggestions-list"></ul>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="rfc">RFC <a class='bx'> *</a></label>
+                                <input type="text" name="rfc" id="rfc">
+                            </div>
+                            <div class="form-element">
+                                <label for="nombre">Nombre <a class='bx'> *</a></label>
+                                <input type="text" name="nombre" id="nombre">
+                            </div>
+                            <div class="form-element">
+                                <label></label>
+                            </div>
+                            <div class="form-element">
+                                <label for="nombre">Su Pedido </label>
+                                <input type="text" name="nombre" id="nombre">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="calle">Calle </label>
+                                <input type="text" name="calle" id="calle" style="background-color: #e0e0e0; " value=""
+                                    readonly>
+                            </div>
+                            <div class="form-element">
+                                <label for="numE">Num. ext. </label>
+                                <input type="text" name="numE" id="numE" style="background-color: #e0e0e0; " value=""
+                                    readonly>
+                            </div>
+                            <div class="form-element">
+                                <label for="numI">Num. Int.</label>
+                                <input type="text" name="numI" id="numI" style="background-color: #e0e0e0; " value=""
+                                    readonly>
+                            </div>
+                            <div class="form-element">
+                                <label for="descuento">Esquema </label>
+                                <input type="text" name="descuento" id="descuento">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="colonia">Colonia:</label>
+                                <input type="text" name="colonia" id="colonia"
+                                    style="background-color: #e0e0e0; width: 470px;" value="" readonly>
+                            </div>
+                            <div class="form-element">
+                                <label></label>
+                            </div>
+                            <div class="form-element">
+                                <label for="descuento">Descuento </label>
+                                <input type="text" name="descuento" id="descuento">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
+                                <input type="text" name="codigoPostal" id="codigoPostal"
+                                    style="background-color: #e0e0e0; " value="" readonly>
+                            </div>
+                            <div class="form-element">
+                                <label for="poblacion">Población:</label>
+                                <input type="text" name="poblacion" id="poblacion" style="background-color: #e0e0e0; "
+                                    value="" readonly>
+                            </div>
+                            <div class="form-element">
+                                <label for="pais">Pais: <a class='bx'>*</a></label>
+                                <input type="text" name="pais" id="pais" style="background-color: #e0e0e0; " value=""
+                                    readonly>
+                            </div>
+                            <div class="form-element">
+                                <label for="descuentofin">Descuento Fin </label>
+                                <input type="text" name="descuentofin" id="descuentofin">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
+                                <input type="text" name="regimenFiscal" id="regimenFiscal"
+                                    style="background-color: #e0e0e0; " value="" readonly>
+                            </div>
+                            <div class="form-element">
+                                <label for="">.</label>
+                                <input type="text" name="regimenFiscal" id="regimenFiscal"
+                                    style="background-color: #e0e0e0; " value="" readonly>
+                            </div>
 
                             <div class="form-element">
                                 <label for="entrega">Entrega </label>
