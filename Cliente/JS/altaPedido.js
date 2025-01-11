@@ -1,19 +1,3 @@
-let clienteSeleccionado = false;
-let clienteId = null; // Variable para almacenar el ID del cliente
-
-// Función para manejar la selección de cliente
-function showCustomerSuggestions() {
-    const clienteInput = document.getElementById("cliente"); // Obtienes el elemento de input
-    const clienteInputValue = clienteInput.value; // Obtienes el valor del campo de texto
-    const sugerencias = document.getElementById("clientesSugeridos");
-    console.log("Cliente: " + clienteInputValue);
-    const cliente = { id: 1, nombre: clienteInputValue }; // El cliente ya está en el input, solo lo tomas
-    clienteId = cliente.id; // Asigna el ID del cliente
-    clienteSeleccionado = true; // Marca que el cliente está seleccionado
-
-    // Limpiar sugerencias para no mostrar nada después de seleccionar
-    sugerencias.innerHTML = ""; // Limpiar las sugerencias
-}
 
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
@@ -67,15 +51,15 @@ function agregarFilaPartidas() {
     cantidadInput.addEventListener("input", () => calcularSubtotal(nuevaFila));
 }
 
-// Ocultar sugerencias al hacer clic fuera del input
-document.addEventListener("click", function (e) {
-    const listas = document.querySelectorAll(".lista-sugerencias");
-    listas.forEach(lista => {
-        if (!lista.contains(e.target) && !lista.previousElementSibling.contains(e.target)) {
-            lista.classList.add("d-none");
-        }
-    });
-});
+// // Ocultar sugerencias al hacer clic fuera del input
+// document.addEventListener("click", function (e) {
+//     const listas = document.querySelectorAll(".lista-sugerencias");
+//     listas.forEach(lista => {
+//         if (!lista.contains(e.target) && !lista.previousElementSibling.contains(e.target)) {
+//             lista.classList.add("d-none");
+//         }
+//     });
+// });
 
 function obtenerProductos(input) {
     const numFuncion = 5; // Número de función para identificar la acción (en este caso obtener productos)
@@ -434,10 +418,22 @@ function enviarDatosBackend(formularioData, partidasData) {
         });
 }
 
+function filtrarClientes() {
+    const criterio = document.getElementById('filtroCriterioClientes').value;
+    const busqueda = document.getElementById('campoBusquedaClientes').value.toLowerCase();
 
+    const clientesFiltrados = clientesData.filter(cliente => {
+        const valor = cliente[criterio]?.toLowerCase() || '';
+        return valor.includes(busqueda);
+    });
+
+    renderClientes(clientesFiltrados);
+}
 // MODAL MOSTRAR CLIENTES
 
 // Variables globales
+let clienteSeleccionado = false;
+let clienteId = null; // Variable para almacenar el ID del cliente
 let clientesData = []; // Para almacenar los datos originales de los clientes
 
 // Función para abrir el modal y cargar los clientes
@@ -471,21 +467,80 @@ function renderClientes(clientes) {
     const datosClientes = document.getElementById('datosClientes');
     datosClientes.innerHTML = '';
     clientes.forEach(cliente => {
-        datosClientes.innerHTML += `
-            <tr>
-                <td>${cliente.CLAVE}</td>
-                <td>${cliente.NOMBRE}</td>
-                <td>${cliente.TELEFONO || 'Sin teléfono'}</td>
-                <td>$${parseFloat(cliente.SALDO || 0).toFixed(2)}</td>
-            </tr>
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${cliente.CLAVE}</td>
+            <td>${cliente.NOMBRE}</td>
+            <td>${cliente.TELEFONO || 'Sin teléfono'}</td>
+            <td>$${parseFloat(cliente.SALDO || 0).toFixed(2)}</td>
         `;
+
+        // Agregar evento de clic para seleccionar cliente desde el modal
+        fila.addEventListener('click', () => seleccionarClienteDesdeModal(cliente));
+
+        datosClientes.appendChild(fila);
     });
 }
 
-// Filtrar clientes según la entrada de búsqueda
+// Función para seleccionar un cliente desde el modal
+function seleccionarClienteDesdeModal(cliente) {
+    const clienteInput = document.getElementById('cliente');
+    clienteInput.value = `${cliente.CLAVE} - ${cliente.NOMBRE}`; // Actualizar el valor del input
+    clienteId = cliente.CLAVE; // Almacenar el ID del cliente seleccionado
+    clienteSeleccionado = true; // Marcar que el cliente fue seleccionado desde el modal
+    cerrarModalClientes(); // Cerrar el modal
+}
+// Función para mostrar sugerencias de clientes
+function showCustomerSuggestions() {
+    const clienteInput = document.getElementById("cliente");
+    const clienteInputValue = clienteInput.value.trim();
+    const sugerencias = document.getElementById("clientesSugeridos");
+
+    sugerencias.classList.remove("d-none"); // Mostrar las sugerencias
+
+    // Generar las sugerencias en base al texto ingresado
+    const clientesFiltrados = clientesData.filter(cliente => 
+        cliente.NOMBRE.toLowerCase().includes(clienteInputValue.toLowerCase())
+    );
+
+    sugerencias.innerHTML = ''; // Limpiar las sugerencias anteriores
+
+    if (clientesFiltrados.length === 0) {
+        sugerencias.innerHTML = '<li>No se encontraron coincidencias</li>';
+    } else {
+        clientesFiltrados.forEach(cliente => {
+            const sugerencia = document.createElement('li');
+            sugerencia.textContent = `${cliente.CLAVE} - ${cliente.NOMBRE}`;
+            sugerencia.classList.add("suggestion-item");
+
+            // Evento para seleccionar cliente desde las sugerencias
+            sugerencia.addEventListener('click', (e) => {
+                e.stopPropagation(); // Evitar que el evento de clic global oculte las sugerencias
+                seleccionarClienteDesdeSugerencia(cliente);
+            });
+
+            sugerencias.appendChild(sugerencia);
+        });
+    }
+}
+
+// Función para seleccionar un cliente desde las sugerencias
+function seleccionarClienteDesdeSugerencia(cliente) {
+    const clienteInput = document.getElementById("cliente");
+    clienteInput.value = `${cliente.CLAVE} - ${cliente.NOMBRE}`;
+    clienteId = cliente.CLAVE;
+    clienteSeleccionado = true;
+
+    const sugerencias = document.getElementById("clientesSugeridos");
+    sugerencias.innerHTML = ''; // Limpiar las sugerencias
+    sugerencias.classList.add("d-none"); // Ocultar las sugerencias
+}
+
+// Filtrar clientes según la entrada de búsqueda en el modal
 function filtrarClientes() {
     const criterio = document.getElementById('filtroCriterioClientes').value;
     const busqueda = document.getElementById('campoBusquedaClientes').value.toLowerCase();
+
 
     const clientesFiltrados = clientesData.filter(cliente => {
         const valor = cliente[criterio]?.toLowerCase() || '';
@@ -495,17 +550,28 @@ function filtrarClientes() {
     renderClientes(clientesFiltrados);
 }
 
-
-// Función para seleccionar un cliente y colocarlo en el input
-function seleccionarCliente(cliente) {
-    const inputCliente = document.getElementById('cliente');
-    inputCliente.value = `${cliente.CLAVE} - ${cliente.NOMBRE}`; // Formato personalizado
-    cerrarModalClientes(); // Cierra el modal al seleccionar
-}
 // Vincular los eventos de búsqueda y cambio de criterio
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('campoBusquedaClientes').addEventListener('input', filtrarClientes);
     document.getElementById('filtroCriterioClientes').addEventListener('change', filtrarClientes);
+
+    const clienteInput = document.getElementById('cliente');
+    clienteInput.addEventListener('input', () => {
+        if (!clienteSeleccionado) {
+            showCustomerSuggestions();
+        }
+    });
+});
+
+
+// Ocultar sugerencias al hacer clic fuera del input
+document.addEventListener("click", function (e) {
+    const sugerencias = document.getElementById("clientesSugeridos");
+    const clienteInput = document.getElementById("cliente");
+
+    if (!sugerencias.contains(e.target) && !clienteInput.contains(e.target)) {
+        sugerencias.classList.add("d-none");
+    }
 });
 
 // Función para cerrar el modal
@@ -520,8 +586,8 @@ function cerrarModalClientes() {
 
 
 
-// Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
-document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
+// // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
+// document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
 
 document.getElementById("añadirPartida").addEventListener("click", function () {
     agregarFilaPartidas();
