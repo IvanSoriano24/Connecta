@@ -302,7 +302,9 @@ function cerrarModal() {
         modal.hide();
     }
 }
-
+function tiempoEspera(){
+    alert("Esperando");
+}
 function guardarPerdido() {
     // Primero, validar el formulario
     const formularioValido = validarFormulario();
@@ -321,10 +323,11 @@ function guardarPerdido() {
     // Obtener la información del formulario y las partidas
     const formularioData = obtenerDatosFormulario();
     const partidasData = obtenerDatosPartidas();
-    console.log(formularioData);
-    console.log(partidasData);
     // Hacer algo con los datos (enviar al backend, por ejemplo)
-    //enviarDatosBackend(formularioData, partidasData);
+    enviarDatosBackend(formularioData, partidasData);
+    alert("Esto es todo amigos");
+    tiempoEspera();
+    
 }
 function validarFormulario() {
     // Validar los campos obligatorios
@@ -409,31 +412,38 @@ function obtenerDatosPartidas() {
     return partidasData;
 }
 function enviarDatosBackend(formularioData, partidasData) {
-    // Aquí puedes enviar los datos al backend usando fetch, AJAX, etc.
-    const datos = {
-        formulario: formularioData,
-        partidas: partidasData
-    };
+    // Aquí se prepara un objeto FormData para enviar los datos como si fueran un formulario
+    const formData = new FormData();
+
+    // Agregamos los datos necesarios al FormData
+    formData.append('numFuncion', '8');
+    formData.append('formulario', JSON.stringify(formularioData));
+    formData.append('partidas', JSON.stringify(partidasData));
+
+    // Enviamos la solicitud con fetch
+    alert("Empieza");
     fetch('../Servidor/PHP/ventas.php', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(datos)
+        body: formData, // Pasamos el FormData directamente
     })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Datos enviados correctamente:', data);
+    .then(response => response.json()) // Asumimos que el servidor responde con JSON
+    .then(data => {
+        if (data.success) {
             alert('Pedido guardado exitosamente');
-            // O redirigir al usuario a otra página
+            console.log('Datos enviados correctamente:', data);
+            // Redirigir al usuario o realizar otra acción
             window.location.href = 'Ventas.php';
-            // Puedes mostrar un mensaje de éxito o redirigir al usuario
-        })
-        .catch(error => {
-            console.error('Error al enviar los datos:', error);
-        });
+        } else {
+            alert('Error al guardar el pedido: ' + data.message);
+            console.error('Error en la respuesta:', data);
+        }
+    })
+    .catch(error => {
+        console.error('Error al enviar los datos:', error);
+        alert('Ocurrió un error al enviar los datos.');
+    });
+    alert("Termina");
 }
-
 
 // MODAL MOSTRAR CLIENTES
 

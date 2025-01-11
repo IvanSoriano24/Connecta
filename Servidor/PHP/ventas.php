@@ -328,29 +328,41 @@ function guardarPartidas($conexionData, $formularioData, $partidasData) {
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
     // Obtener el número de empresa
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-
     // Iniciar la transacción para las inserciones de las partidas
     sqlsrv_begin_transaction($conn);
-
     // Iterar sobre las partidas recibidas
-    foreach ($partidasData as $partida) {
+    if (isset($partidasData) && is_array($partidasData)) {
+        foreach ($partidasData as $partida) {
         // Extraer los datos de la partida
         $CVE_DOC = $formularioData['numero']; // Número de documento
-        $CVE_ART = $partida['clave']; // Clave del producto
+        $CVE_ART = $partida['producto']; // Clave del producto
         $CANT = $partida['cantidad']; // Cantidad
-        $PREC = $partida['precio']; // Precio
-
+        $PREC = $partida['precioUnitario']; // Precio
+        $NUM_PAR = $formularioData['numero'];
         // Calcular los impuestos y totales
-        $IMPU1 = $partida['impuesto1']; // Impuesto 1
-        $IMPU2 = $partida['impuesto2']; // Impuesto 2
+        //$IMPU1 = $partida['impuesto1']; // Impuesto 1
+        $IMPU1 = 0;
+        //$IMPU2 = $partida['impuesto2']; // Impuesto 2
+        $IMPU2 = 0;
+        $IMPU4 = $partida['iva']; // Impuesto 2
         // Agregar los cálculos para los demás impuestos...
+        $PXS = 0;
+        $DESC1 = $partida['descuento1'];
+        $DESC2 = $partida['descuento2'];
+        $COMI = $partida['comision'];
+
+        $NUM_ALMA = $formularioData['almacen'];
+
+        $UNI_VENTA = $partida['unidad'];
+
+        $TIPO_PORD = $partida['unidad'];
 
         $TOTIMP1 = $IMPU1 * $CANT * $PREC; // Total impuesto 1
         $TOTIMP2 = $IMPU2 * $CANT * $PREC; // Total impuesto 2
+        $TOTIMP4 = $IMPU4 * $CANT * $PREC; // Total impuesto 4
         // Agregar los cálculos para los demás TOTIMP...
 
         // Calcular el total de la partida (precio * cantidad)
@@ -360,25 +372,30 @@ function guardarPartidas($conexionData, $formularioData, $partidasData) {
         $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa,);
 
         // Crear la consulta SQL para insertar los datos de la partida
-        $sql = "
-            INSERT INTO $nombreTabla (
-                [CVE_DOC], [NUM_PAR], [CVE_ART], [CANT], [PREC], [TOT_PARTIDA], 
-                [IMPU1], [IMPU2], [TOTIMP1], [TOTIMP2], [DESC1]
-            ) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ";
+        $sql = "INSERT INTO PAR_FACTP02
+            (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA,
+            TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4,
+            DESC1, DESC2, DESC3, COMI, APAR,
+            ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, TIPO_PROD, CVE_OBS, REG_SERIE, E_LTPD, TIPO_ELEM, 
+            NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ,            UUID,
+            VERSION_SINC, DESCR_ART, ID_RELACION, PREC_NETO,
+            CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
+            IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
+        VALUES('?', '?', '?', '?', '?', '?', 0, '?', '?', '', '?', 4, 4, 4, 4,
+            '?', '?', '', '?',
+            '?', '?', 0, '?', 0, 
+            'N', '?', '', 1, '?', '?', 0, 0, 0, 'N',
+            0, '?', 'S', 'N', '', '', '', '', '', 0,
+            '', '?', '', '',
+            0, '', '', 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0)";
         // Preparar los parámetros para la consulta
         $params = [
-            $CVE_DOC, 
-            $partida['numero'], // Número de partida (puedes generarlo según el orden de inserción)
-            $CVE_ART, 
-            $CANT, 
-            $PREC, 
-            $TOT_PARTIDA, 
-            $IMPU1, 
-            $IMPU2, 
-            $TOTIMP1, 
-            $TOTIMP2, 
+            $CVE_DOC, $NUM_PAR, $CVE_ART, $CANT, $PXS, $PREC, $IMPU1, $IMPU2, $IMPU4,
+            $TOTIMP1, $TOTIMP2, $TOTIMP4,
+            $DESC1, $DESC2, $COMI,
+            $NUM_ALMA, $UNI_VENTA, $TIPO_PORD,
+            $TOT_PARTIDA,
             $DESCR_ART
         ];
         // Ejecutar la consulta
@@ -388,7 +405,10 @@ function guardarPartidas($conexionData, $formularioData, $partidasData) {
             die(json_encode(['success' => false, 'message' => 'Error al insertar la partida', 'errors' => sqlsrv_errors()]));
         }
     }
-
+} else {
+    die(json_encode(['success' => false, 'message' => 'Error: partidasData no es un array válido']));
+}
+    echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
     // Confirmar la transacción
     sqlsrv_commit($conn);
 
@@ -397,7 +417,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData) {
     sqlsrv_close($conn);
 
     // Retornar éxito
-    echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
+    
 }
 function obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa,) {
     // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
@@ -409,14 +429,14 @@ function obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa,) {
         "CharacterSet" => "UTF-8"
     ]);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-    $sql = "SELECT DESCR_ART FROM $nombreTabla WHERE CVE_ART = ?";
+    $sql = "SELECT DESCR FROM $nombreTabla WHERE CVE_ART = ?";
     $stmt = sqlsrv_query($conn, $sql, [$CVE_ART]);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
     }
 
     $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-    $descripcion = $row ? $row['DESCR_ART'] : '';
+    $descripcion = $row ? $row['DESCR'] : '';
 
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -736,13 +756,16 @@ function obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
     $funcion = $_POST['numFuncion'];
+    //var_dump($funcion);
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['numFuncion'])) {
     // Si es una solicitud GET, asignamos el valor de numFuncion
     $funcion = $_GET['numFuncion'];
+    //var_dump($funcion);
 } else {
     echo json_encode(['success' => false, 'message' => 'Error al realizar la peticion.']);
-    //break;
+    exit;
 }
+//var_dump($funcion);
 switch ($funcion) {
     case 1:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -872,13 +895,14 @@ switch ($funcion) {
             echo json_encode($conexionResult);
             break;
         }
-        $formularioData = $datos['formulario'];
-        $partidasData = $datos['partidas'];
+        $formularioData = json_decode($_POST['formulario'], true); // Clave "formulario" enviada desde JS
+        $partidasData = json_decode($_POST['partidas'], true); // Clave "partidas" enviada desde JS        
+        $conexionData = $conexionResult['data'];
         // Mostrar los clientes usando los datos de conexión obtenidos
-        guardarPedido($conexionData, $formularioData, $partidasData);
+       // guardarPedido($conexionData, $formularioData, $partidasData);
         guardarPartidas($conexionData, $formularioData, $partidasData);
-        actualizarFolio($conexionData);
-        actualizarInventario($conexionData, $cveArt, $partidasData);
+        //actualizarFolio($conexionData);
+        //actualizarInventario($conexionData, $cveArt, $partidasData);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
