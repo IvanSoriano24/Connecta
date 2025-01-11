@@ -179,7 +179,8 @@ function mostrarClienteEspecifico($clave, $conexionData){
     $sql = "SELECT TOP (1) [CLAVE], [STATUS], [NOMBRE], [RFC], [CALLE], [NUMINT], [NUMEXT], 
                     [CRUZAMIENTOS], [COLONIA], [CODIGO], [LOCALIDAD], [MUNICIPIO], [ESTADO], 
                     [PAIS], [NACIONALIDAD], [REFERDIR], [TELEFONO], [CLASIFIC], [FAX], [PAG_WEB], 
-                    [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO] 
+                    [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO],
+                    [CON_CREDITO], [DIAREV], [DIAPAGO], [DIASCRED], [DIAREV], [METODODEPAGO], [LISTA_PREC], [DESCUENTO]
             FROM $nombreTabla 
             WHERE CAST(LTRIM(RTRIM([CLAVE])) AS NVARCHAR(MAX)) = CAST(? AS NVARCHAR(MAX))";
 
