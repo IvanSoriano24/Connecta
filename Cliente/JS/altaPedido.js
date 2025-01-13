@@ -44,6 +44,7 @@ function agregarFilaPartidas() {
         <td><input type="number" class="comision" value="0" readonly /></td>
         <td><input type="number" class="precioUnidad" value="0" readonly /></td>
         <td><input type="number" class="subtotalPartida" value="0" readonly /></td>
+        <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
     `;
 
     tablaProductos.appendChild(nuevaFila);
@@ -100,11 +101,7 @@ async function obtenerImpuesto(cveEsqImpu) {
                     // Usa el objeto directamente
                     if (response.success) {
                         const { IMPUESTO1, IMPUESTO2, IMPUESTO4 } = response.impuestos;
-                        console.log('Impuesto 1 (IEPS):', IMPUESTO1);
-                        console.log('Impuesto 2 (IEPS):', IMPUESTO2);
-                        console.log('Impuesto 4 (IVA):', IMPUESTO4);
-
-                        resolve({ impuesto1: IMPUESTO1, impuesto2: IMPUESTO2, impuesto4: IMPUESTO4 });
+                        resolve({ impuesto1: IMPUESTO1, impuesto2: IMPUESTO2, impuesto3: IMPUESTO3, impuesto4: IMPUESTO4 });
                     } else {
                         console.error('Error del servidor:', response.message);
                         reject('Error del servidor: ' + response.message);
@@ -153,11 +150,13 @@ async function completarPrecioProducto(cveArt, filaTabla) {
         const impuesto1Input = filaTabla.querySelector(".ieps");
         //const impuesto2Input = filaTabla.querySelector(".descuento2");
         const impuesto4Input = filaTabla.querySelector(".iva");
+        const impuesto3Input = filaTabla.querySelector(".impuesto3");
 
         // Verifica si los campos existen y asigna los valores de los impuestos
         if (impuesto1Input && impuesto4Input) {
             impuesto1Input.value = parseFloat(impuestos.impuesto1);
             impuesto4Input.value = parseFloat(impuestos.impuesto4);
+            impuesto3Input.value = parseFloat(impuestos.impuesto3);
             impuesto1Input.readOnly = true;
             impuesto4Input.readOnly = true;
         } else {
@@ -349,6 +348,7 @@ function validarPartidas() {
 function obtenerDatosFormulario() {
     // Aquí obtienes los datos del formulario, por ejemplo:
     const formularioData = {
+        claveVendedor: document.getElementById('vendedor').value,
         factura: document.getElementById('factura').value,
         numero: document.getElementById('numero').value,
         diaAlta: document.getElementById('diaAlta').value,
@@ -386,6 +386,7 @@ function obtenerDatosPartidas() {
             descuento1: fila.querySelector('.descuento1').value,
             descuento2: fila.querySelector('.descuento2').value,
             ieps: fila.querySelector('.ieps').value,
+            isr: fila.querySelector('.impuesto3').value,
             iva: fila.querySelector('.iva').value,
             comision: fila.querySelector('.comision').value,
             precioUnitario: fila.querySelector('.precioUnidad').value,
