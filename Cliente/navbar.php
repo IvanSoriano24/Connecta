@@ -1,10 +1,11 @@
 <!-- navbar.php -->
 <style>
     .navbar {
+        height: 56px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20px 30px; /* Hacer el navbar más amplio */
+        padding: 20 30px; /* Hacer el navbar más amplio */
         background-color: #f8f9fa;
         border-bottom: 1px solid #ddd;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
