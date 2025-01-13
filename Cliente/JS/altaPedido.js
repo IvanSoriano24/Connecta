@@ -424,7 +424,7 @@ function enviarDatosBackend(formularioData, partidasData) {
     })
     .catch(error => {
         console.error('Error al enviar los datos:', error);
-        alert('Ocurrió un error al enviar los datos.');
+        alert('Ocurrió un error al enviar los datos.' + error);
     });
     alert("Termina");
 }

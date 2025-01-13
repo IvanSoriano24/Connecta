@@ -253,7 +253,8 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function guardarPedido($conexionData, $formularioData, $partidasData) {
+function guardarPedido($conexionData, $formularioData, $partidasData)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -300,9 +301,25 @@ function guardarPedido($conexionData, $formularioData, $partidasData) {
     ";
     // Preparar los parámetros para la consulta
     $params = [
-        $CVE_DOC,  $FECHA_DOC, $CAN_TOT, $IMP_TOT1, $IMP_TOT2, $IMP_TOT3, 
-        $IMP_TOT4, $IMP_TOT5, $IMP_TOT6, $IMP_TOT7, $IMP_TOT8, $DES_TOT, 
-        $DES_FIN, $CONDICION, $RFC, $TIP_DOC, $FECHA_ELAB, $NUM_ALMA, $FORMAENVIO
+        $CVE_DOC,
+        $FECHA_DOC,
+        $CAN_TOT,
+        $IMP_TOT1,
+        $IMP_TOT2,
+        $IMP_TOT3,
+        $IMP_TOT4,
+        $IMP_TOT5,
+        $IMP_TOT6,
+        $IMP_TOT7,
+        $IMP_TOT8,
+        $DES_TOT,
+        $DES_FIN,
+        $CONDICION,
+        $RFC,
+        $TIP_DOC,
+        $FECHA_ELAB,
+        $NUM_ALMA,
+        $FORMAENVIO
     ];
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -315,7 +332,8 @@ function guardarPedido($conexionData, $formularioData, $partidasData) {
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function guardarPartidas($conexionData, $formularioData, $partidasData) {
+function guardarPartidas($conexionData, $formularioData, $partidasData)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -336,92 +354,91 @@ function guardarPartidas($conexionData, $formularioData, $partidasData) {
     // Iterar sobre las partidas recibidas
     if (isset($partidasData) && is_array($partidasData)) {
         foreach ($partidasData as $partida) {
-        // Extraer los datos de la partida
-        $CVE_DOC = $formularioData['numero']; // Número de documento
-        $CVE_ART = $partida['producto']; // Clave del producto
-        $CANT = $partida['cantidad']; // Cantidad
-        $PREC = $partida['precioUnitario']; // Precio
-        $NUM_PAR = $formularioData['numero'];
-        // Calcular los impuestos y totales
-        //$IMPU1 = $partida['impuesto1']; // Impuesto 1
-        $IMPU1 = 0;
-        //$IMPU2 = $partida['impuesto2']; // Impuesto 2
-        $IMPU2 = 0;
-        $IMPU4 = $partida['iva']; // Impuesto 2
-        // Agregar los cálculos para los demás impuestos...
-        $PXS = 0;
-        $DESC1 = $partida['descuento1'];
-        $DESC2 = $partida['descuento2'];
-        $COMI = $partida['comision'];
+            // Extraer los datos de la partida
+            $CVE_DOC = $formularioData['numero']; // Número de documento
+            $CVE_ART = $partida['producto']; // Clave del producto
+            $CANT = $partida['cantidad']; // Cantidad
+            $PREC = $partida['precioUnitario']; // Precio
+            $NUM_PAR = $formularioData['numero'];
+            // Calcular los impuestos y totales
+            //$IMPU1 = $partida['impuesto1']; // Impuesto 1
+            $IMPU1 = 0;
+            //$IMPU2 = $partida['impuesto2']; // Impuesto 2
+            $IMPU2 = 0;
+            $IMPU4 = $partida['iva']; // Impuesto 2
+            // Agregar los cálculos para los demás impuestos...
+            $PXS = 0;
+            $DESC1 = $partida['descuento1'];
+            $DESC2 = $partida['descuento2'];
+            $COMI = $partida['comision'];
+            $NUM_ALMA = $formularioData['almacen'];
+            $UNI_VENTA = $partida['unidad'];
+            $TIPO_PORD = $partida['unidad'];
+            $TOTIMP1 = $IMPU1 * $CANT * $PREC; // Total impuesto 1
+            $TOTIMP2 = $IMPU2 * $CANT * $PREC; // Total impuesto 2
+            $TOTIMP4 = $IMPU4 * $CANT * $PREC; // Total impuesto 4
+            // Agregar los cálculos para los demás TOTIMP...
 
-        $NUM_ALMA = $formularioData['almacen'];
+            // Calcular el total de la partida (precio * cantidad)
+            $TOT_PARTIDA = $PREC * $CANT;
 
-        $UNI_VENTA = $partida['unidad'];
+            // Consultar la descripción del producto (si es necesario)
+            $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa);
 
-        $TIPO_PORD = $partida['unidad'];
+            // Crear la consulta SQL para insertar los datos de la partida
+            $sql = "INSERT INTO $nombreTabla
+                (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA,
+                TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4,
+                DESC1, DESC2, DESC3, COMI, APAR,
+                ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, TIPO_PROD, CVE_OBS, REG_SERIE, E_LTPD, TIPO_ELEM, 
+                NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, UUID,
+                VERSION_SINC, DESCR_ART, ID_RELACION, PREC_NETO,
+                CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
+                IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, 0, ?, 4, 4, 4, 4,
+                ?, ?, 0, ?,
+                ?, ?, 0, 0, ?,
+                'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
+                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, 0,
+                0, ?, '', '',
+                0, '', '', 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0)";
+            $params = [
+                $CVE_DOC, $NUM_PAR, $CVE_ART, $CANT, $PXS, $PREC, $IMPU1, $IMPU2, $IMPU4,
+                $TOTIMP1, $TOTIMP2, $TOTIMP4,
+                $DESC1, $DESC2, $COMI, 
+                $NUM_ALMA, $UNI_VENTA, $TIPO_PORD,
+                $TOT_PARTIDA,
+                $DESCR_ART
+            ];
+            var_dump($params);
+            $sqlDepurado = $sql;
+            foreach ($params as $param) {
+                $sqlDepurado = preg_replace('/\?/', "'" . addslashes($param) . "'", $sqlDepurado, 1);
+            }
+            var_dump($sqlDepurado);
 
-        $TOTIMP1 = $IMPU1 * $CANT * $PREC; // Total impuesto 1
-        $TOTIMP2 = $IMPU2 * $CANT * $PREC; // Total impuesto 2
-        $TOTIMP4 = $IMPU4 * $CANT * $PREC; // Total impuesto 4
-        // Agregar los cálculos para los demás TOTIMP...
-
-        // Calcular el total de la partida (precio * cantidad)
-        $TOT_PARTIDA = $PREC * $CANT;
-
-        // Consultar la descripción del producto (si es necesario)
-        $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa,);
-
-        // Crear la consulta SQL para insertar los datos de la partida
-        $sql = "INSERT INTO PAR_FACTP02
-            (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA,
-            TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4,
-            DESC1, DESC2, DESC3, COMI, APAR,
-            ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, TIPO_PROD, CVE_OBS, REG_SERIE, E_LTPD, TIPO_ELEM, 
-            NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ,            UUID,
-            VERSION_SINC, DESCR_ART, ID_RELACION, PREC_NETO,
-            CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
-            IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
-        VALUES('?', '?', '?', '?', '?', '?', 0, '?', '?', '', '?', 4, 4, 4, 4,
-            '?', '?', '', '?',
-            '?', '?', 0, '?', 0, 
-            'N', '?', '', 1, '?', '?', 0, 0, 0, 'N',
-            0, '?', 'S', 'N', '', '', '', '', '', 0,
-            '', '?', '', '',
-            0, '', '', 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0)";
-        // Preparar los parámetros para la consulta
-        $params = [
-            $CVE_DOC, $NUM_PAR, $CVE_ART, $CANT, $PXS, $PREC, $IMPU1, $IMPU2, $IMPU4,
-            $TOTIMP1, $TOTIMP2, $TOTIMP4,
-            $DESC1, $DESC2, $COMI,
-            $NUM_ALMA, $UNI_VENTA, $TIPO_PORD,
-            $TOT_PARTIDA,
-            $DESCR_ART
-        ];
-        var_dump($sql);
-        // Ejecutar la consulta
-        $stmt = sqlsrv_query($conn, $sql, $params);
-        var_dump($stmt);
-        if ($stmt === false) {
-            sqlsrv_rollback($conn); // Hacer rollback si algo falla
-            die(json_encode(['success' => false, 'message' => 'Error al insertar la partida', 'errors' => sqlsrv_errors()]));
+            // Ejecutar la consulta
+            $stmt = sqlsrv_query($conn, $sql, $params);
+            var_dump($stmt);
+            if ($stmt === false) {
+                var_dump(sqlsrv_errors()); // Muestra los errores específicos
+                sqlsrv_rollback($conn);
+                die(json_encode(['success' => false, 'message' => 'Error al insertar la partida', 'errors' => sqlsrv_errors()]));
+            }
         }
+    } else {
+        die(json_encode(['success' => false, 'message' => 'Error: partidasData no es un array válido']));
     }
-} else {
-    die(json_encode(['success' => false, 'message' => 'Error: partidasData no es un array válido']));
-}
     echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
     // Confirmar la transacción
     sqlsrv_commit($conn);
-
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
-
-    // Retornar éxito
-    
 }
-function obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa,) {
+function obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa)
+{
     // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
     // Asumiendo que la descripción está en una tabla llamada "productos"
     $conn = sqlsrv_connect($conexionData['host'], [
@@ -445,7 +462,8 @@ function obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa,) {
 
     return $descripcion;
 }
-function actualizarFolio($conexionData) {
+function actualizarFolio($conexionData)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -482,7 +500,8 @@ function actualizarFolio($conexionData) {
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function actualizarInventario($conexionData, $cveArt, $partidasData) {
+function actualizarInventario($conexionData, $partidasData)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -491,6 +510,7 @@ function actualizarInventario($conexionData, $cveArt, $partidasData) {
         "PWD" => $conexionData['password'],
         "CharacterSet" => "UTF-8"
     ];
+    $CVE_ART = $partida['producto'];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -506,7 +526,7 @@ function actualizarInventario($conexionData, $cveArt, $partidasData) {
             WHERE [CVE_ART] = ?";
 
     // Preparar la consulta
-    $params = array($cantidad, $cantidad, $cveArt);
+    $params = array($cantidad, $cantidad, $CVE_ART);
 
     // Ejecutar la consulta SQL
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -515,7 +535,6 @@ function actualizarInventario($conexionData, $cveArt, $partidasData) {
         sqlsrv_close($conn);
         die(json_encode(['success' => false, 'message' => 'Error al actualizar el inventario', 'errors' => sqlsrv_errors()]));
     }
-
     // Verificar cuántas filas se han afectado
     $rowsAffected = sqlsrv_rows_affected($stmt);
     sqlsrv_free_stmt($stmt);
@@ -901,10 +920,10 @@ switch ($funcion) {
         $partidasData = json_decode($_POST['partidas'], true); // Clave "partidas" enviada desde JS        
         $conexionData = $conexionResult['data'];
         // Mostrar los clientes usando los datos de conexión obtenidos
-       // guardarPedido($conexionData, $formularioData, $partidasData);
+        //guardarPedido($conexionData, $formularioData, $partidasData);
         guardarPartidas($conexionData, $formularioData, $partidasData);
         //actualizarFolio($conexionData);
-        //actualizarInventario($conexionData, $cveArt, $partidasData);
+        //actualizarInventario($conexionData, $partidasData);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
