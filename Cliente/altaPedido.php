@@ -435,7 +435,7 @@ if (isset($_SESSION['usuario'])) {
                                 <div style="display: flex; align-items: center;">
                                     <input type="text" name="enviar" style="width:410px;" id="enviar">
                                     <button type="button" class="btn ms-2" id="AyudaEnviarA">
-                                        <i class="bx bx-help-circle" style="" ></i>
+                                        <i class="bx bx-help-circle" style=""></i>
                                     </button>
                                 </div>
                             </div>
@@ -506,6 +506,8 @@ if (isset($_SESSION['usuario'])) {
                         <div class="row">
 
                             <div class="form-buttons">
+                                <button type="submit" class="" id="btnValidarCorreo" >Prueba Correo</button>
+
                                 <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
                                 <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                             </div>

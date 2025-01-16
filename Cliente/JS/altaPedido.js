@@ -673,3 +673,26 @@ $('#AyudaEnviarA').click(function () {
         confirmButtonText: 'Entendido'
     });
 });
+
+
+function btnValidarCorreo (){
+    alert();
+    const formularioData = {
+        cliente: document.getElementById('clienteInput').value
+    };
+
+    fetch('../Servidor/PHP/ventas.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formularioData)
+        
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+    })
+    .catch(error => console.error('Error:', error));
+    alert();
+}
