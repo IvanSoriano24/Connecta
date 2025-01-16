@@ -652,3 +652,47 @@ $(document).ready(function () {
         guardarPerdido();
     });
 });
+
+
+$('#AyudaCondicion').click(function () {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Ayuda',
+        text: 'Condicion es:',
+        icon: 'info',
+        confirmButtonText: 'Entendido'
+    });
+});
+
+$('#AyudaEnviarA').click(function () {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Ayuda',
+        text: 'Escribe quien enviaran ',
+        icon: 'info',
+        confirmButtonText: 'Entendido'
+    });
+});
+
+
+function btnValidarCorreo (){
+    alert();
+    const formularioData = {
+        cliente: document.getElementById('clienteInput').value
+    };
+
+    fetch('../Servidor/PHP/ventas.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formularioData)
+        
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+    })
+    .catch(error => console.error('Error:', error));
+    alert();
+}

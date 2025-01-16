@@ -720,14 +720,21 @@ function validarCorreoCliente($formularioData, $conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
+    
+    if (empty($clave)) {
+        error_log('Clave no válida: ' . print_r($clave, true));
+        die(json_encode(['success' => false, 'message' => 'La clave del cliente no es válida.']));
+    }
+
     // Consulta SQL para obtener el correo y validar el campo MAIL
     $sql = "SELECT [MAIL], [EMAILPRED]
             FROM [SAE90Empre02].[dbo].[CLIE02] 
             WHERE [CLAVE] = ?";
     // Preparar la consulta
-    $params = array($clave);
+    $params = [$clave];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
+        error_log('Error en la consulta SQL: ' . print_r(sqlsrv_errors(), true));
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
         die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
@@ -736,6 +743,7 @@ function validarCorreoCliente($formularioData, $conexionData)
     $correo = null;
     $emailPred = null;
     if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        error_log('Datos obtenidos: ' . print_r($row, true));
         $correo = $row['MAIL'];
         $emailPred = $row['EMAILPRED'];
     }
@@ -763,7 +771,7 @@ function enviarCorreo($correo)
     $titulo = 'Mi título'; // Aquí puedes definir el título que desees
     $nombre = 'Cliente'; // Puedes pasar el nombre del cliente
     $asunto = 'Asunto del correo'; // Definir el asunto del correo
-    $bodyHTML = '<p>Este es el cuerpo del correo en formato HTML.</p>'; // Cuerpo en HTML del correo
+    $bodyHTML = '<p>Pedido realizado correctamente.</p>'; // Cuerpo en HTML del correo
 
     // Llamar al método para enviar el correo
     $resultado = $mail->metEnviar($titulo, $nombre, $correo, $asunto, $bodyHTML);
