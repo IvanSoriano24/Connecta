@@ -754,8 +754,9 @@ function validarCorreoCliente($formularioData, $conexionData)
     }
 }
 // Función para enviar el correo (en desarrollo)
-function enviarCorreo()
+function enviarCorreo($correo)
 {
+    var_dump($correo);
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
     // Llamar al método metEnviar de clsMail con los parámetros necesarios
