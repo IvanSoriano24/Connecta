@@ -39,15 +39,14 @@ class clsMail {
 }
 
 
-
+/*
 $mail = new clsMail();
-
 echo $mail->metEnviar(
     'Mi título',                // Título del remitente
     'Alberto',  // Nombre del destinatario
     'desarrollo02@mdcloud.mx', // Correo del destinatario
     'Asunto del correo',         // Asunto del correo
     '<p>Este es el cuerpo en HTML.</p>' // Cuerpo del correo en HTML
-);
+);*/
 
 ?>

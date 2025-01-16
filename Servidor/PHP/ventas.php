@@ -4,6 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require 'firebase.php';
+require_once '../PHPMailer/clsMail.php';
 session_start();
 
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
@@ -644,12 +645,10 @@ function actualizarInventario($conexionData, $partidasData)
     foreach ($partidasData as $partida) {
         $CVE_ART = $partida['producto'];
         $cantidad = $partida['cantidad'];
-
         // SQL para actualizar los campos EXIST y PEND_SURT
         $sql = "UPDATE $nombreTabla
-            SET 
-                [EXIST] = [EXIST] - ?,    
-                [PEND_SURT] = [PEND_SURT] + ?   
+            SET    
+                [APART] = [APART] + ?   
             WHERE [CVE_ART] = ?";
         // Preparar la consulta
         $params = array($cantidad, $cantidad, $CVE_ART);
@@ -673,8 +672,6 @@ function actualizarInventario($conexionData, $partidasData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-
-
 function obtenerFolioSiguiente($conexionData)
 {
     // Establecer la conexión con SQL Server con UTF-8
@@ -703,6 +700,76 @@ function obtenerFolioSiguiente($conexionData)
     sqlsrv_close($conn);
     // Retornar el folio siguiente
     return $folioSiguiente;
+}
+// Función para validar si el cliente tiene correo
+function validarCorreoCliente($formularioData, $conexionData)
+{
+    // Establecer la conexión con SQL Server
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    $claveCliente = $formularioData['cliente'];
+    $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
+    $clave = $claveArray[0]; // Tomar solo la primera parte
+
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    // Consulta SQL para obtener el correo y validar el campo MAIL
+    $sql = "SELECT [MAIL], [EMAILPRED]
+            FROM [SAE90Empre02].[dbo].[CLIE02] 
+            WHERE [CLAVE] = ?";
+    // Preparar la consulta
+    $params = array($clave);
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+        die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener los correos y validar el campo MAIL
+    $correo = null;
+    $emailPred = null;
+    if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $correo = $row['MAIL'];
+        $emailPred = $row['EMAILPRED'];
+    }
+
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    // Validar el correo: si "MAIL" es 'S', usar "EMAILPRED"
+    if ($correo == 'S' && $emailPred) {
+        enviarCorreo($emailPred);  // Llamar a la función para enviar el correo con EMAILPRED
+    } elseif (!$correo) {
+        echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo registrado.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'El valor de MAIL no es válido para enviar el correo.']);
+    }
+}
+// Función para enviar el correo (en desarrollo)
+function enviarCorreo()
+{
+    // Crear una instancia de la clase clsMail
+    $mail = new clsMail();
+    // Llamar al método metEnviar de clsMail con los parámetros necesarios
+    $correo = 'desarrollo02@mdcloud.mx';
+    $titulo = 'Mi título'; // Aquí puedes definir el título que desees
+    $nombre = 'Cliente'; // Puedes pasar el nombre del cliente
+    $asunto = 'Asunto del correo'; // Definir el asunto del correo
+    $bodyHTML = '<p>Este es el cuerpo del correo en formato HTML.</p>'; // Cuerpo en HTML del correo
+
+    // Llamar al método para enviar el correo
+    $resultado = $mail->metEnviar($titulo, $nombre, $correo, $asunto, $bodyHTML);
+
+    // Imprimir el resultado del envío del correo
+    echo $resultado;
 }
 
 function obtenerClientePedido($clave, $conexionData, $cliente)
@@ -1050,6 +1117,7 @@ switch ($funcion) {
         guardarPartidas($conexionData, $formularioData, $partidasData);
         actualizarFolio($conexionData);
         actualizarInventario($conexionData, $partidasData);
+        validarCorreoCliente($formularioData, $conexionData);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

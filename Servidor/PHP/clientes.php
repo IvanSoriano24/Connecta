@@ -88,6 +88,7 @@ function mostrarClientes($conexionData){
                         SALDO, 
                         VAL_RFC AS EstadoDatosTimbrado, 
                         NOMBRECOMERCIAL 
+                        EMAILPRED
                     FROM 
                         $nombreTabla
                     WHERE 
@@ -103,6 +104,7 @@ function mostrarClientes($conexionData){
                         SALDO, 
                         VAL_RFC AS EstadoDatosTimbrado, 
                         NOMBRECOMERCIAL 
+                        EMAILPRED
                     FROM 
                         $nombreTabla
                     WHERE 
