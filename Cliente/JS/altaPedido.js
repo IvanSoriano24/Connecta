@@ -405,7 +405,6 @@ function enviarDatosBackend(formularioData, partidasData) {
     formData.append('partidas', JSON.stringify(partidasData));
 
     // Enviamos la solicitud con fetch
-    alert("Empieza");
     fetch('../Servidor/PHP/ventas.php', {
         method: 'POST',
         body: formData, // Pasamos el FormData directamente
@@ -427,7 +426,6 @@ function enviarDatosBackend(formularioData, partidasData) {
         console.error('Error al enviar los datos:', error);
         alert('Ocurrió un error al enviar los datos.' + error);
     });
-    alert("Termina");
 }
 
 function filtrarClientes() {
