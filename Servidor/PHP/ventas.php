@@ -734,7 +734,6 @@ function validarCorreoCliente($formularioData, $conexionData)
     $params = [$clave];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        error_log('Error en la consulta SQL: ' . print_r(sqlsrv_errors(), true));
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
         die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
@@ -743,7 +742,6 @@ function validarCorreoCliente($formularioData, $conexionData)
     $correo = null;
     $emailPred = null;
     if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        error_log('Datos obtenidos: ' . print_r($row, true));
         $correo = $row['MAIL'];
         $emailPred = $row['EMAILPRED'];
     }
@@ -988,6 +986,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     echo json_encode(['success' => false, 'message' => 'Error al realizar la peticion.']);
     exit;
 }
+
 //var_dump($funcion);
 switch ($funcion) {
     case 1:

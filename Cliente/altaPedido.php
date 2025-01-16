@@ -299,52 +299,31 @@ if (isset($_SESSION['usuario'])) {
 
                 <div class="card-body ">
 
-                    <form class="form-container">
+                <form class="form-container">
                         <!-- 1st row: 4 inputs (2 select, 2 text) -->
                         <div class="row">
                             <div class="form-element">
                                 <label for="factura">Pedido: </label>
-                                <select name="factura" id="factura" style="width: 170px;">
+                                <select name="factura" id="factura">
                                     <option value="Directo">Directo</option>
                                 </select>
                             </div>
-                            <div class="form-element"></div>
                             <div class="form-element">
                                 <label for="numero">Número</label>
                                 <input type="text" name="numero" id="numero" readonly>
                             </div>
                             <div class="form-element">
                                 <label for="fecha">Fecha </label>
-                                <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;">
+                                <input type="date" name="diaAlta" id="diaAlta">
                             </div>
-
-                            <!-- <div class="form-element">
+                            <div class="form-element">
                                 <label for="cliente">Cliente</label>
                                 <div class="input-container" style="position: relative;">
                                     <div style="display: flex; align-items: center;">
                                         <input name="cliente" id="cliente" autocomplete="off"
                                             oninput="toggleClearButton()" style="padding-right: 2rem;" />
                                         <button id="clearInput" type="button" class="btn ms-2"
-                                            onclick="clearAllFields()" style="display: none;">
-                                            <i class="bx bx-x"></i>
-                                        </button>
-                                        <button type="button" class="btn ms-2" onclick="abrirModalClientes()">
-                                            <i class="bx bx-search"></i>
-                                        </button>
-                                    </div>
-                                    <ul id="clientesSugeridos" class="suggestions-list"></ul>
-                                </div>
-                            </div> -->
-                        </div>
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="cliente">Cliente</label>
-                                <div class="input-container" style="position: relative;">
-                                    <div style="display: flex; align-items: center;">
-                                        <input name="cliente" id="cliente" autocomplete="off"
-                                            oninput="toggleClearButton()" style="padding-right: 2rem; width:400px;" />
-                                        <button id="clearInput" type="button" class="btn ms-2"
-                                            onclick="clearAllFields()" style="display: none;">
+                                             onclick="clearAllFields()" style="display: none;">
                                             <i class="bx bx-x"></i>
                                         </button>
                                         <button type="button" class="btn ms-2" onclick="abrirModalClientes()">
@@ -354,24 +333,27 @@ if (isset($_SESSION['usuario'])) {
                                     <ul id="clientesSugeridos" class="suggestions-list"></ul>
                                 </div>
                             </div>
-                            <!-- <div class="form-element">
+
+                        </div>
+                        <div class="row">
+                            <div class="form-element">
                                 <label for="rfc">RFC <a class='bx'> *</a></label>
                                 <input type="text" name="rfc" id="rfc">
-                            </div> -->
+                            </div>
                             <div class="form-element">
                                 <label for="nombre">Nombre <a class='bx'> *</a></label>
                                 <input type="text" name="nombre" id="nombre">
                             </div>
-
-
-
+                            <div class="form-element">
+                                <label></label>
+                            </div>
                             <div class="form-element">
                                 <label for="nombre">Su Pedido </label>
                                 <input type="text" name="nombre" id="nombre">
                             </div>
                         </div>
                         <div class="row">
-                            <!-- <div class="form-element">
+                            <div class="form-element">
                                 <label for="calle">Calle </label>
                                 <input type="text" name="calle" id="calle" style="background-color: #e0e0e0; " value=""
                                     readonly>
@@ -385,20 +367,6 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="numI">Num. Int.</label>
                                 <input type="text" name="numI" id="numI" style="background-color: #e0e0e0; " value=""
                                     readonly>
-                            </div> -->
-                            <div class="form-element">
-                                <label for="vendedor">Vendedor </label>
-                                <input type="text" name="vendedor" id="vendedor" value="<?php echo $claveVendedor ?>"
-                                    readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="almacen">Almacen </label>
-                                <input type="text" name="almacen" id="almacen" style="background-color: #e0e0e0;"
-                                    value="1" readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="entrega">Entrega </label>
-                                <input type="date" name="entrega" id="entrega">
                             </div>
                             <div class="form-element">
                                 <label for="descuento">Esquema </label>
@@ -406,23 +374,13 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                         </div>
                         <div class="row">
-                            <!-- <div class="form-element">
+                            <div class="form-element">
                                 <label for="colonia">Colonia:</label>
                                 <input type="text" name="colonia" id="colonia"
                                     style="background-color: #e0e0e0; width: 470px;" value="" readonly>
-                            </div> -->
-                            <div class="form-element">
-                                <label for="condicion">Condicion </label>
-                                <div style="display: flex; align-items: center;">
-                                    <input type="text" name="condicion" style="width: 410px;" id="condicion">
-                                    <button type="button" class="btn ms-2" id="AyudaCondicion">
-                                        <i class="bx bx-help-circle"></i>
-                                    </button>
-                                </div>
                             </div>
-
                             <div class="form-element">
-
+                                <label></label>
                             </div>
                             <div class="form-element">
                                 <label for="descuento">Descuento </label>
@@ -431,16 +389,6 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                         <div class="row">
                             <div class="form-element">
-                                <label for="enviar">Enviar a </label>
-                                <div style="display: flex; align-items: center;">
-                                    <input type="text" name="enviar" style="width:410px;" id="enviar">
-                                    <button type="button" class="btn ms-2" id="AyudaEnviarA">
-                                        <i class="bx bx-help-circle" style=""></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- <div class="form-element">
                                 <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
                                 <input type="text" name="codigoPostal" id="codigoPostal"
                                     style="background-color: #e0e0e0; " value="" readonly>
@@ -449,16 +397,18 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="poblacion">Población:</label>
                                 <input type="text" name="poblacion" id="poblacion" style="background-color: #e0e0e0; "
                                     value="" readonly>
-                            </div> -->
-
-                            <div class="form-element"></div>
-
+                            </div>
+                            <div class="form-element">
+                                <label for="pais">Pais: <a class='bx'>*</a></label>
+                                <input type="text" name="pais" id="pais" style="background-color: #e0e0e0; " value=""
+                                    readonly>
+                            </div>
                             <div class="form-element">
                                 <label for="descuentofin">Descuento Fin </label>
                                 <input type="text" name="descuentofin" id="descuentofin">
                             </div>
                         </div>
-                        <!-- <div class="row">
+                        <div class="row">
                             <div class="form-element">
                                 <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
                                 <input type="text" name="regimenFiscal" id="regimenFiscal"
@@ -470,11 +420,18 @@ if (isset($_SESSION['usuario'])) {
                                     style="background-color: #e0e0e0; " value="" readonly>
                             </div>
 
-                            
-                        
-                        </div> -->
+                            <div class="form-element">
+                                <label for="entrega">Entrega </label>
+                                <input type="date" name="entrega" id="entrega">
+                            </div>
+                            <div class="form-element">
+                                <label for="vendedor">Vendedor </label>
+                                <input type="text" name="vendedor" id="vendedor" value="<?php echo $claveVendedor ?>"
+                                    readonly>
+                            </div>
+                        </div>
 
-                        <!-- <div class="row">
+                        <div class="row">
                             <div class="form-element">
                                 <label for="condicion">Condicion </label>
                                 <input type="text" name="condicion" style="width: 470px;" id="condicion">
@@ -484,30 +441,29 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="comision">Comision </label>
                                 <input type="text" name="comision" id="comision">
                             </div>
-                        </div> -->
+                        </div>
+
+                        <div class="row">
+                            <div class="form-element">
+                                <label for="enviar">Enviar a </label>
+                                <input type="text" name="enviar" style="width:470px;" id="enviar">
+                            </div>
+                            <div class="form-element"></div>
+
+                            <div class="form-element">
+                                <label for="almacen">Almacen </label>
+                                <input type="text" name="almacen" id="almacen" style="background-color: #e0e0e0;"
+                                    value="1" readonly>
+                            </div>
+                        </div>
 
                         <div class="row">
                             <div class="form-element">
                                 <label for="destinatario">Destinatario </label>
-                                <div style="display: flex; align-items: center;">
-                                    <input type="text" name="destinatario" id="destinatario"
-                                        style="background-color: #e0e0e0; width: 470px; " value="" readonly>
-                                </div>
+                                <input type="text" name="destinatario" id="destinatario"
+                                    style="background-color: #e0e0e0; width: 470px; " value="" readonly>
                             </div>
-                            <!-- <div class="form-element">
-                                <label for="enviar">Enviar a </label>
-                                <input type="text" name="enviar" style="width:470px;" id="enviar">
-                            </div> -->
-                            <div class="form-element"></div>
-
-
-                        </div>
-
-                        <div class="row">
-
                             <div class="form-buttons">
-                                <button type="submit" class="" id="btnValidarCorreo" >Prueba Correo</button>
-
                                 <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
                                 <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                             </div>
