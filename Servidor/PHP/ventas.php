@@ -749,7 +749,6 @@ function validarCorreoCliente($formularioData, $conexionData)
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
-
     // Validar el correo: si "MAIL" es 'S', usar "EMAILPRED"
     if ($correo == 'S' && $emailPred) {
         enviarCorreo($emailPred);  // Llamar a la función para enviar el correo con EMAILPRED
