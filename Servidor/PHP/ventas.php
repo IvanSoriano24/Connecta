@@ -764,7 +764,7 @@ function enviarCorreo($correo)
     $titulo = 'Mi título'; // Aquí puedes definir el título que desees
     $nombre = 'Cliente'; // Puedes pasar el nombre del cliente
     $asunto = 'Asunto del correo'; // Definir el asunto del correo
-    $bodyHTML = '<p>Este es el cuerpo del correo en formato HTML.</p>'; // Cuerpo en HTML del correo
+    $bodyHTML = '<p>Pedido realizado correctamente.</p>'; // Cuerpo en HTML del correo
 
     // Llamar al método para enviar el correo
     $resultado = $mail->metEnviar($titulo, $nombre, $correo, $asunto, $bodyHTML);

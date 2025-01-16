@@ -652,3 +652,24 @@ $(document).ready(function () {
         guardarPerdido();
     });
 });
+
+
+$('#AyudaCondicion').click(function () {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Ayuda',
+        text: 'Condicion es:',
+        icon: 'info',
+        confirmButtonText: 'Entendido'
+    });
+});
+
+$('#AyudaEnviarA').click(function () {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Ayuda',
+        text: 'Escribe quien enviaran ',
+        icon: 'info',
+        confirmButtonText: 'Entendido'
+    });
+});
