@@ -291,24 +291,25 @@ function tiempoEspera(){
 }
 function guardarPerdido() {
     // Primero, validar el formulario
-    const formularioValido = validarFormulario();
-   /* if (!formularioValido) {
+    /*const formularioValido = validarFormulario();
+    if (!formularioValido) {
         alert("Por favor, completa el formulario correctamente.");
         return;
-    }*/
-
+    }
+    alert("S");
     // Luego, validar las partidas
     const partidasValidas = validarPartidas();
-    /*if (!partidasValidas) {
+    if (!partidasValidas) {
         alert("Por favor, completa las partidas correctamente.");
         return;
     }*/
-
     // Obtener la información del formulario y las partidas
     const formularioData = obtenerDatosFormulario();
     const partidasData = obtenerDatosPartidas();
     // Hacer algo con los datos (enviar al backend, por ejemplo)
     enviarDatosBackend(formularioData, partidasData);
+    alert("a");
+    tiempoEspera();
 }
 function validarFormulario() {
     // Validar los campos obligatorios
@@ -340,7 +341,6 @@ function validarPartidas() {
             valido = false;  // Si algún campo de la partida está vacío, no es válida
         }
     });
-
     return valido;
 }
 function obtenerDatosFormulario() {
@@ -397,8 +397,8 @@ function obtenerDatosPartidas() {
 }
 function enviarDatosBackend(formularioData, partidasData) {
     // Aquí se prepara un objeto FormData para enviar los datos como si fueran un formulario
+    alert("Entra");
     const formData = new FormData();
-
     // Agregamos los datos necesarios al FormData
     formData.append('numFuncion', '8');
     formData.append('formulario', JSON.stringify(formularioData));
@@ -412,20 +412,22 @@ function enviarDatosBackend(formularioData, partidasData) {
     .then(response => response.text())  // Asumimos que el servidor responde con JSON
     .then(data => {
         if (data.success) {
+            alert("a");
             alert('Pedido guardado exitosamente');
             console.log('Datos enviados correctamente:', data);
             // Redirigir al usuario o realizar otra acción
             window.location.href = 'Ventas.php';
         } else {
+            alert("a");
             console.error('Error en la respuesta:', data);
             alert('Error al guardar el pedido: ' + data.message);
-            
         }
     })
     .catch(error => {
         console.error('Error al enviar los datos:', error);
         alert('Ocurrió un error al enviar los datos.' + error);
     });
+    alert("a");
 }
 
 function filtrarClientes() {
@@ -631,10 +633,6 @@ function cerrarModalClientes() {
 }
 
 
-
-
-
-
 // // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 // document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
 
@@ -675,12 +673,8 @@ $('#AyudaEnviarA').click(function () {
 });
 
 
-function btnValidarCorreo (){
-    alert();
-    const formularioData = {
-        cliente: document.getElementById('clienteInput').value
-    };
-
+function validarCorreo (){
+    alert("1");
     fetch('../Servidor/PHP/ventas.php', {
         method: 'POST',
         headers: {
@@ -694,5 +688,9 @@ function btnValidarCorreo (){
         alert(data.message);
     })
     .catch(error => console.error('Error:', error));
-    alert();
+    alert("3");
 }
+$('#btnValidarCorreo').click(function () {
+    alert("Entra");
+    validarCorreo();
+});

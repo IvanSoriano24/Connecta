@@ -383,8 +383,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     ?, 1, 1, 1, ?, 0, ?, 0, 'N', 1,
     '', ?, '', ?, 'N', ?, 'N', 'C', 0, ?,
     ?, ?, ?, ?,
-    '', ?, ?, '', '', ?)
-";
+    '', ?, ?, '', '', ?)";
     // Preparar los parámetros para la consulta
     $params = [
         $CVE_DOC,
@@ -429,7 +428,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
         die(json_encode([
             'success' => false,
             'message' => 'Error al guardar el pedido',
-            'errors' => sqlsrv_errors()
+            'data' => $claveCliente
         ]));
     } else {
         echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
@@ -716,7 +715,7 @@ function validarCorreoCliente($formularioData, $conexionData)
     $claveCliente = $formularioData['cliente'];
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
     $clave = $claveArray[0]; // Tomar solo la primera parte
-
+    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -726,16 +725,17 @@ function validarCorreoCliente($formularioData, $conexionData)
         die(json_encode(['success' => false, 'message' => 'La clave del cliente no es válida.']));
     }
 
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
     // Consulta SQL para obtener el correo y validar el campo MAIL
-    $sql = "SELECT [MAIL], [EMAILPRED]
-            FROM [SAE90Empre02].[dbo].[CLIE02] 
-            WHERE [CLAVE] = ?";
+    $sql = "SELECT MAIL, EMAILPRED
+            FROM $nombreTabla
+            WHERE CAST(LTRIM(RTRIM([CLAVE])) AS NVARCHAR(MAX)) = CAST(? AS NVARCHAR(MAX))";
     // Preparar la consulta
-    $params = [$clave];
+    $params = array($clave);
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        sqlsrv_free_stmt($stmt);
-        sqlsrv_close($conn);
         die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
     }
     // Obtener los correos y validar el campo MAIL
@@ -745,10 +745,7 @@ function validarCorreoCliente($formularioData, $conexionData)
         $correo = $row['MAIL'];
         $emailPred = $row['EMAILPRED'];
     }
-
-    // Cerrar la conexión
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
+    enviarCorreo($emailPred); 
     // Validar el correo: si "MAIL" es 'S', usar "EMAILPRED"
     if ($correo == 'S' && $emailPred) {
         enviarCorreo($emailPred);  // Llamar a la función para enviar el correo con EMAILPRED
@@ -757,11 +754,13 @@ function validarCorreoCliente($formularioData, $conexionData)
     } else {
         echo json_encode(['success' => false, 'message' => 'El valor de MAIL no es válido para enviar el correo.']);
     }
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
 }
 // Función para enviar el correo (en desarrollo)
 function enviarCorreo($correo)
 {
-    var_dump($correo);
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
     // Llamar al método metEnviar de clsMail con los parámetros necesarios
