@@ -317,18 +317,20 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="date" name="diaAlta" id="diaAlta">
                             </div>
                             <div class="form-element">
-                                <label for="cliente">Cliente </label>
+                                <label for="cliente">Cliente</label>
                                 <div class="input-container" style="position: relative;">
                                     <div style="display: flex; align-items: center;">
-                                        <input name="cliente" id="cliente" autocomplete="" />
+                                        <input name="cliente" id="cliente" autocomplete="off"
+                                            oninput="toggleClearButton()" style="padding-right: 2rem;" />
+                                        <button id="clearInput" type="button" class="btn ms-2"
+                                            onclick="clearAllFields()" style="display: none;">
+                                            <i class="bx bx-x"></i>
+                                        </button>
                                         <button type="button" class="btn ms-2" onclick="abrirModalClientes()">
                                             <i class="bx bx-search"></i>
                                         </button>
                                     </div>
-                                    <span id="clearInput" class="clear-input"
-                                        style="cursor: pointer; display: none;">&#10005;</span>
                                     <ul id="clientesSugeridos" class="suggestions-list"></ul>
-
                                 </div>
                             </div>
                         </div>

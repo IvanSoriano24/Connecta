@@ -560,6 +560,45 @@ function filtrarClientes() {
     renderClientes(clientesFiltrados);
 }
 
+
+// Boton eliminar campo INPUT
+const inputCliente = $('#cliente');
+    const clearButton = $('#clearInput');
+    const suggestionsList = $('#clientesSugeridos');
+
+    // Mostrar/ocultar el botón "x"
+    function toggleClearButton() {
+        if (inputCliente.val().trim() !== '') {
+            clearButton.show();
+        } else {
+            clearButton.hide();
+        }
+    }
+    
+ // Limpiar todos los campos
+ function clearAllFields() {
+    // Limpiar valores de los inputs
+    $('#cliente').val('');
+    $('#rfc').val('');
+    $('#nombre').val('');
+    $('#calle').val('');
+    $('#numE').val('');
+    $('#numI').val('');
+    $('#colonia').val('');
+    $('#codigoPostal').val('');
+    $('#poblacion').val('');
+    $('#pais').val('');
+    $('#regimenFiscal').val('');
+    $('#destinatario').val('');
+    $('#listaPrecios').val('');
+
+
+    // Limpiar la lista de sugerencias
+    suggestionsList.empty().hide();
+
+    // Ocultar el botón "x"
+    clearButton.hide();
+}
 // Vincular los eventos de búsqueda y cambio de criterio
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('campoBusquedaClientes').addEventListener('input', filtrarClientes);
