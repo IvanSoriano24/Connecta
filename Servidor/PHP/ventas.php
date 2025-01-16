@@ -184,7 +184,6 @@ function mostrarPedidos($conexionData, $filtroFecha)
                     // Si el valor es null, asignar un valor predeterminado
                     $value = '';
                 }
-
                 // Asignar el valor limpio al campo correspondiente
                 $row[$key] = $value;
             }
@@ -254,6 +253,10 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     sqlsrv_close($conn);
 }
 function obtenerDatosCliente($conexionData, $claveCliente) {
+    // Obtener solo la clave del cliente (primera parte antes del espacio)
+    $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
+    $clave = $claveArray[0]; // Tomar solo la primera parte
+
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -264,35 +267,33 @@ function obtenerDatosCliente($conexionData, $claveCliente) {
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
     // Consulta SQL para obtener los datos del cliente
     $sql = "
         SELECT 
-            CVE_OBS, ENLAZADO, TIP_DOC_E, DAT_ENVIO, 
-            CVE_BITA, DES_TOT_PORC, IMPORTE, COM_TOT_PORC, 
-            METODODEPAGO, NUMCTAPAGO, TIP_DOC_SIG, DOC_SIG, 
+            CVE_OBS,
+            CVE_BITA,
+            METODODEPAGO, NUMCTAPAGO,
             FORMADEPAGOSAT, USO_CFDI, REG_FISC
-        FROM Clientes
-        WHERE CVE_CLPV = ?
+        FROM $nombreTabla
+        WHERE CLAVE = $clave
     ";
 
-    // Ejecutar la consulta
-    $stmt = sqlsrv_query($conn, $sql, [$claveCliente]);
+    $stmt = sqlsrv_query($conn, $sql, [$clave]);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al obtener datos del cliente', 'errors' => sqlsrv_errors()]));
     }
-
+    
     // Obtener los datos
     $datosCliente = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-
     // Liberar recursos y cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 
-    // Retornar los datos obtenidos
     return $datosCliente;
 }
 function guardarPedido($conexionData, $formularioData, $partidasData){
@@ -310,10 +311,12 @@ function guardarPedido($conexionData, $formularioData, $partidasData){
     }
     $claveCliente = $formularioData['cliente'];
     $datosCliente = obtenerDatosCliente($conexionData, $claveCliente);
+    if (!$datosCliente) {
+        die(json_encode(['success' => false, 'message' => 'No se encontraron datos del cliente']));
+    }
     // Obtener el número de empresa
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-
     // Extraer los datos del formulario
     $FOLIO = $formularioData['numero'];
     $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
@@ -321,29 +324,31 @@ function guardarPedido($conexionData, $formularioData, $partidasData){
     $FECHA_ENT =$formularioData['entrega'];
     // Sumar los totales de las partidas
     $CAN_TOT = 0; // Inicializar la variable para la cantidad total
+    $IMPORTE = 0;
     foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['total']; // Suponiendo que cada partida tiene un campo 'total'
+        $CAN_TOT += $partida['cantidad']; // Acumula la cantidad total
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Suma al importe total
     }
     $CVE_VEND = $formularioData['claveVendedor'];
     // Asignación de otros valores del formulario
-    $IMP_TOT1 = $formularioData['impuestos1'];
-    $IMP_TOT2 = $formularioData['cantidadTotal'];
-    $IMP_TOT3 = $formularioData['cantidadTotal'];
-    $IMP_TOT4 = $formularioData['cantidadTotal'];
-    $IMP_TOT5 = $formularioData['cantidadTotal'];
-    $IMP_TOT6 = $formularioData['cantidadTotal'];
-    $IMP_TOT7 = $formularioData['cantidadTotal'];
-    $IMP_TOT8 = $formularioData['cantidadTotal'];
-    $DES_TOT = $formularioData['impuestos1'];
-    $DES_FIN = $formularioData['cantidadTotal'];
-    $CONDICION = $formularioData['cantidadTotal'];
-    $RFC = $formularioData['cantidadTotal'];
-    $FECHA_ELAB = $formularioData['cantidadTotal'];
-    $TIP_DOC = $formularioData['cantidadTotal'];
-    $NUM_ALMA = $formularioData['cantidadTotal'];
-    $FORMAENVIO = $formularioData['cantidadTotal'];
+    $IMP_TOT1 = 0;
+    $IMP_TOT2 = 0;
+    $IMP_TOT3 = 0;
+    $IMP_TOT4 = $CAN_TOT*.16;
+    $IMP_TOT5 = 0;
+    $IMP_TOT6 = 0;
+    $IMP_TOT7 = 0;
+    $IMP_TOT8 = 0;
+    $DES_TOT = $formularioData['descuento'];
+    $DES_FIN = $formularioData['descuento'];
+    $CONDICION = $formularioData['condicion'];
+    $RFC = $formularioData['rfc'];
+    $FECHA_ELAB = $formularioData['diaAlta'];
+    $TIP_DOC = $formularioData['factura'];
+    $NUM_ALMA = $formularioData['almacen'];
+    $FORMAENVIO = 'C';
     $COM_TOT = $formularioData['comision'];
-
+    $DAT_ENVIO = 1; //Telefono
     $CVE_OBS = $datosCliente['CVE_OBS'];
     $CVE_BITA = $datosCliente['CVE_BITA'];
     //$COM_TOT_PORC = $datosCliente['COM_TOT_PORC']; //VENDEDOR
@@ -353,8 +358,9 @@ function guardarPedido($conexionData, $formularioData, $partidasData){
     $USO_CFDI = $datosCliente['USO_CFDI'];
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 0; ////
-    $TIP_DOC_E = 0; ///
-
+    $TIP_DOC_E = 0; ////
+    $DES_TOT_PORC = 0; ////
+    $COM_TOT_PORC = 0; ////
     // Crear la consulta SQL para insertar los datos en la base de datos
     $sql = "INSERT INTO $nombreTabla
     (TIP_DOC, CVE_DOC, CVE_CLPV, STATUS, DAT_MOSTR,
@@ -363,19 +369,19 @@ function guardarPedido($conexionData, $formularioData, $partidasData){
     DES_TOT, DES_FIN, COM_TOT, CONDICION, CVE_OBS, NUM_ALMA, ACT_CXC, ACT_COI, ENLAZADO,
     TIP_DOC_E, NUM_MONED, TIPCAMB, NUM_PAGOS, FECHAELAB, PRIMERPAGO, RFC, CTLPOL, ESCFD, AUTORIZA,
     SERIE, FOLIO, AUTOANIO, DAT_ENVIO, CONTADO, CVE_BITA, BLOQ, FORMAENVIO, DES_FIN_PORC, DES_TOT_PORC,
-    IMPORTE, COM_TOT_PORC, METODODEPAGO, NUMCTAPAGO, TIP_DOC_ANT, DOC_ANT, TIP_DOC_SIG, DOC_SIG,
-    VERSION_SINC, FORMADEPAGOSAT, USO_CFDI, NUM_ALM_DES, TIP_TRASLADO, TIP_FAC, REG_FISC
+    IMPORTE, COM_TOT_PORC, METODODEPAGO, NUMCTAPAGO,
+    VERSION_SINC, FORMADEPAGOSAT, USO_CFDI, TIP_TRASLADO, TIP_FAC, REG_FISC
     ) 
-    VALUES ('P', ?, '', 'E', 0,
+    VALUES 
+    ('P', ?, '', 'E', 0, 
     ?, '', ?, ?, ?, '', ?,
     ?, ?, ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?, 'S', 'N', ?,
     ?, 1, 1, 1, ?, 0, ?, 0, 'N', 1,
-    '', ?, '', ?, 'N', ?, 'N', ?, 0, ?
-    ?, ?, ?, ?, '', '', ?, ?, 
-    '', ?, ?, 'P', ?)
+    '', ?, '', ?, 'N', ?, 'N', 'C', 0, ?,
+    ?, ?, ?, ?,
+    '', ?, ?, '', '', ?)
 ";
-
 // Preparar los parámetros para la consulta
 $params = [
     $CVE_DOC,        
@@ -383,27 +389,26 @@ $params = [
     $IMP_TOT1, $IMP_TOT2, $IMP_TOT3, $IMP_TOT4, $IMP_TOT5, $IMP_TOT6, $IMP_TOT7, $IMP_TOT8, 
     $DES_TOT, $DES_FIN, $COM_TOT, $CONDICION, $CVE_OBS, $NUM_ALMA, $ENLAZADO,      
     $TIP_DOC_E, $FECHA_ELAB, $RFC,  
-    $FOLIO, $DAT_ENVIO, $CVE_BITA, $FORMAENVIO, $DES_TOT_PORC, 
-    $IMPORTE, $COM_TOT_PORC, $METODODEPAGO, $NUMCTAPAGO, $TIP_DOC_SIG, $DOC_SIG,
+    $FOLIO, $DAT_ENVIO, $CVE_BITA, $DES_TOT_PORC, 
+    $IMPORTE, $COM_TOT_PORC, $METODODEPAGO, $NUMCTAPAGO,
     $FORMADEPAGOSAT, $USO_CFDI, $REG_FISC                             
 ];
-
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al guardar el pedido', 'errors' => sqlsrv_errors()]));
-    }else{
-        // Si todo salió bien, retornar éxito
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar el pedido',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    else{
         echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
-        guardarPartidas($conexionData, $formularioData, $partidasData);
-        actualizarFolio($conexionData);
-        actualizarInventario($conexionData, $partidasData);
     }
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-
 function guardarPartidas($conexionData, $formularioData, $partidasData)
 {
     // Establecer la conexión con SQL Server con UTF-8
@@ -488,13 +493,6 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 $TOT_PARTIDA,
                 $DESCR_ART
             ];
-            //var_dump($params);
-            $sqlDepurado = $sql;
-            foreach ($params as $param) {
-                $sqlDepurado = preg_replace('/\?/', "'" . addslashes($param) . "'", $sqlDepurado, 1);
-            }
-            var_dump($sqlDepurado);
-
             // Ejecutar la consulta
             $stmt = sqlsrv_query($conn, $sql, $params);
             //var_dump($stmt);
@@ -507,7 +505,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
     } else {
         die(json_encode(['success' => false, 'message' => 'Error: partidasData no es un array válido']));
     }
-    echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
+    //echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
     // Confirmar la transacción
     sqlsrv_commit($conn);
     // Cerrar la conexión
@@ -555,24 +553,31 @@ function actualizarFolio($conexionData)
     }
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
     // SQL para incrementar el valor de ULT_DOC en 1 donde TIP_DOC es 'P'
     $sql = "UPDATE $nombreTabla
             SET [ULT_DOC] = [ULT_DOC] + 1
             WHERE [TIP_DOC] = 'P'";
+
     // Ejecutar la consulta SQL
     $stmt = sqlsrv_query($conn, $sql);
+
     if ($stmt === false) {
-        sqlsrv_free_stmt($stmt);
+        // Si la consulta falla, liberar la conexión y retornar el error
         sqlsrv_close($conn);
         die(json_encode(['success' => false, 'message' => 'Error al actualizar el folio', 'errors' => sqlsrv_errors()]));
     }
+
     // Verificar cuántas filas se han afectado
     $rowsAffected = sqlsrv_rows_affected($stmt);
+
+    // Liberar el recurso solo si la consulta fue exitosa
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
+
     // Retornar el resultado
     if ($rowsAffected > 0) {
-        echo json_encode(['success' => true, 'message' => 'Folio actualizado correctamente']);
+        //echo json_encode(['success' => true, 'message' => 'Folio actualizado correctamente']);
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
@@ -587,11 +592,13 @@ function actualizarInventario($conexionData, $partidasData)
         "PWD" => $conexionData['password'],
         "CharacterSet" => "UTF-8"
     ];
-    $CVE_ART = $partida['producto'];
+    var_dump($partidasData['producto']);
+    $CVE_ART = $partidasData['producto'];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
+    var_dump($partidasData['cantidad']);
     $cantidad = $partidasData['cantidad'];
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
@@ -618,10 +625,12 @@ function actualizarInventario($conexionData, $partidasData)
 
     // Retornar el resultado
     if ($rowsAffected > 0) {
-        echo json_encode(['success' => true, 'message' => 'Inventario actualizado correctamente']);
+       // echo json_encode(['success' => true, 'message' => 'Inventario actualizado correctamente']);
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontró el producto para actualizar']);
     }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
 }
 
 
@@ -997,6 +1006,9 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         // Mostrar los clientes usando los datos de conexión obtenidos
         guardarPedido($conexionData, $formularioData, $partidasData);
+        guardarPartidas($conexionData, $formularioData, $partidasData);
+        actualizarFolio($conexionData);
+        actualizarInventario($conexionData, $partidasData);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

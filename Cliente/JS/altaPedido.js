@@ -44,6 +44,7 @@ function agregarFilaPartidas() {
         <td><input type="number" class="comision" value="0" readonly /></td>
         <td><input type="number" class="precioUnidad" value="0" readonly /></td>
         <td><input type="number" class="subtotalPartida" value="0" readonly /></td>
+        <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
         <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
     `;
 
@@ -308,9 +309,6 @@ function guardarPerdido() {
     const partidasData = obtenerDatosPartidas();
     // Hacer algo con los datos (enviar al backend, por ejemplo)
     enviarDatosBackend(formularioData, partidasData);
-    alert("Esto es todo amigos");
-    tiempoEspera();
-    
 }
 function validarFormulario() {
     // Validar los campos obligatorios
@@ -386,6 +384,7 @@ function obtenerDatosPartidas() {
             descuento1: fila.querySelector('.descuento1').value,
             descuento2: fila.querySelector('.descuento2').value,
             ieps: fila.querySelector('.ieps').value,
+            impuesto2: fila.querySelector('.impuesto2').value,
             isr: fila.querySelector('.impuesto3').value,
             iva: fila.querySelector('.iva').value,
             comision: fila.querySelector('.comision').value,
@@ -411,7 +410,7 @@ function enviarDatosBackend(formularioData, partidasData) {
         method: 'POST',
         body: formData, // Pasamos el FormData directamente
     })
-    .then(response => response.json()) // Asumimos que el servidor responde con JSON
+    .then(response => response.text())  // Asumimos que el servidor responde con JSON
     .then(data => {
         if (data.success) {
             alert('Pedido guardado exitosamente');
@@ -419,8 +418,9 @@ function enviarDatosBackend(formularioData, partidasData) {
             // Redirigir al usuario o realizar otra acción
             window.location.href = 'Ventas.php';
         } else {
-            alert('Error al guardar el pedido: ' + data.message);
             console.error('Error en la respuesta:', data);
+            alert('Error al guardar el pedido: ' + data.message);
+            
         }
     })
     .catch(error => {

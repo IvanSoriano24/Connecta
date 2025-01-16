@@ -50,17 +50,19 @@ if (isset($_SESSION['usuario'])) {
 
 <body>
 	<div class="hero_area">
-	<?php include 'sidebar.php'; ?>
+		<?php include 'sidebar.php'; ?>
 		<!-- CONTENT -->
 		<section id="content">
-		<?php include 'navbar.php'; ?>
-            <!-- MAIN -->
-            <main class="text-center my-5 hero_area">
-                
-            </main>
-            <!-- MAIN -->
-        </section>
-        <!-- CONTENT -->
+			<?php include 'navbar.php'; ?>
+			<!-- MAIN -->
+			<main class="text-center my-5 hero_area">
+			<!--<form method="POST" action="../Servidor/PHP/whatsappp.php">
+			<button type="submit">Realizar Pedido</button>
+			</form>-->
+			</main>
+			<!-- MAIN -->
+		</section>
+		<!-- CONTENT -->
 	</div>
 	</section>
 	<!-- CONTENT -->
@@ -83,6 +85,7 @@ if (isset($_SESSION['usuario'])) {
 				</div>
 			</div>
 		</div>
+		
 		<!-- JS Para la confirmacion empresa -->
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 		<script>
@@ -144,4 +147,5 @@ if (isset($_SESSION['usuario'])) {
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
 </body>
+
 </html>
