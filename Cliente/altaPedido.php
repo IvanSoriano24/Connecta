@@ -354,6 +354,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="text" name="nombre" id="nombre">
                             </div>
                         </div>
+
                         <div class="row">
                             <div class="form-element" style="display: none;">
                                 <label for="calle">Calle </label>
@@ -389,6 +390,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="text" name="descuento" id="descuento">
                             </div>
                         </div>
+
                         <div class="row">
                             <div class="form-element" style="display: none;">
                                 <label for="colonia">Colonia:</label>
@@ -452,7 +454,6 @@ if (isset($_SESSION['usuario'])) {
                         </div>
 
                         <div class="row">
-
                             <div class="form-element" style="display: none;">
                                 <div class="form-element">
                                     <label for="comision">Comision </label>
@@ -465,75 +466,71 @@ if (isset($_SESSION['usuario'])) {
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <div class="form-element" style="display: none;">
-                                    <label for="destinatario">Destinatario </label>
-                                    <div style="display: flex; align-items: center;">
-                                        <input type="text" name="destinatario" id="destinatario"
-                                            style="background-color: #e0e0e0; width: 470px; " value="" readonly>
-                                    </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-element" style="display: none;">
+                                <label for="destinatario">Destinatario </label>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="text" name="destinatario" id="destinatario"
+                                        style="background-color: #e0e0e0; width: 470px; " value="" readonly>
                                 </div>
-
-                                <div class="form-element"></div>
-
-
                             </div>
 
-                            <div class="row">
-
-
-                                <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
-                                <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
-                            </div>
                             <div class="form-element"></div>
                         </div>
+
+                        <div class="row">
+                        <div class="form-element"></div>
+                            <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
+                            <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
+                        </div>
+                        
+                        
                     </form>
+                <!-- 5th row: 2 buttons -->
 
-                    <!-- 5th row: 2 buttons -->
-
-                    <div class="table-data">
-                        <div class="order">
-                            <div class="table-container">
-                                <div class="table-wrapper">
-                                    <button type="button" class="btn-secondary" id="añadirPartida">Añadir
-                                        Partida</button>
-                                    <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
-                                        <thead>
-                                            <tr>
-                                                <th>Cant.</th>
-                                                <th>Producto</th>
-                                                <th>Unidad</th>
-                                                <th>Desc.1</th>
-                                                <th>Desc.2</th>
-                                                <th>I.E.P.S</th>
-                                                <th>I.V.A</th>
-                                                <th>Comision</th>
-                                                <th>Prec.Unit</th>
-                                                <th>Subtotal por Partida</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Filas dinámicas -->
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly
-                                    hidden>
-                                <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
-
+                <div class="table-data">
+                    <div class="order">
+                        <div class="table-container">
+                            <div class="table-wrapper">
+                                <button type="button" class="btn-secondary" id="añadirPartida">Añadir
+                                    Partida</button>
+                                <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
+                                    <thead>
+                                        <tr>
+                                            <th>Cant.</th>
+                                            <th>Producto</th>
+                                            <th>Unidad</th>
+                                            <th>Desc.1</th>
+                                            <th>Desc.2</th>
+                                            <th>I.E.P.S</th>
+                                            <th>I.V.A</th>
+                                            <th>Comision</th>
+                                            <th>Prec.Unit</th>
+                                            <th>Subtotal por Partida</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Filas dinámicas -->
+                                    </tbody>
+                                </table>
                             </div>
+
+                            <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
+                            <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
+
                         </div>
                     </div>
                 </div>
+    </div>
 
 
 
-                <!-- </div> -->
-            </main>
-            <!-- MAIN -->
-            <!-- CONTENT -->
-        </section>
+    <!-- </div> -->
+    </main>
+    <!-- MAIN -->
+    <!-- CONTENT -->
+    </section>
     </div>
     <!-- CONTENT -->
     <!-- Modal Productos -->

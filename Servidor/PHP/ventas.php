@@ -719,7 +719,7 @@ function validarCorreoCliente($formularioData, $conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    
+
     if (empty($clave)) {
         error_log('Clave no válida: ' . print_r($clave, true));
         die(json_encode(['success' => false, 'message' => 'La clave del cliente no es válida.']));
@@ -745,7 +745,7 @@ function validarCorreoCliente($formularioData, $conexionData)
         $correo = $row['MAIL'];
         $emailPred = $row['EMAILPRED'];
     }
-    enviarCorreo($emailPred); 
+    enviarCorreo($emailPred);
     // Validar el correo: si "MAIL" es 'S', usar "EMAILPRED"
     if ($correo == 'S' && $emailPred) {
         enviarCorreo($emailPred);  // Llamar a la función para enviar el correo con EMAILPRED
@@ -909,7 +909,7 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
     }
     header('Content-Type: application/json');
     if ($precio !== null) {
-        echo json_encode(['success' => true, 'precio' => (float)$precio]);
+        echo json_encode(['success' => true, 'precio' => (float) $precio]);
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontró el precio del producto.']);
     }
@@ -952,9 +952,9 @@ function obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa)
     $impuestos = null;
     if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $impuestos = [
-            'IMPUESTO1' => (float)$row['IMPUESTO1'],
-            'IMPUESTO2' => (float)$row['IMPUESTO2'],
-            'IMPUESTO4' => (float)$row['IMPUESTO4']
+            'IMPUESTO1' => (float) $row['IMPUESTO1'],
+            'IMPUESTO2' => (float) $row['IMPUESTO2'],
+            'IMPUESTO4' => (float) $row['IMPUESTO4']
         ];
     }
 
@@ -970,6 +970,82 @@ function obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+
+function validarExistencias($conexionData, $partidasData)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Verificar existencias para todas las partidas
+    $productosSinExistencia = [];
+    foreach ($partidasData as $partida) {
+        $CVE_ART = $partida['producto'];
+        $cantidad = $partida['cantidad'];
+
+        // Consultar las existencias actuales del producto
+        $sqlCheck = "SELECT [EXIST] FROM $nombreTabla WHERE [CVE_ART] = ?";
+        $stmtCheck = sqlsrv_query($conn, $sqlCheck, [$CVE_ART]);
+
+        if ($stmtCheck === false) {
+            sqlsrv_close($conn);
+            die(json_encode(['success' => false, 'message' => 'Error al verificar existencias', 'errors' => sqlsrv_errors()]));
+        }
+
+        // Obtener el resultado de la consulta
+        $row = sqlsrv_fetch_array($stmtCheck, SQLSRV_FETCH_ASSOC);
+        if ($row) {
+            if ($row['EXIST'] >= $cantidad) {
+                $productosConExistencia[] = [
+                    'producto' => $CVE_ART,
+                    'existencias' => $row['EXIST']
+                ];
+            } else {
+                $productosSinExistencia[] = [
+                    'producto' => $CVE_ART,
+                    'existencias' => $row['EXIST']
+                ];
+            }
+        } else {
+            $productosSinExistencia[] = [
+                'producto' => $CVE_ART,
+                'existencias' => 0
+            ];
+        }
+        sqlsrv_free_stmt($stmtCheck);
+    }
+
+    sqlsrv_close($conn);
+
+    // Responder con el estado de las existencias
+    if (!empty($productosSinExistencia)) {
+        return [
+            'success' => false,
+            'message' => 'No hay suficientes existencias para algunos productos',
+            'productosConExistencia' => $productosConExistencia,
+            'productosSinExistencia' => $productosSinExistencia
+        ];
+    }
+
+    return [
+        'success' => true,
+        'message' => 'Existencias verificadas correctamente',
+        'productosConExistencia' => $productosConExistencia
+    ];
+}
+
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -1118,12 +1194,31 @@ switch ($funcion) {
         $formularioData = json_decode($_POST['formulario'], true); // Clave "formulario" enviada desde JS
         $partidasData = json_decode($_POST['partidas'], true); // Clave "partidas" enviada desde JS        
         $conexionData = $conexionResult['data'];
-        // Mostrar los clientes usando los datos de conexión obtenidos
-        guardarPedido($conexionData, $formularioData, $partidasData);
-        guardarPartidas($conexionData, $formularioData, $partidasData);
-        actualizarFolio($conexionData);
-        actualizarInventario($conexionData, $partidasData);
-        validarCorreoCliente($formularioData, $conexionData);
+
+        // Validar existencias antes de realizar cualquier otra operación
+        $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+        
+        if ($resultadoValidacion['success']) {
+            // Si hay suficiente inventario, llamar a las siguientes funciones en orden
+            guardarPedido($conexionData, $formularioData, $partidasData);
+            guardarPartidas($conexionData, $formularioData, $partidasData);
+            actualizarFolio($conexionData);
+            actualizarInventario($conexionData, $partidasData);
+            validarCorreoCliente($formularioData, $conexionData);
+    
+            // Respuesta de éxito al frontend
+            echo json_encode([
+                'success' => true,
+                'message' => 'El pedido se completó correctamente.'
+            ]);
+        } else {
+            // Si no hay existencias, retornar detalles al frontend
+            echo json_encode([
+                'success' => false,
+                'message' => $resultadoValidacion['message'],
+                'productosSinExistencia' => $resultadoValidacion['productosSinExistencia']
+            ]);
+        }
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

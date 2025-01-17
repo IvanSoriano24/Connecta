@@ -2,7 +2,13 @@
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
     if (!clienteSeleccionado) {
-        alert("Debe seleccionar un cliente primero.");
+        Swal.fire({
+            title: 'Error',
+            text: `Debes seleccionar un Cliente primero`,
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+        });
+        
         return;
     }
     const tablaProductos = document.querySelector("#tablaProductos tbody");
@@ -19,7 +25,7 @@ function agregarFilaPartidas() {
     // Crear una nueva fila
     const nuevaFila = document.createElement("tr");
     nuevaFila.innerHTML = `
-        <td><input type="number" class="cantidad" value="0" readonly /></td>
+        <td><input id="cantidadp" type="number" class="cantidad" value="0" readonly /></td>
          <td>
             <div class="d-flex flex-column position-relative">
                 <div class="d-flex align-items-center">
@@ -246,11 +252,23 @@ function mostrarListaProductos(productos, input) {
                 if (campoUnidad) {
                     campoUnidad.value = producto.UNI_MED;
                 }
-                // Desbloquear el campo de cantidad
+                // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
                 const campoCantidad = filaTabla.querySelector("input.cantidad");
                 if (campoCantidad) {
-                    campoCantidad.readOnly = false;
-                    campoCantidad.value = 0; // Valor inicial opcional
+                    if (producto.EXIST > 0) {
+                        campoCantidad.readOnly = false;
+                        campoCantidad.value = 0; // Valor inicial opcional
+                    } else {
+                        campoCantidad.readOnly = true;
+                        campoCantidad.value = "Sin existencias"; // Mensaje opcional
+                        Swal.fire({
+                            title: 'Error',
+                            text: `El producto "${producto.CVE_ART}" no tiene existencias disponibles.`,
+                            icon: 'warning',
+                            confirmButtonText: 'Entendido'
+                        });
+                        
+                    }
                 }
                 // Cerrar el modal
                 cerrarModal();
@@ -286,7 +304,7 @@ function cerrarModal() {
         modal.hide();
     }
 }
-function tiempoEspera(){
+function tiempoEspera() {
     alert("Esperando");
 }
 function guardarPerdido() {
@@ -409,24 +427,32 @@ function enviarDatosBackend(formularioData, partidasData) {
         method: 'POST',
         body: formData, // Pasamos el FormData directamente
     })
-    .then(response => response.text())  // Asumimos que el servidor responde con JSON
-    .then(data => {
-        if (data.success) {
-            alert("a");
-            alert('Pedido guardado exitosamente');
-            console.log('Datos enviados correctamente:', data);
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = 'Ventas.php';
-        } else {
-            alert("a");
-            console.error('Error en la respuesta:', data);
-            alert('Error al guardar el pedido: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error al enviar los datos:', error);
-        alert('Ocurrió un error al enviar los datos.' + error);
-    });
+        .then(response => response.text())  // Asumimos que el servidor responde con JSON
+        .then(data => {
+            if (data.success) {
+                if (data.validacion && data.validacion.existe) {
+                    let mensaje = 'Hay existencias suficientes.\n\n';
+                    data.validacion.productos.forEach(producto => {
+                        mensaje += `Producto: ${producto.codigo}, Existencias: ${producto.existencias}\n`;
+                    });
+                    alert(mensaje);
+                }
+
+                alert("a");
+                alert('Pedido guardado exitosamente');
+                console.log('Datos enviados correctamente:', data);
+                // Redirigir al usuario o realizar otra acción
+                window.location.href = 'Ventas.php';
+            } else {
+                alert("a");
+                console.error('Error en la respuesta:', data);
+                alert('Error al guardar el pedido: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error al enviar los datos:', error);
+            alert('Ocurrió un error al enviar los datos.' + error);
+        });
     alert("a");
 }
 
@@ -511,7 +537,7 @@ function showCustomerSuggestions() {
     sugerencias.classList.remove("d-none"); // Mostrar las sugerencias
 
     // Generar las sugerencias en base al texto ingresado
-    const clientesFiltrados = clientesData.filter(cliente => 
+    const clientesFiltrados = clientesData.filter(cliente =>
         cliente.NOMBRE.toLowerCase().includes(clienteInputValue.toLowerCase())
     );
 
@@ -565,20 +591,20 @@ function filtrarClientes() {
 
 // Boton eliminar campo INPUT
 const inputCliente = $('#cliente');
-    const clearButton = $('#clearInput');
-    const suggestionsList = $('#clientesSugeridos');
+const clearButton = $('#clearInput');
+const suggestionsList = $('#clientesSugeridos');
 
-    // Mostrar/ocultar el botón "x"
-    function toggleClearButton() {
-        if (inputCliente.val().trim() !== '') {
-            clearButton.show();
-        } else {
-            clearButton.hide();
-        }
+// Mostrar/ocultar el botón "x"
+function toggleClearButton() {
+    if (inputCliente.val().trim() !== '') {
+        clearButton.show();
+    } else {
+        clearButton.hide();
     }
-    
- // Limpiar todos los campos
- function clearAllFields() {
+}
+
+// Limpiar todos los campos
+function clearAllFields() {
     // Limpiar valores de los inputs
     $('#cliente').val('');
     $('#rfc').val('');
@@ -673,7 +699,7 @@ $('#AyudaEnviarA').click(function () {
 });
 
 
-function validarCorreo (){
+function validarCorreo() {
     alert("1");
     fetch('../Servidor/PHP/ventas.php', {
         method: 'POST',
@@ -681,13 +707,13 @@ function validarCorreo (){
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(formularioData)
-        
+
     })
-    .then(response => response.json())
-    .then(data => {
-        alert(data.message);
-    })
-    .catch(error => console.error('Error:', error));
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => console.error('Error:', error));
     alert("3");
 }
 $('#btnValidarCorreo').click(function () {

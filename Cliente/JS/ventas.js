@@ -28,11 +28,20 @@ function cargarPedidos(filtroFecha) {
             // Verifica si response es un objeto antes de intentar procesarlo
             if (typeof response === 'object' && response !== null) {
                 if (response.success && response.data) {
-                    const pedidos = response.data;
+                    let pedidos = response.data;
+
+                    // Ordenar pedidos por clave (de más reciente a más antigua)
+                    pedidos = pedidos.sort((a, b) => {
+                        const claveA = parseInt(a.Clave, 10) || 0;
+                        const claveB = parseInt(b.Clave, 10) || 0;
+                        return claveB - claveA; // Orden descendente
+                    });
+
                     const pedidosTable = document.getElementById('datosPedidos');
                     pedidosTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
                     pedidos.forEach(pedido => {
                         const row = document.createElement('tr');
+
                         row.innerHTML = `
                             <td>${pedido.Tipo || 'Sin tipo'}</td>
                             <td>${pedido.Clave || 'Sin nombre'}</td>
@@ -40,11 +49,12 @@ function cargarPedidos(filtroFecha) {
                             <td>${pedido.Nombre || 'Sin nombre'}</td>
                             <td>${pedido.Estatus || '0'}</td>
                             <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td> <!-- Maneja el objeto anidado -->
-                            <td>${pedido.Subtotal || 'Sin subtotal'}</td>
-                            <td>${pedido.TotalComisiones || 'Sin comisiones'}</td>
+                            <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td>
+                            <td style="text-align: right;">${pedido.TotalComisiones  ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
+
                             <td>${pedido.NumeroAlmacen || 'Sin almacén'}</td>
                             <td>${pedido.FormaEnvio || 'Sin forma de envío'}</td>
-                            <td>${pedido.ImporteTotal || 'Sin importe'}</td>
+                            <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
                             <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
                             <td>
                                 <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
@@ -70,10 +80,10 @@ function cargarPedidos(filtroFecha) {
                 } else {
                     // Si no hay pedidos, mostrar una fila con el mensaje "No hay datos"
                     const row = document.createElement('tr');
-                    
+
                     // Obtener el número de columnas del encabezado
-                    const numColumns = pedidosTable.querySelector('thead') 
-                        ? pedidosTable.querySelector('thead').rows[0].cells.length 
+                    const numColumns = pedidosTable.querySelector('thead')
+                        ? pedidosTable.querySelector('thead').rows[0].cells.length
                         : 13; // Valor predeterminado si no hay encabezado
 
                     row.innerHTML = `
@@ -108,7 +118,15 @@ function datosPedidos() {
                 const pedidosTable = document.getElementById('datosPedidos');
                 pedidosTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
                 if (response.success && response.data) {
-                    const pedidos = response.data;
+                    let pedidos = response.data;
+
+                    // Ordenar pedidos por clave en orden descendente
+                    pedidos = pedidos.sort((a, b) => {
+                        const claveA = parseInt(a.Clave, 10) || 0;
+                        const claveB = parseInt(b.Clave, 10) || 0;
+                        return claveB - claveA; // Orden descendente
+                    });
+
                     pedidos.forEach(pedido => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -118,11 +136,12 @@ function datosPedidos() {
                         <td>${pedido.Nombre || 'Sin nombre'}</td>
                         <td>${pedido.Estatus || '0'}</td>
                         <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td> <!-- Maneja el objeto anidado -->
-                        <td>${pedido.Subtotal || 'Sin subtotal'}</td>
-                        <td>${pedido.TotalComisiones || 'Sin comisiones'}</td>
+                        <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td>
+                        <td style="text-align: right;">${pedido.TotalComisiones  ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
+
                         <td>${pedido.NumeroAlmacen || 'Sin almacén'}</td>
                         <td>${pedido.FormaEnvio || 'Sin forma de envío'}</td>
-                        <td>${pedido.ImporteTotal || 'Sin importe'}</td>
+                        <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
                         <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
                         <td>
                             <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
@@ -148,10 +167,10 @@ function datosPedidos() {
                 } else {
                     // Si no hay pedidos, mostrar una fila con el mensaje "No hay datos"
                     const row = document.createElement('tr');
-                    
+
                     // Obtener el número de columnas del encabezado
-                    const numColumns = pedidosTable.querySelector('thead') 
-                        ? pedidosTable.querySelector('thead').rows[0].cells.length 
+                    const numColumns = pedidosTable.querySelector('thead')
+                        ? pedidosTable.querySelector('thead').rows[0].cells.length
                         : 13; // Valor predeterminado si no hay encabezado
 
                     row.innerHTML = `
@@ -178,10 +197,10 @@ function obtenerDatosPedido(pedidoID) {
     $.post('../Servidor/PHP/ventas.php', {
         numFuncion: '2',  // Suponiendo que '2' es la función en el servidor que obtiene los datos del pedido
         pedidoID: pedidoID
-    }, function(response) {
+    }, function (response) {
         if (response.success) {
             console.log('Datos del pedido:', response.cliente);
-            
+
             // Prellenar los campos con los datos obtenidos
             document.getElementById('nombre').value = response.cliente.NOMBRE || '';  // Asignar el valor del campo NOMBRE
             document.getElementById('rfc').value = response.cliente.RFC || '';        // Asignar el valor del campo RFC
@@ -197,7 +216,7 @@ function obtenerDatosPedido(pedidoID) {
         } else {
             console.error('Error al obtener datos del pedido:', response.message);
         }
-    }).fail(function(jqXHR, textStatus, errorThrown) {
+    }).fail(function (jqXHR, textStatus, errorThrown) {
         console.error('Error en la solicitud:', textStatus, errorThrown);
     });
 }
@@ -233,7 +252,7 @@ $('#filtroFecha').change(function () {
     var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
     cargarPedidos(filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
 });
-$('#cancelarPedido').click(function() {
+$('#cancelarPedido').click(function () {
     window.location.href = "ventas.php";
 });
 // Asegurarse de que el DOM esté completamente cargado
