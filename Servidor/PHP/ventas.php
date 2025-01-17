@@ -701,8 +701,7 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $conexionData)
-{
+function validarCorreoCliente($formularioData, $conexionData){
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -759,8 +758,7 @@ function validarCorreoCliente($formularioData, $conexionData)
     sqlsrv_close($conn);
 }
 // Función para enviar el correo (en desarrollo)
-function enviarCorreo($correo)
-{
+function enviarCorreo($correo){
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
     // Llamar al método metEnviar de clsMail con los parámetros necesarios

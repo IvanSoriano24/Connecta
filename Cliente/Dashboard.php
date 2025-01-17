@@ -24,7 +24,6 @@ if (isset($_SESSION['usuario'])) {
 } ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,9 +44,7 @@ if (isset($_SESSION['usuario'])) {
 			/* Difumina el fondo mientras un modal está abierto */
 		}
 	</style>
-
 </head>
-
 <body>
 	<div class="hero_area">
 		<?php include 'sidebar.php'; ?>
@@ -85,7 +82,6 @@ if (isset($_SESSION['usuario'])) {
 				</div>
 			</div>
 		</div>
-		
 		<!-- JS Para la confirmacion empresa -->
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 		<script>
@@ -147,5 +143,4 @@ if (isset($_SESSION['usuario'])) {
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
 </body>
-
 </html>
