@@ -325,7 +325,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData){
         $CAN_TOT += $partida['cantidad']; // Acumula la cantidad total
         $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Suma al importe total
     }
-    $CVE_VEND = $formularioData['claveVendedor'];
+    $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
     $IMP_TOT1 = 0;
     $IMP_TOT2 = 0;
@@ -360,7 +360,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData){
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
     $clave = $claveArray[0];
-    $CVE_CLPV = $clave;
+    $CVE_CLPV = str_pad($clave, 10, ' ', STR_PAD_LEFT);
     // Crear la consulta SQL para insertar los datos en la base de datos
     $sql = "INSERT INTO $nombreTabla
     (TIP_DOC, CVE_DOC, CVE_CLPV, STATUS, DAT_MOSTR,
@@ -1165,8 +1165,7 @@ switch ($funcion) {
             guardarPartidas($conexionData, $formularioData, $partidasData);
             actualizarFolio($conexionData);
             actualizarInventario($conexionData, $partidasData);
-            validarCorreoCliente($formularioData, $conexionData);
-    
+            //validarCorreoCliente($formularioData, $conexionData);
             // Respuesta de éxito al frontend
             echo json_encode([
                 'success' => true,
