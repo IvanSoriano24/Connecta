@@ -27,12 +27,15 @@
                 <span class="text">Inicio</span>
             </a>
         </li>
-        <li>
-            <a href="Ventas.php">
-                <i class='bx bxs-shopping-bag-alt'></i>
-                <span class="text">Ventas</span>
-            </a>
-        </li>
+        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR") { ?>
+            <li>
+                <a href="Ventas.php">
+                    <i class='bx bxs-shopping-bag-alt'></i>
+                    <span class="text">Ventas</span>
+                </a>
+            </li>
+        <?php } ?>
+
         <li>
             <a href="Productos.php">
                 <i class='bx bxs-package'></i>
