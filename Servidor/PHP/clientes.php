@@ -213,6 +213,78 @@ function mostrarClienteEspecifico($clave, $conexionData){
     sqlsrv_close($conn);
 }
 
+function validarCreditos($conexionData, $clienteId) {
+    // Validar si el ID del cliente está proporcionado
+    if (!$clienteId) {
+        echo json_encode(['success' => false, 'message' => 'ID de cliente no proporcionado.']);
+        exit;
+    }
+
+    try {
+        // Configuración de conexión
+        $serverName = $conexionData['host'];
+        $connectionInfo = [
+            "Database" => $conexionData['nombreBase'],
+            "UID" => $conexionData['usuario'],
+            "PWD" => $conexionData['password'],
+            "CharacterSet" => "UTF-8"
+        ];
+        $conn = sqlsrv_connect($serverName, $connectionInfo);
+        if ($conn === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        }
+
+        // Construir la consulta SQL
+        $sql = "SELECT CON_CREDITO, LIMCRED, SALDO FROM [SAE90Empre02].[dbo].[CLIE02] WHERE CLAVE = ?";
+        $params = [$clienteId];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+
+        // Verificar si hubo errores al ejecutar la consulta
+        if ($stmt === false) {
+            throw new Exception('Error al ejecutar la consulta.');
+        }
+
+        // Obtener los datos del cliente
+        $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+        if (!$clienteData) {
+            echo json_encode(['success' => false, 'message' => 'Cliente no encontrado.']);
+            exit;
+        }
+
+        // Limpiar y preparar los datos para la respuesta
+        $conCredito = trim($clienteData['CON_CREDITO']);
+        $limiteCredito = (float)$clienteData['LIMCRED'];
+        $saldo = (float)$clienteData['SALDO'];
+
+        // Enviar respuesta con los datos del cliente
+        echo json_encode([
+            'success' => true,
+            'conCredito' => $conCredito,
+            'limiteCredito' => $limiteCredito,
+            'saldo' => $saldo
+        ]);
+    } catch (Exception $e) {
+        // Manejo de errores
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    } finally {
+        // Liberar recursos y cerrar la conexión
+        if (isset($stmt)) {
+            sqlsrv_free_stmt($stmt);
+        }
+        if (isset($conn)) {
+            sqlsrv_close($conn);
+        }
+    }
+}
+function calcularTotalPedido($partidasData) {
+    $total = 0;
+    foreach ($partidasData as $partida) {
+        $total += $partida['cantidad'] * $partida['precioUnitario'];
+    }
+    return $total;
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -256,6 +328,24 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $clave = $_GET['clave'];
         mostrarClienteEspecifico($clave, $conexionData, $noEmpresa);
+        break;
+    case 3:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        $clie = $_GET['clienteId'];
+        $clienteId = str_pad($clie, 10, ' ', STR_PAD_LEFT);
+        validarCreditos($conexionData, $clienteId);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
