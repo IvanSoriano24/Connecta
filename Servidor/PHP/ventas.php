@@ -7,8 +7,7 @@ require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 session_start();
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
-{
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -42,8 +41,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function obtenerPedidoEspecifico($clave, $conexionData)
-{
+function obtenerPedidoEspecifico($clave, $conexionData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -65,8 +63,7 @@ function obtenerPedidoEspecifico($clave, $conexionData)
     $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 }
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarPedidos($conexionData, $filtroFecha)
-{
+function mostrarPedidos($conexionData, $filtroFecha){
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     //$filtroFecha = "Mes";
     try {
@@ -205,9 +202,7 @@ function mostrarPedidos($conexionData, $filtroFecha)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-
-function mostrarPedidoEspecifico($clave, $conexionData)
-{
+function mostrarPedidoEspecifico($clave, $conexionData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -253,8 +248,7 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerDatosCliente($conexionData, $claveCliente)
-{
+function obtenerDatosCliente($conexionData, $claveCliente){
     // Obtener solo la clave del cliente (primera parte antes del espacio)
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
     $clave = $claveArray[0]; // Tomar solo la primera parte
@@ -298,8 +292,7 @@ function obtenerDatosCliente($conexionData, $claveCliente)
 
     return $datosCliente;
 }
-function guardarPedido($conexionData, $formularioData, $partidasData)
-{
+function guardarPedido($conexionData, $formularioData, $partidasData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -364,6 +357,10 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     $TIP_DOC_E = 0; ////
     $DES_TOT_PORC = 0; ////
     $COM_TOT_PORC = 0; ////
+    $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
+    $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
+    $clave = $claveArray[0];
+    $CVE_CLPV = $clave;
     // Crear la consulta SQL para insertar los datos en la base de datos
     $sql = "INSERT INTO $nombreTabla
     (TIP_DOC, CVE_DOC, CVE_CLPV, STATUS, DAT_MOSTR,
@@ -376,7 +373,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     VERSION_SINC, FORMADEPAGOSAT, USO_CFDI, TIP_TRASLADO, TIP_FAC, REG_FISC
     ) 
     VALUES 
-    ('P', ?, '', 'E', 0, 
+    ('P', ?, ?, 'E', 0, 
     ?, '', ?, ?, ?, '', ?,
     ?, ?, ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?, 'S', 'N', ?,
@@ -386,41 +383,14 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     '', ?, ?, '', '', ?)";
     // Preparar los parámetros para la consulta
     $params = [
-        $CVE_DOC,
-        $CVE_VEND,
-        $FECHA_DOC,
-        $FECHA_ENT,
-        $FECHA_DOC,
-        $CAN_TOT,
-        $IMP_TOT1,
-        $IMP_TOT2,
-        $IMP_TOT3,
-        $IMP_TOT4,
-        $IMP_TOT5,
-        $IMP_TOT6,
-        $IMP_TOT7,
-        $IMP_TOT8,
-        $DES_TOT,
-        $DES_FIN,
-        $COM_TOT,
-        $CONDICION,
-        $CVE_OBS,
-        $NUM_ALMA,
-        $ENLAZADO,
-        $TIP_DOC_E,
-        $FECHA_ELAB,
-        $RFC,
-        $FOLIO,
-        $DAT_ENVIO,
-        $CVE_BITA,
-        $DES_TOT_PORC,
-        $IMPORTE,
-        $COM_TOT_PORC,
-        $METODODEPAGO,
-        $NUMCTAPAGO,
-        $FORMADEPAGOSAT,
-        $USO_CFDI,
-        $REG_FISC
+        $CVE_DOC, $CVE_CLPV,
+        $CVE_VEND, $FECHA_DOC, $FECHA_ENT, $FECHA_DOC, $CAN_TOT,
+        $IMP_TOT1, $IMP_TOT2, $IMP_TOT3, $IMP_TOT4, $IMP_TOT5, $IMP_TOT6, $IMP_TOT7, $IMP_TOT8,
+        $DES_TOT, $DES_FIN, $COM_TOT, $CONDICION, $CVE_OBS, $NUM_ALMA, $ENLAZADO,
+        $TIP_DOC_E, $FECHAELAB, $RFC,
+        $FOLIO, $DAT_ENVIO, $CVE_BITA, $DES_TOT_PORC,
+        $IMPORTE, $COM_TOT_PORC, $METODODEPAGO, $NUMCTAPAGO,
+        $FORMADEPAGOSAT, $USO_CFDI, $REG_FISC
     ];
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -625,8 +595,7 @@ function actualizarFolio($conexionData)
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function actualizarInventario($conexionData, $partidasData)
-{
+function actualizarInventario($conexionData, $partidasData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -648,15 +617,13 @@ function actualizarInventario($conexionData, $partidasData)
         $sql = "UPDATE $nombreTabla
             SET    
                 [APART] = [APART] + ?   
-            WHERE [CVE_ART] = ?";
+            WHERE [CVE_ART] = '$CVE_ART'";
         // Preparar la consulta
-        $params = array($cantidad, $cantidad, $CVE_ART);
+        $params = array($cantidad, $cantidad);
 
         // Ejecutar la consulta SQL
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
-            sqlsrv_free_stmt($stmt);
-            sqlsrv_close($conn);
             die(json_encode(['success' => false, 'message' => 'Error al actualizar el inventario', 'errors' => sqlsrv_errors()]));
         }
         // Verificar cuántas filas se han afectado
@@ -775,8 +742,7 @@ function enviarCorreo($correo){
     echo $resultado;
 }
 
-function obtenerClientePedido($clave, $conexionData, $cliente)
-{
+function obtenerClientePedido($clave, $conexionData, $cliente){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -829,8 +795,7 @@ function obtenerClientePedido($clave, $conexionData, $cliente)
     sqlsrv_close($conn);
 }
 
-function obtenerProductos($conexionData)
-{
+function obtenerProductos($conexionData){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -874,8 +839,7 @@ function obtenerProductos($conexionData)
     sqlsrv_close($conn);
 }
 
-function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $noEmpresa)
-{
+function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $noEmpresa){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -916,8 +880,7 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
     sqlsrv_close($conn);
 }
 
-function obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa)
-{
+function obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa){
     ob_start(); // Inicia el buffer de salida para evitar texto adicional
 
     $serverName = $conexionData['host'];
@@ -1118,10 +1081,10 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         // Mostrar los clientes usando los datos de conexión obtenidos
         guardarPedido($conexionData, $formularioData, $partidasData);
-        guardarPartidas($conexionData, $formularioData, $partidasData);
-        actualizarFolio($conexionData);
-        actualizarInventario($conexionData, $partidasData);
-        validarCorreoCliente($formularioData, $conexionData);
+        //guardarPartidas($conexionData, $formularioData, $partidasData);
+        //actualizarFolio($conexionData);
+        //actualizarInventario($conexionData, $partidasData);
+        //validarCorreoCliente($formularioData, $conexionData);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
