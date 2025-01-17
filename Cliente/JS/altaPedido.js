@@ -18,7 +18,12 @@ function agregarFilaPartidas() {
         const productoInput = fila.querySelector(".producto"); // Campo de producto
         const totalInput = fila.querySelector(".subtotalPartida");
         if (productoInput.value.trim() === "" || totalInput.value <= 0) {
-            alert("Debe llenar los campos correspondientes");
+            Swal.fire({
+                title: 'Alerta',
+                text: `Debe llenar los campos correspondientes`,
+                icon: 'warning',
+                confirmButtonText: 'Entendido'
+            });
             return;
         }
     }
