@@ -315,8 +315,7 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="form-element">
                                 <label for="fecha">Fecha </label>
-                                <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;"
-                                    readonly>
+                                <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;">
                             </div>
 
 
@@ -350,8 +349,8 @@ if (isset($_SESSION['usuario'])) {
                             </div>
 
                             <div class="form-element">
-                                <label for="nombre">Su Pedido </label>
-                                <input type="text" name="nombre" id="nombre">
+                                <label for="supedido">Su Pedido </label>
+                                <input type="text" name="supedido" id="supedido">
                             </div>
                         </div>
 
@@ -386,8 +385,8 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="date" name="entrega" id="entrega">
                             </div>
                             <div class="form-element">
-                                <label for="descuento">Esquema </label>
-                                <input type="text" name="descuento" id="descuento">
+                                <label for="esquema">Esquema </label>
+                                <input type="text" name="esquema" id="esquema">
                             </div>
                         </div>
 

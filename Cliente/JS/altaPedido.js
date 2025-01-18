@@ -1,6 +1,10 @@
 
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
+
+    // Recuperar estado de clienteSeleccionado desde sessionStorage
+    const clienteSeleccionado = sessionStorage.getItem('clienteSeleccionado') === 'true';
+
     if (!clienteSeleccionado) {
         Swal.fire({
             title: 'Error',
@@ -8,30 +12,32 @@ function agregarFilaPartidas() {
             icon: 'warning',
             confirmButtonText: 'Entendido'
         });
-        
+
         return;
     }
     const tablaProductos = document.querySelector("#tablaProductos tbody");
+
     // Verificar si alguna fila tiene un producto y cantidad mayor a 0 antes de agregar una nueva
-    const filas = tablaProductos.querySelectorAll("tr");
-    for (let fila of filas) {
-        const productoInput = fila.querySelector(".producto"); // Campo de producto
-        const totalInput = fila.querySelector(".subtotalPartida");
-        if (productoInput.value.trim() === "" || totalInput.value <= 0) {
-            Swal.fire({
-                title: 'Alerta',
-                text: `Debe llenar los campos correspondientes`,
-                icon: 'warning',
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
-    }
+    // const filas = tablaProductos.querySelectorAll("tr");
+    // for (let fila of filas) {
+    //     const productoInput = fila.querySelector(".producto"); // Campo de producto
+    //     const totalInput = fila.querySelector(".subtotalPartida");
+    //     if (productoInput.value.trim() === "" || totalInput.value <= 0) {
+    //         Swal.fire({
+    //             title: 'Alerta',
+    //             text: `Debe llenar los campos correspondientes`,
+    //             icon: 'warning',
+    //             confirmButtonText: 'Entendido'
+    //         });
+    //         return;
+    //     }
+    // }
+
     // Crear una nueva fila
     const nuevaFila = document.createElement("tr");
     nuevaFila.innerHTML = `
         <td><input id="cantidadp" type="number" class="cantidad" value="0" readonly /></td>
-         <td>
+        <td>
             <div class="d-flex flex-column position-relative">
                 <div class="d-flex align-items-center">
                      <input type="text" class="producto " placeholder="" 
@@ -272,7 +278,7 @@ function mostrarListaProductos(productos, input) {
                             icon: 'warning',
                             confirmButtonText: 'Entendido'
                         });
-                        
+
                     }
                 }
                 // Cerrar el modal
@@ -670,6 +676,7 @@ function cerrarModalClientes() {
 document.getElementById("añadirPartida").addEventListener("click", function () {
     agregarFilaPartidas();
 });
+// Agregar fila de partidas
 document.getElementById("tablaProductos").addEventListener("keydown", function (event) {
     if (event.key === "Tab") {  // Verifica si la tecla presionada es el tabulador
         agregarFilaPartidas();
