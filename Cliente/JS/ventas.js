@@ -8,6 +8,10 @@ function agregarEventosBotones() {
     botones.forEach(boton => {
         boton.addEventListener('click', function () {
             const pedidoID = this.dataset.id; // Obtener el ID del pedido
+
+            console.log('Redirigiendo con pedidoID:', pedidoID); // Log en consola
+            alert('Redirigiendo con pedidoID: ' + pedidoID); // Alerta para verificar
+
             // Redirigir a altaPedido.php con el ID del pedido como parámetro
             window.location.href = 'altaPedido.php?pedidoID=' + pedidoID;
         });
@@ -50,7 +54,7 @@ function cargarPedidos(filtroFecha) {
                             <td>${pedido.Estatus || '0'}</td>
                             <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td> <!-- Maneja el objeto anidado -->
                             <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td>
-                            <td style="text-align: right;">${pedido.TotalComisiones  ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
+                            <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
 
                             <td>${pedido.NumeroAlmacen || 'Sin almacén'}</td>
                             <td>${pedido.FormaEnvio || 'Sin forma de envío'}</td>
@@ -137,7 +141,7 @@ function datosPedidos() {
                         <td>${pedido.Estatus || '0'}</td>
                         <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td> <!-- Maneja el objeto anidado -->
                         <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td>
-                        <td style="text-align: right;">${pedido.TotalComisiones  ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
+                        <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
 
                         <td>${pedido.NumeroAlmacen || 'Sin almacén'}</td>
                         <td>${pedido.FormaEnvio || 'Sin forma de envío'}</td>
@@ -198,9 +202,13 @@ function obtenerDatosPedido(pedidoID) {
         numFuncion: '2',  // Suponiendo que '2' es la función en el servidor que obtiene los datos del pedido
         pedidoID: pedidoID
     }, function (response) {
+
+        console.log('Respuesta del servidor:', response); // Log en consola
+        alert('Respuesta del servidor: ' + JSON.stringify(response)); // Alerta con datos
+
         if (response.success) {
             console.log('Datos del pedido:', response.cliente);
-
+            alert('Datos del pedido: ' + JSON.stringify(response.cliente));
             // Prellenar los campos con los datos obtenidos
             document.getElementById('nombre').value = response.cliente.NOMBRE || '';  // Asignar el valor del campo NOMBRE
             document.getElementById('rfc').value = response.cliente.RFC || '';        // Asignar el valor del campo RFC
@@ -215,9 +223,11 @@ function obtenerDatosPedido(pedidoID) {
             // Continúa prellenando los demás campos según sea necesario
         } else {
             console.error('Error al obtener datos del pedido:', response.message);
+            alert('Error al obtener datos del pedido: ' + response.message);
         }
     }).fail(function (jqXHR, textStatus, errorThrown) {
         console.error('Error en la solicitud:', textStatus, errorThrown);
+        alert('Error en la solicitud: ' + textStatus + ' ' + errorThrown);
     });
 }
 
@@ -274,6 +284,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Si es edición, obtén el pedidoID y carga los datos del pedido si existe
         const urlParams = new URLSearchParams(window.location.search);
         const pedidoID = urlParams.get('pedidoID');
+
+        console.log('ID del pedido recibido:', pedidoID); // Log en consola
+        alert('ID del pedido recibido: ' + pedidoID); // Alerta para verificar
 
         if (pedidoID) {
             // Aquí iría la lógica para obtener los datos del pedido y prellenar el formulario

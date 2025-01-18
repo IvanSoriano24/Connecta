@@ -20,10 +20,32 @@ function agregarFilaPartidas() {
       alert("Debe llenar los campos correspondientes");
       return;
     }
+<<<<<<< HEAD
   }
   // Crear una nueva fila
   const nuevaFila = document.createElement("tr");
   nuevaFila.innerHTML = `
+=======
+    const tablaProductos = document.querySelector("#tablaProductos tbody");
+    // Verificar si alguna fila tiene un producto y cantidad mayor a 0 antes de agregar una nueva
+    const filas = tablaProductos.querySelectorAll("tr");
+    for (let fila of filas) {
+        const productoInput = fila.querySelector(".producto"); // Campo de producto
+        const totalInput = fila.querySelector(".subtotalPartida");
+        if (productoInput.value.trim() === "" || totalInput.value <= 0) {
+            Swal.fire({
+                title: 'Alerta',
+                text: `Debe llenar los campos correspondientes`,
+                icon: 'warning',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+    }
+    // Crear una nueva fila
+    const nuevaFila = document.createElement("tr");
+    nuevaFila.innerHTML = `
+>>>>>>> f09d1ea73b14bc1ea40997eb4a5c0afaec1f81ee
         <td><input id="cantidadp" type="number" class="cantidad" value="0" readonly /></td>
          <td>
             <div class="d-flex flex-column position-relative">
