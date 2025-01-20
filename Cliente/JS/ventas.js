@@ -467,7 +467,7 @@ function eliminarPartidaServidor(pedidoID, numPar) {
             });
 
             // Opcional: recargar las partidas después de eliminar
-            cargarPartidasPedido(pedidoID);
+            //cargarPartidasPedido(pedidoID);
         } else {
             Swal.fire({
                 title: 'Error',
@@ -485,7 +485,6 @@ function eliminarPartidaServidor(pedidoID, numPar) {
         });
     });
 }
-
 
 function limpiarTablaPartidas() {
     const tablaProductos = document.querySelector("#tablaProductos tbody");
@@ -538,10 +537,10 @@ function guardarPedido() {
     });
 }
 
-
 function obtenerFolioSiguiente() {
     $.post('../Servidor/PHP/ventas.php', {
         numFuncion: '3',  // Llamamos al caso 3 para obtener el siguiente folio
+        accion: 'obtenerFolioSiguiente',
     }, function (response) {
         // Parseamos la respuesta del servidor
         var data = JSON.parse(response);
@@ -572,8 +571,8 @@ $('#filtroFecha').change(function () {
 $('#cancelarPedido').click(function () {
     window.location.href = "ventas.php";
 });
-// Asegurarse de que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', function () {
+    let clienteSeleccionado = sessionStorage.getItem('clienteSeleccionado') === 'true'; 
     // Detectar el clic en el enlace para "Crear Pedido"
     var altaPedidoBtn = document.getElementById('altaPedido');
     if (altaPedidoBtn) {
@@ -582,32 +581,32 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             console.log('Redirigiendo a altaPedido.php...');
             // Redirigir a la página 'altaPedido.php' sin parámetro
-            window.location.href = 'altaPedido.php'; // CORRECCIÓN AQUÍ
+            window.location.href = 'altaPedido.php';
         });
     }
 
     // Verificar si estamos en la página de creación o edición de pedidos
     if (window.location.pathname.includes('altaPedido.php')) {
-        // Si es edición, obtén el pedidoID y carga los datos del pedido si existe
+        // Obtener parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
-        const pedidoID = urlParams.get('pedidoID');
+        const pedidoID = urlParams.get('pedidoID'); // Puede ser null si no está definido
 
-        console.log('ID del pedido recibido:', pedidoID); // Log en consola
-        alert('ID del pedido recibido: ' + pedidoID); // Alerta para verificar
+        console.log('ID del pedido recibido:', pedidoID); // Log en consola para depuración
+        alert('ID del pedido recibido: ' + (pedidoID || 'Nuevo Pedido')); // Mostrar mensaje claro
 
         if (pedidoID) {
-            // Nuevo pedido, cliente no seleccionado
-            sessionStorage.setItem('clienteSeleccionado', false);
-            // Aquí iría la lógica para obtener los datos del pedido y prellenar el formulario
-            obtenerDatosPedido(pedidoID);
-            cargarPartidasPedido(pedidoID)
+            // Si es un pedido existente (pedidoID no es null)
+            console.log('Cargando datos del pedido existente...');
+            obtenerDatosPedido(pedidoID); // Función para cargar datos del pedido
+            cargarPartidasPedido(pedidoID); // Función para cargar partidas del pedido
         } else {
-            obtenerFecha();
-            //sessionStorage.setItem('clienteSeleccionado', false);
-            limpiarTablaPartidas(); // Limpia la tabla para un nuevo pedido
-            // Aquí puedes manejar la lógica para la creación de un nuevo pedido
-            obtenerFolioSiguiente();
-
+            sessionStorage.setItem('clienteSeleccionado', false);
+            clienteSeleccionado = false;
+            // Si es un nuevo pedido (pedidoID es null)
+            console.log('Preparando formulario para un nuevo pedido...');
+            obtenerFecha(); // Establecer la fecha inicial del pedido
+            limpiarTablaPartidas(); // Limpiar la tabla de partidas para el nuevo pedido
+            obtenerFolioSiguiente(); // Generar el siguiente folio para el pedido
         }
     }
 });

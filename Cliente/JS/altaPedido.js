@@ -1,5 +1,6 @@
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
+  const clienteSeleccionado = sessionStorage.getItem('clienteSeleccionado') === 'true';
     if (!clienteSeleccionado) {
         Swal.fire({
             title: 'Error',
@@ -11,7 +12,6 @@ function agregarFilaPartidas() {
         return;
     }
     const tablaProductos = document.querySelector("#tablaProductos tbody");
-
     // Verificar si alguna fila tiene un producto y cantidad mayor a 0 antes de agregar una nueva
     // const filas = tablaProductos.querySelectorAll("tr");
     // for (let fila of filas) {
@@ -31,7 +31,6 @@ function agregarFilaPartidas() {
     // Crear una nueva fila
     const nuevaFila = document.createElement("tr");
     nuevaFila.innerHTML = `
->>>>>>> f09d1ea73b14bc1ea40997eb4a5c0afaec1f81ee
         <td><input id="cantidadp" type="number" class="cantidad" value="0" readonly /></td>
         <td>
             <div class="d-flex flex-column position-relative">
@@ -584,10 +583,15 @@ function renderClientes(clientes) {
 function seleccionarClienteDesdeModal(cliente) {
   const clienteInput = document.getElementById("cliente");
   clienteInput.value = `${cliente.CLAVE} - ${cliente.NOMBRE}`; // Actualizar el valor del input
-  clienteId = cliente.CLAVE; // Almacenar el ID del cliente seleccionado
-  clienteSeleccionado = true; // Marcar que el cliente fue seleccionado desde el modal
+  clienteId = cliente.CLAVE; // Guardar el ID del cliente
+
+  // Actualizar estado de cliente seleccionado
+  sessionStorage.setItem('clienteSeleccionado', true);
+  console.log('Cliente seleccionado desde modal:', cliente.CLAVE);
+
   cerrarModalClientes(); // Cerrar el modal
 
+  // Validar crédito del cliente si es necesario
   validarCreditoCliente(cliente.CLAVE);
 }
 
@@ -665,13 +669,35 @@ function showCustomerSuggestions() {
 // Función para seleccionar un cliente desde las sugerencias
 function seleccionarClienteDesdeSugerencia(cliente) {
   const clienteInput = document.getElementById("cliente");
-  clienteInput.value = `${cliente.CLAVE} - ${cliente.NOMBRE}`;
-  clienteId = cliente.CLAVE;
-  clienteSeleccionado = true;
+  clienteInput.value = `${cliente.CLAVE} - ${cliente.NOMBRE}`; // Mostrar cliente seleccionado
+  clienteId = cliente.CLAVE; // Guardar el ID del cliente
 
+  // Actualizar estado de cliente seleccionado
+  sessionStorage.setItem('clienteSeleccionado', true);
+  console.log('Cliente seleccionado desde sugerencia:', cliente.CLAVE);
+
+  // Limpiar y ocultar sugerencias
   const sugerencias = document.getElementById("clientesSugeridos");
   sugerencias.innerHTML = ""; // Limpiar las sugerencias
   sugerencias.classList.add("d-none"); // Ocultar las sugerencias
+  validarCreditoCliente(cliente.CLAVE);
+}
+function llenarDatosCliente(cliente) {
+  $('#rfc').val(cliente.RFC || '');
+  $('#nombre').val(cliente.NOMBRE || '');
+  $('#calle').val(cliente.CALLE || '');
+  $('#numE').val(cliente.NUMEXT || '');
+  $('#numI').val(cliente.NUMINT || '');
+  $('#colonia').val(cliente.COLONIA || '');
+  $('#codigoPostal').val(cliente.CODIGO || '');
+  $('#poblacion').val(cliente.LOCALIDAD || '');
+  $('#pais').val(cliente.PAIS || '');
+  $('#regimenFiscal').val(cliente.REGIMEN_FISCAL || '');
+  $('#cliente').val(cliente.CLAVE || '');
+  $('#listaPrecios').val(cliente.LISTA_PREC || '');
+
+  // Validar el crédito del cliente
+  validarCreditoCliente(cliente.CLAVE);
 }
 
 // Filtrar clientes según la entrada de búsqueda en el modal

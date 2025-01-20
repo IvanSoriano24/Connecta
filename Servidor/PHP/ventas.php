@@ -1245,6 +1245,46 @@ function obtenerPartidasPedido($conexionData, $clavePedido) {
     // Responder con las partidas
     echo json_encode(['success' => true, 'partidas' => $partidas]);
 }
+function eliminarPartida($conexionData, $clavePedido, $numPar) {
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // Nombre de la tabla dinámico basado en la empresa
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta para eliminar la partida
+    $sql = "DELETE FROM $nombreTabla WHERE CVE_DOC = ? AND NUM_PAR = ?";
+    $stmt = sqlsrv_query($conn, $sql, [$clavePedido, $numPar]);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al eliminar la partida', 'errors' => sqlsrv_errors()]);
+        sqlsrv_close($conn);
+        exit;
+    }
+
+    $filasAfectadas = sqlsrv_rows_affected($stmt);
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    if ($filasAfectadas > 0) {
+        echo json_encode(['success' => true, 'message' => 'Partida eliminada correctamente.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontró la partida especificada.']);
+    }
+}
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -1445,11 +1485,11 @@ switch ($funcion) {
 
             if ($validacionCredito['success']) {
                 // Si la validación de crédito es exitosa, proceder con las demás operaciones
-                //guardarPedido($conexionData, $formularioData, $partidasData);
-                //guardarPartidas($conexionData, $formularioData, $partidasData);
-                //actualizarFolio($conexionData);
-                //actualizarInventario($conexionData, $partidasData);
-                validarCorreoCliente($formularioData, $partidasData, $conexionData);
+                guardarPedido($conexionData, $formularioData, $partidasData);
+                guardarPartidas($conexionData, $formularioData, $partidasData);
+                actualizarFolio($conexionData);
+                actualizarInventario($conexionData, $partidasData);
+                //validarCorreoCliente($formularioData, $partidasData, $conexionData);
 
                 // Respuesta de éxito al frontend
                 echo json_encode([

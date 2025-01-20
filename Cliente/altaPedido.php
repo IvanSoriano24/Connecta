@@ -479,57 +479,57 @@ if (isset($_SESSION['usuario'])) {
                         </div>
 
                         <div class="row">
-                        <div class="form-element"></div>
+                            <div class="form-element"></div>
                             <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
                             <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                         </div>
-                        
-                        
+
+
                     </form>
-                <!-- 5th row: 2 buttons -->
+                    <!-- 5th row: 2 buttons -->
 
-                <div class="table-data">
-                    <div class="order">
-                        <div class="table-container">
-                            <div class="table-wrapper">
-                                <button type="button" class="btn-secondary" id="añadirPartida">Añadir
-                                    Partida</button>
-                                <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
-                                    <thead>
-                                        <tr>
-                                            <th>Cant.</th>
-                                            <th>Producto</th>
-                                            <th>Unidad</th>
-                                            <th>Desc.1</th>
-                                            <th>Desc.2</th>
-                                            <th>I.E.P.S</th>
-                                            <th>I.V.A</th>
-                                            <th>Comision</th>
-                                            <th>Prec.Unit</th>
-                                            <th>Subtotal por Partida</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Filas dinámicas -->
-                                    </tbody>
-                                </table>
+                    <div class="table-data">
+                        <div class="order">
+                            <div class="table-container">
+                                <div class="table-wrapper">
+                                    <button type="button" class="btn-secondary" id="añadirPartida">Añadir
+                                        Partida</button>
+                                    <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
+                                        <thead>
+                                            <tr>
+                                                <th>Cant.</th>
+                                                <th>Producto</th>
+                                                <th>Unidad</th>
+                                                <th>Desc.1</th>
+                                                <th>Desc.2</th>
+                                                <th>I.E.P.S</th>
+                                                <th>I.V.A</th>
+                                                <th>Comision</th>
+                                                <th>Prec.Unit</th>
+                                                <th>Subtotal por Partida</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Filas dinámicas -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
+                                <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
+
                             </div>
-
-                            <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
-                            <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
-
                         </div>
                     </div>
                 </div>
-    </div>
 
 
 
-    <!-- </div> -->
-    </main>
-    <!-- MAIN -->
-    <!-- CONTENT -->
-    </section>
+                <!-- </div> -->
+            </main>
+            <!-- MAIN -->
+            <!-- CONTENT -->
+        </section>
     </div>
     <!-- CONTENT -->
     <!-- Modal Productos -->
@@ -650,12 +650,12 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/altaPedido.js"></script>
     <script src="JS/clientes.js"></script>
     <script>
-        $(document).ready(function () {
-            $('#cliente').on('input', function () {
-                var cliente = $(this).val();
-                var clave = '<?php echo $claveVendedor ?>';
-                var $clienteInput = $(this);
-                // Si el texto ingresado tiene más de 2 caracteres
+        $(document).ready(function() {
+            $('#cliente').on('input', function() {
+                const cliente = $(this).val().trim();
+                const clave = '<?php echo $claveVendedor ?>';
+                const $clienteInput = $(this);
+
                 if (cliente.length > 2) {
                     $.ajax({
                         url: '../Servidor/PHP/ventas.php',
@@ -665,48 +665,34 @@ if (isset($_SESSION['usuario'])) {
                             numFuncion: '4',
                             clave: clave
                         },
-                        success: function (response) {
-                            console.log(response);
+                        success: function(response) {
                             try {
                                 if (typeof response === 'string') {
                                     response = JSON.parse(response);
                                 }
                             } catch (e) {
                                 console.error("Error al parsear la respuesta JSON", e);
+                                return;
                             }
 
                             if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                                var suggestions = response.cliente.map(function (cliente) {
-                                    return cliente.NOMBRE;
-                                });
-
-                                // Mostrar las sugerencias debajo del input
-                                var suggestionsList = $('#clientesSugeridos');
+                                const suggestionsList = $('#clientesSugeridos');
                                 suggestionsList.empty().show();
 
-                                suggestions.forEach(function (suggestion, index) {
-                                    var listItem = $('<li></li>')
-                                        .text(suggestion)
-                                        .on('click', function () {
-                                            // Al seleccionar un cliente, llenar los campos del formulario
-                                            $clienteInput.val(suggestion);
+                                response.cliente.forEach((cliente, index) => {
+                                    const listItem = $('<li></li>')
+                                        .text(`${cliente.CLAVE} - ${cliente.NOMBRE}`)
+                                        .on('click', function() {
+                                            // Actualizar el campo de cliente y esconder sugerencias
+                                            $clienteInput.val(`${cliente.CLAVE} - ${cliente.NOMBRE}`);
                                             suggestionsList.empty().hide();
 
-                                            // Llenar otros campos con la información del cliente seleccionado
-                                            var selectedClient = response.cliente[index];
-                                            $('#rfc').val(selectedClient.RFC);
-                                            $('#nombre').val(selectedClient.NOMBRE);
-                                            $('#calle').val(selectedClient.CALLE);
-                                            $('#numE').val(selectedClient.NUMEXT);
-                                            $('#numI').val(selectedClient.NUMINT);
-                                            $('#colonia').val(selectedClient.COLONIA);
-                                            $('#codigoPostal').val(selectedClient.CODIGO);
-                                            $('#poblacion').val(selectedClient.LOCALIDAD);
-                                            $('#pais').val(selectedClient.PAIS);
-                                            $('#regimenFiscal').val(selectedClient.REGIMEN_FISCAL);
-                                            $('#cliente').val(selectedClient.CLAVE);
-                                            $('#listaPrecios').val(selectedClient.LISTA_PREC);
-                                            //$('#destinatario').val(selectedClient.DESTINATARIO);
+                                            // Llenar otros campos del formulario
+                                            llenarDatosCliente(cliente);
+
+                                            // Actualizar clienteSeleccionado
+                                            sessionStorage.setItem('clienteSeleccionado', true);
+                                            console.log('Cliente seleccionado:', cliente.CLAVE);
                                         });
 
                                     suggestionsList.append(listItem);
@@ -714,6 +700,10 @@ if (isset($_SESSION['usuario'])) {
                             } else {
                                 $('#clientesSugeridos').empty().hide();
                             }
+                        },
+                        error: function() {
+                            console.error("Error en la solicitud AJAX para sugerencias");
+                            $('#clientesSugeridos').empty().hide();
                         }
                     });
                 } else {
@@ -722,14 +712,14 @@ if (isset($_SESSION['usuario'])) {
             });
 
             // Cerrar la lista de sugerencias si se hace clic fuera del input
-            $(document).on('click', function (event) {
+            $(document).on('click', function(event) {
                 if (!$(event.target).closest('#cliente').length) {
                     $('#clientesSugeridos').empty().hide();
                 }
             });
 
             // Al hacer clic en la X, borrar el valor del input y los demás campos
-            $('#clearInput').on('click', function () {
+            $('#clearInput').on('click', function() {
                 $('#cliente').val(''); // Borra el valor del input
                 $('#rfc').val(''); // Borra el valor de RFC
                 $('#nombre').val(''); // Borra el valor de nombre
