@@ -70,7 +70,7 @@ if (isset($_SESSION['usuario'])) {
 		<?php include 'sidebar.php'; ?>
 		<!-- CONTENT -->
 		<section id="content">
-		<?php include 'navbar.php'; ?>
+			<?php include 'navbar.php'; ?>
 			<!-- MAIN -->
 			<main class="text-center">
 				<div class="head-title">
@@ -135,7 +135,7 @@ if (isset($_SESSION['usuario'])) {
 					<div class="form-group row">
 						<div class="col-4">
 							<label for="clave" style="margin-right: 5px;">Clave:</label>
-							<input class="input-mo form-control" type="text" id="clave"readonly1>
+							<input class="input-mo form-control" type="text" id="clave" readonly1>
 						</div>
 						<div class="col-4">
 							<label for="nombre" style="margin-right: 5px;">Nombre:</label>
@@ -146,11 +146,11 @@ if (isset($_SESSION['usuario'])) {
 					<div class="form-group row">
 						<div class="col-4">
 							<label for="estatus" style="margin-right: 5px;">Estatus:</label>
-							<input class="input-mo form-control" type="text" id="estatus" readonly1>
+							<input class="input-mo form-control text-center" type="text" id="estatus" readonly1>
 						</div>
 						<div class="col-4">
 							<label for="saldo" style="margin-right: 5px;">Saldo:</label>
-							<input type="text" id="saldo" class="input-mt form-control" readonly1>
+							<input type="text" id="saldo" class="input-mt form-control text-end" readonly1>
 						</div>
 					</div>
 				</div>
@@ -330,7 +330,7 @@ if (isset($_SESSION['usuario'])) {
 
 											<div class="form-group col-md-6">
 												<label for="saldoVentas">Saldo</label>
-												<input type="text" class="input-fo" id="saldoVentas" readonly1>
+												<input type="text" class="input-fo" id="saldoVentas" style="margin-right: 5px;" readonly1>
 											</div>
 										</div>
 
@@ -422,7 +422,7 @@ if (isset($_SESSION['usuario'])) {
 <!-- 
 			<script>
 			var empresa = '<?php //echo $noEmpresa 
-			?>'
+							?>'
 			console.log(empresa);
 		</script>	
 		-->

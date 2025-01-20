@@ -109,7 +109,6 @@ async function obtenerImpuesto(cveEsqImpu) {
       type: "POST",
       data: { cveEsqImpu: cveEsqImpu, numFuncion: "7" },
       success: function (response) {
-        console.log("Respuesta del servidor:", response); // Muestra la respuesta directamente
         try {
           // Usa el objeto directamente
           if (response.success) {
@@ -154,7 +153,6 @@ async function completarPrecioProducto(cveArt, filaTabla) {
       precioInput.readOnly = true;
     } else {
       console.error("No se encontró el campo 'precioUnidad' en la fila.");
-      console.log(filaTabla.outerHTML);
     }
     // Obtener y manejar impuestos
     var CVE_ESQIMPU = document.getElementById("CVE_ESQIMPU").value; // Asegurarse de usar el valor
@@ -181,7 +179,6 @@ async function completarPrecioProducto(cveArt, filaTabla) {
       console.error(
         "No se encontraron uno o más campos 'descuento' en la fila."
       );
-      console.log(filaTabla.outerHTML);
     }
 
     // Maneja los impuestos como sea necesario
@@ -587,7 +584,6 @@ function seleccionarClienteDesdeModal(cliente) {
 
   // Actualizar estado de cliente seleccionado
   sessionStorage.setItem('clienteSeleccionado', true);
-  console.log('Cliente seleccionado desde modal:', cliente.CLAVE);
   llenarDatosCliente(cliente);
   cerrarModalClientes(); // Cerrar el modal
 }
@@ -671,7 +667,6 @@ function seleccionarClienteDesdeSugerencia(cliente) {
 
   // Actualizar estado de cliente seleccionado
   sessionStorage.setItem('clienteSeleccionado', true);
-  console.log('Cliente seleccionado desde sugerencia:', cliente.CLAVE);
 
   // Limpiar y ocultar sugerencias
   const sugerencias = document.getElementById("clientesSugeridos");
@@ -680,7 +675,6 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   validarCreditoCliente(cliente.CLAVE);
 }
 function llenarDatosCliente(cliente) {
-  console.log(cliente);
   $('#rfc').val(cliente.RFC || '');
   $('#nombre').val(cliente.NOMBRE || '');
   $('#calle').val(cliente.CALLE || '');

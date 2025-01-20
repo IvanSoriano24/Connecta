@@ -17,7 +17,32 @@ function agregarEventosBotones() {
         });
     });
 }
-
+function eliminarPedido(pedidoId) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('../Servidor/PHP/ventas.php', {
+                numFuncion: '10', // Define un case en tu backend para eliminar
+                pedidoId: pedidoId
+            }, function (response) {
+                if (response.success) {
+                    Swal.fire('Eliminado', 'El pedido ha sido eliminado.', 'success');
+                    cargarPedidos(); // Recargar la tabla
+                } else {
+                    Swal.fire('Error', response.message || 'No se pudo eliminar el pedido.', 'error');
+                }
+            }, 'json').fail(function () {
+                Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
+            });
+        }
+    });
+}
 function cargarPedidos(filtroFecha) {
     $.post('../Servidor/PHP/ventas.php', {
         numFuncion: '1',
@@ -25,11 +50,10 @@ function cargarPedidos(filtroFecha) {
         filtroFecha: filtroFecha // Pasamos el valor del filtro de fecha al servidor
     }, function (response) {
         try {
-            // Verifica si response es una cadena (string) que necesita ser parseada
             if (typeof response === 'string') {
                 response = JSON.parse(response);
             }
-            // Verifica si response es un objeto antes de intentar procesarlo
+
             if (typeof response === 'object' && response !== null) {
                 if (response.success && response.data) {
                     let pedidos = response.data;
@@ -38,7 +62,7 @@ function cargarPedidos(filtroFecha) {
                     pedidos = pedidos.sort((a, b) => {
                         const claveA = parseInt(a.Clave, 10) || 0;
                         const claveB = parseInt(b.Clave, 10) || 0;
-                        return claveB - claveA; // Orden descendente
+                        return claveB - claveA;
                     });
 
                     const pedidosTable = document.getElementById('datosPedidos');
@@ -52,62 +76,39 @@ function cargarPedidos(filtroFecha) {
                             <td>${pedido.Cliente || 'Sin cliente'}</td>
                             <td>${pedido.Nombre || 'Sin nombre'}</td>
                             <td>${pedido.Estatus || '0'}</td>
-                            <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td> <!-- Maneja el objeto anidado -->
+                            <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td>
                             <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td>
                             <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
-
                             <td>${pedido.NumeroAlmacen || 'Sin almacén'}</td>
                             <td>${pedido.FormaEnvio || 'Sin forma de envío'}</td>
                             <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
                             <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
                             <td>
-                                <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
-                                display: inline-flex;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        font-family: Lato;
-        color: #fff;
-        background-color: #007bff;
-        border: none;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        ">
-            <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
-    </button>  
+                                <button class="btnEditarPedido" data-id="${pedido.Clave}" style="padding: 5px 10px;">
+                                    <i class="fas fa-eye"></i> Editar
+                                </button>
+                                <button class="btnEliminarPedido" data-id="${pedido.Clave}" style="padding: 5px 10px; background-color: #dc3545; color: white; border: none;">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
                             </td>
                         `;
                         pedidosTable.appendChild(row);
                     });
                     agregarEventosBotones();
                 } else {
-                    // Si no hay pedidos, mostrar una fila con el mensaje "No hay datos"
                     const row = document.createElement('tr');
-
-                    // Obtener el número de columnas del encabezado
                     const numColumns = pedidosTable.querySelector('thead')
                         ? pedidosTable.querySelector('thead').rows[0].cells.length
-                        : 13; // Valor predeterminado si no hay encabezado
-
-                    row.innerHTML = `
-                        <td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>
-                        <td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>
-                        <td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>
-                    `;
+                        : 13;
+                    row.innerHTML = `<td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>`;
                     pedidosTable.appendChild(row);
-                    console.error('Error en la respuesta del servidor:', response);
                 }
-            } else {
-                console.error('La respuesta no es un objeto válido:', response);
             }
         } catch (error) {
             console.error('Error al procesar la respuesta JSON:', error);
-            console.error('Detalles de la respuesta:', response);  // Mostrar respuesta completa
         }
     }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
         console.error('Error en la solicitud:', textStatus, errorThrown);
-        console.log('Detalles de la respuesta JSON:', jqXHR.responseText);
     });
 }
 function datosPedidos() {
@@ -379,8 +380,6 @@ function cargarPartidasPedido(pedidoID) {
         accion: 'obtenerPartidas',
         clavePedido: pedidoID
     }, function (response) {
-
-        console.log("Respuesta del servidor para partidas:", response);
 
         if (response.success) {
             const partidas = response.partidas;

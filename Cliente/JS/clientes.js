@@ -40,13 +40,13 @@ function agregarEventosBotones() {
                 .then(data => {
                     if (data.success) {
                         const cliente = data.cliente;
-                        console.log(cliente);
+                        const saldoFormateado = `$${parseFloat(cliente.SALDO || 0).toFixed(2).toLocaleString('es-MX')}`;
                         // Asignamos los valores de los campos del cliente
                         // Asignar los valores de los campos del cliente, con valores por defecto si están indefinidos
                         document.getElementById('clave').value = cliente.CLAVE || 'Sin clave';
                         document.getElementById('nombre').value = cliente.NOMBRE || 'Sin nombre';
                         document.getElementById('estatus').value = cliente.STATUS || 'Sin clasificación';
-                        document.getElementById('saldo').value = cliente.SALDO || '0';
+                        document.getElementById('saldo').value = saldoFormateado || '0';
                         document.getElementById('rfc').value = cliente.RFC || 'Sin RFC';
                         document.getElementById('calle').value = cliente.CALLE || 'Sin calle';
                         document.getElementById('numE').value = cliente.NUMEXT || 'Sin número exterior';
@@ -71,15 +71,15 @@ function agregarEventosBotones() {
 
                         //document.getElementById('manejoCredito').value = cliente.CON_CREDITO;
                         document.getElementById('manejoCredito').checked = cliente.CON_CREDITO === "S";
-                        document.getElementById('diaRevision').value = cliente.DIAREV || 'Sin página web';
-                        document.getElementById('diasCredito').value = cliente.DIASCRED || 'Sin página web';
+                        document.getElementById('diaRevision').value = cliente.DIAREV || 'Sin dias de revicion';
+                        document.getElementById('diasCredito').value = cliente.DIASCRED || 'Sin dias de credito';
                         document.getElementById('diaPago').value = cliente.DIAPAGO || '';
                         //document.getElementById('limiteCredito').value = cliente.PAGINAWEB || 'Sin página web';
-                        document.getElementById('saldoVentas').value = cliente.SALDO || 'Sin página web';
-                        document.getElementById('metodoPago').value = cliente.METODODEPAGO || 'Sin página web';
+                        document.getElementById('saldoVentas').value = saldoFormateado || 'Sin saldo';
+                        document.getElementById('metodoPago').value = cliente.METODODEPAGO || 'Sin metodo de pago';
 
                         document.getElementById('listaPrecios').value = cliente.LISTA_PREC || '1';
-                        document.getElementById('descuento').value = cliente.DESCUENTO || 'Sin página web';
+                        document.getElementById('descuento').value = cliente.DESCUENTO || 'Sin descuento';
 
                         // Mostrar el modal si se está utilizando
                         $('#usuarioModal').modal('show'); // Asegúrate de que estás usando jQuery y Bootstrap para este modal
@@ -184,7 +184,6 @@ $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa }
     }
 }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
     console.error('Error en la solicitud:', textStatus, errorThrown);
-    console.log('Detalles de la respuesta JSON:', jqXHR.responseText);
 });
 
 

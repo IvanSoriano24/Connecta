@@ -1365,7 +1365,6 @@ switch ($funcion) {
 
         $conexionData = $conexionResult['data'];
         $clave = $_POST['pedidoID'];
-
         mostrarPedidoEspecifico($clave, $conexionData, $noEmpresa);
         break;
         //Nuevo       
