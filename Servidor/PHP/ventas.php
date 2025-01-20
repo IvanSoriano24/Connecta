@@ -852,46 +852,66 @@ function enviarCorreo($correo)
     echo $resultado;
 }
 
-function obtenerClientePedido($clave, $conexionData, $cliente)
+function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8" // Aseguramos que todo sea manejado en UTF-8
+        "CharacterSet" => "UTF-8"
     ];
-    // Intentar conectarse a la base de datos
+
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    // Limpiar la entrada del cliente y clave, y convertirla a UTF-8
-    $cliente = mb_convert_encoding(trim($cliente), 'UTF-8');
-    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
 
-    // Agregar % a la entrada del cliente para búsqueda parcial
-    $cliente = '%' . $cliente . '%';
-    // Consulta SQL 
+    $clienteInput = mb_convert_encoding(trim($clienteInput), 'UTF-8');
+    $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
+
+    // Manejo de espacios para la clave
+    $clienteClave = str_pad($clienteInput, 10, " ", STR_PAD_LEFT);
+    $clienteNombre = '%' . $clienteInput . '%';
+
+
+    // Construir la consulta SQL
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-    $sql = "SELECT DISTINCT 
-            [CLAVE], [NOMBRE], [CALLE],[RFC], [NUMINT], [NUMEXT], [COLONIA],[CODIGO], 
-            [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS],[TELEFONO], [LISTA_PREC]
-        FROM $nombreTabla 
-        WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER('$cliente') 
-          AND [CVE_VEND] = $clave";
+    /*$sql = "SELECT DISTINCT 
+                [CLAVE], [NOMBRE], [CALLE], [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
+                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC]
+            FROM $nombreTabla
+            WHERE [CLAVE] = '$clienteClave' OR LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre')
+              AND [CVE_VEND] = '$claveVendedor'";*/
+
+    if (preg_match('/[a-zA-Z]/', $clienteInput)) {
+        // Búsqueda por nombre
+        $sql = "SELECT DISTINCT 
+                [CLAVE], [NOMBRE], [CALLE], [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
+                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC]
+            FROM $nombreTabla
+            WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') OR [CLAVE] = '$clienteClave'
+              AND [CVE_VEND] = '$claveVendedor'";
+    } else {
+        // Búsqueda por clave
+        $sql = "SELECT DISTINCT 
+                [CLAVE], [NOMBRE], [CALLE], [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
+                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC]
+            FROM $nombreTabla
+            WHERE [CLAVE] = '$clienteClave' OR LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre')
+              AND [CVE_VEND] = '$claveVendedor'";
+    }
 
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
     }
-    // Obtener los resultados de la consulta
     $clientes = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $clientes[] = $row; // Almacenar cada cliente en el array
+        $clientes[] = $row;
     }
-    // Verificar si se encontraron clientes y devolver la respuesta
+
     if (count($clientes) > 0) {
         header('Content-Type: application/json');
         echo json_encode([
@@ -901,7 +921,7 @@ function obtenerClientePedido($clave, $conexionData, $cliente)
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontraron clientes.']);
     }
-    // Liberar recursos y cerrar la conexión
+
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
@@ -1191,7 +1211,8 @@ function validarCreditoCliente($conexionData, $clienteId, $totalPedido)
     ];
 }
 
-function obtenerPartidasPedido($conexionData, $clavePedido) {
+function obtenerPartidasPedido($conexionData, $clavePedido)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1245,7 +1266,8 @@ function obtenerPartidasPedido($conexionData, $clavePedido) {
     // Responder con las partidas
     echo json_encode(['success' => true, 'partidas' => $partidas]);
 }
-function eliminarPartida($conexionData, $clavePedido, $numPar) {
+function eliminarPartida($conexionData, $clavePedido, $numPar)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],

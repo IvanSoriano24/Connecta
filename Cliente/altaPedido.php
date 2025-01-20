@@ -257,6 +257,32 @@ if (isset($_SESSION['usuario'])) {
     .table-wrapper::-webkit-scrollbar-thumb:hover {
         background-color: #aaa;
     }
+
+    .input-container div {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        /* Alinear elementos al inicio */
+        gap: 5px;
+        /* Espacio uniforme entre elementos */
+    }
+
+    .input-container input {
+        flex-shrink: 0;
+        /* Evitar que el input cambie de tamaño */
+    }
+
+    .input-container button {
+        flex-shrink: 0;
+        /* Evitar que los botones cambien de tamaño */
+        padding: 5px 8px;
+        /* Ajustar el tamaño del botón */
+    }
+
+    .input-container {
+        width: auto;
+        /* Asegurar que el contenedor no se expanda innecesariamente */
+    }
 </style>
 
 <body>
@@ -324,14 +350,14 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element">
                                 <label for="cliente">Cliente</label>
                                 <div class="input-container" style="position: relative;">
-                                    <div style="display: flex; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 5px;">
                                         <input name="cliente" id="cliente" autocomplete="off"
-                                            oninput="toggleClearButton()" style="padding-right: 2rem; width:400px;" />
-                                        <button id="clearInput" type="button" class="btn ms-2"
-                                            onclick="clearAllFields()" style="display: none;">
+                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 100px;" />
+                                        <button id="clearInput" type="button" class="btn"
+                                            onclick="clearAllFields()" style="display: none; padding: 5px 10px;">
                                             <i class="bx bx-x"></i>
                                         </button>
-                                        <button type="button" class="btn ms-2" onclick="abrirModalClientes()">
+                                        <button type="button" class="btn" onclick="abrirModalClientes()" style="padding: 5px 5px;">
                                             <i class="bx bx-search"></i>
                                         </button>
                                     </div>
@@ -345,7 +371,7 @@ if (isset($_SESSION['usuario'])) {
 
                             <div class="form-element">
                                 <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                <input type="text" name="nombre" id="nombre">
+                                <input type="text" name="nombre" id="nombre" style="width: 450px;" />
                             </div>
 
                             <div class="form-element">
@@ -483,8 +509,6 @@ if (isset($_SESSION['usuario'])) {
                             <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
                             <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
                         </div>
-
-
                     </form>
                     <!-- 5th row: 2 buttons -->
 
@@ -651,66 +675,66 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/clientes.js"></script>
     <script>
         $(document).ready(function() {
-            $('#cliente').on('input', function() {
-                const cliente = $(this).val().trim();
-                const clave = '<?php echo $claveVendedor ?>';
-                const $clienteInput = $(this);
+            $(document).ready(function() {
+                $('#cliente').on('input', function() {
+                    const clienteInput = $(this).val().trim();
+                    const claveVendedor = '<?php echo $claveVendedor ?>';
+                    const $clienteInput = $(this);
 
-                if (cliente.length > 2) {
-                    $.ajax({
-                        url: '../Servidor/PHP/ventas.php',
-                        type: 'POST',
-                        data: {
-                            cliente: cliente,
-                            numFuncion: '4',
-                            clave: clave
-                        },
-                        success: function(response) {
-                            try {
-                                if (typeof response === 'string') {
-                                    response = JSON.parse(response);
+                    if (clienteInput.length > 0) {
+                        $.ajax({
+                            url: '../Servidor/PHP/ventas.php',
+                            type: 'POST',
+                            data: {
+                                cliente: clienteInput,
+                                numFuncion: '4',
+                                clave: claveVendedor
+                            },
+                            success: function(response) {
+                                try {
+                                    if (typeof response === 'string') {
+                                        response = JSON.parse(response);
+                                    }
+                                } catch (e) {
+                                    console.error("Error al parsear la respuesta JSON", e);
+                                    return;
                                 }
-                            } catch (e) {
-                                console.error("Error al parsear la respuesta JSON", e);
-                                return;
-                            }
 
-                            if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                                const suggestionsList = $('#clientesSugeridos');
-                                suggestionsList.empty().show();
+                                if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
+                                    const suggestionsList = $('#clientesSugeridos');
+                                    suggestionsList.empty().show();
 
-                                response.cliente.forEach((cliente, index) => {
-                                    const listItem = $('<li></li>')
-                                        .text(`${cliente.CLAVE} - ${cliente.NOMBRE}`)
-                                        .on('click', function() {
-                                            // Actualizar el campo de cliente y esconder sugerencias
-                                            $clienteInput.val(`${cliente.CLAVE} - ${cliente.NOMBRE}`);
-                                            suggestionsList.empty().hide();
+                                    response.cliente.forEach((cliente) => {
+                                        const listItem = $('<li></li>')
+                                            .text(`${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`)
+                                            .on('click', function() {
+                                                $clienteInput.val(`${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`);
+                                                suggestionsList.empty().hide();
 
-                                            // Llenar otros campos del formulario
-                                            llenarDatosCliente(cliente);
+                                                // Llenar otros campos del formulario
+                                                llenarDatosCliente(cliente);
 
-                                            // Actualizar clienteSeleccionado
-                                            sessionStorage.setItem('clienteSeleccionado', true);
-                                            console.log('Cliente seleccionado:', cliente.CLAVE);
-                                        });
+                                                // Actualizar estado de cliente seleccionado
+                                                sessionStorage.setItem('clienteSeleccionado', true);
+                                                console.log('Cliente seleccionado:', cliente.CLAVE.trim());
+                                            });
 
-                                    suggestionsList.append(listItem);
-                                });
-                            } else {
+                                        suggestionsList.append(listItem);
+                                    });
+                                } else {
+                                    $('#clientesSugeridos').empty().hide();
+                                }
+                            },
+                            error: function() {
+                                console.error("Error en la solicitud AJAX para sugerencias");
                                 $('#clientesSugeridos').empty().hide();
                             }
-                        },
-                        error: function() {
-                            console.error("Error en la solicitud AJAX para sugerencias");
-                            $('#clientesSugeridos').empty().hide();
-                        }
-                    });
-                } else {
-                    $('#clientesSugeridos').empty().hide();
-                }
+                        });
+                    } else {
+                        $('#clientesSugeridos').empty().hide();
+                    }
+                });
             });
-
             // Cerrar la lista de sugerencias si se hace clic fuera del input
             $(document).on('click', function(event) {
                 if (!$(event.target).closest('#cliente').length) {

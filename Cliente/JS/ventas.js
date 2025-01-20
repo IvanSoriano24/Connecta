@@ -489,7 +489,6 @@ function eliminarPartidaServidor(pedidoID, numPar) {
 function limpiarTablaPartidas() {
     const tablaProductos = document.querySelector("#tablaProductos tbody");
     tablaProductos.innerHTML = ''; // Limpia todas las filas de la tabla
-    alert("LimpiasTablasPartidas");
 }
 
 
@@ -592,7 +591,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const pedidoID = urlParams.get('pedidoID'); // Puede ser null si no está definido
 
         console.log('ID del pedido recibido:', pedidoID); // Log en consola para depuración
-        alert('ID del pedido recibido: ' + (pedidoID || 'Nuevo Pedido')); // Mostrar mensaje claro
 
         if (pedidoID) {
             // Si es un pedido existente (pedidoID no es null)

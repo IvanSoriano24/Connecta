@@ -588,11 +588,8 @@ function seleccionarClienteDesdeModal(cliente) {
   // Actualizar estado de cliente seleccionado
   sessionStorage.setItem('clienteSeleccionado', true);
   console.log('Cliente seleccionado desde modal:', cliente.CLAVE);
-
+  llenarDatosCliente(cliente);
   cerrarModalClientes(); // Cerrar el modal
-
-  // Validar crédito del cliente si es necesario
-  validarCreditoCliente(cliente.CLAVE);
 }
 
 function validarCreditoCliente(clienteId) {
@@ -683,6 +680,7 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   validarCreditoCliente(cliente.CLAVE);
 }
 function llenarDatosCliente(cliente) {
+  console.log(cliente);
   $('#rfc').val(cliente.RFC || '');
   $('#nombre').val(cliente.NOMBRE || '');
   $('#calle').val(cliente.CALLE || '');
