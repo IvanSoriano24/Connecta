@@ -469,7 +469,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
             'data' => $claveCliente
         ]));
     } else {
-        echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
+       // echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
     }
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
@@ -498,7 +498,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
     if (isset($partidasData) && is_array($partidasData)) {
         foreach ($partidasData as $partida) {
             // Extraer los datos de la partida
-            $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+            $CVE_DOC = str_pad($formularioData['numero'], 20, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
             $CVE_ART = $partida['producto']; // Clave del producto
             $CANT = $partida['cantidad']; // Cantidad
             $PREC = $partida['precioUnitario']; // Precio
@@ -1307,6 +1307,44 @@ function eliminarPartida($conexionData, $clavePedido, $numPar)
     }
 }
 
+function eliminarPedido($conexionData, $pedidoID) {
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    $clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
+    // Nombre de la tabla dinámico basado en la empresa
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Actualizar el estatus del pedido
+    $query = "UPDATE $nombreTabla SET STATUS = 'C' WHERE CVE_DOC = ?";
+    $stmt = sqlsrv_prepare($conn, $query, [$clave]);
+
+    if (!$stmt) {
+        echo json_encode(['success' => false, 'message' => 'Error al preparar la consulta', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    if (sqlsrv_execute($stmt)) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al actualizar el estatus del pedido', 'errors' => sqlsrv_errors()]);
+    }
+
+    sqlsrv_close($conn);
+}
+
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -1466,7 +1504,6 @@ switch ($funcion) {
             echo json_encode($conexionResult);
             break;
         }
-        // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $cveEsqImpu = $_POST['cveEsqImpu'];
         obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa);
@@ -1565,6 +1602,21 @@ switch ($funcion) {
         $numPar = $_POST['numPar'];
 
         eliminarPartida($conexionData, $clavePedido, $numPar);
+        break;
+    case 10:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        $pedidoID = $_POST['pedidoID'];
+        eliminarPedido($conexionData, $pedidoID);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

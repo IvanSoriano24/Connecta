@@ -1,48 +1,78 @@
 const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
 
 function agregarEventosBotones() {
-    // Seleccionar todos los botones con la clase btnEditarPedido
-    const botones = document.querySelectorAll('.btnEditarPedido');
-
-    // Asignar un evento de clic a cada botón
-    botones.forEach(boton => {
+    // Botones de editar
+    const botonesEditar = document.querySelectorAll('.btnEditarPedido');
+    botonesEditar.forEach(boton => {
         boton.addEventListener('click', function () {
             const pedidoID = this.dataset.id; // Obtener el ID del pedido
-
             console.log('Redirigiendo con pedidoID:', pedidoID); // Log en consola
             alert('Redirigiendo con pedidoID: ' + pedidoID); // Alerta para verificar
-
             // Redirigir a altaPedido.php con el ID del pedido como parámetro
             window.location.href = 'altaPedido.php?pedidoID=' + pedidoID;
         });
     });
-}
-function eliminarPedido(pedidoId) {
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: 'Esta acción no se puede deshacer.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post('../Servidor/PHP/ventas.php', {
-                numFuncion: '10', // Define un case en tu backend para eliminar
-                pedidoId: pedidoId
-            }, function (response) {
-                if (response.success) {
-                    Swal.fire('Eliminado', 'El pedido ha sido eliminado.', 'success');
-                    cargarPedidos(); // Recargar la tabla
-                } else {
-                    Swal.fire('Error', response.message || 'No se pudo eliminar el pedido.', 'error');
+
+    // Botones de eliminar
+    const botonesEliminar = document.querySelectorAll('.btnEliminarPedido');
+    botonesEliminar.forEach(boton => {
+        boton.addEventListener('click', function () {
+            const pedidoID = this.dataset.id; // Obtener el ID del pedido
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción no se puede deshacer",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    eliminarPedido(pedidoID); // Llama a la función para eliminar el pedido
                 }
-            }, 'json').fail(function () {
-                Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
             });
-        }
+        });
     });
 }
+
+function eliminarPedido(pedidoID) {
+    $.post('../Servidor/PHP/ventas.php', { numFuncion: '10', pedidoID: pedidoID }, function (response) {
+        try {
+            if (typeof response === 'string') {
+                response = JSON.parse(response);
+            }
+            if (response.success) {
+                Swal.fire({
+                    title: 'Eliminado',
+                    text: 'El pedido ha sido eliminado correctamente',
+                    icon: 'success',
+                    confirmButtonText: 'Entendido'
+                }).then(() => {
+                    datosPedidos(); // Actualizar la tabla después de eliminar
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: response.message || 'No se pudo eliminar el pedido',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        } catch (error) {
+            console.error('Error al procesar la respuesta JSON:', error);
+        }
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Hubo un problema al intentar eliminar el pedido',
+            icon: 'error',
+            confirmButtonText: 'Entendido'
+        });
+        console.log('Detalles del error:', jqXHR.responseText);
+    });
+}
+
 function cargarPedidos(filtroFecha) {
     $.post('../Servidor/PHP/ventas.php', {
         numFuncion: '1',
@@ -84,11 +114,34 @@ function cargarPedidos(filtroFecha) {
                             <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
                             <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
                             <td>
-                                <button class="btnEditarPedido" data-id="${pedido.Clave}" style="padding: 5px 10px;">
-                                    <i class="fas fa-eye"></i> Editar
+                                <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    padding: 0.5rem 1rem;
+                                    font-size: 1rem;
+                                    font-family: Lato;
+                                    color: #fff;
+                                    background-color: #007bff;
+                                    border: none;
+                                    border-radius: 0.25rem;
+                                    cursor: pointer;
+                                    transition: background-color 0.3s ease;">
+                                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
                                 </button>
-                                <button class="btnEliminarPedido" data-id="${pedido.Clave}" style="padding: 5px 10px; background-color: #dc3545; color: white; border: none;">
-                                    <i class="fas fa-trash"></i> Eliminar
+                                <br>
+                                <button class="btnEliminarPedido" name="btnEliminarPedido" data-id="${pedido.Clave}" style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    padding: 0.5rem 1rem;
+                                    font-size: 1rem;
+                                    font-family: Lato;
+                                    color: #fff;
+                                    background-color: #dc3545;
+                                    border: none;
+                                    border-radius: 0.25rem;
+                                    cursor: pointer;
+                                    transition: background-color 0.3s ease;">
+                                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Eliminar
                                 </button>
                             </td>
                         `;
@@ -160,10 +213,24 @@ function datosPedidos() {
                                 border: none;
                                 border-radius: 0.25rem;
                                 cursor: pointer;
-                                transition: background-color 0.3s ease;
-                                ">
-                                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
-                            </button>  
+                                transition: background-color 0.3s ease;">
+                                <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
+                            </button>
+                            <br>
+                            <button class="btnEliminarPedido" name="btnEliminarPedido" data-id="${pedido.Clave}" style="
+                                display: inline-flex;
+                                align-items: center;
+                                padding: 0.5rem 1rem;
+                                font-size: 1rem;
+                                font-family: Lato;
+                                color: #fff;
+                                background-color: #dc3545;
+                                border: none;
+                                border-radius: 0.25rem;
+                                cursor: pointer;
+                                transition: background-color 0.3s ease;">
+                                <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Eliminar
+                            </button>
                         </td>
                     `;
                         pedidosTable.appendChild(row);
