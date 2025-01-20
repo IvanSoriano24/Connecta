@@ -1,69 +1,69 @@
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
   const clienteSeleccionado = sessionStorage.getItem('clienteSeleccionado') === 'true';
-    if (!clienteSeleccionado) {
-        Swal.fire({
-            title: 'Error',
-            text: `Debes seleccionar un Cliente primero`,
-            icon: 'warning',
-            confirmButtonText: 'Entendido'
-        });
-        
-        return;
-    }
-    const tablaProductos = document.querySelector("#tablaProductos tbody");
-    // Verificar si alguna fila tiene un producto y cantidad mayor a 0 antes de agregar una nueva
-    // const filas = tablaProductos.querySelectorAll("tr");
-    // for (let fila of filas) {
-    //     const productoInput = fila.querySelector(".producto"); // Campo de producto
-    //     const totalInput = fila.querySelector(".subtotalPartida");
-    //     if (productoInput.value.trim() === "" || totalInput.value <= 0) {
-    //         Swal.fire({
-    //             title: 'Alerta',
-    //             text: `Debe llenar los campos correspondientes`,
-    //             icon: 'warning',
-    //             confirmButtonText: 'Entendido'
-    //         });
-    //         return;
-    //     }
-    // }
+  if (!clienteSeleccionado) {
+      Swal.fire({
+          title: 'Error',
+          text: `Debes seleccionar un Cliente primero`,
+          icon: 'warning',
+          confirmButtonText: 'Entendido'
+      });
+      return;
+  }
 
-    // Crear una nueva fila
-    const nuevaFila = document.createElement("tr");
-    nuevaFila.innerHTML = `
-        <td><input id="cantidadp" type="number" class="cantidad" value="0" readonly /></td>
-        <td>
-            <div class="d-flex flex-column position-relative">
-                <div class="d-flex align-items-center">
-                     <input type="text" class="producto " placeholder="" 
-                oninput="mostrarSugerencias(this)" />
-                    <button 
-                type="button" 
-                class="btn ms-2" 
-                onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))">
-                <i class="bx bx-search"></i>
-                </button>
-                </div>
-                 <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
-            </div>
-        </td>
+  const tablaProductos = document.querySelector("#tablaProductos tbody");
 
-        <td><input type="text" class="unidad" readonly /></td>
-        <td><input type="number" class="descuento1" value="0" readonly /></td>
-        <td><input type="number" class="descuento2" value="0" readonly /></td>
-        <td><input type="number" class="ieps" value="0" readonly /></td>
-        <td><input type="number" class="iva" value="0" readonly /></td>
-        <td><input type="number" class="comision" value="0" readonly /></td>
-        <td><input type="number" class="precioUnidad" value="0" readonly /></td>
-        <td><input type="number" class="subtotalPartida" value="0" readonly /></td>
-        <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
-        <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
-    `;
+  // Crear una nueva fila
+  const nuevaFila = document.createElement("tr");
+  nuevaFila.innerHTML = `
+      <td><input type="number" class="cantidad" value="0" readonly /></td>
+      <td>
+          <div class="d-flex flex-column position-relative">
+              <div class="d-flex align-items-center">
+                   <input type="text" class="producto" placeholder="" 
+              oninput="mostrarSugerencias(this)" />
+                  <button 
+              type="button" 
+              class="btn ms-2" 
+              onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))">
+              <i class="bx bx-search"></i>
+              </button>
+              </div>
+               <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
+          </div>
+      </td>
+
+      <td><input type="text" class="unidad" readonly /></td>
+      <td><input type="number" class="descuento1" value="0" readonly /></td>
+      <td><input type="number" class="descuento2" value="0" readonly /></td>
+      <td><input type="number" class="ieps" value="0" readonly /></td>
+      <td><input type="number" class="iva" value="0" readonly /></td>
+      <td><input type="number" class="comision" value="0" readonly /></td>
+      <td><input type="number" class="precioUnidad" value="0" readonly /></td>
+      <td><input type="number" class="subtotalPartida" value="0" readonly /></td>
+      <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
+      <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
+  `;
+
+  // Validar que la cantidad no sea negativa
+  const cantidadInput = nuevaFila.querySelector(".cantidad");
+  cantidadInput.addEventListener("input", () => {
+      if (parseFloat(cantidadInput.value) < 0) {
+          Swal.fire({
+              title: 'Error',
+              text: 'La cantidad no puede ser negativa.',
+              icon: 'error',
+              confirmButtonText: 'Entendido'
+          });
+          cantidadInput.value = 0; // Restablecer el valor a 0
+      } else {
+          calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
+      }
+  });
 
   tablaProductos.appendChild(nuevaFila);
-  const cantidadInput = nuevaFila.querySelector(".cantidad");
-  cantidadInput.addEventListener("input", () => calcularSubtotal(nuevaFila));
 }
+
 
 // // Ocultar sugerencias al hacer clic fuera del input
 // document.addEventListener("click", function (e) {
