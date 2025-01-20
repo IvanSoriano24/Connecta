@@ -538,7 +538,7 @@ function abrirModalClientes() {
   // Solicitar datos al servidor
   $.post(
     "../Servidor/PHP/clientes.php",
-    { numFuncion: "1", noEmpresa: "123" },
+    { numFuncion: "1"},
     function (response) {
       try {
         if (response.success && response.data) {

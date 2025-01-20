@@ -293,7 +293,7 @@ function obtenerDatosPedido(pedidoID) {
             sessionStorage.setItem('clienteSeleccionado', true);
 
             // Cargar las partidas existentes
-            cargarPartidas(pedido.partidas);
+            //cargarPartidas(pedido.partidas);
             alert("Datos del pedido cargados con éxito");
 
 
@@ -603,8 +603,6 @@ document.addEventListener('DOMContentLoaded', function () {
             cargarPartidasPedido(pedidoID)
         } else {
             obtenerFecha();
-            alert("Creando Nuevo Pedido");
-            console.log('Creando un nuevo pedido...');
             //sessionStorage.setItem('clienteSeleccionado', false);
             limpiarTablaPartidas(); // Limpia la tabla para un nuevo pedido
             // Aquí puedes manejar la lógica para la creación de un nuevo pedido
