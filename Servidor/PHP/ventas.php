@@ -884,7 +884,6 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
             FROM $nombreTabla
             WHERE [CLAVE] = '$clienteClave' OR LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre')
               AND [CVE_VEND] = '$claveVendedor'";*/
-
     if (preg_match('/[a-zA-Z]/', $clienteInput)) {
         // Búsqueda por nombre
         $sql = "SELECT DISTINCT 
