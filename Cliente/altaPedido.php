@@ -145,16 +145,15 @@ if (isset($_SESSION['usuario'])) {
 
     .form-container {
         position: sticky;
-        /* Cambiado a sticky para mantener fijo */
-        top: 0;
-        /* Para que se fije en la parte superior */
-        z-index: 10;
+    /* Cambiado a sticky para mantener fijo */
+    /*top: 0;*/
+    /* Para que se fije en la parte superior */
+    z-index: 10;
         background: white;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
     }
-
     .form-container .row {
         width: 100%;
         display: flex;
@@ -242,8 +241,6 @@ if (isset($_SESSION['usuario'])) {
 
     }
 
-
-
     /* Opcional: Mejora visual del scroll interno */
     .table-wrapper::-webkit-scrollbar {
         width: 8px;
@@ -283,6 +280,18 @@ if (isset($_SESSION['usuario'])) {
         width: auto;
         /* Asegurar que el contenedor no se expanda innecesariamente */
     }
+
+    #clientesSugeridos li {
+        padding: 5px;
+        cursor: pointer;
+    }
+
+    #clientesSugeridos li.highlighted {
+        background-color: #007bff;
+        color: white;
+    }
+
+    /*-------------------------------------------------------*/
 </style>
 
 <body>
@@ -324,7 +333,6 @@ if (isset($_SESSION['usuario'])) {
                             </div> -->
 
                 <div class="card-body ">
-
                     <form class="form-container">
                         <!-- 1st row: 4 inputs (2 select, 2 text) -->
                         <div class="row">
@@ -341,7 +349,7 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="form-element">
                                 <label for="fecha">Fecha </label>
-                                <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;">
+                                <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;" readonly1>
                             </div>
 
 
@@ -371,7 +379,7 @@ if (isset($_SESSION['usuario'])) {
 
                             <div class="form-element">
                                 <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                <input type="text" name="nombre" id="nombre" style="width: 450px;" />
+                                <input type="text" name="nombre" id="nombre" style="width: 450px;" readonly1 />
                             </div>
 
                             <div class="form-element">
@@ -503,15 +511,13 @@ if (isset($_SESSION['usuario'])) {
 
                             <div class="form-element"></div>
                         </div>
-
                         <div class="row">
                             <div class="form-element"></div>
-                            <button type="submit" class="btn-save" id="guardarPedido">Guardar</button>
-                            <button type="button" class="btn-cancel" id="cancelarPedido">Cancelar</button>
+                            <button type="submit" class="btn-save" id="guardarPedido" style="width: 150px;">Guardar</button>
+                            <button type="button" class="btn-cancel" id="cancelarPedido" style="width: 150px;">Cancelar</button>
                         </div>
                     </form>
                     <!-- 5th row: 2 buttons -->
-
                     <div class="table-data">
                         <div class="order">
                             <div class="table-container">
@@ -546,8 +552,6 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
-
-
 
                 <!-- </div> -->
             </main>
@@ -676,6 +680,9 @@ if (isset($_SESSION['usuario'])) {
     <script>
         $(document).ready(function() {
             $(document).ready(function() {
+                const suggestionsList = $('#clientesSugeridos');
+                let highlightedIndex = -1; // Índice del elemento destacado
+
                 $('#cliente').on('input', function() {
                     const clienteInput = $(this).val().trim();
                     const claveVendedor = '<?php echo $claveVendedor ?>';
@@ -701,39 +708,63 @@ if (isset($_SESSION['usuario'])) {
                                 }
 
                                 if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                                    const suggestionsList = $('#clientesSugeridos');
                                     suggestionsList.empty().show();
+                                    highlightedIndex = -1; // Reiniciar el índice destacado
 
-                                    response.cliente.forEach((cliente) => {
+                                    response.cliente.forEach((cliente, index) => {
                                         const listItem = $('<li></li>')
                                             .text(`${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`)
+                                            .attr('data-index', index)
+                                            .attr('data-cliente', JSON.stringify(cliente))
                                             .on('click', function() {
-                                                $clienteInput.val(`${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`);
-                                                suggestionsList.empty().hide();
-
-                                                // Llenar otros campos del formulario
-                                                llenarDatosCliente(cliente);
-
-                                                // Actualizar estado de cliente seleccionado
-                                                sessionStorage.setItem('clienteSeleccionado', true);
-                                                console.log('Cliente seleccionado:', cliente.CLAVE.trim());
+                                                seleccionarClienteDesdeSugerencia(cliente);
                                             });
 
                                         suggestionsList.append(listItem);
                                     });
                                 } else {
-                                    $('#clientesSugeridos').empty().hide();
+                                    suggestionsList.empty().hide();
                                 }
                             },
                             error: function() {
                                 console.error("Error en la solicitud AJAX para sugerencias");
-                                $('#clientesSugeridos').empty().hide();
+                                suggestionsList.empty().hide();
                             }
                         });
                     } else {
-                        $('#clientesSugeridos').empty().hide();
+                        suggestionsList.empty().hide();
                     }
                 });
+
+                $('#cliente').on('keydown', function(e) {
+                    const items = suggestionsList.find('li');
+                    if (!items.length) return;
+
+                    if (e.key === 'ArrowDown') {
+                        // Mover hacia abajo en las sugerencias
+                        highlightedIndex = (highlightedIndex + 1) % items.length;
+                        actualizarDestacado(items, highlightedIndex);
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowUp') {
+                        // Mover hacia arriba en las sugerencias
+                        highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+                        actualizarDestacado(items, highlightedIndex);
+                        e.preventDefault();
+                    } else if (e.key === 'Tab' || e.key === 'Enter') {
+                        // Seleccionar el cliente destacado
+                        if (highlightedIndex >= 0) {
+                            const clienteSeleccionado = JSON.parse($(items[highlightedIndex]).attr('data-cliente'));
+                            seleccionarClienteDesdeSugerencia(clienteSeleccionado);
+                            suggestionsList.empty().hide();
+                            e.preventDefault(); // Evitar el comportamiento predeterminado del tabulador
+                        }
+                    }
+                });
+
+                function actualizarDestacado(items, index) {
+                    items.removeClass('highlighted');
+                    $(items[index]).addClass('highlighted');
+                }
             });
             // Cerrar la lista de sugerencias si se hace clic fuera del input
             $(document).on('click', function(event) {
@@ -760,8 +791,6 @@ if (isset($_SESSION['usuario'])) {
             });
         });
     </script>
-
-
 </body>
 
 </html>

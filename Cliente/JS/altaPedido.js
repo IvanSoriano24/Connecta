@@ -672,9 +672,10 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   const sugerencias = document.getElementById("clientesSugeridos");
   sugerencias.innerHTML = ""; // Limpiar las sugerencias
   sugerencias.classList.add("d-none"); // Ocultar las sugerencias
-  validarCreditoCliente(cliente.CLAVE);
+  llenarDatosCliente(cliente);
 }
 function llenarDatosCliente(cliente) {
+  alert(cliente.CLAVE);
   $('#rfc').val(cliente.RFC || '');
   $('#nombre').val(cliente.NOMBRE || '');
   $('#calle').val(cliente.CALLE || '');
