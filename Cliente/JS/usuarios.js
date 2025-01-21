@@ -34,15 +34,14 @@ function mostrarUsuarios(usuarios) {
     // Recorremos la lista de usuarios y generamos las filas de la tabla
     usuarios.forEach(function(usuario) {
         var fila = '<tr>';
-        fila += '<td>' + usuario.nombreCompleto + '</td>';
-        fila += '<td>' + usuario.correo + '</td>';
-        fila += '<td>' + usuario.estatus + '</td>';
-        fila += '<td>' + usuario.rol + '</td>';
+        fila += '<td>' + (usuario.nombreCompleto || '-') + '</td>'; // Valor por defecto si está vacío
+        fila += '<td>' + (usuario.correo || '-') + '</td>';
+        fila += '<td>' + (usuario.estatus || '-') + '</td>';
+        fila += '<td>' + (usuario.rol || '-') + '</td>';
         fila += '<td><button class="btn btn-info btn-sm" onclick="editarUsuario(\'' + usuario.id + '\')">Editar</button></td>';
         fila += '</tr>';
-        // Insertamos la fila en el cuerpo de la tabla
         tablaClientes.append(fila);
-    });
+    });    
 }
 function editarUsuario(idUsuario) {
     $.ajax({

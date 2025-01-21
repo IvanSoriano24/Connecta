@@ -26,6 +26,7 @@ if (isset($_SESSION['usuario'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,6 +50,49 @@ if (isset($_SESSION['usuario'])) {
         .btn a {
             text-decoration: none;
             color: inherit;
+        }
+
+        /*********************/
+        table.table tbody td {
+            text-transform: uppercase;
+            padding: 12px;
+            /* Aumenta el espacio interno */
+            height: 50px;
+            /* Establece una altura mínima */
+            text-align: left;
+            /* Alineación horizontal */
+            vertical-align: middle;
+            /* Alineación vertical */
+            padding: 12px;
+            /* Aumenta el espacio interno */
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            /* Ajusta el tamaño del texto */
+            line-height: 1.5;
+            /* Asegura un espaciado vertical uniforme */
+            text-transform: none;
+            /* Evita modificaciones al texto */
+        }
+
+        table.table tr {
+            height: 60px;
+            /* Altura fija para todas las filas */
+        }
+
+        table.table thead th {
+            text-align: left;
+            /* Alineación de encabezados */
+            vertical-align: middle;
+            padding: 12px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        table.table {
+            border-collapse: separate;
+            /* Separa las celdas */
+            border-spacing: 0 8px;
+            /* Espaciado entre filas */
         }
     </style>
 </head>
@@ -95,7 +139,7 @@ if (isset($_SESSION['usuario'])) {
                             <i class='bx bx-search'></i>
                             <!-- <i class='bx bx-filter'></i> -->
                         </div>
-                        <table class="table">
+                        <table class="table table-striped table-hover align-middle">
                             <thead>
                                 <tr>
                                     <th>Nombre Completo</th>
@@ -186,18 +230,18 @@ if (isset($_SESSION['usuario'])) {
                                         <label for="selectEmpresa" class="form-label">Seleccionar Empresa</label>
                                         <select id="selectEmpresa" class="form-select">
                                             <option selected disabled>Selecciona una empresa</option>-->
-                                            <!-- Aquí se llenará dinámicamente con las empresas -->
-                                        <!--</select>
+                                <!-- Aquí se llenará dinámicamente con las empresas -->
+                                <!--</select>
                                         <div class="mb-1">
                                             <button id="agregarEmpresaBtn" type="button"
                                                 class="btn btn-primary">Agregar</button>
                                         </div>
                                     </div>-->
-                                    <!-- Textarea para información adicional -->
-                                    <!--<div class="mb-4"> -->
-                                        <!--<label for="detallesEmpresa" class="form-label">Detalles de Empresa</label>
+                                <!-- Textarea para información adicional -->
+                                <!--<div class="mb-4"> -->
+                                <!--<label for="detallesEmpresa" class="form-label">Detalles de Empresa</label>
                                         <textarea id="detallesEmpresa" class="form-control" rows="4" disabled></textarea>-->
-                                        <!--<h6>Empresas Seleccionadas</h6>
+                                <!--<h6>Empresas Seleccionadas</h6>
                                         <table class="table table-bordered" id="tablaEmpresas">
                                             <thead>
                                                 <tr>
@@ -208,8 +252,8 @@ if (isset($_SESSION['usuario'])) {
                                                 </tr>
                                             </thead>
                                             <tbody> -->
-                                                <!-- Las filas se llenarán dinámicamente -->
-                                            <!--</tbody>
+                                <!-- Las filas se llenarán dinámicamente -->
+                                <!--</tbody>
                                         </table>
                                     </div>
                                 </div>-->
@@ -232,7 +276,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             var tipoUsuario = '<?php echo $tipoUsuario; ?>';
             var usuario = '<?php echo $usuario; ?>';
             datosUsuarios(tipoUsuario, usuario); // Llamada a la función cuando la página de la empresa se ha cargado.
