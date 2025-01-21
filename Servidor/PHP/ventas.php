@@ -1354,7 +1354,7 @@ function obtenerPartidasPedido($conexionData, $clavePedido)
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $partidas[] = [
             'NUM_PAR' => $row['NUM_PAR'],
-            'DESCR_ART' => $row['DESCR_ART'],
+            'CVE_ART' => $row['CVE_ART'],
             'CANT' => $row['CANT'],
             'PREC' => $row['PREC'],
             'IMPU1' => $row['IMPU1'],

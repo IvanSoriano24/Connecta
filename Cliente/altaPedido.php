@@ -527,6 +527,7 @@ if (isset($_SESSION['usuario'])) {
                                     <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
                                         <thead>
                                             <tr>
+                                                <th></th>
                                                 <th>Cant.</th>
                                                 <th>Producto</th>
                                                 <th>Unidad</th>

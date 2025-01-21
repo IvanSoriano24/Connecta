@@ -16,6 +16,11 @@ function agregarFilaPartidas() {
   // Crear una nueva fila
   const nuevaFila = document.createElement("tr");
   nuevaFila.innerHTML = `
+      <td>
+          <button type="button" class="btn btn-danger btn-sm eliminarPartida">
+            <i class="bx bx-trash"></i>
+          </button>
+      </td>
       <td><input type="number" class="cantidad" value="0" readonly /></td>
       <td>
           <div class="d-flex flex-column position-relative">
@@ -34,8 +39,8 @@ function agregarFilaPartidas() {
       </td>
 
       <td><input type="text" class="unidad" readonly /></td>
-      <td><input type="number" class="descuento1" value="0" readonly /></td>
-      <td><input type="number" class="descuento2" value="0" readonly /></td>
+      <td><input type="number" class="descuento1" style="width: 70px;" value="0"  readonly /></td>
+      <td><input type="number" class="descuento2" style="width: 70px;" value="0" readonly /></td>
       <td><input type="number" class="ieps" value="0" readonly /></td>
       <td><input type="number" class="iva" value="0" readonly /></td>
       <td><input type="number" class="comision" value="0" readonly /></td>
@@ -45,6 +50,28 @@ function agregarFilaPartidas() {
       <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
   `;
 
+  // Añadir evento al botón de eliminar
+  const botonEliminar = nuevaFila.querySelector(".eliminarPartida");
+  botonEliminar.addEventListener("click", () => {
+      Swal.fire({
+          title: '¿Estás seguro?',
+          text: '¿Deseas eliminar esta partida?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              nuevaFila.remove(); // Eliminar la fila
+              Swal.fire({
+                  title: 'Eliminada',
+                  text: 'La partida ha sido eliminada.',
+                  icon: 'success',
+                  confirmButtonText: 'Entendido'
+              });
+          }
+      });
+  });
   // Validar que la cantidad no sea negativa
   const cantidadInput = nuevaFila.querySelector(".cantidad");
   cantidadInput.addEventListener("input", () => {

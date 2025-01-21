@@ -466,13 +466,13 @@ function cargarPartidasPedido(pedidoID) {
                     <td>
                         <div class="d-flex flex-column position-relative">
                             <div class="d-flex align-items-center">
-                                <input type="text" class="producto" placeholder="" value="${partida.DESCR_ART}" oninput="mostrarSugerencias(this)" />
+                                <input type="text" class="producto" placeholder="" value="${partida.CVE_ART}" oninput="mostrarSugerencias(this)" />
                                 <button type="button" class="btn ms-2" onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))"><i class="bx bx-search"></i></button>
                             </div>
                             <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
                         </div>
                     </td>
-                    <td><input type="text" class="unidad" value="Unidad" readonly /></td>
+                    <td><input type="text" class="unidad" value="${partida.UNI_VENTA}" readonly /></td>
                     <td><input type="number" class="descuento1" value="${partida.DESC1}" readonly /></td>
                     <td><input type="number" class="descuento2" value="${partida.DESC2}" readonly /></td>
                     <td><input type="number" class="ieps" value="${partida.IMPU1}" readonly /></td>
