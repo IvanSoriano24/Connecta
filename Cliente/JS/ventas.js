@@ -1,4 +1,5 @@
 const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
+let partidasData = []; // Este contiene las partidas actuales del formulario
 
 function agregarEventosBotones() {
     // Botones de editar
@@ -14,7 +15,7 @@ function agregarEventosBotones() {
     });
 
     // Botones de eliminar
-    const botonesEliminar = document.querySelectorAll('.btnEliminarPedido');
+    const botonesEliminar = document.querySelectorAll('.btnCancelarPedido');
     botonesEliminar.forEach(boton => {
         boton.addEventListener('click', function () {
             const pedidoID = this.dataset.id; // Obtener el ID del pedido
@@ -129,7 +130,7 @@ function cargarPedidos(filtroFecha) {
                                     <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
                                 </button>
                                 <br>
-                                <button class="btnEliminarPedido" name="btnEliminarPedido" data-id="${pedido.Clave}" style="
+                                <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
                                     display: inline-flex;
                                     align-items: center;
                                     padding: 0.5rem 1rem;
@@ -141,7 +142,7 @@ function cargarPedidos(filtroFecha) {
                                     border-radius: 0.25rem;
                                     cursor: pointer;
                                     transition: background-color 0.3s ease;">
-                                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Eliminar
+                                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
                                 </button>
                             </td>
                         `;
@@ -217,7 +218,7 @@ function datosPedidos() {
                                 <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
                             </button>
                             <br>
-                            <button class="btnEliminarPedido" name="btnEliminarPedido" data-id="${pedido.Clave}" style="
+                            <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
                                 display: inline-flex;
                                 align-items: center;
                                 padding: 0.5rem 1rem;
@@ -229,7 +230,7 @@ function datosPedidos() {
                                 border-radius: 0.25rem;
                                 cursor: pointer;
                                 transition: background-color 0.3s ease;">
-                                <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Eliminar
+                                <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
                             </button>
                         </td>
                     `;
@@ -362,7 +363,7 @@ function obtenerDatosPedido(pedidoID) {
 
             // Cargar las partidas existentes
             //cargarPartidas(pedido.partidas);
-            alert("Datos del pedido cargados con éxito");
+            //alert("Datos del pedido cargados con éxito");
 
 
             console.log('Datos del pedido cargados correctamente.');
@@ -450,41 +451,8 @@ function cargarPartidasPedido(pedidoID) {
 
         if (response.success) {
             const partidas = response.partidas;
-
-            const tablaProductos = document.querySelector("#tablaProductos tbody");
-            tablaProductos.innerHTML = ''; // Limpia la tabla antes de agregar las partidas
-
-            partidas.forEach((partida, index) => {
-                const nuevaFila = document.createElement("tr");
-                nuevaFila.innerHTML = `
-                    <td>
-                        <button type="button" class="btn btn-danger btn-sm eliminarPartida" onclick="eliminarPartidaServidor('${pedidoID}', ${partida.NUM_PAR})">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </td>
-                    <td><input type="number" class="cantidad" value="${partida.CANT}" /></td>
-                    <td>
-                        <div class="d-flex flex-column position-relative">
-                            <div class="d-flex align-items-center">
-                                <input type="text" class="producto" placeholder="" value="${partida.DESCR_ART}" oninput="mostrarSugerencias(this)" />
-                                <button type="button" class="btn ms-2" onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))"><i class="bx bx-search"></i></button>
-                            </div>
-                            <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
-                        </div>
-                    </td>
-                    <td><input type="text" class="unidad" value="Unidad" readonly /></td>
-                    <td><input type="number" class="descuento1" value="${partida.DESC1}" readonly /></td>
-                    <td><input type="number" class="descuento2" value="${partida.DESC2}" readonly /></td>
-                    <td><input type="number" class="ieps" value="${partida.IMPU1}" readonly /></td>
-                    <td><input type="number" class="iva" value="${partida.IMPU4}" readonly /></td>
-                    <td><input type="number" class="comision" value="${partida.COMI}" readonly /></td>
-                    <td><input type="number" class="precioUnidad" value="${partida.PREC}" readonly /></td>
-                    <td><input type="number" class="subtotalPartida" value="${partida.TOT_PARTIDA}" readonly /></td>
-                `;
-                tablaProductos.appendChild(nuevaFila);
-            });
-            alert("Partidas cargadas correctamente");
-           
+            partidasData = [...partidas]; // Almacena las partidas en el array global
+            actualizarTablaPartidas(); // Actualiza la tabla visualmente
             console.log("Partidas cargadas correctamente.");
         } else {
             console.error("Error al obtener partidas:", response.message);
@@ -495,62 +463,55 @@ function cargarPartidasPedido(pedidoID) {
         alert('Error al cargar las partidas: ' + textStatus + ' ' + errorThrown);
     });
 }
-
-function eliminarPartida(index) {
+function actualizarTablaPartidas() {
     const tablaProductos = document.querySelector("#tablaProductos tbody");
-    const fila = tablaProductos.querySelectorAll("tr")[index];
+    tablaProductos.innerHTML = ''; // Limpia la tabla
 
-    if (fila) {
-        fila.remove(); // Elimina la fila de la tabla
+    partidasData.forEach((partida) => {
+        const nuevaFila = document.createElement("tr");
+        nuevaFila.setAttribute("data-num-par", partida.NUM_PAR); // Identifica cada fila por NUM_PAR
 
-        Swal.fire({
-            title: 'Partida eliminada',
-            text: 'La partida ha sido eliminada correctamente',
-            icon: 'success',
-            confirmButtonText: 'Entendido'
-        });
-    } else {
-        Swal.fire({
-            title: 'Error',
-            text: 'No se pudo encontrar la fila para eliminar',
-            icon: 'error',
-            confirmButtonText: 'Entendido'
-        });
-    }
-}
-function eliminarPartidaServidor(pedidoID, numPar) {
-    $.post('../Servidor/PHP/ventas.php', {
-        numFuncion: '9',
-        clavePedido: pedidoID,
-        numPar: numPar
-    }, function (response) {
-        if (response.success) {
-            Swal.fire({
-                title: 'Partida eliminada',
-                text: response.message,
-                icon: 'success',
-                confirmButtonText: 'Entendido'
-            });
-
-            // Opcional: recargar las partidas después de eliminar
-            //cargarPartidasPedido(pedidoID);
-        } else {
-            Swal.fire({
-                title: 'Error',
-                text: response.message,
-                icon: 'error',
-                confirmButtonText: 'Entendido'
-            });
-        }
-    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
-        Swal.fire({
-            title: 'Error',
-            text: 'Error en la solicitud: ' + textStatus,
-            icon: 'error',
-            confirmButtonText: 'Entendido'
-        });
+        nuevaFila.innerHTML = `
+    <td>
+        <button type="button" class="btn btn-danger btn-sm eliminarPartida" onclick="eliminarPartidaFormulario(${partida.NUM_PAR})">
+            <i class="bx bx-trash"></i>
+        </button>
+    </td>
+    <td><input type="number" class="cantidad" value="${partida.CANT}" /></td>
+    <td>
+        <div class="d-flex flex-column position-relative">
+            <div class="d-flex align-items-center">
+                <input type="text" class="producto" placeholder="" value="${partida.CVE_ART}" oninput="mostrarSugerencias(this)" />
+                <button type="button" class="btn ms-2" onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))"><i class="bx bx-search"></i></button>
+            </div>
+            <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
+        </div>
+    </td>
+    <td><input type="text" class="unidad" value="Unidad" readonly /></td>
+    <td><input type="number" class="descuento1" value="${partida.DESC1}" readonly /></td>
+    <td><input type="number" class="descuento2" value="${partida.DESC2}" readonly /></td>
+    <td><input type="number" class="ieps" value="${partida.IMPU1}" readonly /></td>
+    <td><input type="number" class="iva" value="${partida.IMPU4}" readonly /></td>
+    <td><input type="number" class="comision" value="${partida.COMI}" readonly /></td>
+    <td><input type="number" class="precioUnidad" value="${partida.PREC}" readonly /></td>
+    <td><input type="number" class="subtotalPartida" value="${partida.TOT_PARTIDA}" readonly /></td>
+    <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
+    <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
+`;
+        tablaProductos.appendChild(nuevaFila);
     });
 }
+
+function eliminarPartidaFormulario(numPar) {
+    // Filtrar las partidas para excluir la eliminada
+    partidasData = partidasData.filter((partida) => partida.NUM_PAR !== numPar);
+
+    // Actualizar la tabla visualmente
+    actualizarTablaPartidas();
+
+    console.log("Partidas actuales después de eliminar:", partidasData);
+}
+
 
 function limpiarTablaPartidas() {
     const tablaProductos = document.querySelector("#tablaProductos tbody");
@@ -603,24 +564,27 @@ function guardarPedido() {
 }
 
 function obtenerFolioSiguiente() {
-    $.post('../Servidor/PHP/ventas.php', {
-        numFuncion: '3',  // Llamamos al caso 3 para obtener el siguiente folio
-        accion: 'obtenerFolioSiguiente',
-    }, function (response) {
-        // Parseamos la respuesta del servidor
-        var data = JSON.parse(response);
-        if (data.success) {
-            // Si la respuesta fue exitosa, mostramos el siguiente folio
-            console.log("El siguiente folio es: " + data.folioSiguiente);
-            // Aquí puedes llenar un campo de tu formulario con el siguiente folio
-            document.getElementById('numero').value = data.folioSiguiente;
-        } else {
-            // Si hubo un error, mostramos el mensaje de error
-            console.log("Error: " + data.message);
-        }
-    }).fail(function (xhr, status, error) {
-        // En caso de que ocurra un error en la solicitud AJAX
-        console.log("Error de AJAX: " + error);
+    return new Promise((resolve, reject) => {
+        $.post('../Servidor/PHP/ventas.php', {
+            numFuncion: '3', // Caso 3: Obtener siguiente folio
+            accion: 'obtenerFolioSiguiente',
+        }, function (response) {
+            try {
+                const data = JSON.parse(response);
+                if (data.success) {
+                    console.log("El siguiente folio es: " + data.folioSiguiente);
+                    document.getElementById('numero').value = data.folioSiguiente;
+                    resolve(data.folioSiguiente); // Resuelve la promesa con el folio
+                } else {
+                    console.log("Error: " + data.message);
+                    reject(data.message); // Rechaza la promesa con el mensaje de error
+                }
+            } catch (error) {
+                reject("Error al procesar la respuesta: " + error.message);
+            }
+        }).fail(function (xhr, status, error) {
+            reject("Error de AJAX: " + error);
+        });
     });
 }
 function obtenerFecha() {

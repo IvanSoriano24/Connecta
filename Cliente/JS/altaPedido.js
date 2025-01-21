@@ -1,22 +1,32 @@
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
-  const clienteSeleccionado = sessionStorage.getItem('clienteSeleccionado') === 'true';
+  const clienteSeleccionado =
+    sessionStorage.getItem("clienteSeleccionado") === "true";
   if (!clienteSeleccionado) {
-      Swal.fire({
-          title: 'Error',
-          text: `Debes seleccionar un Cliente primero`,
-          icon: 'warning',
-          confirmButtonText: 'Entendido'
-      });
-      return;
+    Swal.fire({
+      title: "Error",
+      text: `Debes seleccionar un Cliente primero`,
+      icon: "warning",
+      confirmButtonText: "Entendido",
+    });
+    return;
   }
 
   const tablaProductos = document.querySelector("#tablaProductos tbody");
 
+  // Crear un identificador único para la partida
+  const numPar = partidasData.length + 1;
+
   // Crear una nueva fila
   const nuevaFila = document.createElement("tr");
+  nuevaFila.setAttribute("data-num-par", numPar); // Identificar la fila
   nuevaFila.innerHTML = `
-      <td><input type="number" class="cantidad" value="0" readonly /></td>
+  <td>
+          <button type="button" class="btn btn-danger btn-sm eliminarPartida" onclick="eliminarPartidaFormulario(${numPar})">
+              <i class="bx bx-trash"></i>
+          </button>
+      </td>    
+  <td><input type="number" class="cantidad" value="0" readonly /></td>
       <td>
           <div class="d-flex flex-column position-relative">
               <div class="d-flex align-items-center">
@@ -48,22 +58,21 @@ function agregarFilaPartidas() {
   // Validar que la cantidad no sea negativa
   const cantidadInput = nuevaFila.querySelector(".cantidad");
   cantidadInput.addEventListener("input", () => {
-      if (parseFloat(cantidadInput.value) < 0) {
-          Swal.fire({
-              title: 'Error',
-              text: 'La cantidad no puede ser negativa.',
-              icon: 'error',
-              confirmButtonText: 'Entendido'
-          });
-          cantidadInput.value = 0; // Restablecer el valor a 0
-      } else {
-          calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
-      }
+    if (parseFloat(cantidadInput.value) < 0) {
+      Swal.fire({
+        title: "Error",
+        text: "La cantidad no puede ser negativa.",
+        icon: "error",
+        confirmButtonText: "Entendido",
+      });
+      cantidadInput.value = 0; // Restablecer el valor a 0
+    } else {
+      calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
+    }
   });
 
   tablaProductos.appendChild(nuevaFila);
 }
-
 
 // // Ocultar sugerencias al hacer clic fuera del input
 // document.addEventListener("click", function (e) {
@@ -164,7 +173,7 @@ async function completarPrecioProducto(cveArt, filaTabla) {
 
     // Obtén los campos de la fila
     const impuesto1Input = filaTabla.querySelector(".ieps");
-    //const impuesto2Input = filaTabla.querySelector(".descuento2");
+    const impuesto2Input = filaTabla.querySelector(".descuento2");
     const impuesto4Input = filaTabla.querySelector(".iva");
     const impuesto3Input = filaTabla.querySelector(".impuesto3");
 
@@ -246,53 +255,52 @@ function mostrarListaProductos(productos, input) {
       // const celdaDisponible = document.createElement("td");
       // celdaDisponible.textContent = producto.DISPONIBLE;
 
-            // const celdaClaveAlterna = document.createElement("td");
-            // celdaClaveAlterna.textContent = producto.CVE_ALT;
-            fila.appendChild(celdaClave);
-            fila.appendChild(celdaDescripcion);
-            fila.appendChild(celdaExist);
-            // fila.appendChild(celdaLinea);
-            // fila.appendChild(celdaDisponible);
-            // fila.appendChild(celdaClaveAlterna);
-            fila.onclick = async function () {
-                input.value = producto.CVE_ART;
-                $('#CVE_ESQIMPU').val(producto.CVE_ESQIMPU);
-                const filaTabla = input.closest("tr");
-                const campoUnidad = filaTabla.querySelector(".unidad");
-                if (campoUnidad) {
-                    campoUnidad.value = producto.UNI_MED;
-                }
-                // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
-                const campoCantidad = filaTabla.querySelector("input.cantidad");
-                if (campoCantidad) {
-                    if (producto.EXIST > 0) {
-                        campoCantidad.readOnly = false;
-                        campoCantidad.value = 0; // Valor inicial opcional
-                    } else {
-                        campoCantidad.readOnly = true;
-                        campoCantidad.value = "Sin existencias"; // Mensaje opcional
-                        Swal.fire({
-                            title: 'Error',
-                            text: `El producto "${producto.CVE_ART}" no tiene existencias disponibles.`,
-                            icon: 'warning',
-                            confirmButtonText: 'Entendido'
-                        });
-                        
-                    }
-                }
-                // Cerrar el modal
-                cerrarModal();
-                await completarPrecioProducto(producto.CVE_ART, filaTabla);
-            };
-            tablaProductos.appendChild(fila);
-        });
-    }
-    // Evento para actualizar la tabla al escribir en el campo de búsqueda
-    campoBusqueda.addEventListener("input", () => {
-        renderProductos(campoBusqueda.value);
+      // const celdaClaveAlterna = document.createElement("td");
+      // celdaClaveAlterna.textContent = producto.CVE_ALT;
+      fila.appendChild(celdaClave);
+      fila.appendChild(celdaDescripcion);
+      fila.appendChild(celdaExist);
+      // fila.appendChild(celdaLinea);
+      // fila.appendChild(celdaDisponible);
+      // fila.appendChild(celdaClaveAlterna);
+      fila.onclick = async function () {
+        input.value = producto.CVE_ART;
+        $("#CVE_ESQIMPU").val(producto.CVE_ESQIMPU);
+        const filaTabla = input.closest("tr");
+        const campoUnidad = filaTabla.querySelector(".unidad");
+        if (campoUnidad) {
+          campoUnidad.value = producto.UNI_MED;
+        }
+        // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
+        const campoCantidad = filaTabla.querySelector("input.cantidad");
+        if (campoCantidad) {
+          if (producto.EXIST > 0) {
+            campoCantidad.readOnly = false;
+            campoCantidad.value = 0; // Valor inicial opcional
+          } else {
+            campoCantidad.readOnly = true;
+            campoCantidad.value = "Sin existencias"; // Mensaje opcional
+            Swal.fire({
+              title: "Error",
+              text: `El producto "${producto.CVE_ART}" no tiene existencias disponibles.`,
+              icon: "warning",
+              confirmButtonText: "Entendido",
+            });
+          }
+        }
+        // Cerrar el modal
+        cerrarModal();
+        await completarPrecioProducto(producto.CVE_ART, filaTabla);
+      };
+      tablaProductos.appendChild(fila);
     });
-    // Renderizar productos inicialmente
-    renderProductos();
+  }
+  // Evento para actualizar la tabla al escribir en el campo de búsqueda
+  campoBusqueda.addEventListener("input", () => {
+    renderProductos(campoBusqueda.value);
+  });
+  // Renderizar productos inicialmente
+  renderProductos();
 }
 
 function calcularSubtotal(fila) {
@@ -316,25 +324,27 @@ function cerrarModal() {
     modal.hide();
   }
 }
-function guardarPerdido() {
-  // Primero, validar el formulario
-  /*const formularioValido = validarFormulario();
-    if (!formularioValido) {
-        alert("Por favor, completa el formulario correctamente.");
-        return;
-    }
-    alert("S");
-    // Luego, validar las partidas
-    const partidasValidas = validarPartidas();
-    if (!partidasValidas) {
-        alert("Por favor, completa las partidas correctamente.");
-        return;
-    }*/
-  // Obtener la información del formulario y las partidas
-  const formularioData = obtenerDatosFormulario();
-  const partidasData = obtenerDatosPartidas();
-  // Hacer algo con los datos (enviar al backend, por ejemplo)
-  enviarDatosBackend(formularioData, partidasData);
+function guardarPedido(id) {
+  try {
+    // Obtener la información del formulario y las partidas
+    const formularioData = obtenerDatosFormulario();
+    console.log("Datos del formulario obtenidos:", formularioData);
+
+    const partidasData = obtenerDatosPartidas();
+    console.log("Datos de partidas obtenidos:", partidasData);
+
+    // Determinar si es alta o edición
+    formularioData.tipoOperacion = id === 0 ? "alta" : "editar";
+    //formularioData.numero = id;
+    console.log("Datos preparados para enviar:", formularioData, partidasData);
+
+    alert("casi");
+
+    // Enviar los datos al backend
+    enviarDatosBackend(formularioData, partidasData);
+  } catch (error) {
+    console.error("Error en guardarPedido:", error);
+  }
 }
 function validarFormulario() {
   // Validar los campos obligatorios
@@ -421,6 +431,7 @@ function obtenerDatosPartidas() {
   return partidasData;
 }
 function enviarDatosBackend(formularioData, partidasData) {
+  alert("Back");
   // Aquí se prepara un objeto FormData para enviar los datos como si fueran un formulario
   const formData = new FormData();
   // Agregamos los datos necesarios al FormData
@@ -455,23 +466,36 @@ function enviarDatosBackend(formularioData, partidasData) {
       } else if (data.exist) {
         console.error("Error en la respuesta:", data);
         Swal.fire({
-            title: 'Error al guardar el pedido',
-            html: `
-                <p>${data.message || 'No hay suficientes existencias para algunos productos.'}</p>
+          title: "Error al guardar el pedido",
+          html: `
+                <p>${
+                  data.message ||
+                  "No hay suficientes existencias para algunos productos."
+                }</p>
                 <p><strong>Productos sin existencias:</strong></p>
                 <ul>
-                    ${data.productosSinExistencia.map(producto => `
+                    ${data.productosSinExistencia
+                      .map(
+                        (producto) => `
                         <li>
                             <strong>Producto:</strong> ${producto.producto}, 
-                            <strong>Existencias Totales:</strong> ${producto.existencias || 0}, 
-                            <strong>Apartados:</strong> ${producto.apartados || 0}, 
-                            <strong>Disponibles:</strong> ${producto.disponible || 0}
+                            <strong>Existencias Totales:</strong> ${
+                              producto.existencias || 0
+                            }, 
+                            <strong>Apartados:</strong> ${
+                              producto.apartados || 0
+                            }, 
+                            <strong>Disponibles:</strong> ${
+                              producto.disponible || 0
+                            }
                         </li>
-                    `).join('')}
+                    `
+                      )
+                      .join("")}
                 </ul>
             `,
-            icon: 'error',
-            confirmButtonText: 'Aceptar'
+          icon: "error",
+          confirmButtonText: "Aceptar",
         });
       }
       if (data.credit) {
@@ -497,7 +521,42 @@ function enviarDatosBackend(formularioData, partidasData) {
       alert("Ocurrió un error al enviar los datos." + error);
     });
 }
+function editarPedido(pedidoID) {
+  // Datos necesarios para la edición
+  const datos = {
+    numFuncion: "11", // Ejemplo: Caso 4 para editar pedido
+    pedidoID: pedidoID,
+    cliente: $("#cliente").val(),
+    // Otros datos del formulario
+  };
 
+  $.post("../Servidor/PHP/ventas.php", datos, function (response) {
+    try {
+      const data = JSON.parse(response);
+      if (data.success) {
+        Swal.fire({
+          title: "Editado",
+          text: "El pedido ha sido actualizado correctamente",
+          icon: "success",
+          confirmButtonText: "Entendido",
+        }).then(() => {
+          window.location.reload(); // Recargar la página para ver los cambios
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: data.message || "No se pudo actualizar el pedido",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+      }
+    } catch (error) {
+      console.error("Error al procesar la respuesta:", error);
+    }
+  }).fail(function (xhr, status, error) {
+    console.error("Error de AJAX:", error);
+  });
+}
 function filtrarClientes() {
   const criterio = document.getElementById("filtroCriterioClientes").value;
   const busqueda = document
@@ -527,7 +586,7 @@ function abrirModalClientes() {
   // Solicitar datos al servidor
   $.post(
     "../Servidor/PHP/clientes.php",
-    { numFuncion: "1"},
+    { numFuncion: "1" },
     function (response) {
       try {
         if (response.success && response.data) {
@@ -576,7 +635,7 @@ function seleccionarClienteDesdeModal(cliente) {
   clienteId = cliente.CLAVE; // Guardar el ID del cliente
 
   // Actualizar estado de cliente seleccionado
-  sessionStorage.setItem('clienteSeleccionado', true);
+  sessionStorage.setItem("clienteSeleccionado", true);
   llenarDatosCliente(cliente);
   cerrarModalClientes(); // Cerrar el modal
 }
@@ -659,7 +718,7 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   clienteId = cliente.CLAVE; // Guardar el ID del cliente
 
   // Actualizar estado de cliente seleccionado
-  sessionStorage.setItem('clienteSeleccionado', true);
+  sessionStorage.setItem("clienteSeleccionado", true);
 
   // Limpiar y ocultar sugerencias
   const sugerencias = document.getElementById("clientesSugeridos");
@@ -668,18 +727,18 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   llenarDatosCliente(cliente);
 }
 function llenarDatosCliente(cliente) {
-  $('#rfc').val(cliente.RFC || '');
-  $('#nombre').val(cliente.NOMBRE || '');
-  $('#calle').val(cliente.CALLE || '');
-  $('#numE').val(cliente.NUMEXT || '');
-  $('#numI').val(cliente.NUMINT || '');
-  $('#colonia').val(cliente.COLONIA || '');
-  $('#codigoPostal').val(cliente.CODIGO || '');
-  $('#poblacion').val(cliente.LOCALIDAD || '');
-  $('#pais').val(cliente.PAIS || '');
-  $('#regimenFiscal').val(cliente.REGIMEN_FISCAL || '');
-  $('#cliente').val(cliente.CLAVE || '');
-  $('#listaPrecios').val(cliente.LISTA_PREC || '');
+  $("#rfc").val(cliente.RFC || "");
+  $("#nombre").val(cliente.NOMBRE || "");
+  $("#calle").val(cliente.CALLE || "");
+  $("#numE").val(cliente.NUMEXT || "");
+  $("#numI").val(cliente.NUMINT || "");
+  $("#colonia").val(cliente.COLONIA || "");
+  $("#codigoPostal").val(cliente.CODIGO || "");
+  $("#poblacion").val(cliente.LOCALIDAD || "");
+  $("#pais").val(cliente.PAIS || "");
+  $("#regimenFiscal").val(cliente.REGIMEN_FISCAL || "");
+  $("#cliente").val(cliente.CLAVE || "");
+  $("#listaPrecios").val(cliente.LISTA_PREC || "");
 
   // Validar el crédito del cliente
   validarCreditoCliente(cliente.CLAVE);
@@ -777,16 +836,42 @@ function cerrarModalClientes() {
 document.getElementById("añadirPartida").addEventListener("click", function () {
   agregarFilaPartidas();
 });
-document.getElementById("tablaProductos").addEventListener("keydown", function (event) {
-    if (event.key === "Tab") {  // Verifica si la tecla presionada es el tabulador
-        agregarFilaPartidas();
+document
+  .getElementById("tablaProductos")
+  .addEventListener("keydown", function (event) {
+    if (event.key === "Tab") {
+      // Verifica si la tecla presionada es el tabulador
+      agregarFilaPartidas();
     }
   });
 
 $(document).ready(function () {
-  $("#guardarPedido").click(function (event) {
-    event.preventDefault(); // Previene el envío del formulario por defecto
-    guardarPerdido(); // Llama a la función personalizada
+  $("#guardarPedido").click(async function (event) {
+    event.preventDefault();
+
+    // Obtener el ID actual del pedido desde el formulario
+    let id = document.getElementById("numero").value;
+    console.log("ID actual del pedido:", id);
+
+    try {
+      // Obtener el siguiente folio del backend
+      const folio = await obtenerFolioSiguiente();
+      console.log("Folio obtenido:", folio);
+
+      if (folio == id) {
+        // Es un nuevo pedido
+        console.log("Guardando nuevo pedido...");
+        id = 0; // Se establece 0 para identificar que es una alta
+      } else {
+        console.log("Editando pedido existente...");
+        document.getElementById("numero").value = id
+      }
+      //document.getElementById("numero").value = id;
+      console.log(document.getElementById("numero").value);
+      guardarPedido(id); // Llamar a guardarPedido con el id
+    } catch (error) {
+      console.error("Error al obtener el folio:", error);
+    }
   });
 });
 

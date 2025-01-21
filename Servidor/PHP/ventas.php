@@ -287,12 +287,335 @@ function mostrarPedidoEspecifico($clave, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+function actualizarPedido($conexionData, $formularioData, $partidasData)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Extraer los datos del formulario
+    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
+    $FECHA_DOC = $formularioData['diaAlta'];
+    $FECHA_ENT = $formularioData['entrega'];
+    $CAN_TOT = 0;
+    $IMPORTE = 0;
+
+    foreach ($partidasData as $partida) {
+        $CAN_TOT += $partida['cantidad'];
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario'];
+    }
+
+    $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
+    $IMP_TOT4 = $CAN_TOT * 0.16;
+    $DES_TOT = $formularioData['descuento'];
+    $CONDICION = $formularioData['condicion'];
+
+    // Crear la consulta SQL para actualizar el pedido
+    $sql = "UPDATE $nombreTabla SET 
+        FECHA_DOC = ?, 
+        FECHA_ENT = ?, 
+        CAN_TOT = ?, 
+        IMPORTE = ?, 
+        IMP_TOT4 = ?, 
+        DES_TOT = ?, 
+        CONDICION = ?, 
+        CVE_VEND = ? 
+        WHERE CVE_DOC = ?";
+    
+    $params = [
+        $FECHA_DOC,
+        $FECHA_ENT,
+        $CAN_TOT,
+        $IMPORTE,
+        $IMP_TOT4,
+        $DES_TOT,
+        $CONDICION,
+        $CVE_VEND,
+        $CVE_DOC
+    ];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al actualizar el pedido', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Actualizar las partidas asociadas al pedido
+    actualizarPartidas($conexionData, $formularioData, $partidasData);
+
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    return ['success' => true, 'message' => 'Pedido actualizado correctamente'];
+}
+function actualizarPartidas($conexionData, $formularioData, $partidasData)
+{
+    // Establecer conexión con SQL Server
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
+
+    // Iniciar transacción
+    sqlsrv_begin_transaction($conn);
+
+    // **1. Ajustar el inventario antes de modificar las partidas**
+    $resultadoInventario = actualizarNuevoInventario($conexionData, $formularioData, $partidasData);
+    if (!$resultadoInventario['success']) {
+        sqlsrv_rollback($conn);
+        die(json_encode($resultadoInventario));
+    }
+
+    // **2. Obtener partidas existentes para comparar con las nuevas**
+    $query = "SELECT CVE_ART, NUM_PAR FROM $nombreTabla WHERE CVE_DOC = ?";
+    $stmt = sqlsrv_query($conn, $query, [$CVE_DOC]);
+    if ($stmt === false) {
+        sqlsrv_rollback($conn);
+        die(json_encode(['success' => false, 'message' => 'Error al obtener partidas existentes', 'errors' => sqlsrv_errors()]));
+    }
+
+    $partidasExistentes = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $partidasExistentes[$row['CVE_ART']] = $row['NUM_PAR'];
+    }
+    sqlsrv_free_stmt($stmt);
+
+    // **3. Actualizar o insertar las partidas**
+    foreach ($partidasData as $partida) {
+        // Extraer los datos de la partida
+        $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+        $CVE_DOC = str_pad($CVE_DOC, 10, ' ', STR_PAD_LEFT);
+        $CVE_ART = $partida['producto']; // Clave del producto
+        $CANT = $partida['cantidad']; // Cantidad
+        $PREC = $partida['precioUnitario']; // Precio
+        $NUM_PAR = $formularioData['numero'];
+        // Calcular los impuestos y totales
+        $IMPU1 = $partida['ieps']; // Impuesto 1
+        $IMPU3 = $partida['isr'];
+        //$IMPU1 = 0;
+        //$IMPU2 = $partida['impuesto2']; // Impuesto 2
+        $IMPU2 = 0;
+        $IMPU4 = $partida['iva']; // Impuesto 2
+        // Agregar los cálculos para los demás impuestos...
+        $PXS = 0;
+        $DESC1 = $partida['descuento1'];
+        $DESC2 = $partida['descuento2'];
+        $COMI = $partida['comision'];
+        $NUM_ALMA = $formularioData['almacen'];
+        $UNI_VENTA = $partida['unidad'];
+        if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
+            $TIPO_PORD = 'S';
+        } else {
+            $TIPO_PORD = 'P';
+        }
+        $TOTIMP1 = $IMPU1 * $CANT * $PREC; // Total impuesto 1
+        $TOTIMP2 = $IMPU2 * $CANT * $PREC; // Total impuesto 2
+        $TOTIMP4 = $IMPU4 * $CANT * $PREC; // Total impuesto 4
+        // Agregar los cálculos para los demás TOTIMP...
+
+        // Calcular el total de la partida (precio * cantidad)
+        $TOT_PARTIDA = $PREC * $CANT;
+
+        // Consultar la descripción del producto (si es necesario)
+        $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa);
+        if (isset($partidasExistentes[$CVE_ART])) {
+            // Si la partida ya existe, realizar un UPDATE
+            $sql = "UPDATE $nombreTabla SET 
+                CANT = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
+                TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ? 
+                WHERE CVE_DOC = ? AND CVE_ART = ?";
+            $params = [
+                $CANT, $PREC, $IMPU1, $IMPU4, $DESC1, $DESC2,
+                $TOTIMP1, $TOTIMP4, $TOT_PARTIDA,
+                $CVE_DOC, $CVE_ART
+            ];
+        } else {
+            // Si la partida no existe, realizar un INSERT
+            $sql = "INSERT INTO $nombreTabla
+                (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA,
+                TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4,
+                DESC1, DESC2, DESC3, COMI, APAR,
+                ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, TIPO_PROD, CVE_OBS, REG_SERIE, E_LTPD, TIPO_ELEM, 
+                NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, UUID,
+                VERSION_SINC, DESCR_ART, ID_RELACION, PREC_NETO,
+                CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
+                IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 4, 4, 4, 4,
+                ?, ?, 0, ?,
+                ?, ?, 0, 0, ?,
+                'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
+                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, 0,
+                0, ?, '', '',
+                0, '', '', 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0)";
+            $params = [
+                $CVE_DOC,
+                $NUM_PAR,
+                $CVE_ART,
+                $CANT,
+                $PXS,
+                $PREC,
+                $IMPU1,
+                $IMPU2,
+                $IMPU3,
+                $IMPU4,
+                $TOTIMP1,
+                $TOTIMP2,
+                $TOTIMP4,
+                $DESC1,
+                $DESC2,
+                $COMI,
+                $NUM_ALMA,
+                $UNI_VENTA,
+                $TIPO_PORD,
+                $TOT_PARTIDA,
+                $DESCR_ART
+            ];
+        }
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            sqlsrv_rollback($conn);
+            die(json_encode(['success' => false, 'message' => 'Error al actualizar o insertar una partida', 'errors' => sqlsrv_errors()]));
+        }
+    }
+    // **4. Eliminar partidas que ya no están en la nueva lista**
+    $productosNuevos = array_column($partidasData, 'producto');
+    $productosAEliminar = array_diff(array_keys($partidasExistentes), $productosNuevos);
+    foreach ($productosAEliminar as $productoEliminar) {
+        $sql = "DELETE FROM $nombreTabla WHERE CVE_DOC = ? AND CVE_ART = ?";
+        $params = [$CVE_DOC, $productoEliminar];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            sqlsrv_rollback($conn);
+            die(json_encode(['success' => false, 'message' => 'Error al eliminar una partida', 'errors' => sqlsrv_errors()]));
+        }
+    }
+    // Confirmar transacción
+    sqlsrv_commit($conn);
+    sqlsrv_close($conn);
+
+    return ['success' => true, 'message' => 'Partidas actualizadas correctamente'];
+}
+function actualizarNuevoInventario($conexionData, $formularioData, $partidasData)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
+
+    // Obtener las partidas anteriores del pedido
+    $query = "SELECT CVE_ART, CANT FROM $nombreTablaPartidas WHERE CVE_DOC = ?";
+    $stmt = sqlsrv_query($conn, $query, [$CVE_DOC]);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al obtener partidas anteriores', 'errors' => sqlsrv_errors()]));
+    }
+
+    $partidasAnteriores = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $partidasAnteriores[$row['CVE_ART']] = $row['CANT'];
+    }
+    sqlsrv_free_stmt($stmt);
+
+    // Crear un array para facilitar la comparación con las nuevas partidas
+    $partidasActuales = [];
+    foreach ($partidasData as $partida) {
+        $partidasActuales[$partida['producto']] = $partida['cantidad'];
+    }
+
+    // Ajustar el inventario
+    foreach ($partidasAnteriores as $producto => $cantidadAnterior) {
+        if (!isset($partidasActuales[$producto])) {
+            // Si el producto fue eliminado, agregar la cantidad anterior al inventario
+            $sql = "UPDATE $nombreTablaInventario SET EXIST = EXIST + ? WHERE CVE_ART = ?";
+            $params = [$cantidadAnterior, $producto];
+        } elseif ($partidasActuales[$producto] < $cantidadAnterior) {
+            // Si la cantidad fue reducida, agregar la diferencia al inventario
+            $diferencia = $cantidadAnterior - $partidasActuales[$producto];
+            $sql = "UPDATE $nombreTablaInventario SET EXIST = EXIST + ? WHERE CVE_ART = ?";
+            $params = [$diferencia, $producto];
+        } elseif ($partidasActuales[$producto] > $cantidadAnterior) {
+            // Si la cantidad fue aumentada, restar la diferencia del inventario
+            $diferencia = $partidasActuales[$producto] - $cantidadAnterior;
+            $sql = "UPDATE $nombreTablaInventario SET EXIST = EXIST - ? WHERE CVE_ART = ?";
+            $params = [$diferencia, $producto];
+        } else {
+            // Si las cantidades son iguales, no se realiza ninguna acción
+            continue;
+        }
+
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            sqlsrv_rollback($conn);
+            die(json_encode(['success' => false, 'message' => 'Error al actualizar inventario', 'errors' => sqlsrv_errors()]));
+        }
+    }
+
+    // Verificar si hay productos nuevos en las partidas actuales
+    foreach ($partidasActuales as $producto => $cantidadActual) {
+        if (!isset($partidasAnteriores[$producto])) {
+            // Si el producto es nuevo, restar la cantidad del inventario
+            $sql = "UPDATE $nombreTablaInventario SET EXIST = EXIST - ? WHERE CVE_ART = ?";
+            $params = [$cantidadActual, $producto];
+            $stmt = sqlsrv_query($conn, $sql, $params);
+            if ($stmt === false) {
+                sqlsrv_rollback($conn);
+                die(json_encode(['success' => false, 'message' => 'Error al agregar nuevo producto al inventario', 'errors' => sqlsrv_errors()]));
+            }
+        }
+    }
+
+    // Confirmar transacción
+    sqlsrv_commit($conn);
+    sqlsrv_close($conn);
+
+    return ['success' => true, 'message' => 'Inventario actualizado correctamente'];
+}
+
 function obtenerDatosCliente($conexionData, $claveCliente)
 {
     // Obtener solo la clave del cliente (primera parte antes del espacio)
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
     $clave = $claveArray[0]; // Tomar solo la primera parte
-
+    //    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -318,7 +641,6 @@ function obtenerDatosCliente($conexionData, $claveCliente)
         FROM $nombreTabla
         WHERE CLAVE = $clave
     ";
-
     $stmt = sqlsrv_query($conn, $sql, [$clave]);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al obtener datos del cliente', 'errors' => sqlsrv_errors()]));
@@ -357,6 +679,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     // Extraer los datos del formulario
     $FOLIO = $formularioData['numero'];
     $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 10, ' ', STR_PAD_LEFT);
     $FECHA_DOC = $formularioData['diaAlta']; // Fecha del documento
     $FECHA_ENT = $formularioData['entrega'];
     // Sumar los totales de las partidas
@@ -470,7 +793,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
             'data' => $claveCliente
         ]));
     } else {
-       // echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
+        // echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
     }
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
@@ -499,7 +822,8 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
     if (isset($partidasData) && is_array($partidasData)) {
         foreach ($partidasData as $partida) {
             // Extraer los datos de la partida
-            $CVE_DOC = str_pad($formularioData['numero'], 20, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+            $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+            $CVE_DOC = str_pad($CVE_DOC, 10, ' ', STR_PAD_LEFT);
             $CVE_ART = $partida['producto']; // Clave del producto
             $CANT = $partida['cantidad']; // Cantidad
             $PREC = $partida['precioUnitario']; // Precio
@@ -778,17 +1102,14 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         sqlsrv_close($conn);
         return;
     }
-
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData); // Enviar correo
         error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
         $resultadoWhatsApp = enviarWhatsApp($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
-        var_dump($resultadoWhatsApp);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
     }
@@ -855,43 +1176,47 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData)
     // Imprimir el resultado del envío del correo
     echo $resultado;
 }
-/*function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
+function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
 {
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
-$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
- 
-$nombre = "Sun Arrow";
-$data = array(
-    "messaging_product" => "whatsapp",
-    "recipient_type" => "individual",
-    //"to" => "+527773340218",
-    "to" => "+527773750925",
-    "type" => "template",
-    "template" => array(
-        "name" => "hello_world",
-        "language" => array(
-            "code" => "en_US"
+    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
+
+    $nombre = "Sun Arrow";
+    $data = array(
+        "messaging_product" => "whatsapp",
+        "recipient_type" => "individual",
+        //"to" => "+527773340218",
+        "to" => "+527773750925",
+        "type" => "template",
+        "template" => array(
+            "name" => "hello_world",
+            "language" => array(
+                "code" => "en_US"
+            )
         )
-    )
-);
- 
-$data_string = json_encode($data);
- 
-$curl = curl_init($url);
-curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-    'Authorization: Bearer ' . $token,
-    'Content-Type: application/json',
-    'Content-Length: ' . strlen($data_string))
-);
- 
-$result = curl_exec($curl);
-curl_close($curl);
-//echo $result;
-}*/
-function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
+    );
+
+    $data_string = json_encode($data);
+
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt(
+        $curl,
+        CURLOPT_HTTPHEADER,
+        array(
+            'Authorization: Bearer ' . $token,
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($data_string)
+        )
+    );
+
+    $result = curl_exec($curl);
+    curl_close($curl);
+    //echo $result;
+}
+/*function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
 {
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
     $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
@@ -956,8 +1281,7 @@ function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
         'message' => 'Mensaje enviado correctamente',
         'response' => json_decode($result, true)
     ];
-}
-
+}*/
 
 function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
 {
@@ -1348,13 +1672,13 @@ function obtenerPartidasPedido($conexionData, $clavePedido)
         sqlsrv_close($conn);
         exit;
     }
-
     // Procesar resultados
     $partidas = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $partidas[] = [
             'NUM_PAR' => $row['NUM_PAR'],
             'DESCR_ART' => $row['DESCR_ART'],
+            'CVE_ART' => $row['CVE_ART'],
             'CANT' => $row['CANT'],
             'PREC' => $row['PREC'],
             'IMPU1' => $row['IMPU1'],
@@ -1414,7 +1738,8 @@ function eliminarPartida($conexionData, $clavePedido, $numPar)
     }
 }
 
-function eliminarPedido($conexionData, $pedidoID) {
+function eliminarPedido($conexionData, $pedidoID)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1634,49 +1959,73 @@ switch ($funcion) {
         $partidasData = json_decode($_POST['partidas'], true); // Datos de las partidas desde JS
         $conexionData = $conexionResult['data'];
 
-        // Validar existencias antes de realizar cualquier otra operación
-        $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+        $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
+        if ($tipoOperacion === 'alta') {
+            // Lógica para alta de pedido
+            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
-        if ($resultadoValidacion['success']) {
-            // Calcular el total del pedido
-            $totalPedido = calcularTotalPedido($partidasData);
-            $clienteId = $formularioData['cliente'];
-            $claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
-            $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
+            if ($resultadoValidacion['success']) {
+                // Calcular el total del pedido
+                $totalPedido = calcularTotalPedido($partidasData);
+                $clienteId = $formularioData['cliente'];
+                $claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
+                $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
 
-            // Validar crédito del cliente
-            $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
+                // Validar crédito del cliente
+                $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
-            if ($validacionCredito['success']) {
-                // Si la validación de crédito es exitosa, proceder con las demás operaciones
-                //guardarPedido($conexionData, $formularioData, $partidasData);
-                //guardarPartidas($conexionData, $formularioData, $partidasData);
-                //actualizarFolio($conexionData);
-                //actualizarInventario($conexionData, $partidasData);
-                validarCorreoCliente($formularioData, $partidasData, $conexionData);
+                if ($validacionCredito['success']) {
+                    guardarPedido($conexionData, $formularioData, $partidasData);
+                    guardarPartidas($conexionData, $formularioData, $partidasData);
+                    actualizarFolio($conexionData);
+                    actualizarInventario($conexionData, $partidasData);
 
-                // Respuesta de éxito al frontend
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'El pedido se completó correctamente.'
-                ]);
+                    // Respuesta de éxito
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'El pedido se completó correctamente.',
+                    ]);
+                } else {
+                    // Error de crédito
+                    echo json_encode([
+                        'success' => false,
+                        'credit' => true,
+                        'message' => 'Límite de crédito excedido.',
+                        'saldoActual' => $validacionCredito['saldoActual'],
+                        'limiteCredito' => $validacionCredito['limiteCredito'],
+                    ]);
+                }
             } else {
-                // Si no pasa la validación de crédito, detener el proceso
+                // Error de existencias
                 echo json_encode([
                     'success' => false,
-                    'credit' => true,
-                    'message' => 'Limite de Credito.',
-                    'saldoActual' => $validacionCredito['saldoActual'],
-                    'limiteCredito' => $validacionCredito['limiteCredito']
+                    'exist' => true,
+                    'message' => $resultadoValidacion['message'],
+                    'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
+                ]);
+            }
+        } elseif ($tipoOperacion === 'editar') {
+            // Lógica para edición de pedido
+            $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);
+
+            if ($resultadoActualizacion['success']) {
+                actualizarInventario($conexionData, $partidasData);
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'El pedido fue actualizado correctamente.',
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'No se pudo actualizar el pedido.',
                 ]);
             }
         } else {
-            // Si no hay existencias, retornar detalles al frontend
+            // Operación desconocida
             echo json_encode([
                 'success' => false,
-                'exist' => true,
-                'message' => $resultadoValidacion['message'],
-                'productosSinExistencia' => $resultadoValidacion['productosSinExistencia']
+                'message' => 'Operación no reconocida.',
             ]);
         }
         break;
