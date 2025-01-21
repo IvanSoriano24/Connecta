@@ -454,7 +454,7 @@ if (isset($_SESSION['usuario'])) {
                                 <div style="display: flex; align-items: center;">
                                     <input type="text" name="enviar" style="width:410px;" id="enviar">
                                     <button type="button" class="btn ms-2" id="AyudaEnviarA">
-                                        <i class="bx bx-help-circle" style=""></i>
+                                        <i class="bx bx-help-circle"></i>
                                     </button>
                                 </div>
                             </div>
