@@ -2,13 +2,13 @@
 function agregarFilaPartidas() {
   const clienteSeleccionado = sessionStorage.getItem('clienteSeleccionado') === 'true';
   if (!clienteSeleccionado) {
-      Swal.fire({
-          title: 'Error',
-          text: `Debes seleccionar un Cliente primero`,
-          icon: 'warning',
-          confirmButtonText: 'Entendido'
-      });
-      return;
+    Swal.fire({
+      title: 'Error',
+      text: `Debes seleccionar un Cliente primero`,
+      icon: 'warning',
+      confirmButtonText: 'Entendido'
+    });
+    return;
   }
 
   const tablaProductos = document.querySelector("#tablaProductos tbody");
@@ -53,39 +53,39 @@ function agregarFilaPartidas() {
   // Añadir evento al botón de eliminar
   const botonEliminar = nuevaFila.querySelector(".eliminarPartida");
   botonEliminar.addEventListener("click", () => {
-      Swal.fire({
-          title: '¿Estás seguro?',
-          text: '¿Deseas eliminar esta partida?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
-      }).then((result) => {
-          if (result.isConfirmed) {
-              nuevaFila.remove(); // Eliminar la fila
-              Swal.fire({
-                  title: 'Eliminada',
-                  text: 'La partida ha sido eliminada.',
-                  icon: 'success',
-                  confirmButtonText: 'Entendido'
-              });
-          }
-      });
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Deseas eliminar esta partida?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        nuevaFila.remove(); // Eliminar la fila
+        Swal.fire({
+          title: 'Eliminada',
+          text: 'La partida ha sido eliminada.',
+          icon: 'success',
+          confirmButtonText: 'Entendido'
+        });
+      }
+    });
   });
   // Validar que la cantidad no sea negativa
   const cantidadInput = nuevaFila.querySelector(".cantidad");
   cantidadInput.addEventListener("input", () => {
-      if (parseFloat(cantidadInput.value) < 0) {
-          Swal.fire({
-              title: 'Error',
-              text: 'La cantidad no puede ser negativa.',
-              icon: 'error',
-              confirmButtonText: 'Entendido'
-          });
-          cantidadInput.value = 0; // Restablecer el valor a 0
-      } else {
-          calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
-      }
+    if (parseFloat(cantidadInput.value) < 0) {
+      Swal.fire({
+        title: 'Error',
+        text: 'La cantidad no puede ser negativa.',
+        icon: 'error',
+        confirmButtonText: 'Entendido'
+      });
+      cantidadInput.value = 0; // Restablecer el valor a 0
+    } else {
+      calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
+    }
   });
 
   tablaProductos.appendChild(nuevaFila);
@@ -273,53 +273,58 @@ function mostrarListaProductos(productos, input) {
       // const celdaDisponible = document.createElement("td");
       // celdaDisponible.textContent = producto.DISPONIBLE;
 
-            // const celdaClaveAlterna = document.createElement("td");
-            // celdaClaveAlterna.textContent = producto.CVE_ALT;
-            fila.appendChild(celdaClave);
-            fila.appendChild(celdaDescripcion);
-            fila.appendChild(celdaExist);
-            // fila.appendChild(celdaLinea);
-            // fila.appendChild(celdaDisponible);
-            // fila.appendChild(celdaClaveAlterna);
-            fila.onclick = async function () {
-                input.value = producto.CVE_ART;
-                $('#CVE_ESQIMPU').val(producto.CVE_ESQIMPU);
-                const filaTabla = input.closest("tr");
-                const campoUnidad = filaTabla.querySelector(".unidad");
-                if (campoUnidad) {
-                    campoUnidad.value = producto.UNI_MED;
-                }
-                // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
-                const campoCantidad = filaTabla.querySelector("input.cantidad");
-                if (campoCantidad) {
-                    if (producto.EXIST > 0) {
-                        campoCantidad.readOnly = false;
-                        campoCantidad.value = 0; // Valor inicial opcional
-                    } else {
-                        campoCantidad.readOnly = true;
-                        campoCantidad.value = "Sin existencias"; // Mensaje opcional
-                        Swal.fire({
-                            title: 'Error',
-                            text: `El producto "${producto.CVE_ART}" no tiene existencias disponibles.`,
-                            icon: 'warning',
-                            confirmButtonText: 'Entendido'
-                        });
-                        
-                    }
-                }
-                // Cerrar el modal
-                cerrarModal();
-                await completarPrecioProducto(producto.CVE_ART, filaTabla);
-            };
-            tablaProductos.appendChild(fila);
-        });
-    }
-    // Evento para actualizar la tabla al escribir en el campo de búsqueda
-    campoBusqueda.addEventListener("input", () => {
-        renderProductos(campoBusqueda.value);
-    });
-    // Renderizar productos inicialmente
-    renderProductos();
+      // const celdaClaveAlterna = document.createElement("td");
+      // celdaClaveAlterna.textContent = producto.CVE_ALT;
+      fila.appendChild(celdaClave);
+      fila.appendChild(celdaDescripcion);
+      fila.appendChild(celdaExist);
+      // fila.appendChild(celdaLinea);
+      // fila.appendChild(celdaDisponible);
+      // fila.appendChild(celdaClaveAlterna);
+      fila.onclick = async function () {
+        if (producto.EXIST > 0) {
+          input.value = producto.CVE_ART;
+          $('#CVE_ESQIMPU').val(producto.CVE_ESQIMPU);
+
+
+          const filaTabla = input.closest("tr");
+          const campoUnidad = filaTabla.querySelector(".unidad");
+          if (campoUnidad) {
+            campoUnidad.value = producto.UNI_MED;
+          }
+          // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
+          const campoCantidad = filaTabla.querySelector("input.cantidad");
+          if (campoCantidad) {
+            // if (producto.EXIST > 0) {
+            campoCantidad.readOnly = false;
+            campoCantidad.value = 0; // Valor inicial opcional
+          }
+          // Cerrar el modal
+          cerrarModal();
+          await completarPrecioProducto(producto.CVE_ART, filaTabla);
+        } else {
+          // campoCantidad.readOnly = true;
+          // campoCantidad.value = "Sin existencias"; // Mensaje opcional
+          Swal.fire({
+            title: 'Error',
+            text: `El producto "${producto.CVE_ART}" no tiene existencias disponibles.`,
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+          });
+
+        }
+      
+
+    };
+    tablaProductos.appendChild(fila);
+  });
+}
+// Evento para actualizar la tabla al escribir en el campo de búsqueda
+campoBusqueda.addEventListener("input", () => {
+  renderProductos(campoBusqueda.value);
+});
+// Renderizar productos inicialmente
+renderProductos();
 }
 
 function calcularSubtotal(fila) {
@@ -482,8 +487,8 @@ function enviarDatosBackend(formularioData, partidasData) {
       } else if (data.exist) {
         console.error("Error en la respuesta:", data);
         Swal.fire({
-            title: 'Error al guardar el pedido',
-            html: `
+          title: 'Error al guardar el pedido',
+          html: `
                 <p>${data.message || 'No hay suficientes existencias para algunos productos.'}</p>
                 <p><strong>Productos sin existencias:</strong></p>
                 <ul>
@@ -497,8 +502,8 @@ function enviarDatosBackend(formularioData, partidasData) {
                     `).join('')}
                 </ul>
             `,
-            icon: 'error',
-            confirmButtonText: 'Aceptar'
+          icon: 'error',
+          confirmButtonText: 'Aceptar'
         });
       }
       if (data.credit) {
@@ -507,12 +512,10 @@ function enviarDatosBackend(formularioData, partidasData) {
           title: "Error al guardar el pedido",
           html: `
                         <p>${data.message || "Ocurrió un error inesperado."}</p>
-                        <p><strong>Saldo actual:</strong> ${
-                          data.saldoActual?.toFixed(2) || "N/A"
-                        }</p>
-                        <p><strong>Límite de crédito:</strong> ${
-                          data.limiteCredito?.toFixed(2) || "N/A"
-                        }</p>
+                        <p><strong>Saldo actual:</strong> ${data.saldoActual?.toFixed(2) || "N/A"
+            }</p>
+                        <p><strong>Límite de crédito:</strong> ${data.limiteCredito?.toFixed(2) || "N/A"
+            }</p>
                     `,
           icon: "error",
           confirmButtonText: "Aceptar",
@@ -554,7 +557,7 @@ function abrirModalClientes() {
   // Solicitar datos al servidor
   $.post(
     "../Servidor/PHP/clientes.php",
-    { numFuncion: "1"},
+    { numFuncion: "1" },
     function (response) {
       try {
         if (response.success && response.data) {
@@ -805,10 +808,10 @@ document.getElementById("añadirPartida").addEventListener("click", function () 
   agregarFilaPartidas();
 });
 document.getElementById("tablaProductos").addEventListener("keydown", function (event) {
-    if (event.key === "Tab") {  // Verifica si la tecla presionada es el tabulador
-        agregarFilaPartidas();
-    }
-  });
+  if (event.key === "Tab") {  // Verifica si la tecla presionada es el tabulador
+    agregarFilaPartidas();
+  }
+});
 
 $(document).ready(function () {
   $("#guardarPedido").click(function (event) {
