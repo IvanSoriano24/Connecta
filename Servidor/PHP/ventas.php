@@ -1338,7 +1338,7 @@ function obtenerPartidasPedido($conexionData, $clavePedido)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consultar partidas del pedido
-    $sql = "SELECT CVE_DOC, NUM_PAR, CVE_ART, CANT, PREC, IMPU1, IMPU4, DESC1, DESC2, TOT_PARTIDA, DESCR_ART, COMI 
+    $sql = "SELECT CVE_DOC, NUM_PAR, CVE_ART, CANT, UNI_VENTA, PREC, IMPU1, IMPU4, DESC1, DESC2, TOT_PARTIDA, DESCR_ART, COMI 
             FROM $nombreTabla 
             WHERE CVE_DOC = ?";
     $stmt = sqlsrv_query($conn, $sql, [$clavePedido]);
@@ -1356,6 +1356,7 @@ function obtenerPartidasPedido($conexionData, $clavePedido)
             'NUM_PAR' => $row['NUM_PAR'],
             'CVE_ART' => $row['CVE_ART'],
             'CANT' => $row['CANT'],
+            'UNI_VENTA' => $row['UNI_VENTA'],
             'PREC' => $row['PREC'],
             'IMPU1' => $row['IMPU1'],
             'IMPU4' => $row['IMPU4'],
