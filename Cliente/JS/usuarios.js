@@ -151,7 +151,7 @@ document.getElementById('agregarEmpresaBtn').addEventListener('click', () => {
 });
 
 $(document).ready(function () {
-    $('#agregarEmpresaBtn').on('click', function () {
+    /*$('#agregarEmpresaBtn').on('click', function () {
         const selectedOption = $('#selectEmpresa').find('option:selected'); // Obtener la opción seleccionada
         // Verificar que se haya seleccionado una empresa válida
         if (selectedOption.val() === null || selectedOption.val() === "Selecciona una empresa") {
@@ -184,7 +184,7 @@ $(document).ready(function () {
         `;
         // Agregar la fila a la tabla
         $('#tablaEmpresas tbody').append(nuevaFila);
-    });
+    });*/
 
     // Detectar clic en los botones "Eliminar" dentro de la tabla
     $('#tablaEmpresas').on('click', '.eliminarEmpresaBtn', function () {
@@ -192,7 +192,7 @@ $(document).ready(function () {
         $(this).closest('tr').remove();
     });
 
-    $('#guardarDatosBtn').on('click', function () {
+    /*$('#guardarDatosBtn').on('click', function () {
         const empresasSeleccionadas = [];
         // Obtener todas las empresas seleccionadas de la tabla
         $('#tablaEmpresas tbody tr').each(function () {
@@ -234,5 +234,5 @@ $(document).ready(function () {
                 alert('Error al realizar la solicitud.');
             },
         });
-    });
+    });*/
 });

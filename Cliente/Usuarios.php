@@ -26,7 +26,6 @@ if (isset($_SESSION['usuario'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -75,13 +74,13 @@ if (isset($_SESSION['usuario'])) {
                         <i class='bx bxs-user-plus'></i> Agregar
                     </button>
 
-                    <button class="btn btn-info" id="btnAsociarEmpresa" disabled>
+                    <!--<button class="btn btn-info" id="btnAsociarEmpresa" disabled>
                         <i class='bx bxs-building-house'></i> Asociar Empresa
                     </button>
 
                     <button class="btn btn-secondary" id="btnExportar" disabled>
                         <i class='bx bxs-export'></i> Exportar
-                    </button>
+                    </button>-->
 
                     <button class="btn btn-danger" id="btnSalir" onclick="window.location.href='Dashboard.php';">
                         <i class='bx bxs-exit'></i> Salir
@@ -103,6 +102,7 @@ if (isset($_SESSION['usuario'])) {
                                     <th>Correo</th>
                                     <th>Estatus</th>
                                     <th>Rol</th>
+                                    <th>Opciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaUsuarios">
@@ -138,10 +138,10 @@ if (isset($_SESSION['usuario'])) {
                 <form id="agregarUsuarioForm">
                     <div class="modal-body">
                         <!-- Formulario de usuario -->
-                        <div class="container mt-4">
+                        <div class="container mt-8">
                             <div class="row">
                                 <!-- Columna izquierda para datos del usuario -->
-                                <div class="col-md-5">
+                                <div class="col-md-8">
                                     <h5 class="mb-2">Datos del Usuario</h5>
                                     <div class="mb-2">
                                         <input type="text" id="idUsuario" hidden>
@@ -181,23 +181,23 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                 </div>
                                 <!-- Columna derecha para select y datos de empresas -->
-                                <div class="col-md-7">
+                                <!--<div class="col-md-7">
                                     <div class="mb-3">
                                         <label for="selectEmpresa" class="form-label">Seleccionar Empresa</label>
                                         <select id="selectEmpresa" class="form-select">
-                                            <option selected disabled>Selecciona una empresa</option>
+                                            <option selected disabled>Selecciona una empresa</option>-->
                                             <!-- Aquí se llenará dinámicamente con las empresas -->
-                                        </select>
+                                        <!--</select>
                                         <div class="mb-1">
                                             <button id="agregarEmpresaBtn" type="button"
                                                 class="btn btn-primary">Agregar</button>
                                         </div>
-                                    </div>
+                                    </div>-->
                                     <!-- Textarea para información adicional -->
-                                    <div class="mb-4">
+                                    <!--<div class="mb-4"> -->
                                         <!--<label for="detallesEmpresa" class="form-label">Detalles de Empresa</label>
                                         <textarea id="detallesEmpresa" class="form-control" rows="4" disabled></textarea>-->
-                                        <h6>Empresas Seleccionadas</h6>
+                                        <!--<h6>Empresas Seleccionadas</h6>
                                         <table class="table table-bordered" id="tablaEmpresas">
                                             <thead>
                                                 <tr>
@@ -207,12 +207,12 @@ if (isset($_SESSION['usuario'])) {
                                                     <th>Acciones</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            <tbody> -->
                                                 <!-- Las filas se llenarán dinámicamente -->
-                                            </tbody>
+                                            <!--</tbody>
                                         </table>
                                     </div>
-                                </div>
+                                </div>-->
                             </div>
                         </div>
                     </div>

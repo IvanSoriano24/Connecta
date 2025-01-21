@@ -7,6 +7,7 @@ require 'firebase.php';
 
 function agregarUsuario($data) {}
 function actualizarUsuario($idUsario, $data) {}
+
 function mostrarUsuarios($usuarioLogueado, $usuario){
     global $firebaseProjectId, $firebaseApiKey;
     // Validamos si el usuario logueado es administrador

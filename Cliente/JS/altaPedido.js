@@ -382,10 +382,7 @@ function guardarPedido(id) {
 
     // Determinar si es alta o edición
     formularioData.tipoOperacion = id === 0 ? "alta" : "editar";
-    //formularioData.numero = id;
     console.log("Datos preparados para enviar:", formularioData, partidasData);
-
-    alert("casi");
 
     // Enviar los datos al backend
     enviarDatosBackend(formularioData, partidasData);
@@ -478,7 +475,6 @@ function obtenerDatosPartidas() {
   return partidasData;
 }
 function enviarDatosBackend(formularioData, partidasData) {
-  alert("Back");
   // Aquí se prepara un objeto FormData para enviar los datos como si fueran un formulario
   const formData = new FormData();
   // Agregamos los datos necesarios al FormData
@@ -499,7 +495,6 @@ function enviarDatosBackend(formularioData, partidasData) {
           data.validacion.productos.forEach((producto) => {
             mensaje += `Producto: ${producto.codigo}, Existencias: ${producto.existencias}\n`;
           });
-          alert(mensaje);
         }
         Swal.fire({
           title: "¡Pedido guardado exitosamente!",

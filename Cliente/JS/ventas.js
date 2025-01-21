@@ -8,7 +8,6 @@ function agregarEventosBotones() {
         boton.addEventListener('click', function () {
             const pedidoID = this.dataset.id; // Obtener el ID del pedido
             console.log('Redirigiendo con pedidoID:', pedidoID); // Log en consola
-            alert('Redirigiendo con pedidoID: ' + pedidoID); // Alerta para verificar
             // Redirigir a altaPedido.php con el ID del pedido como parámetro
             window.location.href = 'altaPedido.php?pedidoID=' + pedidoID;
         });
