@@ -34,7 +34,7 @@ class clsMail {
         if (!$this->mail->send()) {
             return "Error al enviar el correo: " . $this->mail->ErrorInfo;
         }
-        return "Correo enviado exitosamente.";
+        //return "Correo enviado exitosamente.";
     }
 }
 

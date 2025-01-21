@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
+//require_once 'whatsapp.php';
 //require_once 'clientes.php';
 
 session_start();
@@ -737,7 +738,7 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $conexionData)
+function validarCorreoCliente($formularioData, $partidasData, $conexionData)
 {
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
@@ -783,7 +784,11 @@ function validarCorreoCliente($formularioData, $conexionData)
     $clienteNombre = trim($clienteData['NOMBRE']);
 
     if ($correo === 'S' && !empty($emailPred)) {
+        $numeroWhatsApp = '+527773750925';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData); // Enviar correo
+        error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
+        $resultadoWhatsApp = enviarWhatsApp($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
+        var_dump($resultadoWhatsApp);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
     }
@@ -792,7 +797,7 @@ function validarCorreoCliente($formularioData, $conexionData)
     sqlsrv_close($conn);
 }
 // Función para enviar el correo (en desarrollo)
-function enviarCorreo($correo)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -847,10 +852,112 @@ function enviarCorreo($correo)
 
     // Enviar correo
     $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML);
-
     // Imprimir el resultado del envío del correo
     echo $resultado;
 }
+/*function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
+{
+    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
+$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
+ 
+$nombre = "Sun Arrow";
+$data = array(
+    "messaging_product" => "whatsapp",
+    "recipient_type" => "individual",
+    //"to" => "+527773340218",
+    "to" => "+527773750925",
+    "type" => "template",
+    "template" => array(
+        "name" => "hello_world",
+        "language" => array(
+            "code" => "en_US"
+        )
+    )
+);
+ 
+$data_string = json_encode($data);
+ 
+$curl = curl_init($url);
+curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+    'Authorization: Bearer ' . $token,
+    'Content-Type: application/json',
+    'Content-Length: ' . strlen($data_string))
+);
+ 
+$result = curl_exec($curl);
+curl_close($curl);
+//echo $result;
+}*/
+function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
+{
+    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
+    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
+
+    // Construir el cuerpo del mensaje
+    $mensaje = "Estimado/a $nombreCliente,\n";
+    $mensaje .= "Detalles de su pedido #$noPedido:\n\n";
+
+    $total = 0;
+    foreach ($partidasData as $partida) {
+        $producto = $partida['producto'];
+        $cantidad = $partida['cantidad'];
+        $precioUnitario = number_format($partida['precioUnitario'], 2);
+        $totalPartida = $partida['cantidad'] * $partida['precioUnitario'];
+        $total += $totalPartida;
+
+        $mensaje .= "- $producto: $cantidad unidades (Precio Unitario: $$precioUnitario)\n";
+    }
+
+    $mensaje .= "\nTotal del Pedido: $" . number_format($total, 2) . "\n";
+    $mensaje .= "\nGracias por su compra. Por favor confirme su pedido.";
+
+    // Datos de la solicitud
+    $data = [
+        "messaging_product" => "whatsapp",
+        "recipient_type" => "individual",
+        "to" => $numero, // Número del cliente
+        "type" => "text",
+        "text" => [
+            "body" => $mensaje
+        ]
+    ];
+
+    $data_string = json_encode($data);
+
+    // Configurar y enviar la solicitud
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $token,
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data_string)
+    ]);
+
+    $result = curl_exec($curl);
+    $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    if ($http_status !== 200) {
+        return [
+            'success' => false,
+            'message' => 'Error al enviar el mensaje por WhatsApp',
+            'status' => $http_status,
+            'response' => $result
+        ];
+    }
+
+    return [
+        'success' => true,
+        'message' => 'Mensaje enviado correctamente',
+        'response' => json_decode($result, true)
+    ];
+}
+
 
 function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
 {
@@ -1542,11 +1649,11 @@ switch ($funcion) {
 
             if ($validacionCredito['success']) {
                 // Si la validación de crédito es exitosa, proceder con las demás operaciones
-                guardarPedido($conexionData, $formularioData, $partidasData);
-                guardarPartidas($conexionData, $formularioData, $partidasData);
-                actualizarFolio($conexionData);
-                actualizarInventario($conexionData, $partidasData);
-                //validarCorreoCliente($formularioData, $partidasData, $conexionData);
+                //guardarPedido($conexionData, $formularioData, $partidasData);
+                //guardarPartidas($conexionData, $formularioData, $partidasData);
+                //actualizarFolio($conexionData);
+                //actualizarInventario($conexionData, $partidasData);
+                validarCorreoCliente($formularioData, $partidasData, $conexionData);
 
                 // Respuesta de éxito al frontend
                 echo json_encode([

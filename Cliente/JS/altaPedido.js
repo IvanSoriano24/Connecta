@@ -316,9 +316,6 @@ function cerrarModal() {
     modal.hide();
   }
 }
-function tiempoEspera() {
-  alert("Esperando");
-}
 function guardarPerdido() {
   // Primero, validar el formulario
   /*const formularioValido = validarFormulario();
@@ -338,8 +335,6 @@ function guardarPerdido() {
   const partidasData = obtenerDatosPartidas();
   // Hacer algo con los datos (enviar al backend, por ejemplo)
   enviarDatosBackend(formularioData, partidasData);
-  alert("a");
-  tiempoEspera();
 }
 function validarFormulario() {
   // Validar los campos obligatorios
@@ -427,7 +422,6 @@ function obtenerDatosPartidas() {
 }
 function enviarDatosBackend(formularioData, partidasData) {
   // Aquí se prepara un objeto FormData para enviar los datos como si fueran un formulario
-  alert("Entra");
   const formData = new FormData();
   // Agregamos los datos necesarios al FormData
   formData.append("numFuncion", "8");
@@ -456,7 +450,7 @@ function enviarDatosBackend(formularioData, partidasData) {
           confirmButtonText: "Aceptar",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
-          window.location.href = "Ventas.php";
+          //window.location.href = "Ventas.php";
         });
       } else if (data.exist) {
         console.error("Error en la respuesta:", data);
@@ -502,7 +496,6 @@ function enviarDatosBackend(formularioData, partidasData) {
       console.error("Error al enviar los datos:", error);
       alert("Ocurrió un error al enviar los datos." + error);
     });
-  alert("a");
 }
 
 function filtrarClientes() {
@@ -675,7 +668,6 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   llenarDatosCliente(cliente);
 }
 function llenarDatosCliente(cliente) {
-  alert(cliente.CLAVE);
   $('#rfc').val(cliente.RFC || '');
   $('#nombre').val(cliente.NOMBRE || '');
   $('#calle').val(cliente.CALLE || '');
