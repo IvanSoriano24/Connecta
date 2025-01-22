@@ -1,28 +1,28 @@
 <?php
-session_start();
-if (isset($_SESSION['usuario'])) {
-    if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
-        header('Location:Menu.php');
-        exit();
-    }
-    $nombreUsuario = $_SESSION['usuario']["nombre"];
-    $usuario = $_SESSION['usuario']["usuario"];
-    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
-    if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
-        header('Location:Dashboard.php');
-        exit();
-    }
-    $mostrarModal = isset($_SESSION['empresa']) ? false : true;
+    session_start();
+    if (isset($_SESSION['usuario'])) {
+        if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
+            header('Location:Menu.php');
+            exit();
+        }
+        $nombreUsuario = $_SESSION['usuario']["nombre"];
+        $usuario       = $_SESSION['usuario']["usuario"];
+        $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
+        if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+            header('Location:Dashboard.php');
+            exit();
+        }
+        $mostrarModal = isset($_SESSION['empresa']) ? false : true;
 
-    //$empresa = $_SESSION['empresa']['razonSocial'];
-    if (isset($_SESSION['empresa'])) {
-        $empresa = $_SESSION['empresa']['razonSocial'];
-        $idEmpresa = $_SESSION['empresa']['id'];
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        //$empresa = $_SESSION['empresa']['razonSocial'];
+        if (isset($_SESSION['empresa'])) {
+            $empresa   = $_SESSION['empresa']['razonSocial'];
+            $idEmpresa = $_SESSION['empresa']['id'];
+            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        }
+    } else {
+        header('Location:../index.php');
     }
-} else {
-    header('Location:../index.php');
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -53,47 +53,76 @@ if (isset($_SESSION['usuario'])) {
         }
 
         /*********************/
-        table.table tbody td {
-            text-transform: uppercase;
-            padding: 12px;
-            /* Aumenta el espacio interno */
-            height: 50px;
-            /* Establece una altura mínima */
-            text-align: left;
-            /* Alineación horizontal */
-            vertical-align: middle;
-            /* Alineación vertical */
-            padding: 12px;
-            /* Aumenta el espacio interno */
-            font-family: Arial, sans-serif;
-            font-size: 16px;
-            /* Ajusta el tamaño del texto */
-            line-height: 1.5;
-            /* Asegura un espaciado vertical uniforme */
-            text-transform: none;
-            /* Evita modificaciones al texto */
-        }
+        #content main .table-data .user-table {
+    flex-grow: 1;
+    flex-basis: 500px;
+}
 
-        table.table tr {
-            height: 60px;
-            /* Altura fija para todas las filas */
-        }
+#content main .table-data .user-table table {
+    width: 100%;
+    border-collapse: collapse; /* Elimina espacios entre bordes */
+    table-layout: fixed; /* Asegura que las columnas se distribuyan uniformemente */
+    border-spacing: 0; /* Elimina cualquier espaciado entre las celdas */
+}
 
-        table.table thead th {
-            text-align: left;
-            /* Alineación de encabezados */
-            vertical-align: middle;
-            padding: 12px;
-            font-size: 16px;
-            line-height: 1.5;
-        }
+#content main .table-data .user-table table th {
+    padding: 12px; /* Padding uniforme */
+    font-size: 13px;
+    text-align: left;
+    border-bottom: 1px solid var(--grey); /* Línea inferior */
+    white-space: nowrap; /* Evita saltos de línea */
+    overflow: hidden; /* Oculta contenido excedente */
+    text-overflow: ellipsis; /* Agrega "..." si el contenido es demasiado largo */
+}
 
-        table.table {
-            border-collapse: separate;
-            /* Separa las celdas */
-            border-spacing: 0 8px;
-            /* Espaciado entre filas */
-        }
+#content main .table-data .user-table table td {
+    padding: 12px; /* Padding uniforme */
+    text-align: left; /* Alineación a la izquierda */
+    vertical-align: middle; /* Alineación vertical */
+    white-space: nowrap; /* Evita saltos de línea */
+    overflow: hidden; /* Oculta contenido excedente */
+    text-overflow: ellipsis; /* Agrega "..." si el contenido es demasiado largo */
+}
+
+#content main .table-data .user-table table tr td:first-child {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Ajusta el espacio entre elementos */
+    padding-left: 6px;
+}
+
+#content main .table-data .user-table table td img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%; /* Imágenes redondeadas */
+    object-fit: cover; /* Asegura que la imagen se recorte bien */
+}
+
+#content main .table-data .user-table table tbody tr:hover {
+    background: var(--grey); /* Fondo al pasar el cursor */
+}
+
+#content main .table-data .user-table table tr td .status {
+    font-size: 10px;
+    padding: 6px 16px;
+    color: var(--light);
+    border-radius: 20px; /* Bordes redondeados */
+    font-weight: 700;
+    white-space: nowrap; /* Evita saltos de línea */
+}
+
+#content main .table-data .user-table table tr td .status.completed {
+    background: var(--blue); /* Fondo azul para "completado" */
+}
+
+#content main .table-data .user-table table tr td .status.process {
+    background: var(--yellow); /* Fondo amarillo para "en proceso" */
+}
+
+#content main .table-data .user-table table tr td .status.pending {
+    background: var(--orange); /* Fondo naranja para "pendiente" */
+}
+
     </style>
 </head>
 
@@ -133,13 +162,13 @@ if (isset($_SESSION['usuario'])) {
                 </div>
                 <!-- Área para mostrar los datos de los clientes -->
                 <div class="table-data">
-                    <div class="order">
+                    <div class="user-table">
                         <div class="head">
                             <h3></h3>
                             <i class='bx bx-search'></i>
                             <!-- <i class='bx bx-filter'></i> -->
                         </div>
-                        <table class="table table-striped table-hover align-middle">
+                        <table class="">
                             <thead>
                                 <tr>
                                     <th>Nombre Completo</th>
@@ -158,7 +187,7 @@ if (isset($_SESSION['usuario'])) {
                     <!-- <div class="todo">
                         <div class="head">
                             <h3>Permisos</h3>
-                          
+
                         </div>
                         <ul class="todo-list">
 
