@@ -118,11 +118,11 @@ if (isset($_SESSION['usuario'])) {
                         <i class='bx bxs-user-plus'></i> Agregar
                     </button>
 
-                    <!--<button class="btn btn-info" id="btnAsociarEmpresa" disabled>
+                    <button class="btn btn-info" id="btnAsociarEmpresa" disabled>
                         <i class='bx bxs-building-house'></i> Asociar Empresa
                     </button>
 
-                    <button class="btn btn-secondary" id="btnExportar" disabled>
+                    <!--<button class="btn btn-secondary" id="btnExportar" disabled>
                         <i class='bx bxs-export'></i> Exportar
                     </button>-->
 

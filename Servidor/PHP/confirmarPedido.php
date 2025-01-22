@@ -1,43 +1,100 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-require 'firebase.php';
-require_once '../PHPMailer/clsMail.php';
-//require_once 'clientes.php';
-
+require 'firebase.php'; // Archivo de configuración de Firebase
 session_start();
-
 
 if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $pedidoId = $_GET['pedidoId'];
     $accion = $_GET['accion'];
-
-    // Variables para el mensaje y el estilo según la acción
-    $titulo = "";
-    $mensaje = "";
-    $color = "";
+    $nombreCliente = urldecode($_GET['nombreCliente'] ?? 'Desconocido');
+    $enviarA = urldecode($_GET['enviarA'] ?? 'No especificado');
+    $vendedor = urldecode($_GET['vendedor'] ?? 'Sin vendedor');
+    $productosJson = urldecode($_GET['productos'] ?? '[]');
+    $productos = json_decode($productosJson, true);
 
     if ($accion === 'confirmar') {
-        $titulo = "Pedido Confirmado";
-        $mensaje = "Gracias por confirmar su pedido. Estamos procesando su solicitud.";
-        $color = "#28a745"; // Verde
-        // Lógica para confirmar el pedido (actualización en la base de datos)
+        // Preparar datos para Firebase
+        $comanda = [
+            "fields" => [
+                "idComanda" => ["stringValue" => uniqid()],
+                "folio" => ["stringValue" => $pedidoId],
+                "nombreCliente" => ["stringValue" => $nombreCliente],
+                "enviarA" => ["stringValue" => $enviarA],
+                "productos" => [
+                    "arrayValue" => [
+                        "values" => array_map(function ($producto) {
+                            return [
+                                "mapValue" => [
+                                    "fields" => [
+                                        "clave" => ["stringValue" => $producto["producto"]],
+                                        "descripcion" => ["stringValue" => $producto["descripcion"]],
+                                        "cantidad" => ["integerValue" => (int) $producto["cantidad"]],
+                                    ]
+                                ]
+                            ];
+                        }, $productos)
+                    ]
+                ],
+                "vendedor" => ["stringValue" => $vendedor],
+                "status" => ["stringValue" => "Abierta"]
+            ]
+        ];
+
+        // URL de Firebase
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+
+        // Enviar los datos a Firebase
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/json\r\n",
+                'content' => json_encode($comanda)
+            ]
+        ]);
+
+        $response = @file_get_contents($url, false, $context);
+
+        if ($response === false) {
+            $error = error_get_last();
+            echo "<div class='container'>
+                    <div class='title'>Error al Conectarse</div>
+                    <div class='message'>No se pudo conectar a Firebase: " . $error['message'] . "</div>
+                    <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                  </div>";
+        } else {
+            $result = json_decode($response, true);
+            if (isset($result['name'])) {
+                echo "<div class='container'>
+                        <div class='title'>Confirmación Exitosa</div>
+                        <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
+                      </div>";
+            } else {
+                echo "<div class='container'>
+                        <div class='title'>Error al Registrar</div>
+                        <div class='message'>Hubo un problema al registrar los datos en Firebase.</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+            }
+        }
     } elseif ($accion === 'rechazar') {
-        $titulo = "Pedido Rechazado";
-        $mensaje = "Lamentamos que haya decidido rechazar su pedido. Si hay algo que podamos mejorar, háganoslo saber.";
-        $color = "#dc3545"; // Rojo
-        // Lógica para rechazar el pedido (actualización en la base de datos)
+        echo "<div class='container'>
+                <div class='title'>Pedido Rechazado</div>
+                <div class='message'>El pedido $pedidoId fue rechazado correctamente.</div>
+                <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
+              </div>";
     } else {
-        $titulo = "Acción No Válida";
-        $mensaje = "La acción solicitada no es válida. Por favor, contacte con soporte.";
-        $color = "#ffc107"; // Amarillo
+        echo "<div class='container'>
+                <div class='title'>Acción no válida</div>
+                <div class='message'>No se reconoció la acción solicitada.</div>
+                <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+              </div>";
     }
 } else {
-    $titulo = "Solicitud Inválida";
-    $mensaje = "No se recibieron los datos necesarios para procesar su solicitud.";
-    $color = "#6c757d"; // Gris
+    echo "<div class='container'>
+            <div class='title'>Solicitud Inválida</div>
+            <div class='message'>No se enviaron los parámetros necesarios para continuar.</div>
+            <a href='/index.php' class='button'>Volver al inicio</a>
+          </div>";
 }
 ?>
 <!DOCTYPE html>
@@ -45,7 +102,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $titulo; ?></title>
+    <title>Confirmar Pedido</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -75,7 +132,6 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
         .message {
             font-size: 18px;
             margin-bottom: 20px;
-            color: <?php echo $color; ?>;
         }
         .button {
             display: inline-block;
@@ -94,10 +150,5 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="title"><?php echo $titulo; ?></div>
-        <div class="message"><?php echo $mensaje; ?></div>
-        <a href="http://localhost/MDConnecta/Cliente/altaPedido.php" class="button">Regresar al Inicio</a>
-    </div>
 </body>
 </html>

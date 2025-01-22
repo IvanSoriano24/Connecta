@@ -49,7 +49,7 @@
             </a>
         </li>
         <li>
-            <a href="#">
+            <a href="Mensajes.php">
                 <i class='bx bxs-message-dots'></i>
                 <span class="text">Mensajes</span>
             </a>
