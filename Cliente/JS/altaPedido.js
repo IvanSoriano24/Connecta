@@ -33,7 +33,6 @@ function agregarFilaPartidas() {
               <i class="bx bx-trash"></i>
           </button>
       </td>    
-  <td><input type="number" class="cantidad" value="0" readonly /></td>
       <td><input type="number" class="cantidad" value="0" readonly /></td>
       <td>
           <div class="d-flex flex-column position-relative">

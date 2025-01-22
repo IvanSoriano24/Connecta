@@ -1128,7 +1128,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
 
         sqlsrv_free_stmt($stmtProducto);
     }
-
+    
+    $fechaElaboracion = $formularioData['diaAlta'] . ' ' . date('H:i:s');
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']);
     $clienteNombre = trim($clienteData['NOMBRE']);
@@ -1136,7 +1137,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
-        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor); // Enviar correo
+        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
         //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     } else {
@@ -1147,7 +1148,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     sqlsrv_close($conn);
 }
 // Función para enviar el correo (en desarrollo)
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -1157,14 +1158,15 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     $productosJson = urlencode(json_encode($partidasData));
-    // URLs para confirmar o rechazar, apuntando a la carpeta del servidor
+    // URLs para confirmar o rechazar
     $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson";
     $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar";
 
     // Construir cuerpo del correo
     $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
-    $bodyHTML .= "<p>Por este medio enviamos los productos de su pedido <b>$noPedido</b>. Por favor, revíselos y confirme:</p>";
+    $bodyHTML .= "<p>Por este medio enviamos los detalles de su pedido <b>$noPedido</b>. Por favor, revíselos y confirme:</p>";
+    $bodyHTML .= "<p><b>Fecha y Hora de Elaboración:</b> $fechaElaboracion</p>";
     $bodyHTML .= "<p><b>Dirección de Envío:</b> $enviarA</p>";
     $bodyHTML .= "<p><b>Vendedor:</b> $vendedor</p>";
 
@@ -1184,18 +1186,18 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         $clave = $partida['producto'];
         $descripcion = $partida['descripcion'];
         $cantidad = $partida['cantidad'];
-        $total = $cantidad * $partida['precioUnitario'];
+        $totalPartida = $cantidad * $partida['precioUnitario'];
+        $total += $totalPartida;
 
         $bodyHTML .= "<tr>
-                    <td>$clave</td>
-                    <td>$descripcion</td>
-                    <td>$cantidad</td>
-                    <td>$" . number_format($total, 2) . "</td>
-                  </tr>";
+                        <td>$clave</td>
+                        <td>$descripcion</td>
+                        <td>$cantidad</td>
+                        <td>$" . number_format($totalPartida, 2) . "</td>
+                      </tr>";
     }
 
     $bodyHTML .= "</tbody></table>";
-
     $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
 
     // Agregar botones
@@ -1207,15 +1209,12 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 
     // Enviar correo
     $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML);
-    // Imprimir el resultado del envío del correo
     if ($resultado === "Correo enviado exitosamente.") {
-        //echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente.']);
+        echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente.']);
     } else {
         error_log("Error al enviar el correo: $resultado");
         echo json_encode(['success' => false, 'message' => 'Hubo un problema al enviar el correo.']);
     }
-    
-    //echo $resultado;
 }
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $partidasData)
 {
@@ -1879,7 +1878,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     exit;
 }
 
-//var_dump($funcion);
 switch ($funcion) {
     case 1:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
