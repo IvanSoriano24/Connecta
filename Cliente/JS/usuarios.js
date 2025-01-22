@@ -16,33 +16,78 @@ function datosUsuarios(tipoUsuario, usuario) {
         }
     });
 }
+// function mostrarUsuarios(usuarios) {
+//     var tablaClientes = $('#tablaUsuarios'); // Seleccionamos el cuerpo de la tabla donde se insertarán los usuarios
+//     tablaClientes.empty(); // Limpiamos cualquier dato anterior en la tabla
+//     // Ordenamos los usuarios por nombreCompleto de forma alfabética
+//     usuarios.sort(function(a, b) {
+//         var nombreA = a.nombreCompleto.toUpperCase(); // Convertimos a mayúsculas para evitar problemas con el orden
+//         var nombreB = b.nombreCompleto.toUpperCase();
+//         if (nombreA < nombreB) {
+//             return -1; // Si nombreA es menor, se coloca primero
+//         }
+//         if (nombreA > nombreB) {
+//             return 1; // Si nombreA es mayor, se coloca después
+//         }
+//         return 0; // Si son iguales, no cambia el orden
+//     });
+//     // Recorremos la lista de usuarios y generamos las filas de la tabla
+//     usuarios.forEach(function(usuario) {
+//     // Generar fila asegurando que todas las celdas tengan contenido
+//     var fila = $('<tr>'); // Crear el elemento <tr>
+//     fila.append($('<td>').text(usuario.nombreCompleto || '-')); // Agregar columna de nombre
+//     fila.append($('<td>').text(usuario.correo || '-'));         // Agregar columna de correo
+//     fila.append($('<td>').text(usuario.estatus || '-'));        // Agregar columna de estatus
+//     fila.append($('<td>').text(usuario.rol || '-'));            // Agregar columna de rol
+
+//     // Botón Editar con seguridad en el manejo del ID
+//     var botonEditar = $('<button>')
+//         .addClass('btn btn-info btn-sm') // Añadir clases CSS
+//         .text('Editar')                  // Texto del botón
+//         .attr('onclick', 'editarUsuario("' + usuario.id + '")'); // Atributo onclick
+
+//     // Añadir botón a la última celda
+//     fila.append($('<td>').append(botonEditar));
+
+//     // Añadir la fila completa a la tabla
+//     tablaClientes.append(fila);
+// });
+// }
+
 function mostrarUsuarios(usuarios) {
-    var tablaClientes = $('#tablaUsuarios'); // Seleccionamos el cuerpo de la tabla donde se insertarán los usuarios
-    tablaClientes.empty(); // Limpiamos cualquier dato anterior en la tabla
-    // Ordenamos los usuarios por nombreCompleto de forma alfabética
+    var tablaClientes = $('#tablaUsuarios'); // Selección del cuerpo de la tabla
+    tablaClientes.empty(); // Limpieza de los datos previos en la tabla
+
+    // Ordenar los usuarios alfabéticamente por nombreCompleto
     usuarios.sort(function(a, b) {
-        var nombreA = a.nombreCompleto.toUpperCase(); // Convertimos a mayúsculas para evitar problemas con el orden
-        var nombreB = b.nombreCompleto.toUpperCase();
-        if (nombreA < nombreB) {
-            return -1; // Si nombreA es menor, se coloca primero
-        }
-        if (nombreA > nombreB) {
-            return 1; // Si nombreA es mayor, se coloca después
-        }
-        return 0; // Si son iguales, no cambia el orden
+        var nombreA = (a.nombreCompleto || '').toUpperCase(); // Manejar valores nulos o indefinidos
+        var nombreB = (b.nombreCompleto || '').toUpperCase();
+        return nombreA.localeCompare(nombreB); // Comparación estándar de cadenas
     });
-    // Recorremos la lista de usuarios y generamos las filas de la tabla
+
+    // Crear filas para cada usuario
     usuarios.forEach(function(usuario) {
-        var fila = '<tr>';
-        fila += '<td>' + (usuario.nombreCompleto || '-') + '</td>'; // Valor por defecto si está vacío
-        fila += '<td>' + (usuario.correo || '-') + '</td>';
-        fila += '<td>' + (usuario.estatus || '-') + '</td>';
-        fila += '<td>' + (usuario.rol || '-') + '</td>';
-        fila += '<td><button class="btn btn-info btn-sm" onclick="editarUsuario(\'' + usuario.id + '\')">Editar</button></td>';
-        fila += '</tr>';
+        // Generar fila asegurando que todas las celdas tengan contenido
+        var fila = $('<tr>'); // Crear el elemento <tr>
+        fila.append($('<td>').text(usuario.nombreCompleto || '-')); // Agregar columna de nombre
+        fila.append($('<td>').text(usuario.correo || '-'));         // Agregar columna de correo
+        fila.append($('<td>').text(usuario.estatus || '-'));        // Agregar columna de estatus
+        fila.append($('<td>').text(usuario.rol || '-'));            // Agregar columna de rol
+
+        // Botón Editar con seguridad en el manejo del ID
+        var botonEditar = $('<button>')
+            .addClass('btn btn-info btn-sm') // Añadir clases CSS
+            .text('Editar')                  // Texto del botón
+            .attr('onclick', 'editarUsuario("' + usuario.id + '")'); // Atributo onclick
+
+        // Añadir botón a la última celda
+        fila.append($('<td>').append(botonEditar));
+
+        // Añadir la fila completa a la tabla
         tablaClientes.append(fila);
-    });    
+    });
 }
+
 function editarUsuario(idUsuario) {
     $.ajax({
         url: '../Servidor/PHP/usuarios.php', // Cambia esta ruta
