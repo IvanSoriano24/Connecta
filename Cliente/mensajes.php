@@ -81,9 +81,8 @@ if (isset($_SESSION['usuario'])) {
                 <!-- MODAL -->
                 <!-- Modal para Ver Detalles -->
                 <!-- Modal para Ver Detalles -->
-                <!-- Modal para Ver Detalles -->
                 <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content">
                             <div class="modal-header bg-primary text-white">
                                 <h5 class="modal-title" id="modalDetallesLabel">Detalles del Pedido</h5>
@@ -91,29 +90,33 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="modal-body">
                                 <form id="formDetalles">
-                                    <div class="mb-3">
-                                        <label for="detalleNoPedido" class="form-label">No. Pedido:</label>
-                                        <input type="text" id="detalleNoPedido" class="form-control" readonly>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="detalleNoPedido" class="form-label">No. Pedido:</label>
+                                            <input type="text" id="detalleNoPedido" class="form-control form-control-sm" readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label for="detalleNombreCliente" class="form-label">Nombre Cliente:</label>
+                                            <input type="text" id="detalleNombreCliente" class="form-control form-control-sm" readonly>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="detalleNombreCliente" class="form-label">Nombre Cliente:</label>
-                                        <input type="text" id="detalleNombreCliente" class="form-control" readonly>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="detalleStatus" class="form-label">Status:</label>
+                                            <input type="text" id="detalleStatus" class="form-control form-control-sm" readonly>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label for="detalleFecha" class="form-label">Fecha:</label>
+                                            <input type="text" id="detalleFecha" class="form-control form-control-sm" readonly>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label for="detalleHora" class="form-label">Hora:</label>
+                                            <input type="text" id="detalleHora" class="form-control form-control-sm" readonly>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="detalleStatus" class="form-label">Status:</label>
-                                        <input type="text" id="detalleStatus" class="form-control" readonly>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="detalleFecha" class="form-label">Fecha:</label>
-                                        <input type="text" id="detalleFecha" class="form-control" readonly>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="detalleHora" class="form-label">Hora:</label>
-                                        <input type="text" id="detalleHora" class="form-control" readonly>
-                                    </div>
-                                    <div class="mb-3">
+                                    <div class="mb-4">
                                         <label class="form-label">Productos:</label>
-                                        <ul id="detalleProductos" class="list-group">
+                                        <ul id="detalleProductos" class="list-group" style="font-size: 1.2rem;">
                                             <!-- Los productos se cargarán aquí dinámicamente -->
                                         </ul>
                                     </div>
