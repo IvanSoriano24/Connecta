@@ -1138,8 +1138,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
+        die();
     }
-
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
@@ -2063,10 +2063,10 @@ switch ($funcion) {
             //actualizarInventario($conexionData, $partidasData);
             validarCorreoCliente($formularioData, $partidasData, $conexionData);
             // Respuesta de éxito
-            echo json_encode([
+            /*echo json_encode([
                 'success' => true,
                 'message' => 'El pedido se completó correctamente.',
-            ]);
+            ]);*/
             /*} else {
                     // Error de crédito
                     echo json_encode([

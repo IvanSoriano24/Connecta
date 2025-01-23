@@ -560,6 +560,16 @@ function enviarDatosBackend(formularioData, partidasData) {
           icon: "error",
           confirmButtonText: "Aceptar",
         });
+      } else{
+          console.error("Error en la respuesta:", data);
+          Swal.fire({
+            title: "Error al guardar el pedido",
+            html: `
+                          <p>${data.message || "Ocurrió un error inesperado."}</p>
+                          `,
+            icon: "error",
+            confirmButtonText: "Aceptar",
+          });
       }
     })
     .catch((error) => {

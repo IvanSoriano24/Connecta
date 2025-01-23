@@ -13,6 +13,12 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     // Obtener fecha y hora actual si no está incluida en los parámetros
     if ($accion === 'confirmar') {
+        // Obtener la hora actual
+        $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
+
+        // Determinar el estado según la hora
+        $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
+
         // Preparar datos para Firebase
         $comanda = [
             "fields" => [
@@ -37,7 +43,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     ]
                 ],
                 "vendedor" => ["stringValue" => $vendedor],
-                "status" => ["stringValue" => "Abierta"]
+                "status" => ["stringValue" => $estadoComanda] // Establecer estado según la hora
             ]
         ];
 
@@ -150,7 +156,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
           </div>";
 }
 
-function enviarWhatsApp($numero, $pedidoId, $nombreCliente) {
+function enviarWhatsApp($numero, $pedidoId, $nombreCliente)
+{
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
     $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
     // Crear el cuerpo de la solicitud para la API
