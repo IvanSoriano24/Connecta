@@ -5,7 +5,64 @@ error_reporting(E_ALL);
 
 require 'firebase.php';
 
-function agregarUsuario($data) {}
+function guardarUsuario($datosUsuario) {
+    global $firebaseProjectId, $firebaseApiKey;
+
+    // Extraer el ID del usuario de los datos proporcionados
+    $idUsuario = isset($datosUsuario['idUsuario']) ? $datosUsuario['idUsuario'] : null;
+
+    // Determinar si se trata de una creación (POST) o edición (PATCH)
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS";
+    $method = "POST";
+
+    if ($idUsuario) {
+        // Si existe el ID del usuario, actualizamos (PATCH)
+        $url .= "/$idUsuario?key=$firebaseApiKey";
+        $method = "PATCH";
+    } else {
+        // Si no hay ID, estamos creando un nuevo documento
+        $url .= "?key=$firebaseApiKey";
+    }
+
+    // Formatear los datos para Firebase (estructura de "fields")
+    $fields = [
+        'usuario' => ['stringValue' => $datosUsuario['usuario']],
+        'nombre' => ['stringValue' => $datosUsuario['nombreUsuario']],
+        'apellido' => ['stringValue' => $datosUsuario['apellidosUsuario']],
+        'correo' => ['stringValue' => $datosUsuario['correoUsuario']],
+        'password' => ['stringValue' => $datosUsuario['contrasenaUsuario']],
+        'telefono' => ['stringValue' => $datosUsuario['telefonoUsuario']],
+        'tipoUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
+        'descripcionUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
+    ];
+
+    // Preparar la solicitud
+    $options = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => $method,
+            'content' => json_encode(['fields' => $fields]),
+        ],
+    ];
+    $context = stream_context_create($options);
+
+    // Realizar la solicitud a Firebase
+    $response = @file_get_contents($url, false, $context);
+
+    // Manejar la respuesta
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al guardar el usuario en Firebase.']);
+        return;
+    }
+
+    $data = json_decode($response, true);
+    if (isset($data['name'])) {
+        echo json_encode(['success' => true, 'message' => 'Usuario guardado exitosamente.', 'data' => $data]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se pudo guardar el usuario.']);
+    }
+}
+
 function actualizarUsuario($idUsario, $data) {}
 
 function mostrarUsuarios($usuarioLogueado, $usuario){
@@ -153,18 +210,6 @@ function optenerEmpresas(){
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     $funcion = $_POST['numFuncion'];
     // Asegúrate de recibir los datos en JSON y decodificarlos correctamente
-    if (isset($_POST['usuarioLogueado'])) {
-        $usuarioLogueado = json_decode($_POST['usuarioLogueado'], true);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Usuario no recibido']);
-        exit();
-    }
-    if (isset($_POST['usuarioLogueado'])) {
-        $usuario = json_decode($_POST['usuario'], true);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Usuario no recibido']);
-        exit();
-    }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['numFuncion'])) {
     $funcion = $_GET['numFuncion'];
 } else {
@@ -174,16 +219,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 
 switch ($funcion) {
     case 1:
-        $empresas = json_decode($_POST['empresas'], true);
-
-        // Validar que los datos no estén vacíos
-        if (empty($usuarioLogueado) || empty($empresas)) {
-            echo json_encode(['success' => false, 'message' => 'Datos vacíos.']);
-            exit();
-        }
-    
+        $datosUsuario = [
+            'idUsuario' => isset($_POST['idUsuario']) ? $_POST['idUsuario'] : null,
+            'usuario' => $_POST['usuario'],
+            'nombreUsuario' => $_POST['nombreUsuario'],
+            'apellidosUsuario' => $_POST['apellidosUsuario'],
+            'correoUsuario' => $_POST['correoUsuario'],
+            'contrasenaUsuario' => $_POST['contrasenaUsuario'],
+            'telefonoUsuario' => $_POST['telefonoUsuario'],
+            'rolUsuario' => $_POST['rolUsuario'],
+        ];
         // Guardar los datos en Firebase o la base de datos
-        agregarUsuario($data);
+        guardarUsuario($datosUsuario);
         break;
 
     case 2: // Editar pedido

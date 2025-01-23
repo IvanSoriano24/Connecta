@@ -254,7 +254,38 @@ if (isset($_SESSION['usuario'])) {
                                         </select>
                                     </div>
                                 </div>
-                                <!-- Columna derecha para select y datos de empresas -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            id="cerrarModal">Cerrar</button>
+                        <button class="btn btn-primary" id="guardarDatosBtn">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Para la confirmacion empresa -->
+    <script src="JS/menu.js"></script>
+    <script src="JS/app.js"></script>
+    <script src="JS/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var tipoUsuario = '<?php echo $tipoUsuario; ?>';
+            var usuario = '<?php echo $usuario; ?>';
+            datosUsuarios(tipoUsuario, usuario); // Llamada a la función cuando la página de la empresa se ha cargado.
+        });
+    </script>
+    </section>
+    <script src="JS/usuarios.js"></script>
+</body>
+
+</html>
+
+                        <!-- Columna derecha para select y datos de empresas -->
                                 <!--<div class="col-md-7">
                                     <div class="mb-3">
                                         <label for="selectEmpresa" class="form-label">Seleccionar Empresa</label>
@@ -287,33 +318,3 @@ if (isset($_SESSION['usuario'])) {
                                         </table>
                                     </div>
                                 </div>-->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                            id="cerrarModal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary" id="guardarDatosBtn">Guardar Cambios</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- JS Para la confirmacion empresa -->
-    <script src="JS/menu.js"></script>
-    <script src="JS/app.js"></script>
-    <script src="JS/script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            var tipoUsuario = '<?php echo $tipoUsuario; ?>';
-            var usuario = '<?php echo $usuario; ?>';
-            datosUsuarios(tipoUsuario, usuario); // Llamada a la función cuando la página de la empresa se ha cargado.
-        });
-    </script>
-    </section>
-    <script src="JS/usuarios.js"></script>
-</body>
-
-</html>

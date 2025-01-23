@@ -16,43 +16,6 @@ function datosUsuarios(tipoUsuario, usuario) {
         }
     });
 }
-// function mostrarUsuarios(usuarios) {
-//     var tablaClientes = $('#tablaUsuarios'); // Seleccionamos el cuerpo de la tabla donde se insertarán los usuarios
-//     tablaClientes.empty(); // Limpiamos cualquier dato anterior en la tabla
-//     // Ordenamos los usuarios por nombreCompleto de forma alfabética
-//     usuarios.sort(function(a, b) {
-//         var nombreA = a.nombreCompleto.toUpperCase(); // Convertimos a mayúsculas para evitar problemas con el orden
-//         var nombreB = b.nombreCompleto.toUpperCase();
-//         if (nombreA < nombreB) {
-//             return -1; // Si nombreA es menor, se coloca primero
-//         }
-//         if (nombreA > nombreB) {
-//             return 1; // Si nombreA es mayor, se coloca después
-//         }
-//         return 0; // Si son iguales, no cambia el orden
-//     });
-//     // Recorremos la lista de usuarios y generamos las filas de la tabla
-//     usuarios.forEach(function(usuario) {
-//     // Generar fila asegurando que todas las celdas tengan contenido
-//     var fila = $('<tr>'); // Crear el elemento <tr>
-//     fila.append($('<td>').text(usuario.nombreCompleto || '-')); // Agregar columna de nombre
-//     fila.append($('<td>').text(usuario.correo || '-'));         // Agregar columna de correo
-//     fila.append($('<td>').text(usuario.estatus || '-'));        // Agregar columna de estatus
-//     fila.append($('<td>').text(usuario.rol || '-'));            // Agregar columna de rol
-
-//     // Botón Editar con seguridad en el manejo del ID
-//     var botonEditar = $('<button>')
-//         .addClass('btn btn-info btn-sm') // Añadir clases CSS
-//         .text('Editar')                  // Texto del botón
-//         .attr('onclick', 'editarUsuario("' + usuario.id + '")'); // Atributo onclick
-
-//     // Añadir botón a la última celda
-//     fila.append($('<td>').append(botonEditar));
-
-//     // Añadir la fila completa a la tabla
-//     tablaClientes.append(fila);
-// });
-// }
 
 function mostrarUsuarios(usuarios) {
     var tablaClientes = $('#tablaUsuarios'); // Selección del cuerpo de la tabla
@@ -107,7 +70,7 @@ function editarUsuario(idUsuario) {
                     $('#rolUsuario').val(data.data.tipoUsuario);
                     $('#telefonoUsuario').val(data.data.telefono);
                     $('#estatusUsuario').val(data.data.estatus);
-
+                    $('#idUsuario').val(idUsuario);
                     // Mostrar el modal
                     $('#usuarioModal').modal('show');
                 } else {
@@ -172,7 +135,6 @@ document.getElementById('btnAgregar').addEventListener('click', () => {
     $('#usuarioModal').removeAttr('aria-hidden');
     // Añadir el atributo inert al fondo para evitar que los elementos detrás sean interactivos
     $('.modal-backdrop').attr('inert', true);
-    cargarEmpresas();
 });
 
 // Función para cerrar el modal cuando se haga clic en el botón de cerrar
@@ -186,13 +148,6 @@ document.getElementById('cerrarModal').addEventListener('click', () => {
     $('.modal-backdrop').removeAttr('inert');
 });
 
-// Función para agregar una empresa seleccionada
-document.getElementById('agregarEmpresaBtn').addEventListener('click', () => {
-    const selectedEmpresa = document.getElementById('selectEmpresa').value;
-    // Lógica para agregar la empresa al usuario o realizar alguna acción
-    // Por ejemplo, puedes mostrar un mensaje o hacer una solicitud al servidor.
-    console.log('Empresa seleccionada:', selectedEmpresa);
-});
 
 $(document).ready(function () {
     /*$('#agregarEmpresaBtn').on('click', function () {
@@ -236,23 +191,29 @@ $(document).ready(function () {
         $(this).closest('tr').remove();
     });
 
-    /*$('#guardarDatosBtn').on('click', function () {
-        const empresasSeleccionadas = [];
-        // Obtener todas las empresas seleccionadas de la tabla
-        $('#tablaEmpresas tbody tr').each(function () {
-            const idEmpresa = $(this).find('td:nth-child(1)').text();
-            const razonSocial = $(this).find('td:nth-child(2)').text();
-            const numeroEmpresa = $(this).find('td:nth-child(3)').text();
-
-            empresasSeleccionadas.push({
-                id: idEmpresa,
-                empresa: razonSocial,
-                noEmpresa: numeroEmpresa,
-            });
-        });
-        // Validar que haya datos para guardar
-        if (empresasSeleccionadas.length === 0) {
-            alert('No hay empresas seleccionadas para guardar.');
+    $('#guardarDatosBtn').on('click', function (e) {
+        e.preventDefault(); // Evitar que el formulario recargue la página
+        // Obtener los valores del formulario
+        const idUsuario = $('#idUsuario').val();
+        const usuario = $('#usuario').val();
+        const nombreUsuario = $('#nombreUsuario').val();
+        const apellidosUsuario = $('#apellidosUsuario').val();
+        const correoUsuario = $('#correoUsuario').val();
+        const contrasenaUsuario = $('#contrasenaUsuario').val();
+        const telefonoUsuario = $('#telefonoUsuario').val();
+        const rolUsuario = $('#rolUsuario').val();
+    
+        // Validar que todos los campos requeridos estén completos
+        if (
+            !usuario ||
+            !nombreUsuario ||
+            !apellidosUsuario ||
+            !correoUsuario ||
+            !contrasenaUsuario ||
+            !telefonoUsuario ||
+            !rolUsuario
+        ) {
+            alert('Por favor, complete todos los campos.');
             return;
         }
         // Enviar los datos al servidor mediante AJAX
@@ -260,23 +221,34 @@ $(document).ready(function () {
             url: '../Servidor/PHP/usuarios.php',
             type: 'POST',
             data: {
-                numFuncion: 1, // Función para guardar
-                empresas: JSON.stringify(empresasSeleccionadas),
-                datosUsuario: JSON.stringify(empresasSeleccionadas),
+                numFuncion: 1, // Identificador para la función en el servidor
+                idUsuario: idUsuario,
+                usuario: usuario,
+                nombreUsuario: nombreUsuario,
+                apellidosUsuario: apellidosUsuario,
+                correoUsuario: correoUsuario,
+                contrasenaUsuario: contrasenaUsuario,
+                telefonoUsuario: telefonoUsuario,
+                rolUsuario: rolUsuario,
             },
             success: function (response) {
                 const res = JSON.parse(response);
                 if (res.success) {
-                    alert('Datos guardados exitosamente.');
-                    // Opcional: Limpiar tabla después de guardar
-                    $('#tablaEmpresas tbody').empty();
+                    alert('Usuario guardado exitosamente.');
+    
+                    // Cerrar el modal y limpiar el formulario
+                    $('#usuarioModal').modal('hide');
+                    $('#agregarUsuarioForm')[0].reset();
+
+                    // Recargar la tabla de usuarios (llama a tu función para mostrar usuarios)
+                    location.reload();
                 } else {
-                    alert(res.message || 'Error al guardar los datos.');
+                    alert(res.message || 'Error al guardar el usuario.');
                 }
             },
             error: function () {
                 alert('Error al realizar la solicitud.');
             },
         });
-    });*/
+    });    
 });
