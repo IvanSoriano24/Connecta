@@ -44,8 +44,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 
-function comandas($firebaseProjectId, $firebaseApiKey)
-{
+function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 
     $context = stream_context_create([
@@ -58,25 +57,31 @@ function comandas($firebaseProjectId, $firebaseApiKey)
     $response = @file_get_contents($url, false, $context);
 
     if ($response === false) {
-        echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos. Verifica la URL o las reglas de seguridad de Firebase.']);
+        echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos.']);
     } else {
         $data = json_decode($response, true);
         $comandas = [];
+
         if (isset($data['documents'])) {
             foreach ($data['documents'] as $document) {
                 $fields = $document['fields'];
-                $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
-                $fecha = $fechaHora[0]; // Fecha
-                $hora = $fechaHora[1]; // Hora
+                $status = $fields['status']['stringValue'];
 
-                $comandas[] = [
-                    'id' => basename($document['name']),
-                    'noPedido' => $fields['folio']['stringValue'],
-                    'nombreCliente' => $fields['nombreCliente']['stringValue'],
-                    'status' => $fields['status']['stringValue'],
-                    'fecha' => $fecha,
-                    'hora' => $hora
-                ];
+                // Aplicar el filtro de estado si está definido
+                if ($filtroStatus === '' || $status === $filtroStatus) {
+                    $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
+                    $fecha = $fechaHora[0];
+                    $hora = $fechaHora[1];
+
+                    $comandas[] = [
+                        'id' => basename($document['name']),
+                        'noPedido' => $fields['folio']['stringValue'],
+                        'nombreCliente' => $fields['nombreCliente']['stringValue'],
+                        'status' => $status,
+                        'fecha' => $fecha,
+                        'hora' => $hora
+                    ];
+                }
             }
         }
         echo json_encode(['success' => true, 'data' => $comandas]);
@@ -115,14 +120,18 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
         ]);
     }
 }
-function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId)
-{
+function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId) {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
+
+    // Estructura de datos para la actualización parcial
     $data = [
         'fields' => [
             'status' => ['stringValue' => 'TERMINADA']
         ]
     ];
+
+    // Agregar el parámetro `updateMask` para especificar los campos que deben actualizarse
+    $url .= '&updateMask.fieldPaths=status';
 
     $context = stream_context_create([
         'http' => [
@@ -135,9 +144,11 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId)
     $response = @file_get_contents($url, false, $context);
 
     if ($response === false) {
-        echo json_encode(['success' => false, 'message' => 'Error al marcar la comanda como TERMINADA.']);
+        $error = error_get_last();
+        echo json_encode(['success' => false, 'message' => 'Error al marcar la comanda como TERMINADA.', 'error' => $error['message']]);
     } else {
-        echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.']);
+        $result = json_decode($response, true);
+        echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.', 'response' => $result]);
     }
 }
 
@@ -156,13 +167,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 
 switch ($funcion) {
     case 1:
-        comandas($firebaseProjectId, $firebaseApiKey);
+        $filtroStatus = $_GET['status'] ?? ''; // Obtener el filtro desde la solicitud
+        comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus);
         break;
     case 2:
         $comandaId = $_GET['comandaId'];
         obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
         break;
     case 3:
+        $comandaId = $_POST['comandaId'];
         marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId);
         break;
     default:

@@ -109,8 +109,6 @@ function cargarPedidos(filtroFecha) {
                             <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td>
                             <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td>
                             <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
-                            <td>${pedido.NumeroAlmacen || 'Sin almacén'}</td>
-                            <td>${pedido.FormaEnvio || 'Sin forma de envío'}</td>
                             <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
                             <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
                             <td>
@@ -129,6 +127,8 @@ function cargarPedidos(filtroFecha) {
                                     <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
                                 </button>
                                 <br>
+                            </td>
+                            <td>
                                 <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
                                     display: inline-flex;
                                     align-items: center;
@@ -196,9 +196,6 @@ function datosPedidos() {
                         <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td> <!-- Maneja el objeto anidado -->
                         <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td>
                         <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
-
-                        <td>${pedido.NumeroAlmacen || 'Sin almacén'}</td>
-                        <td>${pedido.FormaEnvio || 'Sin forma de envío'}</td>
                         <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
                         <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
                         <td>
@@ -217,6 +214,8 @@ function datosPedidos() {
                                 <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
                             </button>
                             <br>
+                            </td>
+                            <td>
                             <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
                                 display: inline-flex;
                                 align-items: center;

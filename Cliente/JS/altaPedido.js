@@ -422,12 +422,14 @@ function validarPartidas() {
   return valido;
 }
 function obtenerDatosFormulario() {
-  // Aquí obtienes los datos del formulario, por ejemplo:
+  const now = new Date(); // Obtiene la fecha y hora actual
+  const diaAlta = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
   const formularioData = {
     claveVendedor: document.getElementById("vendedor").value,
     factura: document.getElementById("factura").value,
     numero: document.getElementById("numero").value,
-    diaAlta: document.getElementById("diaAlta").value,
+    diaAlta: diaAlta, // Fecha y hora
     cliente: document.getElementById("cliente").value,
     rfc: document.getElementById("rfc").value,
     nombre: document.getElementById("nombre").value,

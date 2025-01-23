@@ -1,5 +1,7 @@
 function cargarComandas() {
-    $.get('../Servidor/PHP/mensajes.php', { numFuncion: '1' }, function (response) {
+    const filtroStatus = $('#filtroStatus').val(); // Obtener el filtro seleccionado
+
+    $.get('../Servidor/PHP/mensajes.php', { numFuncion: '1', status: filtroStatus }, function (response) {
         if (response.success) {
             const comandas = response.data;
             const tbody = $('#tablaComandas tbody');
@@ -14,7 +16,7 @@ function cargarComandas() {
                         <td>${comanda.fecha}</td>
                         <td>${comanda.hora}</td>
                         <td>
-                            <button class="btn btn-probarco" onclick="mostrarModal('${comanda.id}')" title="Ver Detalles">
+                            <button class="btn btn-primary btn-sm" onclick="mostrarModal('${comanda.id}')">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </td>
@@ -31,10 +33,18 @@ function cargarComandas() {
     });
 }
 
+// Escuchar el cambio en el filtro
+$('#filtroStatus').change(function () {
+    cargarComandas(); // Recargar las comandas con el filtro aplicado
+});
+
 function mostrarModal(comandaId) {
     $.get('../Servidor/PHP/mensajes.php', { numFuncion: '2', comandaId }, function (response) {
         if (response.success) {
             const comanda = response.data;
+
+            // Cargar el ID en el campo oculto
+            $('#detalleIdComanda').val(comanda.id);
 
             // Cargar los datos en los inputs
             $('#detalleNoPedido').val(comanda.noPedido);
@@ -64,8 +74,7 @@ function mostrarModal(comandaId) {
 
 // Manejar el botón de "Terminar"
 $('#btnTerminar').click(function () {
-    const comandaId = $('#detalleComanda').text();
-
+    const comandaId = $('#detalleIdComanda').val();
     $.post('../Servidor/PHP/mensajes.php', { numFuncion: '3', comandaId }, function (response) {
         if (response.success) {
             alert('La comanda se ha marcado como TERMINADA.');

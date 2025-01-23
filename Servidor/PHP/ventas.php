@@ -116,8 +116,6 @@ function mostrarPedidos($conexionData, $filtroFecha)
                 FECHAELAB AS FechaElaboracion,
                 CAN_TOT AS Subtotal,
                 COM_TOT AS TotalComisiones,
-                NUM_ALMA AS NumeroAlmacen,
-                FORMAENVIO AS FormaEnvio,
                 IMPORTE AS ImporteTotal,
                 (SELECT MAX(NOMBRE) FROM $nombreTabla3 WHERE $nombreTabla3.CVE_VEND = $nombreTabla2.CVE_VEND) AS NombreVendedor
             FROM $nombreTabla2
@@ -144,8 +142,6 @@ function mostrarPedidos($conexionData, $filtroFecha)
                 FECHAELAB AS FechaElaboracion,
                 CAN_TOT AS Subtotal,
                 COM_TOT AS TotalComisiones,
-                NUM_ALMA AS NumeroAlmacen,
-                FORMAENVIO AS FormaEnvio,
                 IMPORTE AS ImporteTotal,
                 (SELECT MAX(NOMBRE) FROM $nombreTabla3 WHERE $nombreTabla3.CVE_VEND = $nombreTabla2.CVE_VEND) AS NombreVendedor
             FROM $nombreTabla2
@@ -1129,7 +1125,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         sqlsrv_free_stmt($stmtProducto);
     }
     
-    $fechaElaboracion = $formularioData['diaAlta'] . ' ' . date('H:i:s');
+    $fechaElaboracion = $formularioData['diaAlta'];
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']);
     $clienteNombre = trim($clienteData['NOMBRE']);
@@ -1160,7 +1156,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
     // URLs para confirmar o rechazar
     $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson";
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion);
     $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar";
 
     // Construir cuerpo del correo
@@ -1210,7 +1206,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     // Enviar correo
     $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML);
     if ($resultado === "Correo enviado exitosamente.") {
-        echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente.']);
+        //echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente.']);
     } else {
         error_log("Error al enviar el correo: $resultado");
         echo json_encode(['success' => false, 'message' => 'Hubo un problema al enviar el correo.']);

@@ -10,9 +10,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $vendedor = urldecode($_GET['vendedor'] ?? 'Sin vendedor');
     $productosJson = urldecode($_GET['productos'] ?? '[]');
     $productos = json_decode($productosJson, true);
-
+    $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     // Obtener fecha y hora actual si no está incluida en los parámetros
-    $fechaHoraElaboracion = date('Y-m-d H:i:s');
 
     if ($accion === 'confirmar') {
         // Preparar datos para Firebase
@@ -22,7 +21,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 "folio" => ["stringValue" => $pedidoId],
                 "nombreCliente" => ["stringValue" => $nombreCliente],
                 "enviarA" => ["stringValue" => $enviarA],
-                "fechaHoraElaboracion" => ["stringValue" => $fechaHoraElaboracion],
+                "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
                 "productos" => [
                     "arrayValue" => [
                         "values" => array_map(function ($producto) {

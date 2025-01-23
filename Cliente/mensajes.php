@@ -61,6 +61,14 @@ if (isset($_SESSION['usuario'])) {
                     <hr>
                     <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR'): ?>
                         <h2 class="text-center">Comandas</h2>
+                        <div class="mb-3">
+                            <label for="filtroStatus" class="form-label">Filtrar por Status:</label>
+                            <select id="filtroStatus" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                <option value="Abierta">Abiertas</option>
+                                <option value="TERMINADA">Terminadas</option>
+                            </select>
+                        </div>
                         <table class="table table-bordered table-striped mt-3" id="tablaComandas">
                             <thead>
                                 <tr>
@@ -81,6 +89,7 @@ if (isset($_SESSION['usuario'])) {
                 <!-- MODAL -->
                 <!-- Modal para Ver Detalles -->
                 <!-- Modal para Ver Detalles -->
+                <!-- Modal para Ver Detalles -->
                 <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content">
@@ -90,6 +99,9 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="modal-body">
                                 <form id="formDetalles">
+                                    <!-- Campo oculto para el ID -->
+                                    <input type="hidden" id="detalleIdComanda">
+
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
                                             <label for="detalleNoPedido" class="form-label">No. Pedido:</label>
