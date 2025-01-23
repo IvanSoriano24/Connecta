@@ -267,7 +267,12 @@ function informaSae(){
                 $('#nombreBase').val(data.nombreBase);
             } else {
                 console.warn('Error:', response.message || 'Error al obtener la conexión.');
-                alert(response.message || 'Error al obtener la conexión.');
+                Swal.fire({
+                    title: "Eror",
+                    text: response.message,
+                    icon: "error"
+                  });
+                //alert(response.message || 'Error al obtener la conexión.');
             }
         },
         error: function(jqXHR, textStatus, errorThrown) {

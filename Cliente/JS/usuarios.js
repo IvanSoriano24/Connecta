@@ -234,8 +234,11 @@ $(document).ready(function () {
             success: function (response) {
                 const res = JSON.parse(response);
                 if (res.success) {
-                    alert('Usuario guardado exitosamente.');
-    
+                    //alert('Usuario guardado exitosamente.');
+                    Swal.fire({
+                        text: "Usuario guardado exitosamente.",
+                        icon: "success"
+                      });
                     // Cerrar el modal y limpiar el formulario
                     $('#usuarioModal').modal('hide');
                     $('#agregarUsuarioForm')[0].reset();
@@ -243,7 +246,12 @@ $(document).ready(function () {
                     // Recargar la tabla de usuarios (llama a tu función para mostrar usuarios)
                     location.reload();
                 } else {
-                    alert(res.message || 'Error al guardar el usuario.');
+                    //alert(res.message || 'Error al guardar el usuario.');
+                    Swal.fire({
+                        title: "Eror",
+                        text: res.message,
+                        icon: "error"
+                      });
                 }
             },
             error: function () {

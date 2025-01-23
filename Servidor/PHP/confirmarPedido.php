@@ -12,7 +12,6 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $productos = json_decode($productosJson, true);
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     // Obtener fecha y hora actual si no está incluida en los parámetros
-
     if ($accion === 'confirmar') {
         // Preparar datos para Firebase
         $comanda = [
@@ -80,11 +79,62 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             }
         }
     } elseif ($accion === 'rechazar') {
-        echo "<div class='container'>
-                <div class='title'>Pedido Rechazado</div>
-                <div class='message'>El pedido $pedidoId fue rechazado correctamente.</div>
-                <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
-              </div>";
+        $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+        // Consultar Firebase para obtener los datos del vendedor
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Content-Type: application/json\r\n"
+            ]
+        ]);
+
+        $response = @file_get_contents($firebaseUrl, false, $context);
+        if ($response === false) {
+            echo "<div class='container'>
+                    <div class='title'>Error al Obtener Información</div>
+                    <div class='message'>No se pudo obtener la información del vendedor.</div>
+                    <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                  </div>";
+            exit;
+        }
+
+        $usuariosData = json_decode($response, true);
+        $telefonoVendedor = null;
+
+        // Buscar al vendedor por clave
+        if (isset($usuariosData['documents'])) {
+            foreach ($usuariosData['documents'] as $document) {
+                $fields = $document['fields'];
+                if (isset($fields['claveVendedor']['stringValue']) && $fields['claveVendedor']['stringValue'] === $vendedor) {
+                    $telefonoVendedor = $fields['telefono']['stringValue'];
+                    break;
+                }
+            }
+        }
+
+        if (!$telefonoVendedor) {
+            echo "<div class='container'>
+                    <div class='title'>Error al Encontrar Vendedor</div>
+                    <div class='message'>No se encontró el número de teléfono del vendedor.</div>
+                    <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                  </div>";
+            exit;
+        }
+        // Enviar mensaje de WhatsApp
+        $resultadoWhatsApp = enviarWhatsApp($telefonoVendedor, $pedidoId, $nombreCliente);
+        if ($resultadoWhatsApp) {
+            echo "<div class='container'>
+                    <div class='title'>Pedido Rechazado</div>
+                    <div class='message'>El pedido $pedidoId fue rechazado correctamente y se notificó al vendedor.</div>
+                    <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
+                  </div>";
+        } else {
+            echo "<div class='container'>
+                    <div class='title'>Error al Notificar</div>
+                    <div class='message'>El pedido fue rechazado, pero no se pudo notificar al vendedor.</div>
+                    <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                  </div>";
+        }
     } else {
         echo "<div class='container'>
                 <div class='title'>Acción no válida</div>
@@ -99,9 +149,55 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             <a href='/index.php' class='button'>Volver al inicio</a>
           </div>";
 }
+
+function enviarWhatsApp($numero, $pedidoId, $nombreCliente) {
+    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
+    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
+    // Crear el cuerpo de la solicitud para la API
+    $data = [
+        "messaging_product" => "whatsapp",
+        "to" => $numero, // Número del vendedor
+        "type" => "template",
+        "template" => [
+            "name" => "rechazar_pedido_", // Nombre de la plantilla aprobada
+            "language" => ["code" => "es_MX"], // Idioma de la plantilla
+            "components" => [
+                // Parámetros del cuerpo de la plantilla
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        ["type" => "text", "text" => $nombreCliente], // {{1}}: Nombre del vendedor
+                        ["type" => "text", "text" => $pedidoId]  // {{2}}: Número del pedido
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    // Convertir los datos a JSON
+    $data_string = json_encode($data);
+
+    // Configurar cURL para enviar la solicitud
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $token,
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data_string)
+    ]);
+
+    // Ejecutar la solicitud y cerrar cURL
+    $result = curl_exec($curl);
+    curl_close($curl);
+
+    return $result;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -118,6 +214,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             height: 100vh;
             color: #212529;
         }
+
         .container {
             text-align: center;
             background-color: #fff;
@@ -127,15 +224,18 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             max-width: 400px;
         }
+
         .title {
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
         }
+
         .message {
             font-size: 18px;
             margin-bottom: 20px;
         }
+
         .button {
             display: inline-block;
             text-decoration: none;
@@ -147,11 +247,14 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             color: #fff;
             transition: background-color 0.3s ease;
         }
+
         .button:hover {
             background-color: #0056b3;
         }
     </style>
 </head>
+
 <body>
 </body>
+
 </html>

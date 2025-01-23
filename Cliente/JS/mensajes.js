@@ -77,7 +77,11 @@ $('#btnTerminar').click(function () {
     const comandaId = $('#detalleIdComanda').val();
     $.post('../Servidor/PHP/mensajes.php', { numFuncion: '3', comandaId }, function (response) {
         if (response.success) {
-            alert('La comanda se ha marcado como TERMINADA.');
+            //alert('La comanda se ha marcado como TERMINADA.');
+            Swal.fire({
+                text: "La comanda se ha marcado como TERMINADA.",
+                icon: "success"
+              });
             $('#modalDetalles').modal('hide');
             cargarComandas(); // Recargar la tabla
         } else {

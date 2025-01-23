@@ -44,6 +44,19 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+<style>
+    #tablaComandas {
+        width: 100%;
+        table-layout: auto;
+        /* Permite que las columnas se ajusten al contenido */
+    }
+
+    #tablaComandas th,
+    #tablaComandas td {
+        white-space: nowrap;
+        /* Evita que el texto se corte o salte de línea */
+    }
+</style>
 
 <body>
     <div class="hero_area">
@@ -54,41 +67,41 @@ if (isset($_SESSION['usuario'])) {
             <?php include 'navbar.php'; ?>
             <!-- MAIN -->
             <main class="text-center">
-                <div class="container mt-5">
+                <div class="container mt-10">
                     <h1 class="text-center">Mensajes</h1>
                     <!-- Mostrar mensajes genéricos -->
                     <p class="text-center">Aquí puedes ver tus notificaciones generales.</p>
                     <hr>
                     <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR'): ?>
-                        <h2 class="text-center">Comandas</h2>
-                        <div class="mb-3">
-                            <label for="filtroStatus" class="form-label">Filtrar por Status:</label>
-                            <select id="filtroStatus" class="form-select form-select-sm">
-                                <option value="">Todos</option>
-                                <option value="Abierta">Abiertas</option>
-                                <option value="TERMINADA">Terminadas</option>
-                            </select>
+                        <div>
+                            <h2 class="text-center">Comandas</h2>
+                            <div class="mb-3">
+                                <label for="filtroStatus" class="form-label">Filtrar por Status:</label>
+                                <select id="filtroStatus" class="form-select form-select-sm" style="width: 150px;">
+                                    <option value="">Todos</option>
+                                    <option value="Abierta">Abiertas</option>
+                                    <option value="TERMINADA">Terminadas</option>
+                                </select>
+                            </div>
+                            <table class="table table-bordered table-striped mt-3" id="tablaComandas">
+                                <thead>
+                                    <tr>
+                                        <th>No. Pedido</th>
+                                        <th>Nombre Cliente</th>
+                                        <th>Status</th>
+                                        <th class="col-fecha">Fecha</th> <!-- Ancho ajustado -->
+                                        <th>Hora</th>
+                                        <th>Detalles</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
                         </div>
-                        <table class="table table-bordered table-striped mt-3" id="tablaComandas">
-                            <thead>
-                                <tr>
-                                    <th>No. Pedido</th>
-                                    <th>Nombre Cliente</th>
-                                    <th>Status</th>
-                                    <th>Fecha</th>
-                                    <th>Hora</th>
-                                    <th>Detalles</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
                     <?php endif; ?>
                 </div>
 
                 <!-- MODAL -->
-                <!-- Modal para Ver Detalles -->
-                <!-- Modal para Ver Detalles -->
                 <!-- Modal para Ver Detalles -->
                 <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
