@@ -175,15 +175,15 @@ if (isset($_SESSION['usuario'])) {
 
                 <!-- Botones de acciones principales -->
                 <div class="d-flex justify-content-between mb-3">
-
+                <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
                     <button class="btn btn-success" id="btnAgregar">
                         <i class='bx bxs-user-plus'></i> Agregar
                     </button>
-
+                    
                     <button class="btn btn-info" id="btnAsociarEmpresa">
                         <i class='bx bxs-building-house'></i> Asociar Empresa
                     </button>
-
+                    <?php } ?>
                     <!--<button class="btn btn-secondary" id="btnExportar" disabled>
                         <i class='bx bxs-export'></i> Exportar
                     </button>-->

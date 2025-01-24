@@ -5,8 +5,7 @@ error_reporting(E_ALL);
 
 require 'firebase.php';
 
-function guardarUsuario($datosUsuario)
-{
+function guardarUsuario($datosUsuario) {
     global $firebaseProjectId, $firebaseApiKey;
 
     // Extraer el ID del usuario de los datos proporcionados
@@ -35,6 +34,7 @@ function guardarUsuario($datosUsuario)
         'telefono' => ['stringValue' => $datosUsuario['telefonoUsuario']],
         'tipoUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
         'descripcionUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
+        'status' => ['stringValue' => 'Bloqueado'], // Nuevo campo con valor predeterminado
     ];
 
     // Preparar la solicitud
@@ -314,11 +314,34 @@ function guardarAsociacion() {
 
     $response = @file_get_contents($url, false, $context);
 
-    if ($response !== FALSE) {
-        echo json_encode(['success' => true, 'message' => 'Asociación guardada exitosamente.']);
-    } else {
+    if ($response === FALSE) {
         echo json_encode(['success' => false, 'message' => 'Error al guardar la asociación en Firebase.']);
+        return;
     }
+
+    // Actualizar el campo `status` del usuario a `Activo`
+    $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/$usuario?key=$firebaseApiKey";
+    $fieldsUsuario = [
+        'status' => ['stringValue' => 'Activo'],
+    ];
+
+    $optionsUsuario = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'PATCH',
+            'content' => json_encode(['fields' => $fieldsUsuario]),
+        ],
+    ];
+    $contextUsuario = stream_context_create($optionsUsuario);
+
+    $responseUsuario = @file_get_contents($urlUsuario, false, $contextUsuario);
+
+    if ($responseUsuario === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado del usuario.']);
+        return;
+    }
+
+    echo json_encode(['success' => true, 'message' => 'Asociación guardada y estado del usuario actualizado a Activo.']);
     exit();
 }
 function obtenerAsociaciones() {

@@ -2044,7 +2044,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            /* $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+             $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
@@ -2054,20 +2054,20 @@ switch ($funcion) {
                 $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
 
                 // Validar crédito del cliente
-                $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);*/
+                $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
-            //if ($validacionCredito['success']) {
-            //guardarPedido($conexionData, $formularioData, $partidasData);
-            //guardarPartidas($conexionData, $formularioData, $partidasData);
-            //actualizarFolio($conexionData);
-            //actualizarInventario($conexionData, $partidasData);
+            if ($validacionCredito['success']) {
+            guardarPedido($conexionData, $formularioData, $partidasData);
+            guardarPartidas($conexionData, $formularioData, $partidasData);
+            actualizarFolio($conexionData);
+            actualizarInventario($conexionData, $partidasData);
             validarCorreoCliente($formularioData, $partidasData, $conexionData);
             // Respuesta de éxito
-            /*echo json_encode([
+            echo json_encode([
                 'success' => true,
                 'message' => 'El pedido se completó correctamente.',
-            ]);*/
-            /*} else {
+            ]); 
+            } else {
                     // Error de crédito
                     echo json_encode([
                         'success' => false,
@@ -2076,8 +2076,8 @@ switch ($funcion) {
                         'saldoActual' => $validacionCredito['saldoActual'],
                         'limiteCredito' => $validacionCredito['limiteCredito'],
                     ]);
-                }*/
-            /*} else {
+                }
+            } else {
                 // Error de existencias
                 echo json_encode([
                     'success' => false,
@@ -2085,7 +2085,7 @@ switch ($funcion) {
                     'message' => $resultadoValidacion['message'],
                     'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
                 ]);
-            }*/
+            }
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);
