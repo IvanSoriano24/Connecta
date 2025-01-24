@@ -5,7 +5,8 @@ error_reporting(E_ALL);
 
 require 'firebase.php';
 
-function guardarUsuario($datosUsuario) {
+function guardarUsuario($datosUsuario)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // Extraer el ID del usuario de los datos proporcionados
@@ -65,7 +66,8 @@ function guardarUsuario($datosUsuario) {
 
 function actualizarUsuario($idUsario, $data) {}
 
-function mostrarUsuarios($usuarioLogueado, $usuario){
+function mostrarUsuarios($usuarioLogueado, $usuario)
+{
     global $firebaseProjectId, $firebaseApiKey;
     // Validamos si el usuario logueado es administrador
     $esAdministrador = ($usuarioLogueado === 'ADMINISTRADOR'); // Comparar el tipo de usuario
@@ -92,6 +94,7 @@ function mostrarUsuarios($usuarioLogueado, $usuario){
                     'correo' => $fields['correo']['stringValue'] ?? '',
                     'estatus' => $fields['estatus']['stringValue'] ?? '',
                     'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
+                    'usuario' => $fields['usuario']['stringValue'] ?? '',
                 ];
                 break; // Salimos del loop una vez que encontramos el usuario
             }
@@ -124,6 +127,7 @@ function mostrarUsuarios($usuarioLogueado, $usuario){
                 'correo' => $fields['correo']['stringValue'] ?? '',
                 'estatus' => $fields['estatus']['stringValue'] ?? '',
                 'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
+                'usuario' => $fields['usuario']['stringValue'] ?? '',
             ];
         }
     }
@@ -135,7 +139,8 @@ function mostrarUsuarios($usuarioLogueado, $usuario){
 }
 
 // Función para obtener un usuario específico
-function mostrarUsuario($idUsuario) {
+function mostrarUsuario($idUsuario)
+{
     global $firebaseProjectId, $firebaseApiKey;
     // URL de la API de Firebase para obtener los datos del usuario por ID
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/$idUsuario?key=$firebaseApiKey";
@@ -151,12 +156,12 @@ function mostrarUsuario($idUsuario) {
     // Verificamos si la respuesta contiene los datos esperados
     if (isset($data['fields'])) {
         // Obtenemos los campos de usuario de la respuesta de Firebase
-        $usuario = $data['fields'];    
+        $usuario = $data['fields'];
         // Aseguramos que el ID del usuario esté presente en la respuesta
         $usuario['id'] = $idUsuario;
         // Limpiamos los campos para que no contengan datos de Firebase
         // Firebase devuelve los campos bajo la clave "fields", necesitamos acceder a los valores reales
-        $usuario = array_map(function($field) {
+        $usuario = array_map(function ($field) {
             return isset($field['stringValue']) ? $field['stringValue'] : null;
         }, $usuario);
         // Respondemos con los datos del usuario en formato JSON
@@ -206,6 +211,240 @@ function optenerEmpresas(){
         echo json_encode(['success' => false, 'message' => 'Error al obtener los datos de empresas.']);
     }
 }
+function obtenerUsuarios() {
+    global $firebaseProjectId, $firebaseApiKey;
+
+    // URL para obtener usuarios desde Firebase
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+
+    // Realizamos la solicitud a Firebase
+    $response = @file_get_contents($url);
+
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los usuarios.']);
+        return;
+    }
+
+    $data = json_decode($response, true);
+
+    if (!isset($data['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron usuarios.']);
+        return;
+    }
+
+    // Procesamos los datos obtenidos
+    $usuarios = [];
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        $usuarios[] = [
+            'id' => str_replace("projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/", '', $document['name']),
+            'nombre' => isset($fields['nombre']['stringValue'], $fields['apellido']['stringValue']) 
+                        ? $fields['nombre']['stringValue'] . ' ' . $fields['apellido']['stringValue'] 
+                        : 'Nombre desconocido',
+            'correo' => $fields['correo']['stringValue'] ?? '',
+            'estatus' => $fields['estatus']['stringValue'] ?? '',
+            'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
+            'usuario' => $fields['usuario']['stringValue'] ?? '',
+        ];
+    }
+
+    // Retornamos los usuarios como JSON
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'data' => $usuarios]);
+    exit();
+}
+function guardarAsociacion() {
+    global $firebaseProjectId, $firebaseApiKey;
+
+    $empresa = $_POST['empresa'] ?? null;
+    $id = $_POST['id'] ?? null;
+    $noEmpresa = $_POST['noEmpresa'] ?? null;
+    $usuario = $_POST['usuario'] ?? null;
+
+    if (!$empresa || !$id || !$noEmpresa || !$usuario) {
+        echo json_encode(['success' => false, 'message' => 'Faltan datos para guardar la asociación.']);
+        return;
+    }
+
+    // Verificar si ya existe la asociación
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
+
+    $response = @file_get_contents($url);
+
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al verificar las asociaciones existentes.']);
+        return;
+    }
+
+    $data = json_decode($response, true);
+
+    if (isset($data['documents'])) {
+        foreach ($data['documents'] as $document) {
+            $fields = $document['fields'];
+
+            if (
+                isset($fields['usuario']['stringValue'], $fields['id']['stringValue']) &&
+                $fields['usuario']['stringValue'] === $usuario &&
+                $fields['id']['stringValue'] === $id
+            ) {
+                echo json_encode(['success' => false, 'message' => 'La asociación ya existe.']);
+                return;
+            }
+        }
+    }
+
+    // Si no existe, guardar la nueva asociación
+    $fields = [
+        'empresa' => ['stringValue' => $empresa],
+        'id' => ['stringValue' => $id],
+        'noEmpresa' => ['stringValue' => $noEmpresa],
+        'usuario' => ['stringValue' => $usuario],
+    ];
+
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
+
+    $options = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
+            'content' => json_encode(['fields' => $fields]),
+        ],
+    ];
+    $context = stream_context_create($options);
+
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response !== FALSE) {
+        echo json_encode(['success' => true, 'message' => 'Asociación guardada exitosamente.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al guardar la asociación en Firebase.']);
+    }
+    exit();
+}
+function obtenerAsociaciones() {
+    global $firebaseProjectId, $firebaseApiKey;
+
+    $usuario = $_GET['usuarioId'] ?? null; // Se espera el campo `usuario`
+
+    if (!$usuario) {
+        echo json_encode(['success' => false, 'message' => 'Usuario no proporcionado.']);
+        return;
+    }
+
+    // URL para obtener las asociaciones desde la colección EMP_USS
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
+
+    // Realizamos la solicitud a Firebase
+    $response = @file_get_contents($url);
+
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener las asociaciones.']);
+        return;
+    }
+
+    $data = json_decode($response, true);
+
+    if (!isset($data['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron asociaciones.']);
+        return;
+    }
+
+    // Filtrar las asociaciones por el campo `usuario` y agregar el `id` del documento
+    $asociaciones = [];
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+
+        if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $usuario) {
+            $asociaciones[] = [
+                'id' => str_replace("projects/$firebaseProjectId/databases/(default)/documents/EMP_USS/", '', $document['name']),
+                'razonSocial' => $fields['empresa']['stringValue'],
+                'noEmpresa' => $fields['noEmpresa']['stringValue'],
+            ];
+        }
+    }
+
+    // Retornar las asociaciones como JSON
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'data' => $asociaciones]);
+    exit();
+}
+function eliminarAsociacion() {
+    global $firebaseProjectId, $firebaseApiKey;
+
+    $idAsociacion = $_POST['id'] ?? null;
+
+    if (!$idAsociacion) {
+        echo json_encode(['success' => false, 'message' => 'ID de la asociación no proporcionado.']);
+        return;
+    }
+
+    // URL para eliminar el documento en Firestore
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS/$idAsociacion?key=$firebaseApiKey";
+
+    // Configuración de la solicitud
+    $options = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'DELETE',
+        ],
+    ];
+    $context = stream_context_create($options);
+
+    // Realizar la solicitud a Firebase
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response !== FALSE) {
+        echo json_encode(['success' => true, 'message' => 'Asociación eliminada exitosamente.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al eliminar la asociación.']);
+    }
+    exit();
+}
+function obtenerAsociacionesUsuarios() {
+    global $firebaseProjectId, $firebaseApiKey;
+
+    $usuario = $_GET['usuarioId'] ?? null;
+
+    if (!$usuario) {
+        echo json_encode(['success' => false, 'message' => 'Usuario no proporcionado.']);
+        return;
+    }
+
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
+
+    $response = @file_get_contents($url);
+
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener las asociaciones.']);
+        return;
+    }
+
+    $data = json_decode($response, true);
+
+    if (!isset($data['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron asociaciones.']);
+        return;
+    }
+
+    $asociaciones = [];
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+
+        if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $usuario) {
+            $asociaciones[] = [
+                'id' => str_replace("projects/$firebaseProjectId/databases/(default)/documents/EMP_USS/", '', $document['name']),
+                'razonSocial' => $fields['empresa']['stringValue'],
+                'noEmpresa' => $fields['noEmpresa']['stringValue'],
+            ];
+        }
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'data' => $asociaciones]);
+    exit();
+}
+
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     $funcion = $_POST['numFuncion'];
@@ -259,6 +498,21 @@ switch ($funcion) {
         $id = $_GET['id'];
         mostrarUsuario($id);
         exit();
+    case 6:
+        obtenerUsuarios();
+        break;
+    case 7:
+        guardarAsociacion();
+        break;
+    case 8:
+        obtenerAsociaciones();
+        break;
+    case 9:
+        eliminarAsociacion();
+        break;
+        case 10:
+            obtenerAsociacionesUsuarios();
+            break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;
