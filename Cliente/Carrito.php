@@ -1,3 +1,18 @@
+<?php
+    session_start();
+
+    if (isset($_SESSION['usuario'])) {
+        if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+            header('Location:Dashboard.php');
+            exit();
+        }
+        $nombreUsuario = $_SESSION['usuario']["nombre"];
+        $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
+    } else {
+        header('Location:../index.php');
+    }
+?>
+
 <!DOCTYPE html>
 <html>
 
@@ -130,7 +145,12 @@
                                                     <div class="card-body">
                                                         <h8 class="mb-4" id="h8">Resumen del Pedido</h8>
                                                         <hr class="my-4">
+                                                        
                                                         <div class="d-flex justify-content-between">
+                                                            <p class="mb-2">Folio: </p>
+                                                            <input type="text">
+                                                        </div>
+                                                        <!-- <div class="d-flex justify-content-between">
                                                             <p class="mb-2">Subtotal</p>
                                                             <p class="mb-2" id="subtotal">$0.00</p>
                                                         </div>
@@ -147,7 +167,7 @@
                                                                 <span id=""></span>
                                                                 <span>Pagar <i
                                                                         class="fas fa-long-arrow-alt-right ms-2"></i></span>
-                                                            </div>
+                                                            </div> -->
                                                         </button>
                                                     </div>
                                                 </div>
