@@ -5,8 +5,7 @@ function datosUsuarios(tipoUsuario, usuario) {
     data: { usuarioLogueado: tipoUsuario, usuario: usuario, numFuncion: "3" },
     success: function (response) {
       if (response.success) {
-        mostrarUsuarios(response.data); // Llama a otra función para mostrar los usuarios en la página
-        console.log(response.data);
+        mostrarUsuarios(response.data, tipoUsuario); // Llama a otra función para mostrar los usuarios en la página
       } else {
         console.log(response.message);
         alert("Error: " + response.message);
@@ -18,54 +17,192 @@ function datosUsuarios(tipoUsuario, usuario) {
   });
 }
 
-function mostrarUsuarios(usuarios) {
+function mostrarUsuarios(usuarios, tipoUsuario) {
   var tablaClientes = $("#tablaUsuarios"); // Selección del cuerpo de la tabla
   tablaClientes.empty(); // Limpieza de los datos previos en la tabla
 
   // Ordenar los usuarios alfabéticamente por nombreCompleto
   usuarios.sort(function (a, b) {
-    var nombreA = (a.nombreCompleto || "").toUpperCase(); // Manejar valores nulos o indefinidos
-    var nombreB = (b.nombreCompleto || "").toUpperCase();
-    return nombreA.localeCompare(nombreB); // Comparación estándar de cadenas
+      var nombreA = (a.nombreCompleto || "").toUpperCase(); // Manejar valores nulos o indefinidos
+      var nombreB = (b.nombreCompleto || "").toUpperCase();
+      return nombreA.localeCompare(nombreB); // Comparación estándar de cadenas
   });
 
   // Crear filas para cada usuario
   usuarios.forEach(function (usuario) {
-    // Generar fila asegurando que todas las celdas tengan contenido
-    var fila = $("<tr>"); // Crear el elemento <tr>
-    fila.append($("<td>").text(usuario.nombreCompleto || "-")); // Agregar columna de nombre
-    fila.append($("<td>").text(usuario.correo || "-")); // Agregar columna de correo
-    fila.append($("<td>").text(usuario.status || "-")); // Agregar columna de estatus
-    fila.append($("<td>").text(usuario.rol || "-")); // Agregar columna de rol
+      var fila = $("<tr>"); // Crear el elemento <tr>
+      fila.append($("<td>").text(usuario.nombreCompleto || "-")); // Agregar columna de nombre
+      fila.append($("<td>").text(usuario.correo || "-")); // Agregar columna de correo
+      fila.append($("<td>").text(usuario.status || "-")); // Agregar columna de estatus
+      fila.append($("<td>").text(usuario.rol || "-")); // Agregar columna de rol
 
-    // Botón Editar con seguridad en el manejo del ID
-    var botonEditar = $("<button>")
-      .addClass("btn btn-info btn-sm") // Añadir clases CSS
-      .text("Editar") // Texto del botón
-      .attr("onclick", 'editarUsuario("' + usuario.id + '")'); // Atributo onclick
+      // Botón Editar
+      var botonEditar = $("<button>")
+          .addClass("btn btn-info btn-sm")
+          .text("Editar")
+          .attr("onclick", 'editarUsuario("' + usuario.id + '")');
 
-    // Añadir botón a la última celda
-    fila.append($("<td>").append(botonEditar));
+      fila.append($("<td>").append(botonEditar));
 
-    //Botón Visualizar
-    var botonVer = $("<button>")
-      .addClass("btn btn-info btn-sm") // Añadir clases CSS
-      .text("Visualizar") // Texto del botón
-      .attr("onclick", 'visualizarUsuario("' + usuario.id + '")'); // Atributo onclick
+      // Botón Visualizar
+      var botonVer = $("<button>")
+          .addClass("btn btn-info btn-sm")
+          .text("Visualizar")
+          .attr("onclick", 'visualizarUsuario("' + usuario.id + '")');
 
-    // Añadir botón a la última celda
-    fila.append($("<td>").append(botonVer));
+      fila.append($("<td>").append(botonVer));
 
-    var botonVerAsociaciones = $("<button>")
-      .addClass("btn btn-info btn-sm")
-      .text("Asociaciones")
-      .attr("onclick", 'visualizarAsociaciones("' + usuario.usuario + '")'); // Usar el campo `usuario`
+      // Botón Asociaciones
+      var botonVerAsociaciones = $("<button>")
+          .addClass("btn btn-info btn-sm")
+          .text("Asociaciones")
+          .attr("onclick", 'visualizarAsociaciones("' + usuario.usuario + '")');
 
-    // Añadir botón a la última celda
-    fila.append($("<td>").append(botonVerAsociaciones));
+      fila.append($("<td>").append(botonVerAsociaciones));
 
-    // Añadir la fila completa a la tabla
-    tablaClientes.append(fila);
+      if(tipoUsuario == "ADMINISTRADOR"){
+
+      // Botón Dar de Baja
+      var botonBaja = $("<button>")
+          .addClass("btn btn-danger btn-sm")
+          .text("Dar de Baja")
+          .attr("onclick", 'darDeBajaUsuario("' + usuario.id + '")');
+
+      fila.append($("<td>").append(botonBaja));
+      
+        // Botón Activar Usuario (solo si el estado es 'Baja')
+        if (usuario.status === "Baja") {
+            var botonActivar = $("<button>")
+                .addClass("btn btn-success btn-sm")
+                .text("Activar")
+                .attr("onclick", 'activarUsuario("' + usuario.id + '")'); // Usar el ID del usuario
+
+            fila.append($("<td>").append(botonActivar));
+        } else {
+            fila.append($("<td>").text("-")); // Columna vacía si no está en 'Baja'
+        }
+      }
+
+      // Añadir la fila completa a la tabla
+      tablaClientes.append(fila);
+  });
+}
+function activarUsuario(usuarioId) {
+  Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción activará al usuario.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, activar",
+      cancelButtonText: "Cancelar",
+  }).then((result) => {
+      if (result.isConfirmed) {
+          $.ajax({
+              url: "../Servidor/PHP/usuarios.php", // Cambia la ruta si es necesario
+              method: "POST",
+              data: {
+                  numFuncion: "12", // Identificador para activar usuario
+                  usuarioId: usuarioId,
+              },
+              success: function (response) {
+                  try {
+                      const res = JSON.parse(response);
+                      if (res.success) {
+                          Swal.fire({
+                              icon: "success",
+                              title: "Éxito",
+                              text: "El usuario ha sido activado.",
+                              timer: 2000,
+                              showConfirmButton: false,
+                          }).then(() => {
+                              location.reload();
+                          });
+                      } else {
+                          Swal.fire({
+                              icon: "error",
+                              title: "Error",
+                              text: res.message || "No se pudo activar al usuario.",
+                          });
+                      }
+                  } catch (error) {
+                      console.error("Error al procesar la respuesta:", error);
+                      Swal.fire({
+                          icon: "error",
+                          title: "Error",
+                          text: "Error al procesar la respuesta del servidor.",
+                      });
+                  }
+              },
+              error: function () {
+                  Swal.fire({
+                      icon: "error",
+                      title: "Error",
+                      text: "Error al realizar la solicitud.",
+                  });
+              },
+          });
+      }
+  });
+}
+function darDeBajaUsuario(usuarioId) {
+  Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción marcará al usuario como dado de baja.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, dar de baja",
+      cancelButtonText: "Cancelar",
+  }).then((result) => {
+      if (result.isConfirmed) {
+          $.ajax({
+              url: "../Servidor/PHP/usuarios.php", // Cambia la ruta si es necesario
+              method: "POST",
+              data: {
+                  numFuncion: "11", // Identificador para dar de baja
+                  usuarioId: usuarioId,
+              },
+              success: function (response) {
+                  try {
+                      const res = JSON.parse(response);
+                      if (res.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Éxito",
+                            text: "El usuario ha sido dado de baja.",
+                            timer: 2000,
+                            showConfirmButton: false,
+                        }).then(() => {
+                            location.reload(); // Recargar la página después de que el mensaje se cierre
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: res.message || "No se pudo dar de baja al usuario.",
+                        });
+                    }
+                  } catch (error) {
+                      console.error("Error al procesar la respuesta:", error);
+                      Swal.fire({
+                          icon: "error",
+                          title: "Error",
+                          text: "Error al procesar la respuesta del servidor.",
+                      });
+                  }
+              },
+              error: function () {
+                  Swal.fire({
+                      icon: "error",
+                      title: "Error",
+                      text: "Error al realizar la solicitud.",
+                  });
+              },
+          });
+      }
   });
 }
 function visualizarAsociaciones(usuarioId) {
@@ -326,6 +463,7 @@ $("#btnGuardarAsociacion").on("click", function () {
             .empty()
             .append('<li class="list-group-item">Sin asociaciones</li>'); // Limpia la lista de empresas asociadas
           $("#asociarEmpresaModal").modal("hide"); // Cerrar el modal
+          //location.reload();
         } else {
           Swal.fire({
             icon: "error",
@@ -376,13 +514,14 @@ $("#selectUsuario").on("change", function () {
           if (res.data.length > 0) {
             res.data.forEach((empresa) => {
               listaEmpresas.append(`
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    ${empresa.razonSocial} (No. Empresa: ${empresa.noEmpresa})
-                                    <button class="btn btn-danger btn-sm btnEliminarAsociacion" data-id="${empresa.id}">
-                                        Eliminar
-                                    </button>
-                                </li>
-                            `);
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  ${empresa.razonSocial} (No. Empresa: ${empresa.noEmpresa})
+                  <button 
+                    class="btn btn-danger btn-sm btnEliminarAsociacion" 
+                    data-id="${empresa.id}" 
+                    data-usuario="${usuario}">Eliminar</button>
+                </li>
+              `);
             });
           } else {
             listaEmpresas.append(
@@ -390,25 +529,40 @@ $("#selectUsuario").on("change", function () {
             );
           }
         } else {
-          alert(res.message || "No se pudieron cargar las empresas asociadas.");
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: res.message || "No se pudieron cargar las empresas asociadas.",
+          });
         }
       } catch (error) {
         console.error("Error al procesar la respuesta:", error);
-        alert("Error al cargar las empresas asociadas.");
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Error al cargar las empresas asociadas.",
+        });
       }
     },
     error: function () {
-      alert("Error al realizar la solicitud.");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al realizar la solicitud.",
+      });
     },
   });
 });
+
 $("#listaEmpresasAsociadas").on("click", ".btnEliminarAsociacion", function () {
   const idAsociacion = $(this).data("id"); // ID del documento en Firestore
-  if (!idAsociacion) {
+  const usuario = $(this).data("usuario"); // Usuario asociado
+
+  if (!idAsociacion || !usuario) {
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "No se pudo identificar la asociación.",
+      text: "No se pudo identificar la asociación o el usuario.",
     });
     return;
   }
@@ -432,6 +586,7 @@ $("#listaEmpresasAsociadas").on("click", ".btnEliminarAsociacion", function () {
         data: {
           numFuncion: "9", // Identificador para eliminar asociación
           id: idAsociacion,
+          usuario: usuario, // Enviar también el usuario
         },
         success: function (response) {
           try {
@@ -539,6 +694,7 @@ $('.btn-close').on('click', function () {
 });
 $('#cerrarModalVisAsoFooter').on('click', function () {
     $('#verAsociacionesModal').modal('hide'); // Cierra el modal
+    $('#tablaAsociaciones').empty();
 });
 
   $("#cerrarModalHeader").on("click", cerrarModal);

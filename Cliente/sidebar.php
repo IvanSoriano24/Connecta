@@ -43,17 +43,18 @@
             </a>
         </li>
         <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
-        <li>
-            <a href="Clientes.php">
-                <i class='bx bxs-user'></i>
-                <span class="text">Mis Clientes</span>
-            </a>
-        </li>
+            <li>
+                <a href="Clientes.php">
+                    <i class='bx bxs-user'></i>
+                    <span class="text">Mis Clientes</span>
+                </a>
+            </li>
         <?php } ?>
         <li>
             <a href="Mensajes.php">
                 <i class='bx bxs-message-dots'></i>
                 <span class="text">Mensajes</span>
+                <span id="mensajesNotificacion" class="badge bg-danger text-white d-none" style="font-size: 0.8rem; margin-left: 10px;">0</span>
             </a>
         </li>
         <li>
@@ -84,16 +85,4 @@
         </li>
     </ul>
 </section>
-<!-- NAVBAR -->
-<!-- <nav>
-    <section id="navbar" style="background-color:#F9F9F9; padding: 10px;">
-        <div style="display: flex; justify-content: flex-end; align-items: center;">
-            <h4 style="margin-top: 10px; text-align: left;">Nombre de la Empresa</h4>
-            <button class="btn btn-secondary" style="background-color: #49A1DF; color: white;">
-                <i class='bx bxs-user'></i>
-                <a class="brand" href="Usuarios.php" style="color: white;">Usuarios</a>
-            </button>
-        </div>
-    </section>
-</nav> -->
 </section>

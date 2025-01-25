@@ -211,6 +211,10 @@ if (isset($_SESSION['usuario'])) {
                                     <th style="">Editar</th>
                                     <th style="">Visualizar</th>
                                     <th style="">Asociaciones</th>
+                                    <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
+                                    <th style="">Dar de Baja</th>
+                                    <th style="">Activar</th>
+                                    <?php } ?>
                                 </tr>
                             </thead>
                             <tbody id="tablaUsuarios">
