@@ -95,6 +95,7 @@ function mostrarUsuarios($usuarioLogueado, $usuario)
                     'estatus' => $fields['estatus']['stringValue'] ?? '',
                     'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
                     'usuario' => $fields['usuario']['stringValue'] ?? '',
+                    'status' => $fields['status']['stringValue'] ?? '',
                 ];
                 break; // Salimos del loop una vez que encontramos el usuario
             }
@@ -128,6 +129,7 @@ function mostrarUsuarios($usuarioLogueado, $usuario)
                 'estatus' => $fields['estatus']['stringValue'] ?? '',
                 'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
                 'usuario' => $fields['usuario']['stringValue'] ?? '',
+                'status' => $fields['status']['stringValue'] ?? '',
             ];
         }
     }
@@ -268,7 +270,6 @@ function guardarAsociacion() {
 
     // Verificar si ya existe la asociación
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
-
     $response = @file_get_contents($url);
 
     if ($response === FALSE) {
@@ -319,8 +320,35 @@ function guardarAsociacion() {
         return;
     }
 
-    // Actualizar el campo `status` del usuario a `Activo`
-    $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/$usuario?key=$firebaseApiKey";
+    // Obtener el ID del documento del usuario
+    $urlUsuarios = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+    $responseUsuarios = @file_get_contents($urlUsuarios);
+
+    if ($responseUsuarios === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los usuarios para actualizar el estado.']);
+        return;
+    }
+
+    $usuariosData = json_decode($responseUsuarios, true);
+    $usuarioId = null;
+
+    if (isset($usuariosData['documents'])) {
+        foreach ($usuariosData['documents'] as $document) {
+            $fields = $document['fields'];
+            if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $usuario) {
+                $usuarioId = str_replace("projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/", '', $document['name']);
+                break;
+            }
+        }
+    }
+
+    if (!$usuarioId) {
+        echo json_encode(['success' => false, 'message' => 'Usuario no encontrado para actualizar el estado.']);
+        return;
+    }
+
+    // Actualizar solo el campo `status` del usuario a `Activo` usando `updateMask`
+    $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/$usuarioId?updateMask.fieldPaths=status&key=$firebaseApiKey";
     $fieldsUsuario = [
         'status' => ['stringValue' => 'Activo'],
     ];

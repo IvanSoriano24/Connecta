@@ -35,7 +35,7 @@ function mostrarUsuarios(usuarios) {
     var fila = $("<tr>"); // Crear el elemento <tr>
     fila.append($("<td>").text(usuario.nombreCompleto || "-")); // Agregar columna de nombre
     fila.append($("<td>").text(usuario.correo || "-")); // Agregar columna de correo
-    fila.append($("<td>").text(usuario.estatus || "-")); // Agregar columna de estatus
+    fila.append($("<td>").text(usuario.status || "-")); // Agregar columna de estatus
     fila.append($("<td>").text(usuario.rol || "-")); // Agregar columna de rol
 
     // Botón Editar con seguridad en el manejo del ID
