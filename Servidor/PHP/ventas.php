@@ -1777,6 +1777,102 @@ function eliminarPedido($conexionData, $pedidoID)
     sqlsrv_close($conn);
 }
 
+//--------------Funcion Mostrar Articulos----------------------------------------------------------------
+
+// function extraerProductos($conexionData)
+// {
+//     $serverName = $conexionData['host'];
+//     $connectionInfo = [
+//         "Database" => $conexionData['nombreBase'],
+//         "UID" => $conexionData['usuario'],
+//         "PWD" => $conexionData['password'],
+//         "CharacterSet" => "UTF-8"
+//     ];
+
+//     $conn = sqlsrv_connect($serverName, $connectionInfo);
+//     if ($conn === false) {
+//         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+//         exit;
+//     }
+
+//     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+//     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+//     $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [IMAGEN_URL]
+//         FROM $nombreTabla";
+
+//     $stmt = sqlsrv_query($conn, $sql);
+
+//     if ($stmt === false) {
+//         echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+//         exit;
+//     }
+
+//     $productos = [];
+//     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+//         $productos[] = $row;
+//     }
+
+//     if (count($productos) > 0) {
+//         header('Content-Type: application/json');
+//         echo json_encode(['success' => true, 'productos' => $productos]);
+//     } else {
+//         echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+//     }
+
+//     sqlsrv_free_stmt($stmt);
+//     sqlsrv_close($conn);
+// }
+
+function extraerProductos($conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // Asume la empresa predeterminada
+    $noEmpresa = '02';
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta SQL
+     $sql = "SELECT TOP (20) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], ISNULL([IMAGEN_ML], 'SRC/logomd.png') AS IMAGEN_ML FROM $nombreTabla";
+   
+    // Ejecución de la consulta
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // Procesar los resultados
+    $productos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $productos[] = $row;
+    }
+
+    // Respuesta JSON
+    if (count($productos) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'productos' => $productos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+
+// -----------------------------------------------------------------------------------------------------
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -2075,6 +2171,67 @@ switch ($funcion) {
         $pedidoID = $_POST['pedidoID'];
         eliminarPedido($conexionData, $pedidoID);
         break;
+    
+    case 11:
+            // Empresa por defecto (puedes cambiar este valor según tus necesidades)
+            $noEmpresa = '02';
+        
+            // Obtener conexión
+            $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+            if (!$conexionResult['success']) {
+                echo json_encode($conexionResult);
+                break;
+            }
+        
+            // Obtener los datos de conexión
+            $conexionData = $conexionResult['data'];
+        
+            // Llamar a la función para extraer productos
+            extraerProductos($conexionData);
+            break;
+        
+            case 12:
+                $codigoProducto = isset($_GET['codigoProducto']) ? $_GET['codigoProducto'] : null;
+            
+                if (!$codigoProducto) {
+                    echo json_encode(['success' => false, 'message' => 'No se proporcionó un código de producto.']);
+                    exit;
+                }
+            
+                // Depurar el código de producto
+                error_log("Código de producto recibido: $codigoProducto");
+            
+                $sql = "SELECT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], 
+                               ISNULL([IMAGEN_ML], 'ruta/imagen_por_defecto.png') AS IMAGEN_ML
+                        FROM $nombreTabla
+                        WHERE CVE_ART = ?";
+                $params = [$codigoProducto];
+            
+                $stmt = sqlsrv_query($conn, $sql, $params);
+            
+                if ($stmt === false) {
+                    error_log("Error en la consulta SQL: " . print_r(sqlsrv_errors(), true));
+                    echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL.', 'errors' => sqlsrv_errors()]);
+                    exit;
+                }
+            
+                $producto = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+            
+                if ($producto) {
+                    // Depuración del producto encontrado
+                    error_log("Producto encontrado: " . print_r($producto, true));
+                    echo json_encode(['success' => true, 'producto' => $producto]);
+                } else {
+                    error_log("Producto no encontrado.");
+                    echo json_encode(['success' => false, 'message' => 'Producto no encontrado.']);
+                }
+            
+                sqlsrv_free_stmt($stmt);
+                break;
+            
+            
+            
+        
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;

@@ -79,7 +79,7 @@ thead {
 
                     <!-- Section Title -->
                     <div class="container section-title" data-aos="fade-up">
-                        <h2>Pedidos</h2>
+                        <h2>Carrito</h2>
                         <p></p>
                         <section class="intro">
                             <div class="bg-image h-100" style="background-color: #f5f7fa;">
@@ -89,39 +89,17 @@ thead {
                                             <div class="col-12">
                                                 <div class="card">
                                                     <div class="card-body p-0">
-                                                        <div class="table-responsive table-scroll"
-                                                            data-mdb-perfect-scrollbar="true"
-                                                            style="position: relative; height: 700px">
-                                                            <table class="table table-striped mb-0">
-                                                                <thead style="background-color:rgb(49, 118, 222);">
-                                                                    <tr>
-                                                                        <th scope="col"
-                                                                            style="background-color: rgba(95, 59, 123, 0.89); color: white; ">
-                                                                            Clave</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: rgba(95, 59, 123, 0.89); color: white; ">
-                                                                            Nombre</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: rgba(95, 59, 123, 0.89); color: white; ">
-                                                                            Cantidad</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: rgba(95, 59, 123, 0.89); color: white; ">
-                                                                            Total</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr>
+                                                        <ul id="carrito-lista" class="carrito-lista">
+                                                            <!-- Aquí se mostrarán los productos del carrito -->
+                                                        </ul>
+                                                        <button id="vaciar-carrito" class="btn-vaciar">Vaciar Carrito</button>
 
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                         </section>
                     </div><!-- End Section Title -->
 
@@ -135,6 +113,14 @@ thead {
         <?php include 'FooterEcommerce.php'; ?>
 
     </div>
+
+
+
+
+
+    <script src="JS/menu.js"></script>
+    <script src="JS/app.js"></script>
+    <script src="JS/pedidos.js"></script>
     <script src="JS/ventas.js"></script>
 
     <!-- Scroll Top -->

@@ -1,3 +1,9 @@
+// --------Funciones para mostrar articulos----------------
+
+
+// -----------------------------------------------------------------------------
+
+
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
   const clienteSeleccionado =

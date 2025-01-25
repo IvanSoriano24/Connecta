@@ -55,7 +55,7 @@ function login($funcion){
             if ($usuarioValido) {
                 //$tipUsuario = 'CLIENTE';
                 if($tipUsuario == 'CLIENTE'){
-                    header("Location: ../../Cliente/menu.php");
+                    header("Location: ../../Cliente/Menu.php");
                     exit();
                 }
                 header("Location: ../../Cliente/Dashboard.php");

@@ -15,7 +15,7 @@
           <li><a href="Articulos.php">Productos</a></li>
           <li><a href="Pedidos.php">Pedidos</a></li>
           <li><a href="#">Guias</a></li>
-          
+          <li><a href="Carrito.php">Carrito</a></li>
           <!-- <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="#">Dropdown 1</a></li>
