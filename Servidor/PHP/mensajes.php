@@ -152,6 +152,45 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId)
     }
 }
 
+function notificaciones($firebaseProjectId, $firebaseApiKey){
+    $nuevosMensajes = 0;
+    $nuevasComandas = 0;
+
+    // Verificar mensajes nuevos en Firebase
+    $mensajesUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/MENSAJES?key=$firebaseApiKey";
+    $mensajesResponse = @file_get_contents($mensajesUrl);
+    if ($mensajesResponse !== false) {
+        $mensajesData = json_decode($mensajesResponse, true);
+        foreach ($mensajesData['documents'] as $document) {
+            $fields = $document['fields'];
+            if ($fields['estado']['stringValue'] === 'Pendiente') {
+                $nuevosMensajes++;
+            }
+        }
+    }
+
+    // Verificar comandas pendientes en Firebase
+    $comandasUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+    $comandasResponse = @file_get_contents($comandasUrl);
+    if ($comandasResponse !== false) {
+        $comandasData = json_decode($comandasResponse, true);
+        foreach ($comandasData['documents'] as $document) {
+            $fields = $document['fields'];
+            if ($fields['status']['stringValue'] === 'Pendiente') {
+                $nuevasComandas++;
+            }
+        }
+    }
+
+    echo json_encode([
+        'success' => true,
+        'data' => [
+            'nuevosMensajes' => $nuevosMensajes,
+            'nuevasComandas' => $nuevasComandas
+        ]
+    ]);
+    exit;
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
     $funcion = $_POST['numFuncion'];
@@ -178,6 +217,9 @@ switch ($funcion) {
         $comandaId = $_POST['comandaId'];
         marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId);
         break;
+        case 4:
+            notificaciones($firebaseProjectId, $firebaseApiKey);
+            break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;

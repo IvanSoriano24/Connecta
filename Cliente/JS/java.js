@@ -36,11 +36,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const error = urlParams.get('error');
     
     if (error) {
-        // Mostrar el mensaje de error como un alert
+        let message = "Correo o contraseña incorrectos."; // Mensaje predeterminado
+        if (error === "2") {
+            message = "Tu cuenta está bloqueada. Por favor, contacta al administrador.";
+        } else if (error === "3") {
+            message = "Tu cuenta está dada de baja. Por favor, contacta al administrador.";
+        }
+
+        // Mostrar el mensaje de error con SweetAlert2
         Swal.fire({
             icon: "error",
             title: "Error",
-            text: "Correo o contraseña incorrectos.",
+            text: message,
             confirmButtonColor: "#3085d6"
         });
     }

@@ -1,6 +1,6 @@
 <?php
 
-function login($funcion){
+function login($funcion) {
     try {
         $tipUsuario = '';
         session_start();
@@ -34,9 +34,13 @@ function login($funcion){
 
                 // Validar credenciales y estatus
                 if ($usuarioFirebase === $usuario && $passwordFirebase === $password) {
-                    if ($statusFirebase !== 'Activo') {
-                        // Si el usuario no está activo, mostrar mensaje y redirigir
+                    if ($statusFirebase === 'Bloqueado') {
                         header("Location: ../../Cliente/index.php?error=2");
+                        exit();
+                    }
+
+                    if ($statusFirebase === 'Baja') {
+                        header("Location: ../../Cliente/index.php?error=3");
                         exit();
                     }
 
@@ -69,7 +73,6 @@ function login($funcion){
                 header("Location: ../../Cliente/Dashboard.php");
                 exit();
             } else {
-                echo "Correo o contraseña incorrectos.";
                 header("Location: ../../Cliente/index.php?error=1");
                 exit();
             }
