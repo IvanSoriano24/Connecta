@@ -116,8 +116,6 @@ function mostrarPedidos($conexionData, $filtroFecha)
                 FECHAELAB AS FechaElaboracion,
                 CAN_TOT AS Subtotal,
                 COM_TOT AS TotalComisiones,
-                NUM_ALMA AS NumeroAlmacen,
-                FORMAENVIO AS FormaEnvio,
                 IMPORTE AS ImporteTotal,
                 (SELECT MAX(NOMBRE) FROM $nombreTabla3 WHERE $nombreTabla3.CVE_VEND = $nombreTabla2.CVE_VEND) AS NombreVendedor
             FROM $nombreTabla2
@@ -144,8 +142,6 @@ function mostrarPedidos($conexionData, $filtroFecha)
                 FECHAELAB AS FechaElaboracion,
                 CAN_TOT AS Subtotal,
                 COM_TOT AS TotalComisiones,
-                NUM_ALMA AS NumeroAlmacen,
-                FORMAENVIO AS FormaEnvio,
                 IMPORTE AS ImporteTotal,
                 (SELECT MAX(NOMBRE) FROM $nombreTabla3 WHERE $nombreTabla3.CVE_VEND = $nombreTabla2.CVE_VEND) AS NombreVendedor
             FROM $nombreTabla2
@@ -333,7 +329,7 @@ function actualizarPedido($conexionData, $formularioData, $partidasData)
         CONDICION = ?, 
         CVE_VEND = ? 
         WHERE CVE_DOC = ?";
-    
+
     $params = [
         $FECHA_DOC,
         $FECHA_ENT,
@@ -449,9 +445,17 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ? 
                 WHERE CVE_DOC = ? AND CVE_ART = ?";
             $params = [
-                $CANT, $PREC, $IMPU1, $IMPU4, $DESC1, $DESC2,
-                $TOTIMP1, $TOTIMP4, $TOT_PARTIDA,
-                $CVE_DOC, $CVE_ART
+                $CANT,
+                $PREC,
+                $IMPU1,
+                $IMPU4,
+                $DESC1,
+                $DESC2,
+                $TOTIMP1,
+                $TOTIMP4,
+                $TOT_PARTIDA,
+                $CVE_DOC,
+                $CVE_ART
             ];
         } else {
             // Si la partida no existe, realizar un INSERT
@@ -1077,7 +1081,9 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
+    // Extraer 'enviar a' y 'vendedor' del formulario
+    $enviarA = $formularioData['enviar']; // Dirección de envío
+    $vendedor = $formularioData['vendedor']; // Número de vendedor
     $claveCliente = $formularioData['cliente'];
     $noPedido = $formularioData['numero']; // Número de pedido
     $claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
@@ -1102,23 +1108,43 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         sqlsrv_close($conn);
         return;
     }
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    foreach ($partidasData as &$partida) {
+        $claveProducto = $partida['producto'];
+
+        // Consulta SQL para obtener la descripción del producto
+        $sqlProducto = "SELECT DESCR FROM $nombreTabla2 WHERE CVE_ART = ?";
+        $stmtProducto = sqlsrv_query($conn, $sqlProducto, [$claveProducto]);
+
+        if ($stmtProducto && $rowProducto = sqlsrv_fetch_array($stmtProducto, SQLSRV_FETCH_ASSOC)) {
+            $partida['descripcion'] = $rowProducto['DESCR'];
+        } else {
+            $partida['descripcion'] = 'Descripción no encontrada'; // Manejo de error
+        }
+
+        sqlsrv_free_stmt($stmtProducto);
+    }
+    
+    $fechaElaboracion = $formularioData['diaAlta'];
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']);
     $clienteNombre = trim($clienteData['NOMBRE']);
+    $numeroWhatsApp = '+527773340218';
+    //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
-        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData); // Enviar correo
-        error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
-        $resultadoWhatsApp = enviarWhatsApp($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
+        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion); // Enviar correo
+        //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
+        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
+        die();
     }
-
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
 // Función para enviar el correo (en desarrollo)
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -1127,35 +1153,41 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData)
     $titulo = 'Notificación de Pedido';
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
-    // URLs para confirmar o rechazar, apuntando a la carpeta del servidor
+    $productosJson = urlencode(json_encode($partidasData));
+    // URLs para confirmar o rechazar
     $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar";
-    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar";
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion);
+    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor);
 
     // Construir cuerpo del correo
     $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
-    $bodyHTML .= "<p>Por este medio enviamos los productos de su pedido <b>$noPedido</b>. Por favor, revíselos y confirme:</p>";
+    $bodyHTML .= "<p>Por este medio enviamos los detalles de su pedido <b>$noPedido</b>. Por favor, revíselos y confirme:</p>";
+    $bodyHTML .= "<p><b>Fecha y Hora de Elaboración:</b> $fechaElaboracion</p>";
+    $bodyHTML .= "<p><b>Dirección de Envío:</b> $enviarA</p>";
+    $bodyHTML .= "<p><b>Vendedor:</b> $vendedor</p>";
 
     // Agregar detalles del pedido
     $bodyHTML .= "<table style='border-collapse: collapse; width: 100%;' border='1'>
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Total Partida</th>
-                        </tr>
-                    </thead>
-                    <tbody>";
+                <thead>
+                    <tr>
+                        <th>Clave</th>
+                        <th>Descripción</th>
+                        <th>Cantidad</th>
+                        <th>Total Partida</th>
+                    </tr>
+                </thead>
+                <tbody>";
     $total = 0;
-
     foreach ($partidasData as $partida) {
-        $producto = $partida['producto'];
+        $clave = $partida['producto'];
+        $descripcion = $partida['descripcion'];
         $cantidad = $partida['cantidad'];
-        $totalPartida = $partida['cantidad'] * $partida['precioUnitario'];
+        $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
 
         $bodyHTML .= "<tr>
-                        <td>$producto</td>
+                        <td>$clave</td>
+                        <td>$descripcion</td>
                         <td>$cantidad</td>
                         <td>$" . number_format($totalPartida, 2) . "</td>
                       </tr>";
@@ -1173,28 +1205,81 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData)
 
     // Enviar correo
     $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML);
-    // Imprimir el resultado del envío del correo
-    echo $resultado;
+    if ($resultado === "Correo enviado exitosamente.") {
+        //echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente.']);
+    } else {
+        error_log("Error al enviar el correo: $resultado");
+        echo json_encode(['success' => false, 'message' => 'Hubo un problema al enviar el correo.']);
+    }
 }
-function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $partidasData)
 {
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
     $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
 
-    $nombre = "Sun Arrow";
-    $data = array(
+    // Calcular el total y construir el texto de los productos
+    $productosStr = "";
+    $total = 0;
+
+    foreach ($partidasData as $partida) {
+        $producto = $partida['producto'];
+        $cantidad = $partida['cantidad'];
+        $precioUnitario = $partida['precioUnitario'];
+        $totalPartida = $cantidad * $precioUnitario;
+        $total += $totalPartida;
+
+        $productosStr .= "$producto - $cantidad unidades, ";
+    }
+
+    // Limpiar el texto de productos
+    $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr)); // Eliminar la última coma
+
+    // Crear el cuerpo de la solicitud para la API
+    $data = [
         "messaging_product" => "whatsapp",
         "recipient_type" => "individual",
-        //"to" => "+527773340218",
-        "to" => "+527773750925",
+        "to" => $numero,
         "type" => "template",
-        "template" => array(
-            "name" => "hello_world",
-            "language" => array(
-                "code" => "en_US"
-            )
-        )
-    );
+        "template" => [
+            "name" => "confirmar_pedido", // Nombre de la plantilla aprobada
+            "language" => ["code" => "es_MX"],
+            "components" => [
+                // Parámetros del encabezado
+                [
+                    "type" => "header",
+                    "parameters" => [
+                        ["type" => "text", "text" => $clienteNombre] // {{1}} en el encabezado
+                    ]
+                ],
+                // Parámetros del cuerpo
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        ["type" => "text", "text" => $noPedido], // {{1}}
+                        ["type" => "text", "text" => $productosStr], // {{2}}
+                        ["type" => "text", "text" => "$" . number_format($total, 2)] // {{3}}
+                    ]
+                ],
+                // Parámetros para los botones dinámicos
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 0,
+                    "parameters" => [
+                        ["type" => "text", "text" => $noPedido] // {{1}} en el botón Confirmar
+                    ]
+                ],
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 1,
+                    "parameters" => [
+                        ["type" => "text", "text" => $noPedido] // {{1}} en el botón Rechazar
+                    ]
+                ]
+            ]
+        ]
+    ];
 
     $data_string = json_encode($data);
 
@@ -1202,19 +1287,16 @@ function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
     curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt(
-        $curl,
-        CURLOPT_HTTPHEADER,
-        array(
-            'Authorization: Bearer ' . $token,
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($data_string)
-        )
-    );
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $token,
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data_string)
+    ]);
 
     $result = curl_exec($curl);
     curl_close($curl);
-    //echo $result;
+
+    return $result;
 }
 /*function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
 {
@@ -1888,7 +1970,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     exit;
 }
 
-//var_dump($funcion);
 switch ($funcion) {
     case 1:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -2059,7 +2140,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+             $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
@@ -2071,18 +2152,18 @@ switch ($funcion) {
                 // Validar crédito del cliente
                 $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
-                if ($validacionCredito['success']) {
-                    guardarPedido($conexionData, $formularioData, $partidasData);
-                    guardarPartidas($conexionData, $formularioData, $partidasData);
-                    actualizarFolio($conexionData);
-                    actualizarInventario($conexionData, $partidasData);
-
-                    // Respuesta de éxito
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'El pedido se completó correctamente.',
-                    ]);
-                } else {
+            if ($validacionCredito['success']) {
+            guardarPedido($conexionData, $formularioData, $partidasData);
+            guardarPartidas($conexionData, $formularioData, $partidasData);
+            actualizarFolio($conexionData);
+            actualizarInventario($conexionData, $partidasData);
+            validarCorreoCliente($formularioData, $partidasData, $conexionData);
+            // Respuesta de éxito
+            echo json_encode([
+                'success' => true,
+                'message' => 'El pedido se completó correctamente.',
+            ]); 
+            } else {
                     // Error de crédito
                     echo json_encode([
                         'success' => false,

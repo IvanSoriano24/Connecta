@@ -53,76 +53,47 @@
         }
 
         /*********************/
-        #content main .table-data .user-table {
-    flex-grow: 1;
-    flex-basis: 500px;
-}
+        table.table tbody td {
+            text-transform: uppercase;
+            padding: 12px;
+            /* Aumenta el espacio interno */
+            height: 50px;
+            /* Establece una altura mínima */
+            text-align: left;
+            /* Alineación horizontal */
+            vertical-align: middle;
+            /* Alineación vertical */
+            padding: 12px;
+            /* Aumenta el espacio interno */
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            /* Ajusta el tamaño del texto */
+            line-height: 1.5;
+            /* Asegura un espaciado vertical uniforme */
+            text-transform: none;
+            /* Evita modificaciones al texto */
+        }
 
-#content main .table-data .user-table table {
-    width: 100%;
-    border-collapse: collapse; /* Elimina espacios entre bordes */
-    table-layout: fixed; /* Asegura que las columnas se distribuyan uniformemente */
-    border-spacing: 0; /* Elimina cualquier espaciado entre las celdas */
-}
+        table.table tr {
+            height: 60px;
+            /* Altura fija para todas las filas */
+        }
 
-#content main .table-data .user-table table th {
-    padding: 12px; /* Padding uniforme */
-    font-size: 13px;
-    text-align: left;
-    border-bottom: 1px solid var(--grey); /* Línea inferior */
-    white-space: nowrap; /* Evita saltos de línea */
-    overflow: hidden; /* Oculta contenido excedente */
-    text-overflow: ellipsis; /* Agrega "..." si el contenido es demasiado largo */
-}
+        table.table thead th {
+            text-align: left;
+            /* Alineación de encabezados */
+            vertical-align: middle;
+            padding: 12px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
 
-#content main .table-data .user-table table td {
-    padding: 12px; /* Padding uniforme */
-    text-align: left; /* Alineación a la izquierda */
-    vertical-align: middle; /* Alineación vertical */
-    white-space: nowrap; /* Evita saltos de línea */
-    overflow: hidden; /* Oculta contenido excedente */
-    text-overflow: ellipsis; /* Agrega "..." si el contenido es demasiado largo */
-}
-
-#content main .table-data .user-table table tr td:first-child {
-    display: flex;
-    align-items: center;
-    gap: 12px; /* Ajusta el espacio entre elementos */
-    padding-left: 6px;
-}
-
-#content main .table-data .user-table table td img {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%; /* Imágenes redondeadas */
-    object-fit: cover; /* Asegura que la imagen se recorte bien */
-}
-
-#content main .table-data .user-table table tbody tr:hover {
-    background: var(--grey); /* Fondo al pasar el cursor */
-}
-
-#content main .table-data .user-table table tr td .status {
-    font-size: 10px;
-    padding: 6px 16px;
-    color: var(--light);
-    border-radius: 20px; /* Bordes redondeados */
-    font-weight: 700;
-    white-space: nowrap; /* Evita saltos de línea */
-}
-
-#content main .table-data .user-table table tr td .status.completed {
-    background: var(--blue); /* Fondo azul para "completado" */
-}
-
-#content main .table-data .user-table table tr td .status.process {
-    background: var(--yellow); /* Fondo amarillo para "en proceso" */
-}
-
-#content main .table-data .user-table table tr td .status.pending {
-    background: var(--orange); /* Fondo naranja para "pendiente" */
-}
-
+        table.table {
+            border-collapse: separate;
+            /* Separa las celdas */
+            border-spacing: 0 8px;
+            /* Espaciado entre filas */
+        }
     </style>
 </head>
 
@@ -142,16 +113,16 @@
 
                 <!-- Botones de acciones principales -->
                 <div class="d-flex justify-content-between mb-3">
-
+                <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
                     <button class="btn btn-success" id="btnAgregar">
                         <i class='bx bxs-user-plus'></i> Agregar
                     </button>
-
-                    <!--<button class="btn btn-info" id="btnAsociarEmpresa" disabled>
+                    
+                    <button class="btn btn-info" id="btnAsociarEmpresa">
                         <i class='bx bxs-building-house'></i> Asociar Empresa
                     </button>
-
-                    <button class="btn btn-secondary" id="btnExportar" disabled>
+                    <?php } ?>
+                    <!--<button class="btn btn-secondary" id="btnExportar" disabled>
                         <i class='bx bxs-export'></i> Exportar
                     </button>-->
 
@@ -162,7 +133,7 @@
                 </div>
                 <!-- Área para mostrar los datos de los clientes -->
                 <div class="table-data">
-                    <div class="user-table">
+                    <div class="order">
                         <div class="head">
                             <h3></h3>
                             <i class='bx bx-search'></i>
@@ -171,11 +142,13 @@
                         <table class="">
                             <thead>
                                 <tr>
-                                    <th>Nombre Completo</th>
-                                    <th>Correo</th>
-                                    <th>Estatus</th>
-                                    <th>Rol</th>
-                                    <th>Opciones</th>
+                                    <th style="">Nombre Completo</th>
+                                    <th style="">Correo</th>
+                                    <th style="">Estatus</th>
+                                    <th style="">Rol</th>
+                                    <th style="">Editar</th>
+                                    <th style="">Visualizar</th>
+                                    <th style="">Asociaciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaUsuarios">
@@ -204,8 +177,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Agregar Usuario</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="cerrarModal">
-                        <span aria-hidden="true">&times;</span>
+                    <button type="button" class="btn-close custom-close" data-dismiss="modal" aria-label="Close" id="cerrarModalHeader">
+                        <span aria-hidden="true"></span><!-- &times; -->
                     </button>
                 </div>
                 <form id="agregarUsuarioForm">
@@ -213,7 +186,6 @@
                         <!-- Formulario de usuario -->
                         <div class="container mt-8">
                             <div class="row">
-                                <!-- Columna izquierda para datos del usuario -->
                                 <div class="col-md-8">
                                     <h5 class="mb-2">Datos del Usuario</h5>
                                     <div class="mb-2">
@@ -238,7 +210,7 @@
                                         <input type="password" id="contrasenaUsuario" class="form-control">
                                     </div>
                                     <div class="mb-2">
-                                        <label for="telefonoUsuario" class="form-label">Telefono</label>
+                                        <label for="telefonoUsuario" class="form-label">Teléfono</label>
                                         <input type="text" id="telefonoUsuario" class="form-control">
                                     </div>
                                     <div class="mb-2">
@@ -248,29 +220,123 @@
                                             <option value="VENDEDOR">VENDEDOR</option>
                                             <option value="ALMACENISTA">ALMACENISTA</option>
                                             <option value="FACTURISTA">FACTURISTA</option>
-                                            <option value="VENDEDOR">VENDEDOR</option>
-                                            <!-- Aquí se llenará dinámicamente con los roles -->
                                         </select>
                                     </div>
                                 </div>
-                                <!-- Columna derecha para select y datos de empresas -->
-                                <!--<div class="col-md-7">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="cerrarModalFooter">Cerrar</button>
+                        <button class="btn btn-primary custom-blue" id="guardarDatosBtn">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EMPRESAS -->
+    <div id="asociarEmpresaModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Asociar Usuario con Empresa</h5>
+                    <button type="button" class="btn-close custom-close" data-dismiss="modal" id="cerrarModalAsociasionHeader" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Seleccionar Usuario</h6>
+                                <select id="selectUsuario" class="form-select">
+                                    <option selected disabled>Seleccione un usuario</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Seleccionar Empresa</h6>
+                                <select id="selectEmpresa" class="form-select">
+                                    <option selected disabled>Seleccione una empresa</option>
+                                </select>
+                            </div>
+                            <div id="empresasAsociadas" class="mt-4">
+                                <h6>Empresas Asociadas</h6>
+                                <ul id="listaEmpresasAsociadas" class="list-group">
+                                    <!-- Las empresas asociadas se cargarán dinámicamente aquí -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cerrarModalAsociasionFooter" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary custom-blue" id="btnGuardarAsociacion">Guardar Asociación</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Observaciones -->
+    <div id="verAsociacionesModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Asociaciones del Usuario</h5>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Razón Social</th>
+                                <th>No. Empresa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaAsociaciones">
+                            <!-- Aquí se cargarán dinámicamente las asociaciones -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cerrarModalVisAsoFooter" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JS Para la confirmacion empresa -->
+    <script src="JS/menu.js"></script>
+    <script src="JS/app.js"></script>
+    <script src="JS/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let tipoUsuario = '<?php echo $tipoUsuario; ?>';
+            let usuario = '<?php echo $usuario; ?>';
+            datosUsuarios(tipoUsuario, usuario); // Llamada a la función cuando la página de la empresa se ha cargado.
+        });
+    </script>
+    </section>
+    <script src="JS/usuarios.js"></script>
+</body>
+
+</html>
+
+<!-- Columna derecha para select y datos de empresas -->
+<!--<div class="col-md-7">
                                     <div class="mb-3">
                                         <label for="selectEmpresa" class="form-label">Seleccionar Empresa</label>
                                         <select id="selectEmpresa" class="form-select">
                                             <option selected disabled>Selecciona una empresa</option>-->
-                                <!-- Aquí se llenará dinámicamente con las empresas -->
-                                <!--</select>
+<!-- Aquí se llenará dinámicamente con las empresas -->
+<!--</select>
                                         <div class="mb-1">
                                             <button id="agregarEmpresaBtn" type="button"
                                                 class="btn btn-primary">Agregar</button>
                                         </div>
                                     </div>-->
-                                <!-- Textarea para información adicional -->
-                                <!--<div class="mb-4"> -->
-                                <!--<label for="detallesEmpresa" class="form-label">Detalles de Empresa</label>
+<!-- Textarea para información adicional -->
+<!--<div class="mb-4"> -->
+<!--<label for="detallesEmpresa" class="form-label">Detalles de Empresa</label>
                                         <textarea id="detallesEmpresa" class="form-control" rows="4" disabled></textarea>-->
-                                <!--<h6>Empresas Seleccionadas</h6>
+<!--<h6>Empresas Seleccionadas</h6>
                                         <table class="table table-bordered" id="tablaEmpresas">
                                             <thead>
                                                 <tr>
@@ -281,38 +347,8 @@
                                                 </tr>
                                             </thead>
                                             <tbody> -->
-                                <!-- Las filas se llenarán dinámicamente -->
-                                <!--</tbody>
+<!-- Las filas se llenarán dinámicamente -->
+<!--</tbody>
                                         </table>
                                     </div>
                                 </div>-->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                            id="cerrarModal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary" id="guardarDatosBtn">Guardar Cambios</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- JS Para la confirmacion empresa -->
-    <script src="JS/menu.js"></script>
-    <script src="JS/app.js"></script>
-    <script src="JS/script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            var tipoUsuario = '<?php echo $tipoUsuario; ?>';
-            var usuario = '<?php echo $usuario; ?>';
-            datosUsuarios(tipoUsuario, usuario); // Llamada a la función cuando la página de la empresa se ha cargado.
-        });
-    </script>
-    </section>
-    <script src="JS/usuarios.js"></script>
-</body>
-
-</html>

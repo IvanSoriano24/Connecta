@@ -1,6 +1,6 @@
 
 function cargarPedidos() {
-  // alert("o");
+  alert("o");
     $.get('../Servidor/PHP/pedidos.php', { numFuncion: '4' }, function (response) {
       if (response.success && response.data) {
         const pedidos = response.data;

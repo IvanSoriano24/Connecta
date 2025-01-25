@@ -120,11 +120,10 @@ session_destroy(); */
 										<th>Fecha Elaboracion</th>
 										<th>Subtotal</th>
 										<th>Total de Comisiones</th>
-										<th>Numero de almacen</th>
-										<th>Forma de Envio del Documento</th>
 										<th>Importe total</th>
 										<th>Nombre del vendedor</th>
-										<th>Opciones</th>
+										<th>Editar</th>
+										<th>Eliminar</th>
 									</tr>
 								</thead>
 								<tbody id="datosPedidos">

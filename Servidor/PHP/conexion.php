@@ -1,7 +1,7 @@
 <?php
 
 function login($funcion){
-    try{
+    try {
         $tipUsuario = '';
         session_start();
 
@@ -30,10 +30,17 @@ function login($funcion){
                 $fields = $document['fields'];
                 $usuarioFirebase = $fields['usuario']['stringValue'];
                 $passwordFirebase = $fields['password']['stringValue'];
+                $statusFirebase = $fields['status']['stringValue']; // Obtener el campo `status`
 
+                // Validar credenciales y estatus
                 if ($usuarioFirebase === $usuario && $passwordFirebase === $password) {
-                    // Si las credenciales coinciden, guardar datos en sesión
-                    
+                    if ($statusFirebase !== 'Activo') {
+                        // Si el usuario no está activo, mostrar mensaje y redirigir
+                        header("Location: ../../Cliente/index.php?error=2");
+                        exit();
+                    }
+
+                    // Si las credenciales coinciden y el usuario está activo, guardar datos en sesión
                     $_SESSION['usuario'] = [
                         'id' => $document['name'], // ID del documento  //0
                         'apellido' => $fields['apellido']['stringValue'],  //0
@@ -43,7 +50,8 @@ function login($funcion){
                         'password' => $passwordFirebase,  //4
                         'telefono' => $fields['telefono']['stringValue'],  //5
                         'tipoUsuario' => $fields['tipoUsuario']['stringValue'],  //6
-                        'usuario' => $usuarioFirebase  //7
+                        'usuario' => $usuarioFirebase,  //7
+                        'status' => $statusFirebase  //8
                     ];
                     $tipUsuario = $_SESSION['usuario']['tipoUsuario'];
                     $usuarioValido = true;
@@ -55,7 +63,7 @@ function login($funcion){
             if ($usuarioValido) {
                 //$tipUsuario = 'CLIENTE';
                 if($tipUsuario == 'CLIENTE'){
-                    header("Location: ../../Cliente/Menu.php");
+                    header("Location: ../../Cliente/menu.php");
                     exit();
                 }
                 header("Location: ../../Cliente/Dashboard.php");
@@ -66,8 +74,8 @@ function login($funcion){
                 exit();
             }
         }
-    }catch (Exception $e) {
-        echo $e->getMessage(); //En caso de fallo se muestra el error
+    } catch (Exception $e) {
+        echo $e->getMessage(); // En caso de fallo, se muestra el error
     }
 }
 function cerrarSesion() {

@@ -42,14 +42,16 @@
                 <span class="text">Productos</span>
             </a>
         </li>
+        <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
         <li>
             <a href="Clientes.php">
                 <i class='bx bxs-user'></i>
                 <span class="text">Mis Clientes</span>
             </a>
         </li>
+        <?php } ?>
         <li>
-            <a href="#">
+            <a href="Mensajes.php">
                 <i class='bx bxs-message-dots'></i>
                 <span class="text">Mensajes</span>
             </a>
