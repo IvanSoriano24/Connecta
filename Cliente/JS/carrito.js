@@ -179,8 +179,6 @@
 // });
 
 
-
-
 document.addEventListener("DOMContentLoaded", () => {
   const carritoLista = document.getElementById("carrito-lista");
   const subtotalElement = document.getElementById("subtotal");

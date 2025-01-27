@@ -136,6 +136,7 @@ thead {
 
     </div>
     <script src="JS/ventas.js"></script>
+    <script src="JS/menu.js"></script>
 
     <!-- Scroll Top -->
     <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
