@@ -7,6 +7,8 @@ function login($funcion) {
 
         $firebaseApiKey = "AIzaSyCh8BFeIi4JcAAe-aW8Z2odIqdytw-wnDA";
         $firebaseProjectId = "mdconnecta-4aeb4";
+        $privateKeyPath = "/ruta/a/tu/archivo-privado.json"; // Ruta al archivo de clave privada de Firebase
+        $clientEmail = "tu-email@proyecto.iam.gserviceaccount.com"; // Email del proyecto Firebase
 
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $usuario = $_POST['usuario'];
@@ -46,18 +48,24 @@ function login($funcion) {
 
                     // Si las credenciales coinciden y el usuario está activo, guardar datos en sesión
                     $_SESSION['usuario'] = [
-                        'id' => $document['name'], // ID del documento  //0
-                        'apellido' => $fields['apellido']['stringValue'],  //0
-                        'correo' => $fields['correo']['stringValue'],  //1
-                        'descripcionUsuario' => $fields['descripcionUsuario']['stringValue'],  //2
-                        'nombre' => $fields['nombre']['stringValue'],  //3
-                        'password' => $passwordFirebase,  //4
-                        'telefono' => $fields['telefono']['stringValue'],  //5
-                        'tipoUsuario' => $fields['tipoUsuario']['stringValue'],  //6
-                        'usuario' => $usuarioFirebase,  //7
-                        'status' => $statusFirebase  //8
+                        'id' => $document['name'], // ID del documento
+                        'apellido' => $fields['apellido']['stringValue'],
+                        'correo' => $fields['correo']['stringValue'],
+                        'descripcionUsuario' => $fields['descripcionUsuario']['stringValue'],
+                        'nombre' => $fields['nombre']['stringValue'],
+                        'password' => $passwordFirebase,
+                        'telefono' => $fields['telefono']['stringValue'],
+                        'tipoUsuario' => $fields['tipoUsuario']['stringValue'],
+                        'usuario' => $usuarioFirebase,
+                        'status' => $statusFirebase
                     ];
                     $tipUsuario = $_SESSION['usuario']['tipoUsuario'];
+
+                    // Generar token JWT para Firebase Storage
+                    $usuarioUid = $document['name']; // UID del usuario (ID del documento en Firestore)
+                   /* $tokenFirebase = generarTokenFirebase($usuarioUid, $privateKeyPath, $clientEmail);
+                    $_SESSION['firebase_token'] = $tokenFirebase; // Guardar el token en la sesión*/
+
                     $usuarioValido = true;
                     break;
                 }
@@ -65,8 +73,7 @@ function login($funcion) {
 
             // Redirigir según el resultado de la validación
             if ($usuarioValido) {
-                //$tipUsuario = 'CLIENTE';
-                if($tipUsuario == 'CLIENTE'){
+                if ($tipUsuario == 'CLIENTE') {
                     header("Location: ../../Cliente/menu.php");
                     exit();
                 }
@@ -81,6 +88,33 @@ function login($funcion) {
         echo $e->getMessage(); // En caso de fallo, se muestra el error
     }
 }
+function generarTokenFirebase($usuarioUid, $privateKeyPath, $clientEmail) {
+    $now = time();
+    $exp = $now + (60 * 60); // Token válido por 1 hora
+
+    $header = json_encode(['alg' => 'RS256', 'typ' => 'JWT']);
+    $payload = json_encode([
+        'iss' => $clientEmail, // Emisor
+        'sub' => $clientEmail, // Usuario autenticado (generalmente admin de Firebase)
+        'aud' => 'https://firebasestorage.googleapis.com/',
+        'iat' => $now,
+        'exp' => $exp,
+        'uid' => $usuarioUid // UID del usuario autenticado
+    ]);
+
+    $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
+    $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
+
+    $unsignedToken = $base64UrlHeader . '.' . $base64UrlPayload;
+
+    $privateKey = file_get_contents($privateKeyPath);
+    openssl_sign($unsignedToken, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+
+    $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+
+    return $unsignedToken . '.' . $base64UrlSignature;
+}
+
 function cerrarSesion() {
     session_start();
     session_unset();

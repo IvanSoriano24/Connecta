@@ -1,20 +1,14 @@
-
-
 function cargarProductos() {
     const numFuncion = 11; // Identificador del caso correspondiente en PHP
     const xhr = new XMLHttpRequest();
     xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
     xhr.setRequestHeader("Content-Type", "application/json");
-
-    xhr.onload = function() {
-        // alert("Estado HTTP: " + xhr.status); // Mostrar el código de estado HTTP
+    xhr.onload = function () {
         if (xhr.status === 200) {
-            // alert("Respuesta recibida: " + xhr.responseText); // Mostrar la respuesta completa del servidor
             try {
                 const response = JSON.parse(xhr.responseText);
                 if (response.success) {
-                    //   alert("Productos recibidos: " + response.productos.length);
-                    mostrarProductosCuadricula(response.productos); // Llama a la función para renderizar
+                    mostrarProductosCuadricula(response.productos);
                 } else {
                     alert("Error desde el servidor: " + response.message);
                 }
@@ -26,109 +20,128 @@ function cargarProductos() {
         }
     };
 
-    xhr.onerror = function() {
+    xhr.onerror = function () {
         alert("Hubo un problema con la conexión.");
     };
 
     xhr.send();
 }
-
 function mostrarProductosCuadricula(productos) {
     const contenedorProductos = document.querySelector(".product-grid");
 
     if (!contenedorProductos) {
-        alert("Error: No se encontró el contenedor para los productos.");
+        console.error("Error: No se encontró el contenedor para los productos.");
         return;
     }
 
-    // Limpiar el contenedor antes de agregar productos
-    contenedorProductos.innerHTML = "";
+    contenedorProductos.innerHTML = ""; // Limpia el contenedor antes de agregar productos
 
     if (!Array.isArray(productos) || productos.length === 0) {
-        alert("No hay productos para mostrar.");
+        contenedorProductos.innerHTML = "<p>No hay productos para mostrar.</p>";
         return;
     }
 
-    // Iterar sobre los productos para generar el contenido dinámico
-    productos.forEach((producto, index) => {
+    productos.forEach((producto) => {
         const productItem = document.createElement("div");
         productItem.className = "product-item";
 
-        const img = document.createElement("img");
-        img.src = producto.IMAGEN_ML ||
-            "ruta/imagen_por_defecto.png"; // Imagen por defecto si IMAGEN_ML es null
-        img.alt = producto.DESCR;
+        // Generar carrusel de imágenes
+        let carruselHtml = "";
+        if (Array.isArray(producto.IMAGEN_ML) && producto.IMAGEN_ML.length > 0) {
+            carruselHtml = `
+                <div id="carrusel-${producto.CVE_ART}" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        ${producto.IMAGEN_ML.map((imgUrl, index) => `
+                            <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                                <img src="${imgUrl}" class="d-block w-100" alt="Imagen del Producto">
+                            </div>
+                        `).join("")}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carrusel-${producto.CVE_ART}" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carrusel-${producto.CVE_ART}" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                </div>
+            `;
+        } else {
+            carruselHtml = `<img src="https://via.placeholder.com/150" alt="${producto.DESCR}" class="product-img">`;
+        }
 
-        const nombre = document.createElement("p");
-        nombre.textContent = producto.DESCR;
+        productItem.innerHTML = `
+            ${carruselHtml}
+            <p class="product-name">${producto.DESCR}</p>
+            <p class="product-stock">Existencia: ${producto.EXIST}</p>
+            <button class="btn btn-agregar">Agregar al carrito</button>
+            <button class="btn btn-detalles">Detalles</button>
+        `;
 
-        const existencia = document.createElement("p");
-        existencia.textContent = `Existencia: ${producto.EXIST}`;
+        // Agregar eventos a los botones
+        const btnAgregar = productItem.querySelector(".btn-agregar");
+        const btnDetalles = productItem.querySelector(".btn-detalles");
 
-        // Crear botón "Agregar"
-        const btnAgregar = document.createElement("button");
-        btnAgregar.textContent = "Agregar Carrito";
-        btnAgregar.className = "btn-agregar";
-        
-        btnAgregar.onclick = function () {
-            agregarAlCarrito(producto); 
-            alert(`Producto agregado: ${producto.CVE_ART} - ${producto.DESCR}`);// Llama a la función para agregar al carrito
-          };
-          
-       
+        btnAgregar.onclick = () => agregarAlCarrito(producto);
+        btnDetalles.onclick = () => abrirModalProducto(producto);
 
-        // Crear botón "Detalles"
-        const btnDetalles = document.createElement("button");
-        btnDetalles.textContent = "Detalles";
-        btnDetalles.className = "btn-detalles";
-        btnDetalles.onclick = function() {
-            abrirModalProducto(producto);
-        };
+        // Agregar el producto al contenedor
+        contenedorProductos.appendChild(productItem);
+    });
+}
+/*function mostrarProductosCuadricula(productos) {
+    const contenedorProductos = document.querySelector(".product-grid");
 
-        productItem.appendChild(img);
-        productItem.appendChild(nombre);
-        productItem.appendChild(existencia);
-        productItem.appendChild(btnAgregar);
-        productItem.appendChild(btnDetalles);
+    if (!contenedorProductos) {
+        console.error("Error: No se encontró el contenedor para los productos.");
+        return;
+    }
+
+    contenedorProductos.innerHTML = ""; // Limpia el contenedor antes de agregar productos
+
+    if (!Array.isArray(productos) || productos.length === 0) {
+        contenedorProductos.innerHTML = "<p>No hay productos para mostrar.</p>";
+        return;
+    }
+
+    productos.forEach((producto) => {
+        const productItem = document.createElement("div");
+        productItem.className = "product-item";
+
+        productItem.innerHTML = `
+            <img src="${producto.IMAGEN_ML}" alt="${producto.DESCR}" class="product-img">
+            <p class="product-name">${producto.DESCR}</p>
+            <p class="product-stock">Existencia: ${producto.EXIST}</p>
+            <a href="detalleProducto.php?cveArt=${encodeURIComponent(producto.CVE_ART)}" class="btn btn-detalles">Ver Detalles</a>
+        `;
 
         contenedorProductos.appendChild(productItem);
     });
-
-    // alert("Productos renderizados correctamente con botones.");
-}
+}*/
 
 // Función para abrir el modal
 function abrirModalProducto(producto) {
     const modal = document.getElementById("productModal");
-    const modalTitle = document.getElementById("modal-title");
-    const modalImage = document.getElementById("modal-image");
-    const modalDescription = document.getElementById("modal-description");
-    const modalExistencia = document.getElementById("modal-existencia");
-    const modalLinProd = document.getElementById("modal-lin-prod");
+    document.getElementById("modal-title").textContent = producto.DESCR;
+    document.getElementById("modal-image").src = producto.IMAGEN_ML || "https://via.placeholder.com/150";
+    document.getElementById("modal-description").textContent = `Descripción: ${producto.DESCR}`;
+    document.getElementById("modal-existencia").textContent = `Existencia: ${producto.EXIST}`;
+    document.getElementById("modal-lin-prod").textContent = `Línea del Producto: ${producto.LIN_PROD}`;
+
     const btnAddToCart = document.getElementById("btn-add-to-cart");
-  
-    // Rellenar información del modal
-    modalTitle.textContent = producto.DESCR;
-    modalImage.src = producto.IMAGEN_ML || "https://via.placeholder.com/150";
-    modalDescription.textContent = `Descripción: ${producto.DESCR}`;
-    modalExistencia.textContent = `Existencia: ${producto.EXIST}`;
-    modalLinProd.textContent = `Línea del Producto: ${producto.LIN_PROD}`;
-  
-    // Agregar funcionalidad al botón "Agregar al carrito"
-    btnAddToCart.onclick = function () {
-      agregarAlCarrito(producto);
-      cerrarModal();
+    btnAddToCart.onclick = () => {
+        agregarAlCarrito(producto);
+        cerrarModal();
     };
-  
-    // Mostrar el modal
+
     modal.style.display = "block";
-  }
-  
+}
 
 // Función para cerrar el modal
 function cerrarModal() {
-const modal = document.getElementById("productModal");
-modal.style.display = "none";
+    const modal = document.getElementById("productModal");
+    modal.style.display = "none";
 }
 
 // Agregar eventos de cierre
@@ -191,21 +204,18 @@ document.addEventListener("DOMContentLoaded", () => {
 // ----------FUNCIONES CARRITO-------------------------------------------------------------------
 
 function agregarAlCarrito(producto) {
-    // Obtener el carrito actual desde localStorage
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-  
-    // Verificar si el producto ya está en el carrito
+
     const productoExistente = carrito.find((item) => item.CVE_ART === producto.CVE_ART);
-  
+
     if (productoExistente) {
-      productoExistente.cantidad += 1; // Si ya está, incrementamos la cantidad
+        productoExistente.cantidad += 1;
     } else {
-      producto.cantidad = 1; // Si no está, lo agregamos con cantidad inicial
-      carrito.push(producto);
+        producto.cantidad = 1;
+        carrito.push(producto);
     }
-  
-    // Guardar el carrito actualizado en localStorage
+
     localStorage.setItem("carrito", JSON.stringify(carrito));
     alert(`Producto agregado al carrito: ${producto.DESCR}`);
-  }
+}
   

@@ -1,3 +1,18 @@
+<?php
+    session_start();
+
+    if (isset($_SESSION['usuario'])) {
+        if ($_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
+        $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
+            header('Location:Dashboard.php');
+            exit();
+        }
+        $nombreUsuario = $_SESSION['usuario']["nombre"];
+        $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
+    } else {
+        header('Location:../index.php');
+    }
+?>
 <!DOCTYPE html>
 <html>
 
@@ -136,7 +151,7 @@ thead {
 
     </div>
     <script src="JS/ventas.js"></script>
-
+    <script src="JS/menu.js"></script>
     <!-- Scroll Top -->
     <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
             class="bi bi-arrow-up-short"></i></a>

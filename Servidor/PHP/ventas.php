@@ -1124,7 +1124,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
 
         sqlsrv_free_stmt($stmtProducto);
     }
-    
+
     $fechaElaboracion = $formularioData['diaAlta'];
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']);
@@ -1906,6 +1906,27 @@ function eliminarPedido($conexionData, $pedidoID)
 //     sqlsrv_close($conn);
 // }
 
+function listarImagenesDesdeFirebase($cveArt, $firebaseStorageBucket) {
+    $url = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o?prefix=" . rawurlencode("imagenes/{$cveArt}/");
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+
+    $imagenes = [];
+    if (isset($data['items'])) {
+        foreach ($data['items'] as $item) {
+            $imagenes[] = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o/" . rawurlencode($item['name']) . "?alt=media";
+        }
+    }
+
+    return $imagenes;
+}
 function extraerProductos($conexionData)
 {
     $serverName = $conexionData['host'];
@@ -1926,23 +1947,40 @@ function extraerProductos($conexionData)
     $noEmpresa = '02';
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
-    // Consulta SQL
-     $sql = "SELECT TOP (20) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], ISNULL([IMAGEN_ML], 'SRC/logomd.png') AS IMAGEN_ML FROM $nombreTabla";
-   
-    // Ejecución de la consulta
+    /*$sql = "SELECT
+        [CVE_ART], 
+        [DESCR], 
+        [EXIST], 
+        [LIN_PROD], 
+        [UNI_MED]
+    FROM $nombreTabla";*/
+    $sql = "SELECT TOP (20) 
+                [CVE_ART], 
+                [DESCR], 
+                [EXIST], 
+                [LIN_PROD], 
+                [UNI_MED]
+            FROM $nombreTabla";
+
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
         exit;
     }
 
-    // Procesar los resultados
+    //$firebaseStorageBucket = "mdconnecta-4aeb4.appspot.com";
+    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app"; // Cambia esto por tu bucket
+
     $productos = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $cveArt = $row['CVE_ART'];
+
+        // Obtener la URL de la primera imagen desde Firebase Storage
+        $row['IMAGEN_ML'] = listarImagenesDesdeFirebase($cveArt, $firebaseStorageBucket);
+
         $productos[] = $row;
     }
 
-    // Respuesta JSON
     if (count($productos) > 0) {
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'productos' => $productos]);
@@ -1954,6 +1992,165 @@ function extraerProductos($conexionData)
     sqlsrv_close($conn);
 }
 
+/*function mostrarArticulosParaImagenes($conexionData){ case 13
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // Asume la empresa predeterminada
+    $noEmpresa = '02';
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta SQL
+    $sql = "SELECT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], ISNULL([IMAGEN_ML], '') AS IMAGEN_ML 
+            FROM $nombreTabla";
+
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    $articulos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $articulos[] = [
+            'CVE_ART' => $row['CVE_ART'],
+            'DESCR' => $row['DESCR'],
+            'EXIST' => $row['EXIST'],
+            'LIN_PROD' => $row['LIN_PROD'],
+            'IMAGEN_ML' => $row['IMAGEN_ML'] ?: 'Sin imagen'
+        ];
+    }
+
+    if (count($articulos) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'articulos' => $articulos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron artículos.']);
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}*/
+function subirImagenArticulo($conexionData)
+{
+    // Verifica que se haya enviado al menos un archivo
+    if (!isset($_FILES['imagen']) || empty($_FILES['imagen']['name'])) {
+        echo json_encode(['success' => false, 'message' => 'No se pudo subir ninguna imagen.']);
+        exit;
+    }
+
+    // Verifica que se haya enviado la clave del artículo
+    if (!isset($_POST['cveArt'])) {
+        echo json_encode(['success' => false, 'message' => 'No se proporcionó la clave del artículo.']);
+        exit;
+    }
+
+    $cveArt = $_POST['cveArt'];
+    $imagenes = $_FILES['imagen'];
+    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app"; // Cambia esto por tu bucket
+
+    // Subir y procesar cada archivo
+    $rutasImagenes = [];
+    foreach ($imagenes['tmp_name'] as $index => $tmpName) {
+        if ($imagenes['error'][$index] === UPLOAD_ERR_OK) {
+            $nombreArchivo = $cveArt . "_" . uniqid() . "_" . basename($imagenes['name'][$index]);
+            $rutaFirebase = "imagenes/{$cveArt}/{$nombreArchivo}";
+            $url = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o?name=" . urlencode($rutaFirebase);
+
+            // Leer el archivo
+            $archivo = file_get_contents($tmpName);
+
+            // Subir el archivo a Firebase Storage
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Content-Type: application/octet-stream"
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $archivo);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            $resultado = json_decode($response, true);
+
+            if (isset($resultado['name'])) {
+                $urlPublica = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o/{$resultado['name']}?alt=media";
+                $rutasImagenes[] = $urlPublica;
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al subir una imagen.', 'response' => $response]);
+                exit;
+            }
+        }
+    }
+
+    echo json_encode(['success' => true, 'message' => 'Imágenes subidas correctamente.', 'imagenes' => $rutasImagenes]);
+}
+function eliminarImagen($conexionData) {
+    // Validar que los parámetros necesarios estén presentes
+    if (!isset($_POST['cveArt']) || !isset($_POST['imageUrl'])) {
+        echo json_encode(['success' => false, 'message' => 'Datos incompletos.']);
+        return;
+    }
+
+    $cveArt = $_POST['cveArt'];
+    $imageUrl = $_POST['imageUrl'];
+
+    // Parsear el nombre del archivo desde la URL
+    $parsedUrl = parse_url($imageUrl);
+    $filePath = isset($parsedUrl['path']) ? ltrim($parsedUrl['path'], '/o/') : null;
+
+    if (!$filePath) {
+        echo json_encode(['success' => false, 'message' => 'No se pudo obtener la ruta del archivo.']);
+        return;
+    }
+
+    // Eliminar cualquier '/' inicial sobrante
+    $filePath = ltrim($filePath, '/');
+
+    // Log para depuración
+    var_dump("FilePath generado: $filePath");
+
+    // Construir la URL del archivo en Firebase Storage
+    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app"; // Cambia esto por tu bucket
+    $url = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o/" . rawurlencode($filePath);
+
+    // Log de la URL generada
+    var_dump("URL de eliminación generada: $url");
+
+    // Realizar la solicitud DELETE
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // Validar la respuesta
+    if ($httpCode === 204) {
+        echo json_encode(['success' => true, 'message' => 'Imagen eliminada correctamente.']);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al eliminar la imagen.',
+            'response' => $response,
+            'httpCode' => $httpCode
+        ]);
+    }
+}
 // -----------------------------------------------------------------------------------------------------
 
 
@@ -2017,12 +2214,13 @@ switch ($funcion) {
         break;
         //Nuevo       
     case 3:
-        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+        /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
-        }
+        }*/
 
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $noEmpresa = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -2140,7 +2338,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-             $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
@@ -2152,18 +2350,18 @@ switch ($funcion) {
                 // Validar crédito del cliente
                 $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
-            if ($validacionCredito['success']) {
-            guardarPedido($conexionData, $formularioData, $partidasData);
-            guardarPartidas($conexionData, $formularioData, $partidasData);
-            actualizarFolio($conexionData);
-            actualizarInventario($conexionData, $partidasData);
-            validarCorreoCliente($formularioData, $partidasData, $conexionData);
-            // Respuesta de éxito
-            echo json_encode([
-                'success' => true,
-                'message' => 'El pedido se completó correctamente.',
-            ]); 
-            } else {
+                if ($validacionCredito['success']) {
+                    guardarPedido($conexionData, $formularioData, $partidasData);
+                    guardarPartidas($conexionData, $formularioData, $partidasData);
+                    actualizarFolio($conexionData);
+                    actualizarInventario($conexionData, $partidasData);
+                    validarCorreoCliente($formularioData, $partidasData, $conexionData);
+                    // Respuesta de éxito
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'El pedido se completó correctamente.',
+                    ]);
+                } else {
                     // Error de crédito
                     echo json_encode([
                         'success' => false,
@@ -2252,67 +2450,95 @@ switch ($funcion) {
         $pedidoID = $_POST['pedidoID'];
         eliminarPedido($conexionData, $pedidoID);
         break;
-    
     case 11:
-            // Empresa por defecto (puedes cambiar este valor según tus necesidades)
-            $noEmpresa = '02';
-        
-            // Obtener conexión
-            $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
-            if (!$conexionResult['success']) {
-                echo json_encode($conexionResult);
-                break;
-            }
-        
-            // Obtener los datos de conexión
-            $conexionData = $conexionResult['data'];
-        
-            // Llamar a la función para extraer productos
-            extraerProductos($conexionData);
+        // Empresa por defecto (puedes cambiar este valor según tus necesidades)
+        $noEmpresa = '02';
+
+        // Obtener conexión
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
             break;
-        
-            case 12:
-                $codigoProducto = isset($_GET['codigoProducto']) ? $_GET['codigoProducto'] : null;
-            
-                if (!$codigoProducto) {
-                    echo json_encode(['success' => false, 'message' => 'No se proporcionó un código de producto.']);
-                    exit;
-                }
-            
-                // Depurar el código de producto
-                error_log("Código de producto recibido: $codigoProducto");
-            
-                $sql = "SELECT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], 
+        }
+
+        // Obtener los datos de conexión
+        $conexionData = $conexionResult['data'];
+
+        // Llamar a la función para extraer productos
+        extraerProductos($conexionData);
+        break;
+    case 12:
+        $codigoProducto = isset($_GET['codigoProducto']) ? $_GET['codigoProducto'] : null;
+
+        if (!$codigoProducto) {
+            echo json_encode(['success' => false, 'message' => 'No se proporcionó un código de producto.']);
+            exit;
+        }
+
+        // Depurar el código de producto
+        error_log("Código de producto recibido: $codigoProducto");
+
+        $sql = "SELECT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], 
                                ISNULL([IMAGEN_ML], 'ruta/imagen_por_defecto.png') AS IMAGEN_ML
                         FROM $nombreTabla
                         WHERE CVE_ART = ?";
-                $params = [$codigoProducto];
-            
-                $stmt = sqlsrv_query($conn, $sql, $params);
-            
-                if ($stmt === false) {
-                    error_log("Error en la consulta SQL: " . print_r(sqlsrv_errors(), true));
-                    echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL.', 'errors' => sqlsrv_errors()]);
-                    exit;
-                }
-            
-                $producto = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-            
-                if ($producto) {
-                    // Depuración del producto encontrado
-                    error_log("Producto encontrado: " . print_r($producto, true));
-                    echo json_encode(['success' => true, 'producto' => $producto]);
-                } else {
-                    error_log("Producto no encontrado.");
-                    echo json_encode(['success' => false, 'message' => 'Producto no encontrado.']);
-                }
-            
-                sqlsrv_free_stmt($stmt);
-                break;
-            
-            
-            
-        
+        $params = [$codigoProducto];
+
+        $stmt = sqlsrv_query($conn, $sql, $params);
+
+        if ($stmt === false) {
+            error_log("Error en la consulta SQL: " . print_r(sqlsrv_errors(), true));
+            echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL.', 'errors' => sqlsrv_errors()]);
+            exit;
+        }
+
+        $producto = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+        if ($producto) {
+            // Depuración del producto encontrado
+            error_log("Producto encontrado: " . print_r($producto, true));
+            echo json_encode(['success' => true, 'producto' => $producto]);
+        } else {
+            error_log("Producto no encontrado.");
+            echo json_encode(['success' => false, 'message' => 'Producto no encontrado.']);
+        }
+
+        sqlsrv_free_stmt($stmt);
+        break;
+    case 13:
+        // Empresa por defecto (puedes cambiar este valor según tus necesidades)
+        $noEmpresa = '02';
+
+        // Obtener conexión
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+
+        // Obtener los datos de conexión
+        $conexionData = $conexionResult['data'];
+        eliminarImagen($conexionData);
+        // Llamar a la función para extraer productos
+        //mostrarArticulosParaImagenes($conexionData);
+        break;
+    case 14:
+        // Empresa por defecto (puedes cambiar este valor según tus necesidades)
+        $noEmpresa = '02';
+
+        // Obtener conexión
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+
+        // Obtener los datos de conexión
+        $conexionData = $conexionResult['data'];
+
+        // Llamar a la función para extraer productos
+        subirImagenArticulo($conexionData);
+        break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;
