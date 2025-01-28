@@ -1954,6 +1954,7 @@ function extraerProductos($conexionData)
         [LIN_PROD], 
         [UNI_MED]
     FROM $nombreTabla";*/
+    
     $sql = "SELECT TOP (20) 
                 [CVE_ART], 
                 [DESCR], 
@@ -1991,6 +1992,65 @@ function extraerProductos($conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+/*function extraerProductos($conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => "SAE90Empre02", // Base de datos fija
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // Construcción de la consulta dinámica con sp_executesql
+    $sql = "
+        DECLARE @query NVARCHAR(MAX);
+        SET @query = N'
+            SELECT 
+                [CVE_ART], 
+                [DESCR], 
+                [EXIST], 
+                [LIN_PROD], 
+                [UNI_MED]
+            FROM [SAE90Empre02].[dbo].[INVE02]
+        ';
+
+        EXEC sp_executesql @query;
+    ";
+
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    $productos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $cveArt = $row['CVE_ART'];
+
+        // Aquí puedes agregar lógica para obtener imágenes u otros datos relacionados
+        $row['IMAGEN_ML'] = listarImagenesDesdeFirebase($cveArt, "mdconnecta-4aeb4.firebasestorage.app");
+
+        $productos[] = $row;
+    }
+
+    if (count($productos) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'productos' => $productos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}*/
 
 /*function mostrarArticulosParaImagenes($conexionData){ case 13
     $serverName = $conexionData['host'];
@@ -2098,7 +2158,6 @@ function subirImagenArticulo($conexionData)
     echo json_encode(['success' => true, 'message' => 'Imágenes subidas correctamente.', 'imagenes' => $rutasImagenes]);
 }
 function eliminarImagen($conexionData) {
-    // Validar que los parámetros necesarios estén presentes
     if (!isset($_POST['cveArt']) || !isset($_POST['imageUrl'])) {
         echo json_encode(['success' => false, 'message' => 'Datos incompletos.']);
         return;
@@ -2107,23 +2166,20 @@ function eliminarImagen($conexionData) {
     $cveArt = $_POST['cveArt'];
     $imageUrl = $_POST['imageUrl'];
 
-    // Parsear el nombre del archivo desde la URL
+    // Extraer el `filePath` desde la URL
     $parsedUrl = parse_url($imageUrl);
-    $filePath = isset($parsedUrl['path']) ? ltrim($parsedUrl['path'], '/o/') : null;
+    $filePath = isset($parsedUrl['path']) ? ltrim(urldecode($parsedUrl['path']), '/o/') : null;
 
     if (!$filePath) {
         echo json_encode(['success' => false, 'message' => 'No se pudo obtener la ruta del archivo.']);
         return;
     }
 
-    // Eliminar cualquier '/' inicial sobrante
-    $filePath = ltrim($filePath, '/');
-
     // Log para depuración
     var_dump("FilePath generado: $filePath");
 
     // Construir la URL del archivo en Firebase Storage
-    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app"; // Cambia esto por tu bucket
+    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app"; // Bucket correcto
     $url = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o/" . rawurlencode($filePath);
 
     // Log de la URL generada

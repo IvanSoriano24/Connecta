@@ -18,6 +18,7 @@
           <li><a href="Carrito.php">Carrito</a></li>
           <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
           <li><a href="imagenes.php">Imagenes</a></li>
+          <li><a href="Dashboard.php">MDConnecta</a></li>
           <?php } ?>
           <!-- <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>

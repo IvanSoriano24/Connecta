@@ -9,6 +9,7 @@
         width: 100%;
         height: auto;
     }
+
 </style>
 <!-- sidebar.php -->
 <section id="layout">
@@ -75,6 +76,13 @@
                     <li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a></li>
                     <li><a class="dropdown-item" href="ConexioSAE.php" id="infoSae">Conexión SAE</a></li>
                 </ul>
+            </li>
+            <li>
+                <a href="Menu.php" class="ecommers-button">
+                    <i class='bx bxs-cart'></i>
+                    <span class="text">E-Commers</span>
+                    <span id="eCommers" class="badge bg-danger text-white d-none" style="font-size: 0.8rem; margin-left: 10px;">0</span>
+                </a>
             </li>
         <?php } ?>
         <li>

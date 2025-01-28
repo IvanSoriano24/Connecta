@@ -117,6 +117,7 @@ function agregarEventosSubida() {
     });
 }
 function eliminarImagen(cveArt, imageUrl) {
+    alert(imageUrl);
     // Confirmación con SweetAlert2
     Swal.fire({
         title: "¿Estás seguro?",
