@@ -560,7 +560,6 @@ function guardarPedido() {
         alert('Error en la solicitud: ' + textStatus + ' ' + errorThrown);
     });
 }
-
 function obtenerFolioSiguiente() {
     return new Promise((resolve, reject) => {
         $.post('../Servidor/PHP/ventas.php', {

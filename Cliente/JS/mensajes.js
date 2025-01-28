@@ -103,17 +103,30 @@ function mostrarModal(comandaId) {
 // Manejar el botón de "Terminar"
 $('#btnTerminar').click(function () {
     const comandaId = $('#detalleIdComanda').val();
-    $.post('../Servidor/PHP/mensajes.php', { numFuncion: '3', comandaId }, function (response) {
+    const horaActual = new Date().getHours(); // Obtener la hora actual en formato 24h
+
+    // Determinar el estado basado en la hora
+    const enviarHoy = horaActual < 15; // Antes de las 3 PM
+
+    $.post('../Servidor/PHP/mensajes.php', { 
+        numFuncion: '3', 
+        comandaId: comandaId, 
+        enviarHoy: enviarHoy 
+    }, function (response) {
         if (response.success) {
-            //alert('La comanda se ha marcado como TERMINADA.');
             Swal.fire({
-                text: "La comanda se ha marcado como TERMINADA.",
+                text: enviarHoy ? 
+                    "La comanda se ha marcado como TERMINADA y se enviará hoy." : 
+                    "La comanda se ha marcado como TERMINADA y se enviará mañana.",
                 icon: "success"
-              });
+            });
             $('#modalDetalles').modal('hide');
             cargarComandas(); // Recargar la tabla
         } else {
-            alert('Error al marcar la comanda como TERMINADA.');
+            Swal.fire({
+                text: 'Error al marcar la comanda como TERMINADA.',
+                icon: 'error'
+            });
         }
     }, 'json');
 });

@@ -120,18 +120,22 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
         ]);
     }
 }
-function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId) {
+function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $enviarHoy) {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
 
-    // Estructura de datos para la actualización parcial
+    // Obtener la fecha de envío
+    $fechaEnvio = $enviarHoy ? date('Y-m-d') : date('Y-m-d', strtotime('+1 day')); // Hoy o mañana
+
+    // Estructura de datos para la actualización
     $data = [
         'fields' => [
-            'status' => ['stringValue' => 'TERMINADA']
+            'status' => ['stringValue' => 'TERMINADA'],
+            'fechaEnvio' => ['stringValue' => $fechaEnvio] // Agregar campo de fecha de envío
         ]
     ];
 
     // Agregar el parámetro `updateMask` para especificar los campos que deben actualizarse
-    $url .= '&updateMask.fieldPaths=status';
+    $url .= '&updateMask.fieldPaths=status&updateMask.fieldPaths=fechaEnvio';
 
     $context = stream_context_create([
         'http' => [
@@ -215,7 +219,8 @@ switch ($funcion) {
         break;
     case 3:
         $comandaId = $_POST['comandaId'];
-        marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId);
+        $enviarHoy = filter_var($_POST['enviarHoy'], FILTER_VALIDATE_BOOLEAN);
+        marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $enviarHoy);
         break;
         case 4:
             notificaciones($firebaseProjectId, $firebaseApiKey);
