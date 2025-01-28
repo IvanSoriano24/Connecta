@@ -196,7 +196,7 @@
 
 
     <script src="JS/carrito.js"></script>
-
+    <script src="JS/menu.js"></script>
     <script src="JS/ventas.js"></script>
     <script src="JS/menu.js"></script>
     <!-- Scroll Top -->

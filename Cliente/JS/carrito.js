@@ -179,8 +179,6 @@
 // });
 
 
-
-
 document.addEventListener("DOMContentLoaded", () => {
   mostrarFolio();
   $("#btnPagar").click(function () {
