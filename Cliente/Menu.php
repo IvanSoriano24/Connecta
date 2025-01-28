@@ -2,7 +2,8 @@
     session_start();
 
     if (isset($_SESSION['usuario'])) {
-        if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+        if ($_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
+        $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
             header('Location:Dashboard.php');
             exit();
         }

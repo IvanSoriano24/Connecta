@@ -148,7 +148,7 @@
                                                         
                                                         <div class="d-flex justify-content-between">
                                                             <p class="mb-2">Folio: </p>
-                                                            <input type="text">
+                                                            <input type="text" id="folioCarrito">
                                                         </div>
                                                         <!-- <div class="d-flex justify-content-between">
                                                             <p class="mb-2">Subtotal</p>
@@ -161,13 +161,13 @@
                                                         <div class="d-flex justify-content-between mb-4">
                                                             <p class="mb-2">Total (Incl. impuestos)</p>
                                                             <p class="mb-2" id="total">$0.00</p>
-                                                        </div>
-                                                        <button type="button" class="btn btn-light btn-block btn-lg">
+                                                        </div> -->
+                                                        <button type="button" class="btn btn-light btn-block btn-lg" id="btnPagar">
                                                             <div class="d-flex justify-content-between">
                                                                 <span id=""></span>
                                                                 <span>Pagar <i
                                                                         class="fas fa-long-arrow-alt-right ms-2"></i></span>
-                                                            </div> -->
+                                                            </div> 
                                                         </button>
                                                     </div>
                                                 </div>
@@ -198,7 +198,7 @@
     <script src="JS/carrito.js"></script>
     <script src="JS/menu.js"></script>
     <script src="JS/ventas.js"></script>
-
+    <script src="JS/menu.js"></script>
     <!-- Scroll Top -->
     <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
             class="bi bi-arrow-up-short"></i></a>

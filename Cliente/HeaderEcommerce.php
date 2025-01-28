@@ -16,6 +16,9 @@
           <li><a href="Pedidos.php">Pedidos</a></li>
           <li><a href="#">Guias</a></li>
           <li><a href="Carrito.php">Carrito</a></li>
+          <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
+          <li><a href="imagenes.php">Imagenes</a></li>
+          <?php } ?>
           <!-- <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="#">Dropdown 1</a></li>

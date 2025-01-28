@@ -180,6 +180,10 @@
 
 
 document.addEventListener("DOMContentLoaded", () => {
+  mostrarFolio();
+  $("#btnPagar").click(function () {
+    pagarPedido();
+  });
   const carritoLista = document.getElementById("carrito-lista");
   const subtotalElement = document.getElementById("subtotal");
   const totalElement = document.getElementById("total");
@@ -191,13 +195,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // Simula una llamada al servidor para obtener el folio
   async function obtenerFolioSiguiente() {
     try {
-      const response = await fetch("/api/obtenerFolio.php", {
+      const formData = new FormData(); // Crear objeto FormData
+      formData.append("numFuncion", "3"); // Añadir el parámetro esperado
+      formData.append("accion", "obtenerFolioSiguiente");
+      const response = await fetch("../Servidor/PHP/ventas.php", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        body: formData, // Enviar los datos como formulario
       });
-      const data = await response.json();
+  
+      const data = await response.json(); // Decodificar la respuesta JSON
       if (data.success) {
         return data.folioSiguiente;
       } else {
@@ -209,12 +215,29 @@ document.addEventListener("DOMContentLoaded", () => {
       return "Error";
     }
   }
+  
+  async function mostrarFolio() {
+    const folio = await obtenerFolioSiguiente();
+    alert(folio);
+    
+    folioInput.value = folio; // Asegúrate de que `folioInput` esté definido en el HTML
+  }
+  async function pagarPedido(){
+    const nuevoFolio = await obtenerFolioSiguiente();
+    alert(nuevoFolio);
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    mostrarFolio();
+  });
+  
 
   // Función para mostrar el folio en el carrito
   async function mostrarFolio() {
     const folio = await obtenerFolioSiguiente();
-    folioInput.value = folio;
-  }
+    console.log(folio);
+    document.getElementById('folioCarrito').value = folio;
+    //folioInput.value = folio;
+}
 
   // Función para mostrar los productos del carrito
   function mostrarCarrito() {

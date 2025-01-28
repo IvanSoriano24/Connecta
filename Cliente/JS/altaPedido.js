@@ -979,6 +979,5 @@ function validarCorreo() {
   alert("3");
 }
 $("#btnValidarCorreo").click(function () {
-  alert("Entra");
   validarCorreo();
 });
