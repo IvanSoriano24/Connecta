@@ -291,3 +291,18 @@
 .card:hover {
   transform: scale(1.03);
 }
+
+
+
+
+  /* Imagenes */
+  .carousel-inner img {
+    max-height: 300px;
+    object-fit: cover;
+    width: 100%;
+}
+@media (max-width: 768px) {
+    .carousel-inner img {
+        max-height: 200px;
+    }
+}

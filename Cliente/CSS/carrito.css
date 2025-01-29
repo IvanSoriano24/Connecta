@@ -26,3 +26,58 @@
   font-size: 18px;
   padding: 5px 10px;
 }
+
+
+/* CHECKBOX */
+/* Checkbox estilo personalizado */
+.container {
+  --input-focus: #2d8cf0;
+  --input-out-of-focus: #ccc;
+  --bg-color: #fff;
+  --bg-color-alt: #666;
+  --main-color: #323232;
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+}
+
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  border: 2px solid var(--main-color);
+  border-radius: 5px;
+  box-shadow: 2px 2px var(--main-color);
+  background-color: var(--input-out-of-focus);
+  transition: all 0.3s;
+  display: inline-block;
+}
+
+.container input:checked ~ .checkmark {
+  background-color: var(--input-focus);
+}
+
+.checkmark:after {
+  content: "";
+  width: 6px;
+  height: 12px;
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  display: none;
+  border: solid var(--bg-color);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+
