@@ -176,6 +176,13 @@ if (isset($_SESSION['usuario'])) {
                                                 readonly>
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="numGuia" class="form-label">Numero Guia</label>
+                                            <input type="text" class="form-control form-control-sm"id="numGuia">
+                                        </div>
+                                    </div>
+                                    <br>
                                     <div class="mb-4">
                                         <label class="form-label">Productos:</label>
                                         <div class="table-data">

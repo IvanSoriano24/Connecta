@@ -510,7 +510,7 @@ function enviarDatosBackend(formularioData, partidasData) {
           confirmButtonText: "Aceptar",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
-          //window.location.href = "Ventas.php";
+          window.location.href = "Ventas.php";
         });
       } else if (data.exist) {
         console.error("Error en la respuesta:", data);

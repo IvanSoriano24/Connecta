@@ -15,10 +15,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     if ($accion === 'confirmar') {
         // Obtener la hora actual
         $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
-
         // Determinar el estado según la hora
         $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
-
         // Preparar datos para Firebase
         $comanda = [
             "fields" => [

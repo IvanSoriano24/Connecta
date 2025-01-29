@@ -165,11 +165,10 @@ function agregarEventosSubida() {
 
             // Validar el límite de 6 imágenes
             const totalImagenes = document.querySelectorAll(`.imagenes-container img`).length;
-            if (totalImagenes + files.length > 6) {
+            if (files.length > 6) {
                 alert("No puedes subir más de 6 imágenes para este producto.");
                 return;
             }
-
             if (files.length > 0) {
                 subirImagenes(cveArt, files);
             } else {
@@ -215,7 +214,7 @@ function eliminarImagen(cveArt, imageUrl) {
                             icon: "success",
                             confirmButtonColor: "#3085d6",
                         }).then(() => {
-                            cargarArticulosConImagenes(); // Recargar los productos y sus imágenes
+                            actualizarCarrusel(cveArt); // Recargar solo el carrusel del producto
                         });
                     } else {
                         // Mostrar alerta de error
@@ -241,6 +240,50 @@ function eliminarImagen(cveArt, imageUrl) {
         }
     });
 }
+// Nueva función para actualizar el carrusel
+function actualizarCarrusel(cveArt) {
+    fetch(`../Servidor/PHP/ventas.php?numFuncion=15&cveArt=${cveArt}`)
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                const carruselContainer = document.querySelector(`#carrusel-${cveArt}`);
+                if (carruselContainer) {
+                    // Construir HTML del carrusel
+                    let carruselHtml = `
+                        <div class="carousel-inner">
+                            ${data.producto.IMAGENES.map((imagenUrl, index) => `
+                                <div class="carousel-item ${index === 0 ? "active" : ""}">
+                                    <img src="${imagenUrl}" class="d-block w-100" alt="Imagen ${index + 1}">
+                                    <div class="carousel-caption d-flex justify-content-center">
+                                        <button class="btn btn-danger btn-sm" onclick="eliminarImagen('${cveArt}', '${imagenUrl}')">Eliminar</button>
+                                    </div>
+                                </div>
+                            `).join("")}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carrusel-${cveArt}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carrusel-${cveArt}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                    `;
+
+                    // Actualizar contenido del carrusel
+                    carruselContainer.innerHTML = carruselHtml;
+
+                    // Reiniciar el carrusel (si usas Bootstrap)
+                    const bootstrapCarousel = new bootstrap.Carousel(`#carrusel-${cveArt}`, { interval: false });
+                }
+            } else {
+                console.error("Error al cargar las imágenes del producto:", data.message);
+            }
+        })
+        .catch((error) => {
+            console.error("Error al cargar el carrusel:", error);
+        });
+}
 function subirImagenes(cveArt, files) {
     const formData = new FormData();
     formData.append("numFuncion", 14);
@@ -250,7 +293,6 @@ function subirImagenes(cveArt, files) {
     Array.from(files).forEach((file) => {
         formData.append("imagen[]", file);
     });
-
     fetch("../Servidor/PHP/ventas.php", {
         method: "POST",
         body: formData,
