@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="CSS/selec.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -50,61 +51,31 @@
 </head>
 
 <style>
-/* From Uiverse.io by vinodjangid07 */ 
-.button {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: rgb(20, 20, 20);
-  border: none;
-  font-weight: 600;
+.div {
+  margin: 0 auto;
+  font-size: 1rem;
+  background: #ffffff;
+  border-radius: 5px;
+  position: relative;
+  width: 200px; /* Tamaño reducido */
+  display: flex;
+  align-items: center; /* Alineación centrada */
+  border: 1px solid #ccc; /* Borde añadido */
+}
+
+.div .icon {
+  padding: 0.5em;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.164);
-  cursor: pointer;
-  transition-duration: .3s;
-  overflow: hidden;
-  position: relative;
 }
 
-.svgIcon {
-  width: 12px;
-  transition-duration: .3s;
-}
-
-.svgIcon path {
-  fill: white;
-}
-
-.button:hover {
-  width: 140px;
-  border-radius: 50px;
-  transition-duration: .3s;
-  background-color: rgb(255, 69, 69);
-  align-items: center;
-}
-
-.button:hover .svgIcon {
-  width: 50px;
-  transition-duration: .3s;
-  transform: translateY(60%);
-}
-
-.button::before {
-  position: absolute;
-  top: -20px;
-  content: "Delete";
-  color: white;
-  transition-duration: .3s;
-  font-size: 2px;
-}
-
-.button:hover::before {
-  font-size: 13px;
-  opacity: 1;
-  transform: translateY(30px);
-  transition-duration: .3s;
+.div input[type="text"] {
+  padding: 0.5em; /* Tamaño reducido */
+  border: 1px solid #ccc; /* Borde añadido */
+  flex: 1;
+  font-size: 0.875rem; /* Tamaño de fuente reducido */
+  font-family: inherit;
 }
 </style>
 
@@ -117,70 +88,54 @@
             <section id="hero" class="hero section">
                 <!-- Contact Section -->
                 <section class="container section-title" data-aos="fade-up">
-                <h2>Carrito</h2>
-                    <div class="container py-5 h-100">
-                        <div class="row d-flex justify-content-center align-items-center h-100">
-                            <div class="col">
-                                <div class="card">
-                                    <div class="card-body p-4">
-                                        <div class="row">
-                                            <!-- Columna de productos -->
-                                            <div class="col-lg-7">
-                                                <h5 class="mb-3">
-                                                            <a href="Articulos.php" class="text-body">
-                                                                <i class="fas fa-long-arrow-alt-left me-2"></i>
-                                                                Seguir comprando
-                                                            </a> 
-                                                        </h5>
-                                                        <hr>
-                                                <div id="carrito-lista">
-                                                    <!-- Aquí se generarán dinámicamente los productos -->
-                                                </div>
 
-                                            </div>
+                    <div class="container py-5">
+                        <div class="row d-flex justify-content-center align-items-center">
+                            <div class="col-lg-10">
+                                <div class="card shadow-lg">
+                                    <div class="card-body p-5">
+                                        <h3 class="text-center mb-4">🛒 Carrito de Compras</h3>
 
-                                            <!-- Columna del resumen -->
-                                            <div class="col-lg-5">
-                                                <div class="card bg-primary text-white rounded-3">
-                                                    <div class="card-body">
-                                                        <h8 class="mb-4" id="h8">Resumen del Pedido</h8>
-                                                        <hr class="my-4">
-                                                        
-                                                        <div class="d-flex justify-content-between">
-                                                            <p class="mb-2">Folio: </p>
-                                                            <input type="text" id="folioCarrito">
-                                                        </div>
-                                                        <!-- <div class="d-flex justify-content-between">
-                                                            <p class="mb-2">Subtotal</p>
-                                                            <p class="mb-2" id="subtotal">$0.00</p>
-                                                        </div>
-                                                        <div class="d-flex justify-content-between">
-                                                            <p class="mb-2">Envío</p>
-                                                            <p class="mb-2">$20.00</p>
-                                                        </div>
-                                                        <div class="d-flex justify-content-between mb-4">
-                                                            <p class="mb-2">Total (Incl. impuestos)</p>
-                                                            <p class="mb-2" id="total">$0.00</p>
-                                                        </div> -->
-                                                        <button type="button" class="btn btn-light btn-block btn-lg" id="btnPagar">
-                                                            <div class="d-flex justify-content-between">
-                                                                <span id=""></span>
-                                                                <span>Pagar <i
-                                                                        class="fas fa-long-arrow-alt-right ms-2"></i></span>
-                                                            </div> 
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-
+                                        <div class="div">
+                                            <span class="icon">
+                                                <i class='bx bx-file'></i>
+                                            </span>
+                                            <input type="text" id="folioCarrito" placeholder="Folio del Carrito"
+                                                readonly />
                                         </div>
+                                        <br>
 
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-striped text-center align-middle">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th scope="col">Imagen</th>
+                                                        <th scope="col">Producto</th>
+                                                        <th scope="col">Precio</th>
+                                                        <th scope="col">Cantidad</th>
+                                                        <th scope="col">Total</th>
+                                                        <th scope="col">Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="carrito-lista">
+                                                    <!-- Los productos se generarán aquí dinámicamente -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <hr>
+                                        <div class="d-flex justify-content-between align-items-center">
+
+                                            <h4>Subtotal: <span id="subtotal">$0.00</span></h4>
+                                            <h4>Envío: <span>$20.00</span></h4>
+                                            <h3>Total: <span id="total">$0.00</span></h3>
+                                        </div>
+                                        <button class="btn btn-primary btn-lg w-100 mt-4" id="btnPagar">💳 Pagar
+                                            Ahora</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
 
                 </section><!-- /Contact Section -->
             </section><!-- /Fin Section -->
@@ -208,6 +163,9 @@
 
     <!-- JS Para la confirmacion empresa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+
 
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendor/php-email-form/validate.js"></script>

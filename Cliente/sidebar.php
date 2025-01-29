@@ -63,6 +63,16 @@
                 <span class="text">Reportes</span>
             </a>
         </li>
+
+        <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
+            <li>
+            <a href="Menu.php">
+                <i class='bx bxs-store'></i>
+                <span class="text">E-commerce</span>
+            </a>
+        </li>
+        <?php } ?>
+       
     </ul>
     <ul class="side-menu">
         <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
