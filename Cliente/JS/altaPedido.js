@@ -1,13 +1,10 @@
 // --------Funciones para mostrar articulos----------------
 
-
 // -----------------------------------------------------------------------------
-
 
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
-  const clienteSeleccionado =
-    sessionStorage.getItem("clienteSeleccionado") === "true";
+  const clienteSeleccionado = sessionStorage.getItem("clienteSeleccionado") === "true";
   if (!clienteSeleccionado) {
     Swal.fire({
       title: "Error",
@@ -16,16 +13,28 @@ function agregarFilaPartidas() {
       confirmButtonText: "Entendido",
     });
     return;
-    Swal.fire({
-      title: 'Error',
-      text: `Debes seleccionar un Cliente primero`,
-      icon: 'warning',
-      confirmButtonText: 'Entendido'
-    });
-    return;
   }
 
   const tablaProductos = document.querySelector("#tablaProductos tbody");
+  const filas = tablaProductos.querySelectorAll("tr");
+
+  // 🚨 Permitir agregar la primera fila sin validaciones previas
+  if (filas.length > 0) {
+    const ultimaFila = filas[filas.length - 1];
+    const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
+    const ultimaCantidad =
+      parseFloat(ultimaFila.querySelector(".cantidad").value) || 0;
+
+    if (ultimoProducto === "" || ultimaCantidad === 0) {
+      Swal.fire({
+        title: "Error",
+        text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de agregar otra partida.",
+        icon: "error",
+        confirmButtonText: "Entendido",
+      });
+      return;
+    }
+  }
 
   // Crear un identificador único para la partida
   const numPar = partidasData.length + 1;
@@ -35,7 +44,7 @@ function agregarFilaPartidas() {
   nuevaFila.setAttribute("data-num-par", numPar); // Identificar la fila
   nuevaFila.innerHTML = `
   <td>
-          <button type="button" class="btn btn-danger btn-sm eliminarPartida" onclick="eliminarPartidaFormulario(${numPar})">
+          <button type="button" class="btn btn-danger btn-sm eliminarPartida" data-num-par="${numPar}">
               <i class="bx bx-trash"></i>
           </button>
       </td>    
@@ -55,7 +64,6 @@ function agregarFilaPartidas() {
                <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
           </div>
       </td>
-
       <td><input type="text" class="unidad" readonly /></td>
       <td><input type="number" class="descuento1" style="width: 70px;" value="0"  readonly /></td>
       <td><input type="number" class="descuento2" style="width: 70px;" value="0" readonly /></td>
@@ -68,28 +76,12 @@ function agregarFilaPartidas() {
       <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
   `;
 
-  // Añadir evento al botón de eliminar
+  // Añadir evento al botón de eliminar con delegación
   const botonEliminar = nuevaFila.querySelector(".eliminarPartida");
-  botonEliminar.addEventListener("click", () => {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¿Deseas eliminar esta partida?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        nuevaFila.remove(); // Eliminar la fila
-        Swal.fire({
-          title: 'Eliminada',
-          text: 'La partida ha sido eliminada.',
-          icon: 'success',
-          confirmButtonText: 'Entendido'
-        });
-      }
-    });
+  botonEliminar.addEventListener("click", function () {
+    eliminarPartidaFormulario(numPar, nuevaFila);
   });
+
   // Validar que la cantidad no sea negativa
   const cantidadInput = nuevaFila.querySelector(".cantidad");
   cantidadInput.addEventListener("input", () => {
@@ -104,22 +96,54 @@ function agregarFilaPartidas() {
     } else {
       calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
     }
-    if (parseFloat(cantidadInput.value) < 0) {
-      Swal.fire({
-        title: 'Error',
-        text: 'La cantidad no puede ser negativa.',
-        icon: 'error',
-        confirmButtonText: 'Entendido'
-      });
-      cantidadInput.value = 0; // Restablecer el valor a 0
-    } else {
-      calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
-    }
   });
 
   tablaProductos.appendChild(nuevaFila);
-}
 
+  // Agregar la partida al array `partidasData`
+  partidasData.push({
+    NUM_PAR: numPar,
+    CANT: 0,
+    CVE_ART: "",
+    DESC1: 0,
+    DESC2: 0,
+    IMPU1: 0,
+    IMPU4: 0,
+    COMI: 0,
+    PREC: 0,
+    TOT_PARTIDA: 0,
+  });
+
+  console.log("Partidas actuales después de agregar:", partidasData);
+}
+function eliminarPartidaFormulario(numPar, filaAEliminar) {
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: "¿Deseas eliminar esta partida?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // 🚨 Eliminar la fila visualmente
+      filaAEliminar.remove();
+
+      // 🚨 Eliminar la partida del array `partidasData`
+      partidasData = partidasData.filter((partida) => partida.NUM_PAR !== numPar);
+
+      console.log("Partida eliminada. Estado actual de partidasData:", partidasData);
+
+      // Confirmación
+      Swal.fire({
+        title: "Eliminada",
+        text: "La partida ha sido eliminada.",
+        icon: "success",
+        confirmButtonText: "Entendido",
+      });
+    }
+  });
+}
 // // Ocultar sugerencias al hacer clic fuera del input
 // document.addEventListener("click", function (e) {
 //     const listas = document.querySelectorAll(".lista-sugerencias");
@@ -312,8 +336,7 @@ function mostrarListaProductos(productos, input) {
       fila.onclick = async function () {
         if (producto.EXIST > 0) {
           input.value = producto.CVE_ART;
-          $('#CVE_ESQIMPU').val(producto.CVE_ESQIMPU);
-
+          $("#CVE_ESQIMPU").val(producto.CVE_ESQIMPU);
 
           const filaTabla = input.closest("tr");
           const campoUnidad = filaTabla.querySelector(".unidad");
@@ -334,25 +357,22 @@ function mostrarListaProductos(productos, input) {
           // campoCantidad.readOnly = true;
           // campoCantidad.value = "Sin existencias"; // Mensaje opcional
           Swal.fire({
-            title: 'Error',
+            title: "Error",
             text: `El producto "${producto.CVE_ART}" no tiene existencias disponibles.`,
-            icon: 'warning',
-            confirmButtonText: 'Entendido'
+            icon: "warning",
+            confirmButtonText: "Entendido",
           });
-
         }
-      
-
-    };
-    tablaProductos.appendChild(fila);
+      };
+      tablaProductos.appendChild(fila);
+    });
+  }
+  // Evento para actualizar la tabla al escribir en el campo de búsqueda
+  campoBusqueda.addEventListener("input", () => {
+    renderProductos(campoBusqueda.value);
   });
-}
-// Evento para actualizar la tabla al escribir en el campo de búsqueda
-campoBusqueda.addEventListener("input", () => {
-  renderProductos(campoBusqueda.value);
-});
-// Renderizar productos inicialmente
-renderProductos();
+  // Renderizar productos inicialmente
+  renderProductos();
 }
 
 function calcularSubtotal(fila) {
@@ -433,7 +453,7 @@ function obtenerDatosFormulario() {
   const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DD
 
   const campoEntrega = document.getElementById("entrega").value;
-  
+
   // Si el usuario ha ingresado una fecha, se usa esa, de lo contrario, se usa la fecha actual
   const entrega = campoEntrega ? campoEntrega : fechaActual;
 
@@ -525,7 +545,10 @@ function enviarDatosBackend(formularioData, partidasData) {
                 }</p>
           title: 'Error al guardar el pedido',
           html: 
-                <p>${data.message || 'No hay suficientes existencias para algunos productos.'}</p>
+                <p>${
+                  data.message ||
+                  "No hay suficientes existencias para algunos productos."
+                }</p>
                 <p><strong>Productos sin existencias:</strong></p>
                 <ul>
                     ${data.productosSinExistencia
@@ -550,8 +573,8 @@ function enviarDatosBackend(formularioData, partidasData) {
             `,
           icon: "error",
           confirmButtonText: "Aceptar",
-          icon: 'error',
-          confirmButtonText: 'Aceptar'
+          icon: "error",
+          confirmButtonText: "Aceptar",
         });
       }
       if (data.credit) {
@@ -560,24 +583,28 @@ function enviarDatosBackend(formularioData, partidasData) {
           title: "Error al guardar el pedido",
           html: `
                         <p>${data.message || "Ocurrió un error inesperado."}</p>
-                        <p><strong>Saldo actual:</strong> ${data.saldoActual?.toFixed(2) || "N/A"
-            }</p>
-                        <p><strong>Límite de crédito:</strong> ${data.limiteCredito?.toFixed(2) || "N/A"
-            }</p>
+                        <p><strong>Saldo actual:</strong> ${
+                          data.saldoActual?.toFixed(2) || "N/A"
+                        }</p>
+                        <p><strong>Límite de crédito:</strong> ${
+                          data.limiteCredito?.toFixed(2) || "N/A"
+                        }</p>
                     `,
           icon: "error",
           confirmButtonText: "Aceptar",
         });
-      } else{
-          console.error("Error en la respuesta:", data);
-          Swal.fire({
-            title: "Error al guardar el pedido",
-            html: `
-                          <p>${data.message || "Ocurrió un error inesperado."}</p>
+      } else {
+        console.error("Error en la respuesta:", data);
+        Swal.fire({
+          title: "Error al guardar el pedido",
+          html: `
+                          <p>${
+                            data.message || "Ocurrió un error inesperado."
+                          }</p>
                           `,
-            icon: "error",
-            confirmButtonText: "Aceptar",
-          });
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
       }
     })
     .catch((error) => {
@@ -909,11 +936,6 @@ document
       agregarFilaPartidas();
     }
   });
-document.getElementById("tablaProductos").addEventListener("keydown", function (event) {
-  if (event.key === "Tab") {  // Verifica si la tecla presionada es el tabulador
-    agregarFilaPartidas();
-  }
-});
 
 $(document).ready(function () {
   $("#guardarPedido").click(async function (event) {
@@ -930,18 +952,20 @@ $(document).ready(function () {
 
       if (folio == id) {
         console.log("Guardando nuevo pedido...");
-        id = 0; 
+        id = 0;
       } else {
         console.log("Editando pedido existente...");
         document.getElementById("numero").value = id;
       }
 
-      console.log("Número final en el formulario:", document.getElementById("numero").value);
-      
-      guardarPedido(id); 
-      
-      return false; // Evita la recarga de la página
+      console.log(
+        "Número final en el formulario:",
+        document.getElementById("numero").value
+      );
 
+      guardarPedido(id);
+
+      return false; // Evita la recarga de la página
     } catch (error) {
       console.error("Error al obtener el folio:", error);
       return false; // Previene la recarga en caso de error
@@ -987,24 +1011,4 @@ $("#AyudaEnviarA").click(function () {
     icon: "info",
     confirmButtonText: "Entendido",
   });
-});
-
-function validarCorreo() {
-  alert("1");
-  fetch("../Servidor/PHP/ventas.php", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(formularioData),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      alert(data.message);
-    })
-    .catch((error) => console.error("Error:", error));
-  alert("3");
-}
-$("#btnValidarCorreo").click(function () {
-  validarCorreo();
 });
