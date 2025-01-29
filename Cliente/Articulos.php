@@ -3,7 +3,7 @@
 
     if (isset($_SESSION['usuario'])) {
         if ($_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
-        $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
+            $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
             header('Location:Dashboard.php');
             exit();
         }
@@ -32,6 +32,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
+
+
     <!-- Vendor CSS Files -->
     <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
@@ -44,6 +46,8 @@
     <link href="assets/css/main.css" rel="stylesheet">
     <link rel="stylesheet" href="CSS/articulos.css">
 </head>
+
+
 
 <body>
     <div class="hero_area">
@@ -58,6 +62,8 @@
                         <h2>Productos</h2>
                         <p>Encuentra los productos que necesitas en nuestro catálogo.</p>
                     </div><!-- End Section Title -->
+
+
 
                     <div class="container">
                         <div class="tab-content" data-aos="fade-up" data-aos-delay="200">
@@ -79,23 +85,59 @@
 
     </div>
 
+    <!-- Modal -->
+    <!-- Modal -->
     <div id="productModal" class="modal">
         <div class="modal-content">
-            <button id="closeModal" class="close-button">Cerrar</button>
+
+            <!-- Header del Modal -->
+            <div class="modal-header">
+                <h2 id="modal-title">Nombre del Producto</h2>
+                <span class="close">&times;</span> <!-- ESTE ES EL BOTÓN QUE CIERRA EL MODAL -->
+            </div>
+
             <div class="modal-body">
+                <!-- Imagen del producto -->
                 <div class="modal-image">
-                    <img id="modal-image" src="" alt="Imagen del Producto">
+                    <div id="modal-carousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner" id="modal-carousel-inner">
+                            <!-- Imágenes del producto se insertarán aquí -->
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#modal-carousel"
+                            data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#modal-carousel"
+                            data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Detalles del producto -->
+
                 <div class="modal-details">
-                    <h2 id="modal-title">Título del Producto</h2>
-                    <p id="modal-description">Descripción del Producto</p>
-                    <p id="modal-existencia">Existencia: </p>
+                    <p class="modal-price" id="modal-price">$0.00</p>
+                    <div class="modal-add-cart">
+                        <input type="number" id="cantidadProducto" value="1" min="1">
+                        <button id="btn-add-to-cart" class="btn btn-primary">Añadir al carrito</button>
+                    </div>
+                    
+
+                    <br>
+                    <br>
+                    <h3>Descripción</h3>
+                    <p id="modal-description">Descripción del producto aquí.</p>
+
+                    <h4>Información adicional</h4>
                     <p id="modal-lin-prod">Línea del Producto: </p>
-                    <button id="btn-add-to-cart" class="btn-agregar">Agregar al carrito</button>
                 </div>
             </div>
         </div>
     </div>
+
+
+
 
     <script src="JS/articulos.js"></script>
     <script src="JS/menu.js"></script>

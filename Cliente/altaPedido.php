@@ -53,246 +53,247 @@ if (isset($_SESSION['usuario'])) {
 </head>
 
 <style>
-    .input-container {
-        position: relative;
-        width: 100%;
-    }
+.input-container {
+    position: relative;
+    width: 100%;
+}
 
-    .lista-sugerencias {
-        max-height: 150px;
-        overflow-y: auto;
-        z-index: 1000;
-    }
+.lista-sugerencias {
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+}
 
-    .suggestion-item:hover {
-        background-color: #f0f0f0;
-    }
+.suggestion-item:hover {
+    background-color: #f0f0f0;
+}
 
-    .suggestions-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        border: 1px solid #ccc;
-        border-top: none;
-        background-color: white;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 1000;
-        display: none;
-        box-sizing: border-box;
-    }
+.suggestions-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-top: none;
+    background-color: white;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-sizing: border-box;
+}
 
-    .suggestions-list li {
-        padding: 8px;
-        cursor: pointer;
-    }
+.suggestions-list li {
+    padding: 8px;
+    cursor: pointer;
+}
 
-    .suggestions-list li:hover {
-        background-color: #f0f0f0;
-    }
+.suggestions-list li:hover {
+    background-color: #f0f0f0;
+}
 
-    .clear-input {
-        position: absolute;
-        top: 50%;
-        right: 10px;
-        transform: translateY(-50%);
-        font-size: 16px;
-        color: #888;
-        pointer-events: all;
-        display: none;
-    }
+.clear-input {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #888;
+    pointer-events: all;
+    display: none;
+}
 
-    .clear-input:hover {
-        color: #333;
-    }
+.clear-input:hover {
+    color: #333;
+}
 
-    input {
-        padding: 5px;
-        font-size: 12px;
-        height: 30px;
-    }
+input {
+    padding: 5px;
+    font-size: 12px;
+    height: 30px;
+}
 
-    .cantidad,
-    .ieps,
-    .subtotalPartida,
-    .iva {
-        width: 60px;
-    }
+.cantidad,
+.ieps,
+.subtotalPartida,
+.iva {
+    width: 60px;
+}
 
-    .unidad,
-    .subtotalPartida,
-    .comision,
-    .precioUnidad {
-        width: 80px;
-    }
+.unidad,
+.subtotalPartida,
+.comision,
+.precioUnidad {
+    width: 80px;
+}
 
-    .producto {
-        width: 150px;
-    }
+.producto {
+    width: 150px;
+}
 
-    .card-body {
-        width: 100%;
-        max-width: 980px;
-        margin: 0 auto;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #fff;
-    }
+.card-body {
+    width: 100%;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+}
 
-    .form-container {
-        position: sticky;
+.form-container {
+    position: sticky;
     /* Cambiado a sticky para mantener fijo */
     /*top: 0;*/
     /* Para que se fije en la parte superior */
     z-index: 10;
-        background: white;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-    }
-    .form-container .row {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
+    background: white;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
 
-    .form-element {
+.form-container .row {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.form-element {
+    flex-grow: 1;
+    flex-basis: calc(20% - 10px);
+    margin: 0;
+    padding: 0;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+input,
+select,
+textarea {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+textarea {
+    height: 6em;
+    resize: none;
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin: 0 10px;
+}
+
+
+
+
+@media (max-width: 671px) {
+    #CodigoGuarnicion .form-element:nth-child(1) {
         flex-grow: 1;
-        flex-basis: calc(20% - 10px);
-        margin: 0;
-        padding: 0;
     }
 
-    label {
-        display: block;
-        font-size: 14px;
-        margin-bottom: 5px;
+    #CodigoGuarnicion .form-element:nth-child(2) {
+        flex-grow: 1;
     }
 
-    input,
-    select,
-    textarea {
-        padding: 5px;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        font-size: 14px;
-        box-sizing: border-box;
-    }
-
-    textarea {
-        height: 6em;
-        resize: none;
-    }
-
-    .button-container {
-        text-align: center;
-        margin-top: 20px;
-    }
-
-    button {
-        background-color: #007bff;
-        color: #fff;
-        border: none;
-        padding: 10px 20px;
-        font-size: 14px;
-        cursor: pointer;
-        border-radius: 3px;
-        margin: 0 10px;
-    }
-
-
-
-
-    @media (max-width: 671px) {
-        #CodigoGuarnicion .form-element:nth-child(1) {
-            flex-grow: 1;
-        }
-
-        #CodigoGuarnicion .form-element:nth-child(2) {
-            flex-grow: 1;
-        }
-
-        #CodigoGuarnicion .form-element:nth-child(2) input {
-            width: auto;
-        }
-    }
-
-
-    /* Contenedor principal de la tabla */
-    .table-container {
-        flex: 1;
-        /* Se expande para ocupar el espacio restante */
-        overflow: hidden;
-        /* Evita el scroll en este contenedor */
-    }
-
-    /* Wrapper de la tabla para activar el scroll interno */
-    .table-wrapper {
-        height: 100%;
-        overflow-y: auto;
-        /* Activa el scroll interno vertical */
-
-    }
-
-    /* Opcional: Mejora visual del scroll interno */
-    .table-wrapper::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .table-wrapper::-webkit-scrollbar-thumb {
-        background-color: #ccc;
-        border-radius: 4px;
-    }
-
-    .table-wrapper::-webkit-scrollbar-thumb:hover {
-        background-color: #aaa;
-    }
-
-    .input-container div {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        /* Alinear elementos al inicio */
-        gap: 5px;
-        /* Espacio uniforme entre elementos */
-    }
-
-    .input-container input {
-        flex-shrink: 0;
-        /* Evitar que el input cambie de tamaño */
-    }
-
-    .input-container button {
-        flex-shrink: 0;
-        /* Evitar que los botones cambien de tamaño */
-        padding: 5px 8px;
-        /* Ajustar el tamaño del botón */
-    }
-
-    .input-container {
+    #CodigoGuarnicion .form-element:nth-child(2) input {
         width: auto;
-        /* Asegurar que el contenedor no se expanda innecesariamente */
     }
+}
 
-    #clientesSugeridos li {
-        padding: 5px;
-        cursor: pointer;
-    }
 
-    #clientesSugeridos li.highlighted {
-        background-color: #007bff;
-        color: white;
-    }
+/* Contenedor principal de la tabla */
+.table-container {
+    flex: 1;
+    /* Se expande para ocupar el espacio restante */
+    overflow: hidden;
+    /* Evita el scroll en este contenedor */
+}
 
-    /*-------------------------------------------------------*/
+/* Wrapper de la tabla para activar el scroll interno */
+.table-wrapper {
+    height: 100%;
+    overflow-y: auto;
+    /* Activa el scroll interno vertical */
+
+}
+
+/* Opcional: Mejora visual del scroll interno */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: #aaa;
+}
+
+.input-container div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    /* Alinear elementos al inicio */
+    gap: 5px;
+    /* Espacio uniforme entre elementos */
+}
+
+.input-container input {
+    flex-shrink: 0;
+    /* Evitar que el input cambie de tamaño */
+}
+
+.input-container button {
+    flex-shrink: 0;
+    /* Evitar que los botones cambien de tamaño */
+    padding: 5px 8px;
+    /* Ajustar el tamaño del botón */
+}
+
+.input-container {
+    width: auto;
+    /* Asegurar que el contenedor no se expanda innecesariamente */
+}
+
+#clientesSugeridos li {
+    padding: 5px;
+    cursor: pointer;
+}
+
+#clientesSugeridos li.highlighted {
+    background-color: #007bff;
+    color: white;
+}
+
+/*-------------------------------------------------------*/
 </style>
 
 <body>
@@ -343,36 +344,40 @@ if (isset($_SESSION['usuario'])) {
                                     <option value="Directo">Directo</option>
                                 </select>
                             </div>
-                            <div class="form-element"></div>
                             <div class="form-element">
-                                <label for="numero">Número</label>
+                                <label for="numero">Folio:</label>
                                 <input type="text" name="numero" id="numero" readonly>
                             </div>
                             <div class="form-element">
                                 <label for="fecha">Fecha </label>
-                                <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;" readonly1>
+                                <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;"
+                                    readonly1>
                             </div>
 
-
-                        </div>
-                        <div class="row">
                             <div class="form-element">
                                 <label for="cliente">Cliente</label>
                                 <div class="input-container" style="position: relative;">
                                     <div style="display: flex; align-items: center; gap: 5px;">
                                         <input name="cliente" id="cliente" autocomplete="off"
-                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 100px;" />
-                                        <button id="clearInput" type="button" class="btn"
-                                            onclick="clearAllFields()" style="display: none; padding: 5px 10px;">
+                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 170px;" />
+                                        <button id="clearInput" type="button" class="btn" onclick="clearAllFields()"
+                                            style="display: none; padding: 5px 10px;">
                                             <i class="bx bx-x"></i>
                                         </button>
-                                        <button type="button" class="btn" onclick="abrirModalClientes()" style="padding: 5px 5px;">
+                                        <button type="button" class="btn" onclick="abrirModalClientes()"
+                                            style="padding: 5px 5px;">
                                             <i class="bx bx-search"></i>
                                         </button>
                                     </div>
                                     <ul id="clientesSugeridos" class="suggestions-list"></ul>
                                 </div>
                             </div>
+
+
+
+                        </div>
+                        <div class="row">
+
                             <div class="form-element" style="display: none;">
                                 <label for="rfc">RFC <a class='bx'> *</a></label>
                                 <input type="text" name="rfc" id="rfc">
@@ -380,12 +385,12 @@ if (isset($_SESSION['usuario'])) {
 
                             <div class="form-element">
                                 <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                <input type="text" name="nombre" id="nombre" style="width: 450px;" readonly1 />
+                                <input type="text" name="nombre" id="nombre" style="width: 700px;" readonly />
                             </div>
-
+                          
                             <div class="form-element">
                                 <label for="supedido">Su Pedido </label>
-                                <input type="text" name="supedido" id="supedido">
+                                <input type="text" name="supedido" id="supedido" style="width:170px;">
                             </div>
                         </div>
 
@@ -407,8 +412,8 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="form-element">
                                 <label for="vendedor">Vendedor </label>
-                                <input type="text" name="vendedor" id="vendedor" value="<?php echo $claveVendedor ?>"
-                                    readonly>
+                                <input type="text" name="vendedor" id="vendedor" style="width: 170px;"
+                                    value="<?php echo $claveVendedor ?>" readonly>
                             </div>
                             <div class="form-element">
                                 <label for="almacen">Almacen </label>
@@ -417,11 +422,13 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="form-element">
                                 <label for="entrega">Entrega </label>
-                                <input type="date" name="entrega" id="entrega">
+                                <input type="date" name="entrega" id="entrega"
+                                    style="width:180px; align-items: center;">
+
                             </div>
                             <div class="form-element">
                                 <label for="esquema">Esquema </label>
-                                <input type="text" name="esquema" id="esquema">
+                                <input type="text" name="esquema" id="esquema" value="0" style="width: 170px;">
                             </div>
                         </div>
 
@@ -446,7 +453,12 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="form-element">
                                 <label for="descuento">Descuento </label>
-                                <input type="text" name="descuento" id="descuento">
+                                <div style="display: flex; align-items: center;">
+                                    <input type="text" name="descuento" id="descuento" style="width: 110px;">
+                                    <button type="button" class="btn ms-2" id="AyudaDescuento">
+                                        <i class="bx bx-help-circle"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -475,7 +487,12 @@ if (isset($_SESSION['usuario'])) {
 
                             <div class="form-element">
                                 <label for="descuentofin">Descuento Fin </label>
-                                <input type="text" name="descuentofin" id="descuentofin">
+                                <div style="display: flex; align-items: center;">
+                                    <input type="text" name="descuentofin" id="descuentofin" style="width: 110px;">
+                                    <button type="button" class="btn ms-2" id="AyudaDescuentofin">
+                                        <i class="bx bx-help-circle"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="row" style="display: none;">
@@ -514,8 +531,10 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                         <div class="row">
                             <div class="form-element"></div>
-                            <button type="button" class="btn-save" id="guardarPedido" style="width: 150px;">Guardar</button>
-                            <button type="button" class="btn-cancel" id="cancelarPedido" style="width: 150px;">Cancelar</button>
+                            <button type="submit" class="btn-save" id="guardarPedido"
+                                style="width: 150px;">Guardar</button>
+                            <button type="button" class="btn-cancel" id="cancelarPedido"
+                                style="width: 150px;">Cancelar</button>
                         </div>
                     </form>
                     <!-- 5th row: 2 buttons -->
@@ -547,7 +566,8 @@ if (isset($_SESSION['usuario'])) {
                                     </table>
                                 </div>
 
-                                <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly hidden>
+                                <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly
+                                    hidden>
                                 <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
 
                             </div>
@@ -679,119 +699,137 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/ventas.js"></script>
     <script src="JS/altaPedido.js"></script>
     <script src="JS/clientes.js"></script>
+
     <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const now = new Date();
+        const fechaActual = now.toISOString().slice(0,10); // Formato YYYY-MM-DDTHH:MM
+        document.getElementById("entrega").value = fechaActual;
+    });
+    </script>
+    <script>
+    $(document).ready(function() {
         $(document).ready(function() {
-            $(document).ready(function() {
-                const suggestionsList = $('#clientesSugeridos');
-                let highlightedIndex = -1; // Índice del elemento destacado
+            const suggestionsList = $('#clientesSugeridos');
+            let highlightedIndex = -1; // Índice del elemento destacado
 
-                $('#cliente').on('input', function() {
-                    const clienteInput = $(this).val().trim();
-                    const claveVendedor = '<?php echo $claveVendedor ?>';
-                    const $clienteInput = $(this);
+            $('#cliente').on('input', function() {
+                const clienteInput = $(this).val().trim();
+                const claveVendedor = '<?php echo $claveVendedor ?>';
+                const $clienteInput = $(this);
 
-                    if (clienteInput.length >= 3) {
-                        $.ajax({
-                            url: '../Servidor/PHP/ventas.php',
-                            type: 'POST',
-                            data: {
-                                cliente: clienteInput,
-                                numFuncion: '4',
-                                clave: claveVendedor
-                            },
-                            success: function(response) {
-                                try {
-                                    if (typeof response === 'string') {
-                                        response = JSON.parse(response);
-                                    }
-                                } catch (e) {
-                                    console.error("Error al parsear la respuesta JSON", e);
-                                    return;
+                if (clienteInput.length >= 3) {
+                    $.ajax({
+                        url: '../Servidor/PHP/ventas.php',
+                        type: 'POST',
+                        data: {
+                            cliente: clienteInput,
+                            numFuncion: '4',
+                            clave: claveVendedor
+                        },
+                        success: function(response) {
+                            try {
+                                if (typeof response === 'string') {
+                                    response = JSON.parse(response);
                                 }
+                            } catch (e) {
+                                console.error("Error al parsear la respuesta JSON",
+                                    e);
+                                return;
+                            }
 
-                                if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
-                                    suggestionsList.empty().show();
-                                    highlightedIndex = -1; // Reiniciar el índice destacado
+                            if (response.success && Array.isArray(response
+                                    .cliente) && response.cliente.length > 0) {
+                                suggestionsList.empty().show();
+                                highlightedIndex = -
+                                    1; // Reiniciar el índice destacado
 
-                                    response.cliente.forEach((cliente, index) => {
-                                        const listItem = $('<li></li>')
-                                            .text(`${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`)
-                                            .attr('data-index', index)
-                                            .attr('data-cliente', JSON.stringify(cliente))
-                                            .on('click', function() {
-                                                seleccionarClienteDesdeSugerencia(cliente);
-                                            });
+                                response.cliente.forEach((cliente, index) => {
+                                    const listItem = $('<li></li>')
+                                        .text(
+                                            `${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`
+                                        )
+                                        .attr('data-index', index)
+                                        .attr('data-cliente', JSON
+                                            .stringify(cliente))
+                                        .on('click', function() {
+                                            seleccionarClienteDesdeSugerencia
+                                                (cliente);
+                                        });
 
-                                        suggestionsList.append(listItem);
-                                    });
-                                } else {
-                                    suggestionsList.empty().hide();
-                                }
-                            },
-                            error: function() {
-                                console.error("Error en la solicitud AJAX para sugerencias");
+                                    suggestionsList.append(listItem);
+                                });
+                            } else {
                                 suggestionsList.empty().hide();
                             }
-                        });
-                    } else {
-                        suggestionsList.empty().hide();
-                    }
-                });
-
-                $('#cliente').on('keydown', function(e) {
-                    const items = suggestionsList.find('li');
-                    if (!items.length) return;
-
-                    if (e.key === 'ArrowDown') {
-                        // Mover hacia abajo en las sugerencias
-                        highlightedIndex = (highlightedIndex + 1) % items.length;
-                        actualizarDestacado(items, highlightedIndex);
-                        e.preventDefault();
-                    } else if (e.key === 'ArrowUp') {
-                        // Mover hacia arriba en las sugerencias
-                        highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
-                        actualizarDestacado(items, highlightedIndex);
-                        e.preventDefault();
-                    } else if (e.key === 'Tab' || e.key === 'Enter') {
-                        // Seleccionar el cliente destacado
-                        if (highlightedIndex >= 0) {
-                            const clienteSeleccionado = JSON.parse($(items[highlightedIndex]).attr('data-cliente'));
-                            seleccionarClienteDesdeSugerencia(clienteSeleccionado);
+                        },
+                        error: function() {
+                            console.error(
+                                "Error en la solicitud AJAX para sugerencias");
                             suggestionsList.empty().hide();
-                            e.preventDefault(); // Evitar el comportamiento predeterminado del tabulador
                         }
+                    });
+                } else {
+                    suggestionsList.empty().hide();
+                }
+            });
+
+            $('#cliente').on('keydown', function(e) {
+                const items = suggestionsList.find('li');
+                if (!items.length) return;
+
+                if (e.key === 'ArrowDown') {
+                    // Mover hacia abajo en las sugerencias
+                    highlightedIndex = (highlightedIndex + 1) % items.length;
+                    actualizarDestacado(items, highlightedIndex);
+                    e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                    // Mover hacia arriba en las sugerencias
+                    highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+                    actualizarDestacado(items, highlightedIndex);
+                    e.preventDefault();
+                } else if (e.key === 'Tab' || e.key === 'Enter') {
+                    // Seleccionar el cliente destacado
+                    if (highlightedIndex >= 0) {
+                        const clienteSeleccionado = JSON.parse($(items[highlightedIndex]).attr(
+                            'data-cliente'));
+                        seleccionarClienteDesdeSugerencia(clienteSeleccionado);
+                        suggestionsList.empty().hide();
+                        e
+                            .preventDefault(); // Evitar el comportamiento predeterminado del tabulador
                     }
-                });
-
-                function actualizarDestacado(items, index) {
-                    items.removeClass('highlighted');
-                    $(items[index]).addClass('highlighted');
-                }
-            });
-            // Cerrar la lista de sugerencias si se hace clic fuera del input
-            $(document).on('click', function(event) {
-                if (!$(event.target).closest('#cliente').length) {
-                    $('#clientesSugeridos').empty().hide();
                 }
             });
 
-            // Al hacer clic en la X, borrar el valor del input y los demás campos
-            $('#clearInput').on('click', function() {
-                $('#cliente').val(''); // Borra el valor del input
-                $('#rfc').val(''); // Borra el valor de RFC
-                $('#nombre').val(''); // Borra el valor de nombre
-                $('#calle').val(''); // Borra el valor de calle
-                $('#numE').val(''); // Borra el valor de número externo
-                $('#colonia').val(''); // Borra el valor de colonia
-                $('#codigoPostal').val(''); // Borra el valor de código postal
-                $('#poblacion').val(''); // Borra el valor de población
-                $('#pais').val(''); // Borra el valor de país
-                $('#regimenFiscal').val(''); // Borra el valor de régimen fiscal
-                $('#destinatario').val(''); // Borra el valor de destinatario
-                $('#clientesSugeridos').empty().hide(); // Oculta las sugerencias
-                $(this).hide(); // Oculta la X
-            });
+            function actualizarDestacado(items, index) {
+                items.removeClass('highlighted');
+                $(items[index]).addClass('highlighted');
+            }
         });
+        // Cerrar la lista de sugerencias si se hace clic fuera del input
+        $(document).on('click', function(event) {
+            if (!$(event.target).closest('#cliente').length) {
+                $('#clientesSugeridos').empty().hide();
+            }
+        });
+
+        // Al hacer clic en la X, borrar el valor del input y los demás campos
+        $('#clearInput').on('click', function() {
+            $('#cliente').val(''); // Borra el valor del input
+            $('#rfc').val(''); // Borra el valor de RFC
+            $('#nombre').val(''); // Borra el valor de nombre
+            $('#calle').val(''); // Borra el valor de calle
+            $('#numE').val(''); // Borra el valor de número externo
+            $('#colonia').val(''); // Borra el valor de colonia
+            $('#codigoPostal').val(''); // Borra el valor de código postal
+            $('#poblacion').val(''); // Borra el valor de población
+            $('#pais').val(''); // Borra el valor de país
+            $('#regimenFiscal').val(''); // Borra el valor de régimen fiscal
+            $('#destinatario').val(''); // Borra el valor de destinatario
+            $('#clientesSugeridos').empty().hide(); // Oculta las sugerencias
+            $(this).hide(); // Oculta la X
+        });
+    });
     </script>
 </body>
 

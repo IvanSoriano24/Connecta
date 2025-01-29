@@ -20,6 +20,7 @@
           <li><a href="imagenes.php">Imagenes</a></li>
           <li><a href="Dashboard.php">MDConnecta</a></li>
           <?php } ?>
+         
           <!-- <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="#">Dropdown 1</a></li>

@@ -79,7 +79,7 @@
             </li>
             <li>
                 <a href="Menu.php" class="ecommers-button">
-                    <i class='bx bxs-cart'></i>
+                    <i class='bx bxs-store'></i>
                     <span class="text">E-Commers</span>
                     <span id="eCommers" class="badge bg-danger text-white d-none" style="font-size: 0.8rem; margin-left: 10px;">0</span>
                 </a>

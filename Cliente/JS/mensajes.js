@@ -1,3 +1,38 @@
+// function cargarComandas() {
+//     const filtroStatus = $('#filtroStatus').val(); // Obtener el filtro seleccionado
+
+//     $.get('../Servidor/PHP/mensajes.php', { numFuncion: '1', status: filtroStatus }, function (response) {
+//         if (response.success) {
+//             const comandas = response.data;
+//             const tbody = $('#tablaComandas tbody');
+//             tbody.empty();
+
+//             comandas.forEach(comanda => {
+//                 const row = `
+//                     <tr>
+//                         <td>${comanda.noPedido}</td>
+//                         <td>${comanda.nombreCliente}</td>
+//                         <td>${comanda.status}</td>
+//                         <td>${comanda.fecha}</td>
+//                         <td>${comanda.hora}</td>
+//                         <td>
+//                             <button class="btn btn-primary btn-sm" onclick="mostrarModal('${comanda.id}')">
+//                                 <i class="bi bi-eye"></i>
+//                             </button>
+//                         </td>
+//                     </tr>
+//                 `;
+//                 tbody.append(row);
+//             });
+//         } else {
+//             console.error('Error en la solicitud:', response.message);
+//         }
+//     }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+//         console.error('Error en la solicitud:', textStatus, errorThrown);
+//         console.log('Detalles:', jqXHR.responseText);
+//     });
+// }
+
 function cargarComandas() {
     const filtroStatus = $('#filtroStatus').val(); // Obtener el filtro seleccionado
 
@@ -10,13 +45,13 @@ function cargarComandas() {
             comandas.forEach(comanda => {
                 const row = `
                     <tr>
-                        <td>${comanda.noPedido}</td>
-                        <td>${comanda.nombreCliente}</td>
-                        <td>${comanda.status}</td>
-                        <td>${comanda.fecha}</td>
-                        <td>${comanda.hora}</td>
+                        <td>${comanda.noPedido || '-'}</td>
+                        <td class="text-truncate" title="${comanda.nombreCliente}">${comanda.nombreCliente || '-'}</td>
+                        <td>${comanda.status || '-'}</td>
+                        <td>${comanda.fecha || '-'}</td>
+                        <td>${comanda.hora || '-'}</td>
                         <td>
-                            <button class="btn btn-primary btn-sm" onclick="mostrarModal('${comanda.id}')">
+                            <button class="btn btn-secondary btn-sm" onclick="mostrarModal('${comanda.id}')">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </td>
@@ -66,6 +101,54 @@ $('#filtroStatus').change(function () {
     cargarComandas(); // Recargar las comandas con el filtro aplicado
 });
 
+
+
+// function mostrarModal(comandaId) {
+//     $.get('../Servidor/PHP/mensajes.php', { numFuncion: '2', comandaId }, function (response) {
+//         if (response.success) {
+//             const comanda = response.data;
+
+//             // Cargar el ID en el campo oculto
+//             $('#detalleIdComanda').val(comanda.id);
+
+//             // Cargar los datos en los inputs
+//             $('#detalleNoPedido').val(comanda.noPedido);
+//             $('#detalleNombreCliente').val(comanda.nombreCliente);
+//             $('#detalleStatus').val(comanda.status);
+//             $('#detalleFecha').val(comanda.fecha);
+//             $('#detalleHora').val(comanda.hora);
+
+//             // Cargar los productos en la tabla
+//             const productosList = $('#detalleProductos');
+//             productosList.empty();
+//             comanda.productos.forEach(producto => {
+//                 const fila = `
+//                     <tr>
+//                         <td>${producto.clave}</td>
+//                         <td>${producto.descripcion}</td>
+//                         <td>${producto.cantidad}</td>
+//                         <td>
+//                             <button class="btn btn-danger btn-sm eliminarProducto">
+//                                 <i class="bx bx-trash"></i> Eliminar
+//                             </button>
+//                         </td>
+//                     </tr>`;
+//                 productosList.append(fila);
+//             });
+
+//             // Agregar eventos para los botones de eliminar
+//             $('.eliminarProducto').click(function () {
+//                 $(this).closest('tr').remove();
+//             });
+
+//             // Mostrar el modal
+//             $('#modalDetalles').modal('show');
+//         } else {
+//             alert('Error al obtener los detalles del pedido.');
+//         }
+//     }, 'json');
+// }
+
 function mostrarModal(comandaId) {
     $.get('../Servidor/PHP/mensajes.php', { numFuncion: '2', comandaId }, function (response) {
         if (response.success) {
@@ -81,15 +164,32 @@ function mostrarModal(comandaId) {
             $('#detalleFecha').val(comanda.fecha);
             $('#detalleHora').val(comanda.hora);
 
-            // Cargar los productos en la lista
+            // Cargar los productos en la tabla
             const productosList = $('#detalleProductos');
             productosList.empty();
-            comanda.productos.forEach(producto => {
-                const item = `<li class="list-group-item">
-                                <strong>${producto.clave}</strong> - ${producto.descripcion}
-                                <span class="badge bg-primary float-end">Cantidad: ${producto.cantidad}</span>
-                              </li>`;
-                productosList.append(item);
+            comanda.productos.forEach((producto, index) => {
+                const fila = `
+                 <tr>
+                        <td>${producto.clave}</td>
+                        <td>${producto.descripcion}</td>
+                        <td>${producto.cantidad}</td>
+                        <td>
+                            <label class="container">
+                                <input type="checkbox" class="producto-check" data-index="${index}">
+                                <div class="checkmark"></div>
+                            </label>
+                        </td>
+                    </tr>`;
+                productosList.append(fila);
+            });
+
+            // Deshabilitar el botón "Terminar" inicialmente
+            $('#btnTerminar').prop('disabled', true);
+
+            // Listener para checkboxes
+            $('.producto-check').change(function () {
+                const allChecked = $('.producto-check').length === $('.producto-check:checked').length;
+                $('#btnTerminar').prop('disabled', !allChecked); // Activar solo si todos están marcados
             });
 
             // Mostrar el modal
@@ -100,7 +200,25 @@ function mostrarModal(comandaId) {
     }, 'json');
 }
 
-// Manejar el botón de "Terminar"
+
+// $('#btnTerminar').click(function () {
+//     const comandaId = $('#detalleIdComanda').val();
+//     $.post('../Servidor/PHP/mensajes.php', { numFuncion: '3', comandaId }, function (response) {
+//         if (response.success) {
+//             //alert('La comanda se ha marcado como TERMINADA.');
+//             Swal.fire({
+//                 text: "La comanda se ha marcado como TERMINADA.",
+//                 icon: "success"
+//               });
+//             $('#modalDetalles').modal('hide');
+//             cargarComandas(); // Recargar la tabla
+//         } else {
+//             alert('Error al marcar la comanda como TERMINADA.');
+//         }
+//     }, 'json');
+// });
+
+
 $('#btnTerminar').click(function () {
     const comandaId = $('#detalleIdComanda').val();
     const numGuia = $('#numGuia').val().trim(); // Obtener y limpiar espacios en la guía

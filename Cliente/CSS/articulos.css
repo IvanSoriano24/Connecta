@@ -1,206 +1,308 @@
-/* Modal General */
+
+
+/* Estilos Generales */
 .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
+  display: none; /* Ocultar el modal inicialmente */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .modal-content {
-    background-color: #fff;
-    margin: 10% auto;
-    padding: 20px;
-    border: 1px solid #ddd;
-    width: 60%;
-    border-radius: 10px;
-    position: relative;
+  background: white;
+  max-width: 900px;
+  width: 90%;
+  padding: 0;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
 
-.close-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: #ff4d4f;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+/* Mostrar el modal con estilos correctos */
+.modal[style*="display: flex"] {
+  opacity: 1;
+  visibility: visible;
 }
 
-.close-button:hover {
-    background-color: #d9363e;
+/* Header del Modal */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
 }
 
-
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
+.modal-header h2 {
+  font-size: 1.5rem;
+  margin: 0;
 }
 
-/* Estructura del cuerpo del modal */
+.close {
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Cuerpo del Modal */
 .modal-body {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 20px;
+  display: flex;
+  padding: 20px;
+  gap: 20px;
 }
 
 /* Imagen del Producto */
+.modal-image {
+  flex: 1;
+  max-width: 50%;
+}
+
 .modal-image img {
-    max-width: 150px;
-    height: auto;
-    border-radius: 10px;
-    border: 1px solid #ddd;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
 }
 
 /* Detalles del Producto */
 .modal-details {
-    flex-grow: 1;
-    text-align: left;
+  flex: 1;
+  padding: 10px;
 }
 
-.modal-details h2 {
-    margin-bottom: 10px;
-    font-size: 24px;
-    color: #333;
+/* Precio */
+.modal-price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 10px 0;
 }
 
-.modal-details p {
-    margin: 5px 0;
-    font-size: 16px;
-    color: #666;
+/* Opciones de Selección */
+.modal-options label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
 }
 
-.modal-details .btn-agregar {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    color: #fff;
-    background-color: #28a745;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+.modal-options select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
 }
 
-.modal-details .btn-agregar:hover {
-    background-color: #218838;
+/* Botón Agregar al Carrito */
+.modal-add-cart {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
 }
 
+.modal-add-cart input {
+  width: 50px;
+  text-align: center;
+  padding: 5px;
+}
+
+.modal-add-cart .btn {
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 5px;
+  background: black;
+  color: white;
+}
+
+.modal-add-cart .btn:hover {
+  background: #333;
+}
+
+@media (max-width: 768px) {
+  .modal-body {
+    flex-direction: column;
+  }
+
+  .modal-image {
+    max-width: 100%;
+  }
+}
 
 
 /* prueba */
+
 .section-title {
-    text-align: center;
-    margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .section-title h2 {
-    font-size: 2rem;
-    color: #444;
+  font-size: 2.5rem;
+  color: #222;
+  font-weight: bold;
 }
 
 .section-title p {
-    color: #666;
+  color: #555;
+  font-size: 1.1rem;
 }
 
-
+/* Grid de productos con 3 columnas */
 .product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  padding: 40px;
+  justify-content: center;
 }
 
-.product-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    background-color: #fff;
-    transition: transform 0.3s, box-shadow 0.3s;
+/* Tarjeta de producto */
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  border-radius: 10px;
+  background-color: #fff;
+  transition: transform 0.3s ease;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.product-item img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
+.card:hover {
+  transform: translateY(-5px);
 }
 
-.product-item p {
-    margin: 10px 0 0;
-    font-size: 16px;
-    color: #333;
+/* Contenedor de imagen / Carrusel */
+.card-img {
+  width: 100%;
+  height: 300px; /* Ajuste para un tamaño consistente */
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
 }
 
-.product-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.product-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
-    margin: 10px;
-    background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.card:hover .card-img img {
+  transform: scale(1.05);
 }
 
-.product-item img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
+/* Contenido de la tarjeta */
+.info-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
 }
 
-.product-item p {
-    margin: 10px 0;
-    font-size: 16px;
-    color: #333;
+.text-product h9 {
+  font-size: 15px;
+  font-family: var(--heading-font);
+  
+  font-weight: serif;
+  color: #1a1a1a;  
+  margin: 5px 0;  
 }
 
-.product-item button {
-    margin: 5px;
-    padding: 10px 15px;
-    font-size: 14px;
-    color: #fff;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+.text-product .category {
+  font-size: 0.9rem;
+  color: #777;
 }
 
-.product-item button:hover {
-    background-color: #0056b3;
+.price {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #000;
 }
 
-.product-item .btn-agregar {
-    background-color: #28a745;
+/* Diseño Responsivo */
+@media screen and (max-width: 1024px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.product-item .btn-agregar:hover {
-    background-color: #218838;
+@media screen and (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }
 
-.product-item .btn-detalles {
-    background-color: #ffc107;
+
+/* BOTON CARRITO */
+.card .button-container {
+  display: flex;
+  justify-content: space-between; /* This will ensure buttons are side by side with space between them */
 }
 
-.product-item .btn-detalles:hover {
-    background-color: #e0a800;
+.card .button-container .button {
+  flex: 1;
+  border-radius: 1.4rem 1.4rem 0.7rem 0.7rem;
+  border: none;
+   /* Increased padding for bigger buttons */
+  height: 2.5rem;
+  width: 5px;
+  background: var(--accent-color);
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.card .button-container .button:hover {
+  background: rgb(219, 150, 235);
+}
+
+.card .button-container .buy-button {
+  margin-right: 1rem; /* Adjust space between buttons */
+}
+
+.card .button-container .cart-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem; /* Match padding for both buttons */
+  width: auto; /* Ensure both buttons take equal space */
+}
+
+.card .button-container .cart-button svg {
+  width: 20px; /* Increased SVG size for better appearance */
+  fill: white;
+}
+
+.card:hover {
+  transform: scale(1.03);
+}
+
+
+
+
+  /* Imagenes */
+  .carousel-inner img {
+    max-height: 300px;
+    object-fit: cover;
+    width: 100%;
+}
+@media (max-width: 768px) {
+    .carousel-inner img {
+        max-height: 200px;
+    }
 }
