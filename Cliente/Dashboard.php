@@ -24,6 +24,7 @@ if (isset($_SESSION['usuario'])) {
 } ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,6 +46,7 @@ if (isset($_SESSION['usuario'])) {
 		}
 	</style>
 </head>
+
 <body>
 	<div class="hero_area">
 		<?php include 'sidebar.php'; ?>
@@ -53,7 +55,7 @@ if (isset($_SESSION['usuario'])) {
 			<?php include 'navbar.php'; ?>
 			<!-- MAIN -->
 			<main class="text-center my-5 hero_area">
-			<!--<form method="POST" action="../Servidor/PHP/whatsappp.php">
+				<!--<form method="POST" action="../Servidor/PHP/whatsappp.php">
 			<button type="submit">Realizar Pedido</button>
 			</form>-->
 			</main>
@@ -78,6 +80,7 @@ if (isset($_SESSION['usuario'])) {
 					</select>
 				</div>
 				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" id="cerrarSesionModal">Cerrar Sesion</button>
 					<button type="button" class="btn btn-primary txt" id="confirmarEmpresa"> Confirmar</button>
 				</div>
 			</div>
@@ -98,49 +101,111 @@ if (isset($_SESSION['usuario'])) {
 			});
 			document.getElementById('confirmarEmpresa').addEventListener('click', function() {
 				const empresaSeleccionada = document.getElementById('empresaSelect').value;
-				if (empresaSeleccionada != null) {
 
-					const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
-
-					// Verificar que empresaOption no sea null
-					if (empresaOption) {
-						// Obtener los datos adicionales de la empresa utilizando los atributos data-*
-						const noEmpresa = empresaOption.getAttribute('data-no-empresa');
-						const razonSocial = empresaOption.getAttribute('data-razon-social');
-						const claveVendedor = empresaOption.getAttribute('data-clave-vendedor');
-
-						// Usar SweetAlert en lugar de alert
-						Swal.fire({
-							title: 'Has seleccionado:',
-							text: `${noEmpresa} - ${razonSocial}`,
-							icon: 'success'
-						}).then(() => {
-							seleccionarEmpresa(noEmpresa);
-							const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
-							modal.hide();
-
-							// Guardar los datos en la variable global
-							idEmpresarial = {
-								id: empresaSeleccionada,
-								noEmpresa: noEmpresa,
-								razonSocial: razonSocial,
-								claveVendedor: claveVendedor
-							};
-							sesionEmpresa(idEmpresarial);
-						});
-					}
-				} else {
-					// Usar SweetAlert en lugar de alert
+				if (!empresaSeleccionada) {
 					Swal.fire({
 						title: 'Error',
 						text: 'Por favor, selecciona una empresa.',
 						icon: 'error'
 					});
+					return;
 				}
+
+				const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
+
+				if (!empresaOption) {
+					Swal.fire({
+						title: 'Error',
+						text: 'No se pudo obtener la información de la empresa.',
+						icon: 'error'
+					});
+					return;
+				}
+
+				const noEmpresa = empresaOption.getAttribute('data-no-empresa');
+				const razonSocial = empresaOption.getAttribute('data-razon-social');
+				const claveVendedor = empresaOption.getAttribute('data-clave-vendedor');
+				// Verificar en PHP si la empresa tiene conexión a SAE
+				fetch('../Servidor/PHP/sae.php', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							action: 'verificar',
+							noEmpresa: noEmpresa
+						})
+					})
+					.then(response => response.json())
+					.then(response => {
+						if (response.success && response.tieneConexion) {
+							Swal.fire({
+								title: 'Has seleccionado:',
+								text: `${noEmpresa} - ${razonSocial}`,
+								icon: 'success'
+							}).then(() => {
+								seleccionarEmpresa(noEmpresa);
+								const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+								modal.hide();
+
+								// Guardar los datos en la variable global
+								idEmpresarial = {
+									id: empresaSeleccionada,
+									noEmpresa: noEmpresa,
+									razonSocial: razonSocial,
+									claveVendedor: claveVendedor
+								};
+
+								// Llamar la función sesionEmpresa para registrar sesión
+								sesionEmpresa(idEmpresarial);
+							});
+						} else {
+							Swal.fire({
+								title: 'Error',
+								text: 'La empresa seleccionada no tiene conexión a SAE.',
+								icon: 'error'
+							});
+							Swal.fire({
+								title: 'Error',
+								text: 'La empresa seleccionada no tiene conexión a SAE.',
+								icon: 'error'
+							}).then(() => { // Espera a que el usuario cierre la alerta antes de ejecutar el código siguiente
+								var tipoUsuario = '<?php echo $tipoUsuario ?>';
+								if (tipoUsuario == 'ADMINISTRADOR') {
+									seleccionarEmpresa(noEmpresa);
+									const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+									modal.hide();
+
+									// Guardar los datos en la variable global
+									idEmpresarial = {
+										id: empresaSeleccionada,
+										noEmpresa: noEmpresa,
+										razonSocial: razonSocial,
+										claveVendedor: claveVendedor
+									};
+
+									// Llamar la función sesionEmpresa para registrar sesión
+									sesionEmpresa(idEmpresarial);
+
+									// Redirigir a la página de creación de conexión después de que el usuario cierre la alerta
+									window.location.href = "ConexioSAE.php";
+								}
+							});
+						}
+					})
+					.catch(error => {
+						console.error('Error al procesar la solicitud:', error);
+						Swal.fire({
+							title: 'Error',
+							text: 'No se pudo verificar la conexión a SAE.',
+							icon: 'error'
+						});
+					});
 			});
 		</script>
 		<script src="JS/menu.js"></script>
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
 </body>
+
 </html>

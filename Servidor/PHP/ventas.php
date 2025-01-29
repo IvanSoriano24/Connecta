@@ -68,8 +68,7 @@ function obtenerPedidoEspecifico($clave, $conexionData)
     $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 }
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarPedidos($conexionData, $filtroFecha)
-{
+function mostrarPedidos($conexionData, $filtroFecha){
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     //$filtroFecha = "Mes";
     try {
@@ -204,6 +203,117 @@ function mostrarPedidos($conexionData, $filtroFecha)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+/*function mostrarPedidos($conexionData, $filtroFecha)
+{
+    $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
+
+    try {
+        // Validar si el número de empresa está definido en la sesión
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+
+        // Obtener datos de la sesión
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
+        $claveVendedor = $_SESSION['empresa']['claveVendedor'];
+
+        // Validar que el número de empresa sea numérico
+        if (!is_numeric($noEmpresa)) {
+            echo json_encode(['success' => false, 'message' => 'El número de empresa no es válido']);
+            exit;
+        }
+
+        // Configuración de conexión
+        $conn = sqlsrv_connect($conexionData['host'], [
+            "Database" => $conexionData['nombreBase'],
+            "UID" => $conexionData['usuario'],
+            "PWD" => $conexionData['password']
+        ]);
+
+        if (!$conn) {
+            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        }
+
+        // Definir nombres de las tablas
+        $nombreTablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTablaVendedores = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+        // **1️⃣ Construir la consulta base**
+        $sql = "
+            SELECT 
+                f.TIP_DOC AS Tipo,
+                f.CVE_DOC AS Clave,
+                f.CVE_CLPV AS Cliente,
+                c.NOMBRE AS Nombre,
+                f.STATUS AS Estatus,
+                f.FECHAELAB AS FechaElaboracion,
+                f.CAN_TOT AS Subtotal,
+                f.COM_TOT AS TotalComisiones,
+                f.IMPORTE AS ImporteTotal,
+                v.NOMBRE AS NombreVendedor
+            FROM $nombreTablaPedidos f
+            LEFT JOIN $nombreTablaClientes c ON c.CLAVE = f.CVE_CLPV
+            LEFT JOIN $nombreTablaVendedores v ON v.CVE_VEND = f.CVE_VEND
+            WHERE f.STATUS IN ('E', 'O') ";
+
+        // **2️⃣ Agregar filtro de fecha si es necesario**
+        if ($filtroFecha == 'Hoy') {
+            $sql .= " AND CAST(f.FECHAELAB AS DATE) = CAST(GETDATE() AS DATE)";
+        } elseif ($filtroFecha == 'Mes') {
+            $sql .= " AND MONTH(f.FECHAELAB) = MONTH(GETDATE()) AND YEAR(f.FECHAELAB) = YEAR(GETDATE())";
+        } elseif ($filtroFecha == 'Mes Anterior') {
+            $sql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE()))";
+        }
+
+        // **3️⃣ Definir los parámetros de sp_executesql**
+        $paramsSQL = "";
+        $params = [];
+
+        if ($tipoUsuario !== 'ADMINISTRADOR') {
+            $sql .= " AND f.CVE_VEND = @claveVendedor";
+            $paramsSQL .= "@claveVendedor INT";
+            $params[] = intval($claveVendedor);
+        }
+
+        // **4️⃣ Preparar sp_executesql correctamente**
+        $sqlExec = "EXEC sp_executesql N'$sql'";
+
+        if (!empty($paramsSQL)) {
+            $sqlExec .= ", N'$paramsSQL'";
+            foreach ($params as $param) {
+                $sqlExec .= ", ?";
+            }
+        }
+
+        // **5️⃣ Ejecutar la consulta**
+        $stmt = sqlsrv_query($conn, $sqlExec, $params);
+
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        }
+
+        // **6️⃣ Recoger resultados**
+        $pedidos = [];
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            foreach ($row as $key => $value) {
+                $row[$key] = $value !== null && is_string($value) ? trim(mb_convert_encoding($value, 'UTF-8')) : ($value ?? '');
+            }
+            $pedidos[] = $row;
+        }
+
+        // **7️⃣ Cerrar conexión y devolver resultados**
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+
+        echo json_encode(['success' => !empty($pedidos), 'data' => $pedidos]);
+
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}*/
 function mostrarPedidoEspecifico($clave, $conexionData)
 {
     // Establecer la conexión con SQL Server con UTF-8
@@ -2382,7 +2492,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+            /*$resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
@@ -2394,18 +2504,18 @@ switch ($funcion) {
                 // Validar crédito del cliente
                 $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
-                if ($validacionCredito['success']) {
-                    guardarPedido($conexionData, $formularioData, $partidasData);
+                if ($validacionCredito['success']) {*/
+                    /*guardarPedido($conexionData, $formularioData, $partidasData);
                     guardarPartidas($conexionData, $formularioData, $partidasData);
                     actualizarFolio($conexionData);
-                    actualizarInventario($conexionData, $partidasData);
+                    actualizarInventario($conexionData, $partidasData);*/
                     validarCorreoCliente($formularioData, $partidasData, $conexionData);
                     // Respuesta de éxito
                     echo json_encode([
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
                     ]);
-                } else {
+                /*} else {
                     // Error de crédito
                     echo json_encode([
                         'success' => false,
@@ -2423,7 +2533,7 @@ switch ($funcion) {
                     'message' => $resultadoValidacion['message'],
                     'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
                 ]);
-            }
+            }*/
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);

@@ -69,6 +69,22 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
         } else {
             $result = json_decode($response, true);
             if (isset($result['name'])) {
+                $remisionUrl = "remision.php";
+                $data = [
+                    'numFuncion' => 1,
+                    'pedidoId' => $pedidoId
+                ];
+                
+                $options = [
+                    'http' => [
+                        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                        'method'  => 'POST',
+                        'content' => http_build_query($data),
+                    ]
+                ];
+                $context  = stream_context_create($options);
+                $remisionResponse = file_get_contents($remisionUrl, false, $context);
+
                 echo "<div class='container'>
                         <div class='title'>Confirmación Exitosa</div>
                         <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>

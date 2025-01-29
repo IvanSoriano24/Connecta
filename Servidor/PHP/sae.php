@@ -17,7 +17,8 @@ function probarConexionSQLServer($host, $usuario, $password, $nombreBase)
     }
 }
 
-function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento){
+function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento)
+{
     // Si el idDocumento es nulo, creamos un nuevo documento
     if ($idDocumento === null) {
         // URL para crear un nuevo documento
@@ -95,7 +96,8 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
     }
 }
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -123,7 +125,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
                 'data' => [
                     'id' => $documentId, // Solo el ID del documento
                     'host' => $fields['host']['stringValue'],
-                    'puerto' => $fields['puerto']['stringValue'], 
+                    'puerto' => $fields['puerto']['stringValue'],
                     'usuarioSae' => $fields['usuario']['stringValue'],
                     'password' => $fields['password']['stringValue'],
                     'nombreBase' => $fields['nombreBase']['stringValue']
@@ -134,6 +136,42 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 
+function verificarConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+{
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
+    
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+
+    $result = file_get_contents($url, false, $context);
+    if ($result === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los datos de Firebase']);
+        return;
+    }
+
+    $documents = json_decode($result, true);
+    if (!isset($documents['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron conexiones en Firebase']);
+        return;
+    }
+
+    // Buscar si existe un documento con el mismo `noEmpresa`
+    foreach ($documents['documents'] as $document) {
+        $fields = $document['fields'];
+        if (isset($fields['noEmpresa']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+            echo json_encode(['success' => true, 'tieneConexion' => true]);
+            return;
+        }
+    }
+
+    echo json_encode(['success' => true, 'tieneConexion' => false]);
+}
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
     $input = json_decode(file_get_contents('php://input'), true);
@@ -143,6 +181,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $action = $input['action'];
     switch ($action) {
+        case 'verificar':
+            // Decodificar el JSON recibido
+            $input = json_decode(file_get_contents('php://input'), true);
+        
+            if (isset($input['noEmpresa'])) {
+                $noEmpresa = $input['noEmpresa'];
+                verificarConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No se recibió el número de empresa']);
+            }
+            break;        
         case 'probar':
             $data = [
                 'host' => $input['host'],
@@ -187,4 +236,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Método no soportado']);
 }
-?>

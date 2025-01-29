@@ -398,5 +398,47 @@ $(document).ready(function () {
             }
         });
     });
+    $("#cerrarSesionModal").click(function (event) {
+        event.preventDefault(); // Prevenir el comportamiento por defecto del botón
     
+        // Mostrar el overlay
+        $("#overlay").show();
+    
+        Swal.fire({
+            title: '¿Estás seguro de que quieres cerrar sesión?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cerrar sesión',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            // Ocultar el overlay después de la respuesta de SweetAlert
+            $("#overlay").hide();
+    
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Cerrando Sesión...',
+                    text: 'Espere un momento',
+                    icon: 'info',
+                    timer: 1500,  // Espera 1.5 segundos
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                });
+    
+                // Esperar 1.5 segundos antes de cerrar la sesión
+                setTimeout(() => {
+                    $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
+                        limpiarCacheEmpresa();
+                        window.location.href = "index.php"; // Redirigir al login
+                    }).fail(function () {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Error al intentar cerrar sesión.',
+                            icon: 'error'
+                        });
+                    });
+                }, 1500);
+            }
+        });
+    });    
 });
