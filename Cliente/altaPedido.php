@@ -385,10 +385,9 @@ button {
 
                             <div class="form-element">
                                 <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                <input type="text" name="nombre" id="nombre" style="width: 460px;" readonly1 />
+                                <input type="text" name="nombre" id="nombre" style="width: 700px;" readonly />
                             </div>
-                            <div class="form-element"> </div>
-
+                          
                             <div class="form-element">
                                 <label for="supedido">Su Pedido </label>
                                 <input type="text" name="supedido" id="supedido" style="width:170px;">
