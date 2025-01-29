@@ -139,6 +139,13 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="text" id="detalleHora" class="form-control form-control-sm" readonly>
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="numGuia" class="form-label">Numero Guia</label>
+                                            <input type="text" class="form-control form-control-sm"id="numGuia">
+                                        </div>
+                                    </div>
+                                    <br>
                                     <div class="mb-4">
                                         <label class="form-label">Productos:</label>
                                         <ul id="detalleProductos" class="list-group" style="font-size: 1.2rem;">

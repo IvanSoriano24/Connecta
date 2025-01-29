@@ -120,22 +120,23 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
         ]);
     }
 }
-function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $enviarHoy) {
+function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $numGuia, $enviarHoy) {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
 
     // Obtener la fecha de envío
     $fechaEnvio = $enviarHoy ? date('Y-m-d') : date('Y-m-d', strtotime('+1 day')); // Hoy o mañana
 
-    // Estructura de datos para la actualización
+    // Datos de actualización en Firebase
     $data = [
         'fields' => [
             'status' => ['stringValue' => 'TERMINADA'],
-            'fechaEnvio' => ['stringValue' => $fechaEnvio] // Agregar campo de fecha de envío
+            'fechaEnvio' => ['stringValue' => $fechaEnvio], // Agregar fecha de envío
+            'numGuia' => ['stringValue' => $numGuia] // Guardar número de guía
         ]
     ];
 
-    // Agregar el parámetro `updateMask` para especificar los campos que deben actualizarse
-    $url .= '&updateMask.fieldPaths=status&updateMask.fieldPaths=fechaEnvio';
+    // Agregar `updateMask` para actualizar solo los campos indicados
+    $url .= '&updateMask.fieldPaths=status&updateMask.fieldPaths=fechaEnvio&updateMask.fieldPaths=numGuia';
 
     $context = stream_context_create([
         'http' => [
@@ -219,8 +220,14 @@ switch ($funcion) {
         break;
     case 3:
         $comandaId = $_POST['comandaId'];
+        $numGuia = trim($_POST['numGuia']);
         $enviarHoy = filter_var($_POST['enviarHoy'], FILTER_VALIDATE_BOOLEAN);
-        marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $enviarHoy);
+        // Validar que el Número de Guía no esté vacío
+        if (empty($numGuia)) {
+            echo json_encode(['success' => false, 'message' => 'El Número de Guía debe contener exactamente 9 dígitos numéricos.']);
+            exit;
+        }
+        marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $numGuia, $enviarHoy);
         break;
         case 4:
             notificaciones($firebaseProjectId, $firebaseApiKey);
