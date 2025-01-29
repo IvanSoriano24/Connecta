@@ -429,13 +429,19 @@ function validarPartidas() {
 }
 function obtenerDatosFormulario() {
   const now = new Date(); // Obtiene la fecha y hora actual
-  const diaAlta = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  // const fechaActual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DD
+
+  const campoEntrega = document.getElementById("entrega").value;
+  
+  // Si el usuario ha ingresado una fecha, se usa esa, de lo contrario, se usa la fecha actual
+  const entrega = campoEntrega ? campoEntrega : fechaActual;
 
   const formularioData = {
     claveVendedor: document.getElementById("vendedor").value,
     factura: document.getElementById("factura").value,
     numero: document.getElementById("numero").value,
-    diaAlta: diaAlta, // Fecha y hora
+    diaAlta: fechaActual, // Fecha y hora
     cliente: document.getElementById("cliente").value,
     rfc: document.getElementById("rfc").value,
     nombre: document.getElementById("nombre").value,
@@ -448,7 +454,7 @@ function obtenerDatosFormulario() {
     poblacion: document.getElementById("poblacion").value,
     pais: document.getElementById("pais").value,
     regimenFiscal: document.getElementById("regimenFiscal").value,
-    entrega: document.getElementById("entrega").value,
+    entrega: entrega,
     vendedor: document.getElementById("vendedor").value,
     condicion: document.getElementById("condicion").value,
     comision: document.getElementById("comision").value,
@@ -947,6 +953,26 @@ $("#AyudaCondicion").click(function () {
   Swal.fire({
     title: "Ayuda",
     text: "Condicion es:",
+    icon: "info",
+    confirmButtonText: "Entendido",
+  });
+});
+
+$("#AyudaDescuento").click(function () {
+  event.preventDefault();
+  Swal.fire({
+    title: "Ayuda",
+    text: "Descuento es:",
+    icon: "info",
+    confirmButtonText: "Entendido",
+  });
+});
+
+$("#AyudaDescuentofin").click(function () {
+  event.preventDefault();
+  Swal.fire({
+    title: "Ayuda",
+    text: "Descuento fin es:",
     icon: "info",
     confirmButtonText: "Entendido",
   });
