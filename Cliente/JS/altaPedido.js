@@ -496,13 +496,8 @@ function enviarDatosBackend(formularioData, partidasData) {
   })
     .then((response) => response.json()) // Asumimos que el servidor responde con JSON
     .then((data) => {
+      console.log("Respuesta del servidor:", data);
       if (data.success) {
-        if (data.validacion && data.validacion.existe) {
-          let mensaje = "Hay existencias suficientes.\n\n";
-          data.validacion.productos.forEach((producto) => {
-            mensaje += `Producto: ${producto.codigo}, Existencias: ${producto.existencias}\n`;
-          });
-        }
         Swal.fire({
           title: "¡Pedido guardado exitosamente!",
           text: "El pedido se procesó correctamente.",
@@ -512,6 +507,7 @@ function enviarDatosBackend(formularioData, partidasData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
+        return;
       } else if (data.exist) {
         console.error("Error en la respuesta:", data);
         Swal.fire({
@@ -582,6 +578,7 @@ function enviarDatosBackend(formularioData, partidasData) {
       console.error("Error al enviar los datos:", error);
       alert("Ocurrió un error al enviar los datos." + error);
     });
+  return false;
 }
 function editarPedido(pedidoID) {
   // Datos necesarios para la edición
@@ -926,18 +923,22 @@ $(document).ready(function () {
       console.log("Folio obtenido:", folio);
 
       if (folio == id) {
-        // Es un nuevo pedido
         console.log("Guardando nuevo pedido...");
-        id = 0; // Se establece 0 para identificar que es una alta
+        id = 0; 
       } else {
         console.log("Editando pedido existente...");
-        document.getElementById("numero").value = id
+        document.getElementById("numero").value = id;
       }
-      //document.getElementById("numero").value = id;
-      console.log(document.getElementById("numero").value);
-      guardarPedido(id); // Llamar a guardarPedido con el id
+
+      console.log("Número final en el formulario:", document.getElementById("numero").value);
+      
+      guardarPedido(id); 
+      
+      return false; // Evita la recarga de la página
+
     } catch (error) {
       console.error("Error al obtener el folio:", error);
+      return false; // Previene la recarga en caso de error
     }
   });
 });
