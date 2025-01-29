@@ -900,11 +900,12 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     ];
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, $params);
+    
     if ($stmt === false) {
         die(json_encode([
             'success' => false,
             'message' => 'Error al guardar el pedido',
-            'data' => $claveCliente
+            'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
         ]));
     } else {
         // echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
@@ -1245,7 +1246,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         $numeroWhatsApp = '+527773750925';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
-        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
