@@ -27,7 +27,6 @@ if (isset($_SESSION['usuario'])) {
 session_unset();
 session_destroy(); */
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -84,14 +83,26 @@ session_destroy(); */
 					</div>
 				</div>
 				<section id="features" class="features section">
-                    <!-- Section Title -->
-                    <div class="container mt-4">
-                        <!--<h1 class="mb-4">Gestión de Imágenes de Artículos</h1>-->
-                        <div id="product-list" class="row g-3">
-                            <!-- Los productos con imágenes se cargarán dinámicamente aquí -->
-                        </div>
-                    </div>
-                </section><!-- /Features Section -->
+					<!-- Section Title -->
+					<div class="table-data">
+						<div class="order">
+							<div class="head">
+								<table class="table">
+									<thead>
+										<tr>
+											<th>Clave</th>
+											<th>Descripcion</th>
+											<th>Existencias</th>
+											<!--<th>Precio Vendedor</th>-->
+										</tr>
+									</thead>
+									<tbody id="datosProductos">
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</section><!-- /Features Section -->
 			</main>
 			<!-- MAIN -->
 		</section>
@@ -100,21 +111,19 @@ session_destroy(); */
 	</section>
 	<!-- CONTENT -->
 	</div>
-
-
-		<!-- JS Para la confirmacion empresa -->
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-		<script src="JS/menu.js"></script>
-		<script src="JS/app.js"></script>
-		<script src="JS/script.js"></script>
-		<script src="JS/productos.js"></script>
+	<!-- JS Para la confirmacion empresa -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="JS/menu.js"></script>
+	<script src="JS/app.js"></script>
+	<script src="JS/script.js"></script>
+	<script src="JS/productos.js"></script>
 </body>
 
 </html>
 <!-- 
 				<script>
 			var empresa = '<?php // echo $nombreEmpresa 
-			?>'
+							?>'
 			console.log(empresa);
 		</script>
 		-->

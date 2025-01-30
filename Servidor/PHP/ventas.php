@@ -2072,7 +2072,8 @@ function extraerProductos($conexionData)
             [DESCR], 
             [EXIST], 
             [LIN_PROD], 
-            [UNI_MED]
+            [UNI_MED],
+            [APART]
         FROM [SAE90Empre02].[dbo].[INVE02]
     ";
 
