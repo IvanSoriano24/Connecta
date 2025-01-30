@@ -831,7 +831,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     $FORMADEPAGOSAT = $datosCliente['FORMADEPAGOSAT'];
     $USO_CFDI = $datosCliente['USO_CFDI'];
     $REG_FISC = $datosCliente['REG_FISC'];
-    $ENLAZADO = 0; ////
+    $ENLAZADO = 'O'; ////
     $TIP_DOC_E = 0; ////
     $DES_TOT_PORC = 0; ////
     $COM_TOT_PORC = 0; ////
