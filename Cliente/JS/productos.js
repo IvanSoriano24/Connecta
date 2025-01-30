@@ -27,33 +27,34 @@ function cargarProductosDash() {
   xhr.send();
 }
 function mostrarProductosEnTabla(productos) {
-  const tbody = document.querySelector("#datosProductos");
-
-  if (!tbody) {
-      console.error("Error: No se encontró la tabla para los productos.");
-      return;
+    const tbody = document.querySelector("#datosProductos");
+  
+    if (!tbody) {
+        console.error("Error: No se encontró la tabla para los productos.");
+        return;
+    }
+  
+    tbody.innerHTML = ""; // Limpiar la tabla antes de agregar productos
+  
+    if (!Array.isArray(productos) || productos.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='4' class='text-center text-muted'>No hay productos disponibles.</td></tr>";
+        return;
+    }
+  
+    productos.forEach((producto) => {
+        let existenciaReal = producto.EXIST - producto.APART; // Se usa `let` en lugar de `const`
+  
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+            <td>${producto.CVE_ART}</td>
+            <td>${producto.DESCR}</td>
+            <td class="text-end">${new Intl.NumberFormat().format(existenciaReal)}</td> <!-- Formato con comas y alineado a la derecha -->
+        `;
+  
+        tbody.appendChild(fila);
+    });
   }
-
-  tbody.innerHTML = ""; // Limpiar la tabla antes de agregar productos
-
-  if (!Array.isArray(productos) || productos.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='4' class='text-center text-muted'>No hay productos disponibles.</td></tr>";
-      return;
-  }
-
-  productos.forEach((producto) => {
-      let existenciaReal = producto.EXIST - producto.APART; // Se usa `let` en lugar de `const`
-
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-          <td>${producto.CVE_ART}</td>
-          <td>${producto.DESCR}</td>
-          <td>${existenciaReal}</td>
-      `;
-
-      tbody.appendChild(fila);
-  });
-}
+  
 // Llamar a la función cuando cargue la página
 document.addEventListener("DOMContentLoaded", () => {
   cargarProductosDash();
