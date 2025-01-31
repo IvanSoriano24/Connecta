@@ -59,7 +59,8 @@ function actualizarControl($conexionData) {
         ]));
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = "02";
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[TBLCONTROL" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "UPDATE $nombreTabla SET ULT_CVE = ULT_CVE + 1 WHERE ID_TABLA = 32";
@@ -77,18 +78,19 @@ function actualizarControl($conexionData) {
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 
-    return json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
+    //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
 }
 function actualizarFolios($conexionData) {
     // Validar que la empresa está definida en la sesión
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
 
     // Establecer conexión con SQL Server
     $serverName = $conexionData['host'];
@@ -140,21 +142,22 @@ function actualizarFolios($conexionData) {
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => 'FOLIOSF actualizado correctamente (+1 en ULT_DOC)'
-    ]);
+    ]);*/
 }
 function actualizarControl2($conexionData) {
     // Validar que la empresa está definida en la sesión
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
 
     // Establecer conexión con SQL Server
     $serverName = $conexionData['host'];
@@ -196,21 +199,22 @@ function actualizarControl2($conexionData) {
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "TBLCONTROL actualizado correctamente (ID_TABLA = 44, +1 si ULT_CVE = 0)"
-    ]);
+    ]);*/
 }
 function actualizarInve($conexionData, $pedidoId) {
     // Validar que la empresa está definida en la sesión
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
 
     // Establecer conexión con SQL Server
     $serverName = $conexionData['host'];
@@ -230,9 +234,9 @@ function actualizarInve($conexionData, $pedidoId) {
         ]);
     }
 
-    // Construcción dinámica de las tablas PAR_FACTPXX e INVE01
+    // Construcción dinámica de las tablas PAR_FACTPXX e INVEXX
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE01]";
+    $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
     $sqlProductos = "SELECT DISTINCT CVE_ART FROM $tablaPartidas WHERE CVE_DOC = ?";
     $params = [$pedidoId];
@@ -258,11 +262,12 @@ function actualizarInve($conexionData, $pedidoId) {
         $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
 
         if ($stmtUpdate === false) {
-            return json_encode([
+            echo json_encode([
                 'success' => false,
                 'message' => "Error al actualizar COSTO_PROM para el producto $cveArt",
                 'errors' => sqlsrv_errors()
             ]);
+            die();
         }
 
         sqlsrv_free_stmt($stmtUpdate);
@@ -271,20 +276,21 @@ function actualizarInve($conexionData, $pedidoId) {
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "COSTO_PROM actualizado a 0 para todos los productos del pedido $pedidoId"
-    ]);
+    ]);*/
 }
 function insertarNimve($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -295,14 +301,17 @@ function insertarNimve($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
-
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 10, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
+    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
@@ -310,17 +319,18 @@ function insertarNimve($conexionData, $pedidoId) {
     // ✅ 1. Obtener las partidas del pedido
     $sqlPartidas = "SELECT P.CVE_ART, P.NUM_ALM, P.PREC, P.COST, P.UNI_VENTA, F.CVE_CLPV, F.CVE_VEND, P.CANT
                     FROM $tablaPartidas P
-                    INNER JOIN FACTP01 F ON P.CVE_DOC = F.CVE_DOC
+                    INNER JOIN $tablaPedidos F ON P.CVE_DOC = F.CVE_DOC
                     WHERE P.CVE_DOC = ?";
     $params = [$pedidoId];
 
     $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $params);
     if ($stmtPartidas === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener partidas del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // ✅ 2. Obtener valores incrementales
@@ -333,11 +343,12 @@ function insertarNimve($conexionData, $pedidoId) {
 
     $stmtUltimos = sqlsrv_query($conn, $sqlUltimos);
     if ($stmtUltimos === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener valores incrementales',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $ultimos = sqlsrv_fetch_array($stmtUltimos, SQLSRV_FETCH_ASSOC);
@@ -354,11 +365,12 @@ function insertarNimve($conexionData, $pedidoId) {
         $stmtProducto = sqlsrv_query($conn, $sqlProducto, $paramsProducto);
 
         if ($stmtProducto === false) {
-            return json_encode([
+            echo json_encode([
                 'success' => false,
                 'message' => 'Error al obtener datos del producto',
                 'errors' => sqlsrv_errors()
             ]);
+            die();
         }
 
         $producto = sqlsrv_fetch_array($stmtProducto, SQLSRV_FETCH_ASSOC);
@@ -393,11 +405,12 @@ function insertarNimve($conexionData, $pedidoId) {
 
         $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
         if ($stmtInsert === false) {
-            return json_encode([
+            echo json_encode([
                 'success' => false,
                 'message' => "Error al insertar en MINVEXX para el producto $cveArt",
                 'errors' => sqlsrv_errors()
             ]);
+            die();
         }
 
         // ✅ Incrementar solo los valores necesarios
@@ -413,20 +426,21 @@ function insertarNimve($conexionData, $pedidoId) {
     sqlsrv_free_stmt($stmtUltimos);
     sqlsrv_close($conn);
 
-    return json_encode([
+    echo json_encode([
         'success' => true,
         'message' => "MINVEXX actualizado correctamente para el pedido $pedidoId"
     ]);
 }
 function actualizarInve2($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -437,11 +451,12 @@ function actualizarInve2($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Tablas dinámicas
@@ -454,21 +469,20 @@ function actualizarInve2($conexionData, $pedidoId) {
 
     $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $params);
     if ($stmtPartidas === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener partidas del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Fecha actual para `VERSION_SINC`
     $fechaSinc = date('Y-m-d H:i:s');
-
     // ✅ 2. Actualizar EXIST en INVEXX restando TOTAL_CANT de cada producto
     while ($row = sqlsrv_fetch_array($stmtPartidas, SQLSRV_FETCH_ASSOC)) {
         $cveArt = $row['CVE_ART'];
         $cantidad = $row['TOTAL_CANT'];
-
         $sqlUpdate = "UPDATE $tablaInventario 
                       SET EXIST = EXIST - ?, VERSION_SINC = ?
                       WHERE CVE_ART = ?";
@@ -476,13 +490,14 @@ function actualizarInve2($conexionData, $pedidoId) {
 
         $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
         if ($stmtUpdate === false) {
-            return json_encode([
+            echo json_encode([
                 'success' => false,
                 'message' => "Error al actualizar EXIST en INVEXX para el producto $cveArt",
                 'errors' => sqlsrv_errors()
             ]);
+            die();
         }
-
+        print_r($stmtUpdate);
         sqlsrv_free_stmt($stmtUpdate);
     }
 
@@ -490,20 +505,21 @@ function actualizarInve2($conexionData, $pedidoId) {
     sqlsrv_free_stmt($stmtPartidas);
     sqlsrv_close($conn);
 
-    return json_encode([
+    echo json_encode([
         'success' => true,
         'message' => "INVEXX actualizado correctamente para el pedido $pedidoId"
     ]);
 }
 function actualizarInve3($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -514,11 +530,12 @@ function actualizarInve3($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Tablas dinámicas
@@ -531,11 +548,12 @@ function actualizarInve3($conexionData, $pedidoId) {
 
     $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $params);
     if ($stmtPartidas === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener productos del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $errores = [];
@@ -562,21 +580,22 @@ function actualizarInve3($conexionData, $pedidoId) {
     sqlsrv_free_stmt($stmtPartidas);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "INVEXX actualizado correctamente para el pedido $pedidoId",
         'errors' => $errores
-    ]);
+    ]);*/
 }
 function actualizarInveClaro($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -587,11 +606,12 @@ function actualizarInveClaro($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Tablas dinámicas
@@ -604,11 +624,12 @@ function actualizarInveClaro($conexionData, $pedidoId) {
 
     $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $params);
     if ($stmtPartidas === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener productos del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $errores = [];
@@ -633,21 +654,22 @@ function actualizarInveClaro($conexionData, $pedidoId) {
     sqlsrv_free_stmt($stmtPartidas);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "INVEN_CLARO01 actualizado correctamente para el pedido $pedidoId",
         'errors' => $errores
-    ]);
+    ]);*/
 }
 function actualizarInveAmazon($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -658,11 +680,12 @@ function actualizarInveAmazon($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Tablas dinámicas
@@ -675,11 +698,12 @@ function actualizarInveAmazon($conexionData, $pedidoId) {
 
     $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $params);
     if ($stmtPartidas === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener productos del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $errores = [];
@@ -704,11 +728,11 @@ function actualizarInveAmazon($conexionData, $pedidoId) {
     sqlsrv_free_stmt($stmtPartidas);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "INVE_AMAZON01 actualizado correctamente para el pedido $pedidoId",
         'errors' => $errores
-    ]);
+    ]);*/
 }
 function actualizarAfac($conexionData){
     /*
@@ -718,14 +742,15 @@ function actualizarAfac($conexionData){
     */
 }
 function actualizarControl3($conexionData) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -736,11 +761,12 @@ function actualizarControl3($conexionData) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Construcción dinámica de la tabla TBLCONTROLXX
@@ -755,31 +781,33 @@ function actualizarControl3($conexionData) {
     $stmt = sqlsrv_query($conn, $sql);
 
     if ($stmt === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al actualizar TBLCONTROL (ID_TABLA = 62)',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "TBLCONTROL actualizado correctamente (ID_TABLA = 62, +1 en ULT_CVE)"
-    ]);
+    ]);*/
 }
 function insertarBita($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -790,11 +818,12 @@ function insertarBita($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Tablas dinámicas
@@ -807,11 +836,12 @@ function insertarBita($conexionData, $pedidoId) {
     $stmtUltimaBita = sqlsrv_query($conn, $sqlUltimaBita);
 
     if ($stmtUltimaBita === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener el último CVE_BITA',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $bitaData = sqlsrv_fetch_array($stmtUltimaBita, SQLSRV_FETCH_ASSOC);
@@ -822,16 +852,18 @@ function insertarBita($conexionData, $pedidoId) {
     $stmtFolioSiguiente = sqlsrv_query($conn, $sqlFolioSiguiente);
 
     if ($stmtFolioSiguiente === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener el próximo número de remisión',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $folioData = sqlsrv_fetch_array($stmtFolioSiguiente, SQLSRV_FETCH_ASSOC);
     $folioSiguiente = $folioData['FolioSiguiente'];
-
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 10, ' ', STR_PAD_LEFT);
     // ✅ 3. Obtener datos del pedido (`FACTPXX`) para calcular el total
     $sqlPedido = "SELECT CVE_CLPV, CAN_TOT, IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4 
                   FROM $tablaPedidos WHERE CVE_DOC = ?";
@@ -839,19 +871,21 @@ function insertarBita($conexionData, $pedidoId) {
 
     $stmtPedido = sqlsrv_query($conn, $sqlPedido, $paramsPedido);
     if ($stmtPedido === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener los datos del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $pedido = sqlsrv_fetch_array($stmtPedido, SQLSRV_FETCH_ASSOC);
     if (!$pedido) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'No se encontraron datos del pedido'
         ]);
+        die();
     }
 
     $cveClie = $pedido['CVE_CLPV'];
@@ -871,11 +905,12 @@ function insertarBita($conexionData, $pedidoId) {
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
     if ($stmtInsert === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => "Error al insertar en BITA01 con CVE_BITA $cveBita",
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Cerrar conexión
@@ -885,20 +920,21 @@ function insertarBita($conexionData, $pedidoId) {
     sqlsrv_free_stmt($stmtInsert);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
-        'message' => "BITA01 insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
-    ]);
+        'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
+    ]);*/
 }
 function insertarFactr($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -909,13 +945,15 @@ function insertarFactr($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
-
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 10, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
     $tablaFolios = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
@@ -926,11 +964,12 @@ function insertarFactr($conexionData, $pedidoId) {
     $stmtFolio = sqlsrv_query($conn, $sqlFolio);
 
     if ($stmtFolio === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener el nuevo CVE_DOC',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $folioData = sqlsrv_fetch_array($stmtFolio, SQLSRV_FETCH_ASSOC);
@@ -948,19 +987,21 @@ function insertarFactr($conexionData, $pedidoId) {
 
     $stmtPedido = sqlsrv_query($conn, $sqlPedido, $paramsPedido);
     if ($stmtPedido === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener los datos del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $pedido = sqlsrv_fetch_array($stmtPedido, SQLSRV_FETCH_ASSOC);
     if (!$pedido) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'No se encontraron datos del pedido'
         ]);
+        die();
     }
 
     // ✅ 3. Definir valores constantes y calcular datos
@@ -1002,29 +1043,31 @@ function insertarFactr($conexionData, $pedidoId) {
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
     if ($stmtInsert === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => "Error al insertar en FACTRXX",
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     sqlsrv_close($conn);
 
-    return json_encode([
+    echo json_encode([
         'success' => true,
         'message' => "FACTRXX insertado correctamente con CVE_DOC $cveDoc"
     ]);
 }
 function insertarFactr_Clib($conexionData) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1035,11 +1078,12 @@ function insertarFactr_Clib($conexionData) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Tablas dinámicas
@@ -1051,19 +1095,21 @@ function insertarFactr_Clib($conexionData) {
     $stmtUltimaRemision = sqlsrv_query($conn, $sqlUltimaRemision);
 
     if ($stmtUltimaRemision === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener la última clave de remisión',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $remisionData = sqlsrv_fetch_array($stmtUltimaRemision, SQLSRV_FETCH_ASSOC);
     if (!$remisionData) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'No se encontró ninguna remisión en FACTRXX'
         ]);
+        die();
     }
 
     $claveDoc = $remisionData['CVE_DOC'];
@@ -1074,11 +1120,12 @@ function insertarFactr_Clib($conexionData) {
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
     if ($stmtInsert === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
-            'message' => "Error al insertar en FACTR_CLIB01 con CVE_DOC $claveDoc",
+            'message' => "Error al insertar en FACTR_CLIBXX con CVE_DOC $claveDoc",
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Cerrar conexión
@@ -1086,20 +1133,21 @@ function insertarFactr_Clib($conexionData) {
     sqlsrv_free_stmt($stmtInsert);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
-        'message' => "FACTR_CLIB01 insertado correctamente con CVE_DOC $claveDoc"
-    ]);
+        'message' => "FACTR_CLIBXX insertado correctamente con CVE_DOC $claveDoc"
+    ]);*/
 }
 function actualizarInve4($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1110,13 +1158,15 @@ function actualizarInve4($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
-
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 10, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
@@ -1132,11 +1182,12 @@ function actualizarInve4($conexionData, $pedidoId) {
 
     $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $paramsPartidas);
     if ($stmtPartidas === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener las partidas del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $fechaActual = date('Y-m-d H:i:s');
@@ -1159,11 +1210,12 @@ function actualizarInve4($conexionData, $pedidoId) {
 
         $stmtUpdateInve = sqlsrv_query($conn, $sqlUpdateInve, $paramsUpdateInve);
         if ($stmtUpdateInve === false) {
-            return json_encode([
+            echo json_encode([
                 'success' => false,
                 'message' => "Error al actualizar INVEXX para el producto $cveArt",
                 'errors' => sqlsrv_errors()
             ]);
+            die();
         }
 
         // 🔹 Actualizar `CLIEXX`
@@ -1177,11 +1229,12 @@ function actualizarInve4($conexionData, $pedidoId) {
 
         $stmtUpdateClie = sqlsrv_query($conn, $sqlUpdateClie, $paramsUpdateClie);
         if ($stmtUpdateClie === false) {
-            return json_encode([
+            echo json_encode([
                 'success' => false,
                 'message' => "Error al actualizar CLIEXX para el cliente $cveClpv",
                 'errors' => sqlsrv_errors()
             ]);
+            die();
         }
 
         sqlsrv_free_stmt($stmtUpdateInve);
@@ -1191,20 +1244,21 @@ function actualizarInve4($conexionData, $pedidoId) {
     sqlsrv_free_stmt($stmtPartidas);
     sqlsrv_close($conn);
 
-    return json_encode([
+    echo json_encode([
         'success' => true,
         'message' => "INVEXX y CLIEXX actualizados correctamente para el pedido $pedidoId"
     ]);
 }
 function insertarPar_Factr($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1215,13 +1269,15 @@ function insertarPar_Factr($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
-
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 10, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
     $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
@@ -1233,19 +1289,21 @@ function insertarPar_Factr($conexionData, $pedidoId) {
     $stmtUltimaRemision = sqlsrv_query($conn, $sqlUltimaRemision);
 
     if ($stmtUltimaRemision === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener la última clave de remisión',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $remisionData = sqlsrv_fetch_array($stmtUltimaRemision, SQLSRV_FETCH_ASSOC);
     if (!$remisionData) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'No se encontró ninguna remisión en FACTRXX'
         ]);
+        die();
     }
 
     $cveDoc = $remisionData['CVE_DOC'];
@@ -1262,11 +1320,12 @@ function insertarPar_Factr($conexionData, $pedidoId) {
 
     $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $paramsPartidas);
     if ($stmtPartidas === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener las partidas del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // ✅ 3. Obtener el `NUM_MOV` de `MINVEXX`
@@ -1274,11 +1333,12 @@ function insertarPar_Factr($conexionData, $pedidoId) {
     $stmtNumMov = sqlsrv_query($conn, $sqlNumMov);
     
     if ($stmtNumMov === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener NUM_MOV desde MINVEXX',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $numMovData = sqlsrv_fetch_array($stmtNumMov, SQLSRV_FETCH_ASSOC);
@@ -1310,26 +1370,35 @@ function insertarPar_Factr($conexionData, $pedidoId) {
             $row['TOTIMP5'], $row['TOTIMP6'], $row['TOTIMP7'], $row['TOTIMP8']
         ];
 
-        sqlsrv_query($conn, $sqlInsert, $paramsInsert);
+        $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
+        if ($stmtInsert === false) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al Insertar',
+                'errors' => sqlsrv_errors()
+            ]);
+            die();
+        }
         $numMov++;
     }
 
     sqlsrv_close($conn);
 
-    return json_encode([
+    echo json_encode([
         'success' => true,
         'message' => "PAR_FACTRXX insertado correctamente para la remisión $cveDoc"
     ]);
 }
 function insertarPar_Factr_Clib($conexionData, $pedidoId) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1340,13 +1409,15 @@ function insertarPar_Factr_Clib($conexionData, $pedidoId) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
-
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 10, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
     $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
@@ -1357,19 +1428,21 @@ function insertarPar_Factr_Clib($conexionData, $pedidoId) {
     $stmtUltimaRemision = sqlsrv_query($conn, $sqlUltimaRemision);
 
     if ($stmtUltimaRemision === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al obtener la última clave de remisión',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $remisionData = sqlsrv_fetch_array($stmtUltimaRemision, SQLSRV_FETCH_ASSOC);
     if (!$remisionData) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'No se encontró ninguna remisión en FACTRXX'
         ]);
+        die();
     }
 
     $cveDoc = $remisionData['CVE_DOC'];
@@ -1380,34 +1453,36 @@ function insertarPar_Factr_Clib($conexionData, $pedidoId) {
 
     $stmtContar = sqlsrv_query($conn, $sqlContarPartidas, $paramsContar);
     if ($stmtContar === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al contar las partidas del pedido',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     $partidasData = sqlsrv_fetch_array($stmtContar, SQLSRV_FETCH_ASSOC);
     if (!$partidasData) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'No se encontraron partidas en el pedido'
         ]);
+        die();
     }
 
     $numPartidas = $partidasData['TOTAL_PARTIDAS'];
-
     // ✅ 3. Insertar en `PAR_FACTR_CLIB01`
     $sqlInsert = "INSERT INTO $tablaParFactrClib (CLAVE_DOC, NUM_PART) VALUES (?, ?)";
     $paramsInsert = [$cveDoc, $numPartidas];
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
     if ($stmtInsert === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => "Error al insertar en PAR_FACTR_CLIB01 con CVE_DOC $cveDoc",
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Cerrar conexión
@@ -1416,20 +1491,21 @@ function insertarPar_Factr_Clib($conexionData, $pedidoId) {
     sqlsrv_free_stmt($stmtInsert);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "PAR_FACTR_CLIB01 insertado correctamente con CVE_DOC $cveDoc y $numPartidas partidas"
-    ]);
+    ]);*/
 }
 function actualizarAlerta_Usuario($conexionData) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1440,11 +1516,12 @@ function actualizarAlerta_Usuario($conexionData) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Tabla dinámica
@@ -1458,30 +1535,32 @@ function actualizarAlerta_Usuario($conexionData) {
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al actualizar ALERTA_USUARIO01',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     sqlsrv_free_stmt($stmtUpdate);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "ALERTA_USUARIO01 actualizada correctamente"
-    ]);
+    ]);*/
 }
 function actualizarAlerta($conexionData) {
-    if (!isset($_SESSION['empresa']['noEmpresa'])) {
+    /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
             'success' => false,
             'message' => 'No se ha definido la empresa en la sesión'
         ]);
     }
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+    $noEmpresa = "02";
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1492,11 +1571,12 @@ function actualizarAlerta($conexionData) {
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     // Tabla dinámica
@@ -1510,42 +1590,44 @@ function actualizarAlerta($conexionData) {
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        return json_encode([
+        echo json_encode([
             'success' => false,
             'message' => 'Error al actualizar ALERTA01',
             'errors' => sqlsrv_errors()
         ]);
+        die();
     }
 
     sqlsrv_free_stmt($stmtUpdate);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "ALERTA01 actualizada correctamente"
-    ]);
+    ]);*/
 }
 
 function crearRemision($conexionData, $pedidoId){
-    actualizarControl($conexionData);
-    actualizarFolios($conexionData);
-    actualizarControl2($conexionData);
-    actualizarInve($conexionData, $pedidoId);
-    insertarNimve($conexionData, $pedidoId);
-    actualizarInve2($conexionData, $pedidoId);
-    actualizarInve3($conexionData, $pedidoId);
-    actualizarInveClaro($conexionData, $pedidoId);
-    actualizarInveAmazon($conexionData, $pedidoId);
-    actualizarAfac($conexionData);
-    actualizarControl3($conexionData);
-    insertarBita($conexionData, $pedidoId);
-    insertarFactr($conexionData, $pedidoId);
-    insertarFactr_Clib($conexionData);
-    actualizarInve4($conexionData, $pedidoId);
-    insertarPar_Factr($conexionData, $pedidoId);
-    insertarPar_Factr_Clib($conexionData, $pedidoId);
-    actualizarAlerta_Usuario($conexionData);
-    actualizarAlerta($conexionData);
+    //actualizarControl($conexionData); //Si
+    //actualizarFolios($conexionData); //Si
+    //actualizarControl2($conexionData); //Si
+    //actualizarInve($conexionData, $pedidoId); // Si
+    //insertarNimve($conexionData, $pedidoId); // Error en los valores incrementales
+    //actualizarInve2($conexionData, $pedidoId); // Exito pero no actualiza
+    //actualizarInve3($conexionData, $pedidoId); // Si
+    //actualizarInveClaro($conexionData, $pedidoId); // Si
+    //actualizarInveAmazon($conexionData, $pedidoId); // Si
+    //actualizarAfac($conexionData); // No se sabe
+    //actualizarControl3($conexionData); // Si
+    //insertarBita($conexionData, $pedidoId); // Si
+    //insertarFactr($conexionData, $pedidoId); // Error al insertar en FACTRXX
+    //insertarFactr_Clib($conexionData); // Si
+    //actualizarInve4($conexionData, $pedidoId); // Error al actualizar en CLIE
+    //insertarPar_Factr($conexionData, $pedidoId); // Error al insertar
+    //insertarPar_Factr_Clib($conexionData, $pedidoId); // Si mientras el CVE o clave ese actualizada
+    //actualizarAlerta_Usuario($conexionData); // Si
+    //actualizarAlerta($conexionData); // Si
+    //echo json_encode(['success' => true, 'message' => 'Remision Creada Correctamente']);
 }
 /*-------------------------------------------------------------------------------------------------------------------*/
 
@@ -1561,14 +1643,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     echo json_encode(['success' => false, 'message' => 'Error al realizar la peticion.']);
     exit;
 }
-
 switch ($funcion){
     case 1:
-        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+        /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
         }
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
+        $noEmpresa = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
