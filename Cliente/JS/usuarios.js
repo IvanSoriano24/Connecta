@@ -1,14 +1,122 @@
+// function datosUsuarios(tipoUsuario, usuario) {
+//   $.ajax({
+//     url: "../Servidor/PHP/usuarios.php",
+//     type: "POST",
+//     data: { usuarioLogueado: tipoUsuario, usuario: usuario, numFuncion: "3" },
+//     success: function (response) {
+//       if (response.success) {
+//         mostrarUsuarios(response.data, tipoUsuario); // Llama a otra función para mostrar los usuarios en la página
+//       } else {
+//         console.log(response.message);
+//         alert("Error: " + response.message);
+//       }
+//     },
+//     error: function () {
+//       alert("Error en la solicitud AJAX.");
+//     },
+//   });
+// }
+console.log(mostrarUsuarios);
+// function mostrarUsuarios(usuarios, tipoUsuario) {
+//   var tablaClientes = $("#tablaUsuarios"); // Selección del cuerpo de la tabla
+//   tablaClientes.empty(); // Limpieza de los datos previos en la tabla
+
+//   // Ordenar los usuarios alfabéticamente por nombreCompleto
+//   usuarios.sort(function (a, b) {
+//       var nombreA = (a.nombreCompleto || "").toUpperCase(); // Manejar valores nulos o indefinidos
+//       var nombreB = (b.nombreCompleto || "").toUpperCase();
+//       return nombreA.localeCompare(nombreB); // Comparación estándar de cadenas
+//   });
+
+//   // Crear filas para cada usuario
+//   usuarios.forEach(function (usuario) {
+//       var fila = $("<tr>"); // Crear el elemento <tr>
+//       fila.append($("<td>").text(usuario.nombreCompleto || "-")); // Agregar columna de nombre
+//       fila.append($("<td>").text(usuario.correo || "-")); // Agregar columna de correo
+//       fila.append($("<td>").text(usuario.status || "-")); // Agregar columna de estatus
+//       fila.append($("<td>").text(usuario.rol || "-")); // Agregar columna de rol
+
+//       // Botón Editar
+//       var botonEditar = $("<button>")
+//           .addClass("btn btn-info btn-sm")
+//           .text("Editar")
+//           .attr("onclick", 'editarUsuario("' + usuario.id + '")');
+
+//       fila.append($("<td>").append(botonEditar));
+
+//       // Botón Visualizar
+//       var botonVer = $("<button>")
+//           .addClass("btn btn-info btn-sm")
+//           .text("Visualizar")
+//           .attr("onclick", 'visualizarUsuario("' + usuario.id + '")');
+
+//       fila.append($("<td>").append(botonVer));
+
+//       // Botón Asociaciones
+//       var botonVerAsociaciones = $("<button>")
+//           .addClass("btn btn-info btn-sm")
+//           .text("Asociaciones")
+//           .attr("onclick", 'visualizarAsociaciones("' + usuario.usuario + '")');
+
+//       fila.append($("<td>").append(botonVerAsociaciones));
+
+//       if(tipoUsuario == "ADMINISTRADOR"){
+
+//       // Botón Dar de Baja
+//       var botonBaja = $("<button>")
+//           .addClass("btn btn-danger btn-sm")
+//           .text("Dar de Baja")
+//           .attr("onclick", 'darDeBajaUsuario("' + usuario.id + '")');
+
+//       fila.append($("<td>").append(botonBaja));
+      
+//         // Botón Activar Usuario (solo si el estado es 'Baja')
+//         if (usuario.status === "Baja") {
+//             var botonActivar = $("<button>")
+//                 .addClass("btn btn-success btn-sm")
+//                 .text("Activar")
+//                 .attr("onclick", 'activarUsuario("' + usuario.id + '")'); // Usar el ID del usuario
+
+//             fila.append($("<td>").append(botonActivar));
+//         } else {
+//             fila.append($("<td>").text("-")); // Columna vacía si no está en 'Baja'
+//         }
+//       }
+
+//       // Añadir la fila completa a la tabla
+//       tablaClientes.append(fila);
+//   });
+// }
+
+var listaUsuarios = []; // Almacena la lista de usuarios globalmente
+
+$(document).ready(function () {
+  let tipoUsuario = "ADMINISTRADOR"; // Cambiar si necesitas otro tipo de usuario
+  datosUsuarios(tipoUsuario, ""); // Cargar usuarios al inicio
+});
+
+/* -------------------------------------------------------------------------- */
+/*                          FUNCIONES AUXILIARES                              */
+/* -------------------------------------------------------------------------- */
+
+// Cargar usuarios desde el servidor
 function datosUsuarios(tipoUsuario, usuario) {
   $.ajax({
     url: "../Servidor/PHP/usuarios.php",
     type: "POST",
     data: { usuarioLogueado: tipoUsuario, usuario: usuario, numFuncion: "3" },
     success: function (response) {
-      if (response.success) {
-        mostrarUsuarios(response.data, tipoUsuario); // Llama a otra función para mostrar los usuarios en la página
-      } else {
-        console.log(response.message);
-        alert("Error: " + response.message);
+      try {
+        if (response.success) {
+          listaUsuarios = response.data; // Guardar datos en la variable global
+          mostrarUsuarios(listaUsuarios, tipoUsuario, "TODOS"); // Mostrar todos los usuarios por defecto
+          inicializarEventosBotones(); // Activar eventos en los botones de navegación
+        } else {
+          console.log(response.message);
+          alert("Error: " + response.message);
+        }
+      } catch (error) {
+        console.error("Error procesando respuesta: ", error);
       }
     },
     error: function () {
@@ -17,76 +125,59 @@ function datosUsuarios(tipoUsuario, usuario) {
   });
 }
 
-function mostrarUsuarios(usuarios, tipoUsuario) {
-  var tablaClientes = $("#tablaUsuarios"); // Selección del cuerpo de la tabla
-  tablaClientes.empty(); // Limpieza de los datos previos en la tabla
+// Mostrar los usuarios en la tabla filtrados por rol
+function mostrarUsuarios(usuarios, tipoUsuario, rolSeleccionado = "TODOS") {
+  var tablaClientes = $("#tablaUsuarios");
+  tablaClientes.empty(); // Limpiar la tabla antes de mostrar nuevos datos
 
-  // Ordenar los usuarios alfabéticamente por nombreCompleto
-  usuarios.sort(function (a, b) {
-      var nombreA = (a.nombreCompleto || "").toUpperCase(); // Manejar valores nulos o indefinidos
-      var nombreB = (b.nombreCompleto || "").toUpperCase();
-      return nombreA.localeCompare(nombreB); // Comparación estándar de cadenas
-  });
+  // Filtrar usuarios según el rol seleccionado
+  let usuariosFiltrados = usuarios.filter(usuario =>
+    rolSeleccionado === "TODOS" ? true : usuario.rol === rolSeleccionado
+  );
 
-  // Crear filas para cada usuario
-  usuarios.forEach(function (usuario) {
-      var fila = $("<tr>"); // Crear el elemento <tr>
-      fila.append($("<td>").text(usuario.nombreCompleto || "-")); // Agregar columna de nombre
-      fila.append($("<td>").text(usuario.correo || "-")); // Agregar columna de correo
-      fila.append($("<td>").text(usuario.status || "-")); // Agregar columna de estatus
-      fila.append($("<td>").text(usuario.rol || "-")); // Agregar columna de rol
+  // Ordenar alfabéticamente
+  usuariosFiltrados.sort((a, b) => (a.nombreCompleto || "").localeCompare(b.nombreCompleto || ""));
 
-      // Botón Editar
-      var botonEditar = $("<button>")
-          .addClass("btn btn-info btn-sm")
-          .text("Editar")
-          .attr("onclick", 'editarUsuario("' + usuario.id + '")');
+  // Generar filas
+  usuariosFiltrados.forEach(function (usuario) {
+    var fila = $("<tr>");
+    fila.append($("<td>").text(usuario.nombreCompleto || "-"));
+    fila.append($("<td>").text(usuario.correo || "-"));
+    fila.append($("<td>").text(usuario.status || "-"));
+    fila.append($("<td>").text(usuario.rol || "-"));
 
-      fila.append($("<td>").append(botonEditar));
+    // Botón Editar
+    fila.append($("<td>").append($("<button>").addClass("btn btn-info btn-sm").text("Editar").attr("onclick", 'editarUsuario("' + usuario.id + '")')));
 
-      // Botón Visualizar
-      var botonVer = $("<button>")
-          .addClass("btn btn-info btn-sm")
-          .text("Visualizar")
-          .attr("onclick", 'visualizarUsuario("' + usuario.id + '")');
+    // Botón Visualizar
+    fila.append($("<td>").append($("<button>").addClass("btn btn-info btn-sm").text("Visualizar").attr("onclick", 'visualizarUsuario("' + usuario.id + '")')));
 
-      fila.append($("<td>").append(botonVer));
+    // Solo ADMINISTRADOR puede dar de baja y activar usuarios
+    if (tipoUsuario === "ADMINISTRADOR") {
+      fila.append($("<td>").append($("<button>").addClass("btn btn-danger btn-sm").text("Dar de Baja").attr("onclick", 'darDeBajaUsuario("' + usuario.id + '")')));
 
-      // Botón Asociaciones
-      var botonVerAsociaciones = $("<button>")
-          .addClass("btn btn-info btn-sm")
-          .text("Asociaciones")
-          .attr("onclick", 'visualizarAsociaciones("' + usuario.usuario + '")');
-
-      fila.append($("<td>").append(botonVerAsociaciones));
-
-      if(tipoUsuario == "ADMINISTRADOR"){
-
-      // Botón Dar de Baja
-      var botonBaja = $("<button>")
-          .addClass("btn btn-danger btn-sm")
-          .text("Dar de Baja")
-          .attr("onclick", 'darDeBajaUsuario("' + usuario.id + '")');
-
-      fila.append($("<td>").append(botonBaja));
-      
-        // Botón Activar Usuario (solo si el estado es 'Baja')
-        if (usuario.status === "Baja") {
-            var botonActivar = $("<button>")
-                .addClass("btn btn-success btn-sm")
-                .text("Activar")
-                .attr("onclick", 'activarUsuario("' + usuario.id + '")'); // Usar el ID del usuario
-
-            fila.append($("<td>").append(botonActivar));
-        } else {
-            fila.append($("<td>").text("-")); // Columna vacía si no está en 'Baja'
-        }
+      if (usuario.status === "Baja") {
+        fila.append($("<td>").append($("<button>").addClass("btn btn-success btn-sm").text("Activar").attr("onclick", 'activarUsuario("' + usuario.id + '")')));
+      } else {
+        fila.append($("<td>").text("-"));
       }
-
-      // Añadir la fila completa a la tabla
-      tablaClientes.append(fila);
+    }
+    tablaClientes.append(fila);
   });
 }
+
+// Inicializar eventos de los botones de navegación
+function inicializarEventosBotones() {
+  $(".filtro-rol").off("click").on("click", function () {
+    let rolSeleccionado = $(this).data("rol"); // Obtener el rol del botón
+    $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary"); // Resetear colores de botones
+    $(this).removeClass("btn-secondary").addClass("btn-primary"); // Resaltar botón seleccionado
+    mostrarUsuarios(listaUsuarios, "ADMINISTRADOR", rolSeleccionado); // Filtrar la tabla
+  });
+}
+
+
+
 function activarUsuario(usuarioId) {
   Swal.fire({
       title: "¿Estás seguro?",
