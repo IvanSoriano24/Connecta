@@ -1135,10 +1135,10 @@ function insertarFactr($conexionData, $pedidoId)
 
     sqlsrv_close($conn);
 
-    echo json_encode([
+   /* echo json_encode([
         'success' => true,
         'message' => "FACTRXX insertado correctamente con CVE_DOC $cveDoc"
-    ]);
+    ]);*/
 }
 function insertarFactr_Clib($conexionData)
 {
@@ -1704,26 +1704,26 @@ function actualizarAlerta($conexionData)
 
 function crearRemision($conexionData, $pedidoId)
 {
-    //actualizarControl($conexionData); //Si
-    //actualizarFolios($conexionData); //Si
-    //actualizarControl2($conexionData); //Si
-    //actualizarInve($conexionData, $pedidoId); // Si
-    //insertarNimve($conexionData, $pedidoId); // Si
-    //actualizarInve2($conexionData, $pedidoId); // Si
-    //actualizarInve3($conexionData, $pedidoId); // Si
-    //actualizarInveClaro($conexionData, $pedidoId); // Si
-    //actualizarInveAmazon($conexionData, $pedidoId); // Si
+    actualizarControl($conexionData); //Si
+    actualizarFolios($conexionData); //Si
+    actualizarControl2($conexionData); //Si
+    actualizarInve($conexionData, $pedidoId); // Si
+    insertarNimve($conexionData, $pedidoId); // Si
+    actualizarInve2($conexionData, $pedidoId); // Si
+    actualizarInve3($conexionData, $pedidoId); // Si
+    actualizarInveClaro($conexionData, $pedidoId); // Si
+    actualizarInveAmazon($conexionData, $pedidoId); // Si
     //actualizarAfac($conexionData); // No se sabe
-    //actualizarControl3($conexionData); // Si
-    //insertarBita($conexionData, $pedidoId); // Si
-    //insertarFactr($conexionData, $pedidoId); // Si
-    //insertarFactr_Clib($conexionData); // Si
-    //actualizarInve4($conexionData, $pedidoId); // Si, verificar la tabla CLIE
-    //insertarPar_Factr($conexionData, $pedidoId); // Si
-    //insertarPar_Factr_Clib($conexionData, $pedidoId); // Si mientras el CVE o clave ese actualizada
-    //actualizarAlerta_Usuario($conexionData); // Si
-    //actualizarAlerta($conexionData); // Si
-    //echo json_encode(['success' => true, 'message' => 'Remision Creada Correctamente']);
+    actualizarControl3($conexionData); // Si
+    insertarBita($conexionData, $pedidoId); // Si
+    insertarFactr($conexionData, $pedidoId); // Si
+    insertarFactr_Clib($conexionData); // Si
+    actualizarInve4($conexionData, $pedidoId); // Si, verificar la tabla CLIE
+    insertarPar_Factr($conexionData, $pedidoId); // Si
+    insertarPar_Factr_Clib($conexionData, $pedidoId); // Si mientras el CVE o clave ese actualizada
+    actualizarAlerta_Usuario($conexionData); // Si
+    actualizarAlerta($conexionData); // Si
+    echo json_encode(['success' => true, 'message' => 'Remision Creada Correctamente']);
 }
 /*-------------------------------------------------------------------------------------------------------------------*/
 
