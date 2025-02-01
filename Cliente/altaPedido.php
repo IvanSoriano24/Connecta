@@ -531,7 +531,7 @@ button {
                         </div>
                         <div class="row">
                             <div class="form-element"></div>
-                            <button type="submit" class="btn-save" id="guardarPedido"
+                            <button type="button" class="btn-save" id="guardarPedido"
                                 style="width: 150px;">Guardar</button>
                             <button type="button" class="btn-cancel" id="cancelarPedido"
                                 style="width: 150px;">Cancelar</button>

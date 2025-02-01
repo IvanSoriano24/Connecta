@@ -6,8 +6,7 @@ error_reporting(E_ALL);
 require 'firebase.php'; // Archivo de configuración de Firebase
 session_start();
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
-{
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -878,7 +877,7 @@ function insertarBita($conexionData, $pedidoId)
     $cveBita = $bitaData['CVE_BITA'];
 
     // ✅ 2. Obtener el `CVE_DOC` de la próxima remisión (`ULT_DOC + 1`)
-    $sqlFolioSiguiente = "SELECT ISNULL(MAX(ULT_DOC), 0) + 1 AS FolioSiguiente FROM $tablaFolios WHERE TIP_DOC = 'R'";
+    $sqlFolioSiguiente = "SELECT ISNULL(MAX(ULT_DOC), 0) AS FolioSiguiente FROM $tablaFolios WHERE TIP_DOC = 'R'";
     $stmtFolioSiguiente = sqlsrv_query($conn, $sqlFolioSiguiente);
 
     if ($stmtFolioSiguiente === false) {
@@ -993,7 +992,7 @@ function insertarFactr($conexionData, $pedidoId)
     $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
     // ✅ 1. Obtener el nuevo `CVE_DOC`
-    $sqlFolio = "SELECT ISNULL(MAX(ULT_DOC), 0) + 1 AS CVE_DOC FROM $tablaFolios WHERE TIP_DOC = 'R'";
+    $sqlFolio = "SELECT ISNULL(MAX(ULT_DOC), 0) AS CVE_DOC FROM $tablaFolios WHERE TIP_DOC = 'R'";
     $stmtFolio = sqlsrv_query($conn, $sqlFolio);
     if ($stmtFolio === false) {
         echo json_encode([
@@ -1135,12 +1134,13 @@ function insertarFactr($conexionData, $pedidoId)
 
     sqlsrv_close($conn);
 
-   /* echo json_encode([
+    return $cveDoc;
+    /*echo json_encode([
         'success' => true,
         'message' => "FACTRXX insertado correctamente con CVE_DOC $cveDoc"
     ]);*/
 }
-function insertarFactr_Clib($conexionData)
+function insertarFactr_Clib($conexionData, $cveDoc)
 {
     /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
@@ -1170,10 +1170,10 @@ function insertarFactr_Clib($conexionData)
     }
 
     // Tablas dinámicas
-    $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    //$tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaFactrClib = "[{$conexionData['nombreBase']}].[dbo].[FACTR_CLIB" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
-    // ✅ 1. Obtener el `CVE_DOC` de la última remisión insertada en `FACTRXX`
+   /* // ✅ 1. Obtener el `CVE_DOC` de la última remisión insertada en `FACTRXX`
     $sqlUltimaRemision = "SELECT TOP 1 CVE_DOC FROM $tablaRemisiones ORDER BY CVE_DOC DESC";
     $stmtUltimaRemision = sqlsrv_query($conn, $sqlUltimaRemision);
 
@@ -1193,9 +1193,10 @@ function insertarFactr_Clib($conexionData)
             'message' => 'No se encontró ninguna remisión en FACTRXX'
         ]);
         die();
-    }
-
-    $claveDoc = $remisionData['CVE_DOC'];
+    }*/
+    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $claveDoc = str_pad($cveDoc, 10, ' ', STR_PAD_LEFT);
+    
 
     // ✅ 2. Insertar en `FACTR_CLIB01`
     $sqlInsert = "INSERT INTO $tablaFactrClib (CLAVE_DOC) VALUES (?)";
@@ -1212,7 +1213,7 @@ function insertarFactr_Clib($conexionData)
     }
 
     // Cerrar conexión
-    sqlsrv_free_stmt($stmtUltimaRemision);
+    //sqlsrv_free_stmt($stmtUltimaRemision);
     sqlsrv_free_stmt($stmtInsert);
     sqlsrv_close($conn);
 
@@ -1333,7 +1334,7 @@ function actualizarInve4($conexionData, $pedidoId)
         'message' => "INVEXX y CLIEXX actualizados correctamente para el pedido $pedidoId"
     ]);*/
 }
-function insertarPar_Factr($conexionData, $pedidoId)
+function insertarPar_Factr($conexionData, $pedidoId, $cveDoc)
 {
     /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
@@ -1369,7 +1370,7 @@ function insertarPar_Factr($conexionData, $pedidoId)
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
-    // ✅ 1. Obtener el `CVE_DOC` de la última remisión generada en `FACTRXX`
+   /* // ✅ 1. Obtener el `CVE_DOC` de la última remisión generada en `FACTRXX`
     $sqlUltimaRemision = "SELECT TOP 1 CVE_DOC FROM $tablaRemisiones ORDER BY CVE_DOC DESC";
     $stmtUltimaRemision = sqlsrv_query($conn, $sqlUltimaRemision);
 
@@ -1391,7 +1392,7 @@ function insertarPar_Factr($conexionData, $pedidoId)
         die();
     }
 
-    $cveDoc = $remisionData['CVE_DOC'];
+    $cveDoc = $remisionData['CVE_DOC'];*/
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $cveDoc = str_pad($cveDoc, 10, ' ', STR_PAD_LEFT);
     // ✅ 2. Obtener las partidas del pedido (`PAR_FACTPXX`)
@@ -1481,7 +1482,7 @@ function insertarPar_Factr($conexionData, $pedidoId)
         'message' => "PAR_FACTRXX insertado correctamente para la remisión $cveDoc"
     ]);*/
 }
-function insertarPar_Factr_Clib($conexionData, $pedidoId)
+function insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc)
 {
     /*if (!isset($_SESSION['empresa']['noEmpresa'])) {
         return json_encode([
@@ -1516,7 +1517,7 @@ function insertarPar_Factr_Clib($conexionData, $pedidoId)
     $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaParFactrClib = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR_CLIB" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
-    // ✅ 1. Obtener `CVE_DOC` de la última remisión en `FACTRXX`
+   /* // ✅ 1. Obtener `CVE_DOC` de la última remisión en `FACTRXX`
     $sqlUltimaRemision = "SELECT TOP 1 CVE_DOC FROM $tablaRemisiones ORDER BY CVE_DOC DESC";
     $stmtUltimaRemision = sqlsrv_query($conn, $sqlUltimaRemision);
 
@@ -1538,7 +1539,9 @@ function insertarPar_Factr_Clib($conexionData, $pedidoId)
         die();
     }
 
-    $cveDoc = $remisionData['CVE_DOC'];
+    $cveDoc = $remisionData['CVE_DOC'];*/
+    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $cveDoc = str_pad($cveDoc, 10, ' ', STR_PAD_LEFT);
 
     // ✅ 2. Contar el número de partidas del pedido en `PAR_FACTPXX`
     $sqlContarPartidas = "SELECT COUNT(*) AS TOTAL_PARTIDAS FROM $tablaPartidasPedido WHERE CVE_DOC = ?";
@@ -1579,7 +1582,7 @@ function insertarPar_Factr_Clib($conexionData, $pedidoId)
     }
 
     // Cerrar conexión
-    sqlsrv_free_stmt($stmtUltimaRemision);
+    //sqlsrv_free_stmt($stmtUltimaRemision);
     sqlsrv_free_stmt($stmtContar);
     sqlsrv_free_stmt($stmtInsert);
     sqlsrv_close($conn);
@@ -1716,14 +1719,190 @@ function crearRemision($conexionData, $pedidoId)
     //actualizarAfac($conexionData); // No se sabe
     actualizarControl3($conexionData); // Si
     insertarBita($conexionData, $pedidoId); // Si
-    insertarFactr($conexionData, $pedidoId); // Si
-    insertarFactr_Clib($conexionData); // Si
+    $cveDoc = insertarFactr($conexionData, $pedidoId); // Si EN ESPERA
+    insertarFactr_Clib($conexionData, $cveDoc); // Si
     actualizarInve4($conexionData, $pedidoId); // Si, verificar la tabla CLIE
-    insertarPar_Factr($conexionData, $pedidoId); // Si
-    insertarPar_Factr_Clib($conexionData, $pedidoId); // Si mientras el CVE o clave ese actualizada
+    insertarPar_Factr($conexionData, $pedidoId, $cveDoc); // Si
+    insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc); // Si mientras el CVE o clave ese actualizada
     actualizarAlerta_Usuario($conexionData); // Si
     actualizarAlerta($conexionData); // Si
     echo json_encode(['success' => true, 'message' => 'Remision Creada Correctamente']);
+}
+
+function conectarDB($conexionData) {
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8"
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    
+    return $conn;
+}
+
+// ✅ 1. Obtener los productos del pedido
+function obtenerProductosPedido($conn, $conexionData, $pedidoId, $noEmpresa) {
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaProductos = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT P.CVE_ART, P.CANT, I.CON_LOTE
+            FROM $tablaPartidas P
+            INNER JOIN $tablaProductos I ON P.CVE_ART = I.CVE_ART
+            WHERE P.CVE_DOC = ?";
+    
+    $params = [str_pad($pedidoId, 10, ' ', STR_PAD_LEFT)];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al consultar los productos del pedido', 'errors' => sqlsrv_errors()]));
+    }
+
+    $productos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $productos[] = $row;
+    }
+
+    return $productos;
+}
+
+// ✅ 2. Obtener los lotes disponibles para un producto
+function obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $noEmpresa) {
+    $tablaLotes = "[{$conexionData['nombreBase']}].[dbo].[LTPD" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT REG_LTPD, CANTIDAD, E_LTPD
+            FROM $tablaLotes
+            WHERE CVE_ART = ? AND STATUS = 'A'
+            ORDER BY FCHCADUC ASC, REG_LTPD ASC";
+    
+    $params = [$claveProducto];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => "Error al consultar lotes para el producto $claveProducto", 'errors' => sqlsrv_errors()]));
+    }
+
+    $lotes = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $lotes[] = $row;
+    }
+
+    return $lotes;
+}
+
+// ✅ 3. Actualizar los lotes consumidos
+function actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto, $noEmpresa) {
+    $tablaLotes = "[{$conexionData['nombreBase']}].[dbo].[LTPD" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    foreach ($lotesUtilizados as $lote) {
+        $sql = "UPDATE $tablaLotes 
+                SET CANTIDAD = CANTIDAD - ?, 
+                    STATUS = CASE WHEN CANTIDAD - ? <= 0 THEN 'B' ELSE 'A' END
+                WHERE REG_LTPD = ? AND CVE_ART = ?";
+
+        $params = [$lote['CANTIDAD'], $lote['CANTIDAD'], $lote['REG_LTPD'], $claveProducto];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => "Error al actualizar lote {$lote['REG_LTPD']} de $claveProducto", 'errors' => sqlsrv_errors()]));
+        }
+    }
+}
+
+// ✅ 4. Insertar en ENLACE_LTPD
+function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $noEmpresa) {
+    $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    $enlaceLTPDResultados = [];
+    foreach ($lotesUtilizados as $lote) {
+        $nuevoELTPD = $lote['E_LTPD'] + 1;
+
+        $sql = "INSERT INTO $tablaEnlace (E_LTPD, REG_LTPD, CANTIDAD, PXRS)
+                VALUES (?, ?, ?, ?)";
+
+        $params = [$nuevoELTPD, $lote['REG_LTPD'], $lote['CANTIDAD'], $lote['CANTIDAD']];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => "Error al insertar en ENLACE_LTPD", 'errors' => sqlsrv_errors()]));
+        }
+
+        $enlaceLTPDResultados[] = [
+            'E_LTPD' => $nuevoELTPD,
+            'REG_LTPD' => $lote['REG_LTPD'],
+            'CANTIDAD' => $lote['CANTIDAD'],
+            'PXRS' => $lote['CANTIDAD']
+        ];
+        var_dump($$nuevoELTPD);
+    }
+    return $enlaceLTPDResultados;
+}
+
+// ✅ 5. Función principal `validarLotes`
+function validarLotes($conexionData, $pedidoId) {
+    $conn = conectarDB($conexionData);
+    $noEmpresa = "02";
+
+    $productos = obtenerProductosPedido($conn, $conexionData, $pedidoId, $noEmpresa);
+    $enlaceLTPDResultados = [];
+
+    sqlsrv_begin_transaction($conn);
+
+    foreach ($productos as $producto) {
+        if ($producto['CON_LOTE'] != 'S') {
+            continue;
+        }
+
+        $claveProducto = $producto['CVE_ART'];
+        $cantidadRequerida = (float)$producto['CANT'];
+
+        $lotes = obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $noEmpresa);
+
+        if (empty($lotes)) {
+            sqlsrv_rollback($conn);
+            die(json_encode(['success' => false, 'message' => "No se encontraron lotes para el producto $claveProducto"]));
+        }
+
+        $lotesUtilizados = [];
+        foreach ($lotes as $lote) {
+            if ($cantidadRequerida <= 0) break;
+
+            $usarCantidad = min((float)$lote['CANTIDAD'], $cantidadRequerida);
+            $cantidadRequerida -= $usarCantidad;
+
+            $lotesUtilizados[] = [
+                'REG_LTPD' => $lote['REG_LTPD'],
+                'CANTIDAD' => $usarCantidad,
+                'E_LTPD' => $lote['E_LTPD']
+            ];
+        }
+
+        if ($cantidadRequerida > 0) {
+            sqlsrv_rollback($conn);
+            die(json_encode(['success' => false, 'message' => "No hay suficiente stock en lotes para $claveProducto"]));
+        }
+
+        actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto, $noEmpresa);
+        $enlaceLTPDResultados = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $noEmpresa);
+    }
+
+    sqlsrv_commit($conn);
+    sqlsrv_close($conn);
+
+    return json_encode([
+        'success' => true,
+        'message' => 'Todos los lotes fueron validados y actualizados correctamente',
+        'enlaceLTPD' => $enlaceLTPDResultados
+    ]);
+}
+
+function notificarVenderdor($conexionData){
+
 }
 /*-------------------------------------------------------------------------------------------------------------------*/
 
@@ -1755,7 +1934,14 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $pedidoId = $_POST['pedidoId'];
-        crearRemision($conexionData, $pedidoId);
+        //$validacionLotes = validarLotes($conexionData, $pedidoId);
+        echo validarLotes($conexionData, $pedidoId);
+        die();
+        /*if (!$validacionLotes['success']) {
+            die(json_encode(['success' => false, 'message' => 'Error en validación de lotes', 'details' => $validacionLotes]));
+        }
+        echo json_encode($validacionLotes);*/
+        //crearRemision($conexionData, $pedidoId);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
