@@ -58,7 +58,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
         ]);
 
         $response = @file_get_contents($url, false, $context);
-
+        
         if ($response === false) {
             $error = error_get_last();
             echo "<div class='container'>
@@ -94,7 +94,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 
                 curl_close($ch);
 
-                echo "Respuesta de remision.php: " . $remisionResponse;
+                //echo "Respuesta de remision.php: " . $remisionResponse;
                 echo "<div class='container'>
                         <div class='title'>Confirmación Exitosa</div>
                         <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>

@@ -1728,7 +1728,6 @@ function crearRemision($conexionData, $pedidoId)
     actualizarAlerta($conexionData); // Si
     echo json_encode(['success' => true, 'message' => 'Remision Creada Correctamente']);
 }
-
 function conectarDB($conexionData) {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1745,18 +1744,16 @@ function conectarDB($conexionData) {
     
     return $conn;
 }
-
 // ✅ 1. Obtener los productos del pedido
 function obtenerProductosPedido($conn, $conexionData, $pedidoId, $noEmpresa) {
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaProductos = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-
+    $params = [str_pad($pedidoId, 10, '0', STR_PAD_LEFT)];
     $sql = "SELECT P.CVE_ART, P.CANT, I.CON_LOTE
             FROM $tablaPartidas P
             INNER JOIN $tablaProductos I ON P.CVE_ART = I.CVE_ART
             WHERE P.CVE_DOC = ?";
     
-    $params = [str_pad($pedidoId, 10, ' ', STR_PAD_LEFT)];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
@@ -1770,12 +1767,11 @@ function obtenerProductosPedido($conn, $conexionData, $pedidoId, $noEmpresa) {
 
     return $productos;
 }
-
 // ✅ 2. Obtener los lotes disponibles para un producto
 function obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $noEmpresa) {
     $tablaLotes = "[{$conexionData['nombreBase']}].[dbo].[LTPD" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
-    $sql = "SELECT REG_LTPD, CANTIDAD, E_LTPD
+    $sql = "SELECT REG_LTPD, CANTIDAD, LOTE
             FROM $tablaLotes
             WHERE CVE_ART = ? AND STATUS = 'A'
             ORDER BY FCHCADUC ASC, REG_LTPD ASC";
@@ -1794,7 +1790,6 @@ function obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $noEmpres
 
     return $lotes;
 }
-
 // ✅ 3. Actualizar los lotes consumidos
 function actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto, $noEmpresa) {
     $tablaLotes = "[{$conexionData['nombreBase']}].[dbo].[LTPD" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
@@ -1808,41 +1803,54 @@ function actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto,
         $params = [$lote['CANTIDAD'], $lote['CANTIDAD'], $lote['REG_LTPD'], $claveProducto];
         $stmt = sqlsrv_query($conn, $sql, $params);
 
+        // 🚀 Verifica si la actualización falló
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => "Error al actualizar lote {$lote['REG_LTPD']} de $claveProducto", 'errors' => sqlsrv_errors()]));
         }
+
+        // 🔍 Depuración: Verificar filas afectadas
+        $rowsAffected = sqlsrv_rows_affected($stmt);
     }
 }
-
 // ✅ 4. Insertar en ENLACE_LTPD
 function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $noEmpresa) {
     $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-
     $enlaceLTPDResultados = [];
+
     foreach ($lotesUtilizados as $lote) {
-        $nuevoELTPD = $lote['E_LTPD'] + 1;
+        // 🔹 Obtener el último E_LTPD y sumarle 1
+        $sqlUltimoELTPD = "SELECT ISNULL(MAX(E_LTPD), 0) + 1 AS NUEVO_E_LTPD FROM $tablaEnlace";
+        $stmtUltimoELTPD = sqlsrv_query($conn, $sqlUltimoELTPD);
+        
+        if ($stmtUltimoELTPD === false) {
+            die(json_encode(['success' => false, 'message' => "Error al obtener el último E_LTPD", 'errors' => sqlsrv_errors()]));
+        }
+        
+        $rowUltimoELTPD = sqlsrv_fetch_array($stmtUltimoELTPD, SQLSRV_FETCH_ASSOC);
+        $nuevoELTPD = $rowUltimoELTPD['NUEVO_E_LTPD'];
 
-        $sql = "INSERT INTO $tablaEnlace (E_LTPD, REG_LTPD, CANTIDAD, PXRS)
-                VALUES (?, ?, ?, ?)";
-
+        // 🔹 Insertar en ENLACE_LTPD
+        $sql = "INSERT INTO $tablaEnlace (E_LTPD, REG_LTPD, CANTIDAD, PXRS) VALUES (?, ?, ?, ?)";
         $params = [$nuevoELTPD, $lote['REG_LTPD'], $lote['CANTIDAD'], $lote['CANTIDAD']];
+
         $stmt = sqlsrv_query($conn, $sql, $params);
 
+        // 🚀 Verifica si la inserción falló
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => "Error al insertar en ENLACE_LTPD", 'errors' => sqlsrv_errors()]));
         }
 
+        // 🔹 Guardar el resultado para debugging
         $enlaceLTPDResultados[] = [
             'E_LTPD' => $nuevoELTPD,
             'REG_LTPD' => $lote['REG_LTPD'],
             'CANTIDAD' => $lote['CANTIDAD'],
             'PXRS' => $lote['CANTIDAD']
         ];
-        var_dump($$nuevoELTPD);
     }
+
     return $enlaceLTPDResultados;
 }
-
 // ✅ 5. Función principal `validarLotes`
 function validarLotes($conexionData, $pedidoId) {
     $conn = conectarDB($conexionData);
@@ -1852,7 +1860,7 @@ function validarLotes($conexionData, $pedidoId) {
     $enlaceLTPDResultados = [];
 
     sqlsrv_begin_transaction($conn);
-
+    
     foreach ($productos as $producto) {
         if ($producto['CON_LOTE'] != 'S') {
             continue;
@@ -1862,7 +1870,7 @@ function validarLotes($conexionData, $pedidoId) {
         $cantidadRequerida = (float)$producto['CANT'];
 
         $lotes = obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $noEmpresa);
-
+        
         if (empty($lotes)) {
             sqlsrv_rollback($conn);
             die(json_encode(['success' => false, 'message' => "No se encontraron lotes para el producto $claveProducto"]));
@@ -1878,7 +1886,7 @@ function validarLotes($conexionData, $pedidoId) {
             $lotesUtilizados[] = [
                 'REG_LTPD' => $lote['REG_LTPD'],
                 'CANTIDAD' => $usarCantidad,
-                'E_LTPD' => $lote['E_LTPD']
+                'LOTE' => $lote['LOTE']
             ];
         }
 
@@ -1895,9 +1903,7 @@ function validarLotes($conexionData, $pedidoId) {
     sqlsrv_close($conn);
 
     return json_encode([
-        'success' => true,
-        'message' => 'Todos los lotes fueron validados y actualizados correctamente',
-        'enlaceLTPD' => $enlaceLTPDResultados
+        'success' => true
     ]);
 }
 
@@ -1934,14 +1940,13 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $pedidoId = $_POST['pedidoId'];
-        //$validacionLotes = validarLotes($conexionData, $pedidoId);
-        echo validarLotes($conexionData, $pedidoId);
-        die();
-        /*if (!$validacionLotes['success']) {
+        $validacionLotes = json_decode(validarLotes($conexionData, $pedidoId), true);
+        //echo validarLotes($conexionData, $pedidoId);
+        if (!$validacionLotes['success']) {
             die(json_encode(['success' => false, 'message' => 'Error en validación de lotes', 'details' => $validacionLotes]));
+        }else{
+            crearRemision($conexionData, $pedidoId);
         }
-        echo json_encode($validacionLotes);*/
-        //crearRemision($conexionData, $pedidoId);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
