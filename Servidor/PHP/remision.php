@@ -507,9 +507,9 @@ function actualizarInve2($conexionData, $pedidoId)
         $cveArt = $row['CVE_ART'];
         $cantidad = $row['TOTAL_CANT'];
         $sqlUpdate = "UPDATE $tablaInventario 
-                      SET EXIST = EXIST - ?, VERSION_SINC = ?
+                      SET EXIST = EXIST - ?, APART = APART + ?, VERSION_SINC = ?
                       WHERE CVE_ART = ?";
-        $paramsUpdate = [$cantidad, $fechaSinc, $cveArt];
+        $paramsUpdate = [$cantidad, $cantidad, $fechaSinc, $cveArt];
 
         $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
         if ($stmtUpdate === false) {
@@ -1369,30 +1369,6 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc)
     $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-
-   /* // ✅ 1. Obtener el `CVE_DOC` de la última remisión generada en `FACTRXX`
-    $sqlUltimaRemision = "SELECT TOP 1 CVE_DOC FROM $tablaRemisiones ORDER BY CVE_DOC DESC";
-    $stmtUltimaRemision = sqlsrv_query($conn, $sqlUltimaRemision);
-
-    if ($stmtUltimaRemision === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al obtener la última clave de remisión',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
-    }
-
-    $remisionData = sqlsrv_fetch_array($stmtUltimaRemision, SQLSRV_FETCH_ASSOC);
-    if (!$remisionData) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se encontró ninguna remisión en FACTRXX'
-        ]);
-        die();
-    }
-
-    $cveDoc = $remisionData['CVE_DOC'];*/
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $cveDoc = str_pad($cveDoc, 10, ' ', STR_PAD_LEFT);
     // ✅ 2. Obtener las partidas del pedido (`PAR_FACTPXX`)
@@ -1704,28 +1680,125 @@ function actualizarAlerta($conexionData)
         'message' => "ALERTA01 actualizada correctamente"
     ]);*/
 }
+function actualizarMulti($conexionData){
+    /*
+    RPC:Completed	exec sp_executesql N'UPDATE MULT01 SET PEND_SURT =
+    (CASE WHEN PEND_SURT IS NULL THEN (CASE WHEN  @P1  < 0.0 THEN 0.0 ELSE  @P2  END) 
+    WHEN PEND_SURT +  @P3  < 0.0 THEN 0.0  WHEN PEND_SURT +  @P4  >= 0.0 THEN PEND_SURT +  @P5   ELSE 0.0 END)
+    WHERE CVE_ART =  @P6  AND CVE_ALM =  @P7',N'@P1 float,@P2 float,@P3 float,@P4 float,@P5 float,@P6 nvarchar(11),
+    @P7 int',-1,-1,-1,-1,-1,N'PRODUCTO-01',1
+    */
+}
+function actualizarInve5($conexionData, $pedidoId){
+/*
+RPC:Completed	exec sp_executesql N'UPDATE INVE01 SET PEND_SURT =
+(CASE WHEN PEND_SURT +  @P1  < 0 THEN 0         WHEN PEND_SURT +  @P2  >= 0 THEN PEND_SURT +  @P3  ELSE 0 END),
+VERSION_SINC = @P4          WHERE CVE_ART =  @P5',N'@P1 float,@P2 float,@P3 float,@P4 datetime,@P5 nvarchar(11)',
+-1,-1,-1,'2025-01-28 18:24:55.660',N'PRODUCTO-01'
+*/
+}
+function actualizarControl4($conexionData){
+    /*SQL:BatchStarting	update TBLCONTROL01 set ULT_CVE =31 where ID_TABLA = 70 AND ULT_CVE =30 */
+}
+function actualizarControl5($conexionData){
+    /*SQL:BatchStarting	update TBLCONTROL01 set ULT_CVE =24 where ID_TABLA = 67 AND ULT_CVE =23 */
+}
+function actualizarMulti2($conexionData){
+    /*RPC:Completed	exec sp_executesql N'UPDATE MULT01 SET EXIST= @P1 ,
+    VERSION_SINC=  @P2 WHERE CVE_ART=  @P3  AND CVE_ALM=  @P4',N'@P1 float,@P2 datetime,
+    @P3 nvarchar(11),@P4 int',0,'2025-01-28 18:24:56.840',N'PRODUCTO-01',1
+    */
+}
+function actualizarPar_Factr($conexionData, $cveDoc){
+    /*RPC:Completed	exec sp_executesql N'UPDATE PAR_FACTP01
+     SET PXS = (CASE WHEN PXS < @P1  THEN 0 ELSE PXS -  @P2  END)
+     WHERE CVE_DOC = @P3  AND NUM_PAR = @P4  AND CVE_ART= @P5',N'@P1 float,@P2 float,@P3 nvarchar(20),
+     @P4 int,@P5 nvarchar(11)',1,1,N'          0000000002',1,N'PRODUCTO-01'
+    */
+}
+function actualizarFactp($conexionData, $pedidoId){
+/*
+RPC:Completed	exec sp_executesql N'UPDATE FACTP01 SET TIP_DOC_E =  @P1 ,  VERSION_SINC =  @P2  ,
+ENLAZADO = (CASE WHEN (SELECT SUM(P.PXS) FROM PAR_FACTP01 P 
+WHERE P.CVE_DOC= @P3 AND FACTP01.CVE_DOC = P.CVE_DOC)=0 THEN ''T''WHEN (SELECT SUM(P.PXS) FROM PAR_FACTP01 P 
+WHERE P.CVE_DOC= @P4        AND FACTP01.CVE_DOC = P.CVE_DOC)>0 THEN ''P'' ELSE ENLAZADO END) 
+WHERE FACTP01.CVE_DOC =  @P5',N'@P1 nvarchar(1),@P2 datetime,@P3 nvarchar(20),@P4 nvarchar(20),@P5 nvarchar(20)',
+N'R','2025-01-28 18:24:57.037',N'          0000000002',N'          0000000002',N'          0000000002'
+*/
+}
+function actualizarFactp2($conexionData, $pedidoId){
+  /*
+  RPC:Completed	exec sp_executesql N'UPDATE FACTP01 SET DOC_SIG =  @P1 , TIP_DOC_SIG =  @P2  WHERE CVE_DOC =  @P3',
+  N'@P1 nvarchar(20),@P2 nvarchar(1),@P3 nvarchar(20)',N'          0000000003',N'R',N'          0000000002'
+  */
+}
+function actualizarFactp3($conexionData, $pedidoId){
+    /*RPC:Completed	exec sp_executesql N'UPDATE FACTP01 SET TIP_FAC = (CASE WHEN (SELECT SUM(P.PXS) 
+FROM PAR_FACTP01 P       WHERE P.CVE_DOC= @P1  			AND FACTP01.CVE_DOC = P.CVE_DOC)=0 THEN ''P'' 
+ELSE TIP_FAC END) WHERE CVE_DOC= @P2',N'@P1 nvarchar(20),@P2 nvarchar(20)',N' 0000000002',N'          0000000002'*/
+}
+function insertarDoctoSig($conexionData, $pedidoId){
+    /*RPC:Completed exec sp_executesql N'INSERT INTO DOCTOSIGF01 
+(TIP_DOC,CVE_DOC,ANT_SIG,TIP_DOC_E,CVE_DOC_E, PARTIDA, PART_E, CANT_E) 
+ VALUES( @P1 , @P2 , @P3 , @P4 , @P5 , @P6 , @P7 , @P8 )',N'@P1 nvarchar(1),@P2 nvarchar(20),@P3 nvarchar(1),
+ @P4 nvarchar(1),@P5 nvarchar(20),@P6 int,@P7 int,@P8 float',N'P',N'          0000000002',N'S',N'R',
+ N'          0000000003',1,1,1
+
+RPC:Completed exec sp_executesql N'INSERT INTO DOCTOSIGF01 
+(TIP_DOC,CVE_DOC,ANT_SIG,TIP_DOC_E,CVE_DOC_E, PARTIDA, PART_E, CANT_E)
+VALUES( @P1 , @P2 , @P3 , @P4 , @P5 , @P6 , @P7 , @P8 )',N'@P1 nvarchar(1),@P2 nvarchar(20),@P3 nvarchar(1),
+@P4 nvarchar(1),@P5 nvarchar(20),@P6 int,@P7 int,@P8 float',N'R',N'          0000000003',N'A',N'P',
+N'          0000000002',1,1,1*/
+}
+function insertarInfenvio($conexionData, $pedidoId, $cveDoc){
+    /*RPC:Completed	exec sp_executesql N'insert into INFENVIO01
+  (CVE_INFO, CVE_CONS, NOMBRE, CALLE, NUMINT, NUMEXT, CRUZAMIENTOS, CRUZAMIENTOS2, POB, REFERDIR, CVE_ZONA,
+  STRNOGUIA, STRMODOENV, FECHA_ENV, NOMBRE_RECEP, NO_RECEP, FECHA_RECEP, COLONIA, CODIGO, ESTADO, PAIS, MUNICIPIO,
+  PAQUETERIA, CVE_PED_TIEND, F_ENTREGA, R_FACTURA, R_EVIDENCIA, ID_GUIA, GUIA_ENV, REG_FISC)
+values
+  (@P1, @P2, @P3, @P4, @P5, @P6, @P7, @P8, @P9, @P10, @P11, @P12, @P13, @P14, @P15, @P16, @P17, @P18, @P19, @P20,
+  @P21, @P22, @P23, @P24, @P25, @P26, @P27, @P28, @P29, @P30)',N'@P1 int,@P2 varchar(1),@P3 varchar(1),@P4 varchar(1),
+  @P5 varchar(1),@P6 varchar(1),@P7 varchar(1),@P8 varchar(1),@P9 varchar(1),@P10 varchar(1),@P11 varchar(1),
+  @P12 varchar(1),@P13 varchar(1),@P14 datetime,@P15 varchar(1),@P16 varchar(1),@P17 datetime,@P18 varchar(1),
+  @P19 varchar(5),@P20 varchar(1),@P21 varchar(1),@P22 varchar(1),@P23 varchar(1),@P24 varchar(1),@P25 datetime,
+  @P26 varchar(1),@P27 varchar(1),@P28 varchar(1),@P29 varchar(1),@P30 varchar(1)',31,'','','','','','','','','',
+  '','','','2025-01-28 00:00:00','','',NULL,'','81121','','','','','',NULL,'','','','',''
+    */
+}
 
 function crearRemision($conexionData, $pedidoId)
 {
-    actualizarControl($conexionData); //Si
-    actualizarFolios($conexionData); //Si
-    actualizarControl2($conexionData); //Si
-    actualizarInve($conexionData, $pedidoId); // Si
-    insertarNimve($conexionData, $pedidoId); // Si
-    actualizarInve2($conexionData, $pedidoId); // Si
-    actualizarInve3($conexionData, $pedidoId); // Si
-    actualizarInveClaro($conexionData, $pedidoId); // Si
-    actualizarInveAmazon($conexionData, $pedidoId); // Si
-    //actualizarAfac($conexionData); // No se sabe
-    actualizarControl3($conexionData); // Si
-    insertarBita($conexionData, $pedidoId); // Si
-    $cveDoc = insertarFactr($conexionData, $pedidoId); // Si EN ESPERA
-    insertarFactr_Clib($conexionData, $cveDoc); // Si
-    actualizarInve4($conexionData, $pedidoId); // Si, verificar la tabla CLIE
-    insertarPar_Factr($conexionData, $pedidoId, $cveDoc); // Si
-    insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc); // Si mientras el CVE o clave ese actualizada
-    actualizarAlerta_Usuario($conexionData); // Si
-    actualizarAlerta($conexionData); // Si
+    actualizarControl($conexionData);
+    actualizarMulti($conexionData);
+    actualizarInve5($conexionData, $pedidoId);
+    actualizarFolios($conexionData);
+    actualizarControl4($conexionData);
+    actualizarControl2($conexionData);
+    actualizarControl5($conexionData);
+    actualizarInve($conexionData, $pedidoId);
+    //Lotes
+    insertarNimve($conexionData, $pedidoId);
+    actualizarInve2($conexionData, $pedidoId);
+    actualizarInve3($conexionData, $pedidoId); 
+    actualizarInveClaro($conexionData, $pedidoId);
+    actualizarInveAmazon($conexionData, $pedidoId); 
+    actualizarMulti2($conexionData);
+    //actualizarAfac($conexionData); 
+    actualizarControl3($conexionData); 
+    insertarBita($conexionData, $pedidoId);
+    $cveDoc = insertarFactr($conexionData, $pedidoId); 
+    insertarFactr_Clib($conexionData, $cveDoc); 
+    actualizarPar_Factr($conexionData, $cveDoc);
+    actualizarInve4($conexionData, $pedidoId);
+    insertarPar_Factr($conexionData, $pedidoId, $cveDoc);
+    actualizarFactp($conexionData, $pedidoId);
+    actualizarFactp2($conexionData, $pedidoId);
+    actualizarFactp3($conexionData, $pedidoId);
+    insertarDoctoSig($conexionData, $pedidoId);
+    insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc);
+    insertarInfenvio($conexionData, $pedidoId, $cveDoc);
+    actualizarAlerta_Usuario($conexionData);
+    actualizarAlerta($conexionData); 
     echo json_encode(['success' => true, 'message' => 'Remision Creada Correctamente']);
 }
 function conectarDB($conexionData) {
