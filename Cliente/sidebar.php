@@ -43,7 +43,7 @@
                 <span class="text">Productos</span>
             </a>
         </li>
-        <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
+        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR") { ?>
             <li>
                 <a href="Clientes.php">
                     <i class='bx bxs-user'></i>
