@@ -2777,6 +2777,7 @@ switch ($funcion) {
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];*/
         $noEmpresa = "02";
+        //$noEmpresa = $_POST['noEmpresa'];
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -2785,13 +2786,7 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $pedidoId = $_POST['pedidoId'];
-        /* $validacionLotes = json_decode(validarLotes($conexionData, $pedidoId), true);
-        //echo validarLotes($conexionData, $pedidoId);
-        if (!$validacionLotes['success']) {
-            die(json_encode(['success' => false, 'message' => 'Error en validación de lotes', 'details' => $validacionLotes]));
-        }else{*/
         crearRemision($conexionData, $pedidoId);
-        //}
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
