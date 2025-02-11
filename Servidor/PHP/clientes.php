@@ -67,7 +67,8 @@ function mostrarClientes($conexionData){
         $connectionInfo = [
             "Database" => $conexionData['nombreBase'], // Nombre de la base de datos
             "UID" => $conexionData['usuario'],
-            "PWD" => $conexionData['password']
+            "PWD" => $conexionData['password'],
+            "TrustServerCertificate" => true
         ];
         $conn = sqlsrv_connect($serverName, $connectionInfo);
         if ($conn === false) {
@@ -164,6 +165,7 @@ function mostrarClienteEspecifico($clave, $conexionData){
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
+        "TrustServerCertificate" => true,
         "CharacterSet" => "UTF-8" // Aseguramos que todo sea manejado en UTF-8
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -225,7 +227,8 @@ function validarCreditos($conexionData, $clienteId) {
             "Database" => $conexionData['nombreBase'],
             "UID" => $conexionData['usuario'],
             "PWD" => $conexionData['password'],
-            "CharacterSet" => "UTF-8"
+            "CharacterSet" => "UTF-8",
+            "TrustServerCertificate" => true
         ];
         $conn = sqlsrv_connect($serverName, $connectionInfo);
         if ($conn === false) {

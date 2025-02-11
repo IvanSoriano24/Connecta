@@ -50,7 +50,8 @@ function obtenerDetalleProducto($conexionData, $cveArt) {
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
 
     $conn = sqlsrv_connect($serverName, $connectionInfo);

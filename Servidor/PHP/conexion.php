@@ -42,7 +42,7 @@ function login($funcion) {
                     }
 
                     if ($statusFirebase === 'Baja') {
-                        header("Location: ../../Cliente/index.php?error=3");
+                        header("Location: /Cliente/index.php?error=3");
                         exit();
                     }
 
@@ -74,13 +74,13 @@ function login($funcion) {
             // Redirigir según el resultado de la validación
             if ($usuarioValido) {
                 if ($tipUsuario == 'CLIENTE') {
-                    header("Location: ../../Cliente/menu.php");
+                    header("Location: /Cliente/menu.php");
                     exit();
                 }
-                header("Location: ../../Cliente/Dashboard.php");
+                header("Location: /Cliente/Dashboard.php");
                 exit();
             } else {
-                header("Location: ../../Cliente/index.php?error=1");
+                header("Location: /Cliente/index.php?error=1");
                 exit();
             }
         }

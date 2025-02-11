@@ -53,7 +53,8 @@ function obtenerPedidoEspecifico($clave, $conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8" // Aseguramos que todo sea manejado en UTF-8
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
@@ -92,7 +93,8 @@ function mostrarPedidos($conexionData, $filtroFecha){
         $connectionInfo = [
             "Database" => $conexionData['nombreBase'], // Nombre de la base de datos
             "UID" => $conexionData['usuario'],
-            "PWD" => $conexionData['password']
+            "PWD" => $conexionData['password'],
+            "TrustServerCertificate" => true
         ];
         $conn = sqlsrv_connect($serverName, $connectionInfo);
         if ($conn === false) {
@@ -322,7 +324,8 @@ function mostrarPedidoEspecifico($clave, $conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8" // Aseguramos que todo sea manejado en UTF-8
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
@@ -401,7 +404,8 @@ function actualizarPedido($conexionData, $formularioData, $partidasData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
@@ -475,7 +479,8 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
@@ -642,7 +647,8 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
@@ -736,7 +742,8 @@ function obtenerDatosCliente($conexionData, $claveCliente)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -776,7 +783,8 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
@@ -922,7 +930,8 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
@@ -1066,7 +1075,8 @@ function actualizarFolio($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
@@ -1111,7 +1121,8 @@ function actualizarInventario($conexionData, $partidasData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
@@ -1155,7 +1166,8 @@ function obtenerFolioSiguiente($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8" // Aseguramos que todo sea manejado en UTF-8
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
@@ -1185,7 +1197,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1483,7 +1496,8 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
 
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -1556,7 +1570,8 @@ function obtenerProductos($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
 
     // Intentar conectarse a la base de datos
@@ -1601,7 +1616,8 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     // Intentar conectarse a la base de datos
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -1645,7 +1661,8 @@ function obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
 
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -1697,7 +1714,8 @@ function validarExistencias($conexionData, $partidasData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
@@ -1794,7 +1812,8 @@ function validarCreditoCliente($conexionData, $clienteId, $totalPedido)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1841,7 +1860,8 @@ function obtenerPartidasPedido($conexionData, $clavePedido)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1897,7 +1917,8 @@ function eliminarPartida($conexionData, $clavePedido, $numPar)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1939,7 +1960,8 @@ function eliminarPedido($conexionData, $pedidoID)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -2056,7 +2078,8 @@ function extraerProductos($conexionData)
         "Database" => "SAE90Empre02", // Base de datos fija
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
 
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -2143,7 +2166,8 @@ function extraerProducto($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
 
     $conn = sqlsrv_connect($serverName, $connectionInfo);

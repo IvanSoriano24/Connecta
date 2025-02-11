@@ -49,7 +49,8 @@ function actualizarControl($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8" // Aseguramos que todo sea manejado en UTF-8
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -101,7 +102,8 @@ function actualizarFolios($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -169,7 +171,8 @@ function actualizarControl2($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -227,7 +230,8 @@ function actualizarInve($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -294,7 +298,8 @@ function insertarNimve($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -469,7 +474,8 @@ function actualizarInve2($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -550,7 +556,8 @@ function actualizarInve3($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -627,7 +634,8 @@ function actualizarInveClaro($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -702,7 +710,8 @@ function actualizarInveAmazon($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -785,7 +794,8 @@ function actualizarControl3($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -843,7 +853,8 @@ function insertarBita($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -971,7 +982,8 @@ function insertarFactr($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1157,7 +1169,8 @@ function insertarFactr_Clib($conexionData, $cveDoc)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1239,7 +1252,8 @@ function actualizarInve4($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1351,7 +1365,8 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1524,7 +1539,8 @@ function insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1634,7 +1650,8 @@ function actualizarAlerta_Usuario($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1690,7 +1707,8 @@ function actualizarAlerta($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1738,7 +1756,8 @@ function actualizarMulti($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1830,7 +1849,8 @@ function actualizarInve5($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1910,7 +1930,8 @@ function actualizarControl4($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1957,7 +1978,8 @@ function actualizarControl5($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -2004,7 +2026,8 @@ function actualizarMulti2($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -2099,7 +2122,8 @@ function actualizarPar_Factp($conexionData, $pedidoId, $cveDoc)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -2176,7 +2200,8 @@ function actualizarFactp($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -2239,7 +2264,8 @@ function actualizarFactp2($conexionData, $pedidoId, $cveDocRemision)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -2294,7 +2320,8 @@ function actualizarFactp3($conexionData, $pedidoId)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -2355,7 +2382,8 @@ function insertarDoctoSig($conexionData, $pedidoId, $cveDoc)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -2425,7 +2453,8 @@ function insertarInfenvio($conexionData, $pedidoId, $cveDoc)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -2576,7 +2605,8 @@ function conectarDB($conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 

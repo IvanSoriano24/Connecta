@@ -27,7 +27,7 @@ if (isset($_SESSION["usuario"])) {
 
 <div class="containerP">
     <div id="divContenedor" class="form-container sign-up-container">
-        <form id="form" method="POST" action="../Servidor/PHP/conexion.php">
+        <form id="form" method="POST" action="/Servidor/PHP/conexion.php">
             <div id="divLogo">
                 <img src="SRC/imagen.png" alt="Logo" id="logo"> <br>
                 <span class= "txt">
