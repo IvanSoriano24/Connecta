@@ -157,7 +157,7 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
     }
 }
 
-function notificaciones($firebaseProjectId, $firebaseApiKey){
+/*function notificaciones($firebaseProjectId, $firebaseApiKey){
     $nuevosMensajes = 0;
     $nuevasComandas = 0;
 
@@ -195,7 +195,7 @@ function notificaciones($firebaseProjectId, $firebaseApiKey){
         ]
     ]);
     exit;
-}
+}*/
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
     $funcion = $_POST['numFuncion'];
@@ -229,9 +229,9 @@ switch ($funcion) {
         }
         marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $numGuia, $enviarHoy);
         break;
-        case 4:
+        /*case 4:
             notificaciones($firebaseProjectId, $firebaseApiKey);
-            break;
+            break;*/
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;

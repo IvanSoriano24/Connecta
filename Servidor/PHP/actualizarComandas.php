@@ -32,7 +32,8 @@ function actualizarComandasPendientes($firebaseProjectId, $firebaseApiKey) {
 }
 
 function cambiarEstadoComanda($firebaseProjectId, $firebaseApiKey, $comandaId) {
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?updateMask.fieldPaths=status&key=$firebaseApiKey";
+
     $data = [
         'fields' => [
             'status' => ['stringValue' => 'Abierta']

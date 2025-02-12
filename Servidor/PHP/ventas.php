@@ -1197,8 +1197,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
+        "CharacterSet" => "UTF-8"/*,
+        "TrustServerCertificate" => true*/
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -1251,15 +1251,18 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
 
     $fechaElaboracion = $formularioData['diaAlta'];
     $correo = trim($clienteData['MAIL']);
-    $emailPred = trim($clienteData['EMAILPRED']);
+    //$emailPred = trim($clienteData['EMAILPRED']);
+    $emailPred = 'desarrollo01@mdcloud.mx';
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $numeroWhatsApp = '+527773340218';
+    //$numeroWhatsApp = '+527773340218';
+    $numeroWhatsApp = '+527773750925';
     //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $noEmpresa, $partidasData);
+        //echo $resultadoWhatsApp;
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1336,7 +1339,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         echo json_encode(['success' => false, 'message' => 'Hubo un problema al enviar el correo.']);
     }
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $partidasData)
+/*function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpresa, $partidasData)
 {
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
     $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
@@ -1352,11 +1355,15 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $partida
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
 
-        $productosStr .= "$producto - $cantidad unidades, ";
+        $productosStr .= "$producto - $cantidad units, ";
     }
 
     // Limpiar el texto de productos
     $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr)); // Eliminar la última coma
+
+    // Construir URLs dinámicas para los botones
+    $urlConfirmar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=confirmar&noEmpresa=" . urlencode($noEmpresa);
+    $urlRechazar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=rechazar";
 
     // Crear el cuerpo de la solicitud para la API
     $data = [
@@ -1365,10 +1372,10 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $partida
         "to" => $numero,
         "type" => "template",
         "template" => [
-            "name" => "confirmar_pedido", // Nombre de la plantilla aprobada
-            "language" => ["code" => "es_MX"],
+            "name" => "confirmar_pedido", // Nombre de la plantilla aprobada en inglés
+            "language" => ["code" => "es_MX"], // Cambiado a inglés
             "components" => [
-                // Parámetros del encabezado
+                // Parámetro del encabezado
                 [
                     "type" => "header",
                     "parameters" => [
@@ -1379,26 +1386,118 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $partida
                 [
                     "type" => "body",
                     "parameters" => [
-                        ["type" => "text", "text" => $noPedido], // {{1}}
-                        ["type" => "text", "text" => $productosStr], // {{2}}
-                        ["type" => "text", "text" => "$" . number_format($total, 2)] // {{3}}
+                        ["type" => "text", "text" => $noPedido], // {{1}} - Número de Pedido
+                        ["type" => "text", "text" => $productosStr], // {{2}} - Lista de Productos
+                        ["type" => "text", "text" => "$" . number_format($total, 2)] // {{3}} - Total
                     ]
                 ],
-                // Parámetros para los botones dinámicos
+                // Parámetro del botón Confirmar
                 [
                     "type" => "button",
                     "sub_type" => "url",
                     "index" => 0,
                     "parameters" => [
-                        ["type" => "text", "text" => $noPedido] // {{1}} en el botón Confirmar
+                        ["type" => "text", "text" => $urlConfirmar] // {{1}} en el botón Confirmar
                     ]
                 ],
+                // Parámetro del botón Rechazar
                 [
                     "type" => "button",
                     "sub_type" => "url",
                     "index" => 1,
                     "parameters" => [
-                        ["type" => "text", "text" => $noPedido] // {{1}} en el botón Rechazar
+                        ["type" => "text", "text" => $urlRechazar] // {{1}} en el botón Rechazar
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    $data_string = json_encode($data);
+
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $token,
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data_string)
+    ]);
+
+    $result = curl_exec($curl);
+    curl_close($curl);
+
+    return $result;
+}*/
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpresa, $partidasData)
+{
+    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
+    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
+
+    // Calcular el total y construir el texto de los productos
+    $productosStr = "";
+    $total = 0;
+
+    foreach ($partidasData as $partida) {
+        $producto = $partida['producto'];
+        $cantidad = $partida['cantidad'];
+        $precioUnitario = $partida['precioUnitario'];
+        $totalPartida = $cantidad * $precioUnitario;
+        $total += $totalPartida;
+
+        $productosStr .= "$producto - $cantidad units, ";
+    }
+
+    // Limpiar el texto de productos
+    $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr)); // Eliminar la última coma
+
+    // Construir URLs dinámicas para los botones
+    $urlConfirmar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=confirmar&noEmpresa=" . urlencode($noEmpresa);
+    $urlRechazar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=rechazar";
+
+    // Crear el cuerpo de la solicitud para la API
+    $data = [
+        "messaging_product" => "whatsapp",
+        "recipient_type" => "individual",
+        "to" => $numero,
+        "type" => "template",
+        "template" => [
+            "name" => "confirmar_pedido_", // Nombre de la plantilla aprobada en inglés
+            "language" => ["code" => "en_US"], // Cambiado a inglés
+            "components" => [
+                // Parámetro del encabezado
+                [
+                    "type" => "header",
+                    "parameters" => [
+                        ["type" => "text", "text" => $clienteNombre] // {{1}} en el encabezado
+                    ]
+                ],
+                // Parámetros del cuerpo
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        ["type" => "text", "text" => $noPedido], // {{1}} - Número de Pedido
+                        ["type" => "text", "text" => $productosStr], // {{2}} - Lista de Productos
+                        ["type" => "text", "text" => "$" . number_format($total, 2)] // {{3}} - Total
+                    ]
+                ],
+                // Parámetro del botón Confirmar
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 0,
+                    "parameters" => [
+                        ["type" => "text", "text" => $urlConfirmar] // {{1}} en el botón Confirmar
+                    ]
+                ],
+                // Parámetro del botón Rechazar
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 1,
+                    "parameters" => [
+                        ["type" => "text", "text" => $urlRechazar] // {{1}} en el botón Rechazar
                     ]
                 ]
             ]
@@ -1422,72 +1521,6 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $partida
 
     return $result;
 }
-/*function enviarWhatsApp($numero, $nombreCliente, $noPedido, $partidasData)
-{
-    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
-    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
-
-    // Construir el cuerpo del mensaje
-    $mensaje = "Estimado/a $nombreCliente,\n";
-    $mensaje .= "Detalles de su pedido #$noPedido:\n\n";
-
-    $total = 0;
-    foreach ($partidasData as $partida) {
-        $producto = $partida['producto'];
-        $cantidad = $partida['cantidad'];
-        $precioUnitario = number_format($partida['precioUnitario'], 2);
-        $totalPartida = $partida['cantidad'] * $partida['precioUnitario'];
-        $total += $totalPartida;
-
-        $mensaje .= "- $producto: $cantidad unidades (Precio Unitario: $$precioUnitario)\n";
-    }
-
-    $mensaje .= "\nTotal del Pedido: $" . number_format($total, 2) . "\n";
-    $mensaje .= "\nGracias por su compra. Por favor confirme su pedido.";
-
-    // Datos de la solicitud
-    $data = [
-        "messaging_product" => "whatsapp",
-        "recipient_type" => "individual",
-        "to" => $numero, // Número del cliente
-        "type" => "text",
-        "text" => [
-            "body" => $mensaje
-        ]
-    ];
-
-    $data_string = json_encode($data);
-
-    // Configurar y enviar la solicitud
-    $curl = curl_init($url);
-    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $token,
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($data_string)
-    ]);
-
-    $result = curl_exec($curl);
-    $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    curl_close($curl);
-
-    if ($http_status !== 200) {
-        return [
-            'success' => false,
-            'message' => 'Error al enviar el mensaje por WhatsApp',
-            'status' => $http_status,
-            'response' => $result
-        ];
-    }
-
-    return [
-        'success' => true,
-        'message' => 'Mensaje enviado correctamente',
-        'response' => json_decode($result, true)
-    ];
-}*/
 
 function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
 {
@@ -2075,7 +2108,7 @@ function extraerProductos($conexionData)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
-        "Database" => "SAE90Empre02", // Base de datos fija
+        "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
         "CharacterSet" => "UTF-8",

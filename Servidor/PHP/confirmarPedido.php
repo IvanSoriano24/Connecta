@@ -13,10 +13,12 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     // Obtener fecha y hora actual si no está incluida en los parámetros
     if ($accion === 'confirmar') {
+        
         // Obtener la hora actual
         $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
         // Determinar el estado según la hora
         $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
+        
         // Preparar datos para Firebase
         $comanda = [
             "fields" => [
@@ -70,7 +72,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             $result = json_decode($response, true);
             if (isset($result['name'])) {
                 //$remisionUrl = "remision.php";
-                $remisionUrl = "http://localhost/MDConnecta/Servidor/PHP/remision.php";
+                /*$remisionUrl = "http://localhost/MDConnecta/Servidor/PHP/remision.php";
 
                 $data = [
                     'numFuncion' => 1,
@@ -94,7 +96,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 
                 curl_close($ch);
 
-                echo "Respuesta de remision.php: " . $remisionResponse;
+                echo "Respuesta de remision.php: " . $remisionResponse;*/
                 echo "<div class='container'>
                         <div class='title'>Confirmación Exitosa</div>
                         <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>

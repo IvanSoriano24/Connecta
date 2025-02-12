@@ -155,10 +155,11 @@ if (isset($_SESSION['usuario'])) {
 									razonSocial: razonSocial,
 									claveVendedor: claveVendedor
 								};
-
 								// Llamar la función sesionEmpresa para registrar sesión
 								sesionEmpresa(idEmpresarial);
+								
 							});
+							
 						} else {
 							Swal.fire({
 								title: 'Error',

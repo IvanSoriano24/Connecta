@@ -90,10 +90,10 @@ console.log(mostrarUsuarios);
 
 var listaUsuarios = []; // Almacena la lista de usuarios globalmente
 
-$(document).ready(function () {
+/*$(document).ready(function () {
   let tipoUsuario = "ADMINISTRADOR"; // Cambiar si necesitas otro tipo de usuario
   datosUsuarios(tipoUsuario, ""); // Cargar usuarios al inicio
-});
+});*/
 
 /* -------------------------------------------------------------------------- */
 /*                          FUNCIONES AUXILIARES                              */

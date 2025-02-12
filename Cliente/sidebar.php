@@ -18,7 +18,7 @@
 
 
     <ul class="side-menu top">
-        <a href="#" class="brand">
+        <a href="Dashboard.php" class="brand">
             <img src="SRC/logomd.png" alt="" style="width: 170px; height: auto;">
         </a>
         <br>

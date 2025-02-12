@@ -37,12 +37,12 @@ function login($funcion) {
                 // Validar credenciales y estatus
                 if ($usuarioFirebase === $usuario && $passwordFirebase === $password) {
                     if ($statusFirebase === 'Bloqueado') {
-                        header("Location: ../../Cliente/index.php?error=2");
+                        header("Location: /index.php?error=2");
                         exit();
                     }
 
                     if ($statusFirebase === 'Baja') {
-                        header("Location: /Cliente/index.php?error=3");
+                        header("Location: /index.php?error=3");
                         exit();
                     }
 
@@ -74,13 +74,13 @@ function login($funcion) {
             // Redirigir según el resultado de la validación
             if ($usuarioValido) {
                 if ($tipUsuario == 'CLIENTE') {
-                    header("Location: /Cliente/menu.php");
+                    header("Location: /menu.php");
                     exit();
                 }
-                header("Location: /Cliente/Dashboard.php");
+                header("Location: /Dashboard.php");
                 exit();
             } else {
-                header("Location: /Cliente/index.php?error=1");
+                header("Location: /index.php?error=1");
                 exit();
             }
         }

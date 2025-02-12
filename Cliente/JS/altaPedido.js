@@ -449,14 +449,14 @@ function validarPartidas() {
 }
 function obtenerDatosFormulario() {
   const now = new Date(); // Obtiene la fecha y hora actual
-  // const fechaActual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-  const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DD
+  const fechaActual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  //const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DD
 
   const campoEntrega = document.getElementById("entrega").value;
-
+  //alert(fechaActual);
   // Si el usuario ha ingresado una fecha, se usa esa, de lo contrario, se usa la fecha actual
-  const entrega = campoEntrega ? campoEntrega : fechaActual;
-
+  //const entrega = campoEntrega ? campoEntrega : fechaActual;
+  
   const formularioData = {
     claveVendedor: document.getElementById("vendedor").value,
     factura: document.getElementById("factura").value,
@@ -474,7 +474,7 @@ function obtenerDatosFormulario() {
     poblacion: document.getElementById("poblacion").value,
     pais: document.getElementById("pais").value,
     regimenFiscal: document.getElementById("regimenFiscal").value,
-    entrega: entrega,
+    entrega: document.getElementById("entrega").value,
     vendedor: document.getElementById("vendedor").value,
     condicion: document.getElementById("condicion").value,
     comision: document.getElementById("comision").value,
