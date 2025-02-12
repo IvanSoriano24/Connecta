@@ -110,17 +110,17 @@ thead {
                                                             <table class="table table-striped mb-0">
                                                                 <thead style="background-color:rgb(49, 118, 222);">
                                                                     <tr>
-                                                                        <th scope="col"
-                                                                            style="background-color: rgba(95, 59, 123, 0.89); color: white; ">
+                                                                    <th scope="col"
+                                                                            style="background-color: #0d77bd; color: white; ">
                                                                             Clave</th>
                                                                         <th scope="col"
-                                                                            style="background-color: rgba(95, 59, 123, 0.89); color: white; ">
+                                                                            style="background-color: #0d77bd; color: white; ">
                                                                             Nombre</th>
                                                                         <th scope="col"
-                                                                            style="background-color: rgba(95, 59, 123, 0.89); color: white; ">
+                                                                            style="background-color: #0d77bd; color: white; ">
                                                                             Cantidad</th>
                                                                         <th scope="col"
-                                                                            style="background-color: rgba(95, 59, 123, 0.89); color: white; ">
+                                                                            style="background-color: #0d77bd; color: white; ">
                                                                             Total</th>
                                                                     </tr>
                                                                 </thead>
