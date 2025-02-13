@@ -293,18 +293,43 @@ $.post('../Servidor/PHP/empresas.php', {
     razonSocial: razonSocial,
     claveVendedor: claveVendedor
 }, function(response) {
+        window.location.reload();
     if (response.success) {
         if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
             console.log(response.data);
+            // alert(response.data);
         } else {
-            //alert(response.message || 'Error al guardar la sesión de empresa.');
+            alert(response.message || 'Error al guardar la sesión de empresa.');
         }
     }}).fail(function (jqXHR, textStatus, errorThrown) {
         console.log("Error en la solicitud: " + textStatus + ", " + errorThrown);
         alert('Error al comunicar con el servidor.');
     });
 }
-
+function sesionNoEmpresa(idEmpresarial) {
+    var id = idEmpresarial.id;
+    var noEmpresa = idEmpresarial.noEmpresa;
+    var razonSocial = idEmpresarial.razonSocial;
+    var claveVendedor = idEmpresarial.claveVendedor;
+$.post('../Servidor/PHP/empresas.php', {
+    action: 'sesion',
+    id: id,  
+    noEmpresa: noEmpresa,
+    razonSocial: razonSocial,
+    claveVendedor: claveVendedor
+}, function(response) {
+    if (response.success) {
+        if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
+            console.log(response.data);
+            // alert(response.data);
+        } else {
+            alert(response.message || 'Error al guardar la sesión de empresa.');
+        }
+    }}).fail(function (jqXHR, textStatus, errorThrown) {
+        console.log("Error en la solicitud: " + textStatus + ", " + errorThrown);
+        alert('Error al comunicar con el servidor.');
+    });
+}
 function validateForm2() {
     const fields = [
         'host', 'puerto', 'usuarioSae',

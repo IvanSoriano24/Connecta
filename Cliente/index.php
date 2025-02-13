@@ -53,7 +53,6 @@ if (isset($_SESSION["usuario"])) {
             </div>
             <div>
                 <br>
-                <a  id="recuperarContrasena" class="txt">Olvide mi contraseña</a>
             </div>
             <input type="hidden" value="1" id="numFuncion", name="numFuncion">
         </form>

@@ -48,28 +48,11 @@ session_destroy(); */
 <body>
 
   <div class="hero_area">
-    <?php include 'sidebar.php'; ?>
 
     <!-- CONTENT -->
     <section id="content">
-       <!-- NAVBAR -->
-       <?php include 'navbar.php'; ?>
       <!-- MAIN -->
       <main class="text-center ">
-        <div class="head-title">
-          <div class="left">
-            <h1>SAE</h1>
-            <ul class="breadcrumb">
-              <li>
-                <a href="Dashboard.php">Inicio</a>
-              </li>
-              <li><i class='bx bx-chevron-right'></i></li>
-              <li>
-                <a href="#">SAE</a>
-              </li>
-            </ul>
-          </div>
-        </div>
         <div class="table-data">
           <div class="order">
             <div class="head">
@@ -110,7 +93,7 @@ session_destroy(); */
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
                 <button type="submit" class="btn-save" id="confirmarConexion">Guardar</button>
-                <button type="button" class="btn-cancel">Cancelar</button>
+                <button type="button" class="btn-cancel" id="cerrarSesion">Cerrar Sesión</button>
               </div>
             </form>
           </div>

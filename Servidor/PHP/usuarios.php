@@ -70,25 +70,29 @@ function actualizarUsuario($idUsario, $data) {}
 function mostrarUsuarios($usuarioLogueado, $usuario)
 {
     global $firebaseProjectId, $firebaseApiKey;
+
     // Validamos si el usuario logueado es administrador
     $esAdministrador = ($usuarioLogueado === 'ADMINISTRADOR'); // Comparar el tipo de usuario
+
     // Si no es administrador, solo mostramos su propio usuario
     if (!$esAdministrador) {
-        // En este caso, podemos buscar al usuario por su nombre en la base de datos
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
         $response = @file_get_contents($url);
+        
         if ($response === FALSE) {
             echo json_encode(['success' => false, 'message' => 'Error al obtener los usuarios.']);
             return;
         }
+
         $data = json_decode($response, true);
         if (!isset($data['documents'])) {
             echo json_encode(['success' => false, 'message' => 'No se encontraron usuarios.']);
             return;
         }
+
         foreach ($data['documents'] as $document) {
             $fields = $document['fields'];
-            if ($fields['usuario']['stringValue'] === $usuario) { // Aquí buscamos por nombre de usuario
+            if ($fields['usuario']['stringValue'] === $usuario) {
                 $usuario = [
                     'id' => str_replace('projects/' . $firebaseProjectId . '/databases/(default)/documents/USUARIOS/', '', $document['name']),
                     'nombreCompleto' => $fields['nombre']['stringValue'] . ' ' . $fields['apellido']['stringValue'],
@@ -101,11 +105,13 @@ function mostrarUsuarios($usuarioLogueado, $usuario)
                 break; // Salimos del loop una vez que encontramos el usuario
             }
         }
+
         if ($usuario === null) {
             echo json_encode(['success' => false, 'message' => 'Usuario no encontrado.']);
             return;
         }
-        $usuarios = [$usuario];  // Asignamos el usuario encontrado a la lis
+
+        $usuarios = [$usuario];  // Asignamos el usuario encontrado a la lista
     } else {
         // Si es administrador, obtenemos todos los usuarios
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
@@ -115,11 +121,13 @@ function mostrarUsuarios($usuarioLogueado, $usuario)
             echo json_encode(['success' => false, 'message' => 'Error al obtener los usuarios.']);
             return;
         }
+
         $data = json_decode($response, true);
         if (!isset($data['documents'])) {
             echo json_encode(['success' => false, 'message' => 'No se encontraron usuarios.']);
             return;
         }
+
         $usuarios = [];
         foreach ($data['documents'] as $document) {
             $fields = $document['fields'];
@@ -133,11 +141,16 @@ function mostrarUsuarios($usuarioLogueado, $usuario)
                 'status' => $fields['status']['stringValue'] ?? '',
             ];
         }
+
+        // Ordenar usuarios alfabéticamente por `nombreCompleto`
+        usort($usuarios, function ($a, $b) {
+            return strcmp($a['nombreCompleto'], $b['nombreCompleto']);
+        });
     }
-    // Devolvemos los usuarios
+
+    // Devolvemos los usuarios ordenados
     header('Content-Type: application/json');
     echo json_encode(['success' => true, 'data' => $usuarios]);
-    // Limpiamos y finalizamos el script sin salida adicional
     exit();
 }
 
@@ -175,7 +188,7 @@ function mostrarUsuario($idUsuario)
     }
 }
 
-function optenerEmpresas()
+/*function optenerEmpresas()
 {
     // Configuración de Firebase
     global $firebaseProjectId, $firebaseApiKey;
@@ -214,7 +227,77 @@ function optenerEmpresas()
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al obtener los datos de empresas.']);
     }
+}*/
+function obtenerEmpresasNoAsociadas()
+{
+    global $firebaseProjectId, $firebaseApiKey;
+
+    $usuario = $_GET['usuarioId'] ?? null;
+    if (!$usuario) {
+        echo json_encode(['success' => false, 'message' => 'Usuario no proporcionado.']);
+        return;
+    }
+
+    // Obtener todas las empresas
+    $urlEmpresas = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+    $responseEmpresas = @file_get_contents($urlEmpresas);
+
+    if ($responseEmpresas === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener las empresas.']);
+        return;
+    }
+
+    $dataEmpresas = json_decode($responseEmpresas, true);
+    if (!isset($dataEmpresas['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron empresas.']);
+        return;
+    }
+
+    // Obtener las asociaciones del usuario
+    $urlAsociaciones = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
+    $responseAsociaciones = @file_get_contents($urlAsociaciones);
+
+    if ($responseAsociaciones === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener las asociaciones.']);
+        return;
+    }
+
+    $dataAsociaciones = json_decode($responseAsociaciones, true);
+    $empresasAsociadas = [];
+
+    if (isset($dataAsociaciones['documents'])) {
+        foreach ($dataAsociaciones['documents'] as $document) {
+            $fields = $document['fields'];
+            if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $usuario) {
+                $empresasAsociadas[] = $fields['noEmpresa']['stringValue']; // Guardar el `noEmpresa` asociado
+            }
+        }
+    }
+
+    // Filtrar empresas no asociadas
+    $empresasDisponibles = [];
+    foreach ($dataEmpresas['documents'] as $document) {
+        $fields = $document['fields'];
+        $noEmpresa = $fields['noEmpresa']['stringValue'] ?? "No especificado";
+
+        if (!in_array($noEmpresa, $empresasAsociadas)) {
+            $empresasDisponibles[] = [
+                'id' => $fields['id']['stringValue'] ?? "N/A",
+                'noEmpresa' => $noEmpresa,
+                'razonSocial' => $fields['razonSocial']['stringValue'] ?? "Sin Razón Social"
+            ];
+        }
+    }
+
+    // Ordenar las empresas por Razón Social
+    usort($empresasDisponibles, function ($a, $b) {
+        return strcmp($a['razonSocial'], $b['razonSocial']);
+    });
+
+    echo json_encode(['success' => true, 'data' => $empresasDisponibles]);
+    exit();
 }
+
 function obtenerUsuarios()
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -251,6 +334,9 @@ function obtenerUsuarios()
             'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
             'usuario' => $fields['usuario']['stringValue'] ?? '',
         ];
+        usort($usuarios, function ($a, $b) {
+            return strcmp($a['nombre'], $b['nombre']);
+        });
     }
 
     // Retornamos los usuarios como JSON
@@ -729,7 +815,8 @@ switch ($funcion) {
             exit();
         }
     case 4:
-        optenerEmpresas();
+        //optenerEmpresas();
+        obtenerEmpresasNoAsociadas();
         break;
     case 5:
         $id = $_GET['id'];

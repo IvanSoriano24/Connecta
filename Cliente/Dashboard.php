@@ -186,10 +186,10 @@ if (isset($_SESSION['usuario'])) {
 									};
 
 									// Llamar la función sesionEmpresa para registrar sesión
-									sesionEmpresa(idEmpresarial);
+									sesionNoEmpresa(idEmpresarial);
 
 									// Redirigir a la página de creación de conexión después de que el usuario cierre la alerta
-									window.location.href = "ConexioSAE.php";
+									window.location.href = "crearConexionSae.php";
 								}
 							});
 						}
