@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (isset($_SESSION['usuario'])) {
+if (isset($_SESSION['usuario']) && isset($_SESSION['empresa']['razonSocial'])) {
   $nombreUsuario = $_SESSION['usuario']["nombre"];
   $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 
@@ -12,7 +12,7 @@ if (isset($_SESSION['usuario'])) {
   }
 
 } else {
-  header('Location:../index.php');
+  header('Location:../crearConexionSae.php');
 }
 /*
 session_unset();
@@ -92,7 +92,7 @@ session_destroy(); */
               </div>
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
-                <button type="submit" class="btn-save" id="confirmarConexion">Guardar</button>
+                <button type="submit" class="btn-save" id="confirmarConexionNew">Guardar</button>
                 <button type="button" class="btn-cancel" id="cerrarSesion">Cerrar Sesión</button>
               </div>
             </form>

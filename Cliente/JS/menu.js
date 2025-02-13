@@ -244,6 +244,38 @@ function guardarConexionSAE() {
     });
     alert("Realizando Cambios");
 }
+function guardarConexionSAENew() {
+    const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
+    const data = {
+        action: 'guardarNew',
+        host: $('#host').val(),
+        puerto: $('#puerto').val(),
+        usuarioSae: $('#usuarioSae').val(),
+        password: $('#password').val(),
+        nombreBase: $('#nombreBase').val(),
+        noEmpresa: noEmpresa
+    };
+    $.ajax({
+        url: '../Servidor/PHP/sae.php',
+        type: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        dataType: 'json',
+        success: function (response) {
+            console.log('Respuesta del servidor:', response); // Verifica lo que devuelve el servidor
+            if (response.success) {
+                alert('Conexión actualizada correctamente.');
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', xhr.responseText); // Mostrar respuesta completa para debug
+            alert('Error al conectar con el servidor: ' + error);
+        }
+    });
+    alert("Realizando Cambios");
+}
 function informaSae(){
     const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
     const data = {
@@ -294,30 +326,6 @@ $.post('../Servidor/PHP/empresas.php', {
     claveVendedor: claveVendedor
 }, function(response) {
         window.location.reload();
-    if (response.success) {
-        if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
-            console.log(response.data);
-            // alert(response.data);
-        } else {
-            alert(response.message || 'Error al guardar la sesión de empresa.');
-        }
-    }}).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log("Error en la solicitud: " + textStatus + ", " + errorThrown);
-        alert('Error al comunicar con el servidor.');
-    });
-}
-function sesionNoEmpresa(idEmpresarial) {
-    var id = idEmpresarial.id;
-    var noEmpresa = idEmpresarial.noEmpresa;
-    var razonSocial = idEmpresarial.razonSocial;
-    var claveVendedor = idEmpresarial.claveVendedor;
-$.post('../Servidor/PHP/empresas.php', {
-    action: 'sesion',
-    id: id,  
-    noEmpresa: noEmpresa,
-    razonSocial: razonSocial,
-    claveVendedor: claveVendedor
-}, function(response) {
     if (response.success) {
         if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
             console.log(response.data);
@@ -381,6 +389,9 @@ $(document).ready(function () {
     });
     $('#confirmarConexion').click(function () {
         guardarConexionSAE();
+    });
+    $('#confirmarConexionNew').click(function () {
+        guardarConexionSAENew();
     });
 
     $('#Ayuda').click(function () {

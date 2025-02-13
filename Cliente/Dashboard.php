@@ -157,9 +157,9 @@ if (isset($_SESSION['usuario'])) {
 								};
 								// Llamar la función sesionEmpresa para registrar sesión
 								sesionEmpresa(idEmpresarial);
-								
+
 							});
-							
+
 						} else {
 							Swal.fire({
 								title: 'Error',
@@ -190,6 +190,7 @@ if (isset($_SESSION['usuario'])) {
 
 									// Redirigir a la página de creación de conexión después de que el usuario cierre la alerta
 									window.location.href = "crearConexionSae.php";
+									//window.location.reload();
 								}
 							});
 						}
@@ -203,6 +204,33 @@ if (isset($_SESSION['usuario'])) {
 						});
 					});
 			});
+		</script>
+		<script>
+			function sesionNoEmpresa(idEmpresarial) {
+				var id = idEmpresarial.id;
+				var noEmpresa = idEmpresarial.noEmpresa;
+				var razonSocial = idEmpresarial.razonSocial;
+				var claveVendedor = idEmpresarial.claveVendedor;
+				$.post('../Servidor/PHP/empresas.php', {
+					action: 'sesion',
+					id: id,
+					noEmpresa: noEmpresa,
+					razonSocial: razonSocial,
+					claveVendedor: claveVendedor
+				}, function(response) {
+					if (response.success) {
+						if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
+							console.log(response.data);
+							// alert(response.data);
+						} else {
+							alert(response.message || 'Error al guardar la sesión de empresa.');
+						}
+					}
+				}).fail(function(jqXHR, textStatus, errorThrown) {
+					console.log("Error en la solicitud: " + textStatus + ", " + errorThrown);
+					alert('Error al comunicar con el servidor.');
+				});
+			}
 		</script>
 		<script src="JS/menu.js"></script>
 		<script src="JS/app.js"></script>

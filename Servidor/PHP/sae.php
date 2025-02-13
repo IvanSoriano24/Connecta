@@ -95,6 +95,54 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
         }
     }
 }
+function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
+{
+    // URL para crear un nuevo documento en Firestore
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
+    
+    // Datos a insertar en Firestore
+    $payload = [
+        'fields' => [
+            'host' => ['stringValue' => $data['host']],
+            'puerto' => ['stringValue' => $data['puerto']],
+            'usuario' => ['stringValue' => $data['usuarioSae']],
+            'password' => ['stringValue' => $data['password']],
+            'nombreBase' => ['stringValue' => $data['nombreBase']],
+            'noEmpresa' => ['stringValue' => $data['noEmpresa']],
+        ],
+    ];
+
+    // Configuración de la solicitud HTTP POST
+    $options = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
+            'content' => json_encode($payload),
+        ],
+    ];
+
+    // Enviar solicitud a Firestore
+    $context = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+
+    // Si hay un error en la solicitud
+    if ($result === FALSE) {
+        return ['success' => false, 'message' => 'Error al guardar en Firebase'];
+    }
+
+    // Decodificar la respuesta JSON
+    $firebaseResponse = json_decode($result, true);
+    
+    // Extraer el ID del documento generado
+    if (isset($firebaseResponse['name'])) {
+        $nameParts = explode("/", $firebaseResponse['name']);
+        $documentId = end($nameParts); // Obtener el último elemento que es el ID del documento
+    } else {
+        return ['success' => false, 'message' => 'No se pudo obtener el ID del documento'];
+    }
+
+    return ['success' => true, 'message' => 'Datos guardados exitosamente en Firebase', 'idDocumento' => $documentId];
+}
 
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
@@ -222,6 +270,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
             }
             break;
+            case 'guardarNew':
+                $data = [
+                    'host' => $input['host'],
+                    'puerto' => $input['puerto'],
+                    'usuarioSae' => $input['usuarioSae'],
+                    'password' => $input['password'],
+                    'nombreBase' => $input['nombreBase'],
+                    'noEmpresa' => $input['noEmpresa']
+                ];
+                $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase']);
+                if ($resultadoConexion['success']) {
+                    $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey);
+                    echo json_encode($resultadoGuardar);
+                } else {
+                    echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
+                }
+                break;
 
         case 'mostrar':
             $noEmpresa = $input['noEmpresa'];

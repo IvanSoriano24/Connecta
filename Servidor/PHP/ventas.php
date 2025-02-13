@@ -1262,7 +1262,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $noEmpresa, $partidasData);
-        //echo $resultadoWhatsApp;
+        echo $resultadoWhatsApp;
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1435,89 +1435,96 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpre
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
     $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
 
-    // Calcular el total y construir el texto de los productos
+    // ✅ Verifica que los valores no estén vacíos
+    if (empty($noPedido) || empty($noEmpresa)) {
+        error_log("Error: noPedido o noEmpresa están vacíos.");
+        return false;
+    }
+
+    // ✅ Generar URLs dinámicas correctamente
+    $urlConfirmar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=confirmar&noEmpresa=" . urlencode($noEmpresa);
+    $urlRechazar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=rechazar&noEmpresa=" . urlencode($noEmpresa);
+
+    // ✅ Construir la lista de productos
     $productosStr = "";
     $total = 0;
-
     foreach ($partidasData as $partida) {
         $producto = $partida['producto'];
         $cantidad = $partida['cantidad'];
         $precioUnitario = $partida['precioUnitario'];
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
-
-        $productosStr .= "$producto - $cantidad units, ";
+        $productosStr .= "$producto - $cantidad unidades, ";
     }
 
-    // Limpiar el texto de productos
-    $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr)); // Eliminar la última coma
+    // ✅ Eliminar la última coma y espacios
+    $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
 
-    // Construir URLs dinámicas para los botones
-    $urlConfirmar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=confirmar&noEmpresa=" . urlencode($noEmpresa);
-    $urlRechazar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=rechazar";
-
-    // Crear el cuerpo de la solicitud para la API
+    // ✅ Datos para WhatsApp API con botones de Confirmar y Rechazar
     $data = [
         "messaging_product" => "whatsapp",
         "recipient_type" => "individual",
         "to" => $numero,
         "type" => "template",
         "template" => [
-            "name" => "confirmar_pedido_", // Nombre de la plantilla aprobada en inglés
-            "language" => ["code" => "en_US"], // Cambiado a inglés
+            "name" => "confirmar_pedido", // 📌 Nombre EXACTO en Meta Business Manager
+            "language" => ["code" => "es_MX"], // 📌 Cambiado a español - México
             "components" => [
-                // Parámetro del encabezado
                 [
                     "type" => "header",
                     "parameters" => [
-                        ["type" => "text", "text" => $clienteNombre] // {{1}} en el encabezado
+                        ["type" => "text", "text" => "Estimado/a $clienteNombre"] // 📌 Encabezado dinámico
                     ]
                 ],
-                // Parámetros del cuerpo
                 [
                     "type" => "body",
                     "parameters" => [
-                        ["type" => "text", "text" => $noPedido], // {{1}} - Número de Pedido
-                        ["type" => "text", "text" => $productosStr], // {{2}} - Lista de Productos
-                        ["type" => "text", "text" => "$" . number_format($total, 2)] // {{3}} - Total
+                        ["type" => "text", "text" => "Gracias por su pedido $noPedido."], // 📌 Confirmación del pedido
+                        ["type" => "text", "text" => "Productos: $productosStr"], // 📌 Lista de productos
+                        ["type" => "text", "text" => "Total: $" . number_format($total, 2)] // 📌 Precio total
                     ]
                 ],
-                // Parámetro del botón Confirmar
+                // ✅ Botón Confirmar
                 [
                     "type" => "button",
                     "sub_type" => "url",
                     "index" => 0,
                     "parameters" => [
-                        ["type" => "text", "text" => $urlConfirmar] // {{1}} en el botón Confirmar
+                        ["type" => "payload", "payload" => $urlConfirmar] // 📌 URL dinámica
                     ]
                 ],
-                // Parámetro del botón Rechazar
+                // ✅ Botón Rechazar
                 [
                     "type" => "button",
                     "sub_type" => "url",
                     "index" => 1,
                     "parameters" => [
-                        ["type" => "text", "text" => $urlRechazar] // {{1}} en el botón Rechazar
+                        ["type" => "payload", "payload" => $urlRechazar] // 📌 URL dinámica
                     ]
                 ]
             ]
         ]
     ];
 
-    $data_string = json_encode($data);
+    // ✅ Verificar JSON antes de enviarlo
+    $data_string = json_encode($data, JSON_PRETTY_PRINT);
+    error_log("WhatsApp JSON: " . $data_string);
 
+    // ✅ Enviar solicitud a WhatsApp API
     $curl = curl_init($url);
     curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
     curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($curl, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $token,
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($data_string)
+        'Content-Type' => 'application/json',
+        'Content-Length' => strlen($data_string)
     ]);
 
     $result = curl_exec($curl);
     curl_close($curl);
+
+    error_log("WhatsApp Response: " . $result);
 
     return $result;
 }
@@ -2551,48 +2558,48 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+            //$resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
-            if ($resultadoValidacion['success']) {
+            //if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
-                $totalPedido = calcularTotalPedido($partidasData);
-                $clienteId = $formularioData['cliente'];
-                $claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
-                $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
+                //$totalPedido = calcularTotalPedido($partidasData);
+                //$clienteId = $formularioData['cliente'];
+                //$claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
+                //$clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
 
                 // Validar crédito del cliente
-                $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
+                //$validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
-                if ($validacionCredito['success']) {
-                    guardarPedido($conexionData, $formularioData, $partidasData);
-                    guardarPartidas($conexionData, $formularioData, $partidasData);
-                    actualizarFolio($conexionData);
-                    actualizarInventario($conexionData, $partidasData);
+                //if ($validacionCredito['success']) {
+                   // guardarPedido($conexionData, $formularioData, $partidasData);
+                    //guardarPartidas($conexionData, $formularioData, $partidasData);
+                    //actualizarFolio($conexionData);
+                    //actualizarInventario($conexionData, $partidasData);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData);
                     // Respuesta de éxito
-                    echo json_encode([
+                    /*echo json_encode([
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
-                    ]);
-                } else {
+                    ]);*/
+                //} else {
                     // Error de crédito
-                    echo json_encode([
-                        'success' => false,
-                        'credit' => true,
-                        'message' => 'Límite de crédito excedido.',
-                        'saldoActual' => $validacionCredito['saldoActual'],
-                        'limiteCredito' => $validacionCredito['limiteCredito'],
-                    ]);
-                }
-            } else {
+                    //echo json_encode([
+                    //    'success' => false,
+                    //    'credit' => true,
+                    //    'message' => 'Límite de crédito excedido.',
+                    //    'saldoActual' => $validacionCredito['saldoActual'],
+                    //    'limiteCredito' => $validacionCredito['limiteCredito'],
+                    //]);
+                //}
+            //} else {
                 // Error de existencias
-                echo json_encode([
-                    'success' => false,
-                    'exist' => true,
-                    'message' => $resultadoValidacion['message'],
-                    'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
-                ]);
-            }
+                //echo json_encode([
+                //    'success' => false,
+                //    'exist' => true,
+                //    'message' => $resultadoValidacion['message'],
+                //    'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
+                //]);
+            //}
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);
