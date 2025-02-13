@@ -2111,7 +2111,7 @@ function listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket)
 
     return $imagenesPorArticulo;
 }
-function extraerProductos($conexionData)
+function extraerProductos($conexionData, $noEmpresa)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2127,7 +2127,7 @@ function extraerProductos($conexionData)
         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta directa a la tabla fija INVE02
     $sql = "
         SELECT 
@@ -2137,7 +2137,7 @@ function extraerProductos($conexionData)
             [LIN_PROD], 
             [UNI_MED],
             [APART]
-        FROM [SAE90Empre02].[dbo].[INVE02]
+        FROM $nombreTabla
     ";
 
     $stmt = sqlsrv_query($conn, $sql);
@@ -2685,7 +2685,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
 
         // Llamar a la función para extraer productos
-        extraerProductos($conexionData);
+        extraerProductos($conexionData, $noEmpresa);
         break;
     case 12:
         $codigoProducto = isset($_GET['codigoProducto']) ? $_GET['codigoProducto'] : null;

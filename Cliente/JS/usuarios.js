@@ -523,7 +523,7 @@ function cargarUsuarios() {
           res.data.forEach((usuario) => {
             // Incluimos `data-usuario` para usarlo posteriormente
             selectUsuario.append(
-              `<option value="${usuario.usuario}" data-usuario="${usuario.usuario}" data-id="${usuario.id}">${usuario.nombre}</option>`
+              `<option value="${usuario.usuario}" data-usuario="${usuario.usuario}" data-id="${usuario.id}" data-claveVendedor="${usuario.claveVendedor}">${usuario.nombre}</option>`
             );
           });
         } else {
@@ -545,6 +545,7 @@ $("#btnGuardarAsociacion").on("click", function () {
   const razonSocial = $("#selectEmpresa option:selected").text(); // Razón social de la empresa
   const noEmpresa = $("#selectEmpresa option:selected").data("noempresa"); // Número de empresa
   const usuario = $("#selectUsuario option:selected").data("usuario"); // Valor del campo 'usuario'
+  const claveVendedor = $("#selectUsuario option:selected").attr("data-claveVendedor");
 
   // Validar que todos los campos estén seleccionados
   if (!idEmpresa || !usuario) {
@@ -555,7 +556,7 @@ $("#btnGuardarAsociacion").on("click", function () {
     });
     return;
   }
-
+  alert(claveVendedor);
   // Realizar la solicitud AJAX para guardar los datos
   $.ajax({
     url: "../Servidor/PHP/usuarios.php", // Ruta al PHP
@@ -566,6 +567,7 @@ $("#btnGuardarAsociacion").on("click", function () {
       id: idEmpresa,
       noEmpresa: noEmpresa,
       usuario: usuario,
+      claveVendedor: claveVendedor,
     },
     success: function (response) {
       try {
@@ -610,70 +612,6 @@ $("#btnGuardarAsociacion").on("click", function () {
     },
   });
 });
-/*$("#selectUsuario").on("change", function () {
-  const usuario = $(this).find(":selected").data("usuario"); // Obtener el valor de `data-usuario`
-
-  if (!usuario) {
-    $("#listaEmpresasAsociadas").empty(); // Limpia la lista si no hay usuario seleccionado
-    return;
-  }
-
-  // Solicitar empresas asociadas al servidor
-  $.ajax({
-    url: "../Servidor/PHP/usuarios.php",
-    method: "GET",
-    data: { numFuncion: "8", usuarioId: usuario }, // Enviar el campo `usuario` como usuarioId
-    success: function (response) {
-      try {
-        const res =
-          typeof response === "string" ? JSON.parse(response) : response;
-
-        if (res.success && Array.isArray(res.data)) {
-          const listaEmpresas = $("#listaEmpresasAsociadas");
-          listaEmpresas.empty();
-
-          if (res.data.length > 0) {
-            res.data.forEach((empresa) => {
-              listaEmpresas.append(`
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  ${empresa.razonSocial} (No. Empresa: ${empresa.noEmpresa})
-                  <button 
-                    class="btn btn-danger btn-sm btnEliminarAsociacion" 
-                    data-id="${empresa.id}" 
-                    data-usuario="${usuario}">Eliminar</button>
-                </li>
-              `);
-            });
-          } else {
-            listaEmpresas.append(
-              '<li class="list-group-item">Sin asociaciones</li>'
-            );
-          }
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: res.message || "No se pudieron cargar las empresas asociadas.",
-          });
-        }
-      } catch (error) {
-        console.error("Error al procesar la respuesta:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Error al cargar las empresas asociadas.",
-        });
-      }
-    },
-    error: function () {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Error al realizar la solicitud.",
-      });
-    },
-  });
-});*/
 
 $("#listaEmpresasAsociadas").on("click", ".btnEliminarAsociacion", function () {
   const idAsociacion = $(this).data("id"); // ID del documento en Firestore
@@ -872,6 +810,7 @@ $(document).ready(function () {
     const contrasenaUsuario = $("#contrasenaUsuario").val();
     const telefonoUsuario = $("#telefonoUsuario").val();
     const rolUsuario = $("#rolUsuario").val();
+    const claveVendedor = $("#selectVendedor").val();
 
     // Validar que todos los campos requeridos estén completos
     if (
@@ -900,6 +839,7 @@ $(document).ready(function () {
         contrasenaUsuario: contrasenaUsuario,
         telefonoUsuario: telefonoUsuario,
         rolUsuario: rolUsuario,
+        claveVendedor: claveVendedor,
       },
       success: function (response) {
         const res = JSON.parse(response);
@@ -931,6 +871,74 @@ $(document).ready(function () {
   });
   /*********************************************************************************/
   $("#selectEmpresa").prop("disabled", true);
+
+  $("#rolUsuario").on("change", function () {
+    const rolSeleccionado = $(this).val(); // Obtener el rol seleccionado
+
+    if (rolSeleccionado === "VENDEDOR") {
+        // Mostrar el select de vendedores
+        $("#divVendedor").show();
+
+        // Realizar la solicitud AJAX para obtener los vendedores
+        $.ajax({
+            url: "../Servidor/PHP/usuarios.php",
+            method: "GET",
+            data: { numFuncion: "13" }, // Llamar la función para obtener vendedores
+            success: function (response) {
+                try {
+                    const res = typeof response === "string" ? JSON.parse(response) : response;
+
+                    if (res.success && Array.isArray(res.data)) {
+                        const selectVendedor = $("#selectVendedor");
+                        selectVendedor.empty();
+                        selectVendedor.append('<option selected disabled>Seleccione un vendedor</option>');
+
+                        res.data.forEach((vendedor) => {
+                            selectVendedor.append(
+                                `<option value="${vendedor.clave}" data-nombre="${vendedor.nombre}">
+                                    ${vendedor.nombre} || ${vendedor.clave}
+                                </option>`
+                            );
+                        });
+
+                        // Habilitar el select si hay vendedores disponibles
+                        selectVendedor.prop("disabled", res.data.length === 0);
+                    } else {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Aviso",
+                            text: res.message || "No se encontraron vendedores.",
+                        });
+                        $("#selectVendedor").prop("disabled", true);
+                    }
+                } catch (error) {
+                    console.error("Error al procesar la respuesta:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Error al cargar vendedores.",
+                    });
+                }
+            },
+            error: function () {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Error al obtener la lista de vendedores.",
+                });
+            },
+        });
+    } else {
+        // Ocultar el div del vendedor si no es "VENDEDOR"
+        $("#divVendedor").hide();
+        $("#selectVendedor").empty().prop("disabled", true);
+    }
+});
+// Cuando se seleccione un vendedor, solo se mostrará la clave en el input
+$("#selectVendedor").on("change", function () {
+    const claveSeleccionada = $(this).val();
+    $("#selectVendedor").val(claveSeleccionada);
+});
 
   $("#selectUsuario").on("change", function () {
     const usuario = $(this).find(":selected").data("usuario"); // Obtener el valor de `data-usuario`

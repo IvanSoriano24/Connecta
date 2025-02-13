@@ -1,28 +1,28 @@
 <?php
-    session_start();
-    if (isset($_SESSION['usuario'])) {
-        if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
-            header('Location:Menu.php');
-            exit();
-        }
-        $nombreUsuario = $_SESSION['usuario']["nombre"];
-        $usuario       = $_SESSION['usuario']["usuario"];
-        $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
-        if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
-            header('Location:Dashboard.php');
-            exit();
-        }
-        $mostrarModal = isset($_SESSION['empresa']) ? false : true;
-
-        //$empresa = $_SESSION['empresa']['razonSocial'];
-        if (isset($_SESSION['empresa'])) {
-            $empresa   = $_SESSION['empresa']['razonSocial'];
-            $idEmpresa = $_SESSION['empresa']['id'];
-            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        }
-    } else {
-        header('Location:../index.php');
+session_start();
+if (isset($_SESSION['usuario'])) {
+    if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
+        header('Location:Menu.php');
+        exit();
     }
+    $nombreUsuario = $_SESSION['usuario']["nombre"];
+    $usuario       = $_SESSION['usuario']["usuario"];
+    $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
+    if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+        header('Location:Dashboard.php');
+        exit();
+    }
+    $mostrarModal = isset($_SESSION['empresa']) ? false : true;
+
+    //$empresa = $_SESSION['empresa']['razonSocial'];
+    if (isset($_SESSION['empresa'])) {
+        $empresa   = $_SESSION['empresa']['razonSocial'];
+        $idEmpresa = $_SESSION['empresa']['id'];
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    }
+} else {
+    header('Location:../index.php');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,58 +42,58 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-    body.modal-open .hero_area {
-        filter: blur(5px);
-    }
+        body.modal-open .hero_area {
+            filter: blur(5px);
+        }
 
-    /* Aquí eliminamos el subrayado que tiene el botón por la etiqueta <a> */
-    .btn a {
-        text-decoration: none;
-        color: inherit;
-    }
+        /* Aquí eliminamos el subrayado que tiene el botón por la etiqueta <a> */
+        .btn a {
+            text-decoration: none;
+            color: inherit;
+        }
 
-    /*********************/
-    table.table tbody td {
-        text-transform: uppercase;
-        padding: 12px;
-        /* Aumenta el espacio interno */
-        height: 50px;
-        /* Establece una altura mínima */
-        text-align: left;
-        /* Alineación horizontal */
-        vertical-align: middle;
-        /* Alineación vertical */
-        padding: 12px;
-        /* Aumenta el espacio interno */
-        font-family: Arial, sans-serif;
-        font-size: 16px;
-        /* Ajusta el tamaño del texto */
-        line-height: 1.5;
-        /* Asegura un espaciado vertical uniforme */
-        text-transform: none;
-        /* Evita modificaciones al texto */
-    }
+        /*********************/
+        table.table tbody td {
+            text-transform: uppercase;
+            padding: 12px;
+            /* Aumenta el espacio interno */
+            height: 50px;
+            /* Establece una altura mínima */
+            text-align: left;
+            /* Alineación horizontal */
+            vertical-align: middle;
+            /* Alineación vertical */
+            padding: 12px;
+            /* Aumenta el espacio interno */
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            /* Ajusta el tamaño del texto */
+            line-height: 1.5;
+            /* Asegura un espaciado vertical uniforme */
+            text-transform: none;
+            /* Evita modificaciones al texto */
+        }
 
-    table.table tr {
-        height: 60px;
-        /* Altura fija para todas las filas */
-    }
+        table.table tr {
+            height: 60px;
+            /* Altura fija para todas las filas */
+        }
 
-    table.table thead th {
-        text-align: left;
-        /* Alineación de encabezados */
-        vertical-align: middle;
-        padding: 12px;
-        font-size: 16px;
-        line-height: 1.5;
-    }
+        table.table thead th {
+            text-align: left;
+            /* Alineación de encabezados */
+            vertical-align: middle;
+            padding: 12px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
 
-    table.table {
-        border-collapse: separate;
-        /* Separa las celdas */
-        border-spacing: 0 8px;
-        /* Espaciado entre filas */
-    }
+        table.table {
+            border-collapse: separate;
+            /* Separa las celdas */
+            border-spacing: 0 8px;
+            /* Espaciado entre filas */
+        }
     </style>
 </head>
 
@@ -114,13 +114,13 @@
                 <!-- Botones de acciones principales -->
                 <div class="d-flex justify-content-between mb-3">
                     <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
-                    <button class="btn btn-success" id="btnAgregar">
-                        <i class='bx bxs-user-plus'></i> Agregar
-                    </button>
+                        <button class="btn btn-success" id="btnAgregar">
+                            <i class='bx bxs-user-plus'></i> Agregar
+                        </button>
 
-                    <button class="btn btn-info" id="btnAsociarEmpresa">
-                        <i class='bx bxs-building-house'></i> Asociar Empresa
-                    </button>
+                        <button class="btn btn-info" id="btnAsociarEmpresa">
+                            <i class='bx bxs-building-house'></i> Asociar Empresa
+                        </button>
                     <?php } ?>
                     <!--<button class="btn btn-secondary" id="btnExportar" disabled>
                         <i class='bx bxs-export'></i> Exportar
@@ -134,15 +134,15 @@
                 <!-- Área para mostrar los datos de los clientes -->
                 <div class="table-data">
                     <div class="order">
-                                                   <!-- 🔹 Barra de Navegación para Filtrar por Rol -->
-<div style="align-items: center; display: flex; justify-content: center;" class="btn-group" role="group" aria-label="Filtros de Usuarios">
-    <button type="button" class="btn btn-primary filtro-rol" data-rol="TODOS">Todos</button>
-    <button type="button" class="btn btn-secondary filtro-rol" data-rol="VENDEDOR">Vendedores</button>
-    <button type="button" class="btn btn-secondary filtro-rol" data-rol="ALMACENISTA">Almacenistas</button>
-    <button type="button" class="btn btn-secondary filtro-rol" data-rol="FACTURISTA">Facturistas</button>
-    <button type="button" class="btn btn-secondary filtro-rol" data-rol="CLIENTE">Clientes</button>
-    <button type="button" class="btn btn-secondary filtro-rol" data-rol="ADMINISTRADOR">Administradores</button>
-</div>
+                        <!-- 🔹 Barra de Navegación para Filtrar por Rol -->
+                        <div style="align-items: center; display: flex; justify-content: center;" class="btn-group" role="group" aria-label="Filtros de Usuarios">
+                            <button type="button" class="btn btn-primary filtro-rol" data-rol="TODOS">Todos</button>
+                            <button type="button" class="btn btn-secondary filtro-rol" data-rol="VENDEDOR">Vendedores</button>
+                            <button type="button" class="btn btn-secondary filtro-rol" data-rol="ALMACENISTA">Almacenistas</button>
+                            <button type="button" class="btn btn-secondary filtro-rol" data-rol="FACTURISTA">Facturistas</button>
+                            <button type="button" class="btn btn-secondary filtro-rol" data-rol="CLIENTE">Clientes</button>
+                            <button type="button" class="btn btn-secondary filtro-rol" data-rol="ADMINISTRADOR">Administradores</button>
+                        </div>
                         <div class="head">
                             <h3></h3>
 
@@ -160,8 +160,8 @@
                                     <th style="">Visualizar</th>
                                     <th style="">Asociaciones</th>
                                     <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
-                                    <th style="">Dar de Baja</th>
-                                    <th style="">Activar</th>
+                                        <th style="">Dar de Baja</th>
+                                        <th style="">Activar</th>
                                     <?php } ?>
                                 </tr>
                             </thead>
@@ -235,6 +235,12 @@
                                             <option value="VENDEDOR">VENDEDOR</option>
                                             <option value="ALMACENISTA">ALMACENISTA</option>
                                             <option value="FACTURISTA">FACTURISTA</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2" id="divVendedor" style="display: none;">
+                                        <label for="selectVendedor">Vendedor</label>
+                                        <select id="selectVendedor" class="form-select">
+                                            <option selected disabled>Seleccione un vendedor</option>
                                         </select>
                                     </div>
                                 </div>
@@ -326,12 +332,12 @@
     <script src="JS/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    $(document).ready(function() {
-        let tipoUsuario = '<?php echo $tipoUsuario; ?>';
-        let usuario = '<?php echo $usuario; ?>';
-        datosUsuarios(tipoUsuario,
-        usuario); // Llamada a la función cuando la página de la empresa se ha cargado.
-    });
+        $(document).ready(function() {
+            let tipoUsuario = '<?php echo $tipoUsuario; ?>';
+            let usuario = '<?php echo $usuario; ?>';
+            datosUsuarios(tipoUsuario,
+                usuario); // Llamada a la función cuando la página de la empresa se ha cargado.
+        });
     </script>
     </section>
     <script src="JS/usuarios.js"></script>

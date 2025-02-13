@@ -3,8 +3,45 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+session_start();
+
 require 'firebase.php';
 
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+{
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+    $result = file_get_contents($url, false, $context);
+    if ($result === FALSE) {
+        return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
+    }
+    $documents = json_decode($result, true);
+    if (!isset($documents['documents'])) {
+        return ['success' => false, 'message' => 'No se encontraron documentos'];
+    }
+    // Busca el documento donde coincida el campo `noEmpresa`
+    foreach ($documents['documents'] as $document) {
+        $fields = $document['fields'];
+        if ($fields['noEmpresa']['stringValue'] === $noEmpresa) {
+            return [
+                'success' => true,
+                'data' => [
+                    'host' => $fields['host']['stringValue'],
+                    'puerto' => $fields['puerto']['stringValue'],
+                    'usuario' => $fields['usuario']['stringValue'],
+                    'password' => $fields['password']['stringValue'],
+                    'nombreBase' => $fields['nombreBase']['stringValue']
+                ]
+            ];
+        }
+    }
+    return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
+}
 function guardarUsuario($datosUsuario)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -24,7 +61,7 @@ function guardarUsuario($datosUsuario)
         // Si no hay ID, estamos creando un nuevo documento
         $url .= "?key=$firebaseApiKey";
     }
-
+    
     // Formatear los datos para Firebase (estructura de "fields")
     $fields = [
         'usuario' => ['stringValue' => $datosUsuario['usuario']],
@@ -34,6 +71,7 @@ function guardarUsuario($datosUsuario)
         'password' => ['stringValue' => $datosUsuario['contrasenaUsuario']],
         'telefono' => ['stringValue' => $datosUsuario['telefonoUsuario']],
         'tipoUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
+        'claveVendedor' => ['stringValue' => $datosUsuario['claveVendedor']],
         'descripcionUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
         'status' => ['stringValue' => 'Bloqueado'], // Nuevo campo con valor predeterminado
     ];
@@ -78,7 +116,7 @@ function mostrarUsuarios($usuarioLogueado, $usuario)
     if (!$esAdministrador) {
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
         $response = @file_get_contents($url);
-        
+
         if ($response === FALSE) {
             echo json_encode(['success' => false, 'message' => 'Error al obtener los usuarios.']);
             return;
@@ -333,6 +371,7 @@ function obtenerUsuarios()
             'estatus' => $fields['estatus']['stringValue'] ?? '',
             'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
             'usuario' => $fields['usuario']['stringValue'] ?? '',
+            'claveVendedor' => $fields['claveVendedor']['stringValue'] ?? '',
         ];
         usort($usuarios, function ($a, $b) {
             return strcmp($a['nombre'], $b['nombre']);
@@ -344,14 +383,15 @@ function obtenerUsuarios()
     echo json_encode(['success' => true, 'data' => $usuarios]);
     exit();
 }
-function guardarAsociacion()
-{
+function guardarAsociacion(){
     global $firebaseProjectId, $firebaseApiKey;
 
     $empresa = $_POST['empresa'] ?? null;
     $id = $_POST['id'] ?? null;
     $noEmpresa = $_POST['noEmpresa'] ?? null;
     $usuario = $_POST['usuario'] ?? null;
+    $claveVendedor = $_POST['claveVendedor'] ?? null;
+    
 
     if (!$empresa || !$id || !$noEmpresa || !$usuario) {
         echo json_encode(['success' => false, 'message' => 'Faltan datos para guardar la asociación.']);
@@ -390,6 +430,7 @@ function guardarAsociacion()
         'id' => ['stringValue' => $id],
         'noEmpresa' => ['stringValue' => $noEmpresa],
         'usuario' => ['stringValue' => $usuario],
+        'claveVendedor' => ['stringValue' => $claveVendedor],
     ];
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
@@ -732,7 +773,8 @@ function bajaUsuario()
     echo json_encode(['success' => true, 'message' => 'El usuario ha sido dado de baja exitosamente.']);
     exit();
 }
-function activarUsuario() {
+function activarUsuario()
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $usuarioId = $_POST['usuarioId'] ?? null;
@@ -768,6 +810,71 @@ function activarUsuario() {
     exit();
 }
 
+function obtenerVendedor($conexionData, $noEmpresa)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // Construcción del nombre de la tabla VEND basado en la empresa
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta SQL para obtener vendedores activos (STATUS = 'A')
+    $sql = "
+        SELECT 
+            CVE_VEND AS clave, 
+            NOMBRE AS nombre
+        FROM $nombreTabla
+        WHERE STATUS = 'A'
+    ";
+
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    $vendedores = [];
+    $vendedoresUnicos = []; // Array asociativo para evitar duplicados
+
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $clave = $row['clave'];
+        if (!isset($vendedoresUnicos[$clave])) {
+            $vendedoresUnicos[$clave] = $row['nombre'];
+            $vendedores[] = [
+                'clave' => $clave,
+                'nombre' => $row['nombre']
+            ];
+        }
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    if (!empty($vendedores)) {
+        // Ordenar los vendedores por nombre alfabéticamente
+        usort($vendedores, function ($a, $b) {
+            return strcmp($a['nombre'], $b['nombre']);
+        });
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => $vendedores]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron vendedores activos.']);
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     $funcion = $_POST['numFuncion'];
@@ -790,6 +897,7 @@ switch ($funcion) {
             'contrasenaUsuario' => $_POST['contrasenaUsuario'],
             'telefonoUsuario' => $_POST['telefonoUsuario'],
             'rolUsuario' => $_POST['rolUsuario'],
+            'claveVendedor' => $_POST['claveVendedor'],
         ];
         // Guardar los datos en Firebase o la base de datos
         guardarUsuario($datosUsuario);
@@ -840,9 +948,23 @@ switch ($funcion) {
     case 11:
         bajaUsuario();
         break;
-    case 12;
-    activarUsuario();
-    break;
+    case 12:
+        activarUsuario();
+        break;
+    case 13:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        obtenerVendedor($conexionData, $noEmpresa);
+        break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;
