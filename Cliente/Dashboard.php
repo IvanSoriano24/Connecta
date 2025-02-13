@@ -8,9 +8,9 @@ if (isset($_SESSION['usuario'])) {
 	$nombreUsuario = $_SESSION['usuario']["usuario"];
 	$nombre = $_SESSION['usuario']["nombre"];
 	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
-	/*if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
 		header('Location:Dashboard.php');
-	}*/
+	}
 	$mostrarModal = isset($_SESSION['empresa']) ? false : true;
 	//$empresa = $_SESSION['empresa']['razonSocial'];
 	if (isset($_SESSION['empresa'])) {
@@ -67,24 +67,25 @@ if (isset($_SESSION['usuario'])) {
 	<!-- CONTENT -->
 	</div>
 	<div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true"
-		data-bs-backdrop="static" data-bs-keyboard="false" class="modal <?php echo $mostrarModal ? '' : 'd-none'; ?>">
-		<div class="modal-dialog modal-dialog-centered">
-			<div class="modal-content">
-				<div class="text-center mb-4">
-					<h1 class="display-4 text-primary txth1">Bienvenido</h1>
-					<h2 class="card-title text-center txth2"> <?php echo $tipoUsuario; ?> </h2>
-				</div>
-				<div class="modal-body">
-					<select class="form-select" id="empresaSelect" name="empresaSelect">
-						<option value="" selected disabled class="txt">Selecciona una Empresa</option>
-					</select>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" id="cerrarSesionModal">Cerrar Sesion</button>
-					<button type="button" class="btn btn-primary txt" id="confirmarEmpresa"> Confirmar</button>
-				</div>
-			</div>
-		</div>
+    data-bs-backdrop="static" data-bs-keyboard="false" class="modal <?php echo $mostrarModal ? '' : 'd-none'; ?>">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="text-center mb-4">
+                <h1 class="display-4 text-primary txth1">Bienvenido</h1>
+                <h2 class="card-title text-center txth2"><?php echo $tipoUsuario; ?></h2>
+            </div>
+            <div class="modal-body">
+                <select class="form-select" id="empresaSelect" name="empresaSelect">
+                    <option value="" selected disabled class="txt">Selecciona una Empresa</option>
+                </select>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-danger" id="cerrarSesionModal">Cerrar Sesion</button>
+                <button type="button" class="btn btn-primary txt" id="confirmarEmpresa">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
 		<!-- JS Para la confirmacion empresa -->
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 		<script>

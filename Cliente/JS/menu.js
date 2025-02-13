@@ -255,6 +255,7 @@ function guardarConexionSAENew() {
         nombreBase: $('#nombreBase').val(),
         noEmpresa: noEmpresa
     };
+
     $.ajax({
         url: '../Servidor/PHP/sae.php',
         type: 'POST',
@@ -264,18 +265,61 @@ function guardarConexionSAENew() {
         success: function (response) {
             console.log('Respuesta del servidor:', response); // Verifica lo que devuelve el servidor
             if (response.success) {
-                alert('Conexión actualizada correctamente.');
+                Swal.fire({
+                    icon: "success",
+                    title: "Conexión Creada",
+                    text: "Se ha creado la conexión correctamente. Se cerrará la sesión para aplicar los cambios.",
+                    timer: 2000, // Muestra el mensaje durante 2 segundos antes de cerrar sesión
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                }).then(() => {
+                    cerrarSesionAutomatica();
+                });
             } else {
-                alert('Error: ' + response.message);
+                Swal.fire({
+                    title: 'Error',
+                    text: response.message,
+                    icon: 'error'
+                });
             }
         },
         error: function (xhr, status, error) {
             console.error('Error:', xhr.responseText); // Mostrar respuesta completa para debug
-            alert('Error al conectar con el servidor: ' + error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al conectar con el servidor: ' + error,
+                icon: 'error'
+            });
         }
     });
-    alert("Realizando Cambios");
 }
+// Función para cerrar sesión automáticamente después de crear la conexión
+function cerrarSesionAutomatica() {
+    Swal.fire({
+        title: 'Cerrando Sesión...',
+        text: 'Espere un momento',
+        icon: 'info',
+        timer: 1500,  // Espera 1.5 segundos antes de cerrar sesión
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    });
+
+    setTimeout(() => {
+        $.post("../Servidor/PHP/conexion.php", { numFuncion: 2 }, function (data) {
+            limpiarCacheEmpresa();
+            window.location.href = "index.php"; // Redirigir al login después de cerrar sesión
+        }).fail(function () {
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al intentar cerrar sesión.',
+                icon: 'error'
+            });
+        });
+    }, 1500);
+}
+
 function informaSae(){
     const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
     const data = {

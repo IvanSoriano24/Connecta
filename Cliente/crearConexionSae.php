@@ -81,7 +81,7 @@ session_destroy(); */
                 <label for="txt">Password:</label>
                 <input class="input-mt" type="password" name="password" id="password">
                 <div class="password-container">
-                  <!-- <button type="button" class="show-password">Mostrar</button> -->
+                  <button type="button" class="show-password">Mostrar</button>
                 </div>
               </div>
               <div class="form-row">
@@ -92,7 +92,7 @@ session_destroy(); */
               </div>
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
-                <button type="submit" class="btn-save" id="confirmarConexionNew">Guardar</button>
+                <button type="button" class="btn-save" id="confirmarConexionNew">Guardar</button>
                 <button type="button" class="btn-cancel" id="cerrarSesion">Cerrar Sesión</button>
               </div>
             </form>

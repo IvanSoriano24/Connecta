@@ -16,7 +16,7 @@
 //     },
 //   });
 // }
-console.log(mostrarUsuarios);
+//console.log(mostrarUsuarios);
 // function mostrarUsuarios(usuarios, tipoUsuario) {
 //   var tablaClientes = $("#tablaUsuarios"); // Selección del cuerpo de la tabla
 //   tablaClientes.empty(); // Limpieza de los datos previos en la tabla
@@ -677,8 +677,8 @@ $("#btnGuardarAsociacion").on("click", function () {
 
 $("#listaEmpresasAsociadas").on("click", ".btnEliminarAsociacion", function () {
   const idAsociacion = $(this).data("id"); // ID del documento en Firestore
-  const usuario = $(this).data("usuario"); // Usuario asociado
-
+  //const usuario = $(this).data("usuario"); // Usuario asociado
+  const usuario = $("#selectUsuario option:selected").data("usuario");
   if (!idAsociacion || !usuario) {
     Swal.fire({
       icon: "error",
