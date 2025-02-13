@@ -81,14 +81,6 @@ session_destroy(); */
 							<i class='bx bxs-file-plus'></i>
 							<span class="text">Crear Pedido</span>
 						</a>
-						<a href="modificarPedido.php" class="btn-modificar">
-							<i class='bx bxs-edit'></i>
-							<span class="text">Modificar Pedido</span>
-						</a>
-						<a href="eliminarPedido.php" class="btn-eliminar">
-							<i class='bx bxs-file-plus'></i>
-							<span class="text">Cancelar Pedido</span>
-						</a>
 					</div>
 
 					<!-- TABLA PEDIDOS  -->
@@ -123,7 +115,7 @@ session_destroy(); */
 										<th>Importe total</th>
 										<th>Nombre del vendedor</th>
 										<th>Editar</th>
-										<th>Eliminar</th>
+										<th>Cancelar</th>
 									</tr>
 								</thead>
 								<tbody id="datosPedidos">

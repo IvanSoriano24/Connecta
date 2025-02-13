@@ -871,6 +871,7 @@ function obtenerVendedor($conexionData, $noEmpresa)
 
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'data' => $vendedores]);
+        exit();
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontraron vendedores activos.']);
     }
