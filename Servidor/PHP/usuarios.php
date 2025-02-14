@@ -62,6 +62,12 @@ function guardarUsuario($datosUsuario)
         $url .= "?key=$firebaseApiKey";
     }
 
+    // Determinar el estado según el tipo de usuario
+    $status = ($datosUsuario['rolUsuario'] === "CLIENTE") ? "Activo" : "Bloqueado";
+
+    // Determinar qué clave guardar según el tipo de usuario
+    $clave = ($datosUsuario['rolUsuario'] === "CLIENTE") ? $datosUsuario['claveCliente'] : $datosUsuario['claveVendedor'];
+
     // Formatear los datos para Firebase (estructura de "fields")
     $fields = [
         'usuario' => ['stringValue' => $datosUsuario['usuario']],
@@ -71,9 +77,9 @@ function guardarUsuario($datosUsuario)
         'password' => ['stringValue' => $datosUsuario['contrasenaUsuario']],
         'telefono' => ['stringValue' => $datosUsuario['telefonoUsuario']],
         'tipoUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
-        'claveVendedor' => ['stringValue' => $datosUsuario['claveVendedor']],
         'descripcionUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
-        'status' => ['stringValue' => 'Bloqueado'], // Nuevo campo con valor predeterminado
+        'status' => ['stringValue' => $status], // Se asigna según la condición
+        'claveUsuario' => ['stringValue' => $clave], // Guardar la clave correcta
     ];
 
     // Preparar la solicitud
@@ -942,7 +948,7 @@ function obtenerClientes($conexionData, $noEmpresa)
         EMAILPRED AS correo,    -- Asegúrate de que existe este campo en la BD
         TELEFONO AS telefono -- Asegúrate de que existe este campo en la BD
     FROM [SAE90Empre02].[dbo].[CLIE02]
-    WHERE STATUS = 'A'
+    WHERE STATUS = 'A' AND CLASIFIC = 'A' -- Cambiar la clasificacion a E
     ";
 
     $stmt = sqlsrv_query($conn, $sql);
@@ -964,7 +970,7 @@ function obtenerClientes($conexionData, $noEmpresa)
                 'nombre' => $row['nombre'],
                 'correo' => $row['correo'] ?? '',  // Evita error si el campo es NULL
                 'telefono' => $row['telefono'] ?? '' // Evita error si el campo es NULL
-            ];            
+            ];
         }
     }
 
@@ -977,12 +983,46 @@ function obtenerClientes($conexionData, $noEmpresa)
             return strcmp($a['nombre'] ?? '', $b['nombre'] ?? '');
         });
 
-        
+
         echo json_encode(['success' => true, 'data' => $clientes]);
         exit();
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontraron clientes activos.']);
     }
+}
+function verificarClienteFirebase($claveCliente) {
+    global $firebaseProjectId, $firebaseApiKey;
+
+    // URL de Firebase para obtener la colección de USUARIOS
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+
+    // Realizamos la solicitud a Firebase
+    $response = @file_get_contents($url);
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con Firebase.']);
+        return;
+    }
+
+    $data = json_decode($response, true);
+    if (!isset($data['documents'])) {
+        echo json_encode(['success' => true, 'exists' => false]); // No hay usuarios registrados aún
+        return;
+    }
+
+    // Recorrer la colección para verificar si existe el cliente con la misma clave
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        if (
+            isset($fields['tipoUsuario']['stringValue']) &&
+            isset($fields['claveUsuario']['stringValue']) &&
+            $fields['tipoUsuario']['stringValue'] === "CLIENTE" &&
+            $fields['claveUsuario']['stringValue'] === $claveCliente
+        ) {
+            echo json_encode(['success' => true, 'exists' => true]); // El cliente ya existe
+            return;
+        }
+    }
+    echo json_encode(['success' => true, 'exists' => false]); // Cliente no existe
 }
 
 
@@ -1009,6 +1049,7 @@ switch ($funcion) {
             'telefonoUsuario' => $_POST['telefonoUsuario'],
             'rolUsuario' => $_POST['rolUsuario'],
             'claveVendedor' => $_POST['claveVendedor'],
+            'claveCliente' => $_POST['claveCliente'],
         ];
         // Guardar los datos en Firebase o la base de datos
         guardarUsuario($datosUsuario);
@@ -1104,6 +1145,10 @@ switch ($funcion) {
         }
         $conexionData = $conexionResult['data'];
         obtenerClientes($conexionData, $noEmpresa);
+        break;
+    case 16:
+        $claveCliente = $_POST['claveCliente'];
+        verificarClienteFirebase($claveCliente);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

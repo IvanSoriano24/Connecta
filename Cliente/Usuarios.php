@@ -284,6 +284,10 @@ if (isset($_SESSION['usuario'])) {
                                         </select>
                                     </div>
                                     <div class="mb-2">
+                                        <label for="claveUsuario" class="form-label">Clave del Usuario</label>
+                                        <input type="text" id="claveUsuarioCliente" class="form-control" readonly1>
+                                    </div>
+                                    <div class="mb-2">
                                         <label for="nombreUsuario" class="form-label">Nombre</label>
                                         <input type="text" id="nombreUsuarioCliente" class="form-control">
                                     </div>
@@ -314,7 +318,7 @@ if (isset($_SESSION['usuario'])) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" id="cerrarModalFooterCliente">Cerrar</button>
-                        <button class="btn btn-primary custom-blue" id="guardarDatosClienteBtn">Guardar Cambios</button>
+                        <button type="button" class="btn btn-primary custom-blue" id="guardarDatosClienteBtn">Guardar Cambios</button>
                     </div>
                 </form>
             </div>

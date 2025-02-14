@@ -69,7 +69,8 @@ function obtenerPedidoEspecifico($clave, $conexionData)
     $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 }
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarPedidos($conexionData, $filtroFecha){
+function mostrarPedidos($conexionData, $filtroFecha)
+{
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     //$filtroFecha = "Mes";
     try {
@@ -908,7 +909,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     ];
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, $params);
-    
+
     if ($stmt === false) {
         die(json_encode([
             'success' => false,
@@ -1433,7 +1434,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpresa, $partidasData)
 {
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
-    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
+    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
 
     // ✅ Verifica que los valores no estén vacíos
     if (empty($noPedido) || empty($noEmpresa)) {
@@ -1442,8 +1443,10 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpre
     }
 
     // ✅ Generar URLs dinámicas correctamente
-    $urlConfirmar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=confirmar&noEmpresa=" . urlencode($noEmpresa);
-    $urlRechazar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=rechazar&noEmpresa=" . urlencode($noEmpresa);
+    // ✅ Generar solo el ID del pedido en la URL del botón
+    $urlConfirmar = urlencode($noPedido); // Solo pasamos el número de pedido
+    $urlRechazar = urlencode($noPedido); // Solo pasamos el número de pedido
+
 
     // ✅ Construir la lista de productos
     $productosStr = "";
@@ -1462,26 +1465,26 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpre
 
     // ✅ Datos para WhatsApp API con botones de Confirmar y Rechazar
     $data = [
-        "messaging_product" => "whatsapp",
+        "messaging_product" => "whatsapp", // 📌 Campo obligatorio
         "recipient_type" => "individual",
         "to" => $numero,
         "type" => "template",
         "template" => [
-            "name" => "confirmar_pedido", // 📌 Nombre EXACTO en Meta Business Manager
-            "language" => ["code" => "es_MX"], // 📌 Cambiado a español - México
+            "name" => "confirmar_pedido_new", // 📌 Nombre EXACTO en Meta Business Manager
+            "language" => ["code" => "es_ES"], // 📌 Corregido a español España
             "components" => [
                 [
                     "type" => "header",
                     "parameters" => [
-                        ["type" => "text", "text" => "Estimado/a $clienteNombre"] // 📌 Encabezado dinámico
+                        ["type" => "text", "text" => $clienteNombre] // 📌 Encabezado dinámico
                     ]
                 ],
                 [
                     "type" => "body",
                     "parameters" => [
-                        ["type" => "text", "text" => "Gracias por su pedido $noPedido."], // 📌 Confirmación del pedido
-                        ["type" => "text", "text" => "Productos: $productosStr"], // 📌 Lista de productos
-                        ["type" => "text", "text" => "Total: $" . number_format($total, 2)] // 📌 Precio total
+                        ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
+                        ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
+                        ["type" => "text", "text" => "$" . number_format($total, 2)] // 📌 Precio total
                     ]
                 ],
                 // ✅ Botón Confirmar
@@ -1510,21 +1513,29 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpre
     $data_string = json_encode($data, JSON_PRETTY_PRINT);
     error_log("WhatsApp JSON: " . $data_string);
 
-    // ✅ Enviar solicitud a WhatsApp API
-    $curl = curl_init($url);
-    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+    // ✅ Revisar si el JSON contiene `messaging_product`
+    if (!isset($data['messaging_product'])) {
+        error_log("ERROR: 'messaging_product' no está en la solicitud.");
+        return false;
+    }
+
+    // ✅ Enviar solicitud a WhatsApp API con headers correctos
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_POST, true);
     curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($curl, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $token,
-        'Content-Type' => 'application/json',
-        'Content-Length' => strlen($data_string)
+        "Authorization: Bearer " . $token,
+        "Content-Type: application/json"
     ]);
 
     $result = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     curl_close($curl);
 
     error_log("WhatsApp Response: " . $result);
+    error_log("HTTP Status Code: " . $http_code);
 
     return $result;
 }
@@ -2033,52 +2044,6 @@ function eliminarPedido($conexionData, $pedidoID)
 }
 
 //--------------Funcion Mostrar Articulos----------------------------------------------------------------
-
-// function extraerProductos($conexionData)
-// {
-//     $serverName = $conexionData['host'];
-//     $connectionInfo = [
-//         "Database" => $conexionData['nombreBase'],
-//         "UID" => $conexionData['usuario'],
-//         "PWD" => $conexionData['password'],
-//         "CharacterSet" => "UTF-8"
-//     ];
-
-//     $conn = sqlsrv_connect($serverName, $connectionInfo);
-//     if ($conn === false) {
-//         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
-//         exit;
-//     }
-
-//     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-//     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-
-//     $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [IMAGEN_URL]
-//         FROM $nombreTabla";
-
-//     $stmt = sqlsrv_query($conn, $sql);
-
-//     if ($stmt === false) {
-//         echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
-//         exit;
-//     }
-
-//     $productos = [];
-//     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-//         $productos[] = $row;
-//     }
-
-//     if (count($productos) > 0) {
-//         header('Content-Type: application/json');
-//         echo json_encode(['success' => true, 'productos' => $productos]);
-//     } else {
-//         echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
-//     }
-
-//     sqlsrv_free_stmt($stmt);
-//     sqlsrv_close($conn);
-// }
-
 function listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket)
 {
     // Asegurar que el prefijo termine con '/'
@@ -2561,44 +2526,44 @@ switch ($funcion) {
             //$resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             //if ($resultadoValidacion['success']) {
-                // Calcular el total del pedido
-                //$totalPedido = calcularTotalPedido($partidasData);
-                //$clienteId = $formularioData['cliente'];
-                //$claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
-                //$clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
+            // Calcular el total del pedido
+            //$totalPedido = calcularTotalPedido($partidasData);
+            //$clienteId = $formularioData['cliente'];
+            //$claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
+            //$clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
 
-                // Validar crédito del cliente
-                //$validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
+            // Validar crédito del cliente
+            //$validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
-                //if ($validacionCredito['success']) {
-                   // guardarPedido($conexionData, $formularioData, $partidasData);
-                    //guardarPartidas($conexionData, $formularioData, $partidasData);
-                    //actualizarFolio($conexionData);
-                    //actualizarInventario($conexionData, $partidasData);
-                    validarCorreoCliente($formularioData, $partidasData, $conexionData);
-                    // Respuesta de éxito
-                    /*echo json_encode([
+            //if ($validacionCredito['success']) {
+            // guardarPedido($conexionData, $formularioData, $partidasData);
+            //guardarPartidas($conexionData, $formularioData, $partidasData);
+            //actualizarFolio($conexionData);
+            //actualizarInventario($conexionData, $partidasData);
+            validarCorreoCliente($formularioData, $partidasData, $conexionData);
+            // Respuesta de éxito
+            /*echo json_encode([
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
                     ]);*/
-                //} else {
-                    // Error de crédito
-                    //echo json_encode([
-                    //    'success' => false,
-                    //    'credit' => true,
-                    //    'message' => 'Límite de crédito excedido.',
-                    //    'saldoActual' => $validacionCredito['saldoActual'],
-                    //    'limiteCredito' => $validacionCredito['limiteCredito'],
-                    //]);
-                //}
             //} else {
-                // Error de existencias
-                //echo json_encode([
-                //    'success' => false,
-                //    'exist' => true,
-                //    'message' => $resultadoValidacion['message'],
-                //    'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
-                //]);
+            // Error de crédito
+            //echo json_encode([
+            //    'success' => false,
+            //    'credit' => true,
+            //    'message' => 'Límite de crédito excedido.',
+            //    'saldoActual' => $validacionCredito['saldoActual'],
+            //    'limiteCredito' => $validacionCredito['limiteCredito'],
+            //]);
+            //}
+            //} else {
+            // Error de existencias
+            //echo json_encode([
+            //    'success' => false,
+            //    'exist' => true,
+            //    'message' => $resultadoValidacion['message'],
+            //    'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
+            //]);
             //}
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido

@@ -869,15 +869,15 @@ function obtenerClientes() {
           const selectCliente = $("#selectCliente");
           selectCliente.empty();
           selectCliente.append(
-            '<option selected disabled>Selecciona un Cliente</option>'
+            "<option selected disabled>Selecciona un Cliente</option>"
           );
 
           res.data.forEach((cliente) => {
             selectCliente.append(
               `<option value="${cliente.clave}" 
                 data-nombre="${cliente.nombre}" 
-                data-correo="${cliente.correo || ''}" 
-                data-telefono="${cliente.telefono || ''}">
+                data-correo="${cliente.correo || ""}" 
+                data-telefono="${cliente.telefono || ""}">
                 ${cliente.nombre} || ${cliente.clave}
               </option>`
             );
@@ -903,13 +903,73 @@ $("#selectCliente").on("change", function () {
   const clienteSeleccionado = $(this).find(":selected");
 
   if (clienteSeleccionado.val()) {
-    console.log("Cliente seleccionado:", clienteSeleccionado.data());
+    const claveCliente = clienteSeleccionado.val();
+    
+    validarCliente(claveCliente, function (existe) {
+      if (!existe) {
+        // Si no existe, llenamos los campos
+        $("#claveUsuarioCliente").val(clienteSeleccionado.val());
+        $("#nombreUsuarioCliente").val(clienteSeleccionado.data("nombre"));
+        $("#correoUsuarioCliente").val(clienteSeleccionado.data("correo"));
+        $("#telefonoUsuarioCliente").val(clienteSeleccionado.data("telefono"));
+      } else {
+        // Si ya existe, mostramos un error
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Cliente ya existente en Firebase.",
+        });
 
-    $("#nombreUsuarioCliente").val(clienteSeleccionado.data("nombre"));
-    $("#correoUsuarioCliente").val(clienteSeleccionado.data("correo"));
-    $("#telefonoUsuarioCliente").val(clienteSeleccionado.data("telefono"));
+        // Limpiamos los campos
+        $("#selectCliente").val(""); 
+        $("#claveUsuarioCliente").val("");
+        $("#nombreUsuarioCliente").val("");
+        $("#correoUsuarioCliente").val("");
+        $("#telefonoUsuarioCliente").val("");
+      }
+    });
   }
 });
+function validarCliente(claveCliente, callback) {
+  $.ajax({
+    url: "../Servidor/PHP/usuarios.php",
+    method: "POST",
+    data: { numFuncion: "16", claveCliente: claveCliente }, // Llamamos la función PHP
+    success: function (response) {
+      try {
+        const res = JSON.parse(response);
+        console.log("Validación de cliente:", res); // Depuración
+
+        if (res.success) {
+          callback(res.exists); // Devuelve true si el cliente ya existe, false si no existe
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: res.message || "Error al validar el cliente.",
+          });
+          callback(false);
+        }
+      } catch (error) {
+        console.error("Error al procesar la validación del cliente:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Error en la validación del cliente.",
+        });
+        callback(false);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo verificar el cliente en Firebase.",
+      });
+      callback(false);
+    },
+  });
+}
 
 // Evento para abrir el modal y obtener los clientes
 $("#btnAgregarCliente").on("click", function () {
@@ -917,8 +977,6 @@ $("#btnAgregarCliente").on("click", function () {
   $("#usuarioModalCliente").modal("show"); // Mostrar modal
   obtenerClientes(); // Llamar a la función para obtener clientes
 });
-
-
 function cerrarModal() {
   limpiarFormulario();
   $("#usuarioModal").modal("hide"); // Cierra el modal usando Bootstrap
@@ -1087,9 +1145,92 @@ $(document).ready(function () {
       },
     });
   });
+  $("#guardarDatosClienteBtn").on("click", function (e) {
+    e.preventDefault(); // Evitar que el formulario recargue la página
+    // Obtener los valores del formulario
+    const idUsuario = $("#idUsuarioCliente").val();
+    const usuario = $("#usuarioCliente").val();
+    const nombreUsuario = $("#nombreUsuarioCliente").val();
+    const correoUsuario = $("#correoUsuarioCliente").val();
+    const contrasenaUsuario = $("#contrasenaUsuarioCliente").val();
+    const telefonoUsuario = $("#telefonoUsuarioCliente").val();
+    const claveCliente = $("#claveUsuarioCliente").val();
+
+    // Validar que todos los campos requeridos estén completos
+    if (
+      !usuario ||
+      !nombreUsuario ||
+      !correoUsuario ||
+      !contrasenaUsuario ||
+      !telefonoUsuario
+    ) {
+      alert("Por favor, complete todos los campos.");
+      return;
+    }
+    // Enviar los datos al servidor mediante AJAX
+    $.ajax({
+      url: "../Servidor/PHP/usuarios.php",
+      type: "POST",
+      data: {
+        numFuncion: 1, // Identificador para la función en el servidor
+        idUsuario: idUsuario,
+        usuario: usuario,
+        nombreUsuario: nombreUsuario,
+        apellidosUsuario: "",
+        correoUsuario: correoUsuario,
+        contrasenaUsuario: contrasenaUsuario,
+        telefonoUsuario: telefonoUsuario,
+        rolUsuario: "CLIENTE",
+        claveVendedor: "",
+        claveCliente: claveCliente,
+      },
+      success: function (response) {
+        const res = JSON.parse(response);
+        /*if (res.success) {
+          //alert('Usuario guardado exitosamente.');
+          Swal.fire({
+            text: "Usuario guardado exitosamente.",
+            icon: "success",
+          });
+          // Cerrar el modal y limpiar el formulario
+          $("#usuarioModalCliente").modal("hide");
+          $("#agregarUsuarioForm")[0].reset();
+
+          // Recargar la tabla de usuarios (llama a tu función para mostrar usuarios)
+          location.reload();
+        } */
+          if (res.success) {
+            Swal.fire({
+              text: "Usuario guardado exitosamente.",
+              icon: "success",
+              timer: 2000, // Cierra automáticamente después de 2 segundos
+              showConfirmButton: false
+            }).then(() => {
+              // Cerrar el modal
+              $("#usuarioModalCliente").modal("hide");
+          
+              // Limpiar el formulario
+              $("#agregarUsuarioClienteForm")[0].reset();
+          
+              // Refrescar la lista de usuarios sin recargar la página
+              location.reload(); // Asegúrate de que esta función está definida y actualiza la lista de usuarios
+            });
+          }else {
+          //alert(res.message || 'Error al guardar el usuario.');
+          Swal.fire({
+            title: "Eror",
+            text: res.message,
+            icon: "error",
+          });
+        }
+      },
+      error: function () {
+        alert("Error al realizar la solicitud.");
+      },
+    });
+  });
   /*********************************************************************************/
   $("#selectEmpresa").prop("disabled", true);
-
   $("#rolUsuario").on("change", function () {
     const rolSeleccionado = $(this).val(); // Obtener el rol seleccionado
 

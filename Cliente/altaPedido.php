@@ -698,7 +698,7 @@ button {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/ventas.js"></script>
     <script src="JS/altaPedido.js"></script>
-    <script src="JS/clientes.js"></script>
+    <!--<script src="JS/clientes.js"></script>-->
 
     <script>
     document.addEventListener("DOMContentLoaded", function() {
