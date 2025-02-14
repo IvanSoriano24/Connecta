@@ -48,30 +48,30 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <style>
-#tablaComandas {
-    width: 100%;
-    table-layout: auto;
-    /* Permite que las columnas se ajusten al contenido */
-}
+    #tablaComandas {
+        width: 100%;
+        table-layout: auto;
+        /* Permite que las columnas se ajusten al contenido */
+    }
 
-#tablaComandas th,
-#tablaComandas td {
-    white-space: nowrap;
-    /* Evita que el texto se corte o salte de línea */
-}
+    #tablaComandas th,
+    #tablaComandas td {
+        white-space: nowrap;
+        /* Evita que el texto se corte o salte de línea */
+    }
 
 
 
-.card-body {
-    
-    width: 1000px;
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #fff;
-}
+    .card-body {
+
+        width: 1000px;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff;
+    }
 </style>
 
 <body>
@@ -83,15 +83,13 @@ if (isset($_SESSION['usuario'])) {
             <?php include 'navbar.php'; ?>
             <!-- MAIN -->
             <main class="text-center">
-
+                <h1 class="text-center">Mensajes</h1>
+                <!-- Mostrar mensajes genéricos -->
+                <p class="text-center">Aquí puedes ver tus notificaciones generales.</p>
                 <div class="container mt-10">
-                    <h1 class="text-center">Mensajes</h1>
-                    <!-- Mostrar mensajes genéricos -->
-                    <p class="text-center">Aquí puedes ver tus notificaciones generales.</p>
                     <hr>
-                    <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR'): ?>
-
-
+                </div>
+                <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR'): ?>
                     <div class="card-body">
                         <h2 class="text-center">Comandas</h2>
                         <div class="mb-3">
@@ -102,7 +100,6 @@ if (isset($_SESSION['usuario'])) {
                                 <option value="TERMINADA">Terminadas</option>
                             </select>
                         </div>
-
                         <!-- Tabla de comandas -->
                         <div class="table-data">
                             <div class="order">
@@ -127,8 +124,7 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
 
-                    <?php endif; ?>
-                </div>
+                <?php endif; ?>
 
                 <!-- MODAL -->
                 <!-- Modal para Ver Detalles -->
@@ -179,7 +175,7 @@ if (isset($_SESSION['usuario'])) {
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
                                             <label for="numGuia" class="form-label">Numero Guia</label>
-                                            <input type="text" class="form-control form-control-sm"id="numGuia">
+                                            <input type="text" class="form-control form-control-sm" id="numGuia">
                                         </div>
                                     </div>
                                     <br>

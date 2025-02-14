@@ -342,8 +342,7 @@ function obtenerEmpresasNoAsociadas()
     exit();
 }
 
-function obtenerUsuarios()
-{
+function obtenerUsuarios(){
     global $firebaseProjectId, $firebaseApiKey;
 
     // URL para obtener usuarios desde Firebase
@@ -368,6 +367,12 @@ function obtenerUsuarios()
     $usuarios = [];
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];
+
+        // Omitimos los usuarios con tipoUsuario 'CLIENTE'
+        if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === 'CLIENTE') {
+            continue;
+        }
+
         $usuarios[] = [
             'id' => str_replace("projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/", '', $document['name']),
             'nombre' => isset($fields['nombre']['stringValue'], $fields['apellido']['stringValue'])
@@ -379,10 +384,12 @@ function obtenerUsuarios()
             'usuario' => $fields['usuario']['stringValue'] ?? '',
             'claveVendedor' => $fields['claveVendedor']['stringValue'] ?? '',
         ];
-        usort($usuarios, function ($a, $b) {
-            return strcmp($a['nombre'], $b['nombre']);
-        });
     }
+
+    // Ordenamos alfabéticamente por nombre
+    usort($usuarios, function ($a, $b) {
+        return strcmp($a['nombre'], $b['nombre']);
+    });
 
     // Retornamos los usuarios como JSON
     header('Content-Type: application/json');
@@ -948,7 +955,7 @@ function obtenerClientes($conexionData, $noEmpresa)
         EMAILPRED AS correo,    -- Asegúrate de que existe este campo en la BD
         TELEFONO AS telefono -- Asegúrate de que existe este campo en la BD
     FROM [SAE90Empre02].[dbo].[CLIE02]
-    WHERE STATUS = 'A' AND CLASIFIC = 'A' -- Cambiar la clasificacion a E
+    WHERE STATUS = 'A' AND CLASIFIC LIKE '%E%' -- Cambiar la clasificacion a E
     ";
 
     $stmt = sqlsrv_query($conn, $sql);

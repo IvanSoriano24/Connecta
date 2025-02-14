@@ -107,7 +107,7 @@ function cargarPedidos(filtroFecha) {
                             <td>${pedido.Nombre || 'Sin nombre'}</td>
                             <td>${pedido.Estatus || '0'}</td>
                             <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td>
-                            <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td>
+                            <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : 'Sin subtotal'}</td>
                             <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
                             <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
                             <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
@@ -184,7 +184,7 @@ function datosPedidos() {
                         const claveB = parseInt(b.Clave, 10) || 0;
                         return claveB - claveA; // Orden descendente
                     });
-
+/* <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td> */
                     pedidos.forEach(pedido => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -194,7 +194,7 @@ function datosPedidos() {
                         <td>${pedido.Nombre || 'Sin nombre'}</td>
                         <td>${pedido.Estatus || '0'}</td>
                         <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td> <!-- Maneja el objeto anidado -->
-                        <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td>
+                        <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : 'Sin subtotal'}</td>
                         <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
                         <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
                         <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
