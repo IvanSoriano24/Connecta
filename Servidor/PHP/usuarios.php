@@ -61,7 +61,7 @@ function guardarUsuario($datosUsuario)
         // Si no hay ID, estamos creando un nuevo documento
         $url .= "?key=$firebaseApiKey";
     }
-    
+
     // Formatear los datos para Firebase (estructura de "fields")
     $fields = [
         'usuario' => ['stringValue' => $datosUsuario['usuario']],
@@ -383,7 +383,8 @@ function obtenerUsuarios()
     echo json_encode(['success' => true, 'data' => $usuarios]);
     exit();
 }
-function guardarAsociacion(){
+function guardarAsociacion()
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $empresa = $_POST['empresa'] ?? null;
@@ -391,7 +392,7 @@ function guardarAsociacion(){
     $noEmpresa = $_POST['noEmpresa'] ?? null;
     $usuario = $_POST['usuario'] ?? null;
     $claveVendedor = $_POST['claveVendedor'] ?? null;
-    
+
 
     if (!$empresa || !$id || !$noEmpresa || !$usuario) {
         echo json_encode(['success' => false, 'message' => 'Faltan datos para guardar la asociación.']);
@@ -876,6 +877,115 @@ function obtenerVendedor($conexionData, $noEmpresa)
         echo json_encode(['success' => false, 'message' => 'No se encontraron vendedores activos.']);
     }
 }
+function obtenerDatosVendedor($conexionData, $noEmpresa, $claveVendedor)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    // **Formatear la clave antes de la consulta**
+    $claveVendedor = str_pad($claveVendedor, 5, " ", STR_PAD_LEFT);
+
+    $sql = "SELECT CVE_VEND AS clave, NOMBRE AS nombre FROM $nombreTabla WHERE STATUS = 'A' AND CVE_VEND = ?";
+
+    $params = [$claveVendedor];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    $vendedor = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    if ($vendedor) {
+        echo json_encode(['success' => true, 'data' => $vendedor]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontró el vendedor.']);
+    }
+}
+function obtenerClientes($conexionData, $noEmpresa)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    //$nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND02]";
+    $sql = "
+    SELECT 
+        CLAVE AS clave, 
+        NOMBRE AS nombre,
+        EMAILPRED AS correo,    -- Asegúrate de que existe este campo en la BD
+        TELEFONO AS telefono -- Asegúrate de que existe este campo en la BD
+    FROM [SAE90Empre02].[dbo].[CLIE02]
+    WHERE STATUS = 'A'
+    ";
+
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    $clientes = [];
+    $clientesUnicos = []; // Array asociativo para evitar duplicados
+
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $clave = $row['clave'];
+        if (!isset($clientesUnicos[$clave])) {
+            $clientesUnicos[$clave] = $row['nombre'];
+            $clientes[] = [
+                'clave' => $clave,
+                'nombre' => $row['nombre'],
+                'correo' => $row['correo'] ?? '',  // Evita error si el campo es NULL
+                'telefono' => $row['telefono'] ?? '' // Evita error si el campo es NULL
+            ];            
+        }
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    header('Content-Type: application/json');
+    if (!empty($clientes)) {
+        // Ordenar los vendedores por nombre alfabéticamente
+        usort($clientes, function ($a, $b) {
+            return strcmp($a['nombre'] ?? '', $b['nombre'] ?? '');
+        });
+
+        
+        echo json_encode(['success' => true, 'data' => $clientes]);
+        exit();
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes activos.']);
+    }
+}
+
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     $funcion = $_POST['numFuncion'];
@@ -965,6 +1075,35 @@ switch ($funcion) {
         }
         $conexionData = $conexionResult['data'];
         obtenerVendedor($conexionData, $noEmpresa);
+        break;
+    case 14:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        $claveVendedor = $_GET['claveVendedor'];
+        obtenerDatosVendedor($conexionData, $noEmpresa, $claveVendedor);
+        break;
+    case 15:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = "02";
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        obtenerClientes($conexionData, $noEmpresa);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

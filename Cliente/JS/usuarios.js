@@ -397,7 +397,6 @@ function visualizarUsuario(idUsuario) {
         const data = JSON.parse(response);
 
         if (data.success) {
-          // Asignar valores a los campos del formulario
           $("#usuario").val(data.data.usuario);
           $("#nombreUsuario").val(data.data.nombre);
           $("#apellidosUsuario").val(data.data.apellido);
@@ -408,54 +407,85 @@ function visualizarUsuario(idUsuario) {
           $("#estatusUsuario").val(data.data.estatus);
           $("#idUsuario").val(idUsuario);
 
-          // Si el usuario es VENDEDOR, mostrar el campo y asignar clave
+          // Si es VENDEDOR, hacer consulta para obtener su nombre
           if (data.data.tipoUsuario === "VENDEDOR") {
             $("#divVendedor").show();
+            $("#selectVendedor").empty();
 
-            // Limpiar y asignar clave del vendedor
-            const selectVendedor = $("#selectVendedor");
-            selectVendedor.empty();
-            selectVendedor.append(`<option value="${data.data.claveVendedor}" selected>${data.data.claveVendedor}</option>`);
+            // Llamada AJAX para obtener la información del vendedor por clave
+            $.ajax({
+              url: "../Servidor/PHP/usuarios.php",
+              method: "GET",
+              data: {
+                numFuncion: "14",
+                claveVendedor: data.data.claveVendedor,
+              }, // Nueva función para buscar por clave
+              success: function (responseVendedor) {
+                try {
+                  const resVendedor = JSON.parse(responseVendedor);
+                  if (resVendedor.success && resVendedor.data) {
+                    $("#selectVendedor").append(
+                      `<option value="${data.data.claveVendedor}" selected>
+                          ${resVendedor.data.nombre} || ${data.data.claveVendedor}
+                      </option>`
+                    );
+                  }
+                } catch (error) {
+                  console.error(
+                    "Error al procesar la respuesta del vendedor:",
+                    error
+                  );
+                }
+              },
+            });
           } else {
             $("#divVendedor").hide();
           }
 
-          // Deshabilitar campos para solo visualización
-          $("#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor")
-            .prop("disabled", true);
-
-          // Ocultar botón de guardar
-          $("#guardarDatosBtn").hide();
-
-          // Mostrar modal
           $("#usuarioModal").modal("show");
+          $(
+            "#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor"
+          ).prop("disabled", true);
         } else {
-          Swal.fire({ icon: "error", title: "Error", text: data.message || "No se pudo cargar el usuario." });
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: data.message || "No se pudo cargar el usuario.",
+          });
         }
       } catch (e) {
         console.error("Error al parsear la respuesta:", e);
-        Swal.fire({ icon: "error", title: "Error", text: "Hubo un error al procesar la respuesta del servidor." });
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un error al procesar la respuesta del servidor.",
+        });
       }
     },
     error: function () {
-      Swal.fire({ icon: "error", title: "Error", text: "Hubo un problema al obtener los datos del usuario." });
-    }
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al obtener los datos del usuario.",
+      });
+    },
   });
 }
 function editarUsuario(idUsuario) {
   $.ajax({
     url: "../Servidor/PHP/usuarios.php",
     method: "GET",
-    data: { numFuncion: "5", id: idUsuario },
+    data: { numFuncion: "5", id: idUsuario }, // Obtener los datos del usuario
     success: function (response) {
       try {
         const data = JSON.parse(response);
         if (data.success) {
           // Habilitar todos los campos para edición
-          $("#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor")
-            .prop("disabled", false);
+          $(
+            "#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor"
+          ).prop("disabled", false);
 
-          // Asignar valores
+          // Asignar valores del usuario
           $("#usuario").val(data.data.usuario);
           $("#nombreUsuario").val(data.data.nombre);
           $("#apellidosUsuario").val(data.data.apellido);
@@ -466,58 +496,117 @@ function editarUsuario(idUsuario) {
           $("#estatusUsuario").val(data.data.estatus);
           $("#idUsuario").val(idUsuario);
 
-          // Si el usuario es VENDEDOR, obtener todas las claves de vendedores
+          // Si el usuario es VENDEDOR, cargar los vendedores y luego obtener su clave
           if (data.data.tipoUsuario === "VENDEDOR") {
             $("#divVendedor").show();
 
+            // Cargar la lista de vendedores
             $.ajax({
               url: "../Servidor/PHP/usuarios.php",
               method: "GET",
-              data: { numFuncion: "13" }, // Obtener todos los vendedores
+              data: { numFuncion: "13" }, // Obtener todos los vendedores disponibles
               success: function (responseVendedores) {
+                console.log(
+                  "Respuesta del servidor (vendedores):",
+                  responseVendedores
+                ); // DEBUG
+
                 try {
-                  const res = JSON.parse(responseVendedores);
+                  const res =
+                    typeof responseVendedores === "string"
+                      ? JSON.parse(responseVendedores)
+                      : responseVendedores;
+
                   if (res.success && Array.isArray(res.data)) {
                     const selectVendedor = $("#selectVendedor");
                     selectVendedor.empty();
-                    selectVendedor.append('<option selected disabled>Seleccione un vendedor</option>');
+                    selectVendedor.append(
+                      "<option selected disabled>Seleccione un vendedor</option>"
+                    );
 
                     res.data.forEach((vendedor) => {
                       selectVendedor.append(
-                        `<option value="${vendedor.clave}" ${vendedor.clave === data.data.claveVendedor ? "selected" : ""}>
-                            ${vendedor.nombre} || ${vendedor.clave}
-                        </option>`
+                        `<option value="${vendedor.clave}">${vendedor.nombre} || ${vendedor.clave}</option>`
                       );
                     });
 
-                    // Habilitar el select si hay vendedores disponibles
-                    selectVendedor.prop("disabled", res.data.length === 0);
+                    // ✅ Ahora obtenemos la clave del vendedor y la seleccionamos correctamente
+                    obtenerClaveVendedor(data.data.claveVendedor);
+                  } else {
+                    Swal.fire({
+                      icon: "warning",
+                      title: "Aviso",
+                      text: res.message || "No se encontraron vendedores.",
+                    });
+                    $("#selectVendedor").prop("disabled", true);
                   }
                 } catch (error) {
                   console.error("Error al procesar los vendedores:", error);
                 }
               },
               error: function () {
-                console.error("Error al obtener la lista de vendedores.");
-              }
+                Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: "Error al obtener la lista de vendedores.",
+                });
+              },
             });
           } else {
             $("#divVendedor").hide();
           }
 
-          // Mostrar modal
+          // Mostrar modal de edición
           $("#usuarioModal").modal("show");
         } else {
-          Swal.fire({ icon: "error", title: "Error", text: data.message || "No se pudo cargar el usuario." });
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: data.message || "No se pudo cargar el usuario.",
+          });
         }
       } catch (e) {
         console.error("Error al parsear la respuesta:", e);
-        Swal.fire({ icon: "error", title: "Error", text: "Hubo un error al procesar la respuesta del servidor." });
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un error al procesar la respuesta del servidor.",
+        });
       }
     },
     error: function () {
-      Swal.fire({ icon: "error", title: "Error", text: "Hubo un problema al obtener los datos del usuario." });
-    }
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hubo un problema al obtener los datos del usuario.",
+      });
+    },
+  });
+}
+
+/**
+ * Obtiene la clave del vendedor del usuario y la asigna al select usando la función 14 en PHP
+ */
+function obtenerClaveVendedor(idUsuario) {
+  $.ajax({
+    url: "../Servidor/PHP/usuarios.php",
+    method: "GET",
+    data: { numFuncion: "14", claveVendedor: idUsuario }, // Nueva función para buscar por clave
+    success: function (responseVendedor) {
+      try {
+        const data = JSON.parse(responseVendedor);
+        if (data.success) {
+          console.log(data.data.clave);
+          const claveVendedor = data.data.clave;
+          console.log("Clave del vendedor asignada:", claveVendedor);
+
+          // ✅ Asignar la clave del vendedor al select
+          $("#selectVendedor").val(claveVendedor);
+        }
+      } catch (error) {
+        console.error("Error al procesar la respuesta del vendedor:", error);
+      }
+    },
   });
 }
 /*function cargarEmpresas() {
@@ -595,7 +684,9 @@ $("#btnGuardarAsociacion").on("click", function () {
   const razonSocial = $("#selectEmpresa option:selected").text(); // Razón social de la empresa
   const noEmpresa = $("#selectEmpresa option:selected").data("noempresa"); // Número de empresa
   const usuario = $("#selectUsuario option:selected").data("usuario"); // Valor del campo 'usuario'
-  const claveVendedor = $("#selectUsuario option:selected").attr("data-claveVendedor");
+  const claveVendedor = $("#selectUsuario option:selected").attr(
+    "data-claveVendedor"
+  );
 
   // Validar que todos los campos estén seleccionados
   if (!idEmpresa || !usuario) {
@@ -746,8 +837,9 @@ function limpiarFormulario() {
   $("#telefonoUsuario").val("");
   $("#rolUsuario").val(""); // Si es un select, también se debe resetear
   $("#selectVendedor").val(""); // Limpiar el textarea
-  $("#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor")
-    .prop("disabled", false);
+  $(
+    "#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor"
+  ).prop("disabled", false);
 }
 // Función para abrir el modal
 document.getElementById("btnAgregar").addEventListener("click", () => {
@@ -759,6 +851,73 @@ document.getElementById("btnAgregar").addEventListener("click", () => {
   // Añadir el atributo inert al fondo para evitar que los elementos detrás sean interactivos
   $(".modal-backdrop").attr("inert", true);
 });
+// Función para obtener los clientes y llenar el select
+function obtenerClientes() {
+  $.ajax({
+    url: "../Servidor/PHP/usuarios.php",
+    type: "GET",
+    data: { numFuncion: "15" }, // Llamar a la función 15 en PHP
+    success: function (response) {
+      try {
+        const res =
+          typeof response === "string" ? JSON.parse(response) : response;
+
+        if (res.success) {
+          console.log("Clientes obtenidos: ", res);
+
+          // Llenar el select de clientes
+          const selectCliente = $("#selectCliente");
+          selectCliente.empty();
+          selectCliente.append(
+            '<option selected disabled>Selecciona un Cliente</option>'
+          );
+
+          res.data.forEach((cliente) => {
+            selectCliente.append(
+              `<option value="${cliente.clave}" 
+                data-nombre="${cliente.nombre}" 
+                data-correo="${cliente.correo || ''}" 
+                data-telefono="${cliente.telefono || ''}">
+                ${cliente.nombre} || ${cliente.clave}
+              </option>`
+            );
+          });
+        } else {
+          Swal.fire({ title: "Error", text: res.message, icon: "error" });
+        }
+      } catch (error) {
+        console.error("Error al procesar la respuesta de clientes:", error);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de clientes.",
+      });
+    },
+  });
+}
+// Evento para llenar los datos del formulario cuando se selecciona un cliente
+$("#selectCliente").on("change", function () {
+  const clienteSeleccionado = $(this).find(":selected");
+
+  if (clienteSeleccionado.val()) {
+    console.log("Cliente seleccionado:", clienteSeleccionado.data());
+
+    $("#nombreUsuarioCliente").val(clienteSeleccionado.data("nombre"));
+    $("#correoUsuarioCliente").val(clienteSeleccionado.data("correo"));
+    $("#telefonoUsuarioCliente").val(clienteSeleccionado.data("telefono"));
+  }
+});
+
+// Evento para abrir el modal y obtener los clientes
+$("#btnAgregarCliente").on("click", function () {
+  limpiarFormulario(); // Limpia el formulario antes de abrir
+  $("#usuarioModalCliente").modal("show"); // Mostrar modal
+  obtenerClientes(); // Llamar a la función para obtener clientes
+});
+
 
 function cerrarModal() {
   limpiarFormulario();
@@ -768,7 +927,14 @@ function cerrarModal() {
   // Eliminar el atributo inert del fondo al cerrar
   $(".modal-backdrop").removeAttr("inert");
 }
-
+function cerrarModalCliente() {
+  limpiarFormulario();
+  $("#usuarioModalCliente").modal("hide"); // Cierra el modal usando Bootstrap
+  // Restaurar el aria-hidden al cerrar el modal
+  $("#usuarioModalCliente").attr("aria-hidden", "true");
+  // Eliminar el atributo inert del fondo al cerrar
+  $(".modal-backdrop").removeAttr("inert");
+}
 $(document).ready(function () {
   $("#btnAsociarEmpresa").on("click", function () {
     // Obtener usuarios y empresas
@@ -808,6 +974,8 @@ $(document).ready(function () {
 
   $("#cerrarModalHeader").on("click", cerrarModal);
   $("#cerrarModalFooter").on("click", cerrarModal);
+  $("#cerrarModalHeaderCliente").on("click", cerrarModalCliente);
+  $("#cerrarModalFooterCliente").on("click", cerrarModalCliente);
   /*$('#agregarEmpresaBtn').on('click', function () {
         const selectedOption = $('#selectEmpresa').find('option:selected'); // Obtener la opción seleccionada
         // Verificar que se haya seleccionado una empresa válida
@@ -926,69 +1094,72 @@ $(document).ready(function () {
     const rolSeleccionado = $(this).val(); // Obtener el rol seleccionado
 
     if (rolSeleccionado === "VENDEDOR") {
-        // Mostrar el select de vendedores
-        $("#divVendedor").show();
+      // Mostrar el select de vendedores
+      $("#divVendedor").show();
 
-        // Realizar la solicitud AJAX para obtener los vendedores
-        $.ajax({
-            url: "../Servidor/PHP/usuarios.php",
-            method: "GET",
-            data: { numFuncion: "13" }, // Llamar la función para obtener vendedores
-            success: function (response) {
-                try {
-                    const res = typeof response === "string" ? JSON.parse(response) : response;
+      // Realizar la solicitud AJAX para obtener los vendedores
+      $.ajax({
+        url: "../Servidor/PHP/usuarios.php",
+        method: "GET",
+        data: { numFuncion: "13" }, // Llamar la función para obtener vendedores
+        success: function (response) {
+          try {
+            const res =
+              typeof response === "string" ? JSON.parse(response) : response;
 
-                    if (res.success && Array.isArray(res.data)) {
-                        const selectVendedor = $("#selectVendedor");
-                        selectVendedor.empty();
-                        selectVendedor.append('<option selected disabled>Seleccione un vendedor</option>');
+            if (res.success && Array.isArray(res.data)) {
+              const selectVendedor = $("#selectVendedor");
+              selectVendedor.empty();
+              selectVendedor.append(
+                "<option selected disabled>Seleccione un vendedor</option>"
+              );
 
-                        res.data.forEach((vendedor) => {
-                            selectVendedor.append(
-                                `<option value="${vendedor.clave}" data-nombre="${vendedor.nombre}">
+              res.data.forEach((vendedor) => {
+                selectVendedor.append(
+                  `<option value="${vendedor.clave}" data-nombre="${vendedor.nombre}">
                                     ${vendedor.nombre} || ${vendedor.clave}
                                 </option>`
-                            );
-                        });
+                );
+              });
 
-                        // Habilitar el select si hay vendedores disponibles
-                        selectVendedor.prop("disabled", res.data.length === 0);
-                    } else {
-                        Swal.fire({
-                            icon: "warning",
-                            title: "Aviso",
-                            text: res.message || "No se encontraron vendedores.",
-                        });
-                        $("#selectVendedor").prop("disabled", true);
-                    }
-                } catch (error) {
-                    console.error("Error al procesar la respuesta:", error);
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Error al cargar vendedores.",
-                    });
-                }
-            },
-            error: function () {
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "Error al obtener la lista de vendedores.",
-                });
-            },
-        });
+              // Habilitar el select si hay vendedores disponibles
+              selectVendedor.prop("disabled", res.data.length === 0);
+            } else {
+              Swal.fire({
+                icon: "warning",
+                title: "Aviso",
+                text: res.message || "No se encontraron vendedores.",
+              });
+              $("#selectVendedor").prop("disabled", true);
+            }
+          } catch (error) {
+            console.error("Error al procesar la respuesta:", error);
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Error al cargar vendedores.",
+            });
+          }
+        },
+        error: function () {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Error al obtener la lista de vendedores.",
+          });
+        },
+      });
     } else {
-        // Ocultar el div del vendedor si no es "VENDEDOR"
-        $("#divVendedor").hide();
-        $("#selectVendedor").empty().prop("disabled", true);
+      // Ocultar el div del vendedor si no es "VENDEDOR"
+      $("#divVendedor").hide();
+      $("#selectVendedor").empty().prop("disabled", true);
     }
-});
-// Cuando se seleccione un vendedor, solo se mostrará la clave en el input
-$("#selectVendedor").on("change", function () {
+  });
+  // Cuando se seleccione un vendedor, solo se mostrará la clave en el input
+  $("#selectVendedor").on("change", function () {
     const claveSeleccionada = $(this).val();
     $("#selectVendedor").val(claveSeleccionada);
-});
+  });
 
   $("#selectUsuario").on("change", function () {
     const usuario = $(this).find(":selected").data("usuario"); // Obtener el valor de `data-usuario`

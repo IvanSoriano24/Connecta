@@ -122,6 +122,9 @@ if (isset($_SESSION['usuario'])) {
                             <i class='bx bxs-building-house'></i> Asociar Empresa
                         </button>
                     <?php } ?>
+                    <button class="btn btn-success" id="btnAgregarCliente">
+                        <i class='bx bxs-user-plus'></i> Agregar Cliente
+                    </button>
                     <!--<button class="btn btn-secondary" id="btnExportar" disabled>
                         <i class='bx bxs-export'></i> Exportar
                     </button>-->
@@ -250,6 +253,68 @@ if (isset($_SESSION['usuario'])) {
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" id="cerrarModalFooter">Cerrar</button>
                         <button class="btn btn-primary custom-blue" id="guardarDatosBtn">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cliente -->
+    <div id="usuarioModalCliente" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Usuario</h5>
+                    <button type="button" class="btn-close custom-close" data-dismiss="modal" aria-label="Close"
+                        id="cerrarModalHeaderCliente">
+                        <span aria-hidden="true"></span><!-- &times; -->
+                    </button>
+                </div>
+                <form id="agregarUsuarioClienteForm">
+                    <div class="modal-body">
+                        <!-- Formulario de usuario -->
+                        <div class="container mt-8">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 class="mb-2">Datos del Cliente</h5>
+                                    <div class="mb-2">
+                                        <label for="usuarioSae">Escoge el Cliente</label>
+                                        <select id="selectCliente" class="form-select">
+                                            <option selected disabled>Selecciona un Cliente</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="nombreUsuario" class="form-label">Nombre</label>
+                                        <input type="text" id="nombreUsuarioCliente" class="form-control">
+                                    </div>
+                                    <!--<div class="mb-2">
+                                        <label for="apellidosUsuario" class="form-label">Apellidos</label>
+                                        <input type="text" id="apellidosUsuarioCliente" class="form-control">
+                                    </div> -->
+                                    <div class="mb-2">
+                                        <label for="correoUsuario" class="form-label">Correo Electrónico</label>
+                                        <input type="text" id="correoUsuarioCliente" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="telefonoUsuario" class="form-label">Teléfono</label>
+                                        <input type="text" id="telefonoUsuarioCliente" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="text" id="idUsuarioCliente" hidden>
+                                        <label for="usuario" class="form-label">Usuario</label>
+                                        <input type="text" id="usuarioCliente" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="contrasenaUsuario" class="form-label">Contraseña</label>
+                                        <input type="password" id="contrasenaUsuarioCliente" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="cerrarModalFooterCliente">Cerrar</button>
+                        <button class="btn btn-primary custom-blue" id="guardarDatosClienteBtn">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
