@@ -342,7 +342,8 @@ function obtenerEmpresasNoAsociadas()
     exit();
 }
 
-function obtenerUsuarios(){
+function obtenerUsuarios()
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // URL para obtener usuarios desde Firebase
@@ -997,7 +998,43 @@ function obtenerClientes($conexionData, $noEmpresa)
         echo json_encode(['success' => false, 'message' => 'No se encontraron clientes activos.']);
     }
 }
-function verificarClienteFirebase($claveCliente) {
+function verificarVendedorFirebase($claveCliente)
+{
+    global $firebaseProjectId, $firebaseApiKey;
+
+    // URL de Firebase para obtener la colección de USUARIOS
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+
+    // Realizamos la solicitud a Firebase
+    $response = @file_get_contents($url);
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con Firebase.']);
+        return;
+    }
+
+    $data = json_decode($response, true);
+    if (!isset($data['documents'])) {
+        echo json_encode(['success' => true, 'exists' => false]); // No hay usuarios registrados aún
+        return;
+    }
+
+    // Recorrer la colección para verificar si existe el cliente con la misma clave
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        if (
+            isset($fields['tipoUsuario']['stringValue']) &&
+            isset($fields['claveUsuario']['stringValue']) &&
+            $fields['tipoUsuario']['stringValue'] === "VENDEDOR" &&
+            $fields['claveUsuario']['stringValue'] === $claveCliente
+        ) {
+            echo json_encode(['success' => true, 'exists' => true]); // El cliente ya existe
+            return;
+        }
+    }
+    echo json_encode(['success' => true, 'exists' => false]); // Cliente no existe
+}
+function verificarClienteFirebase($claveCliente)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // URL de Firebase para obtener la colección de USUARIOS
@@ -1055,7 +1092,7 @@ function obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente)
     $sql = "SELECT CLAVE AS clave, NOMBRE AS nombre, EMAILPRED AS correo, TELEFONO AS telefono 
             FROM $nombreTabla 
             WHERE STATUS = 'A' AND CLAVE = ?";
-    
+
     $params = [$claveCliente];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -1099,7 +1136,7 @@ switch ($funcion) {
             'telefonoUsuario' => $_POST['telefonoUsuario'],
             'rolUsuario' => $_POST['rolUsuario'],
             'claveVendedor' => $_POST['claveVendedor'],
-            'claveCliente' => $_POST['claveCliente'],
+            'claveCliente' => isset($_POST['claveCliente']) ? $_POST['claveCliente'] : null,
         ];
         // Guardar los datos en Firebase o la base de datos
         guardarUsuario($datosUsuario);
@@ -1214,6 +1251,10 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $claveCliente = $_GET['claveCliente'];
         obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente);
+        break;
+    case 18:
+        $claveVendedor = $_POST['claveVendedor'];
+        verificarVendedorFirebase($claveVendedor);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

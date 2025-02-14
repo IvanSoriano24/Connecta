@@ -289,7 +289,7 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                     <div class="mb-2">
                                         <label for="nombreUsuario" class="form-label">Nombre</label>
-                                        <input type="text" id="nombreUsuarioCliente" class="form-control">
+                                        <input type="text" id="nombreUsuarioCliente" class="form-control" readonly1>
                                     </div>
                                     <!--<div class="mb-2">
                                         <label for="apellidosUsuario" class="form-label">Apellidos</label>
@@ -297,11 +297,11 @@ if (isset($_SESSION['usuario'])) {
                                     </div> -->
                                     <div class="mb-2">
                                         <label for="correoUsuario" class="form-label">Correo Electrónico</label>
-                                        <input type="text" id="correoUsuarioCliente" class="form-control">
+                                        <input type="text" id="correoUsuarioCliente" class="form-control" readonly1>
                                     </div>
                                     <div class="mb-2">
                                         <label for="telefonoUsuario" class="form-label">Teléfono</label>
-                                        <input type="text" id="telefonoUsuarioCliente" class="form-control">
+                                        <input type="text" id="telefonoUsuarioCliente" class="form-control" readonly1>
                                     </div>
                                     <div class="mb-2">
                                         <input type="text" id="idUsuarioCliente" hidden>

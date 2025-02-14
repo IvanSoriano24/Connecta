@@ -1262,7 +1262,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         $numeroWhatsApp = '+527773750925';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $noEmpresa, $partidasData);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $noEmpresa, $partidasData, $enviarA, $vendedor, $fechaElaboracion);
         echo $resultadoWhatsApp;
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
@@ -1431,7 +1431,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 
     return $result;
 }*/
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpresa, $partidasData)
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpresa, $partidasData, $enviarA, $vendedor, $fechaElaboracion)
 {
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
     $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
@@ -1444,7 +1444,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpre
 
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido); // Solo pasamos el número de pedido
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) .  "&fechaElab=" . urlencode($fechaElaboracion); // Solo pasamos el número de pedido
     $urlRechazar = urlencode($noPedido); // Solo pasamos el número de pedido
 
 

@@ -1,100 +1,4 @@
-// function datosUsuarios(tipoUsuario, usuario) {
-//   $.ajax({
-//     url: "../Servidor/PHP/usuarios.php",
-//     type: "POST",
-//     data: { usuarioLogueado: tipoUsuario, usuario: usuario, numFuncion: "3" },
-//     success: function (response) {
-//       if (response.success) {
-//         mostrarUsuarios(response.data, tipoUsuario); // Llama a otra función para mostrar los usuarios en la página
-//       } else {
-//         console.log(response.message);
-//         alert("Error: " + response.message);
-//       }
-//     },
-//     error: function () {
-//       alert("Error en la solicitud AJAX.");
-//     },
-//   });
-// }
-//console.log(mostrarUsuarios);
-// function mostrarUsuarios(usuarios, tipoUsuario) {
-//   var tablaClientes = $("#tablaUsuarios"); // Selección del cuerpo de la tabla
-//   tablaClientes.empty(); // Limpieza de los datos previos en la tabla
-
-//   // Ordenar los usuarios alfabéticamente por nombreCompleto
-//   usuarios.sort(function (a, b) {
-//       var nombreA = (a.nombreCompleto || "").toUpperCase(); // Manejar valores nulos o indefinidos
-//       var nombreB = (b.nombreCompleto || "").toUpperCase();
-//       return nombreA.localeCompare(nombreB); // Comparación estándar de cadenas
-//   });
-
-//   // Crear filas para cada usuario
-//   usuarios.forEach(function (usuario) {
-//       var fila = $("<tr>"); // Crear el elemento <tr>
-//       fila.append($("<td>").text(usuario.nombreCompleto || "-")); // Agregar columna de nombre
-//       fila.append($("<td>").text(usuario.correo || "-")); // Agregar columna de correo
-//       fila.append($("<td>").text(usuario.status || "-")); // Agregar columna de estatus
-//       fila.append($("<td>").text(usuario.rol || "-")); // Agregar columna de rol
-
-//       // Botón Editar
-//       var botonEditar = $("<button>")
-//           .addClass("btn btn-info btn-sm")
-//           .text("Editar")
-//           .attr("onclick", 'editarUsuario("' + usuario.id + '")');
-
-//       fila.append($("<td>").append(botonEditar));
-
-//       // Botón Visualizar
-//       var botonVer = $("<button>")
-//           .addClass("btn btn-info btn-sm")
-//           .text("Visualizar")
-//           .attr("onclick", 'visualizarUsuario("' + usuario.id + '")');
-
-//       fila.append($("<td>").append(botonVer));
-
-//       // Botón Asociaciones
-//       var botonVerAsociaciones = $("<button>")
-//           .addClass("btn btn-info btn-sm")
-//           .text("Asociaciones")
-//           .attr("onclick", 'visualizarAsociaciones("' + usuario.usuario + '")');
-
-//       fila.append($("<td>").append(botonVerAsociaciones));
-
-//       if(tipoUsuario == "ADMINISTRADOR"){
-
-//       // Botón Dar de Baja
-//       var botonBaja = $("<button>")
-//           .addClass("btn btn-danger btn-sm")
-//           .text("Dar de Baja")
-//           .attr("onclick", 'darDeBajaUsuario("' + usuario.id + '")');
-
-//       fila.append($("<td>").append(botonBaja));
-
-//         // Botón Activar Usuario (solo si el estado es 'Baja')
-//         if (usuario.status === "Baja") {
-//             var botonActivar = $("<button>")
-//                 .addClass("btn btn-success btn-sm")
-//                 .text("Activar")
-//                 .attr("onclick", 'activarUsuario("' + usuario.id + '")'); // Usar el ID del usuario
-
-//             fila.append($("<td>").append(botonActivar));
-//         } else {
-//             fila.append($("<td>").text("-")); // Columna vacía si no está en 'Baja'
-//         }
-//       }
-
-//       // Añadir la fila completa a la tabla
-//       tablaClientes.append(fila);
-//   });
-// }
-
 var listaUsuarios = []; // Almacena la lista de usuarios globalmente
-
-/*$(document).ready(function () {
-  let tipoUsuario = "ADMINISTRADOR"; // Cambiar si necesitas otro tipo de usuario
-  datosUsuarios(tipoUsuario, ""); // Cargar usuarios al inicio
-});*/
-
 /* -------------------------------------------------------------------------- */
 /*                          FUNCIONES AUXILIARES                              */
 /* -------------------------------------------------------------------------- */
@@ -397,6 +301,8 @@ function visualizarUsuario(idUsuario) {
         const data = JSON.parse(response);
         if (data.success) {
           if (data.data.tipoUsuario === "CLIENTE") {
+            limpiarFormularioCliente();
+            document.getElementById("guardarDatosClienteBtn").hidden = true;
             $("#usuarioCliente").val(data.data.usuario);
             $("#claveUsuarioCliente").val(data.data.claveUsuario);
             $("#nombreUsuarioCliente").val(data.data.nombre);
@@ -438,6 +344,7 @@ function visualizarUsuario(idUsuario) {
               "#claveUsuarioCliente, #usuarioCliente, #nombreUsuarioCliente, #correoUsuarioCliente, #contrasenaUsuarioCliente, #telefonoUsuarioCliente, #idUsuarioCliente, #selectCliente"
             ).prop("disabled", true);
           } else {
+            document.getElementById("guardarDatosBtn").hidden = true;
             $("#usuario").val(data.data.usuario);
             $("#nombreUsuario").val(data.data.nombre);
             $("#apellidosUsuario").val(data.data.apellido);
@@ -523,6 +430,8 @@ function editarUsuario(idUsuario) {
         const data = JSON.parse(response);
         if (data.success) {
           if (data.data.tipoUsuario === "CLIENTE") {
+            limpiarFormularioCliente();
+            document.getElementById("guardarDatosClienteBtn").hidden = false;
             $("#usuarioCliente").val(data.data.usuario);
             $("#claveUsuarioCliente").val(data.data.claveUsuario);
             $("#nombreUsuarioCliente").val(data.data.nombre);
@@ -530,7 +439,7 @@ function editarUsuario(idUsuario) {
             $("#contrasenaUsuarioCliente").val(data.data.password);
             $("#telefonoUsuarioCliente").val(data.data.telefono);
             $("#idUsuarioCliente").val(idUsuario);
-            
+
             $.ajax({
               url: "../Servidor/PHP/usuarios.php",
               method: "GET",
@@ -566,7 +475,8 @@ function editarUsuario(idUsuario) {
                     Swal.fire({
                       icon: "warning",
                       title: "Aviso",
-                      text: resClientes.message || "No se encontraron clientes.",
+                      text:
+                        resClientes.message || "No se encontraron clientes.",
                     });
                     $("#selectCliente").prop("disabled", true);
                   }
@@ -587,11 +497,14 @@ function editarUsuario(idUsuario) {
             });
 
             // Habilitar los campos para edición
-            $("#claveUsuarioCliente, #usuarioCliente, #nombreUsuarioCliente, #correoUsuarioCliente, #contrasenaUsuarioCliente, #telefonoUsuarioCliente, #idUsuarioCliente, #selectCliente").prop("disabled", false);
+            /*$(
+              "#claveUsuarioCliente, #usuarioCliente, #nombreUsuarioCliente, #correoUsuarioCliente, #contrasenaUsuarioCliente, #telefonoUsuarioCliente, #idUsuarioCliente, #selectCliente"
+            ).prop("disabled", false);*/
 
             $("#usuarioModalCliente").modal("show");
           } else {
             // Habilitar todos los campos para edición
+            document.getElementById("guardarDatosBtn").hidden = false;
             $(
               "#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor"
             ).prop("disabled", false);
@@ -952,11 +865,13 @@ function limpiarFormulario() {
     "#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor"
   ).prop("disabled", false);
 }
+
 // Función para abrir el modal
 document.getElementById("btnAgregar").addEventListener("click", () => {
   limpiarFormulario();
   // Usar las funciones de Bootstrap para abrir el modal
   $("#usuarioModal").modal("show");
+  document.getElementById("guardarDatosBtn").hidden = false;
   // Eliminar el aria-hidden cuando se muestra el modal
   $("#usuarioModal").removeAttr("aria-hidden");
   // Añadir el atributo inert al fondo para evitar que los elementos detrás sean interactivos
@@ -1085,6 +1000,7 @@ function validarCliente(claveCliente, callback) {
 // Evento para abrir el modal y obtener los clientes
 $("#btnAgregarCliente").on("click", function () {
   limpiarFormulario(); // Limpia el formulario antes de abrir
+  document.getElementById("guardarDatosClienteBtn").hidden = false;
   $("#usuarioModalCliente").modal("show"); // Mostrar modal
   obtenerClientes(); // Llamar a la función para obtener clientes
 });
@@ -1097,12 +1013,23 @@ function cerrarModal() {
   $(".modal-backdrop").removeAttr("inert");
 }
 function cerrarModalCliente() {
-  limpiarFormulario();
+  limpiarFormularioCliente();
   $("#usuarioModalCliente").modal("hide"); // Cierra el modal usando Bootstrap
   // Restaurar el aria-hidden al cerrar el modal
   $("#usuarioModalCliente").attr("aria-hidden", "true");
   // Eliminar el atributo inert del fondo al cerrar
   $(".modal-backdrop").removeAttr("inert");
+}
+function limpiarFormularioCliente() {
+  $("#idUsuarioCliente").val("");
+  $("#usuarioCliente").val("");
+  $("#nombreUsuarioCliente").val("");
+  $("#claveUsuarioCliente").val("");
+  $("#correoUsuarioCliente").val("");
+  $("#contrasenaUsuarioCliente").val("");
+  $("#telefonoUsuarioCliente").val("");
+  $("#rolUsuario").val(""); // Si es un select, también se debe resetear
+  $("#selectCliente").val(""); // Limpiar el textarea
 }
 $(document).ready(function () {
   $("#btnAsociarEmpresa").on("click", function () {
@@ -1394,11 +1321,73 @@ $(document).ready(function () {
       $("#selectVendedor").empty().prop("disabled", true);
     }
   });
+
   // Cuando se seleccione un vendedor, solo se mostrará la clave en el input
   $("#selectVendedor").on("change", function () {
-    const claveSeleccionada = $(this).val();
-    $("#selectVendedor").val(claveSeleccionada);
-  });
+    const vendedorSeleccionado = $(this).find(":selected");
+
+    if (vendedorSeleccionado.val()) {
+        const claveVendedor = vendedorSeleccionado.val(); // Guardamos la clave seleccionada
+
+        validarVendedor(claveVendedor, function (existe) {
+            if (!existe) {
+                // ✅ El vendedor no existe, permitimos la selección
+                $("#selectVendedor").val(claveVendedor);
+            } else {
+                // ❌ El vendedor ya existe, no permitimos seleccionarlo
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Este vendedor ya está registrado. Selecciona otro.",
+                });
+
+                // 🔴 Deseleccionar la opción seleccionada
+                $("#selectVendedor").val(""); 
+            }
+        });
+    }
+});
+
+function validarVendedor(claveVendedor, callback) {
+    $.ajax({
+        url: "../Servidor/PHP/usuarios.php",
+        method: "POST",
+        data: { numFuncion: "18", claveVendedor: claveVendedor }, // Llamamos la función PHP
+        success: function (response) {
+            try {
+                const res = JSON.parse(response);
+                console.log("Validación de vendedor:", res); // Depuración
+
+                if (res.success) {
+                    callback(res.exists); // Devuelve true si el vendedor ya existe, false si no
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: res.message || "Error al validar el vendedor.",
+                    });
+                    callback(false);
+                }
+            } catch (error) {
+                console.error("Error al procesar la validación del vendedor:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Error en la validación del vendedor.",
+                });
+                callback(false);
+            }
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "No se pudo verificar el vendedor.",
+            });
+            callback(false);
+        },
+    });
+}
 
   $("#selectUsuario").on("change", function () {
     const usuario = $(this).find(":selected").data("usuario"); // Obtener el valor de `data-usuario`
