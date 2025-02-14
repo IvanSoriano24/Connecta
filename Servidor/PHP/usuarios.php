@@ -1024,6 +1024,49 @@ function verificarClienteFirebase($claveCliente) {
     }
     echo json_encode(['success' => true, 'exists' => false]); // Cliente no existe
 }
+function obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // Tabla de clientes
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta para obtener los datos del cliente
+    $sql = "SELECT CLAVE AS clave, NOMBRE AS nombre, EMAILPRED AS correo, TELEFONO AS telefono 
+            FROM $nombreTabla 
+            WHERE STATUS = 'A' AND CLAVE = ?";
+    
+    $params = [$claveCliente];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    $cliente = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    if ($cliente) {
+        echo json_encode(['success' => true, 'data' => $cliente]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontró el cliente.']);
+    }
+}
 
 
 
@@ -1149,6 +1192,21 @@ switch ($funcion) {
     case 16:
         $claveCliente = $_POST['claveCliente'];
         verificarClienteFirebase($claveCliente);
+        break;
+    case 17:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = "02";
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        $claveCliente = $_GET['claveCliente'];
+        obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
