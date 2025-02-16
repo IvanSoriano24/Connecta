@@ -183,8 +183,8 @@ body {
 
 
 /* NAVBAR */
-#content nav {
-	/* height: 86px; */
+/* #content nav {
+	
 	background: var(--light);
 	padding: 0 24px;
 	display: flex;
@@ -195,7 +195,40 @@ body {
 	top: 0;
 	left: 0;
 	z-index: 1000;
+} */
+#content nav {
+    background: var(--light);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--lato);
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 2000; /* Asegura que esté por encima del sidebar */
+    height: 60px;
 }
+
+/* Estilos para el icono del menú */
+#content nav .bx.bx-menu {
+    font-size: 24px;
+    cursor: pointer;
+    display: block;
+    position: relative;
+    z-index: 3000; /* Lo pone por encima de otros elementos */
+}
+
+/* Asegurar que en móviles sea más visible */
+@media screen and (max-width: 768px) {
+    #content nav .bx.bx-menu {
+        font-size: 28px;
+        color: var(--dark);
+    }
+}
+
+
+
 #content nav::before {
 	content: '';
 	position: absolute;
@@ -619,7 +652,7 @@ input[readonly1] {
 
 
 
-@media screen and (max-width: 768px) {
+/* @media screen and (max-width: 768px) {
 	#sidebar {
 		width: 200px;
 	}
@@ -632,10 +665,39 @@ input[readonly1] {
 	#content nav .nav-link {
 		display: none;
 	}
+} */
+
+@media screen and (max-width: 768px) {
+    #sidebar {
+        left: -280px;
+        transition: left 0.3s ease-in-out;
+    }
+
+    #sidebar.show {
+        left: 0;
+    }
+
+    #content {
+        width: 100%;
+        left: 0;
+    }
 }
 
 
+@media screen and (min-width: 769px) {
+    #content nav .bx.bx-menu {
+        display: none; /* Oculta el botón en escritorio */
+    }
+}
 
+@media screen and (max-width: 768px) {
+    #content nav .bx.bx-menu {
+        display: block;
+        font-size: 28px;
+        cursor: pointer;
+        color: var(--dark);
+    }
+}
 
 
 
@@ -683,3 +745,24 @@ input[readonly1] {
 		min-width: 420px;
 	}
 }
+
+/* Estilo del logo en pantallas grandes */
+#logonav {
+    width: 170px; /* Tamaño normal en escritorio */
+    height: auto;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Reducir el tamaño del logo en dispositivos móviles */
+@media screen and (max-width: 768px) {
+    #logonav {
+        width: 80px; /* Tamaño más pequeño en móviles */
+    }
+}
+
+@media screen and (max-width: 480px) {
+    #logonav {
+        width: 90px; /* Aún más pequeño en teléfonos más pequeños */
+    }
+}
+

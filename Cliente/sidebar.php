@@ -18,8 +18,10 @@
 
 
     <ul class="side-menu top">
+        
+        <br>
         <a href="Dashboard.php" class="brand">
-            <img src="SRC/logomd.png" alt="" style="width: 170px; height: auto;">
+            <img src="SRC/logomd.png" alt="" style="width: 170px; height: auto;" id="logonav">
         </a>
         <br>
         <li class="active">

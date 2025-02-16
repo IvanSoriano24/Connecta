@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const allSideMenu = document.querySelectorAll('#sidebar .side-menu.top li a');
     const currentPath = window.location.pathname.split('/').pop();
 
-    // Inicializar el estado activo al cargar la página
+    //Inicializar el estado activo al cargar la página
     allSideMenu.forEach(item => {
         const li = item.parentElement;
         const href = item.getAttribute('href');
@@ -33,52 +33,72 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Resto del código (sidebar toggle, search button, etc.) permanece igual...
 
-// TOGGLE SIDEBAR
-const menuBar = document.querySelector('#content nav .bx.bx-menu');
-const sidebar = document.getElementById('sidebar');
+document.addEventListener('DOMContentLoaded', function () {
+    const menuBar = document.querySelector('#content nav .bx.bx-menu');
+    const sidebar = document.getElementById('sidebar');
 
-menuBar?.addEventListener('click', function () {
-    sidebar.classList.toggle('hide');
-});
-
-const searchButton = document.querySelector('#content nav form .form-input button');
-const searchButtonIcon = document.querySelector('#content nav form .form-input button .bx');
-const searchForm = document.querySelector('#content nav form');
-
-searchButton?.addEventListener('click', function (e) {
-    if (window.innerWidth < 576) {
-        e.preventDefault();
-        searchForm.classList.toggle('show');
-        if (searchForm.classList.contains('show')) {
-            searchButtonIcon.classList.replace('bx-search', 'bx-x');
+    // Función para mostrar/ocultar el botón de menú según el tamaño de la pantalla
+    function toggleMenuButton() {
+        if (window.innerWidth > 768) {
+            menuBar.style.display = 'none'; // Oculta el botón en escritorio
+            sidebar.classList.remove('show'); // Asegura que el sidebar esté siempre visible en escritorio
         } else {
-            searchButtonIcon.classList.replace('bx-x', 'bx-search');
+            menuBar.style.display = 'block'; // Muestra el botón en móviles
         }
     }
+
+    // Llamar a la función al cargar la página
+    toggleMenuButton();
+
+    // Llamar a la función cuando se cambia el tamaño de la ventana
+    window.addEventListener('resize', toggleMenuButton);
+
+    // Evento para alternar la visibilidad del sidebar
+    menuBar?.addEventListener('click', function () {
+        sidebar.classList.toggle('show');
+    });
 });
 
-if (window.innerWidth < 768) {
-    sidebar.classList.add('hide');
-} else if (window.innerWidth > 576) {
-    searchButtonIcon?.classList.replace('bx-x', 'bx-search');
-    searchForm?.classList.remove('show');
-}
 
-window.addEventListener('resize', function () {
-    if (this.innerWidth > 576) {
-        searchButtonIcon?.classList.replace('bx-x', 'bx-search');
-        searchForm?.classList.remove('show');
-    }
-});
 
-const switchMode = document.getElementById('switch-mode');
 
-switchMode?.addEventListener('change', function () {
-    if (this.checked) {
-        document.body.classList.add('dark');
-    } else {
-        document.body.classList.remove('dark');
-    }
-});
+// const searchButton = document.querySelector('#content nav form .form-input button');
+// const searchButtonIcon = document.querySelector('#content nav form .form-input button .bx');
+// const searchForm = document.querySelector('#content nav form');
+
+// searchButton?.addEventListener('click', function (e) {
+//     if (window.innerWidth < 576) {
+//         e.preventDefault();
+//         searchForm.classList.toggle('show');
+//         if (searchForm.classList.contains('show')) {
+//             searchButtonIcon.classList.replace('bx-search', 'bx-x');
+//         } else {
+//             searchButtonIcon.classList.replace('bx-x', 'bx-search');
+//         }
+//     }
+// });
+
+// if (window.innerWidth < 768) {
+//     sidebar.classList.add('hide');
+// } else if (window.innerWidth > 576) {
+//     searchButtonIcon?.classList.replace('bx-x', 'bx-search');
+//     searchForm?.classList.remove('show');
+// }
+
+// window.addEventListener('resize', function () {
+//     if (this.innerWidth > 576) {
+//         searchButtonIcon?.classList.replace('bx-x', 'bx-search');
+//         searchForm?.classList.remove('show');
+//     }
+// });
+
+// const switchMode = document.getElementById('switch-mode');
+
+// switchMode?.addEventListener('change', function () {
+//     if (this.checked) {
+//         document.body.classList.add('dark');
+//     } else {
+//         document.body.classList.remove('dark');
+//     }
+// });

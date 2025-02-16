@@ -295,7 +295,7 @@ if (isset($_SESSION['usuario'])) {
 										<div class="form-row">
 											<div class="form-group col-md-6">
 												<div class="form-check">
-													<input type="checkbox" class="form-check-input" id="manejoCredito">
+													<input type="checkbox" class="form-check-input" id="manejoCredito" readonly1>
 													<label class="form-check-label" for="manejoCredito">Manejo de
 														Crédito</label>
 												</div>

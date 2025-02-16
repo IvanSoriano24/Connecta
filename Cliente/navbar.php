@@ -88,7 +88,9 @@
     }
 </style>
 
+
 <nav class="navbar">
+<i class="bx bx-menu"></i> <!-- Botón del menú -->
     <div class="left-section">
         <h6 class="empresa">
             <i class=""></i> 
