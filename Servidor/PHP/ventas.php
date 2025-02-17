@@ -2521,7 +2521,8 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -2538,7 +2539,8 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -2555,7 +2557,8 @@ switch ($funcion) {
         }
 
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
 
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -2643,7 +2646,8 @@ switch ($funcion) {
         }
 
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -2672,7 +2676,8 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -2690,7 +2695,8 @@ switch ($funcion) {
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
 
         // Obtener conexión
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -2745,7 +2751,8 @@ switch ($funcion) {
         $noEmpresa = '02';
 
         // Obtener conexión
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -2762,7 +2769,8 @@ switch ($funcion) {
         $noEmpresa = '02';
 
         // Obtener conexión
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -2779,7 +2787,8 @@ switch ($funcion) {
         $noEmpresa = '02';
 
         // Obtener conexión
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
