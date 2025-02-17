@@ -711,7 +711,6 @@ $("#btnGuardarAsociacion").on("click", function () {
   const claveVendedor = $("#selectUsuario option:selected").attr(
     "data-claveVendedor"
   );
-
   // Validar que todos los campos estén seleccionados
   if (!idEmpresa || !usuario) {
     Swal.fire({
@@ -1327,67 +1326,67 @@ $(document).ready(function () {
     const vendedorSeleccionado = $(this).find(":selected");
 
     if (vendedorSeleccionado.val()) {
-        const claveVendedor = vendedorSeleccionado.val(); // Guardamos la clave seleccionada
+      const claveVendedor = vendedorSeleccionado.val(); // Guardamos la clave seleccionada
 
-        validarVendedor(claveVendedor, function (existe) {
-            if (!existe) {
-                // ✅ El vendedor no existe, permitimos la selección
-                $("#selectVendedor").val(claveVendedor);
-            } else {
-                // ❌ El vendedor ya existe, no permitimos seleccionarlo
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "Este vendedor ya está registrado. Selecciona otro.",
-                });
+      validarVendedor(claveVendedor, function (existe) {
+        if (!existe) {
+          // ✅ El vendedor no existe, permitimos la selección
+          $("#selectVendedor").val(claveVendedor);
+        } else {
+          // ❌ El vendedor ya existe, no permitimos seleccionarlo
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Este vendedor ya está registrado. Selecciona otro.",
+          });
 
-                // 🔴 Deseleccionar la opción seleccionada
-                $("#selectVendedor").val(""); 
-            }
-        });
+          // 🔴 Deseleccionar la opción seleccionada
+          $("#selectVendedor").val("");
+        }
+      });
     }
-});
+  });
 
-function validarVendedor(claveVendedor, callback) {
+  function validarVendedor(claveVendedor, callback) {
     $.ajax({
-        url: "../Servidor/PHP/usuarios.php",
-        method: "POST",
-        data: { numFuncion: "18", claveVendedor: claveVendedor }, // Llamamos la función PHP
-        success: function (response) {
-            try {
-                const res = JSON.parse(response);
-                console.log("Validación de vendedor:", res); // Depuración
+      url: "../Servidor/PHP/usuarios.php",
+      method: "POST",
+      data: { numFuncion: "18", claveVendedor: claveVendedor }, // Llamamos la función PHP
+      success: function (response) {
+        try {
+          const res = JSON.parse(response);
+          console.log("Validación de vendedor:", res); // Depuración
 
-                if (res.success) {
-                    callback(res.exists); // Devuelve true si el vendedor ya existe, false si no
-                } else {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: res.message || "Error al validar el vendedor.",
-                    });
-                    callback(false);
-                }
-            } catch (error) {
-                console.error("Error al procesar la validación del vendedor:", error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "Error en la validación del vendedor.",
-                });
-                callback(false);
-            }
-        },
-        error: function () {
+          if (res.success) {
+            callback(res.exists); // Devuelve true si el vendedor ya existe, false si no
+          } else {
             Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "No se pudo verificar el vendedor.",
+              icon: "error",
+              title: "Error",
+              text: res.message || "Error al validar el vendedor.",
             });
             callback(false);
-        },
+          }
+        } catch (error) {
+          console.error("Error al procesar la validación del vendedor:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Error en la validación del vendedor.",
+          });
+          callback(false);
+        }
+      },
+      error: function () {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo verificar el vendedor.",
+        });
+        callback(false);
+      },
     });
-}
+  }
 
   $("#selectUsuario").on("change", function () {
     const usuario = $(this).find(":selected").data("usuario"); // Obtener el valor de `data-usuario`
@@ -1437,7 +1436,7 @@ function validarVendedor(claveVendedor, callback) {
                     resEmp.data.forEach((empresa) => {
                       if (!empresasAsociadas.includes(empresa.noEmpresa)) {
                         selectEmpresa.append(
-                          `<option value="${empresa.id}" data-noempresa="${empresa.noEmpresa}">${empresa.razonSocial}</option>`
+                          `<option value="${empresa.id}" data-noempresa="${empresa.noEmpresa}" data-clavesar="${empresa.claveSae}">${empresa.razonSocial}</option>`
                         );
                       }
                     });

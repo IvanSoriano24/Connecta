@@ -4,7 +4,8 @@
 
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
-  const clienteSeleccionado = sessionStorage.getItem("clienteSeleccionado") === "true";
+  const clienteSeleccionado =
+    sessionStorage.getItem("clienteSeleccionado") === "true";
   if (!clienteSeleccionado) {
     Swal.fire({
       title: "Error",
@@ -41,7 +42,7 @@ function agregarFilaPartidas() {
 
   // Crear una nueva fila
   const nuevaFila = document.createElement("tr");
-  nuevaFila.setAttribute("data-num-par", numPar); // Identificar la fila
+  nuevaFila.setAttribute("data-num-par", numPar); // Identificar la fila oninput="mostrarSugerencias(this)
   nuevaFila.innerHTML = `
   <td>
           <button type="button" class="btn btn-danger btn-sm eliminarPartida" data-num-par="${numPar}">
@@ -51,17 +52,16 @@ function agregarFilaPartidas() {
       <td><input type="number" class="cantidad" value="0" readonly /></td>
       <td>
           <div class="d-flex flex-column position-relative">
-              <div class="d-flex align-items-center">
-                   <input type="text" class="producto" placeholder="" 
-              oninput="mostrarSugerencias(this)" />
-                  <button 
-              type="button" 
-              class="btn ms-2" 
-              onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))">
-              <i class="bx bx-search"></i>
+            <div class="d-flex align-items-center">
+              <input type="text" class="producto" placeholder="Buscar producto..." />
+              <button 
+                type="button" 
+                class="btn ms-2" 
+                onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))">
+                <i class="bx bx-search"></i>
               </button>
-              </div>
-               <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
+            </div>
+            <ul class="suggestions-list-productos position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
           </div>
       </td>
       <td><input type="text" class="unidad" readonly /></td>
@@ -130,9 +130,14 @@ function eliminarPartidaFormulario(numPar, filaAEliminar) {
       filaAEliminar.remove();
 
       // 🚨 Eliminar la partida del array `partidasData`
-      partidasData = partidasData.filter((partida) => partida.NUM_PAR !== numPar);
+      partidasData = partidasData.filter(
+        (partida) => partida.NUM_PAR !== numPar
+      );
 
-      console.log("Partida eliminada. Estado actual de partidasData:", partidasData);
+      console.log(
+        "Partida eliminada. Estado actual de partidasData:",
+        partidasData
+      );
 
       // Confirmación
       Swal.fire({
@@ -449,14 +454,20 @@ function validarPartidas() {
 }
 function obtenerDatosFormulario() {
   const now = new Date(); // Obtiene la fecha y hora actual
-  const fechaActual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  const fechaActual = `${now.getFullYear()}-${String(
+    now.getMonth() + 1
+  ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
+    now.getHours()
+  ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
+    now.getSeconds()
+  ).padStart(2, "0")}`;
   //const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DD
 
   const campoEntrega = document.getElementById("entrega").value;
   //alert(fechaActual);
   // Si el usuario ha ingresado una fecha, se usa esa, de lo contrario, se usa la fecha actual
   //const entrega = campoEntrega ? campoEntrega : fechaActual;
-  
+
   const formularioData = {
     claveVendedor: document.getElementById("vendedor").value,
     factura: document.getElementById("factura").value,
@@ -730,6 +741,7 @@ function seleccionarClienteDesdeModal(cliente) {
   sessionStorage.setItem("clienteSeleccionado", true);
   llenarDatosCliente(cliente);
   cerrarModalClientes(); // Cerrar el modal
+  desbloquearCampos();
 }
 
 function validarCreditoCliente(clienteId) {
@@ -802,7 +814,6 @@ function showCustomerSuggestions() {
     });
   }
 }
-
 // Función para seleccionar un cliente desde las sugerencias
 function seleccionarClienteDesdeSugerencia(cliente) {
   const clienteInput = document.getElementById("cliente");
@@ -817,6 +828,62 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   sugerencias.innerHTML = ""; // Limpiar las sugerencias
   sugerencias.classList.add("d-none"); // Ocultar las sugerencias
   llenarDatosCliente(cliente);
+  desbloquearCampos();
+}
+
+// Función para mostrar sugerencias de prodcuctos
+function showCustomerSuggestionsProductos() {
+  const productoInput = document.getElementsByClassName("producto");
+  const productoInputValue = productoInput.value.trim();
+  const sugerencias = document.getElementById("productosSugeridos");
+
+  sugerencias.classList.remove("d-none"); // Mostrar las sugerencias
+
+  // Generar las sugerencias en base al texto ingresado
+  const productosFiltrados = productosData.filter((producto) =>
+    producto.NOMBRE.toLowerCase().includes(productoInputValue.toLowerCase())
+  );
+
+  sugerencias.innerHTML = ""; // Limpiar las sugerencias anteriores
+
+  if (productosFiltrados.length === 0) {
+    sugerencias.innerHTML = "<li>No se encontraron coincidencias</li>";
+  } else {
+    productosFiltrados.forEach((producto) => {
+      const sugerencia = document.createElement("li");
+      sugerencia.textContent = `${producto.CLAVE} - ${producto.NOMBRE}`;
+      sugerencia.classList.add("suggestion-item");
+
+      // Evento para seleccionar cliente desde las sugerencias
+      sugerencia.addEventListener("click", (e) => {
+        e.stopPropagation(); // Evitar que el evento de clic global oculte las sugerencias
+        seleccionarProductoDesdeSugerencia(producto);
+      });
+
+      sugerencias.appendChild(sugerencia);
+    });
+  }
+}
+// Función para seleccionar un cliente desde las sugerencias
+function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
+  inputProducto.val(`${producto.CVE_ART} - ${producto.DESCR}`); // Mostrar el producto seleccionado
+  const fila = inputProducto.closest("tr"); // Obtener la fila actual
+
+  // Asignar valores a los campos de la fila
+  fila.find(".unidad").val(producto.UNI_MED);
+  fila.find(".precioUnidad").val(producto.PRECIO);
+  fila.find(".ieps").val(producto.IEPS);
+  fila.find(".iva").val(producto.IVA);
+  fila.find(".subtotalPartida").val(0); // Se calculará cuando se agregue la cantidad
+
+  // Ocultar sugerencias después de seleccionar
+  fila.find(".suggestions-list").empty().hide();
+}
+function llenarDatosProducto(producto) {}
+function desbloquearCampos() {
+  $(
+    "#entrega, #supedido, #entrega, #condicion, #descuento, #descuentofin, #enviar"
+  ).prop("disabled", false);
 }
 function llenarDatosCliente(cliente) {
   $("#rfc").val(cliente.RFC || "");
@@ -855,6 +922,7 @@ function filtrarClientes() {
 const inputCliente = $("#cliente");
 const clearButton = $("#clearInput");
 const suggestionsList = $("#clientesSugeridos");
+const suggestionsListProductos = $("#productosSugeridos");
 
 // Mostrar/ocultar el botón "x"
 function toggleClearButton() {

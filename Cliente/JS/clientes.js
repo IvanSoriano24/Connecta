@@ -98,8 +98,86 @@ function cerrarModal() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('usuarioModal'));
     modal.hide();
 }
+function obtenerClientes(){
+    $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa }, function (response) {
+        try {
+            // Verifica si response es una cadena (string) que necesita ser parseada
+            if (typeof response === 'string') {
+                response = JSON.parse(response);
+            }
+            // Verifica si response es un objeto antes de intentar procesarlo
+            if (typeof response === 'object' && response !== null) {
+                if (response.success && response.data) {
+                    let clientes = response.data;
 
+                    // Eliminar duplicados basados en la 'CLAVE' (suponiendo que 'CLAVE' es única)
+                    clientes = clientes.filter((value, index, self) =>
+                        index === self.findIndex((t) => (
+                            t.CLAVE === value.CLAVE
+                        ))
+                    );
+
+                    // Ordenar los clientes por la clave (cliente.CLAVE)
+                    clientes.sort((a, b) => {
+                        const claveA = a.CLAVE ? parseInt(a.CLAVE) : 0;
+                        const claveB = b.CLAVE ? parseInt(b.CLAVE) : 0;
+                        return claveA - claveB; // Orden ascendente
+                    });
+
+                    const clientesTable = document.getElementById('datosClientes');
+                    clientesTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
+
+                    // Recorrer los clientes ordenados y agregar las filas a la tabla
+                    clientes.forEach(cliente => {
+                        const saldoFormateado = `$${parseFloat(cliente.SALDO || 0).toFixed(2).toLocaleString('es-MX')}`;
+                        const estadoTimbrado = cliente.EstadoDatosTimbrado ?
+                            "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>" :
+                            ''; // Centrado de la palomita con display: block y margin: 0 auto
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${cliente.CLAVE || 'Sin clave'}</td>
+                            <td>${cliente.NOMBRE || 'Sin nombre'}</td>
+                            <td>${cliente.CALLE || 'Sin calle'}</td>
+                            <td style="text-align: right;">${saldoFormateado}</td>
+                            <td style="text-align: center;">${estadoTimbrado}</td> <!-- Centrar la palomita -->
+                            <td>${cliente.NOMBRECOMERCIAL || 'Sin nombre comercial'}</td>
+                            <td>
+                                <button class="btnVisualizarCliente" name="btnVisualizarCliente" data-id="${cliente.CLAVE}" style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    padding: 0.5rem 1rem;
+                                    font-size: 1rem;
+                                    font-family: Lato;
+                                    color: #fff;
+                                    background-color: #007bff;
+                                    border: none;
+                                    border-radius: 0.25rem;
+                                    cursor: pointer;
+                                    transition: background-color 0.3s ease;
+                                ">
+                                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar
+                                </button>
+                            </td>
+                        `;
+                        clientesTable.appendChild(row);
+                    });
+                    agregarEventosBotones();
+                } else {
+                    console.error('Error en la respuesta del servidor:', response);
+                }
+            } else {
+                console.error('La respuesta no es un objeto válido:', response);
+            }
+        } catch (error) {
+            console.error('Error al procesar la respuesta JSON:', error);
+            console.error('Detalles de la respuesta:', response);  // Mostrar respuesta completa
+        }
+    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+        console.error('Error en la solicitud:', textStatus, errorThrown, jqXHR);
+    });
+}
 $(document).ready(function () {
+    obtenerClientes();
     $('.cerrar-modal').click(function () {
         cerrarModal();
     });
@@ -108,86 +186,3 @@ $(document).ready(function () {
 function cerrarModal() {
     $('#usuarioModal').modal('hide');
 }
-
-$.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa }, function (response) {
-    try {
-        // Verifica si response es una cadena (string) que necesita ser parseada
-        if (typeof response === 'string') {
-            response = JSON.parse(response);
-        }
-        // Verifica si response es un objeto antes de intentar procesarlo
-        if (typeof response === 'object' && response !== null) {
-            if (response.success && response.data) {
-                let clientes = response.data;
-
-                // Eliminar duplicados basados en la 'CLAVE' (suponiendo que 'CLAVE' es única)
-                clientes = clientes.filter((value, index, self) => 
-                    index === self.findIndex((t) => (
-                        t.CLAVE === value.CLAVE
-                    ))
-                );
-
-                // Ordenar los clientes por la clave (cliente.CLAVE)
-                clientes.sort((a, b) => {
-                    const claveA = a.CLAVE ? parseInt(a.CLAVE) : 0;
-                    const claveB = b.CLAVE ? parseInt(b.CLAVE) : 0;
-                    return claveA - claveB; // Orden ascendente
-                });
-
-                const clientesTable = document.getElementById('datosClientes');
-                clientesTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
-
-                // Recorrer los clientes ordenados y agregar las filas a la tabla
-                clientes.forEach(cliente => {
-                    const saldoFormateado = `$${parseFloat(cliente.SALDO || 0).toFixed(2).toLocaleString('es-MX')}`;
-                    const estadoTimbrado = cliente.EstadoDatosTimbrado ? 
-                        "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>" : 
-                        ''; // Centrado de la palomita con display: block y margin: 0 auto
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${cliente.CLAVE || 'Sin clave'}</td>
-                        <td>${cliente.NOMBRE || 'Sin nombre'}</td>
-                        <td>${cliente.CALLE || 'Sin calle'}</td>
-                        <td style="text-align: right;">${saldoFormateado}</td>
-                        <td style="text-align: center;">${estadoTimbrado}</td> <!-- Centrar la palomita -->
-                        <td>${cliente.NOMBRECOMERCIAL || 'Sin nombre comercial'}</td>
-                        <td>
-                            <button class="btnVisualizarCliente" name="btnVisualizarCliente" data-id="${cliente.CLAVE}" style="
-                                display: inline-flex;
-                                align-items: center;
-                                padding: 0.5rem 1rem;
-                                font-size: 1rem;
-                                font-family: Lato;
-                                color: #fff;
-                                background-color: #007bff;
-                                border: none;
-                                border-radius: 0.25rem;
-                                cursor: pointer;
-                                transition: background-color 0.3s ease;
-                            ">
-                                <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar
-                            </button>
-                        </td>
-                    `;
-                    clientesTable.appendChild(row);
-                });
-                agregarEventosBotones();
-            } else {
-                console.error('Error en la respuesta del servidor:', response);
-            }
-        } else {
-            console.error('La respuesta no es un objeto válido:', response);
-        }
-    } catch (error) {
-        console.error('Error al procesar la respuesta JSON:', error);
-        console.error('Detalles de la respuesta:', response);  // Mostrar respuesta completa
-    }
-}, 'json').fail(function (jqXHR, textStatus, errorThrown) {
-    console.error('Error en la solicitud:', textStatus, errorThrown);
-});
-
-
-
-
-
-

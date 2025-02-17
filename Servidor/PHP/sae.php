@@ -5,7 +5,7 @@ require 'firebase.php';
 /*error_reporting(0)
 ini_set('display_errors', 0);*/
 
-function probarConexionSQLServer($host, $usuario, $password, $nombreBase)
+function probarConexionSQLServer($host, $usuario, $password, $nombreBase, $claveSae)
 {
     try {
         $dsn = "sqlsrv:Server=$host;Database=$nombreBase;TrustServerCertificate=true";
@@ -31,6 +31,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
                 'password' => ['stringValue' => $data['password']],
                 'nombreBase' => ['stringValue' => $data['nombreBase']],
                 'noEmpresa' => ['stringValue' => $data['noEmpresa']],
+                'claveSae' => ['stringValue' => $data['claveSae']],
             ],
         ];
         $options = [
@@ -73,6 +74,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
                     'password' => ['stringValue' => $data['password']],
                     'nombreBase' => ['stringValue' => $data['nombreBase']],
                     'noEmpresa' => ['stringValue' => $data['noEmpresa']],
+                    'claveSae' => ['claveSae' => $data['claveSae']],
                 ],
             ];
             // Hacemos la solicitud PATCH para actualizar el documento
@@ -109,6 +111,7 @@ function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
             'password' => ['stringValue' => $data['password']],
             'nombreBase' => ['stringValue' => $data['nombreBase']],
             'noEmpresa' => ['stringValue' => $data['noEmpresa']],
+            'claveSae' => ['stringValue' => $data['claveSae']],
         ],
     ];
 
@@ -144,7 +147,7 @@ function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
     return ['success' => true, 'message' => 'Datos guardados exitosamente en Firebase', 'idDocumento' => $documentId];
 }
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
@@ -164,7 +167,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if ($fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if ($fields['noEmpresa']['stringValue'] === $noEmpresa && $fields['claveSae']['stringValue'] === $claveSae) {
             // Extrae solo el ID del documento desde la URL
             $documentId = basename($document['name']);  // Esto da solo el ID del documento
 
@@ -176,7 +179,9 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
                     'puerto' => $fields['puerto']['stringValue'],
                     'usuarioSae' => $fields['usuario']['stringValue'],
                     'password' => $fields['password']['stringValue'],
-                    'nombreBase' => $fields['nombreBase']['stringValue']
+                    'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'claveSae' => $fields['claveSae']['stringValue'],
+
                 ]
             ];
         }
@@ -246,9 +251,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'puerto' => $input['puerto'],
                 'usuarioSae' => $input['usuarioSae'],
                 'password' => $input['password'],
-                'nombreBase' => $input['nombreBase']
+                'nombreBase' => $input['nombreBase'],
+                'claveSae' => $input['claveSae']
             ];
-            $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase']);
+            $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
             echo json_encode($resultadoConexion);
             break;
 
@@ -259,10 +265,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'usuarioSae' => $input['usuarioSae'],
                 'password' => $input['password'],
                 'nombreBase' => $input['nombreBase'],
-                'noEmpresa' => $input['noEmpresa']
+                'noEmpresa' => $input['noEmpresa'],
+                'claveSae' => $input['claveSae']
             ];
             $idDocumento = $input['idDocumento'];
-            $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase']);
+            $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
             if ($resultadoConexion['success']) {
                 $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento);
                 echo json_encode($resultadoGuardar);
@@ -277,9 +284,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'usuarioSae' => $input['usuarioSae'],
                     'password' => $input['password'],
                     'nombreBase' => $input['nombreBase'],
-                    'noEmpresa' => $input['noEmpresa']
+                    'noEmpresa' => $input['noEmpresa'],
+                    'claveSae' => $input['claveSae']
                 ];
-                $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase']);
+                $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
                 if ($resultadoConexion['success']) {
                     $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey);
                     echo json_encode($resultadoGuardar);
@@ -290,7 +298,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         case 'mostrar':
             $noEmpresa = $input['noEmpresa'];
-            $resultado = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+            $claveSae = $input['claveSae'];
+            $resultado = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
             echo json_encode($resultado);
             break;
         default:

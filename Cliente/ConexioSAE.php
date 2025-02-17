@@ -9,8 +9,9 @@ if (isset($_SESSION['usuario'])) {
     $empresa = $_SESSION['empresa']['razonSocial'];
     $idEmpresa = $_SESSION['empresa']['id'];
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
   }
-
 } else {
   header('Location:../index.php');
 }
@@ -52,8 +53,8 @@ session_destroy(); */
 
     <!-- CONTENT -->
     <section id="content">
-       <!-- NAVBAR -->
-       <?php include 'navbar.php'; ?>
+      <!-- NAVBAR -->
+      <?php include 'navbar.php'; ?>
       <!-- MAIN -->
       <main class="text-center ">
         <div class="head-title">
@@ -84,6 +85,22 @@ session_destroy(); */
                   readonly>
                 <input class="input-small" type="text" name="idDocumento" id="idDocumento" value="" hidden>
               </div>
+
+              <div class="form-row">
+                <label for="claveSae">Sae:</label>
+                <select class="input-mt" name="claveSae" id="claveSae">
+                  <option value="01">1</option>
+                  <option value="02">2</option>
+                  <option value="03">3</option>
+                  <option value="04">4</option>
+                  <option value="05">5</option>
+                  <option value="06">6</option>
+                  <option value="07">7</option>
+                  <option value="08">8</option>
+                  <option value="09">9</option>
+                </select>
+              </div>
+
               <div class="form-row">
                 <label for="host">Host:</label>
                 <input class="input-mt" type="text" name="host" id="host" value="">
@@ -128,19 +145,14 @@ session_destroy(); */
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    $(document).ready(function () {
-      
-      informaSae();
-    });
-  </script>
-  <script>
-    const numeroEmpresa = '<?php echo $noEmpresa ?>';  // Este número debería ser el que obtienes de la sesión o base de datos.
+    const numeroEmpresa = '<?php echo $noEmpresa ?>'; // Este número debería ser el que obtienes de la sesión o base de datos.
     const inputNombreBase = document.getElementById('nombreBase');
-    inputNombreBase.addEventListener('blur', function () {
+    inputNombreBase.addEventListener('blur', function() {
       if (this.value.trim() !== '') {
+        const claveSae = document.getElementById('claveSae').value;
         // Verifica si el número de empresa ya está al final
-        if (!this.value.endsWith(numeroEmpresa)) {
-          this.value = this.value + numeroEmpresa;  // Agrega el número de empresa al final
+        if (!this.value.endsWith(claveSae)) {
+          this.value = this.value + claveSae; // Agrega el número de empresa al final
         }
       }
     });
@@ -148,7 +160,12 @@ session_destroy(); */
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
   <script src="JS/script.js"></script>
-
+  <script>
+    $(document).ready(function() {
+      const claveSae = '<?php echo $claveSae ?>';
+      informaSaeInicio(claveSae);
+    });
+  </script>
 </body>
 
 </html>

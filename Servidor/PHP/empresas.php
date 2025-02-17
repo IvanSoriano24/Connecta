@@ -24,12 +24,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $noEmpresa = $_POST['noEmpresa'];
                 $razonSocial = $_POST['razonSocial'];
                 $claveVendedor = $_POST['claveVendedor'];
+                $claveSae = $_POST['claveSae'];
                 // Lógica de sesión
                 $_SESSION['empresa'] = [
                     'id' => $id,
                     'noEmpresa' => $noEmpresa,
                     'razonSocial' => $razonSocial,
-                    'claveVendedor' => $claveVendedor
+                    'claveVendedor' => $claveVendedor,
+                    'claveSae' => $claveSae
                 ];
                 echo json_encode([
                     'success' => true,
@@ -37,8 +39,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'data' => $_SESSION['empresa']
                 ]);
             } else if(isset($_POST['ed']) && $_POST['ed'] === '2'){
-                $noEmpresa = $_POST['noEmpresa'];
+                $id = $_SESSION['empresa']['id'];
+                $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+                $razonSocial = $_SESSION['empresa']['razonSocial'];
+                $claveVendedor = $_SESSION['empresa']['claveVendedor'];
+                $claveSae = $_SESSION['empresa']['claveSae'];
                 obtenerEmpresa($noEmpresa);
+
+                // Lógica de sesión
+                $_SESSION['empresa'] = [
+                    'id' => $id,
+                    'noEmpresa' => $noEmpresa,
+                    'razonSocial' => $razonSocial,
+                    'claveVendedor' => $claveVendedor,
+                    'claveSae' => $claveSae
+                ];
             }else {
                 echo json_encode(['success' => false, 'message' => 'Faltan parámetros.']);
             }
@@ -80,7 +95,7 @@ function obtenerEmpresa($noEmpresa) {
 
         if ($datosCompletos) {
             // Si los datos son obtenidos correctamente, guarda la empresa en la sesión
-            $_SESSION['empresa'] = $datosCompletos;
+            $_SESSION['empresaInfo'] = $datosCompletos;
             return responderJson(true, 'Datos de la empresa obtenidos correctamente.', $datosCompletos);
         } else {
             return responderJson(false, 'No se encontraron datos para la empresa especificada.');
@@ -265,7 +280,8 @@ function sesionEmpresa($data)
     $_SESSION['empresa'] = [
         'id' => $data['id'],
         'noEmpresa' => $data['noEmpresa'],
-        'razonSocial' => $data['razonSocial']
+        'razonSocial' => $data['razonSocial'],
+        'claveSae' => $data['claveSae']
     ];
  
     //header('Content-Type: application/json');
@@ -315,7 +331,8 @@ function listaEmpresas($nombreUsuario) {
                         'id' => isset($fields['id']['stringValue']) ? $fields['id']['stringValue'] : "N/A", // Validar id
                         'noEmpresa' => isset($fields['noEmpresa']['stringValue']) ? $fields['noEmpresa']['stringValue'] : "No especificado", // Validar noEmpresa
                         'razonSocial' => isset($fields['empresa']['stringValue']) ? $fields['empresa']['stringValue'] : "Sin Razón Social", // Validar razonSocial
-                        'claveVendedor' => isset($fields['claveVendedor']['stringValue']) ? $fields['claveVendedor']['stringValue'] : "Vendedor sin Clave"
+                        'claveVendedor' => isset($fields['claveVendedor']['stringValue']) ? $fields['claveVendedor']['stringValue'] : "Vendedor sin Clave",
+                        'claveSae' => isset($fields['claveSae']['stringValue']) ? $fields['claveSae']['stringValue'] : "Usuario sin base asociada"
                     ];
                 }
             }

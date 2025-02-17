@@ -60,7 +60,7 @@ function mostrarClientes($conexionData){
         }
         // Obtener tipo de usuario y clave de vendedor desde la sesión
         $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
-        $claveVendedor = $_SESSION['empresa']['claveVendedor'];
+        $claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
 
         // Configuración de conexión
         $serverName = $conexionData['host'];
@@ -74,7 +74,9 @@ function mostrarClientes($conexionData){
         if ($conn === false) {
             die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
         }
-        $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
+        if($claveVendedor != null){
+            $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
+        }
 
         // Construir el nombre de la tabla dinámicamente usando el número de empresa
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";

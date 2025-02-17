@@ -19,6 +19,8 @@ if (isset($_SESSION['usuario'])) {
         $empresa   = $_SESSION['empresa']['razonSocial'];
         $idEmpresa = $_SESSION['empresa']['id'];
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
     }
 } else {
     header('Location:../index.php');
@@ -199,6 +201,7 @@ if (isset($_SESSION['usuario'])) {
                         <span aria-hidden="true"></span><!-- &times; -->
                     </button>
                 </div>
+
                 <form id="agregarUsuarioForm">
                     <div class="modal-body">
                         <!-- Formulario de usuario -->
@@ -324,7 +327,6 @@ if (isset($_SESSION['usuario'])) {
             </div>
         </div>
     </div>
-
     <!-- MODAL EMPRESAS -->
     <div id="asociarEmpresaModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">

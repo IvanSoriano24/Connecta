@@ -17,7 +17,8 @@ if (isset($_SESSION['usuario'])) {
 		$empresa = $_SESSION['empresa']['razonSocial'];
 		$idEmpresa = $_SESSION['empresa']['id'];
 		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
-		$claveVendedor = $_SESSION['empresa']['claveVendedor'];
+		$claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
 	}
 } else {
 	header('Location:../index.php');
@@ -126,6 +127,7 @@ if (isset($_SESSION['usuario'])) {
 				const noEmpresa = empresaOption.getAttribute('data-no-empresa');
 				const razonSocial = empresaOption.getAttribute('data-razon-social');
 				const claveVendedor = empresaOption.getAttribute('data-clave-vendedor');
+				const claveSae = empresaOption.getAttribute('data-clave-sae');
 				// Verificar en PHP si la empresa tiene conexión a SAE
 				fetch('../Servidor/PHP/sae.php', {
 						method: 'POST',
@@ -154,8 +156,10 @@ if (isset($_SESSION['usuario'])) {
 									id: empresaSeleccionada,
 									noEmpresa: noEmpresa,
 									razonSocial: razonSocial,
-									claveVendedor: claveVendedor
+									claveVendedor: claveVendedor,
+									claveSae: claveSae
 								};
+								
 								// Llamar la función sesionEmpresa para registrar sesión
 								sesionEmpresa(idEmpresarial);
 
@@ -183,7 +187,8 @@ if (isset($_SESSION['usuario'])) {
 										id: empresaSeleccionada,
 										noEmpresa: noEmpresa,
 										razonSocial: razonSocial,
-										claveVendedor: claveVendedor
+										claveVendedor: claveVendedor,
+										claveSae: claveSae
 									};
 
 									// Llamar la función sesionEmpresa para registrar sesión
@@ -212,12 +217,14 @@ if (isset($_SESSION['usuario'])) {
 				var noEmpresa = idEmpresarial.noEmpresa;
 				var razonSocial = idEmpresarial.razonSocial;
 				var claveVendedor = idEmpresarial.claveVendedor;
+				var claveSae = idEmpresarial.claveSae;
 				$.post('../Servidor/PHP/empresas.php', {
 					action: 'sesion',
 					id: id,
 					noEmpresa: noEmpresa,
 					razonSocial: razonSocial,
-					claveVendedor: claveVendedor
+					claveVendedor: claveVendedor,
+					claveSae: claveSae
 				}, function(response) {
 					if (response.success) {
 						if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {

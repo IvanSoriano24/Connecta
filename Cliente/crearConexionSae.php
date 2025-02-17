@@ -9,8 +9,9 @@ if (isset($_SESSION['usuario']) && isset($_SESSION['empresa']['razonSocial'])) {
     $empresa = $_SESSION['empresa']['razonSocial'];
     $idEmpresa = $_SESSION['empresa']['id'];
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
   }
-
 } else {
   header('Location:../crearConexionSae.php');
 }
@@ -67,6 +68,22 @@ session_destroy(); */
                   readonly>
                 <input class="input-small" type="text" name="idDocumento" id="idDocumento" value="" hidden>
               </div>
+
+              <div class="form-row">
+                <label for="claveSae">Sae:</label>
+                <select class="input-mt" name="claveSae" id="claveSae">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                </select>
+              </div>
+
               <div class="form-row">
                 <label for="host">Host:</label>
                 <input class="input-mt" type="text" name="host" id="host" value="">
@@ -111,19 +128,13 @@ session_destroy(); */
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    $(document).ready(function () {
-      
-      informaSae();
-    });
-  </script>
-  <script>
-    const numeroEmpresa = '<?php echo $noEmpresa ?>';  // Este número debería ser el que obtienes de la sesión o base de datos.
+    const numeroEmpresa = '<?php echo $noEmpresa ?>'; // Este número debería ser el que obtienes de la sesión o base de datos.
     const inputNombreBase = document.getElementById('nombreBase');
-    inputNombreBase.addEventListener('blur', function () {
+    inputNombreBase.addEventListener('blur', function() {
       if (this.value.trim() !== '') {
         // Verifica si el número de empresa ya está al final
         if (!this.value.endsWith(numeroEmpresa)) {
-          this.value = this.value + numeroEmpresa;  // Agrega el número de empresa al final
+          this.value = this.value + numeroEmpresa; // Agrega el número de empresa al final
         }
       }
     });

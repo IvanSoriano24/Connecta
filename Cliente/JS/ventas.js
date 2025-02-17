@@ -595,7 +595,7 @@ $('#filtroFecha').change(function () {
     cargarPedidos(filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
 });
 $('#cancelarPedido').click(function () {
-    window.location.href = "ventas.php";
+    window.location.href = "Ventas.php";
 });
 document.addEventListener('DOMContentLoaded', function () {
     let clienteSeleccionado = sessionStorage.getItem('clienteSeleccionado') === 'true'; 

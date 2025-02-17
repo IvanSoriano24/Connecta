@@ -19,6 +19,8 @@ if (isset($_SESSION['usuario'])) {
 		$empresa = $_SESSION['empresa']['razonSocial'];
 		$idEmpresa = $_SESSION['empresa']['id'];
 		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+		$claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
 	}
 } else {
 	header('Location:../index.php');
