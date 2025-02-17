@@ -305,7 +305,7 @@ if (isset($_SESSION['usuario'])) {
         /* Se ajusta al ancho del input */
         background: white;
         border: 1px solid #ccc;
-        max-height: 200px;
+        max-height: 100px;
         /* Altura máxima para evitar que cubra todo */
         overflow-y: auto;
         /* Habilita el scroll si hay muchas sugerencias */
@@ -318,7 +318,7 @@ if (isset($_SESSION['usuario'])) {
 
     /* Diseño para cada ítem en la lista */
     .suggestions-list-productos li {
-        padding: 8px;
+        padding: 5px;
         cursor: pointer;
         list-style: none;
         /* Elimina los estilos de lista */
@@ -861,7 +861,6 @@ if (isset($_SESSION['usuario'])) {
                                 clave: claveVendedor,
                             },
                             success: function(response) {
-                                console.log("Respuesta del servidor:", response); // 📌 Verifica lo que devuelve
 
                                 try {
                                     if (typeof response === "string") {
@@ -905,7 +904,7 @@ if (isset($_SESSION['usuario'])) {
                     }
                 });
                 $(document).on("keydown", ".producto", function(e) {
-                    const suggestionsListProductos = $(this).closest("tr").find(".suggestions-list");
+                    const suggestionsListProductos = $(this).closest("tr").find(".suggestions-list-productos");
                     const items = suggestionsListProductos.find("li");
                     if (!items.length) return;
 
@@ -936,8 +935,8 @@ if (isset($_SESSION['usuario'])) {
                 }
 
                 $(document).on("click", function(event) {
-                    if (!$(event.target).closest(".producto, .suggestions-list").length) {
-                        $(".suggestions-list").empty().hide();
+                    if (!$(event.target).closest(".producto, .suggestions-list-productos").length) {
+                        $(".suggestions-list-productos").empty().hide();
                     }
                 });
 

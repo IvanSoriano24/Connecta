@@ -196,7 +196,8 @@ async function obtenerImpuesto(cveEsqImpu) {
         try {
           // Usa el objeto directamente
           if (response.success) {
-            const { IMPUESTO1, IMPUESTO2, IMPUESTO4 } = response.impuestos;
+            const { IMPUESTO1, IMPUESTO2, IMPUESTO3, IMPUESTO4 } =
+              response.impuestos;
             resolve({
               impuesto1: IMPUESTO1,
               impuesto2: IMPUESTO2,
@@ -222,7 +223,7 @@ async function obtenerImpuesto(cveEsqImpu) {
 async function completarPrecioProducto(cveArt, filaTabla) {
   try {
     // Obtener la lista de precios correctamente
-    const listaPrecioElement = document.querySelector(".listaPrecios");
+    const listaPrecioElement = filaTabla.querySelector(".listaPrecios");
     const cvePrecio = listaPrecioElement ? listaPrecioElement.value : "1";
     // Obtener el precio del producto
     const precio = await obtenerPrecioProducto(cveArt, cvePrecio);
@@ -251,6 +252,10 @@ async function completarPrecioProducto(cveArt, filaTabla) {
     const impuesto2Input = filaTabla.querySelector(".descuento2");
     const impuesto4Input = filaTabla.querySelector(".iva");
     const impuesto3Input = filaTabla.querySelector(".impuesto3");
+    /*const impuesto1Input = document.querySelector(".ieps");
+    const impuesto2Input = document.querySelector(".descuento2");
+    const impuesto4Input = document.querySelector(".iva");
+    const impuesto3Input = document.querySelector(".impuesto3");*/
 
     // Verifica si los campos existen y asigna los valores de los impuestos
     if (impuesto1Input && impuesto4Input) {
@@ -864,21 +869,42 @@ function showCustomerSuggestionsProductos() {
     });
   }
 }
-// Función para seleccionar un cliente desde las sugerencias
-function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
-  inputProducto.val(`${producto.CVE_ART} - ${producto.DESCR}`); // Mostrar el producto seleccionado
-  const fila = inputProducto.closest("tr"); // Obtener la fila actual
+// Función para seleccionar un produto desde las sugerencias
+async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
+  inputProducto.val(`${producto.CVE_ART}`); // Mostrar el producto seleccionado
+  const filaProd = inputProducto.closest("tr")[0]; // Asegurar que obtenemos el elemento DOM
 
-  // Asignar valores a los campos de la fila
-  fila.find(".unidad").val(producto.UNI_MED);
-  fila.find(".precioUnidad").val(producto.PRECIO);
-  fila.find(".ieps").val(producto.IEPS);
-  fila.find(".iva").val(producto.IVA);
-  fila.find(".subtotalPartida").val(0); // Se calculará cuando se agregue la cantidad
+  if (!filaProd) {
+    console.error("Error: No se encontró la fila del producto.");
+    return; // 🚨 Salir de la función si `filaProd` no es válido
+  }
+
+  // Convertir `filaProd` en un objeto jQuery para compatibilidad
+  const $filaProd = $(filaProd);
+
+  // Actualizar el campo de esquema de impuestos
+  $("#CVE_ESQIMPU").val(producto.CVE_ESQIMPU);
+
+  // Actualizar la unidad de medida si el campo existe
+  const campoUnidad = $filaProd.find(".unidad");
+  if (campoUnidad.length) {
+    campoUnidad.val(producto.UNI_MED);
+  }
+
+  // Desbloquear y establecer cantidad en 0
+  const campoCantidad = $filaProd.find("input.cantidad");
+  if (campoCantidad.length) {
+    campoCantidad.prop("readonly", false).val(0);
+  }
 
   // Ocultar sugerencias después de seleccionar
-  fila.find(".suggestions-list").empty().hide();
+  $filaProd.find(".suggestions-list-productos").empty().hide();
+
+  // Obtener precio del producto y actualizar la fila
+  await completarPrecioProducto(producto.CVE_ART, filaProd); // Pasar el nodo DOM, no jQuery
 }
+
+
 function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
   $(

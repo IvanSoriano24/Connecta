@@ -1245,7 +1245,6 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $noEmpresa, $partidasData, $enviarA, $vendedor, $fechaElaboracion);
-        echo $resultadoWhatsApp;
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
