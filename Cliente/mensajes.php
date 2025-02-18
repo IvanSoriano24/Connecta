@@ -178,6 +178,10 @@ if (isset($_SESSION['usuario'])) {
                                             <label for="numGuia" class="form-label">Numero Guia</label>
                                             <input type="text" class="form-control form-control-sm" id="numGuia">
                                         </div>
+                                        <div class="col-md-6 mb-2" id="divFechaEnvio">
+                                            <label for="fechaEnvio" class="form-label">Fecha de Envio</label>
+                                            <input type="text" class="form-control form-control-sm" id="fechaEnvio" readonly1>
+                                        </div>
                                     </div>
                                     <br>
                                     <div class="mb-4">

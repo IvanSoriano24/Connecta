@@ -2181,6 +2181,65 @@ function extraerProductos($conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+function extraerProductosE($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    // Consulta directa a la tabla fija INVE02
+    $sql = "
+        SELECT 
+            [CVE_ART], 
+            [DESCR], 
+            [EXIST], 
+            [LIN_PROD], 
+            [UNI_MED],
+            [APART]
+        FROM $nombreTabla
+    ";
+
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // Obtener todas las imágenes de Firebase en un solo lote
+    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app";
+    $imagenesPorArticulo = listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket);
+    $productos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $cveArt = $row['CVE_ART'];
+
+        // Asignar las imágenes correspondientes al producto
+        $row['IMAGEN_ML'] = $imagenesPorArticulo[$cveArt] ?? []; // Si no hay imágenes, asignar un array vacío
+
+        $productos[] = $row;
+    }
+
+    if (count($productos) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'productos' => $productos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
 function listarImagenesDesdeFirebase($cveArt, $firebaseStorageBucket)
 {
     $url = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o?prefix=" . rawurlencode("imagenes/{$cveArt}/");
@@ -2203,7 +2262,7 @@ function listarImagenesDesdeFirebase($cveArt, $firebaseStorageBucket)
 
     return $imagenes;
 }
-function extraerProducto($conexionData)
+function extraerProducto($conexionData, $claveSae)
 {
     if (!isset($_GET['cveArt'])) {
         echo json_encode(['success' => false, 'message' => 'Clave del artículo no proporcionada.']);
@@ -2227,9 +2286,7 @@ function extraerProducto($conexionData)
         exit;
     }
 
-    // Asume la empresa predeterminada
-    $noEmpresa = '02';//Aqui
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta específica para el producto
     $sql = "SELECT 
@@ -2704,12 +2761,11 @@ switch ($funcion) {
             echo json_encode($conexionResult);
             break;
         }
-
         // Obtener los datos de conexión
         $conexionData = $conexionResult['data'];
 
         // Llamar a la función para extraer productos
-        extraerProductos($conexionData, $noEmpresa);//Aqui
+        extraerProductos($conexionData, $claveSae);//Aqui
         break;
     case 12:
         $codigoProducto = isset($_GET['codigoProducto']) ? $_GET['codigoProducto'] : null;
@@ -2750,11 +2806,8 @@ switch ($funcion) {
         sqlsrv_free_stmt($stmt);
         break;
     case 13:
-        // Empresa por defecto (puedes cambiar este valor según tus necesidades)
-        $noEmpresa = '02';
-
         // Obtener conexión
-        $claveSae = $_SESSION['empresa']['claveSae'];
+        $claveSae = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);//Aqui
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -2768,11 +2821,8 @@ switch ($funcion) {
         //mostrarArticulosParaImagenes($conexionData);
         break;
     case 14:
-        // Empresa por defecto (puedes cambiar este valor según tus necesidades)
-        $noEmpresa = '02';
-
         // Obtener conexión
-        $claveSae = $_SESSION['empresa']['claveSae'];
+        $claveSae = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);//Aqui
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -2786,11 +2836,8 @@ switch ($funcion) {
         subirImagenArticulo($conexionData);
         break;
     case 15:
-        // Empresa por defecto (puedes cambiar este valor según tus necesidades)
-        $noEmpresa = '02';
-
         // Obtener conexión
-        $claveSae = $_SESSION['empresa']['claveSae'];
+        $claveSae = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -2801,7 +2848,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
 
         // Llamar a la función para extraer productos
-        extraerProducto($conexionData);
+        extraerProducto($conexionData, $claveSae);
         break;
     case 16:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -2820,6 +2867,11 @@ switch ($funcion) {
         $clave = $_POST['clave'];
         $producto = $_POST['producto'];
         obtenerProductoPedido($clave, $conexionData, $producto, $claveSae);
+        break;
+    case 17:
+        $claveSae = "02";
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        extraerProductosE($conexionData, $claveSae);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

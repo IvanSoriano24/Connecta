@@ -166,8 +166,9 @@ $("#filtroStatus").change(function () {
 // }
 
 function mostrarModal(comandaId) {
-    $("#btnTerminar").show();
+  $("#btnTerminar").show();
   $("#btnTerminar").prop("disabled", true);
+  $("#divFechaEnvio").hide();
   $.get(
     "../Servidor/PHP/mensajes.php",
     { numFuncion: "2", comandaId },
@@ -209,6 +210,8 @@ function mostrarModal(comandaId) {
         if (status == "TERMINADA") {
           $(".producto-check").prop("checked", true);
           $(".producto-check").prop("disabled", false);
+          $("#divFechaEnvio").show();
+          $("#fechaEnvio").val(comanda.fechaEnvio);
           $("#btnTerminar").hide();
         } else {
           // Deshabilitar el botón "Terminar" inicialmente

@@ -1,5 +1,5 @@
 function cargarProductos() {
-  const numFuncion = 11; // Identificador del caso correspondiente en PHP
+  const numFuncion = 17; // Identificador del caso correspondiente en PHP
   const xhr = new XMLHttpRequest();
   xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
   xhr.setRequestHeader("Content-Type", "application/json");
