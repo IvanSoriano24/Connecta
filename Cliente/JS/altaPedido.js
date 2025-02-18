@@ -44,12 +44,11 @@ function agregarFilaPartidas() {
   const nuevaFila = document.createElement("tr");
   nuevaFila.setAttribute("data-num-par", numPar); // Identificar la fila oninput="mostrarSugerencias(this)
   nuevaFila.innerHTML = `
-  <td>
+      <td>
           <button type="button" class="btn btn-danger btn-sm eliminarPartida" data-num-par="${numPar}">
               <i class="bx bx-trash"></i>
           </button>
       </td>    
-      <td><input type="number" class="cantidad" value="0" readonly /></td>
       <td>
           <div class="d-flex flex-column position-relative">
             <div class="d-flex align-items-center">
@@ -64,6 +63,7 @@ function agregarFilaPartidas() {
             <ul class="suggestions-list-productos position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
           </div>
       </td>
+      <td><input type="number" class="cantidad" value="0" readonly /></td>
       <td><input type="text" class="unidad" readonly /></td>
       <td><input type="number" class="descuento1" style="width: 70px;" value="0"  readonly /></td>
       <td><input type="number" class="descuento2" style="width: 70px;" value="0" readonly /></td>
@@ -750,23 +750,26 @@ function seleccionarClienteDesdeModal(cliente) {
 }
 
 function validarCreditoCliente(clienteId) {
+  let creditoVal = null;
   fetch(`../Servidor/PHP/clientes.php?clienteId=${clienteId}&numFuncion=3`)
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
         const { conCredito, limiteCredito, saldo } = data;
         if (conCredito === "S") {
-          Swal.fire({
+          /*Swal.fire({
             title: "Cliente válido",
             text: "El cliente tiene crédito disponible.",
             icon: "success",
-          });
+          });*/
+          creditoVal = "S";
         } else {
-          Swal.fire({
+          /*Swal.fire({
             title: "Sin crédito",
             text: "El cliente no maneja crédito.",
             icon: "info",
-          });
+          });*/
+          creditoVal = "N";
         }
       } else {
         Swal.fire({

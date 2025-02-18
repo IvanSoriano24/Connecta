@@ -12,6 +12,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $productosJson = urldecode($_GET['productos'] ?? '[]');
     $productos = json_decode($productosJson, true);
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
+    $claveSae = $_GET['claveSae'];
     // Obtener fecha y hora actual si no está incluida en los parámetros
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
     if ($resultado) {
@@ -22,7 +23,6 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
           </div>";
     } else {
         if ($accion === 'confirmar') {
-
             // Obtener la hora actual
             $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
             // Determinar el estado según la hora
@@ -81,11 +81,12 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 $result = json_decode($response, true);
                 if (isset($result['name'])) {
                     //$remisionUrl = "remision.php";
-                    /*$remisionUrl = "http://localhost/MDConnecta/Servidor/PHP/remision.php";
+                    $remisionUrl = "http://localhost/MDConnecta/Servidor/PHP/remision.php";
     
                     $data = [
                         'numFuncion' => 1,
-                        'pedidoId' => $pedidoId
+                        'pedidoId' => $pedidoId,
+                        'claveSae' => $claveSae
                     ];
     
                     $ch = curl_init();
@@ -105,7 +106,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     
                     curl_close($ch);
     
-                    echo "Respuesta de remision.php: " . $remisionResponse;*/
+                    //echo "Respuesta de remision.php: " . $remisionResponse;
                     echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>

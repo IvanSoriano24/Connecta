@@ -115,6 +115,7 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
                 'status' => $fields['status']['stringValue'],
                 'fecha' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[0],
                 'hora' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[1],
+                'numGuia' => $fields['numGuia']['stringValue'] ?? "",
                 'productos' => $productos
             ]
         ]);
@@ -153,7 +154,7 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
         echo json_encode(['success' => false, 'message' => 'Error al marcar la comanda como TERMINADA.', 'error' => $error['message']]);
     } else {
         $result = json_decode($response, true);
-        echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.', 'response' => $result]);
+        echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.', 'response' => $result, 'data' => $data]);
     }
 }
 
