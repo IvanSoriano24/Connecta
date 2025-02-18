@@ -495,7 +495,13 @@ function editarUsuario(idUsuario) {
                 });
               },
             });
-
+            
+            $(
+              "#usuarioCliente, #contrasenaUsuarioCliente"
+            ).prop("disabled", false);
+            $(
+              "#selectCliente"
+            ).prop("disabled", true);
             // Habilitar los campos para edición
             /*$(
               "#claveUsuarioCliente, #usuarioCliente, #nombreUsuarioCliente, #correoUsuarioCliente, #contrasenaUsuarioCliente, #telefonoUsuarioCliente, #idUsuarioCliente, #selectCliente"

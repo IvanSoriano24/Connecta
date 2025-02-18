@@ -298,7 +298,7 @@ function mostrarPedidos($conexionData, $filtroFecha)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }*/
-function mostrarPedidoEspecifico($clave, $conexionData)
+function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
 {
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
@@ -395,7 +395,6 @@ function actualizarPedido($conexionData, $formularioData, $partidasData)
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
     $claveSae = $_SESSION['empresa']['claveSae'];
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Extraer los datos del formulario
@@ -471,7 +470,8 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
     }
 
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
 
     // Iniciar transacción
@@ -535,7 +535,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         $TOT_PARTIDA = $PREC * $CANT;
 
         // Consultar la descripción del producto (si es necesario)
-        $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa);
+        $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
         if (isset($partidasExistentes[$CVE_ART])) {
             // Si la partida ya existe, realizar un UPDATE
             $sql = "UPDATE $nombreTabla SET 
@@ -639,8 +639,9 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
     }
 
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
-    $nombreTablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
 
     // Obtener las partidas anteriores del pedido
@@ -731,7 +732,8 @@ function obtenerDatosCliente($conexionData, $claveCliente)
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -780,7 +782,8 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     }
     // Obtener el número de empresa
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Extraer los datos del formulario
     $FOLIO = $formularioData['numero'];
     $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
@@ -922,7 +925,8 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
     }
     // Obtener el número de empresa
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Iniciar la transacción para las inserciones de las partidas
     sqlsrv_begin_transaction($conn);
     // Iterar sobre las partidas recibidas
@@ -963,7 +967,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
             $TOT_PARTIDA = $PREC * $CANT;
 
             // Consultar la descripción del producto (si es necesario)
-            $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa);
+            $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
 
             // Crear la consulta SQL para insertar los datos de la partida
             $sql = "INSERT INTO $nombreTabla
@@ -1025,7 +1029,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa)
+function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae)
 {
     // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
     // Asumiendo que la descripción está en una tabla llamada "productos"
@@ -1035,7 +1039,7 @@ function obtenerDescripcionProducto($CVE_ART, $conexionData, $noEmpresa)
         "PWD" => $conexionData['password'],
         "CharacterSet" => "UTF-8"
     ]);
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT DESCR FROM $nombreTabla WHERE CVE_ART = ?";
     $stmt = sqlsrv_query($conn, $sql, [$CVE_ART]);
     if ($stmt === false) {
@@ -1065,8 +1069,8 @@ function actualizarFolio($conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // SQL para incrementar el valor de ULT_DOC en 1 donde TIP_DOC es 'P'
     $sql = "UPDATE $nombreTabla
@@ -1107,8 +1111,8 @@ function actualizarInventario($conexionData, $partidasData)
         "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -1196,8 +1200,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     $claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
     $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
 
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL para obtener MAIL y EMAILPRED
     $sql = "SELECT MAIL, EMAILPRED, NOMBRE FROM $nombreTabla WHERE [CLAVE] = ?";
@@ -1215,7 +1219,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         sqlsrv_close($conn);
         return;
     }
-    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
         $claveProducto = $partida['producto'];
 
@@ -1244,7 +1248,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         $numeroWhatsApp = '+527773750925';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $noEmpresa, $partidasData, $enviarA, $vendedor, $fechaElaboracion);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1412,13 +1416,13 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 
     return $result;
 }*/
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpresa, $partidasData, $enviarA, $vendedor, $fechaElaboracion)
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion)
 {
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
     $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
 
     // ✅ Verifica que los valores no estén vacíos
-    if (empty($noPedido) || empty($noEmpresa)) {
+    if (empty($noPedido) || empty($claveSae)) {
         error_log("Error: noPedido o noEmpresa están vacíos.");
         return false;
     }
@@ -1546,8 +1550,8 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
 
 
     // Construir la consulta SQL
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     /*$sql = "SELECT DISTINCT 
                 [CLAVE], [NOMBRE], [CALLE], [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
                 [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC]
@@ -1672,8 +1676,8 @@ function obtenerProductos($conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL
     $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU]
@@ -1702,7 +1706,7 @@ function obtenerProductos($conexionData)
     sqlsrv_close($conn);
 }
 
-function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $noEmpresa)
+function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1721,7 +1725,7 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
     $listaPrecio = $listaPrecioCliente ? intval($listaPrecioCliente) : 1;
     $claveProducto = mb_convert_encoding(trim($claveProducto), 'UTF-8');
     //$claveProducto = "'". $claveProducto . "'";
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PRECIO_X_PROD" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PRECIO_X_PROD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT [PRECIO] 
             FROM $nombreTabla
             WHERE [CVE_ART] = ? AND [CVE_PRECIO] = ?";
@@ -1745,7 +1749,7 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
     sqlsrv_close($conn);
 }
 
-function obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa)
+function obtenerImpuesto($conexionData, $cveEsqImpu, $claveSae)
 {
     ob_start(); // Inicia el buffer de salida para evitar texto adicional
 
@@ -1766,7 +1770,7 @@ function obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa)
     }
 
     $cveEsqImpu = mb_convert_encoding(trim($cveEsqImpu), 'UTF-8');
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[IMPU" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[IMPU" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT IMPUESTO1, IMPUESTO2, IMPUESTO3, IMPUESTO4 FROM $nombreTabla WHERE CVE_ESQIMPU = ?";
     $params = [$cveEsqImpu];
 
@@ -1810,8 +1814,8 @@ function validarExistencias($conexionData, $partidasData)
         "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
@@ -1964,8 +1968,8 @@ function obtenerPartidasPedido($conexionData, $clavePedido)
     }
 
     // Tabla dinámica basada en el número de empresa
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consultar partidas del pedido
     $sql = "SELECT CVE_DOC, NUM_PAR, CVE_ART, CANT, UNI_VENTA, PREC, IMPU1, IMPU4, DESC1, DESC2, TOT_PARTIDA, DESCR_ART, COMI 
@@ -2021,8 +2025,8 @@ function eliminarPartida($conexionData, $clavePedido, $numPar)
     }
 
     // Nombre de la tabla dinámico basado en la empresa
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta para eliminar la partida
     $sql = "DELETE FROM $nombreTabla WHERE CVE_DOC = ? AND NUM_PAR = ?";
@@ -2064,8 +2068,8 @@ function eliminarPedido($conexionData, $pedidoID)
     }
     $clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
     // Nombre de la tabla dinámico basado en la empresa
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Actualizar el estatus del pedido
     $query = "UPDATE $nombreTabla SET STATUS = 'C' WHERE CVE_DOC = ?";
@@ -2118,7 +2122,7 @@ function listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket)
 
     return $imagenesPorArticulo;
 }
-function extraerProductos($conexionData, $noEmpresa)
+function extraerProductos($conexionData, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2134,7 +2138,7 @@ function extraerProductos($conexionData, $noEmpresa)
         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta directa a la tabla fija INVE02
     $sql = "
         SELECT 
@@ -2224,7 +2228,7 @@ function extraerProducto($conexionData)
     }
 
     // Asume la empresa predeterminada
-    $noEmpresa = '02';
+    $noEmpresa = '02';//Aqui
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta específica para el producto
@@ -2438,7 +2442,7 @@ switch ($funcion) {
 
         $conexionData = $conexionResult['data'];
         $clave = $_POST['pedidoID'];
-        mostrarPedidoEspecifico($clave, $conexionData, $noEmpresa);
+        mostrarPedidoEspecifico($clave, $conexionData, $claveSae);
         break;
         //Nuevo       
     case 3:
@@ -2530,7 +2534,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $claveProducto = $_GET['claveProducto'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];
-        obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $noEmpresa);
+        obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $claveSae);
         break;
     case 7:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -2546,7 +2550,7 @@ switch ($funcion) {
         }
         $conexionData = $conexionResult['data'];
         $cveEsqImpu = $_POST['cveEsqImpu'];
-        obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa);
+        obtenerImpuesto($conexionData, $cveEsqImpu, $noEmpresa, $claveSae);
         break;
 
     case 8:
@@ -2705,7 +2709,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
 
         // Llamar a la función para extraer productos
-        extraerProductos($conexionData, $noEmpresa);
+        extraerProductos($conexionData, $noEmpresa);//Aqui
         break;
     case 12:
         $codigoProducto = isset($_GET['codigoProducto']) ? $_GET['codigoProducto'] : null;
@@ -2751,7 +2755,7 @@ switch ($funcion) {
 
         // Obtener conexión
         $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);//Aqui
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -2769,7 +2773,7 @@ switch ($funcion) {
 
         // Obtener conexión
         $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);//Aqui
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
