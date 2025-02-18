@@ -2575,48 +2575,48 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            //$resultadoValidacion = validarExistencias($conexionData, $partidasData);
+            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
-            //if ($resultadoValidacion['success']) {
+            if ($resultadoValidacion['success']) {
             // Calcular el total del pedido
-            //$totalPedido = calcularTotalPedido($partidasData);
-            //$clienteId = $formularioData['cliente'];
-            //$claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
-            //$clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
+            $totalPedido = calcularTotalPedido($partidasData);
+            $clienteId = $formularioData['cliente'];
+            $claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
+            $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
 
             // Validar crédito del cliente
-            //$validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
+            $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
-            //if ($validacionCredito['success']) {
-            // guardarPedido($conexionData, $formularioData, $partidasData);
-            //guardarPartidas($conexionData, $formularioData, $partidasData);
-            //actualizarFolio($conexionData);
-            //actualizarInventario($conexionData, $partidasData);
+            if ($validacionCredito['success']) {
+            guardarPedido($conexionData, $formularioData, $partidasData);
+            guardarPartidas($conexionData, $formularioData, $partidasData);
+            actualizarFolio($conexionData);
+            actualizarInventario($conexionData, $partidasData);
             validarCorreoCliente($formularioData, $partidasData, $conexionData);
             // Respuesta de éxito
-            /*echo json_encode([
+            echo json_encode([
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
-                    ]);*/
-            //} else {
-            // Error de crédito
-            //echo json_encode([
-            //    'success' => false,
-            //    'credit' => true,
-            //    'message' => 'Límite de crédito excedido.',
-            //    'saldoActual' => $validacionCredito['saldoActual'],
-            //    'limiteCredito' => $validacionCredito['limiteCredito'],
-            //]);
-            //}
-            //} else {
-            // Error de existencias
-            //echo json_encode([
-            //    'success' => false,
-            //    'exist' => true,
-            //    'message' => $resultadoValidacion['message'],
-            //    'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
-            //]);
-            //}
+                    ]);
+            } else {
+            /* Error de crédito */
+            echo json_encode([
+                'success' => false,
+                'credit' => true,
+                'message' => 'Límite de crédito excedido.',
+                'saldoActual' => $validacionCredito['saldoActual'],
+                'limiteCredito' => $validacionCredito['limiteCredito'],
+            ]);
+            }
+            } else {
+            /* Error de existencias */
+            echo json_encode([
+                'success' => false,
+                'exist' => true,
+                'message' => $resultadoValidacion['message'],
+                'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
+            ]);
+            }
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);
