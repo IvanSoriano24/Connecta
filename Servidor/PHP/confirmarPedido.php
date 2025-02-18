@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('America/Mexico_City');
 require 'firebase.php'; // Archivo de configuración de Firebase
 session_start();
 
@@ -12,167 +13,220 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $productos = json_decode($productosJson, true);
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     // Obtener fecha y hora actual si no está incluida en los parámetros
-    if ($accion === 'confirmar') {
-        
-        // Obtener la hora actual
-        $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
-        // Determinar el estado según la hora
-        $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
-        
-        // Preparar datos para Firebase
-        $comanda = [
-            "fields" => [
-                "idComanda" => ["stringValue" => uniqid()],
-                "folio" => ["stringValue" => $pedidoId],
-                "nombreCliente" => ["stringValue" => $nombreCliente],
-                "enviarA" => ["stringValue" => $enviarA],
-                "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
-                "productos" => [
-                    "arrayValue" => [
-                        "values" => array_map(function ($producto) {
-                            return [
-                                "mapValue" => [
-                                    "fields" => [
-                                        "clave" => ["stringValue" => $producto["producto"]],
-                                        "descripcion" => ["stringValue" => $producto["descripcion"]],
-                                        "cantidad" => ["integerValue" => (int) $producto["cantidad"]],
+    $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
+    if ($resultado) {
+        echo "<div class='container'>
+            <div class='title'>Solicitud Inválida</div>
+            <div class='message'>Este pedido ya fue aceptado/cancelado.</div>
+            <a href='/index.php' class='button'>Volver al inicio</a>
+          </div>";
+    } else {
+        if ($accion === 'confirmar') {
+
+            // Obtener la hora actual
+            $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
+            // Determinar el estado según la hora
+            $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
+
+            // Preparar datos para Firebase
+            $comanda = [
+                "fields" => [
+                    "idComanda" => ["stringValue" => uniqid()],
+                    "folio" => ["stringValue" => $pedidoId],
+                    "nombreCliente" => ["stringValue" => $nombreCliente],
+                    "enviarA" => ["stringValue" => $enviarA],
+                    "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
+                    "productos" => [
+                        "arrayValue" => [
+                            "values" => array_map(function ($producto) {
+                                return [
+                                    "mapValue" => [
+                                        "fields" => [
+                                            "clave" => ["stringValue" => $producto["producto"]],
+                                            "descripcion" => ["stringValue" => $producto["descripcion"]],
+                                            "cantidad" => ["integerValue" => (int) $producto["cantidad"]],
+                                        ]
                                     ]
-                                ]
-                            ];
-                        }, $productos)
+                                ];
+                            }, $productos)
+                        ]
+                    ],
+                    "vendedor" => ["stringValue" => $vendedor],
+                    "status" => ["stringValue" => $estadoComanda] // Establecer estado según la hora
+                ]
+            ];
+
+            // URL de Firebase
+            $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+
+            // Enviar los datos a Firebase
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'POST',
+                    'header' => "Content-Type: application/json\r\n",
+                    'content' => json_encode($comanda)
+                ]
+            ]);
+
+            $response = @file_get_contents($url, false, $context);
+
+            if ($response === false) {
+                $error = error_get_last();
+                echo "<div class='container'>
+                        <div class='title'>Error al Conectarse</div>
+                        <div class='message'>No se pudo conectar a Firebase: " . $error['message'] . "</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+            } else {
+                $result = json_decode($response, true);
+                if (isset($result['name'])) {
+                    //$remisionUrl = "remision.php";
+                    /*$remisionUrl = "http://localhost/MDConnecta/Servidor/PHP/remision.php";
+    
+                    $data = [
+                        'numFuncion' => 1,
+                        'pedidoId' => $pedidoId
+                    ];
+    
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $remisionUrl);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        'Content-Type: application/x-www-form-urlencoded'
+                    ]);
+    
+                    $remisionResponse = curl_exec($ch);
+    
+                    if (curl_errno($ch)) {
+                        echo 'Error cURL: ' . curl_error($ch);
+                    }
+    
+                    curl_close($ch);
+    
+                    echo "Respuesta de remision.php: " . $remisionResponse;*/
+                    echo "<div class='container'>
+                            <div class='title'>Confirmación Exitosa</div>
+                            <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+                            <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
+                          </div>";
+                } else {
+                    echo "<div class='container'>
+                            <div class='title'>Error al Registrar</div>
+                            <div class='message'>Hubo un problema al registrar los datos en Firebase.</div>
+                            <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                          </div>";
+                }
+            }
+        } elseif ($accion === 'rechazar') {
+            $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+            // Consultar Firebase para obtener los datos del vendedor
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'header' => "Content-Type: application/json\r\n"
+                ]
+            ]);
+
+            $response = @file_get_contents($firebaseUrl, false, $context);
+            if ($response === false) {
+                echo "<div class='container'>
+                        <div class='title'>Error al Obtener Información</div>
+                        <div class='message'>No se pudo obtener la información del vendedor.</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+                exit;
+            }
+
+            $usuariosData = json_decode($response, true);
+            $telefonoVendedor = null;
+
+            // Buscar al vendedor por clave
+            if (isset($usuariosData['documents'])) {
+                foreach ($usuariosData['documents'] as $document) {
+                    $fields = $document['fields'];
+                    if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                        $telefonoVendedor = $fields['telefono']['stringValue'];
+                        break;
+                    }
+                }
+            }
+
+            if (!$telefonoVendedor) {
+                echo "<div class='container'>
+                        <div class='title'>Error al Encontrar Vendedor</div>
+                        <div class='message'>No se encontró el número de teléfono del vendedor.</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+                exit;
+            }
+            // Enviar mensaje de WhatsApp
+            $resultadoWhatsApp = enviarWhatsApp($telefonoVendedor, $pedidoId, $nombreCliente);
+            if ($resultadoWhatsApp) {
+
+                $estadoComanda = "Cancelada"; // "Pendiente" después de 1:00 PM
+
+                // Preparar datos para Firebase
+                $comanda = [
+                    "fields" => [
+                        "idComanda" => ["stringValue" => uniqid()],
+                        "folio" => ["stringValue" => $pedidoId],
+                        "nombreCliente" => ["stringValue" => $nombreCliente],
+                        "enviarA" => ["stringValue" => $enviarA],
+                        "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
+                        "productos" => [
+                            "arrayValue" => [
+                                "values" => array_map(function ($producto) {
+                                    return [
+                                        "mapValue" => [
+                                            "fields" => [
+                                                "clave" => ["stringValue" => $producto["producto"]],
+                                                "descripcion" => ["stringValue" => $producto["descripcion"]],
+                                                "cantidad" => ["integerValue" => (int) $producto["cantidad"]],
+                                            ]
+                                        ]
+                                    ];
+                                }, $productos)
+                            ]
+                        ],
+                        "vendedor" => ["stringValue" => $vendedor],
+                        "status" => ["stringValue" => $estadoComanda] // Establecer estado según la hora
                     ]
-                ],
-                "vendedor" => ["stringValue" => $vendedor],
-                "status" => ["stringValue" => $estadoComanda] // Establecer estado según la hora
-            ]
-        ];
-
-        // URL de Firebase
-        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
-
-        // Enviar los datos a Firebase
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: application/json\r\n",
-                'content' => json_encode($comanda)
-            ]
-        ]);
-
-        $response = @file_get_contents($url, false, $context);
-        
-        if ($response === false) {
-            $error = error_get_last();
-            echo "<div class='container'>
-                    <div class='title'>Error al Conectarse</div>
-                    <div class='message'>No se pudo conectar a Firebase: " . $error['message'] . "</div>
-                    <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
-                  </div>";
-        } else {
-            $result = json_decode($response, true);
-            if (isset($result['name'])) {
-                //$remisionUrl = "remision.php";
-                /*$remisionUrl = "http://localhost/MDConnecta/Servidor/PHP/remision.php";
-
-                $data = [
-                    'numFuncion' => 1,
-                    'pedidoId' => $pedidoId
                 ];
 
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, $remisionUrl);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    'Content-Type: application/x-www-form-urlencoded'
+                // URL de Firebase
+                $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+
+                // Enviar los datos a Firebase
+                $context = stream_context_create([
+                    'http' => [
+                        'method' => 'POST',
+                        'header' => "Content-Type: application/json\r\n",
+                        'content' => json_encode($comanda)
+                    ]
                 ]);
 
-                $remisionResponse = curl_exec($ch);
-
-                if (curl_errno($ch)) {
-                    echo 'Error cURL: ' . curl_error($ch);
-                }
-
-                curl_close($ch);
-
-                echo "Respuesta de remision.php: " . $remisionResponse;*/
+                $response = @file_get_contents($url, false, $context);
                 echo "<div class='container'>
-                        <div class='title'>Confirmación Exitosa</div>
-                        <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+                        <div class='title'>Pedido Rechazado</div>
+                        <div class='message'>El pedido $pedidoId fue rechazado correctamente y se notificó al vendedor.</div>
                         <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
                       </div>";
             } else {
                 echo "<div class='container'>
-                        <div class='title'>Error al Registrar</div>
-                        <div class='message'>Hubo un problema al registrar los datos en Firebase.</div>
+                        <div class='title'>Error al Notificar</div>
+                        <div class='message'>El pedido fue rechazado, pero no se pudo notificar al vendedor.</div>
                         <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
                       </div>";
             }
-        }
-    } elseif ($accion === 'rechazar') {
-        $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
-        // Consultar Firebase para obtener los datos del vendedor
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => "Content-Type: application/json\r\n"
-            ]
-        ]);
-
-        $response = @file_get_contents($firebaseUrl, false, $context);
-        if ($response === false) {
-            echo "<div class='container'>
-                    <div class='title'>Error al Obtener Información</div>
-                    <div class='message'>No se pudo obtener la información del vendedor.</div>
-                    <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
-                  </div>";
-            exit;
-        }
-
-        $usuariosData = json_decode($response, true);
-        $telefonoVendedor = null;
-
-        // Buscar al vendedor por clave
-        if (isset($usuariosData['documents'])) {
-            foreach ($usuariosData['documents'] as $document) {
-                $fields = $document['fields'];
-                if (isset($fields['claveVendedor']['stringValue']) && $fields['claveVendedor']['stringValue'] === $vendedor) {
-                    $telefonoVendedor = $fields['telefono']['stringValue'];
-                    break;
-                }
-            }
-        }
-
-        if (!$telefonoVendedor) {
-            echo "<div class='container'>
-                    <div class='title'>Error al Encontrar Vendedor</div>
-                    <div class='message'>No se encontró el número de teléfono del vendedor.</div>
-                    <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
-                  </div>";
-            exit;
-        }
-        // Enviar mensaje de WhatsApp
-        $resultadoWhatsApp = enviarWhatsApp($telefonoVendedor, $pedidoId, $nombreCliente);
-        if ($resultadoWhatsApp) {
-            echo "<div class='container'>
-                    <div class='title'>Pedido Rechazado</div>
-                    <div class='message'>El pedido $pedidoId fue rechazado correctamente y se notificó al vendedor.</div>
-                    <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
-                  </div>";
         } else {
             echo "<div class='container'>
-                    <div class='title'>Error al Notificar</div>
-                    <div class='message'>El pedido fue rechazado, pero no se pudo notificar al vendedor.</div>
+                    <div class='title'>Acción no válida</div>
+                    <div class='message'>No se reconoció la acción solicitada.</div>
                     <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
                   </div>";
         }
-    } else {
-        echo "<div class='container'>
-                <div class='title'>Acción no válida</div>
-                <div class='message'>No se reconoció la acción solicitada.</div>
-                <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
-              </div>";
     }
 } else {
     echo "<div class='container'>
@@ -227,6 +281,33 @@ function enviarWhatsApp($numero, $pedidoId, $nombreCliente)
 
     return $result;
 }
+
+function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId) {
+    // URL para obtener todas las comandas en Firebase
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+
+    // Obtener la lista de comandas
+    $response = @file_get_contents($url);
+    if ($response === false) {
+        return false; // Si hay un error en la conexión, asumimos que no existe
+    }
+
+    $data = json_decode($response, true);
+    if (!isset($data['documents'])) {
+        return false; // Si no hay documentos en COMANDA, el pedido no existe
+    }
+
+    // Recorrer todas las comandas y verificar si el folio ya está en la base de datos
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
+            return true; // Pedido encontrado en Firebase
+        }
+    }
+
+    return false; // No se encontró el pedido en la colección
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="es">

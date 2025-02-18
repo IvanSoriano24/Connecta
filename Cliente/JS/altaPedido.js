@@ -1056,7 +1056,23 @@ $(document).ready(function () {
         "Número final en el formulario:",
         document.getElementById("numero").value
       );
-
+      const tablaProductos = document.querySelector("#tablaProductos tbody");
+      const filas = tablaProductos.querySelectorAll("tr");
+    
+        const ultimaFila = filas[filas.length - 1];
+        const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
+        const ultimaCantidad =
+          parseFloat(ultimaFila.querySelector(".cantidad").value) || 0;
+    
+        if (ultimoProducto === "" || ultimaCantidad === 0) {
+          Swal.fire({
+            title: "Error",
+            text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de guardar el pedido.",
+            icon: "error",
+            confirmButtonText: "Entendido",
+          });
+          return;
+        }
       guardarPedido(id);
 
       return false; // Evita la recarga de la página

@@ -1268,7 +1268,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 
     $productosJson = urlencode(json_encode($partidasData));
     // URLs para confirmar o rechazar
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion);
     $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor);
 
@@ -1426,10 +1426,10 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         error_log("Error: noPedido o noEmpresa están vacíos.");
         return false;
     }
-
+    $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) .  "&fechaElab=" . urlencode($fechaElaboracion); // Solo pasamos el número de pedido
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion);; // Solo pasamos el número de pedido
     $urlRechazar = urlencode($noPedido); // Solo pasamos el número de pedido
 
 
@@ -2575,7 +2575,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+            /*$resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
             // Calcular el total del pedido
@@ -2591,32 +2591,32 @@ switch ($funcion) {
             guardarPedido($conexionData, $formularioData, $partidasData);
             guardarPartidas($conexionData, $formularioData, $partidasData);
             actualizarFolio($conexionData);
-            actualizarInventario($conexionData, $partidasData);
+            actualizarInventario($conexionData, $partidasData);*/
             validarCorreoCliente($formularioData, $partidasData, $conexionData);
             // Respuesta de éxito
             echo json_encode([
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
                     ]);
-            } else {
+            //} else {
             /* Error de crédito */
-            echo json_encode([
+            /*echo json_encode([
                 'success' => false,
                 'credit' => true,
                 'message' => 'Límite de crédito excedido.',
                 'saldoActual' => $validacionCredito['saldoActual'],
                 'limiteCredito' => $validacionCredito['limiteCredito'],
             ]);
-            }
-            } else {
+            }*/
+            //} else {
             /* Error de existencias */
-            echo json_encode([
+            /*echo json_encode([
                 'success' => false,
                 'exist' => true,
                 'message' => $resultadoValidacion['message'],
                 'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
             ]);
-            }
+            }*/
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);
