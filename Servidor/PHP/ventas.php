@@ -712,14 +712,26 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
 
     return ['success' => true, 'message' => 'Inventario actualizado correctamente'];
 }
+function formatearClaveCliente($clave) {
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $clave = trim((string) $clave);
 
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($clave) === 10) {
+        return $clave;
+    }
+
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    return str_pad($clave, 10, ' ', STR_PAD_LEFT);
+}
 function obtenerDatosCliente($conexionData, $claveCliente)
 {
-    // Obtener solo la clave del cliente (primera parte antes del espacio)
-    $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
+    /*// Obtener solo la clave del cliente (primera parte antes del espacio)
+    $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos 
     $clave = $claveArray[0]; // Tomar solo la primera parte
     //    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);*/
+    $clave = formatearClaveCliente($claveCliente);
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1196,15 +1208,16 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     $enviarA = $formularioData['enviar']; // Dirección de envío
     $vendedor = $formularioData['vendedor']; // Número de vendedor
     $claveCliente = $formularioData['cliente'];
+    $clave = formatearClaveCliente($claveCliente);
     $noPedido = $formularioData['numero']; // Número de pedido
-    $claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
-    $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
+    /*$claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
+    $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);*/
 
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL para obtener MAIL y EMAILPRED
-    $sql = "SELECT MAIL, EMAILPRED, NOMBRE FROM $nombreTabla WHERE [CLAVE] = ?";
+    $sql = "SELECT MAIL, EMAILPRED, NOMBRE, TELEFONO FROM $nombreTabla WHERE [CLAVE] = ?";
     $params = [$clave];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -1238,14 +1251,17 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
 
     $fechaElaboracion = $formularioData['diaAlta'];
     $correo = trim($clienteData['MAIL']);
-    //$emailPred = trim($clienteData['EMAILPRED']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
+    $emailPred = trim($clienteData['EMAILPRED']);
+    $numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
+    var_dump($emailPred);
+    $emailPred = 'desarrollo01@mdcloud.mx';
     //$numeroWhatsApp = '+527773340218';
     $numeroWhatsApp = '+527773750925';
     //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
+        $emailPred = 'desarrollo01@mdcloud.mx';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion);
@@ -2638,11 +2654,12 @@ switch ($funcion) {
             // Calcular el total del pedido
             $totalPedido = calcularTotalPedido($partidasData);
             $clienteId = $formularioData['cliente'];
-            $claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
-            $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);
+            $clienteId = formatearClaveCliente($clienteId);
+            /*$claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
+            $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);*/
 
             // Validar crédito del cliente
-            $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
+            /*$validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
             if ($validacionCredito['success']) {
             guardarPedido($conexionData, $formularioData, $partidasData);
@@ -2651,10 +2668,10 @@ switch ($funcion) {
             actualizarInventario($conexionData, $partidasData);*/
             validarCorreoCliente($formularioData, $partidasData, $conexionData);
             // Respuesta de éxito
-            echo json_encode([
+            /*echo json_encode([
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
-                    ]);
+                    ]);*/
             //} else {
             /* Error de crédito */
             /*echo json_encode([
@@ -2869,8 +2886,10 @@ switch ($funcion) {
         obtenerProductoPedido($clave, $conexionData, $producto, $claveSae);
         break;
     case 17:
+        $noEmpresa = "";
         $claveSae = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conexionData = $conexionResult['data'];
         extraerProductosE($conexionData, $claveSae);
         break;
     default:

@@ -12,7 +12,7 @@
         <ul>
           <li><a href="Menu.php" >Inicio</a></li>
           <li><a href="#">Crédito</a></li>
-          <li><a href="Articulos.php">Productos</a></li>
+          <li><a href="Articulos.php">Categoria</a></li>
           <li><a href="Pedidos.php">Pedidos</a></li>
           <li><a href="#">Guias</a></li>
           <li><a href="Carrito.php">Carrito</a></li>
@@ -20,7 +20,7 @@
           <li><a href="imagenes.php">Imagenes</a></li>
           <li><a href="Dashboard.php">MDConnecta</a></li>
           <?php } ?>
-         
+         <li><a>Hola <?php echo $nombreUsuario ?> </a></li>
           <!-- <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
               <li><a href="#">Dropdown 1</a></li>

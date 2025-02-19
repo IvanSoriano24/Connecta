@@ -585,8 +585,8 @@ if (isset($_SESSION['usuario'])) {
                                         <thead>
                                             <tr>
                                                 <th>Eliminar</th>
-                                                <th>Cant.</th>
                                                 <th>Producto</th>
+                                                <th>Cant.</th>
                                                 <th>Unidad</th>
                                                 <th>Desc.1</th>
                                                 <th>Desc.2</th>
