@@ -712,7 +712,8 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
 
     return ['success' => true, 'message' => 'Inventario actualizado correctamente'];
 }
-function formatearClaveCliente($clave) {
+function formatearClaveCliente($clave)
+{
     // Asegurar que la clave sea un string y eliminar espacios innecesarios
     $clave = trim((string) $clave);
 
@@ -1251,16 +1252,21 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
 
     $fechaElaboracion = $formularioData['diaAlta'];
     $correo = trim($clienteData['MAIL']);
-    $emailPred = trim($clienteData['EMAILPRED']);
+    $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    // Si hay múltiples correos separados por `;`, tomar solo el primero
+    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+
     $numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    var_dump($emailPred);
     $emailPred = 'desarrollo01@mdcloud.mx';
-    //$numeroWhatsApp = '+527773340218';
-    $numeroWhatsApp = '+527773750925';
+    $numeroWhatsApp = '+527773340218';
+    
+    //$numeroWhatsApp = '+527773750925';
     //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
+        //$numeroWhatsApp = '+527773340218';
         $emailPred = 'desarrollo01@mdcloud.mx';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
@@ -1645,7 +1651,7 @@ function obtenerProductoPedido($claveVendedor, $conexionData, $clienteInput)
     $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU]
             FROM $nombreTabla
             WHERE LOWER(LTRIM(RTRIM([DESCR]))) LIKE LOWER(?) 
-            OR LOWER(LTRIM(RTRIM([CVE_ART]))) LIKE LOWER(?)"; 
+            OR LOWER(LTRIM(RTRIM([CVE_ART]))) LIKE LOWER(?)";
 
     // Agregar `%` al parámetro de búsqueda para permitir coincidencias parciales
     $parametros = ["%$clienteInput%", "%$clienteInput%"];
@@ -2651,45 +2657,43 @@ switch ($funcion) {
             /*$resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
-            // Calcular el total del pedido
-            $totalPedido = calcularTotalPedido($partidasData);
-            $clienteId = $formularioData['cliente'];
-            $clienteId = formatearClaveCliente($clienteId);
-            /*$claveArray = explode(' ', $clienteId, 2); // Obtener clave del cliente
-            $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);*/
+                // Calcular el total del pedido
+                $totalPedido = calcularTotalPedido($partidasData);
+                $clienteId = $formularioData['cliente'];
+                $clave = formatearClaveCliente($clienteId);
 
-            // Validar crédito del cliente
-            /*$validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
+                // Validar crédito del cliente
+                $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido);
 
-            if ($validacionCredito['success']) {
-            guardarPedido($conexionData, $formularioData, $partidasData);
-            guardarPartidas($conexionData, $formularioData, $partidasData);
-            actualizarFolio($conexionData);
-            actualizarInventario($conexionData, $partidasData);*/
-            validarCorreoCliente($formularioData, $partidasData, $conexionData);
-            // Respuesta de éxito
-            /*echo json_encode([
+                if ($validacionCredito['success']) {
+                    guardarPedido($conexionData, $formularioData, $partidasData);
+                    guardarPartidas($conexionData, $formularioData, $partidasData);
+                    actualizarFolio($conexionData);
+                    actualizarInventario($conexionData, $partidasData);*/
+                    validarCorreoCliente($formularioData, $partidasData, $conexionData);
+                    // Respuesta de éxito
+                    /*echo json_encode([
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
-                    ]);*/
-            //} else {
-            /* Error de crédito */
-            /*echo json_encode([
-                'success' => false,
-                'credit' => true,
-                'message' => 'Límite de crédito excedido.',
-                'saldoActual' => $validacionCredito['saldoActual'],
-                'limiteCredito' => $validacionCredito['limiteCredito'],
-            ]);
-            }*/
-            //} else {
-            /* Error de existencias */
-            /*echo json_encode([
-                'success' => false,
-                'exist' => true,
-                'message' => $resultadoValidacion['message'],
-                'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
-            ]);
+                    ]);
+                } else {
+                    // Error de crédito
+                    echo json_encode([
+                        'success' => false,
+                        'credit' => true,
+                        'message' => 'Límite de crédito excedido.',
+                        'saldoActual' => $validacionCredito['saldoActual'],
+                        'limiteCredito' => $validacionCredito['limiteCredito'],
+                    ]);
+                }
+            } else {
+                // Error de existencias
+                echo json_encode([
+                    'success' => false,
+                    'exist' => true,
+                    'message' => $resultadoValidacion['message'],
+                    'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
+                ]);
             }*/
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
@@ -2782,7 +2786,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
 
         // Llamar a la función para extraer productos
-        extraerProductos($conexionData, $claveSae);//Aqui
+        extraerProductos($conexionData, $claveSae); //Aqui
         break;
     case 12:
         $codigoProducto = isset($_GET['codigoProducto']) ? $_GET['codigoProducto'] : null;
@@ -2825,7 +2829,7 @@ switch ($funcion) {
     case 13:
         // Obtener conexión
         $claveSae = "02";
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);//Aqui
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae); //Aqui
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -2840,7 +2844,7 @@ switch ($funcion) {
     case 14:
         // Obtener conexión
         $claveSae = "02";
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);//Aqui
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae); //Aqui
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;

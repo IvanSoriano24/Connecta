@@ -298,7 +298,7 @@ if (isset($_SESSION['usuario'])) {
     /* Asegurar que la lista de sugerencias esté posicionada debajo del input */
     .suggestions-list-productos {
         position: absolute;
-        top: 100%;
+        top: 80%;
         /* La lista aparece justo debajo del input */
         left: 0;
         width: 100%;
