@@ -4,6 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require 'firebase.php'; // Archivo de configuración de Firebase
+include 'reportes.php';
 session_start();
 
 function obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae)
@@ -209,6 +210,9 @@ function actualizarInve($conexionData, $pedidoId, $claveSae)
         ]);
     }
 
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
+
     // Construcción dinámica de las tablas PAR_FACTPXX e INVEXX
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -276,10 +280,12 @@ function insertarNimve($conexionData, $pedidoId, $claveSae)
         ]);
         die();
     }
-    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
+    
     // Asegura que el ID del pedido tenga el formato correcto (10 caracteres con espacios a la izquierda)
     $refer = $pedidoId;
+
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
     $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -517,6 +523,9 @@ function actualizarInve3($conexionData, $pedidoId, $claveSae)
         die();
     }
 
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
+
     // Tablas dinámicas
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -585,6 +594,9 @@ function actualizarInveClaro($conexionData, $pedidoId, $claveSae)
         ]);
         die();
     }
+
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
     // Tablas dinámicas
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -656,6 +668,9 @@ function actualizarInveAmazon($conexionData, $pedidoId, $claveSae)
     // Tablas dinámicas
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventarioAmazon = "[{$conexionData['nombreBase']}].[dbo].[INVE_AMAZON" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
     // Obtener los productos del pedido
     $sqlPartidas = "SELECT DISTINCT CVE_ART FROM $tablaPartidas WHERE CVE_DOC = ?";
@@ -983,7 +998,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae)
         ]);
         die();
     }
-
+    $docAnt = $pedidoId;
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
@@ -1037,7 +1052,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae)
     $datMostr = 0;
     $cvePedi = '';  // Vacío según la traza
     $tipDocE = 'P';
-    $docAnt = $pedidoId;
+    //$docAnt = $pedidoId;
     $tipDocAnt = 'F';
 
     // ✅ 4. Insertar en FACTRXX
@@ -1366,11 +1381,13 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae)
 
     // ✅ 4. Insertar cada partida en `PAR_FACTRXX`
     while ($row = sqlsrv_fetch_array($stmtPartidas, SQLSRV_FETCH_ASSOC)) {
+        $TOT_PARTIDA = 0;
+        $TOT_PARTIDA = $row['CANT'] * $row['PREC'];
         $sqlInsert = "INSERT INTO $tablaPartidasRemision 
             (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
             IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, DESC1, 
             DESC2, DESC3, COMI, APAR, ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
-            TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, NUM_MOV, IMPRIMIR, MAN_IEPS, 
+            TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, NUM_MOV, TOT_PARTIDA,  IMPRIMIR, MAN_IEPS, 
             APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, 
             IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, 
             TOTIMP6, TOTIMP7, TOTIMP8)
@@ -1419,6 +1436,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae)
             $row['REG_SERIE'],
             $row['E_LTPD'],
             $numMov,
+            $TOT_PARTIDA, 
             $row['IMPRIMIR'],
             $row['MAN_IEPS'],
             1,
@@ -1925,6 +1943,9 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
     $tablaMulti = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
+    $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
+    
     // ✅ 1. Obtener los productos y almacenes del pedido
     $sqlProductos = "SELECT DISTINCT CVE_ART, NUM_ALM FROM $tablaPartidas WHERE CVE_DOC = ?";
     $paramsProductos = [$pedidoId];
@@ -2430,7 +2451,12 @@ function insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae)
     ]);*/
 }
 
-function crearRemision($conexionData, $pedidoId, $claveSae){
+
+function generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor) {
+    generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
+}
+
+function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor){
     actualizarControl($conexionData, $claveSae);
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
@@ -2472,6 +2498,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae){
     insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
     actualizarAlerta($conexionData, $claveSae);
+
+    generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
     echo json_encode(['success' => true, 'message' => 'Remision Creada Correctamente']);
 }
 function conectarDB($conexionData)
@@ -2677,6 +2705,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 switch ($funcion) {
     case 1:
         $claveSae = $_POST['claveSae'];
+        $noEmpresa = $_POST['noEmpresa'];
+        $vendedor = $_POST['vendedor'];
+        $productos = $_POST['productos'];
         //$noEmpresa = $_POST['noEmpresa'];
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
@@ -2687,7 +2718,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $pedidoId = $_POST['pedidoId'];
         
-        crearRemision($conexionData, $pedidoId, $claveSae);
+        crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

@@ -13,6 +13,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $productos = json_decode($productosJson, true);
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     $claveSae = $_GET['claveSae'];
+    $noEmpresa = $_GET['noEmpresa'];
+    $clave = $_GET['clave'];
     // Obtener fecha y hora actual si no está incluida en los parámetros
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
     if ($resultado) {
@@ -86,7 +88,9 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     $data = [
                         'numFuncion' => 1,
                         'pedidoId' => $pedidoId,
-                        'claveSae' => $claveSae
+                        'claveSae' => $claveSae,
+                        'noEmpresa' => $noEmpresa,
+                        'vendedor' => $vendedor
                     ];
     
                     $ch = curl_init();
