@@ -9,8 +9,7 @@ require '../fpdf/fpdf.php';
 
 
 // Función para obtener los datos de la empresa desde Firebase
-function obtenerDatosEmpresaFire($noEmpresa)
-{
+function obtenerDatosEmpresaFire($noEmpresa){
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
 
@@ -55,8 +54,7 @@ function obtenerDatosEmpresaFire($noEmpresa)
 
     return false; // No se encontró la empresa
 }
-function obtenerDatosVendedor($clave)
-{
+function obtenerDatosVendedor($clave){
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
 
@@ -93,8 +91,7 @@ function obtenerDatosVendedor($clave)
 
     return false;
 }
-function obtenerDatosClienteReporte($conexionData, $clienteId)
-{
+function obtenerDatosClienteReporte($conexionData, $clienteId){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -169,9 +166,9 @@ class PDFPedido extends FPDF
             $this->Ln(5);
             $this->SetFont('Arial', '', 10);
             $this->SetTextColor(39, 39, 51);
-            $this->Cell(120, 9, "Teléfono: " . $this->datosVendedor['telefono'], 0, 0, 'L');
+            $this->Cell(120, 9, iconv("UTF-8", "ISO-8859-1", "Teléfono: " . $this->datosVendedor['telefono']), 0, 0, 'L');
             $this->Ln(5);
-            $this->Cell(120, 9, "Email: " . $this->datosVendedor['correo'], 0, 0, 'L');
+            $this->Cell(120, 9, iconv("UTF-8", "ISO-8859-1","Email: " . $this->datosVendedor['correo']), 0, 0, 'L');
         }
         // Logo de la empresa
         $this->Image('../../Cliente/SRC/imagen.png', 145, 1, 0, 30); //, '', '', 'PNG'
@@ -184,11 +181,11 @@ class PDFPedido extends FPDF
 
             // Cliente - A la Izquierda
             $this->SetX(10); // Inicia desde la izquierda
-            $this->Cell(90, 10, $this->datosClienteReporte['nombre'], 0, 0, 'L');
+            $this->Cell(90, 10, iconv("UTF-8", "ISO-8859-1",$this->datosClienteReporte['nombre']), 0, 0, 'L');
 
             // Empresa - A la Derecha
             $this->SetX(140); // Posiciona la empresa en la parte derecha
-            $this->Cell(100, 10, strtoupper($this->datosEmpresaFire['razonSocial']), 0, 0, 'L');
+            $this->Cell(100, 10, iconv("UTF-8", "ISO-8859-1",strtoupper($this->datosEmpresaFire['razonSocial'])), 0, 0, 'L');
 
             $this->Ln(10);
 
@@ -197,53 +194,53 @@ class PDFPedido extends FPDF
 
             // RFC - Cliente a la izquierda
             $this->SetX(10);
-            $this->Cell(90, 9, "RFC: " . $this->datosClienteReporte['rfc'], 0, 0, 'L');
+            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1","RFC: " . $this->datosClienteReporte['rfc']), 0, 0, 'L');
 
             // RFC - Empresa a la derecha
             $this->SetX(140);
-            $this->Cell(100, 9, "RFC: " . $this->datosEmpresaFire['rfc'], 0, 0, 'L');
+            $this->Cell(100, 9, iconv("UTF-8", "ISO-8859-1","RFC: " . $this->datosEmpresaFire['rfc']), 0, 0, 'L');
 
             $this->Ln(5);
 
             // Dirección - Cliente a la izquierda
             $this->SetX(10);
-            $this->Cell(90, 9, "Dirección: " . $this->datosClienteReporte['direccion'] . ", " . $this->datosClienteReporte['colonia'], 0, 0, 'L');
+            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1","Dirección: " . $this->datosClienteReporte['direccion'] . ", " . $this->datosClienteReporte['colonia']), 0, 0, 'L');
 
             // Dirección - Empresa a la derecha
             $this->SetX(140);
-            $this->Cell(100, 9, "Dirección: " . $this->datosEmpresaFire['calle'] . " " . $this->datosEmpresaFire['numExterior'] . ", " . $this->datosEmpresaFire['colonia'], 0, 0, 'L');
+            $this->Cell(100, 9, iconv("UTF-8", "ISO-8859-1","Dirección: " . $this->datosEmpresaFire['calle'] . " " . $this->datosEmpresaFire['numExterior'] . ", " . $this->datosEmpresaFire['colonia']), 0, 0, 'L');
 
             $this->Ln(5);
 
             // Ubicación - Cliente a la izquierda
             $this->SetX(10);
-            $this->Cell(90, 9, $this->datosClienteReporte['ubicacion'], 0, 0, 'L');
+            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1",$this->datosClienteReporte['ubicacion']), 0, 0, 'L');
 
             // Ubicación - Empresa a la derecha
             $this->SetX(140);
-            $this->Cell(100, 9, $this->datosEmpresaFire['municipio'] . ", " . $this->datosEmpresaFire['estado'] . ", " . $this->datosEmpresaFire['pais'], 0, 0, 'L');
+            $this->Cell(100, 9, iconv("UTF-8", "ISO-8859-1",$this->datosEmpresaFire['municipio'] . ", " . $this->datosEmpresaFire['estado'] . ", " . $this->datosEmpresaFire['pais']), 0, 0, 'L');
 
             $this->Ln(5);
 
             // Código Postal - Cliente a la izquierda
             $this->SetX(10);
-            $this->Cell(90, 9, "Código Postal: " . $this->datosClienteReporte['codigoPostal'], 0, 0, 'L');
+            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1","Código Postal: " . $this->datosClienteReporte['codigoPostal']), 0, 0, 'L');
 
             // Código Postal - Empresa a la derecha
             $this->SetX(140);
-            $this->Cell(100, 9, "Código Postal: " . $this->datosEmpresaFire['codigoPostal'], 0, 0, 'L');
+            $this->Cell(100, 9, iconv("UTF-8", "ISO-8859-1","Código Postal: " . $this->datosEmpresaFire['codigoPostal']), 0, 0, 'L');
 
             $this->Ln(5);
 
             // Teléfono - Cliente a la izquierda
             $this->SetX(10);
-            $this->Cell(90, 9, "Teléfono: " . $this->datosClienteReporte['telefono'], 0, 0, 'L');
+            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1","Teléfono: " . $this->datosClienteReporte['telefono']), 0, 0, 'L');
 
             // Empresa: No tiene teléfono, dejamos espacio en blanco
             $this->SetX(140);
             $this->SetFont('Arial', '', 10);
             $this->SetTextColor(39, 39, 51);
-            $this->Cell(100, 12, "Pedido Nro: " . $this->formularioData['numero'], 0, 0, 'L');
+            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1","Pedido Nro: " . $this->formularioData['numero']), 0, 0, 'L');
 
             $this->Ln(5);
 
@@ -251,13 +248,13 @@ class PDFPedido extends FPDF
             $this->SetTextColor(39, 39, 51);
             // Email - Cliente a la izquierda
             $this->SetX(10);
-            $this->Cell(90, 9, "Email: " . $this->datosClienteReporte['email'], 0, 0, 'L');
+            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1","Email: " . $this->datosClienteReporte['email']), 0, 0, 'L');
 
             // Empresa: No tiene email, dejamos espacio en blanco
             $this->SetX(140);
             $this->SetFont('Arial', '', 10);
             $this->SetTextColor(39, 39, 51);
-            $this->Cell(100, 12, "Fecha de emisión: " . $this->formularioData['diaAlta'], 0, 0, 'L');
+            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1","Fecha de emisión: " . $this->formularioData['diaAlta']), 0, 0, 'L');
 
             /*// Información del pedido
             $this->SetFont('Arial', '', 10);
@@ -277,8 +274,8 @@ class PDFPedido extends FPDF
         $this->SetFillColor(23, 83, 201);
         $this->SetDrawColor(23, 83, 201);
         $this->SetTextColor(255, 255, 255);
-        $this->Cell(15, 8, "Clave", 1, 0, 'C', true);
-        $this->Cell(90, 8, "Descripción", 1, 0, 'C', true);
+        $this->Cell(20, 8, "Clave", 1, 0, 'C', true);
+        $this->Cell(90, 8, iconv("UTF-8", "ISO-8859-1","Descripción"), 1, 0, 'C', true);
         $this->Cell(15, 8, "Cant.", 1, 0, 'C', true);
         $this->Cell(30, 8, "Prec. Unitario", 1, 0, 'C', true);
         $this->Cell(40, 8, "Subtotal", 1, 1, 'C', true);
@@ -327,11 +324,11 @@ function generarReportePedido($formularioData, $partidasData, $conexionData)
 
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);
-        $pdf->Cell(15, 7, $partida['producto'], 1, 0, 'C');
-        $pdf->Cell(90, 7, iconv("UTF-8", "ISO-8859-1", $descripcion), 1);
-        $pdf->Cell(15, 7, $partida['cantidad'], 1, 0, 'C');
-        $pdf->Cell(30, 7, number_format($partida['precioUnitario'], 2), 1, 0, 'C');
-        $pdf->Cell(40, 7, number_format($monto, 2), 1, 1, 'R');
+        $pdf->Cell(20, 7, $partida['producto'], 0, 0, 'C');
+        $pdf->Cell(90, 7, iconv("UTF-8", "ISO-8859-1", $descripcion), 0);
+        $pdf->Cell(15, 7, $partida['cantidad'], 0, 0, 'C');
+        $pdf->Cell(30, 7, number_format($partida['precioUnitario'], 2), 0, 0, 'C');
+        $pdf->Cell(40, 7, number_format($monto, 2), 0, 1, 'R');
     }
 
     // **Calcular total con IVA (16%)**
@@ -339,14 +336,14 @@ function generarReportePedido($formularioData, $partidasData, $conexionData)
 
     // **Mostrar totales en la factura**
     $pdf->SetFont('Arial', 'B', 10);
-    $pdf->Cell(150, 7, 'Subtotal:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($subtotal, 2), 1, 1, 'R');
+    $pdf->Cell(155, 7, 'Subtotal:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotal, 2), 0, 1, 'R');
 
-    $pdf->Cell(150, 7, 'IVA (16%):', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($totalConIVA - $subtotal, 2), 1, 1, 'R');
+    $pdf->Cell(155, 7, 'IVA (16%):', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalConIVA - $subtotal, 2), 0, 1, 'R');
 
-    $pdf->Cell(150, 7, 'Total MXN:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($totalConIVA, 2), 1, 1, 'R');
+    $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalConIVA, 2), 0, 1, 'R');
 
     
     // Generar el nombre del archivo dinámicamente
@@ -357,7 +354,8 @@ function generarReportePedido($formularioData, $partidasData, $conexionData)
 
     ob_clean();
     // Configurar las cabeceras HTTP para mostrar el nombre correcto
-    header('Content-Type: application/pdf');
+    header('Content-Type: text/html; charset=UTF-8');
+    
     header('Content-Disposition: inline; filename="' . $nombreArchivo . '"');
 
     // Generar el PDF con el nombre personalizado
