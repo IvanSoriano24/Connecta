@@ -123,10 +123,11 @@ if (isset($_SESSION['usuario'])) {
                         <button class="btn btn-info" id="btnAsociarEmpresa">
                             <i class='bx bxs-building-house'></i> Asociar Empresa
                         </button>
+
+                        <button class="btn btn-success" id="btnAgregarCliente">
+                            <i class='bx bxs-user-plus'></i> Agregar Cliente
+                        </button>
                     <?php } ?>
-                    <button class="btn btn-success" id="btnAgregarCliente">
-                        <i class='bx bxs-user-plus'></i> Agregar Cliente
-                    </button>
                     <!--<button class="btn btn-secondary" id="btnExportar" disabled>
                         <i class='bx bxs-export'></i> Exportar
                     </button>-->
@@ -139,6 +140,7 @@ if (isset($_SESSION['usuario'])) {
                 <!-- Área para mostrar los datos de los clientes -->
                 <div class="table-data">
                     <div class="order">
+                        <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
                         <!-- 🔹 Barra de Navegación para Filtrar por Rol -->
                         <div style="align-items: center; display: flex; justify-content: center;" class="btn-group" role="group" aria-label="Filtros de Usuarios">
                             <button type="button" class="btn btn-primary filtro-rol" data-rol="TODOS">Todos</button>
@@ -148,6 +150,7 @@ if (isset($_SESSION['usuario'])) {
                             <button type="button" class="btn btn-secondary filtro-rol" data-rol="CLIENTE">Clientes</button>
                             <button type="button" class="btn btn-secondary filtro-rol" data-rol="ADMINISTRADOR">Administradores</button>
                         </div>
+                        <?php } ?>
                         <div class="head">
                             <h3></h3>
 

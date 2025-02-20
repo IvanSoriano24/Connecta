@@ -1,7 +1,7 @@
 <?php
 date_default_timezone_set('America/Mexico_City');
 require 'firebase.php'; // Archivo de configuración de Firebase
-session_start();
+//session_start();
 
 if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $pedidoId = $_GET['pedidoId'];
@@ -81,7 +81,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 $result = json_decode($response, true);
                 if (isset($result['name'])) {
                     //$remisionUrl = "remision.php";
-                    $remisionUrl = "http://localhost/MDConnecta/Servidor/PHP/remision.php";
+                    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
     
                     $data = [
                         'numFuncion' => 1,
@@ -106,7 +106,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     
                     curl_close($ch);
     
-                    //echo "Respuesta de remision.php: " . $remisionResponse;
+                    echo "Respuesta de remision.php: " . $remisionResponse;
                     echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>

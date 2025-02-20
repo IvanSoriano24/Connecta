@@ -410,8 +410,6 @@ if (isset($_SESSION['usuario'])) {
                                 </div>
                             </div>
 
-
-
                         </div>
                         <div class="row">
 
@@ -563,7 +561,7 @@ if (isset($_SESSION['usuario'])) {
                                         style="background-color: #e0e0e0; width: 470px; " value="" readonly>
                                 </div>
                             </div>
-
+                            <input class="input-mt" type="text" name="conCredito" id="conCredito" readonly hidden>
                             <div class="form-element"></div>
                         </div>
                         <div class="row">
@@ -606,6 +604,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly
                                     hidden>
                                 <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
+                                
 
                             </div>
                         </div>

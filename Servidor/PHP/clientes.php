@@ -177,6 +177,7 @@ function mostrarClienteEspecifico($clave, $conexionData){
 
     // Limpiar la clave y convertirla a UTF-8
     $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+    $clave = str_pad($clave, 20, ' ', STR_PAD_LEFT);
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
     // Crear la consulta SQL con un parámetro
@@ -236,9 +237,12 @@ function validarCreditos($conexionData, $clienteId) {
         if ($conn === false) {
             die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
         }
-
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        //$nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        
         // Construir la consulta SQL
-        $sql = "SELECT CON_CREDITO, LIMCRED, SALDO FROM [SAE90Empre02].[dbo].[CLIE02] WHERE CLAVE = ?";
+        $sql = "SELECT CON_CREDITO, LIMCRED, SALDO FROM $nombreTabla WHERE CLAVE = ?";
         $params = [$clienteId];
         $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -267,6 +271,31 @@ function validarCreditos($conexionData, $clienteId) {
             'limiteCredito' => $limiteCredito,
             'saldo' => $saldo
         ]);
+        /*$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
+        $params = [$clienteId];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+
+        // Verificar si hubo errores al ejecutar la consulta
+        if ($stmt === false) {
+            throw new Exception('Error al ejecutar la consulta.');
+        }
+
+        // Obtener los datos del cliente
+        $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+        if (!$clienteData) {
+            echo json_encode(['success' => false, 'message' => 'Cliente no encontrado.']);
+            exit;
+        }
+
+        // Limpiar y preparar los datos para la respuesta
+        $conCredito = trim($clienteData['CAMPLIB8']);
+
+        // Enviar respuesta con los datos del cliente
+        echo json_encode([
+            'success' => true,
+            'conCredito' => $conCredito
+        ]);*/
     } catch (Exception $e) {
         // Manejo de errores
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -287,6 +316,20 @@ function calcularTotalPedido($partidasData) {
     }
     return $total;
 }
+function formatearClaveCliente($clave)
+{
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $clave = trim((string) $clave);
+
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($clave) === 10) {
+        return $clave;
+    }
+
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    return str_pad($clave, 10, ' ', STR_PAD_LEFT);
+}
+
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -347,8 +390,8 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $clie = $_GET['clienteId'];
-        $clienteId = str_pad($clie, 10, ' ', STR_PAD_LEFT);
-        validarCreditos($conexionData, $clienteId);
+        $clave = formatearClaveCliente($clie);
+        validarCreditos($conexionData, $clave);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

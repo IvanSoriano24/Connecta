@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
+include 'reportes.php';
 //require_once 'whatsapp.php';
 //require_once 'clientes.php';
 
@@ -303,10 +304,9 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
+        "Database" => $conexionData['nombreBase'], // Nombre de la base de datos
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
         "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -317,7 +317,8 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $claveSae = $_SESSION['empresa']['claveSae'];
     // Limpiar la clave y construir el nombre de la tabla
-    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+    //$clave = mb_convert_encoding(trim($clave), 'UTF-8');
+    $clave = str_pad($clave, 20, ' ', STR_PAD_LEFT);
     $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -502,7 +503,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
     foreach ($partidasData as $partida) {
         // Extraer los datos de la partida
         $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-        $CVE_DOC = str_pad($CVE_DOC, 10, ' ', STR_PAD_LEFT);
+        $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
         $CVE_ART = $partida['producto']; // Clave del producto
         $CANT = $partida['cantidad']; // Cantidad
         $PREC = $partida['precioUnitario']; // Precio
@@ -800,7 +801,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     // Extraer los datos del formulario
     $FOLIO = $formularioData['numero'];
     $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $CVE_DOC = str_pad($CVE_DOC, 10, ' ', STR_PAD_LEFT);
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     $FECHA_DOC = $formularioData['diaAlta']; // Fecha del documento
     $FECHA_ENT = $formularioData['entrega'];
     // Sumar los totales de las partidas
@@ -829,7 +830,8 @@ function guardarPedido($conexionData, $formularioData, $partidasData)
     $NUM_ALMA = $formularioData['almacen'];
     $FORMAENVIO = 'C';
     $COM_TOT = $formularioData['comision'];
-    $DAT_ENVIO = 1; //Telefono
+    //$DAT_ENVIO = $formularioData['enviar']; 
+    $DAT_ENVIO = 1;
     $CVE_OBS = $datosCliente['CVE_OBS'];
     $CVE_BITA = $datosCliente['CVE_BITA'];
     //$COM_TOT_PORC = $datosCliente['COM_TOT_PORC']; //VENDEDOR
@@ -947,7 +949,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
         foreach ($partidasData as $partida) {
             // Extraer los datos de la partida
             $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-            $CVE_DOC = str_pad($CVE_DOC, 10, ' ', STR_PAD_LEFT);
+            $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
             $CVE_ART = $partida['producto']; // Clave del producto
             $CANT = $partida['cantidad']; // Cantidad
             $PREC = $partida['precioUnitario']; // Precio
@@ -1050,7 +1052,8 @@ function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae)
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ]);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT DESCR FROM $nombreTabla WHERE CVE_ART = ?";
@@ -1574,12 +1577,6 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
     // Construir la consulta SQL
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    /*$sql = "SELECT DISTINCT 
-                [CLAVE], [NOMBRE], [CALLE], [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
-                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC]
-            FROM $nombreTabla
-            WHERE [CLAVE] = '$clienteClave' OR LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre')
-              AND [CVE_VEND] = '$claveVendedor'";*/
     if (preg_match('/[a-zA-Z]/', $clienteInput)) {
         // Búsqueda por nombre
         $sql = "SELECT DISTINCT 
@@ -1939,8 +1936,10 @@ function validarCreditoCliente($conexionData, $clienteId, $totalPedido)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
-    $sql = "SELECT LIMCRED, SALDO FROM [SAE90Empre02].[dbo].[CLIE02] WHERE [CLAVE] = ?";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    
+    $sql = "SELECT LIMCRED, SALDO FROM $nombreTabla WHERE [CLAVE] = ?";
     $params = [str_pad($clienteId, 10, ' ', STR_PAD_LEFT)];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -1988,7 +1987,7 @@ function obtenerPartidasPedido($conexionData, $clavePedido)
         echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-
+    $clavePedido = str_pad($clavePedido, 20, ' ', STR_PAD_LEFT);
     // Tabla dinámica basada en el número de empresa
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -2088,7 +2087,7 @@ function eliminarPedido($conexionData, $pedidoID)
         echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    $clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
+    //$clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
     // Nombre de la tabla dinámico basado en la empresa
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -2461,6 +2460,10 @@ function eliminarImagen($conexionData)
         ]);
     }
 }
+
+function generarPDFP($formularioData, $partidasData, $conexionData) {
+    generarReportePedido($formularioData, $partidasData, $conexionData);
+}
 // -----------------------------------------------------------------------------------------------------
 
 
@@ -2509,7 +2512,8 @@ switch ($funcion) {
             exit;
         }
 
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode([
                 'success' => false,
@@ -2518,7 +2522,6 @@ switch ($funcion) {
             ]);
             exit;
         }
-
         $conexionData = $conexionResult['data'];
         $clave = $_POST['pedidoID'];
         mostrarPedidoEspecifico($clave, $conexionData, $claveSae);
@@ -2669,8 +2672,10 @@ switch ($funcion) {
                     guardarPedido($conexionData, $formularioData, $partidasData);
                     guardarPartidas($conexionData, $formularioData, $partidasData);
                     actualizarFolio($conexionData);
-                    actualizarInventario($conexionData, $partidasData);*/
-                    validarCorreoCliente($formularioData, $partidasData, $conexionData);
+                    actualizarInventario($conexionData, $partidasData);
+                    validarCorreoCliente($formularioData, $partidasData, $conexionData);*/
+                    generarPDFP($formularioData, $partidasData, $conexionData);
+                    //exit;
                     // Respuesta de éxito
                     /*echo json_encode([
                         'success' => true,
