@@ -115,7 +115,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     $remisionData = json_decode($remisionResponse, true);
                     echo "Respuesta de decodificada.php: " . $remisionData;
                     $cveDoc = trim($remisionData['cveDoc']);
-                    //var_dump($cveDoc);
+                    
                     // Verificar si la respuesta es un PDF
                     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
                     if (strpos($contentType, 'application/pdf') !== false) {

@@ -2666,7 +2666,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            /*$resultadoValidacion = validarExistencias($conexionData, $partidasData);
+            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
@@ -2681,7 +2681,7 @@ switch ($funcion) {
                     guardarPedido($conexionData, $formularioData, $partidasData);
                     guardarPartidas($conexionData, $formularioData, $partidasData);
                     actualizarFolio($conexionData);
-                    actualizarInventario($conexionData, $partidasData);*/
+                    actualizarInventario($conexionData, $partidasData);
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF);
                     //exit;
@@ -2691,7 +2691,7 @@ switch ($funcion) {
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
                     ]);
-                /*} else {
+                } else {
                     // Error de crédito
                     echo json_encode([
                         'success' => false,
@@ -2709,7 +2709,7 @@ switch ($funcion) {
                     'message' => $resultadoValidacion['message'],
                     'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
                 ]);
-            }*/
+            }
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);

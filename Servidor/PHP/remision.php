@@ -2408,18 +2408,16 @@ function generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor) {
 
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor){
 
-    $cveDoc = '          0000013313';
-
-    /*actualizarControl($conexionData, $claveSae);
+    actualizarControl($conexionData, $claveSae);
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
     actualizarFolios($conexionData, $claveSae);
     actualizarControl4($conexionData, $claveSae);
     actualizarControl2($conexionData, $claveSae);
     actualizarControl5($conexionData, $claveSae);
-    actualizarInve($conexionData, $pedidoId, $claveSae);*/
+    actualizarInve($conexionData, $pedidoId, $claveSae);
 
-    //validarLotes($conexionData, $pedidoId, $claveSae);
+    validarLotes($conexionData, $pedidoId, $claveSae);
     /*$validacionLotes = json_decode(validarLotes($conexionData, $pedidoId, $claveSae), true);
     if (!$validacionLotes['success']) {
         die(json_encode([
@@ -2429,7 +2427,7 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
         ]));
     }*/
 
-    /*insertarNimve($conexionData, $pedidoId, $claveSae);
+    insertarNimve($conexionData, $pedidoId, $claveSae);
     actualizarInve2($conexionData, $pedidoId, $claveSae);
     actualizarInve3($conexionData, $pedidoId, $claveSae); 
     actualizarInveClaro($conexionData, $pedidoId, $claveSae);
@@ -2441,16 +2439,16 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     $cveDoc = insertarFactr($conexionData, $pedidoId, $claveSae); 
     insertarFactr_Clib($conexionData, $cveDoc, $claveSae);
     actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae);
-    actualizarInve4($conexionData, $pedidoId, $claveSae);*/
-    //insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae);
-    /*actualizarFactp($conexionData, $pedidoId, $claveSae);
+    actualizarInve4($conexionData, $pedidoId, $claveSae);
+    insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae);
+    actualizarFactp($conexionData, $pedidoId, $claveSae);
     actualizarFactp2($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarFactp3($conexionData, $pedidoId, $claveSae);
     insertarDoctoSig($conexionData, $pedidoId, $cveDoc, $claveSae);
     insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae);
     insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
-    actualizarAlerta($conexionData, $claveSae);*/
+    actualizarAlerta($conexionData, $claveSae);
     
     generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
     //echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
@@ -2672,7 +2670,6 @@ switch ($funcion) {
         $pedidoId = $_POST['pedidoId'];
         
         $cveDoc = crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor);
-        var_dump($cveDoc);
         echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
         break;
     default:
