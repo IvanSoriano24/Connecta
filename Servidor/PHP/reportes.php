@@ -635,7 +635,6 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
     $nombreArchivo = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $formularioData['numero']) . ".pdf";
     $rutaArchivo = __DIR__ . "/pdfs/" . $nombreArchivo;
 
-    var_dump($rutaArchivo);
     // **Asegurar que la carpeta `pdfs/` exista**
     if (!is_dir(__DIR__ . "/pdfs")) {
         mkdir(__DIR__ . "/pdfs", 0777, true);

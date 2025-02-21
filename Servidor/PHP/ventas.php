@@ -1262,11 +1262,11 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
-
+    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
-    //$clienteNombre = trim($clienteData['NOMBRE']);
+
+    $clienteNombre = trim($clienteData['NOMBRE']);
     $emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773340218';
     
@@ -1275,8 +1275,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
         //$numeroWhatsApp = '+527773340218';
-        //$emailPred = 'desarrollo01@mdcloud.mx';
-        $emailPred = 'marcosluh92@gmail.com';
+        $emailPred = 'desarrollo01@mdcloud.mx';
+        //$emailPred = 'marcosluh92@gmail.com';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
@@ -2683,7 +2683,6 @@ switch ($funcion) {
                     actualizarFolio($conexionData);
                     actualizarInventario($conexionData, $partidasData);*/
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                    var_dump($rutaPDF);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF);
                     //exit;
                     // Respuesta de éxito
