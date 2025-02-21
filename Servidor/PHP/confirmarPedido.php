@@ -83,8 +83,9 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 $result = json_decode($response, true);
                 if (isset($result['name'])) {
                     //$remisionUrl = "remision.php";
-                    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    
+                    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+
                     $data = [
                         'numFuncion' => 1,
                         'pedidoId' => $pedidoId,
@@ -92,7 +93,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         'noEmpresa' => $noEmpresa,
                         'vendedor' => $vendedor
                     ];
-    
+
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, $remisionUrl);
                     curl_setopt($ch, CURLOPT_POST, true);
@@ -101,16 +102,27 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     curl_setopt($ch, CURLOPT_HTTPHEADER, [
                         'Content-Type: application/x-www-form-urlencoded'
                     ]);
-    
+
                     $remisionResponse = curl_exec($ch);
-    
+
                     if (curl_errno($ch)) {
                         echo 'Error cURL: ' . curl_error($ch);
                     }
-    
+
                     curl_close($ch);
-    
-                    echo "Respuesta de remision.php: " . $remisionResponse;
+                    
+                    //echo "Respuesta de remision.php: " . $remisionResponse;
+                    $remisionData = json_decode($remisionResponse, true);
+                    echo "Respuesta de decodificada.php: " . $remisionData;
+                    $cveDoc = trim($remisionData['cveDoc']);
+                    //var_dump($cveDoc);
+                    // Verificar si la respuesta es un PDF
+                    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+                    if (strpos($contentType, 'application/pdf') !== false) {
+                        // Guardar el PDF localmente o redireccionar
+                        file_put_contents("remision_$cveDoc.pdf", $remisionResponse);
+                        echo "<script>window.open('remision_$cveDoc.pdf', '_blank');</script>";
+                    }
                     echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
@@ -287,7 +299,8 @@ function enviarWhatsApp($numero, $pedidoId, $nombreCliente)
     return $result;
 }
 
-function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId) {
+function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId)
+{
     // URL para obtener todas las comandas en Firebase
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 

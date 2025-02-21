@@ -23,18 +23,33 @@ class clsMail {
         $this->mail->CharSet = 'UTF-8'; // Codificación
     }
 
-    public function metEnviar(string $titulo, string $nombre, string $correo, string $asunto, string $bodyHTML) {
-        $this->mail->setFrom($this->mail->Username, $titulo); // Remitente
-        $this->mail->addAddress($correo, $nombre); // Destinatario
-        $this->mail->Subject = $asunto; // Asunto del correo
-        $this->mail->Body = $bodyHTML; // Cuerpo del correo
-        $this->mail->isHTML(true); // Indicar que el correo tiene contenido HTML
+    public function metEnviar(string $titulo, string $nombre, string $correo, string $asunto, string $bodyHTML, string $archivoAdjunto = null) {
+        try {
+            $this->mail->setFrom($this->mail->Username, $titulo); // Remitente
+            $this->mail->addAddress($correo, $nombre); // Destinatario
+            $this->mail->Subject = $asunto; // Asunto del correo
+            $this->mail->Body = $bodyHTML; // Cuerpo del correo
+            $this->mail->isHTML(true); // Indicar que el correo tiene contenido HTML
 
-        // Enviar el correo y manejar errores
-        if (!$this->mail->send()) {
-            return "Error al enviar el correo: " . $this->mail->ErrorInfo;
+            // **Adjuntar el archivo si existe**
+            if (!empty($archivoAdjunto) && file_exists($archivoAdjunto)) {
+                $this->mail->addAttachment($archivoAdjunto);
+            }
+
+            // Enviar el correo y manejar errores
+            if (!$this->mail->send()) {
+                return "Error al enviar el correo: " . $this->mail->ErrorInfo;
+            }
+
+            // **Eliminar el archivo adjunto después del envío**
+            if (!empty($archivoAdjunto) && file_exists($archivoAdjunto)) {
+                unlink($archivoAdjunto);
+            }
+
+            return "Correo enviado exitosamente.";
+        } catch (Exception $e) {
+            return "Error al enviar el correo: {$this->mail->ErrorInfo}";
         }
-        return "Correo enviado exitosamente.";
     }
 }
 

@@ -771,7 +771,7 @@ function actualizarAfac($conexionData, $pedidoId, $claveSae){
     $perAcum = $pedido['FECHA_DOC']->format('Y-m-01 00:00:00');
 
     // 📌 Actualizar AFACT02
-    $tablaAfact = "[{$conexionData['nombreBase']}].[dbo].[AFACT" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaAfact = "[{$conexionData['nombreBase']}].[dbo].[AFACT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sqlUpdate = "UPDATE $tablaAfact 
                   SET RVTA_COM = RVTA_COM + ?, 
                       RDESCTO = RDESCTO + ?, 
@@ -1387,77 +1387,27 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae)
             (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
             IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, DESC1, 
             DESC2, DESC3, COMI, APAR, ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
-            TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, NUM_MOV, TOT_PARTIDA,  IMPRIMIR, MAN_IEPS, 
+            TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, 
             APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, 
             IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, 
             TOTIMP6, TOTIMP7, TOTIMP8)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?)";
 
 
         $paramsInsert = [
-            $cveDoc,
-            $row['NUM_PAR'],
-            $row['CVE_ART'],
-            $row['CANT'],
-            $row['PXS'],
-            $row['PREC'],
-            $row['COST'],
-            $row['IMPU1'],
-            $row['IMPU2'],
-            $row['IMPU3'],
-            $row['IMPU4'],
-            $row['IMP1APLA'],
-            $row['IMP2APLA'],
-            $row['IMP3APLA'],
-            $row['IMP4APLA'],
-            $row['TOTIMP1'],
-            $row['TOTIMP2'],
-            $row['TOTIMP3'],
-            $row['TOTIMP4'],
-            $row['DESC1'],
-            $row['DESC2'],
-            $row['DESC3'],
-            $row['COMI'],
-            $row['APAR'],
-            'S',
-            $row['NUM_ALM'],
-            $row['POLIT_APLI'],
-            $row['TIP_CAM'],
-            $row['UNI_VENTA'],
-            $row['TIPO_PROD'],
-            $row['TIPO_ELEM'],
-            $row['CVE_OBS'],
-            $row['REG_SERIE'],
-            $row['E_LTPD'],
-            $numMov,
-            $TOT_PARTIDA, 
-            $row['IMPRIMIR'],
-            $row['MAN_IEPS'],
-            1,
-            0,
-            'C',
-            $row['MTO_PORC'],
-            $row['MTO_CUOTA'],
-            $row['CVE_ESQ'],
-            $fechaSinc,
-            $row['IMPU5'],
-            $row['IMPU6'],
-            $row['IMPU7'],
-            $row['IMPU8'],
-            $row['IMP5APLA'],
-            $row['IMP6APLA'],
-            $row['IMP7APLA'],
-            $row['IMP8APLA'],
-            $row['TOTIMP5'],
-            $row['TOTIMP6'],
-            $row['TOTIMP7'],
-            $row['TOTIMP8']
+            $cveDoc, $row['NUM_PAR'], $row['CVE_ART'], $row['CANT'], $row['PXS'], $row['PREC'], $row['COST'], $row['IMPU1'], $row['IMPU2'], $row['IMPU3'], $row['IMPU4'],
+            $row['IMP1APLA'], $row['IMP2APLA'], $row['IMP3APLA'], $row['IMP4APLA'], $row['TOTIMP1'], $row['TOTIMP2'], $row['TOTIMP3'], $row['TOTIMP4'], $row['DESC1'],
+            $row['DESC2'], $row['DESC3'], $row['COMI'], $row['APAR'], 'S', $row['NUM_ALM'], $row['POLIT_APLI'], $row['TIP_CAM'], $row['UNI_VENTA'],
+            $row['TIPO_PROD'], $row['TIPO_ELEM'], $row['CVE_OBS'], $row['REG_SERIE'], $row['E_LTPD'], $numMov, $TOT_PARTIDA, $row['IMPRIMIR'], $row['MAN_IEPS'],
+            1, 0, 'C', $row['MTO_PORC'], $row['MTO_CUOTA'], $row['CVE_ESQ'], $fechaSinc,
+            $row['IMPU5'], $row['IMPU6'], $row['IMPU7'], $row['IMPU8'], $row['IMP5APLA'], $row['IMP6APLA'], $row['IMP7APLA'], $row['IMP8APLA'], $row['TOTIMP5'],
+            $row['TOTIMP6'], $row['TOTIMP7'], $row['TOTIMP8']
         ];
 
         $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
@@ -2457,16 +2407,19 @@ function generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor) {
 }
 
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor){
-    actualizarControl($conexionData, $claveSae);
+
+    $cveDoc = '          0000013313';
+
+    /*actualizarControl($conexionData, $claveSae);
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
     actualizarFolios($conexionData, $claveSae);
     actualizarControl4($conexionData, $claveSae);
     actualizarControl2($conexionData, $claveSae);
     actualizarControl5($conexionData, $claveSae);
-    actualizarInve($conexionData, $pedidoId, $claveSae);
+    actualizarInve($conexionData, $pedidoId, $claveSae);*/
 
-    validarLotes($conexionData, $pedidoId, $claveSae);
+    //validarLotes($conexionData, $pedidoId, $claveSae);
     /*$validacionLotes = json_decode(validarLotes($conexionData, $pedidoId, $claveSae), true);
     if (!$validacionLotes['success']) {
         die(json_encode([
@@ -2476,7 +2429,7 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
         ]));
     }*/
 
-    insertarNimve($conexionData, $pedidoId, $claveSae);
+    /*insertarNimve($conexionData, $pedidoId, $claveSae);
     actualizarInve2($conexionData, $pedidoId, $claveSae);
     actualizarInve3($conexionData, $pedidoId, $claveSae); 
     actualizarInveClaro($conexionData, $pedidoId, $claveSae);
@@ -2488,19 +2441,20 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     $cveDoc = insertarFactr($conexionData, $pedidoId, $claveSae); 
     insertarFactr_Clib($conexionData, $cveDoc, $claveSae);
     actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae);
-    actualizarInve4($conexionData, $pedidoId, $claveSae);
-    insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae);
-    actualizarFactp($conexionData, $pedidoId, $claveSae);
+    actualizarInve4($conexionData, $pedidoId, $claveSae);*/
+    //insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae);
+    /*actualizarFactp($conexionData, $pedidoId, $claveSae);
     actualizarFactp2($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarFactp3($conexionData, $pedidoId, $claveSae);
     insertarDoctoSig($conexionData, $pedidoId, $cveDoc, $claveSae);
     insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae);
     insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
-    actualizarAlerta($conexionData, $claveSae);
-
+    actualizarAlerta($conexionData, $claveSae);*/
+    
     generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
-    echo json_encode(['success' => true, 'message' => 'Remision Creada Correctamente']);
+    //echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
+    return $cveDoc;
 }
 function conectarDB($conexionData)
 {
@@ -2707,7 +2661,6 @@ switch ($funcion) {
         $claveSae = $_POST['claveSae'];
         $noEmpresa = $_POST['noEmpresa'];
         $vendedor = $_POST['vendedor'];
-        $productos = $_POST['productos'];
         //$noEmpresa = $_POST['noEmpresa'];
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
@@ -2718,7 +2671,9 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $pedidoId = $_POST['pedidoId'];
         
-        crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor);
+        $cveDoc = crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor);
+        var_dump($cveDoc);
+        echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

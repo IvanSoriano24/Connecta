@@ -501,6 +501,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
 
     // **3. Actualizar o insertar las partidas**
     foreach ($partidasData as $partida) {
+        $CVE_UNIDAD = $partida['CVE_UNIDAD'];
         // Extraer los datos de la partida
         $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
         $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
@@ -573,7 +574,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
                 0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, 0,
                 0, ?, '', '',
-                0, '', '', 0, 0, 0, 0,
+                0, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
             $params = [
                 $CVE_DOC,
@@ -596,7 +597,8 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 $UNI_VENTA,
                 $TIPO_PORD,
                 $TOT_PARTIDA,
-                $DESCR_ART
+                $DESCR_ART,
+                $CVE_UNIDAD
             ];
         }
         $stmt = sqlsrv_query($conn, $sql, $params);
@@ -966,6 +968,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
             $DESC1 = $partida['descuento1'];
             $DESC2 = $partida['descuento2'];
             $COMI = $partida['comision'];
+            $CVE_UNIDAD = $partida['CVE_UNIDAD'];
             $NUM_ALMA = $formularioData['almacen'];
             $UNI_VENTA = $partida['unidad'];
             if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
@@ -1000,7 +1003,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
                 0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, 0,
                 0, ?, '', '',
-                0, '', '', 0, 0, 0, 0,
+                0, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
             $params = [
                 $CVE_DOC,
@@ -1023,7 +1026,8 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 $UNI_VENTA,
                 $TIPO_PORD,
                 $TOT_PARTIDA,
-                $DESCR_ART
+                $DESCR_ART,
+                $CVE_UNIDAD
             ];
             // Ejecutar la consulta
             $stmt = sqlsrv_query($conn, $sql, $params);
@@ -1044,8 +1048,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae)
-{
+function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae){
     // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
     // Asumiendo que la descripción está en una tabla llamada "productos"
     $conn = sqlsrv_connect($conexionData['host'], [
@@ -1192,8 +1195,9 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData)
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF)
 {
+    
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1261,8 +1265,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
     $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
 
-    $numeroWhatsApp = trim($clienteData['TELEFONO']);
-    $clienteNombre = trim($clienteData['NOMBRE']);
+    //$numeroWhatsApp = trim($clienteData['TELEFONO']);
+    //$clienteNombre = trim($clienteData['NOMBRE']);
     $emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773340218';
     
@@ -1271,8 +1275,9 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
         //$numeroWhatsApp = '+527773340218';
-        $emailPred = 'desarrollo01@mdcloud.mx';
-        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave); // Enviar correo
+        //$emailPred = 'desarrollo01@mdcloud.mx';
+        $emailPred = 'marcosluh92@gmail.com';
+        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
         //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
@@ -1283,11 +1288,12 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     sqlsrv_close($conn);
 }
 // Función para enviar el correo (en desarrollo)
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
-    $correo = 'desarrollo01@mdcloud.mx';
+    //$correo = 'desarrollo01@mdcloud.mx';
+    //$correo = 'amartinez@grupointerzenda.com';
     // Título y asunto
     $titulo = 'Notificación de Pedido';
     $asunto = 'Detalles del Pedido #' . $noPedido;
@@ -1344,7 +1350,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
 
     // Enviar correo
-    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML);
+    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML, $rutaPDF);
     if ($resultado === "Correo enviado exitosamente.") {
         //echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente.']);
     } else {
@@ -1647,7 +1653,7 @@ function obtenerProductoPedido($claveVendedor, $conexionData, $clienteInput)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Definir la consulta SQL asegurando la búsqueda insensible a mayúsculas y manejando el guion `-`
-    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU]
+    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD]
             FROM $nombreTabla
             WHERE LOWER(LTRIM(RTRIM([DESCR]))) LIKE LOWER(?) 
             OR LOWER(LTRIM(RTRIM([CVE_ART]))) LIKE LOWER(?)";
@@ -1701,7 +1707,7 @@ function obtenerProductos($conexionData)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL
-    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU]
+    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD]
         FROM $nombreTabla";
 
     $stmt = sqlsrv_query($conn, $sql);
@@ -2463,8 +2469,9 @@ function eliminarImagen($conexionData)
     }
 }
 
-function generarPDFP($formularioData, $partidasData, $conexionData) {
-    generarReportePedido($formularioData, $partidasData, $conexionData);
+function generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa) {
+    $rutaPDF = generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+    return $rutaPDF;
 }
 // -----------------------------------------------------------------------------------------------------
 
@@ -2674,16 +2681,18 @@ switch ($funcion) {
                     guardarPedido($conexionData, $formularioData, $partidasData);
                     guardarPartidas($conexionData, $formularioData, $partidasData);
                     actualizarFolio($conexionData);
-                    actualizarInventario($conexionData, $partidasData);
-                    validarCorreoCliente($formularioData, $partidasData, $conexionData);*/
-                    generarPDFP($formularioData, $partidasData, $conexionData);
+                    actualizarInventario($conexionData, $partidasData);*/
+                    $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                    var_dump($rutaPDF);
+                    validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF);
                     //exit;
                     // Respuesta de éxito
-                    /*echo json_encode([
+                    header('Content-Type: application/json; charset=UTF-8');
+                    echo json_encode([
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
                     ]);
-                } else {
+                /*} else {
                     // Error de crédito
                     echo json_encode([
                         'success' => false,
