@@ -626,6 +626,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
 
     // **3. Actualizar o insertar las partidas**
     foreach ($partidasData as $partida) {
+        $CVE_UNIDAD = $partida['CVE_UNIDAD'];
         // Extraer los datos de la partida
         $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
         $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
@@ -698,7 +699,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
                 0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, 0,
                 0, ?, '', '',
-                0, '', '', 0, 0, 0, 0,
+                0, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
             $params = [
                 $CVE_DOC,
@@ -721,7 +722,8 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 $UNI_VENTA,
                 $TIPO_PORD,
                 $TOT_PARTIDA,
-                $DESCR_ART
+                $DESCR_ART,
+                $CVE_UNIDAD
             ];
         }
         $stmt = sqlsrv_query($conn, $sql, $params);
@@ -1091,6 +1093,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
             $DESC1 = $partida['descuento1'];
             $DESC2 = $partida['descuento2'];
             $COMI = $partida['comision'];
+            $CVE_UNIDAD = $partida['CVE_UNIDAD'];
             $NUM_ALMA = $formularioData['almacen'];
             $UNI_VENTA = $partida['unidad'];
             if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
@@ -1125,7 +1128,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
                 0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, 0,
                 0, ?, '', '',
-                0, '', '', 0, 0, 0, 0,
+                0, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
             $params = [
                 $CVE_DOC,
@@ -1148,7 +1151,8 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 $UNI_VENTA,
                 $TIPO_PORD,
                 $TOT_PARTIDA,
-                $DESCR_ART
+                $DESCR_ART,
+                $CVE_UNIDAD
             ];
             // Ejecutar la consulta
             $stmt = sqlsrv_query($conn, $sql, $params);
@@ -1169,8 +1173,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae)
-{
+function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae){
     // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
     // Asumiendo que la descripción está en una tabla llamada "productos"
     $conn = sqlsrv_connect($conexionData['host'], [
@@ -1317,8 +1320,9 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData)
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF)
 {
+    
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1383,10 +1387,10 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
-    $numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
     $emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773340218';
@@ -1397,9 +1401,10 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
         $numeroWhatsApp = '+527773750925';
         //$numeroWhatsApp = '+527773340218';
         $emailPred = 'desarrollo01@mdcloud.mx';
-        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave); // Enviar correo
-        //error_log("Llamando a enviarWhatsApp con el número $numeroWhatsApp"); // Registro para depuración
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        //$emailPred = 'marcosluh92@gmail.com';
+        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
+        
+        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1408,19 +1413,21 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData)
     sqlsrv_close($conn);
 }
 // Función para enviar el correo (en desarrollo)
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
-    $correo = 'desarrollo01@mdcloud.mx';
-    // Título y asunto
-    $titulo = 'Notificación de Pedido';
+    $correo = 'sonicjos.ys@gmail.com';
+    //$correo = 'ivan.soriano@mdcloud.mx';
+    // Título y asunto 
+    $nomEmpresa = $_SESSION['empresa']['razonSocial'];
+    $titulo = $nomEmpresa;
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     $productosJson = urlencode(json_encode($partidasData));
     // URLs para confirmar o rechazar
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
     $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae);
 
@@ -1469,105 +1476,14 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
 
     // Enviar correo
-    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML);
+    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML, $rutaPDF);
     if ($resultado === "Correo enviado exitosamente.") {
         //echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente.']);
     } else {
         error_log("Error al enviar el correo: $resultado");
-        echo json_encode(['success' => false, 'message' => 'Hubo un problema al enviar el correo.']);
+        echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-/*function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $noEmpresa, $partidasData)
-{
-    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
-    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
-
-    // Calcular el total y construir el texto de los productos
-    $productosStr = "";
-    $total = 0;
-
-    foreach ($partidasData as $partida) {
-        $producto = $partida['producto'];
-        $cantidad = $partida['cantidad'];
-        $precioUnitario = $partida['precioUnitario'];
-        $totalPartida = $cantidad * $precioUnitario;
-        $total += $totalPartida;
-
-        $productosStr .= "$producto - $cantidad units, ";
-    }
-
-    // Limpiar el texto de productos
-    $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr)); // Eliminar la última coma
-
-    // Construir URLs dinámicas para los botones
-    $urlConfirmar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=confirmar&noEmpresa=" . urlencode($noEmpresa);
-    $urlRechazar = "https://mdconecta.mdcloud.mx/Servidor/PHP/confirmarPedido?pedidoId=" . urlencode($noPedido) . "&accion=rechazar";
-
-    // Crear el cuerpo de la solicitud para la API
-    $data = [
-        "messaging_product" => "whatsapp",
-        "recipient_type" => "individual",
-        "to" => $numero,
-        "type" => "template",
-        "template" => [
-            "name" => "confirmar_pedido", // Nombre de la plantilla aprobada en inglés
-            "language" => ["code" => "es_MX"], // Cambiado a inglés
-            "components" => [
-                // Parámetro del encabezado
-                [
-                    "type" => "header",
-                    "parameters" => [
-                        ["type" => "text", "text" => $clienteNombre] // {{1}} en el encabezado
-                    ]
-                ],
-                // Parámetros del cuerpo
-                [
-                    "type" => "body",
-                    "parameters" => [
-                        ["type" => "text", "text" => $noPedido], // {{1}} - Número de Pedido
-                        ["type" => "text", "text" => $productosStr], // {{2}} - Lista de Productos
-                        ["type" => "text", "text" => "$" . number_format($total, 2)] // {{3}} - Total
-                    ]
-                ],
-                // Parámetro del botón Confirmar
-                [
-                    "type" => "button",
-                    "sub_type" => "url",
-                    "index" => 0,
-                    "parameters" => [
-                        ["type" => "text", "text" => $urlConfirmar] // {{1}} en el botón Confirmar
-                    ]
-                ],
-                // Parámetro del botón Rechazar
-                [
-                    "type" => "button",
-                    "sub_type" => "url",
-                    "index" => 1,
-                    "parameters" => [
-                        ["type" => "text", "text" => $urlRechazar] // {{1}} en el botón Rechazar
-                    ]
-                ]
-            ]
-        ]
-    ];
-
-    $data_string = json_encode($data);
-
-    $curl = curl_init($url);
-    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $token,
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($data_string)
-    ]);
-
-    $result = curl_exec($curl);
-    curl_close($curl);
-
-    return $result;
-}*/
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave)
 {
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
@@ -1772,7 +1688,7 @@ function obtenerProductoPedido($claveVendedor, $conexionData, $clienteInput)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Definir la consulta SQL asegurando la búsqueda insensible a mayúsculas y manejando el guion `-`
-    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU]
+    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD]
             FROM $nombreTabla
             WHERE LOWER(LTRIM(RTRIM([DESCR]))) LIKE LOWER(?) 
             OR LOWER(LTRIM(RTRIM([CVE_ART]))) LIKE LOWER(?)";
@@ -1826,7 +1742,7 @@ function obtenerProductos($conexionData)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL
-    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU]
+    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD]
         FROM $nombreTabla";
 
     $stmt = sqlsrv_query($conn, $sql);
@@ -2588,8 +2504,9 @@ function eliminarImagen($conexionData)
     }
 }
 
-function generarPDFP($formularioData, $partidasData, $conexionData) {
-    generarReportePedido($formularioData, $partidasData, $conexionData);
+function generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa) {
+    $rutaPDF = generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+    return $rutaPDF;
 }
 // -----------------------------------------------------------------------------------------------------
 
@@ -2784,7 +2701,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            /*$resultadoValidacion = validarExistencias($conexionData, $partidasData);
+            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
@@ -2800,11 +2717,12 @@ switch ($funcion) {
                     guardarPartidas($conexionData, $formularioData, $partidasData);
                     actualizarFolio($conexionData);
                     actualizarInventario($conexionData, $partidasData);
-                    validarCorreoCliente($formularioData, $partidasData, $conexionData);*/
-                    generarPDFP($formularioData, $partidasData, $conexionData);
+                    $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                    validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF);
                     //exit;
                     // Respuesta de éxito
-                    /*echo json_encode([
+                    header('Content-Type: application/json; charset=UTF-8');
+                    echo json_encode([
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
                     ]);
@@ -2826,7 +2744,7 @@ switch ($funcion) {
                     'message' => $resultadoValidacion['message'],
                     'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
                 ]);
-            }*/
+            }
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);

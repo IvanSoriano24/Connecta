@@ -74,6 +74,7 @@ function agregarFilaPartidas() {
       <td><input type="number" class="subtotalPartida" value="0" readonly /></td>
       <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
       <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
+      <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td>
   `;
 
   // Añadir evento al botón de eliminar con delegación
@@ -347,12 +348,13 @@ function mostrarListaProductos(productos, input) {
         if (producto.EXIST > 0) {
           input.value = producto.CVE_ART;
           $("#CVE_ESQIMPU").val(producto.CVE_ESQIMPU);
-
           const filaTabla = input.closest("tr");
           const campoUnidad = filaTabla.querySelector(".unidad");
           if (campoUnidad) {
             campoUnidad.value = producto.UNI_MED;
           }
+          const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
+          CVE_UNIDAD.value = producto.CVE_UNIDAD;
           // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
           const campoCantidad = filaTabla.querySelector("input.cantidad");
           if (campoCantidad) {
@@ -518,6 +520,7 @@ function obtenerDatosPartidas() {
       comision: fila.querySelector(".comision").value,
       precioUnitario: fila.querySelector(".precioUnidad").value,
       subtotal: fila.querySelector(".subtotalPartida").value,
+      CVE_UNIDAD: fila.querySelector(".CVE_UNIDAD").value,
     };
     partidasData.push(partida);
   });
@@ -672,18 +675,19 @@ function enviarDatosBackend(formularioData, partidasData) {
     body: formData,
   })
     .then((response) => {
-      // Verificar si la respuesta es un PDF
-      const contentType = response.headers.get("Content-Type");
-      if (contentType && contentType.includes("application/pdf")) {
-        return response.blob().then((blob) => {
-          const url = URL.createObjectURL(blob);
-          window.open(url, "_blank"); // Abrir en una nueva pestaña
-
-          // Retornar un objeto simulando una respuesta JSON para continuar con la ejecución
-          return { success: true, message: "PDF generado correctamente" };
-        });
+      console.log("Response completa:", response);
+  
+      return response.text(); // Obtener la respuesta como texto para depuración
+    })
+    .then((text) => {
+      console.log("Texto recibido del servidor:", text);
+  
+      try {
+        return JSON.parse(text); // Intentar convertir a JSON
+      } catch (error) {
+        console.error("Error al convertir a JSON:", error, "Texto recibido:", text);
+        throw new Error("El servidor no devolvió una respuesta JSON válida.");
       }
-      return response.json(); // Si no es PDF, es una respuesta JSON
     })
     .then((data) => {
       if (!data) return;
@@ -1003,7 +1007,8 @@ function showCustomerSuggestionsProductos() {
 async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   inputProducto.val(`${producto.CVE_ART}`); // Mostrar el producto seleccionado
   const filaProd = inputProducto.closest("tr")[0]; // Asegurar que obtenemos el elemento DOM
-
+  const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
+  CVE_UNIDAD.val(`${producto.CVE_UNIDAD}`);
   if (!filaProd) {
     console.error("Error: No se encontró la fila del producto.");
     return; // 🚨 Salir de la función si `filaProd` no es válido

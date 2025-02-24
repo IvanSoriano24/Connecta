@@ -86,6 +86,7 @@ function mostrarClientes($conexionData){
             $sql = "SELECT 
                         CLAVE,  
                         NOMBRE, 
+                        RFC,
                         CALLE, 
                         TELEFONO, 
                         SALDO, 
@@ -101,6 +102,7 @@ function mostrarClientes($conexionData){
             $sql = "SELECT 
                         CLAVE,  
                         NOMBRE, 
+                        RFC,
                         CALLE, 
                         TELEFONO, 
                         SALDO, 
