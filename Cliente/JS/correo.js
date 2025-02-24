@@ -368,6 +368,45 @@ document
         });
       });
   });
+// Cerrar modal al hacer clic en el botón del header
+document.getElementById('cerrarModalCorreoHeader').addEventListener('click', function() {
+  var modalElement = document.getElementById('modalCorreo');
+  var modalInstance = bootstrap.Modal.getInstance(modalElement);
+  if (!modalInstance) {
+    modalInstance = new bootstrap.Modal(modalElement);
+  }
+  modalInstance.hide();
+});
+
+// Cerrar modal al hacer clic en el botón del footer (Cancelar)
+document.getElementById('cerrarModalCorreoFooter').addEventListener('click', function() {
+  var modalElement = document.getElementById('modalCorreo');
+  var modalInstance = bootstrap.Modal.getInstance(modalElement);
+  if (!modalInstance) {
+    modalInstance = new bootstrap.Modal(modalElement);
+  }
+  modalInstance.hide();
+});
+
+// Cerrar modal al hacer clic en el botón del header
+document.getElementById('cerrarModalCorreoEditarHeader').addEventListener('click', function() {
+  var modalElement = document.getElementById('editarModal');
+  var modalInstance = bootstrap.Modal.getInstance(modalElement);
+  if (!modalInstance) {
+    modalInstance = new bootstrap.Modal(modalElement);
+  }
+  modalInstance.hide();
+});
+
+// Cerrar modal al hacer clic en el botón del footer (Cancelar)
+document.getElementById('cerrarModalCorreoEditarFooter').addEventListener('click', function() {
+  var modalElement = document.getElementById('editarModal');
+  var modalInstance = bootstrap.Modal.getInstance(modalElement);
+  if (!modalInstance) {
+    modalInstance = new bootstrap.Modal(modalElement);
+  }
+  modalInstance.hide();
+});
 
 $(document).ready(function () {
   // Al cambiar el tipo de usuario se realiza la llamada para obtener los usuarios de Firebase

@@ -1320,8 +1320,7 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF)
-{
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF){
     
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
@@ -2801,7 +2800,7 @@ switch ($funcion) {
             // Lógica para alta de pedido
             $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
-            /*if ($resultadoValidacion['success']) {
+            if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
                 $totalPedido = calcularTotalPedido($partidasData);
                 $clienteId = $formularioData['cliente'];
@@ -2814,7 +2813,7 @@ switch ($funcion) {
                     guardarPedido($conexionData, $formularioData, $partidasData);
                     guardarPartidas($conexionData, $formularioData, $partidasData);
                     actualizarFolio($conexionData);
-                    actualizarInventario($conexionData, $partidasData);*/
+                    actualizarInventario($conexionData, $partidasData);
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF);
                     //exit;
@@ -2824,7 +2823,7 @@ switch ($funcion) {
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
                     ]);
-                /*} else {
+                } else {
                     // Error de crédito
                     echo json_encode([
                         'success' => false,
@@ -2842,7 +2841,7 @@ switch ($funcion) {
                     'message' => $resultadoValidacion['message'],
                     'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
                 ]);
-            }*/
+            }
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);
