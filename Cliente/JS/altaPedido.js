@@ -19,7 +19,7 @@ function agregarFilaPartidas() {
   const tablaProductos = document.querySelector("#tablaProductos tbody");
   const filas = tablaProductos.querySelectorAll("tr");
 
-  // 🚨 Permitir agregar la primera fila sin validaciones previas
+  //  Permitir agregar la primera fila sin validaciones previas
   if (filas.length > 0) {
     const ultimaFila = filas[filas.length - 1];
     const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
@@ -126,10 +126,10 @@ function eliminarPartidaFormulario(numPar, filaAEliminar) {
     cancelButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {
-      // 🚨 Eliminar la fila visualmente
+      //  Eliminar la fila visualmente
       filaAEliminar.remove();
 
-      // 🚨 Eliminar la partida del array `partidasData`
+      //  Eliminar la partida del array `partidasData`
       partidasData = partidasData.filter(
         (partida) => partida.NUM_PAR !== numPar
       );
@@ -1251,4 +1251,8 @@ $("#AyudaEnviarA").click(function () {
     icon: "info",
     confirmButtonText: "Entendido",
   });
+});
+
+$("#cancelarPedido").click(function () {
+  window.location.href = "Ventas.php";
 });

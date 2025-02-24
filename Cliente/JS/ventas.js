@@ -1,32 +1,32 @@
-const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
+const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
 let partidasData = []; // Este contiene las partidas actuales del formulario
 
 function agregarEventosBotones() {
     // Botones de editar
-    const botonesEditar = document.querySelectorAll('.btnEditarPedido');
-    botonesEditar.forEach(boton => {
-        boton.addEventListener('click', function () {
+    const botonesEditar = document.querySelectorAll(".btnEditarPedido");
+    botonesEditar.forEach((boton) => {
+        boton.addEventListener("click", function () {
             const pedidoID = this.dataset.id; // Obtener el ID del pedido
-            console.log('Redirigiendo con pedidoID:', pedidoID); // Log en consola
+            console.log("Redirigiendo con pedidoID:", pedidoID); // Log en consola
             // Redirigir a altaPedido.php con el ID del pedido como parámetro
-            window.location.href = 'altaPedido.php?pedidoID=' + pedidoID;
+            window.location.href = "altaPedido.php?pedidoID=" + pedidoID;
         });
     });
 
     // Botones de eliminar
-    const botonesEliminar = document.querySelectorAll('.btnCancelarPedido');
-    botonesEliminar.forEach(boton => {
-        boton.addEventListener('click', function () {
+    const botonesEliminar = document.querySelectorAll(".btnCancelarPedido");
+    botonesEliminar.forEach((boton) => {
+        boton.addEventListener("click", function () {
             const pedidoID = this.dataset.id; // Obtener el ID del pedido
             Swal.fire({
-                title: '¿Estás seguro?',
+                title: "¿Estás seguro?",
                 text: "Esta acción no se puede deshacer",
-                icon: 'warning',
+                icon: "warning",
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar",
             }).then((result) => {
                 if (result.isConfirmed) {
                     eliminarPedido(pedidoID); // Llama a la función para eliminar el pedido
@@ -37,233 +37,678 @@ function agregarEventosBotones() {
 }
 
 function eliminarPedido(pedidoID) {
-    $.post('../Servidor/PHP/ventas.php', { numFuncion: '10', pedidoID: pedidoID }, function (response) {
-        try {
-            if (typeof response === 'string') {
-                response = JSON.parse(response);
+    $.post(
+        "../Servidor/PHP/ventas.php",
+        { numFuncion: "10", pedidoID: pedidoID },
+        function (response) {
+            try {
+                if (typeof response === "string") {
+                    response = JSON.parse(response);
+                }
+                if (response.success) {
+                    Swal.fire({
+                        title: "Eliminado",
+                        text: "El pedido ha sido eliminado correctamente",
+                        icon: "success",
+                        confirmButtonText: "Entendido",
+                    }).then(() => {
+                        datosPedidos(); // Actualizar la tabla después de eliminar
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Error",
+                        text: response.message || "No se pudo eliminar el pedido",
+                        icon: "error",
+                        confirmButtonText: "Entendido",
+                    });
+                }
+            } catch (error) {
+                console.error("Error al procesar la respuesta JSON:", error);
             }
-            if (response.success) {
-                Swal.fire({
-                    title: 'Eliminado',
-                    text: 'El pedido ha sido eliminado correctamente',
-                    icon: 'success',
-                    confirmButtonText: 'Entendido'
-                }).then(() => {
-                    datosPedidos(); // Actualizar la tabla después de eliminar
-                });
-            } else {
-                Swal.fire({
-                    title: 'Error',
-                    text: response.message || 'No se pudo eliminar el pedido',
-                    icon: 'error',
-                    confirmButtonText: 'Entendido'
-                });
-            }
-        } catch (error) {
-            console.error('Error al procesar la respuesta JSON:', error);
         }
-    }).fail(function (jqXHR, textStatus, errorThrown) {
+    ).fail(function (jqXHR, textStatus, errorThrown) {
         Swal.fire({
-            title: 'Error',
-            text: 'Hubo un problema al intentar eliminar el pedido',
-            icon: 'error',
-            confirmButtonText: 'Entendido'
+            title: "Error",
+            text: "Hubo un problema al intentar eliminar el pedido",
+            icon: "error",
+            confirmButtonText: "Entendido",
         });
-        console.log('Detalles del error:', jqXHR.responseText);
+        console.log("Detalles del error:", jqXHR.responseText);
     });
 }
+// CARGAR Los Datos
 
+// function cargarPedidos(filtroFecha) {
+//     $.post('../Servidor/PHP/ventas.php', {
+//         numFuncion: '1',
+//         noEmpresa: noEmpresa,
+//         filtroFecha: filtroFecha // Pasamos el valor del filtro de fecha al servidor
+//     }, function (response) {
+//         try {
+//             if (typeof response === 'string') {
+//                 response = JSON.parse(response);
+//             }
+
+//             if (typeof response === 'object' && response !== null) {
+//                 if (response.success && response.data) {
+//                     let pedidos = response.data;
+
+//                     // Ordenar pedidos por clave (de más reciente a más antigua)
+//                     pedidos = pedidos.sort((a, b) => {
+//                         const claveA = parseInt(a.Clave, 10) || 0;
+//                         const claveB = parseInt(b.Clave, 10) || 0;
+//                         return claveB - claveA;
+//                     });
+
+//                     const pedidosTable = document.getElementById('datosPedidos');
+//                     pedidosTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
+//                     pedidos.forEach(pedido => {
+//                         const row = document.createElement('tr');
+
+//                         row.innerHTML = `
+//                             <td>${pedido.Tipo || 'Sin tipo'}</td>
+//                             <td>${pedido.Clave || 'Sin nombre'}</td>
+//                             <td>${pedido.Cliente || 'Sin cliente'}</td>
+//                             <td>${pedido.Nombre || 'Sin nombre'}</td>
+//                             <td>${pedido.Estatus || '0'}</td>
+//                             <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td>
+//                             <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : 'Sin subtotal'}</td>
+//                             <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
+//                             <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
+//                             <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
+//                             <td>
+//                                 <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
+//                                     display: inline-flex;
+//                                     align-items: center;
+//                                     padding: 0.5rem 1rem;
+//                                     font-size: 1rem;
+//                                     font-family: Lato;
+//                                     color: #fff;
+//                                     background-color: #007bff;
+//                                     border: none;
+//                                     border-radius: 0.25rem;
+//                                     cursor: pointer;
+//                                     transition: background-color 0.3s ease;">
+//                                     <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
+//                                 </button>
+//                                 <br>
+//                             </td>
+//                             <td>
+//                                 <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
+//                                     display: inline-flex;
+//                                     align-items: center;
+//                                     padding: 0.5rem 1rem;
+//                                     font-size: 1rem;
+//                                     font-family: Lato;
+//                                     color: #fff;
+//                                     background-color: #dc3545;
+//                                     border: none;
+//                                     border-radius: 0.25rem;
+//                                     cursor: pointer;
+//                                     transition: background-color 0.3s ease;">
+//                                     <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
+//                                 </button>
+//                             </td>
+//                         `;
+//                         pedidosTable.appendChild(row);
+//                     });
+//                     agregarEventosBotones();
+//                 } else {
+//                     const row = document.createElement('tr');
+//                     const numColumns = pedidosTable.querySelector('thead')
+//                         ? pedidosTable.querySelector('thead').rows[0].cells.length
+//                         : 13;
+//                     row.innerHTML = `<td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>`;
+//                     pedidosTable.appendChild(row);
+//                 }
+//             }
+//         } catch (error) {
+//             console.error('Error al procesar la respuesta JSON:', error);
+//         }
+//     }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+//         console.error('Error en la solicitud:', textStatus, errorThrown);
+//     });
+// }
+
+// Función para cargar los pedidos (la tienes definida) y que recibe el filtro seleccionado
+// Función para renderizar los pedidos en la tabla
+function mostrarPedidosEnTabla(pedidos) {
+    const pedidosTable = document.getElementById("datosPedidos");
+    if (!pedidosTable) {
+        console.error("No se encontró el elemento con id 'datosPedidos'");
+        return;
+    }
+    pedidosTable.innerHTML = ""; // Limpiar la tabla
+    pedidos.forEach((pedido) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${pedido.Tipo || "Sin tipo"}</td>
+            <td>${pedido.Clave || "Sin clave"}</td>
+            <td>${pedido.Cliente || "Sin cliente"}</td>
+            <td>${pedido.Nombre || "Sin nombre"}</td>
+            <td>${pedido.Estatus || "0"}</td>
+            <td>${pedido.FechaElaboracion?.date || "Sin fecha"}</td>
+            <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : "Sin subtotal"
+            }</td>
+            <td style="text-align: right;">${pedido.TotalComisiones
+                ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
+                : "Sin comisiones"
+            }</td>
+            <td style="text-align: right;">${pedido.ImporteTotal
+                ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}`
+                : "Sin importe"
+            }</td>
+            <td>${pedido.NombreVendedor || "Sin vendedor"}</td>
+            <td>
+                <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
+            }" style="
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 0.5rem 1rem;
+                    font-size: 1rem;
+                    font-family: Lato;
+                    color: #fff;
+                    background-color: #007bff;
+                    border: none;
+                    border-radius: 0.25rem;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;">
+                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
+                </button>
+            </td>
+            <td>
+                <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
+            }" style="
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 0.5rem 1rem;
+                    font-size: 1rem;
+                    font-family: Lato;
+                    color: #fff;
+                    background-color: #dc3545;
+                    border: none;
+                    border-radius: 0.25rem;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;">
+                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
+                </button>
+            </td>
+        `;
+        pedidosTable.appendChild(row);
+    });
+    // Si tienes función para asignar eventos a los botones, llámala aquí:
+    agregarEventosBotones && agregarEventosBotones();
+}
+
+// Función para mostrar mensaje cuando no hay datos
+function mostrarSinDatos() {
+    const pedidosTable = document.getElementById("datosPedidos");
+    if (!pedidosTable) {
+        console.error("No se encontró el elemento con id 'datosPedidos'");
+        return;
+    }
+    pedidosTable.innerHTML = "";
+    const row = document.createElement("tr");
+    // Si cuentas con un <thead>, define el número de columnas, de lo contrario, usa un valor fijo
+    const numColumns = pedidosTable.querySelector("thead")
+        ? pedidosTable.querySelector("thead").rows[0].cells.length
+        : 13;
+    row.innerHTML = `<td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>`;
+    pedidosTable.appendChild(row);
+}
+
+// Función para cargar los pedidos con el filtro seleccionado y guardar el filtro en localStorage
 function cargarPedidos(filtroFecha) {
-    $.post('../Servidor/PHP/ventas.php', {
-        numFuncion: '1',
-        noEmpresa: noEmpresa,
-        filtroFecha: filtroFecha // Pasamos el valor del filtro de fecha al servidor
-    }, function (response) {
-        try {
-            if (typeof response === 'string') {
-                response = JSON.parse(response);
-            }
+    // Guarda el filtro seleccionado
+    localStorage.setItem("filtroSeleccionado", filtroFecha);
+    console.log("Cargando pedidos con filtro:", filtroFecha);
 
-            if (typeof response === 'object' && response !== null) {
-                if (response.success && response.data) {
+    // Asegúrate de que la variable noEmpresa esté definida
+    if (typeof noEmpresa === "undefined") {
+        console.error("La variable noEmpresa no está definida");
+        return;
+    }
+
+    $.post(
+        "../Servidor/PHP/ventas.php",
+        {
+            numFuncion: "1",
+            noEmpresa: noEmpresa,
+            filtroFecha: filtroFecha,
+        },
+        function (response) {
+            console.log("Respuesta del servidor:", response);
+            try {
+                if (typeof response === "string") {
+                    response = JSON.parse(response);
+                }
+                if (response && response.success && response.data) {
                     let pedidos = response.data;
-
-                    // Ordenar pedidos por clave (de más reciente a más antigua)
+                    console.log("Pedidos recibidos:", pedidos);
+                    // Ordenamos los pedidos (de mayor a menor clave)
                     pedidos = pedidos.sort((a, b) => {
                         const claveA = parseInt(a.Clave, 10) || 0;
                         const claveB = parseInt(b.Clave, 10) || 0;
                         return claveB - claveA;
                     });
-
-                    const pedidosTable = document.getElementById('datosPedidos');
-                    pedidosTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
-                    pedidos.forEach(pedido => {
-                        const row = document.createElement('tr');
-
-                        row.innerHTML = `
-                            <td>${pedido.Tipo || 'Sin tipo'}</td>
-                            <td>${pedido.Clave || 'Sin nombre'}</td>
-                            <td>${pedido.Cliente || 'Sin cliente'}</td>
-                            <td>${pedido.Nombre || 'Sin nombre'}</td>
-                            <td>${pedido.Estatus || '0'}</td>
-                            <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td>
-                            <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : 'Sin subtotal'}</td>
-                            <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
-                            <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
-                            <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
-                            <td>
-                                <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    padding: 0.5rem 1rem;
-                                    font-size: 1rem;
-                                    font-family: Lato;
-                                    color: #fff;
-                                    background-color: #007bff;
-                                    border: none;
-                                    border-radius: 0.25rem;
-                                    cursor: pointer;
-                                    transition: background-color 0.3s ease;">
-                                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
-                                </button>
-                                <br>
-                            </td>
-                            <td>
-                                <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    padding: 0.5rem 1rem;
-                                    font-size: 1rem;
-                                    font-family: Lato;
-                                    color: #fff;
-                                    background-color: #dc3545;
-                                    border: none;
-                                    border-radius: 0.25rem;
-                                    cursor: pointer;
-                                    transition: background-color 0.3s ease;">
-                                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
-                                </button>
-                            </td>
-                        `;
-                        pedidosTable.appendChild(row);
-                    });
-                    agregarEventosBotones();
+                    mostrarPedidosEnTabla(pedidos);
                 } else {
-                    const row = document.createElement('tr');
-                    const numColumns = pedidosTable.querySelector('thead')
-                        ? pedidosTable.querySelector('thead').rows[0].cells.length
-                        : 13;
-                    row.innerHTML = `<td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>`;
-                    pedidosTable.appendChild(row);
+                    console.warn(
+                        "No se recibieron datos o se devolvió un error:",
+                        response.message
+                    );
+                    mostrarSinDatos();
                 }
+            } catch (error) {
+                console.error("Error al procesar la respuesta JSON:", error);
             }
-        } catch (error) {
-            console.error('Error al procesar la respuesta JSON:', error);
-        }
-    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
-        console.error('Error en la solicitud:', textStatus, errorThrown);
+        },
+        "json"
+    ).fail(function (jqXHR, textStatus, errorThrown) {
+        console.error("Error en la solicitud:", textStatus, errorThrown);
     });
 }
-function datosPedidos() {
-    $.post('../Servidor/PHP/ventas.php', { numFuncion: '1', noEmpresa: noEmpresa, filtroFecha: 'Hoy' }, function (response) {
-        try {
-            // Verifica si response es una cadena (string) que necesita ser parseada
-            if (typeof response === 'string') {
-                response = JSON.parse(response);
-            }
-            // Verifica si response es un objeto antes de intentar procesarlo
-            if (typeof response === 'object' && response !== null) {
-                const pedidosTable = document.getElementById('datosPedidos');
-                pedidosTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
-                if (response.success && response.data) {
-                    let pedidos = response.data;
 
-                    // Ordenar pedidos por clave en orden descendente
-                    pedidos = pedidos.sort((a, b) => {
-                        const claveA = parseInt(a.Clave, 10) || 0;
-                        const claveB = parseInt(b.Clave, 10) || 0;
-                        return claveB - claveA; // Orden descendente
-                    });
-/* <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td> */
-                    pedidos.forEach(pedido => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                        <td>${pedido.Tipo || 'Sin tipo'}</td>
-                        <td>${pedido.Clave || 'Sin nombre'}</td>
-                        <td>${pedido.Cliente || 'Sin cliente'}</td>
-                        <td>${pedido.Nombre || 'Sin nombre'}</td>
-                        <td>${pedido.Estatus || '0'}</td>
-                        <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td> <!-- Maneja el objeto anidado -->
-                        <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : 'Sin subtotal'}</td>
-                        <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
-                        <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
-                        <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
-                        <td>
-                            <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
-                                display: inline-flex;
-                                align-items: center;
-                                padding: 0.5rem 1rem;
-                                font-size: 1rem;
-                                font-family: Lato;
-                                color: #fff;
-                                background-color: #007bff;
-                                border: none;
-                                border-radius: 0.25rem;
-                                cursor: pointer;
-                                transition: background-color 0.3s ease;">
-                                <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
-                            </button>
-                            <br>
-                            </td>
-                            <td>
-                            <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
-                                display: inline-flex;
-                                align-items: center;
-                                padding: 0.5rem 1rem;
-                                font-size: 1rem;
-                                font-family: Lato;
-                                color: #fff;
-                                background-color: #dc3545;
-                                border: none;
-                                border-radius: 0.25rem;
-                                cursor: pointer;
-                                transition: background-color 0.3s ease;">
-                                <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
-                            </button>
-                        </td>
-                    `;
-                        pedidosTable.appendChild(row);
-                    });
-                    agregarEventosBotones();
-                } else {
-                    // Si no hay pedidos, mostrar una fila con el mensaje "No hay datos"
-                    const row = document.createElement('tr');
+// Asignar el evento "change" al select del filtro (asegúrate que el id sea correcto)
+document.getElementById("filtroFecha").addEventListener("change", function () {
+    const filtroSeleccionado = this.value;
+    cargarPedidos(filtroSeleccionado);
+});
 
-                    // Obtener el número de columnas del encabezado
-                    const numColumns = pedidosTable.querySelector('thead')
-                        ? pedidosTable.querySelector('thead').rows[0].cells.length
-                        : 13; // Valor predeterminado si no hay encabezado
+// Al cargar la página, se lee el filtro guardado y se carga la información
+document.addEventListener("DOMContentLoaded", function () {
+    let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Todos";
+    // Actualiza el select con el filtro guardado (asegúrate que el elemento exista)
+    const filtroSelect = document.getElementById("filtroFecha");
+    if (filtroSelect) {
+        filtroSelect.value = filtroGuardado;
+    } else {
+        console.error("No se encontró el elemento select con id 'filtroFecha'");
+    }
+    cargarPedidos(filtroGuardado);
+});
 
-                    row.innerHTML = `
-                        <td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>
-                        <td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>
-                        <td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>
-                    `;
-                    pedidosTable.appendChild(row);
-                    console.error('Error en la respuesta del servidor:', response);
+// //FuncionOriginal
+// function cargarPedidos(filtroFecha) {
+//     $.post('../Servidor/PHP/ventas.php', {
+//         numFuncion: '1',
+//         noEmpresa: noEmpresa,
+//         filtroFecha: filtroFecha // Pasamos el valor del filtro de fecha al servidor
+//     }, function (response) {
+//         try {
+//             if (typeof response === 'string') {
+//                 response = JSON.parse(response);
+//             }
+
+//             if (typeof response === 'object' && response !== null) {
+//                 if (response.success && response.data) {
+//                     let pedidos = response.data;
+
+//                     // Ordenar pedidos por clave (de más reciente a más antigua)
+//                     pedidos = pedidos.sort((a, b) => {
+//                         const claveA = parseInt(a.Clave, 10) || 0;
+//                         const claveB = parseInt(b.Clave, 10) || 0;
+//                         return claveB - claveA;
+//                     });
+
+//                     const pedidosTable = document.getElementById('datosPedidos');
+//                     pedidosTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
+//                     pedidos.forEach(pedido => {
+//                         const row = document.createElement('tr');
+
+//                         row.innerHTML = `
+//                             <td>${pedido.Tipo || 'Sin tipo'}</td>
+//                             <td>${pedido.Clave || 'Sin nombre'}</td>
+//                             <td>${pedido.Cliente || 'Sin cliente'}</td>
+//                             <td>${pedido.Nombre || 'Sin nombre'}</td>
+//                             <td>${pedido.Estatus || '0'}</td>
+//                             <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td>
+//                             <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : 'Sin subtotal'}</td>
+//                             <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
+//                             <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
+//                             <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
+//                             <td>
+//                                 <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
+//                                     display: inline-flex;
+//                                     align-items: center;
+//                                     padding: 0.5rem 1rem;
+//                                     font-size: 1rem;
+//                                     font-family: Lato;
+//                                     color: #fff;
+//                                     background-color: #007bff;
+//                                     border: none;
+//                                     border-radius: 0.25rem;
+//                                     cursor: pointer;
+//                                     transition: background-color 0.3s ease;">
+//                                     <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
+//                                 </button>
+//                                 <br>
+//                             </td>
+//                             <td>
+//                                 <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
+//                                     display: inline-flex;
+//                                     align-items: center;
+//                                     padding: 0.5rem 1rem;
+//                                     font-size: 1rem;
+//                                     font-family: Lato;
+//                                     color: #fff;
+//                                     background-color: #dc3545;
+//                                     border: none;
+//                                     border-radius: 0.25rem;
+//                                     cursor: pointer;
+//                                     transition: background-color 0.3s ease;">
+//                                     <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
+//                                 </button>
+//                             </td>
+//                         `;
+//                         pedidosTable.appendChild(row);
+//                     });
+//                     agregarEventosBotones();
+//                 } else {
+//                     const row = document.createElement('tr');
+//                     const numColumns = pedidosTable.querySelector('thead')
+//                         ? pedidosTable.querySelector('thead').rows[0].cells.length
+//                         : 13;
+//                     row.innerHTML = `<td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>`;
+//                     pedidosTable.appendChild(row);
+//                 }
+//             }
+//         } catch (error) {
+//             console.error('Error al procesar la respuesta JSON:', error);
+//         }
+//     }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+//         console.error('Error en la solicitud:', textStatus, errorThrown);
+//     });
+// }
+
+// //Funcion Original
+// function datosPedidos() {
+//     $.post('../Servidor/PHP/ventas.php', { numFuncion: '1', noEmpresa: noEmpresa, filtroFecha: 'Hoy' }, function (response) {
+//         try {
+//             // Verifica si response es una cadena (string) que necesita ser parseada
+//             if (typeof response === 'string') {
+//                 response = JSON.parse(response);
+//             }
+//             // Verifica si response es un objeto antes de intentar procesarlo
+//             if (typeof response === 'object' && response !== null) {
+//                 const pedidosTable = document.getElementById('datosPedidos');
+//                 pedidosTable.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos datos
+//                 if (response.success && response.data) {
+//                     let pedidos = response.data;
+
+//                     // Ordenar pedidos por clave en orden descendente
+//                     pedidos = pedidos.sort((a, b) => {
+//                         const claveA = parseInt(a.Clave, 10) || 0;
+//                         const claveB = parseInt(b.Clave, 10) || 0;
+//                         return claveB - claveA; // Orden descendente
+//                     });
+// /* <td style="text-align: right;">${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : 'Sin subtotal'}</td> */
+//                     pedidos.forEach(pedido => {
+//                         const row = document.createElement('tr');
+//                         row.innerHTML = `
+//                         <td>${pedido.Tipo || 'Sin tipo'}</td>
+//                         <td>${pedido.Clave || 'Sin nombre'}</td>
+//                         <td>${pedido.Cliente || 'Sin cliente'}</td>
+//                         <td>${pedido.Nombre || 'Sin nombre'}</td>
+//                         <td>${pedido.Estatus || '0'}</td>
+//                         <td>${pedido.FechaElaboracion?.date || 'Sin fecha'}</td> <!-- Maneja el objeto anidado -->
+//                         <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : 'Sin subtotal'}</td>
+//                         <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : 'Sin Comisiones'}</td>
+//                         <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : 'Sin importe'}</td>
+//                         <td>${pedido.NombreVendedor || 'Sin vendedor'}</td>
+//                         <td>
+//                             <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
+//                                 display: inline-flex;
+//                                 align-items: center;
+//                                 padding: 0.5rem 1rem;
+//                                 font-size: 1rem;
+//                                 font-family: Lato;
+//                                 color: #fff;
+//                                 background-color: #007bff;
+//                                 border: none;
+//                                 border-radius: 0.25rem;
+//                                 cursor: pointer;
+//                                 transition: background-color 0.3s ease;">
+//                                 <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
+//                             </button>
+//                             <br>
+//                             </td>
+//                             <td>
+//                             <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
+//                                 display: inline-flex;
+//                                 align-items: center;
+//                                 padding: 0.5rem 1rem;
+//                                 font-size: 1rem;
+//                                 font-family: Lato;
+//                                 color: #fff;
+//                                 background-color: #dc3545;
+//                                 border: none;
+//                                 border-radius: 0.25rem;
+//                                 cursor: pointer;
+//                                 transition: background-color 0.3s ease;">
+//                                 <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
+//                             </button>
+//                         </td>
+//                     `;
+//                         pedidosTable.appendChild(row);
+//                     });
+//                     agregarEventosBotones();
+//                 } else {
+//                     // Si no hay pedidos, mostrar una fila con el mensaje "No hay datos"
+//                     const row = document.createElement('tr');
+
+//                     // Obtener el número de columnas del encabezado
+//                     const numColumns = pedidosTable.querySelector('thead')
+//                         ? pedidosTable.querySelector('thead').rows[0].cells.length
+//                         : 13; // Valor predeterminado si no hay encabezado
+
+//                     row.innerHTML = `
+//                         <td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>
+//                         <td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>
+//                         <td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>
+//                     `;
+//                     pedidosTable.appendChild(row);
+//                     console.error('Error en la respuesta del servidor:', response);
+//                 }
+//             } else {
+//                 console.error('La respuesta no es un objeto válido:', response);
+//             }
+//         } catch (error) {
+//             console.error('Error al procesar la respuesta JSON:', error);
+//             console.error('Detalles de la respuesta:', response);  // Mostrar respuesta completa
+//         }
+//     }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+//         console.error('Error en la solicitud:', textStatus, errorThrown);
+//         console.log('Detalles de la respuesta JSON:', jqXHR.responseText);
+//     });
+// }
+
+// Variables globales de paginación
+let paginaActual = 1;
+const registrosPorPagina = 50; // Ajusta según convenga
+
+// Función para cargar los pedidos con paginación.
+// El parámetro "limpiarTabla" indica si se reinicia la tabla (true en carga inicial o al cambiar filtro)
+// o se agregan filas al final (false al hacer "Mostrar más").
+function datosPedidos(limpiarTabla = true) {
+    // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
+    let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
+    console.log("Cargando datosPedidos con filtro:", filtroFecha, "Página:", paginaActual);
+
+    const pedidosTable = document.getElementById("datosPedidos");
+    if (!pedidosTable) {
+        console.error("No se encontró el elemento con id 'datosPedidos'");
+        return;
+    }
+    const numColumns = 12; // Número de columnas de tu tabla
+
+    // Código del spinner (puedes reemplazarlo por el que prefieras)
+    const spinnerHTML = `
+        <svg viewBox="25 25 50 50" style="width:40px;height:40px;">
+            <circle r="20" cy="50" cx="50"></circle>
+        </svg>
+    `;
+    // Construir una fila con un spinner en cada celda
+    let spinnerRow = "<tr>";
+    for (let i = 0; i < numColumns; i++) {
+        spinnerRow += `<td style="text-align: center;">${spinnerHTML}</td>`;
+    }
+    spinnerRow += "</tr>";
+
+    // Si se debe limpiar la tabla, se reemplaza el contenido; si no, se agrega al final.
+    if (limpiarTabla) {
+        pedidosTable.innerHTML = spinnerRow;
+    } else {
+        pedidosTable.insertAdjacentHTML("beforeend", spinnerRow);
+    }
+
+    $.post(
+        "../Servidor/PHP/ventas.php",
+        {
+            numFuncion: "1",
+            noEmpresa: noEmpresa,
+            filtroFecha: filtroFecha,
+            pagina: paginaActual,
+            porPagina: registrosPorPagina
+        },
+        function (response) {
+            try {
+                // Si la respuesta es una cadena, la parseamos
+                if (typeof response === "string") {
+                    response = JSON.parse(response);
                 }
-            } else {
-                console.error('La respuesta no es un objeto válido:', response);
+                // Verificamos que la respuesta sea un objeto válido
+                if (typeof response === "object" && response !== null) {
+                    // Limpiar la fila de spinner
+                    if (limpiarTabla) {
+                        pedidosTable.innerHTML = "";
+                    } else {
+                        // Remover la última fila (spinner) si se agregó al final
+                        const lastRow = pedidosTable.lastElementChild;
+                        if (lastRow) {
+                            pedidosTable.removeChild(lastRow);
+                        }
+                    }
+
+                    if (response.success && response.data) {
+                        let pedidos = response.data;
+                        // Ordenar pedidos por clave en orden descendente
+                        pedidos = pedidos.sort((a, b) => {
+                            const claveA = parseInt(a.Clave, 10) || 0;
+                            const claveB = parseInt(b.Clave, 10) || 0;
+                            return claveB - claveA;
+                        });
+
+                        // Crear un DocumentFragment para acumular las filas
+                        const fragment = document.createDocumentFragment();
+
+                        pedidos.forEach((pedido) => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${pedido.Tipo || "Sin tipo"}</td>
+                                <td>${pedido.Clave || "Sin nombre"}</td>
+                                <td>${pedido.Cliente || "Sin cliente"}</td>
+                                <td>${pedido.Nombre || "Sin nombre"}</td>
+                                <td>${pedido.Estatus || "0"}</td>
+                                <td>${pedido.FechaElaboracion?.date || "Sin fecha"}</td>
+                                <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : "Sin subtotal"}</td>
+                                <td style="text-align: right;">${pedido.TotalComisiones ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}` : "Sin Comisiones"}</td>
+                                <td style="text-align: right;">${pedido.ImporteTotal ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}` : "Sin importe"}</td>
+                                <td>${pedido.NombreVendedor || "Sin vendedor"}</td>
+                                <td>
+                                    <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave}" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        padding: 0.5rem 1rem;
+                                        font-size: 1rem;
+                                        font-family: Lato;
+                                        color: #fff;
+                                        background-color: #007bff;
+                                        border: none;
+                                        border-radius: 0.25rem;
+                                        cursor: pointer;
+                                        transition: background-color 0.3s ease;">
+                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
+                                    </button>
+                                </td>
+                                <td>
+                                    <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave}" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        padding: 0.5rem 1rem;
+                                        font-size: 1rem;
+                                        font-family: Lato;
+                                        color: #fff;
+                                        background-color: #dc3545;
+                                        border: none;
+                                        border-radius: 0.25rem;
+                                        cursor: pointer;
+                                        transition: background-color 0.3s ease;">
+                                        <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
+                                    </button>
+                                </td>
+                            `;
+                            fragment.appendChild(row);
+                        });
+
+                        // Agregar todas las filas de una sola vez
+                        pedidosTable.appendChild(fragment);
+
+                        // Si se retornaron menos registros que el límite, ocultamos el botón "Mostrar más"
+                        if (pedidos.length < registrosPorPagina) {
+                            document.getElementById("btnMostrarMas").style.display = "none";
+                        } else {
+                            document.getElementById("btnMostrarMas").style.display = "block";
+                        }
+
+                        // Llama a la función que asigna eventos a los botones, si está definida
+                        if (typeof agregarEventosBotones === "function") {
+                            agregarEventosBotones();
+                        }
+                    } else {
+                        // Si no hay datos, limpiar la tabla y mostrar un mensaje
+                        pedidosTable.innerHTML = `<tr><td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td></tr>`;
+                        document.getElementById("btnMostrarMas").style.display = "none";
+                        console.warn("No se recibieron datos o se devolvió un error:", response.message);
+                    }
+                } else {
+                    console.error("La respuesta no es un objeto válido:", response);
+                }
+            } catch (error) {
+                console.error("Error al procesar la respuesta JSON:", error);
+                console.error("Detalles de la respuesta:", response);
             }
-        } catch (error) {
-            console.error('Error al procesar la respuesta JSON:', error);
-            console.error('Detalles de la respuesta:', response);  // Mostrar respuesta completa
-        }
-    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
-        console.error('Error en la solicitud:', textStatus, errorThrown);
-        console.log('Detalles de la respuesta JSON:', jqXHR.responseText);
+        },
+        "json"
+    ).fail(function (jqXHR, textStatus, errorThrown) {
+        console.error("Error en la solicitud:", textStatus, errorThrown);
+        console.log("Detalles de la respuesta JSON:", jqXHR.responseText);
     });
 }
+
+// Evento para el botón "Mostrar más"
+document.getElementById("btnMostrarMas").addEventListener("click", function() {
+    paginaActual++; // Incrementa la página para cargar más registros
+    datosPedidos(false); // Carga sin limpiar la tabla (se agregan nuevos registros)
+});
+
+// Evento para el cambio del filtro
+document.getElementById("filtroFecha").addEventListener("change", function() {
+    localStorage.setItem("filtroSeleccionado", this.value);
+    paginaActual = 1; // Reinicia la paginación
+    document.getElementById("btnMostrarMas").style.display = "block"; // Asegura que el botón se muestre
+    datosPedidos(true); // Carga inicial con nuevo filtro (limpia la tabla)
+});
+
+// Carga inicial cuando el DOM esté listo
+document.addEventListener("DOMContentLoaded", function() {
+    paginaActual = 1;
+    document.getElementById("btnMostrarMas").style.display = "block";
+    datosPedidos(true);
+});
+
+
+
 // ORIGINAL function obtenerDatosPedido(pedidoID) {
 //     // Obtener el número de empresa desde el sessionStorage
 //     const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
@@ -322,54 +767,57 @@ function datosPedidos() {
 //     });
 // }
 
-
 // Función para obtener el siguiente folio
 function obtenerDatosPedido(pedidoID) {
-    $.post('../Servidor/PHP/ventas.php', {
-        numFuncion: '2', // Función para obtener el pedido por ID
-        pedidoID: pedidoID
-    }, function (response) {
-        if (response.success) {
-            const pedido = response.pedido;
-            console.log('Datos del pedido:', pedido);
+    $.post(
+        "../Servidor/PHP/ventas.php",
+        {
+            numFuncion: "2", // Función para obtener el pedido por ID
+            pedidoID: pedidoID,
+        },
+        function (response) {
+            if (response.success) {
+                const pedido = response.pedido;
+                console.log("Datos del pedido:", pedido);
 
-            // Cargar datos del cliente
+                // Cargar datos del cliente
 
-            document.getElementById('nombre').value = pedido.NOMBRE_CLIENTE || '';
-            document.getElementById('rfc').value = pedido.RFC || '';
-            document.getElementById('calle').value = pedido.CALLE || '';
-            document.getElementById('numE').value = pedido.NUMEXT || '';
-            document.getElementById('colonia').value = pedido.COLONIA || '';
-            document.getElementById('codigoPostal').value = pedido.CODIGO || '';
-            document.getElementById('pais').value = pedido.PAIS || '';
-            document.getElementById('condicion').value = pedido.CONDICION || '';
-            document.getElementById('almacen').value = pedido.NUM_ALMA || '';
-            document.getElementById('comision').value = pedido.COM_TOT || '';
-            document.getElementById('diaAlta').value = pedido.FECHA_DOC || '';
-            document.getElementById('entrega').value = pedido.FECHA_ENT || '';
+                document.getElementById("nombre").value = pedido.NOMBRE_CLIENTE || "";
+                document.getElementById("rfc").value = pedido.RFC || "";
+                document.getElementById("calle").value = pedido.CALLE || "";
+                document.getElementById("numE").value = pedido.NUMEXT || "";
+                document.getElementById("colonia").value = pedido.COLONIA || "";
+                document.getElementById("codigoPostal").value = pedido.CODIGO || "";
+                document.getElementById("pais").value = pedido.PAIS || "";
+                document.getElementById("condicion").value = pedido.CONDICION || "";
+                document.getElementById("almacen").value = pedido.NUM_ALMA || "";
+                document.getElementById("comision").value = pedido.COM_TOT || "";
+                document.getElementById("diaAlta").value = pedido.FECHA_DOC || "";
+                document.getElementById("entrega").value = pedido.FECHA_ENT || "";
 
-            document.getElementById('enviar').value = pedido.DAT_ENVIO || '';
-            document.getElementById('descuento').value = pedido.DES_TOT || '';
-            document.getElementById('numero').value = pedido.CVE_DOC || '';
-            document.getElementById('descuentofin').value = pedido.DES_FIN || '';
-            document.getElementById('cliente').value = pedido.CVE_CLPV || '';
-            document.getElementById('supedido').value = pedido.CONDICION || '';
-            document.getElementById('esquema').value = pedido.CONDICION || '';
+                document.getElementById("enviar").value = pedido.DAT_ENVIO || "";
+                document.getElementById("descuento").value = pedido.DES_TOT || "";
+                document.getElementById("numero").value = pedido.CVE_DOC || "";
+                document.getElementById("descuentofin").value = pedido.DES_FIN || "";
+                document.getElementById("cliente").value = pedido.CVE_CLPV || "";
+                document.getElementById("supedido").value = pedido.CONDICION || "";
+                document.getElementById("esquema").value = pedido.CONDICION || "";
 
-            // Actualizar estado de cliente seleccionado en sessionStorage
-            sessionStorage.setItem('clienteSeleccionado', true);
+                // Actualizar estado de cliente seleccionado en sessionStorage
+                sessionStorage.setItem("clienteSeleccionado", true);
 
-            // Cargar las partidas existentes
-            //cargarPartidas(pedido.partidas);
-            //alert("Datos del pedido cargados con éxito");
+                // Cargar las partidas existentes
+                //cargarPartidas(pedido.partidas);
+                //alert("Datos del pedido cargados con éxito");
 
-
-            console.log('Datos del pedido cargados correctamente.');
-        } else {
-            alert('No se pudo cargar el pedido: ' + response.message);
-        }
-    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
-        alert('Error al cargar el pedido: ' + textStatus + ' ' + errorThrown);
+                console.log("Datos del pedido cargados correctamente.");
+            } else {
+                alert("No se pudo cargar el pedido: " + response.message);
+            }
+        },
+        "json"
+    ).fail(function (jqXHR, textStatus, errorThrown) {
+        alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
     });
 }
 // function cargarPartidasPedido(pedidoID) {
@@ -418,7 +866,6 @@ function obtenerDatosPedido(pedidoID) {
 //                 tablaProductos.appendChild(nuevaFila);
 //             });
 
-
 //             // Agregar evento de eliminación a los botones
 //             document.querySelectorAll(".eliminarPartida").forEach(button => {
 //                 button.addEventListener("click", function () {
@@ -441,29 +888,33 @@ function obtenerDatosPedido(pedidoID) {
 function cargarPartidasPedido(pedidoID) {
     console.log("Cargando partidas para el pedido:", pedidoID);
 
-    $.post('../Servidor/PHP/ventas.php', {
-        numFuncion: '3',
-        accion: 'obtenerPartidas',
-        clavePedido: pedidoID
-    }, function (response) {
-
-        if (response.success) {
-            const partidas = response.partidas;
-            partidasData = [...partidas]; // Almacena las partidas en el array global
-            actualizarTablaPartidas(); // Actualiza la tabla visualmente
-            console.log("Partidas cargadas correctamente.");
-        } else {
-            console.error("Error al obtener partidas:", response.message);
-            alert('No se pudieron cargar las partidas: ' + response.message);
-        }
-    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
+    $.post(
+        "../Servidor/PHP/ventas.php",
+        {
+            numFuncion: "3",
+            accion: "obtenerPartidas",
+            clavePedido: pedidoID,
+        },
+        function (response) {
+            if (response.success) {
+                const partidas = response.partidas;
+                partidasData = [...partidas]; // Almacena las partidas en el array global
+                actualizarTablaPartidas(); // Actualiza la tabla visualmente
+                console.log("Partidas cargadas correctamente.");
+            } else {
+                console.error("Error al obtener partidas:", response.message);
+                alert("No se pudieron cargar las partidas: " + response.message);
+            }
+        },
+        "json"
+    ).fail(function (jqXHR, textStatus, errorThrown) {
         console.error("Error al cargar las partidas:", textStatus, errorThrown);
-        alert('Error al cargar las partidas: ' + textStatus + ' ' + errorThrown);
+        alert("Error al cargar las partidas: " + textStatus + " " + errorThrown);
     });
 }
 function actualizarTablaPartidas() {
     const tablaProductos = document.querySelector("#tablaProductos tbody");
-    tablaProductos.innerHTML = ''; // Limpia la tabla
+    tablaProductos.innerHTML = ""; // Limpia la tabla
 
     partidasData.forEach((partida) => {
         const nuevaFila = document.createElement("tr");
@@ -510,29 +961,27 @@ function eliminarPartidaFormulario(numPar) {
     console.log("Partidas actuales después de eliminar:", partidasData);
 }
 
-
 function limpiarTablaPartidas() {
     const tablaProductos = document.querySelector("#tablaProductos tbody");
-    tablaProductos.innerHTML = ''; // Limpia todas las filas de la tabla
+    tablaProductos.innerHTML = ""; // Limpia todas las filas de la tabla
 }
-
 
 function guardarPedido() {
     const urlParams = new URLSearchParams(window.location.search);
-    const pedidoID = urlParams.get('pedidoID'); // Si existe, estamos en modo edición
+    const pedidoID = urlParams.get("pedidoID"); // Si existe, estamos en modo edición
 
     const datosPedido = {
         pedidoID: pedidoID || null, // Si es edición, incluye el ID del pedido
-        cliente: document.getElementById('cliente').value,
-        rfc: document.getElementById('rfc').value,
-        direccion: document.getElementById('direccion').value,
-        partidas: []
+        cliente: document.getElementById("cliente").value,
+        rfc: document.getElementById("rfc").value,
+        direccion: document.getElementById("direccion").value,
+        partidas: [],
     };
 
     // Recolectar las partidas de la tabla
     const tablaProductos = document.querySelector("#tablaProductos tbody");
     const filas = tablaProductos.querySelectorAll("tr");
-    filas.forEach(fila => {
+    filas.forEach((fila) => {
         const partida = {
             cantidad: fila.querySelector(".cantidad").value,
             producto: fila.querySelector(".producto").value,
@@ -543,96 +992,105 @@ function guardarPedido() {
             iva: fila.querySelector(".iva").value,
             comision: fila.querySelector(".comision").value,
             precioUnidad: fila.querySelector(".precioUnidad").value,
-            subtotal: fila.querySelector(".subtotalPartida").value
+            subtotal: fila.querySelector(".subtotalPartida").value,
         };
         datosPedido.partidas.push(partida);
     });
 
     // Enviar datos al servidor
-    $.post('../Servidor/PHP/guardarPedido.php', datosPedido, function (response) {
-        if (response.success) {
-            alert('Pedido guardado correctamente');
-            window.location.href = 'listaPedidos.php'; // Redirigir a la lista de pedidos
-        } else {
-            alert('Error al guardar el pedido: ' + response.message);
-        }
-    }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
-        alert('Error en la solicitud: ' + textStatus + ' ' + errorThrown);
+    $.post(
+        "../Servidor/PHP/guardarPedido.php",
+        datosPedido,
+        function (response) {
+            if (response.success) {
+                alert("Pedido guardado correctamente");
+                window.location.href = "listaPedidos.php"; // Redirigir a la lista de pedidos
+            } else {
+                alert("Error al guardar el pedido: " + response.message);
+            }
+        },
+        "json"
+    ).fail(function (jqXHR, textStatus, errorThrown) {
+        alert("Error en la solicitud: " + textStatus + " " + errorThrown);
     });
 }
 function obtenerFolioSiguiente() {
     return new Promise((resolve, reject) => {
-        $.post('../Servidor/PHP/ventas.php', {
-            numFuncion: '3', // Caso 3: Obtener siguiente folio
-            accion: 'obtenerFolioSiguiente',
-        }, function (response) {
-            try {
-                const data = JSON.parse(response);
-                if (data.success) {
-                    console.log("El siguiente folio es: " + data.folioSiguiente);
-                    document.getElementById('numero').value = data.folioSiguiente;
-                    resolve(data.folioSiguiente); // Resuelve la promesa con el folio
-                } else {
-                    console.log("Error: " + data.message);
-                    reject(data.message); // Rechaza la promesa con el mensaje de error
+        $.post(
+            "../Servidor/PHP/ventas.php",
+            {
+                numFuncion: "3", // Caso 3: Obtener siguiente folio
+                accion: "obtenerFolioSiguiente",
+            },
+            function (response) {
+                try {
+                    const data = JSON.parse(response);
+                    if (data.success) {
+                        console.log("El siguiente folio es: " + data.folioSiguiente);
+                        document.getElementById("numero").value = data.folioSiguiente;
+                        resolve(data.folioSiguiente); // Resuelve la promesa con el folio
+                    } else {
+                        console.log("Error: " + data.message);
+                        reject(data.message); // Rechaza la promesa con el mensaje de error
+                    }
+                } catch (error) {
+                    reject("Error al procesar la respuesta: " + error.message);
                 }
-            } catch (error) {
-                reject("Error al procesar la respuesta: " + error.message);
             }
-        }).fail(function (xhr, status, error) {
+        ).fail(function (xhr, status, error) {
             reject("Error de AJAX: " + error);
         });
     });
 }
 function obtenerFecha() {
     const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    document.getElementById('diaAlta').value = formattedDate;
+    const formattedDate = today.toISOString().split("T")[0];
+    document.getElementById("diaAlta").value = formattedDate;
 }
 
-$('#filtroFecha').change(function () {
+$("#filtroFecha").change(function () {
     var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
     cargarPedidos(filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
 });
-$('#cancelarPedido').click(function () {
+$("#cancelarPedido").click(function () {
     window.location.href = "Ventas.php";
 });
-document.addEventListener('DOMContentLoaded', function () {
-    let clienteSeleccionado = sessionStorage.getItem('clienteSeleccionado') === 'true'; 
+document.addEventListener("DOMContentLoaded", function () {
+    let clienteSeleccionado =
+        sessionStorage.getItem("clienteSeleccionado") === "true";
     // Detectar el clic en el enlace para "Crear Pedido"
-    var altaPedidoBtn = document.getElementById('altaPedido');
+    var altaPedidoBtn = document.getElementById("altaPedido");
     if (altaPedidoBtn) {
-        altaPedidoBtn.addEventListener('click', function (e) {
+        altaPedidoBtn.addEventListener("click", function (e) {
             // Prevenir el comportamiento por defecto (redirigir)
             e.preventDefault();
-            console.log('Redirigiendo a altaPedido.php...');
+            console.log("Redirigiendo a altaPedido.php...");
             // Redirigir a la página 'altaPedido.php' sin parámetro
-            window.location.href = 'altaPedido.php';
+            window.location.href = "altaPedido.php";
         });
     }
 
     // Verificar si estamos en la página de creación o edición de pedidos
-    if (window.location.pathname.includes('altaPedido.php')) {
+    if (window.location.pathname.includes("altaPedido.php")) {
         // Obtener parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
-        const pedidoID = urlParams.get('pedidoID'); // Puede ser null si no está definido
+        const pedidoID = urlParams.get("pedidoID"); // Puede ser null si no está definido
 
-        console.log('ID del pedido recibido:', pedidoID); // Log en consola para depuración
+        console.log("ID del pedido recibido:", pedidoID); // Log en consola para depuración
 
         if (pedidoID) {
             // Si es un pedido existente (pedidoID no es null)
-            console.log('Cargando datos del pedido existente...');
+            console.log("Cargando datos del pedido existente...");
             obtenerDatosPedido(pedidoID); // Función para cargar datos del pedido
             cargarPartidasPedido(pedidoID); // Función para cargar partidas del pedido
         } else {
-            sessionStorage.setItem('clienteSeleccionado', false);
+            sessionStorage.setItem("clienteSeleccionado", false);
             clienteSeleccionado = false;
             // Si es un nuevo pedido (pedidoID es null)
-            console.log('Preparando formulario para un nuevo pedido...');
+            console.log("Preparando formulario para un nuevo pedido...");
             obtenerFecha(); // Establecer la fecha inicial del pedido
             limpiarTablaPartidas(); // Limpiar la tabla de partidas para el nuevo pedido
             obtenerFolioSiguiente(); // Generar el siguiente folio para el pedido
         }
     }
 });
-
