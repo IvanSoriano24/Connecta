@@ -8,6 +8,7 @@ if (isset($_SESSION['usuario'])) {
     }
     $nombreUsuario = $_SESSION['usuario']["nombre"];
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+    $correo = $_SESSION['usuario']["correo"];
     if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
         header('Location:Dashboard.php');
         exit();
@@ -17,7 +18,8 @@ if (isset($_SESSION['usuario'])) {
         $empresa = $_SESSION['empresa']['razonSocial'];
         $idEmpresa = $_SESSION['empresa']['id'];
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+        $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
+        $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
 		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
     }
 } else {

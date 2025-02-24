@@ -7,6 +7,7 @@ if (isset($_SESSION['usuario'])) {
     }
     $nombreUsuario = $_SESSION['usuario']["nombre"];
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+    $correo = $_SESSION['usuario']["correo"];
     if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
         header('Location:Dashboard.php');
         exit();
@@ -19,8 +20,9 @@ if (isset($_SESSION['usuario'])) {
         $empresa = $_SESSION['empresa']['razonSocial'];
         $idEmpresa = $_SESSION['empresa']['id'];
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+        $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
         $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+        $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
     }
 } else {
     header('Location:../index.php');
@@ -448,7 +450,7 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element">
                                 <label for="vendedor">Vendedor </label>
                                 <input type="text" name="vendedor" id="vendedor" style="width: 170px;"
-                                    value="<?php echo $claveVendedor ?>" readonly>
+                                    value="<?php echo $claveUsuario ?>" readonly>
                             </div>
                             <div class="form-element">
                                 <label for="almacen">Almacen </label>
@@ -752,7 +754,7 @@ if (isset($_SESSION['usuario'])) {
 
                 $('#cliente').on('input', function() {
                     const clienteInput = $(this).val().trim();
-                    const claveVendedor = '<?php echo $claveVendedor ?>';
+                    const claveUsuario = '<?php echo $claveUsuario ?>';
                     const $clienteInput = $(this);
 
                     if (clienteInput.length >= 2) {
@@ -762,7 +764,7 @@ if (isset($_SESSION['usuario'])) {
                             data: {
                                 cliente: clienteInput,
                                 numFuncion: '4',
-                                clave: claveVendedor
+                                clave: claveUsuario
                             },
                             success: function(response) {
                                 try {
@@ -844,7 +846,7 @@ if (isset($_SESSION['usuario'])) {
 
                 $(document).on("input", ".producto", function() {
                     const productoInput = $(this).val().trim();
-                    const claveVendedor = '<?php echo $claveVendedor ?>';
+                    const claveUsuario = '<?php echo $claveUsuario ?>';
                     const $productoInput = $(this);
 
                     // 🚨 Corregir selección de la lista de sugerencias (debe estar en la misma fila)
@@ -857,7 +859,7 @@ if (isset($_SESSION['usuario'])) {
                             data: {
                                 producto: productoInput,
                                 numFuncion: "16",
-                                clave: claveVendedor,
+                                clave: claveUsuario,
                             },
                             success: function(response) {
 

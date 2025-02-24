@@ -96,7 +96,8 @@ function login($funcion) {
                         'telefono' => $fields['telefono']['stringValue'],
                         'tipoUsuario' => $fields['tipoUsuario']['stringValue'],
                         'usuario' => $usuarioFirebase,
-                        'status' => $statusFirebase
+                        'status' => $statusFirebase,
+                        'claveUsuario' => $fields['claveUsuario']['stringValue']
                     ];
                     $tipUsuario = $_SESSION['usuario']['tipoUsuario'];
 

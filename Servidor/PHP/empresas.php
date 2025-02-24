@@ -23,15 +23,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $id = $_POST['id'];
                 $noEmpresa = $_POST['noEmpresa'];
                 $razonSocial = $_POST['razonSocial'];
-                $claveVendedor = $_POST['claveVendedor'];
+                $claveUsuario = $_POST['claveUsuario'];
                 $claveSae = $_POST['claveSae'];
+                $contrasena = $_POST['contrasena'];
+                
                 // Lógica de sesión
                 $_SESSION['empresa'] = [
                     'id' => $id,
                     'noEmpresa' => $noEmpresa,
                     'razonSocial' => $razonSocial,
-                    'claveVendedor' => $claveVendedor,
-                    'claveSae' => $claveSae
+                    'claveUsuario' => $claveUsuario,
+                    'claveSae' => $claveSae,
+                    'contrasena' => $contrasena
                 ];
                 echo json_encode([
                     'success' => true,
@@ -42,8 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $id = $_SESSION['empresa']['id'];
                 $noEmpresa = $_SESSION['empresa']['noEmpresa'];
                 $razonSocial = $_SESSION['empresa']['razonSocial'];
-                $claveVendedor = $_SESSION['empresa']['claveVendedor'];
+                $claveUsuario = $_SESSION['empresa']['claveUsuario'];
                 $claveSae = $_SESSION['empresa']['claveSae'];
+                $contrasena = $_SESSION['empresa']['contrasena'];
                 obtenerEmpresa($noEmpresa);
 
                 // Lógica de sesión
@@ -51,8 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'id' => $id,
                     'noEmpresa' => $noEmpresa,
                     'razonSocial' => $razonSocial,
-                    'claveVendedor' => $claveVendedor,
-                    'claveSae' => $claveSae
+                    'claveUsuario' => $claveUsuario,
+                    'claveSae' => $claveSae,
+                    'contrasena' => $contrasena
                 ];
             }else {
                 echo json_encode(['success' => false, 'message' => 'Faltan parámetros.']);
@@ -331,8 +336,9 @@ function listaEmpresas($nombreUsuario) {
                         'id' => isset($fields['id']['stringValue']) ? $fields['id']['stringValue'] : "N/A", // Validar id
                         'noEmpresa' => isset($fields['noEmpresa']['stringValue']) ? $fields['noEmpresa']['stringValue'] : "No especificado", // Validar noEmpresa
                         'razonSocial' => isset($fields['empresa']['stringValue']) ? $fields['empresa']['stringValue'] : "Sin Razón Social", // Validar razonSocial
-                        'claveVendedor' => isset($fields['claveVendedor']['stringValue']) ? $fields['claveVendedor']['stringValue'] : "Vendedor sin Clave",
-                        'claveSae' => isset($fields['claveSae']['stringValue']) ? $fields['claveSae']['stringValue'] : "Usuario sin base asociada"
+                        'claveUsuario' => isset($fields['claveUsuario']['stringValue']) ? $fields['claveUsuario']['stringValue'] : "Usuario sin Clave",
+                        'claveSae' => isset($fields['claveSae']['stringValue']) ? $fields['claveSae']['stringValue'] : "Usuario sin base asociada",
+                        'contrasena' => isset($fields['contrasena']['stringValue']) ? $fields['contrasena']['stringValue'] : "Sin contrasena"
                     ];
                 }
             }

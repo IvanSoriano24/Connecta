@@ -109,7 +109,7 @@ function guardarUsuario($datosUsuario)
     }
 }
 
-function actualizarUsuario($idUsario, $data) {}
+
 
 function mostrarUsuarios($usuarioLogueado, $usuario)
 {
@@ -384,7 +384,7 @@ function obtenerUsuarios()
             'estatus' => $fields['estatus']['stringValue'] ?? '',
             'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
             'usuario' => $fields['usuario']['stringValue'] ?? '',
-            'claveVendedor' => $fields['claveVendedor']['stringValue'] ?? '',
+            'claveUsuario' => $fields['claveUsuario']['stringValue'] ?? '',
         ];
     }
 
@@ -405,7 +405,7 @@ function guardarAsociacion(){
     $id = $_POST['id'] ?? null;
     $noEmpresa = $_POST['noEmpresa'] ?? null;
     $usuario = $_POST['usuario'] ?? null;
-    $claveVendedor = $_POST['claveVendedor'] ?? null;
+    $claveUsuario = $_POST['claveUsuario'] ?? null;
 
     
     if (!$empresa || !$id || !$noEmpresa || !$usuario) {
@@ -445,7 +445,7 @@ function guardarAsociacion(){
         'id' => ['stringValue' => $id],
         'noEmpresa' => ['stringValue' => $noEmpresa],
         'usuario' => ['stringValue' => $usuario],
-        'claveVendedor' => ['stringValue' => $claveVendedor],
+        'claveUsuario' => ['stringValue' => $claveUsuario],
         'claveSae' => ['stringValue' => $claveSae],
     ];
 

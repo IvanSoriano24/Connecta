@@ -8,6 +8,7 @@ if (isset($_SESSION['usuario'])) {
 	$nombreUsuario = $_SESSION['usuario']["usuario"];
 	$nombre = $_SESSION['usuario']["nombre"];
 	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+	$correo = $_SESSION['usuario']["correo"];
 	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
 		header('Location:Dashboard.php');
 	}
@@ -17,7 +18,8 @@ if (isset($_SESSION['usuario'])) {
 		$empresa = $_SESSION['empresa']['razonSocial'];
 		$idEmpresa = $_SESSION['empresa']['id'];
 		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
-		$claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+		$claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
+		$contrasena = $_SESSION['empresa']['contrasena'] ?? null;
 		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
 	}
 } else {
@@ -126,8 +128,9 @@ if (isset($_SESSION['usuario'])) {
 
 				const noEmpresa = empresaOption.getAttribute('data-no-empresa');
 				const razonSocial = empresaOption.getAttribute('data-razon-social');
-				const claveVendedor = empresaOption.getAttribute('data-clave-vendedor');
+				const claveUsuario = empresaOption.getAttribute('data-clave-vendedor');
 				const claveSae = empresaOption.getAttribute('data-clave-sae');
+				const contrasena = empresaOption.getAttribute('data-contrasena');
 				// Verificar en PHP si la empresa tiene conexión a SAE
 				fetch('../Servidor/PHP/sae.php', {
 						method: 'POST',
@@ -150,14 +153,14 @@ if (isset($_SESSION['usuario'])) {
 								seleccionarEmpresa(noEmpresa);
 								const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
 								modal.hide();
-
 								// Guardar los datos en la variable global
 								idEmpresarial = {
 									id: empresaSeleccionada,
 									noEmpresa: noEmpresa,
 									razonSocial: razonSocial,
-									claveVendedor: claveVendedor,
-									claveSae: claveSae
+									claveUsuario: claveUsuario,
+									claveSae: claveSae,
+									contrasena: contrasena
 								};
 								
 								// Llamar la función sesionEmpresa para registrar sesión
@@ -187,8 +190,9 @@ if (isset($_SESSION['usuario'])) {
 										id: empresaSeleccionada,
 										noEmpresa: noEmpresa,
 										razonSocial: razonSocial,
-										claveVendedor: claveVendedor,
-										claveSae: claveSae
+										claveUsuario: claveUsuario,
+										claveSae: claveSae,
+										contrasena: contrasena
 									};
 
 									// Llamar la función sesionEmpresa para registrar sesión
@@ -216,15 +220,17 @@ if (isset($_SESSION['usuario'])) {
 				var id = idEmpresarial.id;
 				var noEmpresa = idEmpresarial.noEmpresa;
 				var razonSocial = idEmpresarial.razonSocial;
-				var claveVendedor = idEmpresarial.claveVendedor;
+				var claveUsuario = idEmpresarial.claveUsuario;
 				var claveSae = idEmpresarial.claveSae;
+				var contrasena = idEmpresarial.contrasena;
 				$.post('../Servidor/PHP/empresas.php', {
 					action: 'sesion',
 					id: id,
 					noEmpresa: noEmpresa,
 					razonSocial: razonSocial,
-					claveVendedor: claveVendedor,
-					claveSae: claveSae
+					claveUsuario: claveUsuario,
+					claveSae: claveSae,
+					contrasena: contrasena
 				}, function(response) {
 					if (response.success) {
 						if (response.data && response.data.id && response.data.noEmpresa && response.data.razonSocial) {
@@ -243,6 +249,13 @@ if (isset($_SESSION['usuario'])) {
 		<script src="JS/menu.js"></script>
 		<script src="JS/app.js"></script>
 		<script src="JS/script.js"></script>
+		<script>
+			var correo = '<?php echo $correo ?>';
+			var contrasena = '<?php echo $contrasena ?>';
+
+			//console.log(correo);
+			//console.log(contrasena);
+		</script>
 </body>
 
 </html>

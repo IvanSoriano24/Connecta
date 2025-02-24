@@ -215,7 +215,7 @@ function mostrarPedidos($conexionData, $filtroFecha)
         }
         // Obtener tipo de usuario y clave de vendedor desde la sesión
         $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
-        $claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+        $claveVendedor = $_SESSION['empresa']['claveUsuario'] ?? null;
         if ($claveVendedor != null) {
             $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
         }
@@ -1413,11 +1413,11 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     sqlsrv_close($conn);
 }
 // Función para enviar el correo (en desarrollo)
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
+/*function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
-    $correo = 'sonicjos.ys@gmail.com';
+    //$correo = 'sonicjos.ys@gmail.com';
     //$correo = 'ivan.soriano@mdcloud.mx';
     // Título y asunto 
     $nomEmpresa = $_SESSION['empresa']['razonSocial'];
@@ -1479,6 +1479,96 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML, $rutaPDF);
     if ($resultado === "Correo enviado exitosamente.") {
         //echo json_encode(['success' => true, 'message' => 'Correo enviado correctamente.']);
+    } else {
+        error_log("Error al enviar el correo: $resultado");
+        echo json_encode(['success' => false, 'message' => $resultado]);
+    }
+}*/
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF){
+    // Crear una instancia de la clase clsMail
+    $mail = new clsMail();
+
+    // Definir el remitente (si no está definido, se usa uno por defecto)
+    $correoRemitente = $_SESSION['usuario']['correo'] ?? null;
+    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? null;
+
+    if($correoRemitente == null || $contraseñaRemitente == null){
+        $correoRemitente = null;
+        $contraseñaRemitente = null;
+    }
+
+    // Definir el correo de destino (puedes cambiarlo si es necesario)
+    $correoDestino = 'desarrollo01@mdcloud.mx';
+    // $correoDestino = 'ivan.soriano@mdcloud.mx';
+
+    // Obtener el nombre de la empresa desde la sesión
+    $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
+
+    // Asunto del correo
+    $asunto = 'Detalles del Pedido #' . $noPedido;
+
+    // Convertir productos a JSON para la URL
+    $productosJson = urlencode(json_encode($partidasData));
+
+    // URL base del servidor
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    // $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+
+    // URLs para confirmar o rechazar el pedido
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
+
+    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae);
+
+    // Construcción del cuerpo del correo
+    $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
+    $bodyHTML .= "<p>Por este medio enviamos los detalles de su pedido <b>$noPedido</b>. Por favor, revíselos y confirme:</p>";
+    $bodyHTML .= "<p><b>Fecha y Hora de Elaboración:</b> $fechaElaboracion</p>";
+    $bodyHTML .= "<p><b>Dirección de Envío:</b> $enviarA</p>";
+    $bodyHTML .= "<p><b>Vendedor:</b> $vendedor</p>";
+
+    // Agregar tabla con detalles del pedido
+    $bodyHTML .= "<table style='border-collapse: collapse; width: 100%;' border='1'>
+                    <thead>
+                        <tr>
+                            <th>Clave</th>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                            <th>Total Partida</th>
+                        </tr>
+                    </thead>
+                    <tbody>";
+
+    $total = 0;
+    foreach ($partidasData as $partida) {
+        $clave = htmlspecialchars($partida['producto']);
+        $descripcion = htmlspecialchars($partida['descripcion']);
+        $cantidad = htmlspecialchars($partida['cantidad']);
+        $totalPartida = $cantidad * $partida['precioUnitario'];
+        $total += $totalPartida;
+
+        $bodyHTML .= "<tr>
+                        <td>$clave</td>
+                        <td>$descripcion</td>
+                        <td>$cantidad</td>
+                        <td>$" . number_format($totalPartida, 2) . "</td>
+                      </tr>";
+    }
+
+    $bodyHTML .= "</tbody></table>";
+    $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
+
+    // Botones para confirmar o rechazar el pedido
+    $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
+                  <a href='$urlConfirmar' style='background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Confirmar</a>
+                  <a href='$urlRechazar' style='background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;'>Rechazar</a>";
+
+    $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
+
+    // Enviar el correo con el remitente dinámico
+    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correoDestino, $asunto, $bodyHTML, $rutaPDF, $correoRemitente, $contraseñaRemitente);
+    
+    if ($resultado === "Correo enviado exitosamente.") {
+        // En caso de éxito, puedes registrar logs o realizar alguna otra acción
     } else {
         error_log("Error al enviar el correo: $resultado");
         echo json_encode(['success' => false, 'message' => $resultado]);
@@ -2245,8 +2335,7 @@ function extraerProductos($conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function extraerProductosE($conexionData, $claveSae)
-{
+function extraerProductosE($conexionData, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2261,20 +2350,29 @@ function extraerProductosE($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    // Consulta directa a la tabla fija INVE02
+    
+    $claveCliente = $_SESSION['usuario']['claveUsuario']; // Clave del cliente
+
+    // Consulta para obtener los productos más vendidos del cliente
     $sql = "
-        SELECT 
-            [CVE_ART], 
-            [DESCR], 
-            [EXIST], 
-            [LIN_PROD], 
-            [UNI_MED],
-            [APART]
-        FROM $nombreTabla
+        SELECT TOP (6)
+            p.CVE_ART, 
+            i.DESCR, 
+            SUM(p.CANT) AS TOTAL_COMPRADO, 
+            i.EXIST, 
+            i.LIN_PROD, 
+            i.UNI_MED, 
+            i.APART
+        FROM [SAE90Empre02].[dbo].[PAR_FACTF02] p
+        INNER JOIN [SAE90Empre02].[dbo].[FACTF02] f ON p.CVE_DOC = f.CVE_DOC
+        INNER JOIN [SAE90Empre02].[dbo].[INVE02] i ON p.CVE_ART = i.CVE_ART
+        WHERE f.CVE_CLPV = ?
+        GROUP BY p.CVE_ART, i.DESCR, i.EXIST, i.LIN_PROD, i.UNI_MED, i.APART
+        ORDER BY TOTAL_COMPRADO DESC
     ";
 
-    $stmt = sqlsrv_query($conn, $sql);
+    $params = [$claveCliente]; // Parámetro para filtrar por cliente
+    $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
         echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
@@ -2703,7 +2801,7 @@ switch ($funcion) {
             // Lógica para alta de pedido
             $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
-            if ($resultadoValidacion['success']) {
+            /*if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
                 $totalPedido = calcularTotalPedido($partidasData);
                 $clienteId = $formularioData['cliente'];
@@ -2716,7 +2814,7 @@ switch ($funcion) {
                     guardarPedido($conexionData, $formularioData, $partidasData);
                     guardarPartidas($conexionData, $formularioData, $partidasData);
                     actualizarFolio($conexionData);
-                    actualizarInventario($conexionData, $partidasData);
+                    actualizarInventario($conexionData, $partidasData);*/
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF);
                     //exit;
@@ -2726,7 +2824,7 @@ switch ($funcion) {
                         'success' => true,
                         'message' => 'El pedido se completó correctamente.',
                     ]);
-                } else {
+                /*} else {
                     // Error de crédito
                     echo json_encode([
                         'success' => false,
@@ -2744,7 +2842,7 @@ switch ($funcion) {
                     'message' => $resultadoValidacion['message'],
                     'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
                 ]);
-            }
+            }*/
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);

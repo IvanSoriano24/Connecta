@@ -77,6 +77,7 @@
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa">Información Empresa</a></li>
                     <li><a class="dropdown-item" href="ConexioSAE.php" id="infoSae">Conexión SAE</a></li>
+                    <li><a class="dropdown-item" href="Correo.php" id="infoCorreo">Configuracion de Correo</a></li>
                 </ul>
             </li>
             <li>

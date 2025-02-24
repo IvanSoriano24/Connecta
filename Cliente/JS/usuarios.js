@@ -692,7 +692,7 @@ function cargarUsuarios() {
           res.data.forEach((usuario) => {
             // Incluimos `data-usuario` para usarlo posteriormente
             selectUsuario.append(
-              `<option value="${usuario.usuario}" data-usuario="${usuario.usuario}" data-id="${usuario.id}" data-claveVendedor="${usuario.claveVendedor}">${usuario.nombre}</option>`
+              `<option value="${usuario.usuario}" data-usuario="${usuario.usuario}" data-id="${usuario.id}" data-claveUsuario="${usuario.claveUsuario}">${usuario.nombre}</option>`
             );
           });
         } else {
@@ -714,8 +714,8 @@ $("#btnGuardarAsociacion").on("click", function () {
   const razonSocial = $("#selectEmpresa option:selected").text(); // Razón social de la empresa
   const noEmpresa = $("#selectEmpresa option:selected").data("noempresa"); // Número de empresa
   const usuario = $("#selectUsuario option:selected").data("usuario"); // Valor del campo 'usuario'
-  const claveVendedor = $("#selectUsuario option:selected").attr(
-    "data-claveVendedor"
+  const claveUsuario = $("#selectUsuario option:selected").attr(
+    "data-claveUsuario"
   );
   // Validar que todos los campos estén seleccionados
   if (!idEmpresa || !usuario) {
@@ -736,7 +736,7 @@ $("#btnGuardarAsociacion").on("click", function () {
       id: idEmpresa,
       noEmpresa: noEmpresa,
       usuario: usuario,
-      claveVendedor: claveVendedor,
+      claveUsuario: claveUsuario,
     },
     success: function (response) {
       try {

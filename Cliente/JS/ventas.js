@@ -170,76 +170,6 @@ function eliminarPedido(pedidoID) {
 //     });
 // }
 
-// Función para cargar los pedidos (la tienes definida) y que recibe el filtro seleccionado
-// Función para renderizar los pedidos en la tabla
-function mostrarPedidosEnTabla(pedidos) {
-    const pedidosTable = document.getElementById("datosPedidos");
-    if (!pedidosTable) {
-        console.error("No se encontró el elemento con id 'datosPedidos'");
-        return;
-    }
-    pedidosTable.innerHTML = ""; // Limpiar la tabla
-    pedidos.forEach((pedido) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${pedido.Tipo || "Sin tipo"}</td>
-            <td>${pedido.Clave || "Sin clave"}</td>
-            <td>${pedido.Cliente || "Sin cliente"}</td>
-            <td>${pedido.Nombre || "Sin nombre"}</td>
-            <td>${pedido.Estatus || "0"}</td>
-            <td>${pedido.FechaElaboracion?.date || "Sin fecha"}</td>
-            <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : "Sin subtotal"
-            }</td>
-            <td style="text-align: right;">${pedido.TotalComisiones
-                ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
-                : "Sin comisiones"
-            }</td>
-            <td style="text-align: right;">${pedido.ImporteTotal
-                ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}`
-                : "Sin importe"
-            }</td>
-            <td>${pedido.NombreVendedor || "Sin vendedor"}</td>
-            <td>
-                <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
-            }" style="
-                    display: inline-flex;
-                    align-items: center;
-                    padding: 0.5rem 1rem;
-                    font-size: 1rem;
-                    font-family: Lato;
-                    color: #fff;
-                    background-color: #007bff;
-                    border: none;
-                    border-radius: 0.25rem;
-                    cursor: pointer;
-                    transition: background-color 0.3s ease;">
-                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
-                </button>
-            </td>
-            <td>
-                <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
-            }" style="
-                    display: inline-flex;
-                    align-items: center;
-                    padding: 0.5rem 1rem;
-                    font-size: 1rem;
-                    font-family: Lato;
-                    color: #fff;
-                    background-color: #dc3545;
-                    border: none;
-                    border-radius: 0.25rem;
-                    cursor: pointer;
-                    transition: background-color 0.3s ease;">
-                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
-                </button>
-            </td>
-        `;
-        pedidosTable.appendChild(row);
-    });
-    // Si tienes función para asignar eventos a los botones, llámala aquí:
-    agregarEventosBotones && agregarEventosBotones();
-}
-
 // Función para mostrar mensaje cuando no hay datos
 function mostrarSinDatos() {
     const pedidosTable = document.getElementById("datosPedidos");
@@ -308,25 +238,6 @@ function cargarPedidos(filtroFecha) {
         console.error("Error en la solicitud:", textStatus, errorThrown);
     });
 }
-
-// Asignar el evento "change" al select del filtro (asegúrate que el id sea correcto)
-document.getElementById("filtroFecha").addEventListener("change", function () {
-    const filtroSeleccionado = this.value;
-    cargarPedidos(filtroSeleccionado);
-});
-
-// Al cargar la página, se lee el filtro guardado y se carga la información
-document.addEventListener("DOMContentLoaded", function () {
-    let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Todos";
-    // Actualiza el select con el filtro guardado (asegúrate que el elemento exista)
-    const filtroSelect = document.getElementById("filtroFecha");
-    if (filtroSelect) {
-        filtroSelect.value = filtroGuardado;
-    } else {
-        console.error("No se encontró el elemento select con id 'filtroFecha'");
-    }
-    cargarPedidos(filtroGuardado);
-});
 
 // //FuncionOriginal
 // function cargarPedidos(filtroFecha) {
@@ -685,30 +596,6 @@ function datosPedidos(limpiarTabla = true) {
         console.log("Detalles de la respuesta JSON:", jqXHR.responseText);
     });
 }
-
-// Evento para el botón "Mostrar más"
-document.getElementById("btnMostrarMas").addEventListener("click", function() {
-    paginaActual++; // Incrementa la página para cargar más registros
-    datosPedidos(false); // Carga sin limpiar la tabla (se agregan nuevos registros)
-});
-
-// Evento para el cambio del filtro
-document.getElementById("filtroFecha").addEventListener("change", function() {
-    localStorage.setItem("filtroSeleccionado", this.value);
-    paginaActual = 1; // Reinicia la paginación
-    document.getElementById("btnMostrarMas").style.display = "block"; // Asegura que el botón se muestre
-    datosPedidos(true); // Carga inicial con nuevo filtro (limpia la tabla)
-});
-
-// Carga inicial cuando el DOM esté listo
-document.addEventListener("DOMContentLoaded", function() {
-    paginaActual = 1;
-    document.getElementById("btnMostrarMas").style.display = "block";
-    datosPedidos(true);
-});
-
-
-
 // ORIGINAL function obtenerDatosPedido(pedidoID) {
 //     // Obtener el número de empresa desde el sessionStorage
 //     const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');

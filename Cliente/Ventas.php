@@ -1,29 +1,31 @@
 <?php
 session_start();
 if (isset($_SESSION['usuario'])) {
-	if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
-		header('Location:Menu.php');
-		exit();
-	}
-	$nombreUsuario = $_SESSION['usuario']["nombre"];
-	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
-	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
-		header('Location:Dashboard.php');
-		exit();
-	}
+    if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
+        header('Location:Menu.php');
+        exit();
+    }
+    $nombreUsuario = $_SESSION['usuario']["nombre"];
+    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+    $correo = $_SESSION['usuario']["correo"];
+    if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+        header('Location:Dashboard.php');
+        exit();
+    }
 
-	$mostrarModal = isset($_SESSION['empresa']) ? false : true;
+    $mostrarModal = isset($_SESSION['empresa']) ? false : true;
 
-	//$empresa = $_SESSION['empresa']['razonSocial'];
-	if (isset($_SESSION['empresa'])) {
-		$empresa = $_SESSION['empresa']['razonSocial'];
-		$idEmpresa = $_SESSION['empresa']['id'];
-		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
-		$claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
-		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
-	}
+    //$empresa = $_SESSION['empresa']['razonSocial'];
+    if (isset($_SESSION['empresa'])) {
+        $empresa = $_SESSION['empresa']['razonSocial'];
+        $idEmpresa = $_SESSION['empresa']['id'];
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
+        $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
+        $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+    }
 } else {
-	header('Location:../index.php');
+    header('Location:../index.php');
 }
 /*
 session_unset();
@@ -48,76 +50,76 @@ session_destroy(); */
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-    body.modal-open .hero_area {
-        filter: blur(5px);
-        /* Difumina el fondo mientras un modal está abierto */
-    }
+        body.modal-open .hero_area {
+            filter: blur(5px);
+            /* Difumina el fondo mientras un modal está abierto */
+        }
     </style>
 
 
     <style>
-    /* From Uiverse.io by barisdogansutcu */
-    svg {
-        width: 3.25em;
-        transform-origin: center;
-        animation: rotate4 2s linear infinite;
-    }
-
-    circle {
-        fill: none;
-        stroke: hsl(214, 97%, 59%);
-        stroke-width: 2;
-        stroke-dasharray: 1, 200;
-        stroke-dashoffset: 0;
-        stroke-linecap: round;
-        animation: dash4 1.5s ease-in-out infinite;
-    }
-
-    @keyframes rotate4 {
-        100% {
-            transform: rotate(360deg);
+        /* From Uiverse.io by barisdogansutcu */
+        svg {
+            width: 3.25em;
+            transform-origin: center;
+            animation: rotate4 2s linear infinite;
         }
-    }
 
-    @keyframes dash4 {
-        0% {
+        circle {
+            fill: none;
+            stroke: hsl(214, 97%, 59%);
+            stroke-width: 2;
             stroke-dasharray: 1, 200;
             stroke-dashoffset: 0;
+            stroke-linecap: round;
+            animation: dash4 1.5s ease-in-out infinite;
         }
 
-        50% {
-            stroke-dasharray: 90, 200;
-            stroke-dashoffset: -35px;
+        @keyframes rotate4 {
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
-        100% {
-            stroke-dashoffset: -125px;
+        @keyframes dash4 {
+            0% {
+                stroke-dasharray: 1, 200;
+                stroke-dashoffset: 0;
+            }
+
+            50% {
+                stroke-dasharray: 90, 200;
+                stroke-dashoffset: -35px;
+            }
+
+            100% {
+                stroke-dashoffset: -125px;
+            }
         }
-    }
 
-    /* BOTON MOSTRAR MAS */
-    /* From Uiverse.io by felipesntr */
-    button {
-        border: 2px solid #24b4fb;
-        background-color: #24b4fb;
-        border-radius: 0.9em;
-        cursor: pointer;
-        padding: 0.8em 1.2em 0.8em 1em;
-        transition: all ease-in-out 0.2s;
-        font-size: 16px;
-    }
+        /* BOTON MOSTRAR MAS */
+        /* From Uiverse.io by felipesntr */
+        button {
+            border: 2px solid #24b4fb;
+            background-color: #24b4fb;
+            border-radius: 0.9em;
+            cursor: pointer;
+            padding: 0.8em 1.2em 0.8em 1em;
+            transition: all ease-in-out 0.2s;
+            font-size: 16px;
+        }
 
-    button span {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #fff;
-        font-weight: 600;
-    }
+        button span {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: 600;
+        }
 
-    button:hover {
-        background-color: #0071e2;
-    }
+        button:hover {
+            background-color: #0071e2;
+        }
     </style>
 </head>
 
@@ -198,7 +200,7 @@ session_destroy(); */
                                             <path d="M0 0h24v24H0z" fill="none"></path>
                                             <path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z" fill="currentColor"></path>
                                         </svg>
-                                        Mostrar 
+                                        Mostrar
                                     </span>
                                 </button>
 
@@ -219,9 +221,118 @@ session_destroy(); */
     <script src="JS/script.js"></script>
     <script src="JS/ventas.js"></script>
     <script>
-    $(document).ready(function() {
-        datosPedidos();
-    });
+        $(document).ready(function() {
+            datosPedidos();
+        });
+    </script>
+    <script>
+        // Asignar el evento "change" al select del filtro (asegúrate que el id sea correcto)
+        document.getElementById("filtroFecha").addEventListener("change", function() {
+            const filtroSeleccionado = this.value;
+            cargarPedidos(filtroSeleccionado);
+        });
+        // Evento para el botón "Mostrar más"
+        document.getElementById("btnMostrarMas").addEventListener("click", function() {
+            paginaActual++; // Incrementa la página para cargar más registros
+            datosPedidos(false); // Carga sin limpiar la tabla (se agregan nuevos registros)
+        });
+
+
+        // Evento para el cambio del filtro
+        document.getElementById("filtroFecha").addEventListener("change", function() {
+            localStorage.setItem("filtroSeleccionado", this.value);
+            paginaActual = 1; // Reinicia la paginación
+            document.getElementById("btnMostrarMas").style.display = "block"; // Asegura que el botón se muestre
+            datosPedidos(true); // Carga inicial con nuevo filtro (limpia la tabla)
+        });
+
+        // Carga inicial cuando el DOM esté listo
+        document.addEventListener("DOMContentLoaded", function() {
+            paginaActual = 1;
+            document.getElementById("btnMostrarMas").style.display = "block";
+            datosPedidos(true);
+        });
+        // Al cargar la página, se lee el filtro guardado y se carga la información
+        document.addEventListener("DOMContentLoaded", function() {
+            let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Todos";
+            // Actualiza el select con el filtro guardado (asegúrate que el elemento exista)
+            const filtroSelect = document.getElementById("filtroFecha");
+            if (filtroSelect) {
+                filtroSelect.value = filtroGuardado;
+            } else {
+                console.error("No se encontró el elemento select con id 'filtroFecha'");
+            }
+            cargarPedidos(filtroGuardado);
+        });
+        // Función para cargar los pedidos (la tienes definida) y que recibe el filtro seleccionado
+        // Función para renderizar los pedidos en la tabla
+        function mostrarPedidosEnTabla(pedidos) {
+            const pedidosTable = document.getElementById("datosPedidos");
+            if (!pedidosTable) {
+                console.error("No se encontró el elemento con id 'datosPedidos'");
+                return;
+            }
+            pedidosTable.innerHTML = ""; // Limpiar la tabla
+            pedidos.forEach((pedido) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+            <td>${pedido.Tipo || "Sin tipo"}</td>
+            <td>${pedido.Clave || "Sin clave"}</td>
+            <td>${pedido.Cliente || "Sin cliente"}</td>
+            <td>${pedido.Nombre || "Sin nombre"}</td>
+            <td>${pedido.Estatus || "0"}</td>
+            <td>${pedido.FechaElaboracion?.date || "Sin fecha"}</td>
+            <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : "Sin subtotal"
+            }</td>
+            <td style="text-align: right;">${pedido.TotalComisiones
+                ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
+                : "Sin comisiones"
+            }</td>
+            <td style="text-align: right;">${pedido.ImporteTotal
+                ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}`
+                : "Sin importe"
+            }</td>
+            <td>${pedido.NombreVendedor || "Sin vendedor"}</td>
+            <td>
+                <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
+            }" style="
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 0.5rem 1rem;
+                    font-size: 1rem;
+                    font-family: Lato;
+                    color: #fff;
+                    background-color: #007bff;
+                    border: none;
+                    border-radius: 0.25rem;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;">
+                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
+                </button>
+            </td>
+            <td>
+                <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
+            }" style="
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 0.5rem 1rem;
+                    font-size: 1rem;
+                    font-family: Lato;
+                    color: #fff;
+                    background-color: #dc3545;
+                    border: none;
+                    border-radius: 0.25rem;
+                    cursor: pointer;
+                    transition: background-color 0.3s ease;">
+                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
+                </button>
+            </td>
+        `;
+                pedidosTable.appendChild(row);
+            });
+            // Si tienes función para asignar eventos a los botones, llámala aquí:
+            agregarEventosBotones && agregarEventosBotones();
+        }
     </script>
 
 </body>
@@ -230,7 +341,7 @@ session_destroy(); */
 <!-- 
 				<script>
 			var empresa = '<?php // echo $nombreEmpresa 
-							?>'
+                            ?>'
 			console.log(empresa);
 		</script>
 		-->

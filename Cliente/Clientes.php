@@ -7,6 +7,7 @@ if (isset($_SESSION['usuario'])) {
 	}
 	$nombreUsuario = $_SESSION['usuario']["nombre"];
 	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+	$correo = $_SESSION['usuario']["correo"];
 	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
 		header('Location:Dashboard.php');
 		exit();
@@ -19,7 +20,8 @@ if (isset($_SESSION['usuario'])) {
 		$empresa = $_SESSION['empresa']['razonSocial'];
 		$idEmpresa = $_SESSION['empresa']['id'];
 		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
-		$claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+		$claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
+		$contrasena = $_SESSION['empresa']['contrasena'] ?? null;
 		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
 	}
 } else {
@@ -354,7 +356,7 @@ if (isset($_SESSION['usuario'])) {
 									<div class="form-group col-md-6">
 										<label for="vendedor">Vendedor:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="input-fo" id="vendedor" value="<?php echo $claveVendedor ?>" readonly1>
+											<input type="text" class="input-fo" id="vendedor" value="<?php echo $claveUsuario ?>" readonly1>
 											<!-- <div class="input-group-append">
 												<span class="input-group-text"></span>
 											</div> -->

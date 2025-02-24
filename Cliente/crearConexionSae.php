@@ -3,13 +3,15 @@ session_start();
 if (isset($_SESSION['usuario']) && isset($_SESSION['empresa']['razonSocial'])) {
   $nombreUsuario = $_SESSION['usuario']["nombre"];
   $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+  $correo = $_SESSION['usuario']["correo"];
 
   //$empresa = $_SESSION['empresa']['razonSocial'];
   if (isset($_SESSION['empresa'])) {
     $empresa = $_SESSION['empresa']['razonSocial'];
     $idEmpresa = $_SESSION['empresa']['id'];
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
+    $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
+    $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
 		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
   }
 } else {
