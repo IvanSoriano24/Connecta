@@ -109,7 +109,7 @@
                                             <table class="table table-hover table-striped text-center align-middle">
                                                 <thead class="table-dark">
                                                     <tr>
-                                                        <th scope="col">Imagen</th>
+                                                        <th scope="col">Vista</th>
                                                         <th scope="col">Producto</th>
                                                         <th scope="col">Precio</th>
                                                         <th scope="col">Cantidad</th>
@@ -151,9 +151,9 @@
 
 
     <script src="JS/carrito.js"></script>
+    <!-- <script src="JS/articulos.js"></script>-->
     <script src="JS/menu.js"></script>
-    <script src="JS/ventas.js"></script>
-    <script src="JS/menu.js"></script>
+    <!-- <script src="JS/ventas.js"></script> -->
     <!-- Scroll Top -->
     <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
             class="bi bi-arrow-up-short"></i></a>
@@ -176,13 +176,5 @@
 
     <!-- Main JS File -->
     <script src="assets/js/main.js"></script>
-
-
-    <script>
-    $(document).ready(function() {
-        datosPedidos();
-    });
-    </script>
-</body>
 
 </html>

@@ -220,7 +220,6 @@ async function obtenerImpuesto(cveEsqImpu) {
     });
   });
 }
-
 async function completarPrecioProducto(cveArt, filaTabla) {
   try {
     // Obtener la lista de precios correctamente

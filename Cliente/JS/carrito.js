@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#btnPagar").click(function () {
     pagarPedido();
   });
-  
+
   const carritoLista = document.getElementById("carrito-lista");
   const totalElement = document.getElementById("total");
   const checkoutTotal = document.getElementById("checkout-total");
@@ -197,6 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const formData = new FormData();
       formData.append("numFuncion", "3");
+      formData.append("claveSae", "02");
       formData.append("accion", "obtenerFolioSiguiente");
       const response = await fetch("../Servidor/PHP/ventas.php", {
         method: "POST",
@@ -217,8 +218,135 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function pagarPedido() {
+    try {
+      // 1️⃣ Obtener los datos completos del pedido
+      const datosPedido = await obtenerDatosPedido();
+      if (!datosPedido) {
+        alert("No se pudieron obtener los datos del pedido.");
+        return;
+      }
+  
+      // 2️⃣ Obtener los productos del carrito
+      const partidas = obtenerPartidasPedido();
+  
+      // 3️⃣ Crear `FormData`
+      const formData = new FormData();
+      formData.append("numFuncion", "19");
+  
+      // 📌 Agregar datos del pedido
+      for (const key in datosPedido) {
+        formData.append(`formularioData[${key}]`, datosPedido[key]);
+      }
+  
+      // 📌 Agregar las partidas
+      partidas.forEach((partida, index) => {
+        for (const key in partida) {
+          formData.append(`partidasData[${index}][${key}]`, partida[key]);
+        }
+      });
+  
+      console.log("Pedido a enviar (FormData):", formData); // Para depuración
+  
+      // 4️⃣ Enviar la solicitud al backend
+      const response = await fetch("../Servidor/PHP/ventas.php", {
+        method: "POST",
+        body: formData,
+      });
+  
+      // 📌 Verificar el tipo de respuesta
+      const contentType = response.headers.get("content-type");
+  
+      if (contentType && contentType.includes("application/pdf")) {
+        // 📌 Si la respuesta es un PDF, abrirlo en una nueva ventana
+        const pdfBlob = await response.blob();
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        window.open(pdfUrl, "_blank");
+      } else {
+        // 📌 Si la respuesta es JSON, manejarla como éxito o error
+        const result = await response.json();
+        if (result.success) {
+          alert("Pedido realizado con éxito. Folio: " + datosPedido.folio);
+  
+          // 🗑️ Borrar carrito después de confirmar el pedido
+          localStorage.removeItem("carrito");
+  
+          // 🔄 Actualizar la vista del carrito
+          mostrarCarrito();
+        } else {
+          alert("Error al realizar el pedido: " + result.message);
+        }
+      }
+    } catch (error) {
+      console.error("Error en pagarPedido:", error);
+      alert("Hubo un problema al procesar el pedido.");
+    }
+  }  
+  async function obtenerDatosPedido() {
+    // 1️⃣ Obtener los datos del cliente
+    const datosCliente = await obtenerDatosClienteCarro();
+    if (!datosCliente) {
+      alert("No se pudieron obtener los datos del cliente.");
+      return null;
+    }
+
+    // 2️⃣ Obtener la fecha actual en formato SQL
+    const fechaActual = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+    // 3️⃣ Obtener el nuevo folio
     const nuevoFolio = await obtenerFolioSiguiente();
-    alert(`Pago realizado con folio: ${nuevoFolio}`);
+
+    // 4️⃣ Fusionar datos del cliente con los datos del pedido
+    return {
+      numero: nuevoFolio,
+      diaAlta: fechaActual,
+      almacen: "1", // Definir un almacén por defecto
+      estatus: "E", // Estado inicial del pedido
+
+      // 📌 **Datos del Cliente**
+      cliente: datosCliente.CLAVE,
+      rfc: datosCliente.RFC,
+      nombre: datosCliente.NOMBRE,
+      calle: datosCliente.CALLE,
+      numE: datosCliente.NUMEXT,
+      numI: datosCliente.NUMINT,
+      descuento: datosCliente.DESCUENTO || 0, // Si no hay descuento, poner 0
+      colonia: datosCliente.COLONIA,
+      codigoPostal: datosCliente.CODIGO,
+      poblacion: datosCliente.LOCALIDAD,
+      pais: datosCliente.PAIS,
+      regimenFiscal: datosCliente.REGIMEN_FISCAL,
+      claveVendedor: 0,
+      vendedor: 0,
+      comision: 0,
+      entrega: "",
+      enviar: datosCliente.CALLE, // Puedes cambiarlo según la lógica de negocio
+      condicion: "",
+    };
+  }
+  function obtenerPartidasPedido() {
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    let partidasData = [];
+
+    carrito.forEach((producto) => {
+      const partida = {
+        cantidad: producto.cantidad,
+        producto: producto.CVE_ART,
+        unidad: producto.unidad,
+        descuento1: producto.descuento1 || 0,
+        descuento2: producto.descuento2 || 0,
+        ieps: producto.ieps || 0,
+        impuesto2: producto.impuesto2 || 0,
+        isr: producto.isr || 0, // Impuesto 3
+        iva: producto.iva || 0,
+        comision: producto.comision || 0,
+        precioUnitario: producto.precioUnitario,
+        subtotal: producto.subtotal,
+        CVE_UNIDAD: producto.CVE_UNIDAD,
+      };
+      partidasData.push(partida);
+    });
+
+    return partidasData;
   }
 
   function mostrarCarrito() {
@@ -230,72 +358,89 @@ document.addEventListener("DOMContentLoaded", () => {
     carritoLista.innerHTML = ""; // Limpiar contenido previo
 
     if (carrito.length === 0) {
-        carritoLista.innerHTML = "<p class='text-center'>El carrito está vacío.</p>";
-        subtotalElement.textContent = "$0.00";
-        totalElement.textContent = "$20.00"; // Solo el costo de envío
-        return;
+      carritoLista.innerHTML =
+        "<p class='text-center'>El carrito está vacío.</p>";
+      subtotalElement.textContent = "$0.00";
+      totalElement.textContent = "$20.00"; // Solo el costo de envío
+      return;
     }
 
     let subtotal = 0;
 
     carrito.forEach((producto) => {
-        const row = document.createElement("tr");
+      const row = document.createElement("tr");
 
-        // 📌 Asegurar imagen válida
-        const imagenUrl = producto.IMAGEN_ML && typeof producto.IMAGEN_ML === "string"
-            ? producto.IMAGEN_ML
-            : "https://via.placeholder.com/65"; // Imagen de respaldo
+      // 📌 Asegurar imagen válida
+      const imagenUrl =
+        producto.IMAGEN_ML && typeof producto.IMAGEN_ML === "string"
+          ? producto.IMAGEN_ML
+          : "https://via.placeholder.com/65"; // Imagen de respaldo
 
-        const imagenTd = document.createElement("td");
-        const img = document.createElement("img");
-        img.src = imagenUrl;
-        img.alt = producto.DESCR;
-        img.className = "img-fluid rounded-3";
-        img.style.width = "65px"; // Ajustar tamaño
-        imagenTd.appendChild(img);
+      const imagenTd = document.createElement("td");
+      const img = document.createElement("img");
+      img.src = imagenUrl;
+      img.alt = producto.DESCR;
+      img.className = "img-fluid rounded-3";
+      img.style.width = "65px"; // Ajustar tamaño
+      imagenTd.appendChild(img);
 
-        const descripcionTd = document.createElement("td");
-        descripcionTd.textContent = producto.DESCR;
+      const descripcionTd = document.createElement("td");
+      descripcionTd.textContent = producto.DESCR;
 
-        const precioTd = document.createElement("td");
-        const precioProducto = producto.precio || 10; // Precio predeterminado si no está definido
-        precioTd.textContent = `$${precioProducto.toFixed(2)}`;
+      const precioTd = document.createElement("td");
+      const precioProducto = parseFloat(producto.precioUnitario) || 10; // 🛠️ Usamos `precioUnitario`
+      precioTd.textContent = `$${precioProducto.toFixed(2)}`;
 
-        const cantidadTd = document.createElement("td");
-        cantidadTd.textContent = producto.cantidad; // Mostrar cantidad correcta
+      const cantidadTd = document.createElement("td");
+      cantidadTd.textContent = producto.cantidad; // Mostrar cantidad correcta
 
-        const totalTd = document.createElement("td");
-        const totalProducto = precioProducto * producto.cantidad;
-        subtotal += totalProducto;
-        totalTd.textContent = `$${totalProducto.toFixed(2)}`;
+      const totalTd = document.createElement("td");
+      const totalProducto = precioProducto * producto.cantidad;
+      subtotal += totalProducto;
+      totalTd.textContent = `$${totalProducto.toFixed(2)}`;
 
-        // Botón de eliminar
-        const eliminarTd = document.createElement("td");
-        const eliminarBtn = document.createElement("button");
-        eliminarBtn.innerHTML = `<i class="fas fa-trash"></i>`;
-        eliminarBtn.className = "btn btn-danger btn-sm";
-        eliminarBtn.addEventListener("click", () => eliminarProducto(producto.CVE_ART));
-        eliminarTd.appendChild(eliminarBtn);
+      // Botón de eliminar
+      const eliminarTd = document.createElement("td");
+      const eliminarBtn = document.createElement("button");
+      eliminarBtn.innerHTML = `<i class="fas fa-trash"></i>`;
+      eliminarBtn.className = "btn btn-danger btn-sm";
+      eliminarBtn.addEventListener("click", () =>
+        eliminarProducto(producto.CVE_ART)
+      );
+      eliminarTd.appendChild(eliminarBtn);
 
-        // Agregamos las celdas a la fila
-        row.appendChild(imagenTd);
-        row.appendChild(descripcionTd);
-        row.appendChild(precioTd);
-        row.appendChild(cantidadTd);
-        row.appendChild(totalTd);
-        row.appendChild(eliminarTd);
+      // Agregamos las celdas a la fila
+      row.appendChild(imagenTd);
+      row.appendChild(descripcionTd);
+      row.appendChild(precioTd);
+      row.appendChild(cantidadTd);
+      row.appendChild(totalTd);
+      row.appendChild(eliminarTd);
 
-        // Agregamos la fila a la tabla
-        carritoLista.appendChild(row);
+      // Agregamos la fila a la tabla
+      carritoLista.appendChild(row);
     });
 
     // Actualizar totales
     subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
     totalElement.textContent = `$${(subtotal + 20).toFixed(2)}`; // 20 es el envío
-}
+  }
+  async function obtenerDatosClienteCarro() {
+    try {
+      const response = await fetch("../Servidor/PHP/clientes.php?numFuncion=4");
+      const data = await response.json();
 
+      if (!data.success) {
+        console.error("Error al obtener datos del cliente:", data.message);
+        return null; // En caso de error, devolver null
+      }
 
-
+      return data.data[0]; // Retorna el primer cliente obtenido
+    } catch (error) {
+      console.error("Error en la solicitud de datos del cliente:", error);
+      return null;
+    }
+  }
   // Función para eliminar un producto del carrito
   function eliminarProducto(id) {
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];

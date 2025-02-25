@@ -20,8 +20,10 @@ class clsMail {
         $this->mail->isSMTP();
         $this->mail->SMTPAuth = true;
         $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Cifrado TLS
-        $this->mail->Host = 'smtp.gmail.com'; // Servidor SMTP de Gmail
+        $this->mail->Host = 'smtp.gmail.com'; 
+        //$this->mail->Host = 'mail.grupointerzenda'; // Servidor SMTP de Gmail
         $this->mail->Port = 587; // Puerto para TLS
+        //$this->mail->Port = 995; // Puerto para TLS
         $this->mail->CharSet = 'UTF-8'; // Codificación
     }
 

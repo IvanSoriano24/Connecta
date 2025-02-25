@@ -558,8 +558,7 @@ class PDFRemision extends FPDF
 }
 
 
-function generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa)
-{
+function generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa){
     $datosEmpresaFire = obtenerDatosEmpresaFire($noEmpresa);
 
     $clienteId = str_pad(trim($formularioData['cliente']), 10, ' ', STR_PAD_LEFT);
@@ -645,8 +644,7 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
 
     return $rutaArchivo;
 }
-function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor)
-{
+function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor){
 
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);

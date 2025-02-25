@@ -113,14 +113,14 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     //echo "Respuesta de remision.php: " . $remisionResponse;
                     $remisionData = json_decode($remisionResponse, true);
                     //echo "Respuesta de decodificada.php: " . $remisionData;
-                    $cveDoc = trim($remisionData['cveDoc']);
+                    //$cveDoc = trim($remisionData['cveDoc']);
                     
                     // Verificar si la respuesta es un PDF
                     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
                     if (strpos($contentType, 'application/pdf') !== false) {
                         // Guardar el PDF localmente o redireccionar
-                        file_put_contents("remision_$cveDoc.pdf", $remisionResponse);
-                        echo "<script>window.open('remision_$cveDoc.pdf', '_blank');</script>";
+                        file_put_contents("remision.pdf", $remisionResponse);
+                        echo "<script>window.open('remision.pdf', '_blank');</script>";
                     }
                     echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>

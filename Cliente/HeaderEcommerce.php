@@ -2,7 +2,7 @@
 <header id="header" class="header d-flex align-items-center fixed-top">
     <div class="header-container container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
 
-      <a href="index.html" class="logo d-flex align-items-center me-auto me-xl-0">
+      <a href="Menu.php" class="logo d-flex align-items-center me-auto me-xl-0">
         <!-- <img src="assets/img/logo.png" alt=""> -->
         <img src="SRC/imagen.png" alt="Logo" id="logop" href="Menu.php" style="width: 100px; height: 180px;">
         <!-- <h1 class="sitename">Interzenda</h1> -->

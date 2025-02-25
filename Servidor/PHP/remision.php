@@ -1311,8 +1311,7 @@ function actualizarInve4($conexionData, $pedidoId, $claveSae)
         'message' => "INVEXX y CLIEXX actualizados correctamente para el pedido $pedidoId"
     ]);*/
 }
-function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae)
-{
+function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1338,8 +1337,8 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae)
     $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    /*$cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);*/
     // ✅ 2. Obtener las partidas del pedido (`PAR_FACTPXX`)
     $sqlPartidas = "SELECT NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
                            IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, 
@@ -1391,8 +1390,9 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae)
             APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, 
             IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, 
             TOTIMP6, TOTIMP7, TOTIMP8)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, 
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?,
@@ -1414,7 +1414,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae)
         if ($stmtInsert === false) {
             echo json_encode([
                 'success' => false,
-                'message' => 'Error al Insertar',
+                'message' => 'Error al Insertar en Par_Factr',
                 'errors' => sqlsrv_errors()
             ]);
             die();
@@ -1429,8 +1429,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae)
         'message' => "PAR_FACTRXX insertado correctamente para la remisión $cveDoc"
     ]);*/
 }
-function insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae)
-{
+function insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2418,14 +2417,6 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarInve($conexionData, $pedidoId, $claveSae);
 
     validarLotes($conexionData, $pedidoId, $claveSae);
-    /*$validacionLotes = json_decode(validarLotes($conexionData, $pedidoId, $claveSae), true);
-    if (!$validacionLotes['success']) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error en validación de lotes',
-            'details' => $validacionLotes
-        ]));
-    }*/
 
     insertarNimve($conexionData, $pedidoId, $claveSae);
     actualizarInve2($conexionData, $pedidoId, $claveSae);
@@ -2450,7 +2441,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarAlerta_Usuario($conexionData, $claveSae);
     actualizarAlerta($conexionData, $claveSae);
     
-    generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
+    //$cveDoc = '          0000013314';
+    //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
     //echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
     return $cveDoc;
 }
