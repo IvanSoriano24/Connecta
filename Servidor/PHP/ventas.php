@@ -1317,8 +1317,7 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF)
-{
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF){
 
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
@@ -2811,8 +2810,7 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $claveSae)
-{
+function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $claveSae){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -3052,7 +3050,92 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
               </div>";
     }    
 }
+function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $noEmpresa){
 
+    // Establecer la conexión con SQL Server
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    // Extraer 'enviar a' y 'vendedor' del formulario
+    $enviarA = $formularioData['enviar']; // Dirección de envío
+    $vendedor = $formularioData['vendedor']; // Número de vendedor
+    $claveCliente = $formularioData['cliente'];
+    $clave = formatearClaveCliente($claveCliente);
+    $noPedido = $formularioData['numero']; // Número de pedido
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta SQL para obtener MAIL y EMAILPRED
+    $sql = "SELECT MAIL, EMAILPRED, NOMBRE, TELEFONO FROM $nombreTabla WHERE [CLAVE] = ?";
+    $params = [$clave];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
+    }
+
+    $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+    if (!$clienteData) {
+        echo json_encode(['success' => false, 'message' => 'El cliente no tiene datos registrados.']);
+        sqlsrv_close($conn);
+        return;
+    }
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    foreach ($partidasData as &$partida) {
+        $claveProducto = $partida['producto'];
+
+        // Consulta SQL para obtener la descripción del producto
+        $sqlProducto = "SELECT DESCR FROM $nombreTabla2 WHERE CVE_ART = ?";
+        $stmtProducto = sqlsrv_query($conn, $sqlProducto, [$claveProducto]);
+
+        if ($stmtProducto && $rowProducto = sqlsrv_fetch_array($stmtProducto, SQLSRV_FETCH_ASSOC)) {
+            $partida['descripcion'] = $rowProducto['DESCR'];
+        } else {
+            $partida['descripcion'] = 'Descripción no encontrada'; // Manejo de error
+        }
+
+        sqlsrv_free_stmt($stmtProducto);
+    }
+
+    $fechaElaboracion = $formularioData['diaAlta'];
+    $correo = trim($clienteData['MAIL']);
+    $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    // Si hay múltiples correos separados por `;`, tomar solo el primero
+    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    //$numeroWhatsApp = trim($clienteData['TELEFONO']);
+
+    $clienteNombre = trim($clienteData['NOMBRE']);
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773340218';
+
+    //$numeroWhatsApp = '+527773750925';
+    //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
+    if ($correo === 'S' && !empty($emailPred)) {
+        $numeroWhatsApp = '+527773750925';
+        //$numeroWhatsApp = '+527773340218';
+        $emailPred = 'desarrollo01@mdcloud.mx';
+        //$emailPred = 'marcosluh92@gmail.com';
+        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
+
+        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
+        die();
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
 
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -3535,7 +3618,7 @@ switch ($funcion) {
         actualizarFolio($conexionData, $claveSae);
         actualizarInventarioEcomers($conexionData, $partidasData, $claveSae);
         $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF);
+        validarCorreoClienteEcomers($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $noEmpresa);
         remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
         // 📌 Respuesta en caso de éxito sin PDF
         header('Content-Type: application/json; charset=UTF-8');
