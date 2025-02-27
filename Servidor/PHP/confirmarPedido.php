@@ -323,13 +323,6 @@ function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId)
 
     return false; // No se encontró el pedido en la colección
 }
-function RechazoWhatsApp(){
-    echo "<div class='container'>
-            <div class='title'>Pedido Rechazado</div>
-            <div class='message'>Se ha rechazado el pedido.</div>
-            <a href='../../Cliente/index.php' class='button'>Volver al inicio</a>
-        </div>";
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">

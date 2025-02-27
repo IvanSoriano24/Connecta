@@ -87,15 +87,16 @@ function cargarPedidos(){
         const pedidos = response.data;
         const tbody = $("#tablaPedidos tbody");
         tbody.empty();
-
+        
         pedidos.forEach((pedido) => {
           const row = `
                     <tr>
-                        <td>${pedido.numero || "-"}</td>
+                        <td>${pedido.folio || "-"}</td>
                         <<td>${pedido.cliente || "-"}</td>
                         <td>${pedido.diaAlta || "-"}</td>
                         <td>${pedido.vendedor || "-"}</td>
                         <td>${pedido.status || "-"}</td>
+                        <td>${pedido.totalPedido || "-"}</td>
                         <td>
                             <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${
                               pedido.id
@@ -273,7 +274,59 @@ function mostrarModal(comandaId) {
     "json"
   );
 }
+function mostrarModalPedido(pedidoId) {
+  $("#btnAutorizar").show();
+  $("#btnAutorizar").prop("disabled", true);
+  $.get(
+    "../Servidor/PHP/mensajes.php",
+    { numFuncion: "6", pedidoId },
+    function (response) {
+      if (response.success) {
+        const pedido = response.data;
+        console.log(pedido);
+        // Cargar el ID en el campo oculto
+        $("#detalleIdPedido").val(pedido.id);
+        $("#noEmpresa").val(pedido.noEmpresa);
+        $("#claveSae").val(pedido.claveSae);
+        $("#vendedor").val(pedido.vendedor);
 
+        // Cargar los datos en los inputs
+        $("#folio").val(pedido.folio);
+        $("#nombreCliente").val(pedido.cliente);
+        $("#status").val(pedido.status);
+        $("#diaAlta").val(pedido.diaAlta);
+
+        // Cargar los productos en la tabla
+        const productosList = $("#detallePartidas");
+        productosList.empty();
+        pedido.productos.forEach((producto, index) => {
+          const fila = `
+                 <tr>
+                        <td>${producto.producto}</td>
+                        <td>${producto.descripcion}</td>
+                        <td>${producto.cantidad}</td>
+                        <td>${producto.subtotal}</td>
+                    </tr>`;
+          productosList.append(fila);
+        });
+
+        const status = pedido.status;
+        if (status == "Autorizada" || status == "No Autorizada") {
+          $("#btnAutorizar").hide();
+        } else {
+          // Deshabilitar el botón "Terminar" inicialmente
+          $("#btnAutorizar").show();
+          $("#btnAutorizar").prop("disabled", false);
+        }
+        // Mostrar el modal
+        $("#modalPedido").modal("show");
+      } else {
+        alert("Error al obtener los detalles del pedido.");
+      }
+    },
+    "json"
+  );
+}
 // $('#btnTerminar').click(function () {
 //     const comandaId = $('#detalleIdComanda').val();
 //     $.post('../Servidor/PHP/mensajes.php', { numFuncion: '3', comandaId }, function (response) {
@@ -325,6 +378,42 @@ $("#btnTerminar").click(function () {
         });
         $("#modalDetalles").modal("hide");
         cargarComandas(); // Recargar la tabla
+      } else {
+        Swal.fire({
+          text: "Error al marcar la comanda como TERMINADA.",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  );
+});
+$("#btnAutorizar").click(function () {
+  const pedidoId = $("#detalleIdPedido").val();
+  const folio = $("#folio").val();
+  const noEmpresa = $("#noEmpresa").val();
+  const claveSae = $("#claveSae").val();        
+  const vendedor = $("#vendedor").val();
+alert(noEmpresa);
+alert(claveSae);
+  $.post(
+    "../Servidor/PHP/mensajes.php",
+    {
+      numFuncion: "7",
+      pedidoId: pedidoId,
+      folio: folio,
+      noEmpresa: noEmpresa,
+      claveSae: claveSae,
+      vendedor: vendedor,
+    },
+    function (response) {
+      if (response.success) {
+        Swal.fire({
+          text: "El pedido fue autorizado",
+          icon: "success",
+        });
+        $("#modalPedido").modal("hide");
+        cargarPedidos(); // Recargar la tabla
       } else {
         Swal.fire({
           text: "Error al marcar la comanda como TERMINADA.",

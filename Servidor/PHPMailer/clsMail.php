@@ -12,8 +12,11 @@ class clsMail {
     private $defaultUser = 'betovargas584@gmail.com'; // Correo por defecto
     private $defaultPass = 'tbkn bjyu segx vcgm'; // Contraseña por defecto
 
-    //private $defaultUser = 'sonicjos.ys@gmail.com'; // Correo por defecto
-    //private $defaultPass = 'dnfb fyvb qpuk xqml'; // Contraseña por defecto
+    /*private $defaultUser = 'sonicjos.ys@gmail.com'; // Correo por defecto
+    private $defaultPass = 'dnfb fyvb qpuk xqml'; // Contraseña por defecto*/
+
+    //private $defaultUser = 'josemanuelnavarroreval@gmail.com'; // Correo por defecto
+    //private $defaultPass = 'ntdc qhcf ymxm guks'; // Contraseña por defecto
 
     public function __construct() {
         $this->mail = new PHPMailer();
@@ -38,10 +41,15 @@ class clsMail {
         string $passwordRemitente = null
     ) {
         try {
+            if ($correoRemitente == null || $passwordRemitente == null) {
+                $correoRemitente = $this->defaultUser;
+                $passwordRemitente = $this->defaultPass;
+            }
             // Usar remitente y contraseña por defecto si no se proporciona
-            $remitente = !empty($correoRemitente) ? $correoRemitente : $this->defaultUser;
-            $password = !empty($passwordRemitente) ? $passwordRemitente : $this->defaultPass;
-
+            $remitente = $correoRemitente;
+            $password = $passwordRemitente;
+            /*var_dump($remitente);
+            var_dump($password);*/
             $this->mail->Username = $remitente;
             $this->mail->Password = $password;
             $this->mail->setFrom($remitente, $titulo); // Remitente dinámico o por defecto

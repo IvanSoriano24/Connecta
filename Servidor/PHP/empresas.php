@@ -338,7 +338,7 @@ function listaEmpresas($nombreUsuario) {
                         'razonSocial' => isset($fields['empresa']['stringValue']) ? $fields['empresa']['stringValue'] : "Sin Razón Social", // Validar razonSocial
                         'claveUsuario' => isset($fields['claveUsuario']['stringValue']) ? $fields['claveUsuario']['stringValue'] : "Usuario sin Clave",
                         'claveSae' => isset($fields['claveSae']['stringValue']) ? $fields['claveSae']['stringValue'] : "Usuario sin base asociada",
-                        'contrasena' => isset($fields['contrasena']['stringValue']) ? $fields['contrasena']['stringValue'] : "Sin contrasena"
+                        'contrasena' => isset($fields['contrasena']['stringValue']) ? $fields['contrasena']['stringValue'] : null
                     ];
                 }
             }

@@ -6,14 +6,13 @@ error_reporting(E_ALL);
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
-include 'confirmarPedido.php';
+//include 'funciones.php';
 //require_once 'whatsapp.php';
 //require_once 'clientes.php';
 
 session_start();
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
-{
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -524,7 +523,8 @@ function actualizarPedido($conexionData, $formularioData, $partidasData)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Extraer los datos del formulario
-    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
+    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     $FECHA_DOC = $formularioData['diaAlta'];
     $FECHA_ENT = $formularioData['entrega'];
     $CAN_TOT = 0;
@@ -840,27 +840,27 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
 
     return ['success' => true, 'message' => 'Inventario actualizado correctamente'];
 }
-function formatearClaveCliente($clave)
-{
+function formatearClaveCliente($clave){
     // Asegurar que la clave sea un string y eliminar espacios innecesarios
     $clave = trim((string) $clave);
-
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
     // Si la clave ya tiene 10 caracteres, devolverla tal cual
     if (strlen($clave) === 10) {
         return $clave;
     }
 
     // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
-    return str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    return $clave;
 }
-function obtenerDatosCliente($conexionData, $claveCliente, $claveSae)
-{
+function obtenerDatosCliente($conexionData, $claveCliente, $claveSae){
     /*// Obtener solo la clave del cliente (primera parte antes del espacio)
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos 
     $clave = $claveArray[0]; // Tomar solo la primera parte
     //    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
     $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);*/
     $clave = formatearClaveCliente($claveCliente);
+    
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -883,8 +883,9 @@ function obtenerDatosCliente($conexionData, $claveCliente, $claveSae)
             METODODEPAGO, NUMCTAPAGO,
             FORMADEPAGOSAT, USO_CFDI, REG_FISC
         FROM $nombreTabla
-        WHERE CLAVE = $clave
+        WHERE CLAVE = '$clave'
     ";
+    
     $stmt = sqlsrv_query($conn, $sql, [$clave]);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al obtener datos del cliente', 'errors' => sqlsrv_errors()]));
@@ -898,8 +899,7 @@ function obtenerDatosCliente($conexionData, $claveCliente, $claveSae)
 
     return $datosCliente;
 }
-function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus)
-{
+function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1243,8 +1243,7 @@ function actualizarFolio($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function actualizarInventario($conexionData, $partidasData)
-{
+function actualizarInventario($conexionData, $partidasData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1319,8 +1318,7 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF)
-{
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF){
 
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
@@ -1399,11 +1397,12 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
         //$numeroWhatsApp = '+527773340218';
-        $emailPred = 'desarrollo01@mdcloud.mx';
+        //$numeroWhatsApp = '+527773340218';
+        //$emailPred = 'desarrollo01@mdcloud.mx';
         //$emailPred = 'marcosluh92@gmail.com';
-        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
+        //enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
-        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1455,10 +1454,10 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
         return;
     }
 
-    $clienteNombre = trim($clienteData['NOMBRE']);
-    $numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
+    //$clienteNombre = trim($clienteData['NOMBRE']);
+    //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7773750925";
-    $numero = "527773340218";
+    $numero = "527773750925";
 
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -1563,11 +1562,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
-    guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
     return $result;
 }
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
-{
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF){
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
 
@@ -1657,11 +1654,12 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave)
-{
-    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
-    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
-
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave){
+    //$url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    
+    //$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
+    $token = 'EAAQbK4YCPPcBO9IynxQVBnTe9OlB6ytzw5DzOUA4c8ZAZCJFrUUFKisbRUMLLHJGICsnXkZA0bjQReezy43Fv26ydZCS8lCnFay1MUyoVjymGsZATsHxd3nXA1q0YSMx8tvlxUW45xtYM4aDGl1FKKOcZBUZAb14koRLOSZA7TefH1KkG1Bllm5ux3BCFZBaMogExuThZCUwICZCpoDA6mokL79xnZAYNBcicQKwOZC4ZD';
     // ✅ Verifica que los valores no estén vacíos
     if (empty($noPedido) || empty($claveSae)) {
         error_log("Error: noPedido o noEmpresa están vacíos.");
@@ -1696,8 +1694,8 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         "to" => $numero,
         "type" => "template",
         "template" => [
-            "name" => "confirmar_pedido_new", // 📌 Nombre EXACTO en Meta Business Manager
-            "language" => ["code" => "es_ES"], // 📌 Corregido a español España
+            "name" => "confirmar_pedido", // 📌 Nombre EXACTO en Meta Business Manager
+            "language" => ["code" => "es_MX"], // 📌 Corregido a español España
             "components" => [
                 [
                     "type" => "header",
@@ -3317,8 +3315,7 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function validarSaldo($conexionData, $clave, $claveSae)
-{
+function validarSaldo($conexionData, $clave, $claveSae){
     // Establecer los datos de conexión
     $serverName = $conexionData['host'];
     $database = $conexionData['nombreBase'];
@@ -3334,6 +3331,7 @@ function validarSaldo($conexionData, $clave, $claveSae)
         $tablaCuenM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $tablaCuenD = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $tablaClie = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $tablaMon = "[{$conexionData['nombreBase']}].[dbo].[MONED" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         // Consulta SQL para verificar saldo vencido
         $sql = "
             SELECT TOP 1 1 
@@ -3342,7 +3340,7 @@ function validarSaldo($conexionData, $clave, $claveSae)
             LEFT JOIN $tablaCuenD CUEN ON CUEN.CVE_CLIE = CUENM.CVE_CLIE
                 AND CUEN.REFER = CUENM.REFER
                 AND CUEN.NUM_CARGO = CUENM.NUM_CARGO
-            LEFT JOIN MONED01 MON ON CUENM.NUM_MONED = MON.NUM_MONED    
+            LEFT JOIN $tablaMon MON ON CUENM.NUM_MONED = MON.NUM_MONED    
             WHERE CUENM.FECHA_VENC < GETDATE()  -- Solo cuentas vencidas
                 AND CLIENTES.STATUS <> 'B'     -- Excluir clientes inactivos
                 AND CLIENTES.CLAVE = :claveCliente
@@ -3417,15 +3415,44 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
         echo json_encode(['success' => false, 'message' => 'Faltan datos del pedido.']);
         return;
     }
-
+    // Agregar la descripción del producto a cada partida
+    foreach ($partidasData as &$partida) {  // 🔹 Pasar por referencia para modificar el array
+        $CVE_ART = $partida['producto'];
+        $partida['descripcion'] = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
+    }
     // Preparar los campos que se guardarán en Firebase
     $fields = [
-        'numero'     => ['stringValue' => $formularioData['numero']],
+        'folio'     => ['stringValue' => $formularioData['numero']],
         'cliente'    => ['stringValue' => $formularioData['cliente']],
         'enviar'     => ['stringValue' => isset($formularioData['enviar']) ? $formularioData['enviar'] : ''],
         'vendedor'   => ['stringValue' => isset($formularioData['vendedor']) ? $formularioData['vendedor'] : ''],
         'diaAlta'    => ['stringValue' => isset($formularioData['diaAlta']) ? $formularioData['diaAlta'] : ''],
-        'partidas'   => ['stringValue' => json_encode($partidasData)], // Guardamos las partidas como JSON
+        //'partidas'   => ['stringValue' => json_encode($partidasData)], // Guardamos las partidas como JSON
+        "partidas" => [
+                        "arrayValue" => [
+                            "values" => array_map(function ($partidasData) {
+                                return [
+                                    "mapValue" => [
+                                        "fields" => [
+                                            "cantidad" => ["stringValue" => $partidasData["cantidad"]],
+                                            "producto" => ["stringValue" => $partidasData["producto"]],
+                                            "unidad" => ["stringValue" => $partidasData["unidad"]],
+                                            "descuento1" => ["stringValue" => $partidasData["descuento1"]],
+                                            "descuento2" => ["stringValue" => $partidasData["descuento2"]],
+                                            "ieps" => ["stringValue" => $partidasData["ieps"]],
+                                            "impuesto2" => ["stringValue" => $partidasData["impuesto2"]],
+                                            "isr" => ["stringValue" => $partidasData["isr"]],
+                                            "iva" => ["stringValue" => $partidasData["iva"]],
+                                            "comision" => ["stringValue" => $partidasData["comision"]],
+                                            "precioUnitario" => ["stringValue" => $partidasData["precioUnitario"]],
+                                            "subtotal" => ["stringValue" => $partidasData["subtotal"]],
+                                            "descripcion" => ["stringValue" => $partidasData["descripcion"]],
+                                        ]
+                                    ]
+                                ];
+                            }, $partidasData)
+                        ]
+                    ],
         'claveSae'   => ['stringValue' => $claveSae],
         'noEmpresa'  => ['stringValue' => $noEmpresa],
         'status' => ['stringValue' => 'Sin Autorizar']
@@ -3455,8 +3482,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
         return;
     }
 
-    echo json_encode(['success' => true, 'message' => 'Pedido autorizado guardado correctamente en Firebase.']);
-    exit();
+    echo json_encode(['success' => true, 'message' => 'Pedido guardado y en espera de ser autorizado.']);
 }
 
 // -----------------------------------------------------------------------------------------------------//
@@ -3671,7 +3697,7 @@ switch ($funcion) {
                 $clave = formatearClaveCliente($clienteId);
 
                 // Validar crédito del cliente
-                $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
+               /* $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
 
                 if ($validacionCredito['success']) {
                     $credito = '0';
@@ -3685,13 +3711,13 @@ switch ($funcion) {
                     $estatus = "E";
                 } else if ($validarSaldo == 1 || $credito == 1) {
                     $estatus = "C";
-                }
-
+                }*/
+                /*$estatus = "E";
                 guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                 actualizarFolio($conexionData, $claveSae);
-                actualizarInventario($conexionData, $claveSae, $partidasData);
-                if ($validarSaldo == 0 || $credito == 0) {
+                actualizarInventario($conexionData, $partidasData);*/
+                //if ($validarSaldo == 0 || $credito == 0) {
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
                     //exit;
@@ -3702,7 +3728,9 @@ switch ($funcion) {
                         'autorizacion' => false,
                         'message' => 'El pedido se completó correctamente.',
                     ]);
-                } else {
+                    exit();
+                /*} else {
+                    guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
                     header('Content-Type: application/json; charset=UTF-8');
                     echo json_encode([
@@ -3710,7 +3738,7 @@ switch ($funcion) {
                         'autorizacion' => true,
                         'message' => 'El pedido se completó pero debe ser autorizado.',
                     ]);
-                }
+                }*/
             } else {
                 // Error de existencias
                 echo json_encode([
@@ -3720,6 +3748,7 @@ switch ($funcion) {
                     'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
                 ]);
             }
+            exit(); //borar
         } elseif ($tipoOperacion === 'editar') {
             // Lógica para edición de pedido
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);
@@ -3992,7 +4021,7 @@ switch ($funcion) {
         }
         break;
     case 20:
-        $pedidoId = $_GET['noPedido'];
+        /*$pedidoId = $_GET['noPedido'];
         $accion = $_GET['accion'];
         $nombreCliente = urldecode($_GET['clienteNombre']);
         $vendedor = urldecode($_GET['vendedor']);
@@ -4017,7 +4046,6 @@ switch ($funcion) {
         ]);
         }else if($accion == 'rechazar'){
             enviarRechazoWhatsApp($numeroTelefono, $pedidoId, $nombreCliente);
-            RechazoWhatsApp();
             exit;
         }else{ 
             echo json_encode([
@@ -4025,7 +4053,7 @@ switch ($funcion) {
                 'message' => 'No se recibio una accion.',
             ]);
         }
-        break;
+        break;*/
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;

@@ -20,7 +20,7 @@ if (isset($_SESSION['usuario'])) {
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
         $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
-		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+        $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
     }
 } else {
     header('Location:../index.php');
@@ -92,6 +92,45 @@ if (isset($_SESSION['usuario'])) {
                 <div class="container mt-10">
                     <hr>
                 </div>
+                <?php if ($tipoUsuario === 'ADMINISTRADOR'): ?>
+                    <div class="card-body">
+                        <h2 class="text-center">Pedidos</h2>
+                        <div class="mb-3">
+                            <label for="filtroPedido" class="form-label">Filtrar por Status:</label>
+                            <select id="filtroPedido" class="form-select form-select-sm" style="width: 150px;">
+                                <option value="Sin Autorizar">Sin Autorizar</option>
+                                <option value="Autorizado">Autorizadas</option>
+                                <option value="Rechazdo">No Autorizadas</option>
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <!-- Tabla de pedidos -->
+                        <div class="table-data">
+                            <div class="order">
+                                <div class="head">
+                                    <table id="tablaPedidos">
+                                        <thead>
+                                            <tr>
+                                                <th>No. Pedido</th>
+                                                <th>Cliente</th>
+                                                <th class="col-fecha">Fecha</th>
+                                                <th>Vendedor</th>
+                                                <th>Status</th>
+                                                <th>Total</th>
+                                                <th>Detalles</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Los productos se generarán aquí dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <?php endif; ?>
+                <br>
                 <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR'): ?>
                     <div class="card-body">
                         <h2 class="text-center">Comandas</h2>
@@ -128,45 +167,6 @@ if (isset($_SESSION['usuario'])) {
                     </div>
 
                 <?php endif; ?>
-
-                <?php if ($tipoUsuario === 'ADMINISTRADOR'): ?>
-                    <div class="card-body">
-                        <h2 class="text-center">Pedidos</h2>
-                        <div class="mb-3">
-                            <label for="filtroPedido" class="form-label">Filtrar por Status:</label>
-                            <select id="filtroPedido" class="form-select form-select-sm" style="width: 150px;">
-                                <option value="Sin Autorizar">Sin Autorizar</option>
-                                <option value="Autorizada">Autorizadas</option>
-                                <option value="No Autorizada">No Autorizadas</option>     
-                                <option value="">Todos</option>                           
-                            </select>
-                        </div>
-                        <!-- Tabla de pedidos -->
-                        <div class="table-data">
-                            <div class="order">
-                                <div class="head">
-                                    <table id="tablaPedidos">
-                                        <thead>
-                                            <tr>
-                                                <th>No. Pedido</th>
-                                                <th>Nombre Cliente</th>
-                                                <th class="col-fecha">Fecha</th>
-                                                <th>Vendedor</th>
-                                                <th>Status</th>
-                                                <th>Detalles</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Los productos se generarán aquí dinámicamente -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                <?php endif; ?>
-
                 <!-- MODAL -->
                 <!-- Modal para Ver Detalles -->
                 <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel"
@@ -253,6 +253,84 @@ if (isset($_SESSION['usuario'])) {
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Salir</button>
                                 <button type="button" class="btn btn-success" id="btnTerminar">Terminar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal Pedido -->
+                <div class="modal fade" id="modalPedido" tabindex="-1" aria-labelledby="modalDetallesLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="modalDetallesLabel">Detalles del Pedido</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="formPedido">
+                                    <!-- Campo oculto para el ID -->
+                                    <input type="hidden" id="detalleIdPedido">
+                                    <input type="hidden" id="noEmpresa">
+                                    <input type="hidden" id="claveSae">
+                                    <input type="hidden" id="vendedor">
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="folio" class="form-label">No. Pedido:</label>
+                                            <input type="text" id="folio" class="form-control form-control-sm"
+                                                readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label for="nombreCliente" class="form-label">Nombre
+                                                Cliente:</label>
+                                            <input type="text" id="nombreCliente"
+                                                class="form-control form-control-sm" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="status" class="form-label">Status:</label>
+                                            <input type="text" id="status" class="form-control form-control-sm"
+                                                readonly>
+                                        </div>
+                                        <div class="col-md-3 mb-2">
+                                            <label for="diaAlta" class="form-label">Dia Alta:</label>
+                                            <input type="text" id="diaAlta" class="form-control form-control-sm"
+                                                readonly>
+                                        </div>
+                                    </div>
+                                    <br>
+                                    <div class="mb-4">
+                                        <label class="form-label">Partidas:</label>
+                                        <div class="table-data">
+                                            <div class="order">
+                                                <div class="head">
+                                                    <table
+                                                        class="table table-hover table-striped text-center align-middle">
+                                                        <thead class="table-dark">
+                                                            <tr>
+                                                                <th scope="col">Clave</th>
+                                                                <th scope="col">Descripción</th>
+                                                                <th scope="col">Cantidad</th>
+                                                                <th scope="col">subtotal</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="detallePartidas">
+                                                            <!-- Los productos se generarán aquí dinámicamente -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Salir</button>
+                                <button type="button" class="btn btn-success" id="btnAutorizar">Autorizar</button>
+                                <button type="button" class="btn btn-danger" id="btnRechazar">Rechazar</button>
                             </div>
                         </div>
                     </div>
