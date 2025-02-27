@@ -295,9 +295,9 @@ if (isset($_SESSION['usuario'])) {
                                 </div>
                             </div>
                             <h2 class="text-center">Productos mas vendidos</h2>
-                                <div id="product-list">
-                                    <!-- El carrusel se insertará aquí dinámicamente -->
-                                </div>
+                            <div id="product-list">
+                                <!-- El carrusel se insertará aquí dinámicamente -->
+                            </div>
 
 
                             <hr>
@@ -397,33 +397,57 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/app.js"></script>
     <!-- <script src="JS/articulos.js"></script> -->
     <script>
-        function cargarProductos() {
-            const numFuncion = 17; // Identificador para el caso en PHP
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            mostrarProductosCuadricula(response.productos);
-                        } else {
-                            alert("Error desde el servidor: " + response.message);
-                        }
-                    } catch (error) {
-                        alert("Error al analizar JSON: " + error.message);
-                    }
-                } else {
-                    alert("Error en la respuesta HTTP: " + xhr.status);
+        async function cargarProductos() {
+            try {
+                // 1️⃣ Obtener los datos del cliente para obtener LISTA_PREC
+                const datosCliente = await obtenerDatosCliente();
+                const listaPrecioCliente = datosCliente?.LISTA_PREC || "1"; // Usar "1" si no hay lista de precios
+
+                // 2️⃣ Hacer la solicitud a la API de productos pasando LISTA_PREC
+                const numFuncion = 17;
+                const url = `../Servidor/PHP/ventas.php?numFuncion=${numFuncion}&listaPrecioCliente=${listaPrecioCliente}`;
+
+                const response = await fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    console.error("Error desde el servidor:", data.message);
+                    return;
                 }
-            };
 
-            xhr.onerror = function() {
-                alert("Hubo un problema con la conexión.");
-            };
+                // 3️⃣ Mostrar los productos en la cuadrícula
+                mostrarProductosCuadricula(data.productos);
+            } catch (error) {
+                console.error("Error en cargarProductos:", error);
+                alert("Error al cargar los productos.");
+            }
+        }
+        async function obtenerDatosCliente() {
+            try {
+                const response = await fetch("../Servidor/PHP/clientes.php?numFuncion=4");
+                const data = await response.json();
 
-            xhr.send();
+                if (!data.success) {
+                    console.error("Error al obtener datos del cliente:", data.message);
+                    return {
+                        cvePrecio: "1"
+                    }; // Valor predeterminado si hay error
+                }
+                const datos = data[0];
+                return datos;
+                /*const cliente = data.data[0]; // Obtener el primer cliente de la respuesta
+                    const cvePrecio = cliente?.LISTA_PREC || "1"; // Si LISTA_PREC es null, usar "1"
+
+                    return { cvePrecio };*/
+            } catch (error) {
+                console.error("Error en la solicitud:", error);
+            }
         }
 
 
@@ -579,7 +603,7 @@ if (isset($_SESSION['usuario'])) {
                     <div class="category"> Producto </div>
                     <div class="heading">
                         ${producto.DESCR}
-                        <div class="author"> Precio: <span class="name">$${parseFloat(producto.EXIST).toFixed(2)}</span></div>
+                        <div class="author"> Precio: <span class="name">$${parseFloat(producto.PRECIO).toFixed(2)}</span></div>
                     </div>
                 </div>
             `;
@@ -595,16 +619,16 @@ if (isset($_SESSION['usuario'])) {
 
             // Botones de navegación del carrusel
             const prevButton = `
-        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        </button>
-    `;
+                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                </button>
+            `;
 
             const nextButton = `
-        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        </button>
-    `;
+                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                </button>
+            `;
 
             // Agregar los elementos al carrusel
             carousel.appendChild(carouselInner);

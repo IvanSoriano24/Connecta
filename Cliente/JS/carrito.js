@@ -219,17 +219,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function pagarPedido() {
     try {
-      // 1️⃣ Obtener los datos completos del pedido
+      // 1️⃣ Mostrar un mensaje de carga
+      Swal.fire({
+        title: "Procesando pedido...",
+        text: "Por favor, espera mientras se completa la compra.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+  
+      // 2️⃣ Obtener los datos completos del pedido
       const datosPedido = await obtenerDatosPedido();
       if (!datosPedido) {
-        alert("No se pudieron obtener los datos del pedido.");
+        Swal.fire({
+          title: "Error",
+          text: "No se pudieron obtener los datos del pedido.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
         return;
       }
   
-      // 2️⃣ Obtener los productos del carrito
+      // 3️⃣ Obtener los productos del carrito
       const partidas = obtenerPartidasPedido();
   
-      // 3️⃣ Crear `FormData`
+      // 4️⃣ Crear `FormData`
       const formData = new FormData();
       formData.append("numFuncion", "19");
   
@@ -247,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
       console.log("Pedido a enviar (FormData):", formData); // Para depuración
   
-      // 4️⃣ Enviar la solicitud al backend
+      // 5️⃣ Enviar la solicitud al backend
       const response = await fetch("../Servidor/PHP/ventas.php", {
         method: "POST",
         body: formData,
@@ -261,24 +277,68 @@ document.addEventListener("DOMContentLoaded", () => {
         const pdfBlob = await response.blob();
         const pdfUrl = URL.createObjectURL(pdfBlob);
         window.open(pdfUrl, "_blank");
+  
+        Swal.fire({
+          title: "Pedido completado",
+          text: "El pedido ha sido generado exitosamente. Puedes descargar tu remisión.",
+          icon: "success",
+          confirmButtonText: "Aceptar",
+        });
+  
       } else {
         // 📌 Si la respuesta es JSON, manejarla como éxito o error
         const result = await response.json();
         if (result.success) {
-          alert("Pedido realizado con éxito. Folio: " + datosPedido.folio);
+          Swal.fire({
+            title: "¡Pedido realizado con éxito!",
+            text: `Tu pedido ha sido registrado correctamente con el folio: ${datosPedido.folio}`,
+            icon: "success",
+            confirmButtonText: "Aceptar",
+          });
   
           // 🗑️ Borrar carrito después de confirmar el pedido
           localStorage.removeItem("carrito");
   
           // 🔄 Actualizar la vista del carrito
           mostrarCarrito();
+        }else if (data.autorizacion) {
+          Swal.fire({
+            title: "Saldo vencido",
+            text: data.message || "El pedido se procesó pero debe ser autorizado.",
+            icon: "warning",
+            confirmButtonText: "Entendido",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            //window.location.href = "Ventas.php";
+          });
+        }else if (data.credit) {
+          Swal.fire({
+            title: "Error al guardar el pedido",
+            html: `
+              <p>${data.message || "Ocurrió un error inesperado."}</p>
+              <p><strong>Saldo actual:</strong> ${data.saldoActual?.toFixed(2) || "N/A"}</p>
+              <p><strong>Límite de crédito:</strong> ${data.limiteCredito?.toFixed(2) || "N/A"}</p>
+            `,
+            icon: "error",
+            confirmButtonText: "Aceptar",
+          });
         } else {
-          alert("Error al realizar el pedido: " + result.message);
+          Swal.fire({
+            title: "Error al realizar el pedido",
+            text: result.message,
+            icon: "error",
+            confirmButtonText: "Aceptar",
+          });
         }
       }
     } catch (error) {
       console.error("Error en pagarPedido:", error);
-      alert("Hubo un problema al procesar el pedido.");
+      Swal.fire({
+        title: "Error inesperado",
+        text: "Hubo un problema al procesar el pedido. Inténtalo de nuevo más tarde.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
     }
   }  
   async function obtenerDatosPedido() {

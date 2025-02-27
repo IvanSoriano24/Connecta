@@ -675,12 +675,11 @@ function enviarDatosBackend(formularioData, partidasData) {
   })
     .then((response) => {
       console.log("Response completa:", response);
-  
       return response.text(); // Obtener la respuesta como texto para depuración
     })
     .then((text) => {
       console.log("Texto recibido del servidor:", text);
-  
+
       try {
         return JSON.parse(text); // Intentar convertir a JSON
       } catch (error) {
@@ -700,7 +699,17 @@ function enviarDatosBackend(formularioData, partidasData) {
           confirmButtonText: "Aceptar",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
-          // window.location.href = "Ventas.php";
+          window.location.href = "Ventas.php";
+        });
+      } else if (data.autorizacion) {
+        Swal.fire({
+          title: "Saldo vencido",
+          text: data.message || "El pedido se procesó pero debe ser autorizado.",
+          icon: "warning",
+          confirmButtonText: "Entendido",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
         });
       } else if (data.exist) {
         Swal.fire({
@@ -722,17 +731,6 @@ function enviarDatosBackend(formularioData, partidasData) {
                 )
                 .join("")}
             </ul>
-          `,
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
-      } else if (data.credit) {
-        Swal.fire({
-          title: "Error al guardar el pedido",
-          html: `
-            <p>${data.message || "Ocurrió un error inesperado."}</p>
-            <p><strong>Saldo actual:</strong> ${data.saldoActual?.toFixed(2) || "N/A"}</p>
-            <p><strong>Límite de crédito:</strong> ${data.limiteCredito?.toFixed(2) || "N/A"}</p>
           `,
           icon: "error",
           confirmButtonText: "Aceptar",

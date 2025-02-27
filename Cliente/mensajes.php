@@ -129,6 +129,44 @@ if (isset($_SESSION['usuario'])) {
 
                 <?php endif; ?>
 
+                <?php if ($tipoUsuario === 'ADMINISTRADOR'): ?>
+                    <div class="card-body">
+                        <h2 class="text-center">Pedidos</h2>
+                        <div class="mb-3">
+                            <label for="filtroStatus" class="form-label">Filtrar por Status:</label>
+                            <select id="filtroStatus" class="form-select form-select-sm" style="width: 150px;">
+                                <option value="">Todos</option>
+                                <option value="Abierta">Autorizadas</option>
+                                <option value="TERMINADA">No Autorizadas</option>
+                                <option value="TERMINADA">Sin Autorizar</option>
+                            </select>
+                        </div>
+                        <!-- Tabla de comandas -->
+                        <div class="table-data">
+                            <div class="order">
+                                <div class="head">
+                                    <table id="tablaComandas">
+                                        <thead>
+                                            <tr>
+                                                <th>No. Pedido</th>
+                                                <th>Nombre Cliente</th>
+                                                <th class="col-fecha">Fecha</th>
+                                                <th>Vendedor</th>
+                                                <th>Status</th>
+                                                <th>Detalles</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Los productos se generarán aquí dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <?php endif; ?>
+
                 <!-- MODAL -->
                 <!-- Modal para Ver Detalles -->
                 <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel"

@@ -870,8 +870,7 @@ function bajaUsuario()
     echo json_encode(['success' => true, 'message' => 'El usuario ha sido dado de baja exitosamente.']);
     exit();
 }
-function activarUsuario()
-{
+function activarUsuario(){
     global $firebaseProjectId, $firebaseApiKey;
 
     $usuarioId = $_POST['usuarioId'] ?? null;
@@ -1014,8 +1013,7 @@ function obtenerDatosVendedor($conexionData, $noEmpresa, $claveVendedor)
         echo json_encode(['success' => false, 'message' => 'No se encontró el vendedor.']);
     }
 }
-function obtenerClientes($conexionData, $noEmpresa)
-{
+function obtenerClientes($conexionData, $noEmpresa){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1080,8 +1078,7 @@ function obtenerClientes($conexionData, $noEmpresa)
         echo json_encode(['success' => false, 'message' => 'No se encontraron clientes activos.']);
     }
 }
-function verificarVendedorFirebase($claveCliente)
-{
+function verificarVendedorFirebase($claveCliente){
     global $firebaseProjectId, $firebaseApiKey;
 
     // URL de Firebase para obtener la colección de USUARIOS
@@ -1115,8 +1112,7 @@ function verificarVendedorFirebase($claveCliente)
     }
     echo json_encode(['success' => true, 'exists' => false]); // Cliente no existe
 }
-function verificarClienteFirebase($claveCliente)
-{
+function verificarClienteFirebase($claveCliente){
     global $firebaseProjectId, $firebaseApiKey;
 
     // URL de Firebase para obtener la colección de USUARIOS
@@ -1150,8 +1146,7 @@ function verificarClienteFirebase($claveCliente)
     }
     echo json_encode(['success' => true, 'exists' => false]); // Cliente no existe
 }
-function obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente)
-{
+function obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],

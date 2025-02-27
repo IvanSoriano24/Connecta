@@ -252,8 +252,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
           </div>";
 }
 
-function enviarWhatsApp($numero, $pedidoId, $nombreCliente)
-{
+function enviarWhatsApp($numero, $pedidoId, $nombreCliente){
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
     $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
     // Crear el cuerpo de la solicitud para la API
@@ -324,7 +323,13 @@ function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId)
 
     return false; // No se encontró el pedido en la colección
 }
-
+function RechazoWhatsApp(){
+    echo "<div class='container'>
+            <div class='title'>Pedido Rechazado</div>
+            <div class='message'>Se ha rechazado el pedido.</div>
+            <a href='../../Cliente/index.php' class='button'>Volver al inicio</a>
+        </div>";
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
