@@ -76,7 +76,47 @@ function cargarComandas() {
     console.log("Detalles:", jqXHR.responseText);
   });
 }
+function cargarPedidos(){
+  const filtroPedido = $("#filtroPedido").val(); // Obtener el filtro seleccionado
 
+  $.get(
+    "../Servidor/PHP/mensajes.php",
+    { numFuncion: "5", status: filtroPedido },
+    function (response) {
+      if (response.success) {
+        const pedidos = response.data;
+        const tbody = $("#tablaPedidos tbody");
+        tbody.empty();
+
+        pedidos.forEach((pedido) => {
+          const row = `
+                    <tr>
+                        <td>${pedido.numero || "-"}</td>
+                        <<td>${pedido.cliente || "-"}</td>
+                        <td>${pedido.diaAlta || "-"}</td>
+                        <td>${pedido.vendedor || "-"}</td>
+                        <td>${pedido.status || "-"}</td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${
+                              pedido.id
+                            }')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+          tbody.append(row);
+        });
+      } else {
+        console.error("Error en la solicitud:", response.message);
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Error en la solicitud:", textStatus, errorThrown);
+    console.log("Detalles:", jqXHR.responseText);
+  });
+}
 function verificarNotificaciones() {
   $.get(
     "../Servidor/PHP/mensajes.php",
@@ -298,4 +338,5 @@ $("#btnTerminar").click(function () {
 
 $(document).ready(function () {
   cargarComandas();
+  cargarPedidos();
 });

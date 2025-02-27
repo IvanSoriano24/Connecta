@@ -133,19 +133,19 @@ if (isset($_SESSION['usuario'])) {
                     <div class="card-body">
                         <h2 class="text-center">Pedidos</h2>
                         <div class="mb-3">
-                            <label for="filtroStatus" class="form-label">Filtrar por Status:</label>
-                            <select id="filtroStatus" class="form-select form-select-sm" style="width: 150px;">
-                                <option value="">Todos</option>
-                                <option value="Abierta">Autorizadas</option>
-                                <option value="TERMINADA">No Autorizadas</option>
-                                <option value="TERMINADA">Sin Autorizar</option>
+                            <label for="filtroPedido" class="form-label">Filtrar por Status:</label>
+                            <select id="filtroPedido" class="form-select form-select-sm" style="width: 150px;">
+                                <option value="Sin Autorizar">Sin Autorizar</option>
+                                <option value="Autorizada">Autorizadas</option>
+                                <option value="No Autorizada">No Autorizadas</option>     
+                                <option value="">Todos</option>                           
                             </select>
                         </div>
-                        <!-- Tabla de comandas -->
+                        <!-- Tabla de pedidos -->
                         <div class="table-data">
                             <div class="order">
                                 <div class="head">
-                                    <table id="tablaComandas">
+                                    <table id="tablaPedidos">
                                         <thead>
                                             <tr>
                                                 <th>No. Pedido</th>

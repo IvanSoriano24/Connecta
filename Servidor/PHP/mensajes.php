@@ -122,7 +122,8 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
         ]);
     }
 }
-function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $numGuia, $enviarHoy) {
+function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $numGuia, $enviarHoy)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
 
     // Obtener la fecha de envío
@@ -198,6 +199,56 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
     ]);
     exit;
 }*/
+
+function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus){
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos.']);
+    } else {
+        $data = json_decode($response, true);
+        $comandas = [];
+
+        if (isset($data['documents'])) {
+            foreach ($data['documents'] as $document) {
+                $fields = $document['fields'];
+                $status = $fields['status']['stringValue'];
+
+                // Aplicar el filtro de estado si está definido
+                if ($filtroStatus === '' || $status === $filtroStatus) {
+                    $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
+                    $fecha = $fechaHora[0];
+                    $hora = $fechaHora[1];
+
+                    $comandas[] = [
+                        'id' => basename($document['name']),
+                        'numero' => $fields['numero']['stringValue'],
+                        'cliente' => $fields['cliente']['stringValue'],
+                        'enviar' => $fields['enviar']['stringValue'],
+                        'vendedor' => $fields['vendedor']['stringValue'],
+                        'diaAlta' => $fields['diaAlta']['stringValue'],
+                        'partidas' => isset($fields['partidas']['stringValue']) ? json_decode($fields['partidas']['stringValue'], true) : [],
+                        'claveSae' => $fields['claveSae']['stringValue'],
+                        'noEmpresa' => $fields['noEmpresa']['stringValue'],
+                        'status' => $status,
+                    ];
+                }
+            }
+        }
+        echo json_encode(['success' => true, 'data' => $comandas]);
+    }
+}
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
     $funcion = $_POST['numFuncion'];
@@ -234,6 +285,10 @@ switch ($funcion) {
         /*case 4:
             notificaciones($firebaseProjectId, $firebaseApiKey);
             break;*/
+    case 5:
+        $filtroStatus = $_GET['status'] ?? ''; // Obtener el filtro desde la solicitud
+        pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus);
+        break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;
