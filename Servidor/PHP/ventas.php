@@ -1391,16 +1391,13 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     $clienteNombre = trim($clienteData['NOMBRE']);
     $emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773340218';
-
-    //$numeroWhatsApp = '+527773750925';
-    //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
         //$numeroWhatsApp = '+527773340218';
         //$numeroWhatsApp = '+527773340218';
         //$emailPred = 'desarrollo01@mdcloud.mx';
         //$emailPred = 'marcosluh92@gmail.com';
-        //enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
+        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
@@ -1427,8 +1424,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     }
 
     // Configuración de la API de WhatsApp
-    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
-    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBO9IynxQVBnTe9OlB6ytzw5DzOUA4c8ZAZCJFrUUFKisbRUMLLHJGICsnXkZA0bjQReezy43Fv26ydZCS8lCnFay1MUyoVjymGsZATsHxd3nXA1q0YSMx8tvlxUW45xtYM4aDGl1FKKOcZBUZAb14koRLOSZA7TefH1KkG1Bllm5ux3BCFZBaMogExuThZCUwICZCpoDA6mokL79xnZAYNBcicQKwOZC4ZD';
 
     // Obtener datos del pedido
     $noPedido = $formularioData['numero'];
@@ -1569,17 +1566,18 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $mail = new clsMail();
 
     // Definir el remitente (si no está definido, se usa uno por defecto)
-    $correoRemitente = $_SESSION['usuario']['correo'] ?? null;
+    /*$correoRemitente = $_SESSION['usuario']['correo'] ?? null;
     $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? null;
 
     if ($correoRemitente == null || $contraseñaRemitente == null) {
         $correoRemitente = null;
         $contraseñaRemitente = null;
-    }
-
+    }*/
+    $correoRemitente = null;
+    $contraseñaRemitente = null;
     // Definir el correo de destino (puedes cambiarlo si es necesario)
     $correoDestino = 'desarrollo01@mdcloud.mx';
-    // $correoDestino = 'ivan.soriano@mdcloud.mx';
+    //$correoDestino = 'ivan.soriano@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión
     $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
@@ -1659,7 +1657,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     
     //$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
-    $token = 'EAAQbK4YCPPcBO9IynxQVBnTe9OlB6ytzw5DzOUA4c8ZAZCJFrUUFKisbRUMLLHJGICsnXkZA0bjQReezy43Fv26ydZCS8lCnFay1MUyoVjymGsZATsHxd3nXA1q0YSMx8tvlxUW45xtYM4aDGl1FKKOcZBUZAb14koRLOSZA7TefH1KkG1Bllm5ux3BCFZBaMogExuThZCUwICZCpoDA6mokL79xnZAYNBcicQKwOZC4ZD';
+    $token = 'EAAQbK4YCPPcBOZC3ZC8SJhKg9mI8pVzMo8LbkA2ZCHUAt9AZC4wKPqgnLbz8yXpCJ5TCyCI0ZAlZBPvHl1oso6IFu6Uxw8ZBhhzX8Rnpiy5C0svcAiV3mkaqgop2s2KPe9cZAIqCOIZBbSOO6ZA3JoZBGBtRidskLq9GCBMOZCqH6ZBZBTv3gvcxdcRnOJBQZCRtCDrd6o7OlkgzpFvrbTvcdniATMu3foaQbQARKpkI1AA';
     // ✅ Verifica que los valores no estén vacíos
     if (empty($noPedido) || empty($claveSae)) {
         error_log("Error: noPedido o noEmpresa están vacíos.");
@@ -3208,7 +3206,6 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     $numeroWhatsApp = '+527773340218';
 
     //$numeroWhatsApp = '+527773750925';
-    //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
     if ($correo === 'S' && !empty($emailPred)) {
         $numeroWhatsApp = '+527773750925';
         //$numeroWhatsApp = '+527773340218';
@@ -3697,7 +3694,7 @@ switch ($funcion) {
                 $clave = formatearClaveCliente($clienteId);
 
                 // Validar crédito del cliente
-               /* $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
+                $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
 
                 if ($validacionCredito['success']) {
                     $credito = '0';
@@ -3711,12 +3708,12 @@ switch ($funcion) {
                     $estatus = "E";
                 } else if ($validarSaldo == 1 || $credito == 1) {
                     $estatus = "C";
-                }*/
-                /*$estatus = "E";
+                }
+                $estatus = "E";
                 guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                 actualizarFolio($conexionData, $claveSae);
-                actualizarInventario($conexionData, $partidasData);*/
+                actualizarInventario($conexionData, $partidasData);
                 //if ($validarSaldo == 0 || $credito == 0) {
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
@@ -3729,7 +3726,7 @@ switch ($funcion) {
                         'message' => 'El pedido se completó correctamente.',
                     ]);
                     exit();
-                /*} else {
+                } else {
                     guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
                     header('Content-Type: application/json; charset=UTF-8');
@@ -3738,7 +3735,7 @@ switch ($funcion) {
                         'autorizacion' => true,
                         'message' => 'El pedido se completó pero debe ser autorizado.',
                     ]);
-                }*/
+                }
             } else {
                 // Error de existencias
                 echo json_encode([

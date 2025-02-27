@@ -100,7 +100,7 @@ if (isset($_SESSION['usuario'])) {
                             <select id="filtroPedido" class="form-select form-select-sm" style="width: 150px;">
                                 <option value="Sin Autorizar">Sin Autorizar</option>
                                 <option value="Autorizado">Autorizadas</option>
-                                <option value="Rechazdo">No Autorizadas</option>
+                                <option value="Rechazado">No Autorizadas</option>
                                 <option value="">Todos</option>
                             </select>
                         </div>

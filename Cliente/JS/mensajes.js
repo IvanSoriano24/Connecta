@@ -76,23 +76,23 @@ function cargarComandas() {
     console.log("Detalles:", jqXHR.responseText);
   });
 }
-function cargarPedidos(){
+function cargarPedidos() {
   const filtroPedido = $("#filtroPedido").val(); // Obtener el filtro seleccionado
-
   $.get(
     "../Servidor/PHP/mensajes.php",
     { numFuncion: "5", status: filtroPedido },
     function (response) {
+      console.log(response); // 🔹 Para depuración
       if (response.success) {
         const pedidos = response.data;
         const tbody = $("#tablaPedidos tbody");
         tbody.empty();
-        
+
         pedidos.forEach((pedido) => {
           const row = `
                     <tr>
                         <td>${pedido.folio || "-"}</td>
-                        <<td>${pedido.cliente || "-"}</td>
+                        <td>${pedido.cliente || "-"}</td>
                         <td>${pedido.diaAlta || "-"}</td>
                         <td>${pedido.vendedor || "-"}</td>
                         <td>${pedido.status || "-"}</td>
@@ -158,6 +158,10 @@ $(document).ready(function () {
 // Escuchar el cambio en el filtro
 $("#filtroStatus").change(function () {
   cargarComandas(); // Recargar las comandas con el filtro aplicado
+});
+// Escuchar el cambio en el filtro
+$("#filtroPedido").change(function () {
+  cargarPedidos(); // Recargar las comandas con el filtro aplicado
 });
 
 // function mostrarModal(comandaId) {
@@ -392,10 +396,8 @@ $("#btnAutorizar").click(function () {
   const pedidoId = $("#detalleIdPedido").val();
   const folio = $("#folio").val();
   const noEmpresa = $("#noEmpresa").val();
-  const claveSae = $("#claveSae").val();        
+  const claveSae = $("#claveSae").val();
   const vendedor = $("#vendedor").val();
-alert(noEmpresa);
-alert(claveSae);
   $.post(
     "../Servidor/PHP/mensajes.php",
     {
@@ -416,7 +418,34 @@ alert(claveSae);
         cargarPedidos(); // Recargar la tabla
       } else {
         Swal.fire({
-          text: "Error al marcar la comanda como TERMINADA.",
+          text: "Error al autorizar el pedido.",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  );
+});
+
+$("#btnRechazar").click(function () {
+  const pedidoId = $("#detalleIdPedido").val();
+  const folio = $("#folio").val();
+  const cliente = $("#nombreCliente").val();
+  const vendedor = $("#vendedor").val();
+  $.get(
+    "../Servidor/PHP/mensajes.php",
+    { numFuncion: "8", pedidoId, folio, vendedor, cliente },
+    function (response) {
+      if (response.success) {
+        Swal.fire({
+          text: "El pedido fue rechazado",
+          icon: "success",
+        });
+        $("#modalPedido").modal("hide");
+        cargarPedidos(); // Recargar la tabla
+      } else {
+        Swal.fire({
+          text: "Error al rechazar el pedido.",
           icon: "error",
         });
       }
