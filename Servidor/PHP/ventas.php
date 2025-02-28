@@ -515,8 +515,7 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function actualizarPedido($conexionData, $formularioData, $partidasData)
-{
+function actualizarPedido($conexionData, $formularioData, $partidasData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -542,7 +541,7 @@ function actualizarPedido($conexionData, $formularioData, $partidasData)
     $CAN_TOT = 0;
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
-    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    $descuentoCliente = $formularioData['descuento']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
         $CAN_TOT += $partida['cantidad']; // Sumar cantidades totales
@@ -1444,8 +1443,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito)
-{
+function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito){
     // Conectar a SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1463,8 +1461,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     // Configuración de la API de WhatsApp
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
-
+    $token = 'EAAQbK4YCPPcBO4iM9Lx8wIkvXRinDsDDfjxHPMCB2iQ5l6wP0oLV9t50gmuJRVtMCuGRoMcIXnL09LdZA3ULhTYIoZBduO1s4asnVEXEj6zE8gW9YHqmBKMZBkaZBdKNUsZBbREbZBNusH0Ae4bEZAmZBUmHNriEml9sFw4ZBWsqEQcRsZB8fMI2zZCMMv5yapbVsxEqODCSMWV5U1UwWZC0pQ5iCmqibcsZD';
+    /*$token = 'EAAQbK4YCPPcBOzWI7Hbwn6q9gHWPDTMuI9zLrleTIyF5OagzZAA4np5ZASo5rnV2EloX3Wfd34H796GPJwcJzlrCxtLl3sUFZBJ5o3kpqygGNeObWgOis8f4mYI6VSDDuHgDQXJl9EBINpijHju6xMPIbceiLlvE43Idv0tM71Bi8qXnZB0IcE08ckTPwE6Ld5yiVUuZCvIFvJfZBZC94eIFtIRxUavZBDDZCz6wZD';
+    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';*/
     // Obtener datos del pedido
     $noPedido = $formularioData['numero'];
     $enviarA = $formularioData['enviar'];
@@ -1492,7 +1491,7 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7773750925";
-    $numero = "527773750925";
+    $numero = "+527773750925";
 
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -3535,7 +3534,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
         return;
     }
 
-    echo json_encode(['success' => true, 'message' => 'Pedido guardado y en espera de ser autorizado.']);
+    //echo json_encode(['success' => true, 'message' => 'Pedido guardado y en espera de ser autorizado.']);
 }
 
 // -----------------------------------------------------------------------------------------------------//
@@ -3768,11 +3767,11 @@ switch ($funcion) {
                 /*$estatus = "E";
                 $validarSaldo = 0;
                 $credito = 0;*/
-                guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                /*guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                 actualizarFolio($conexionData, $claveSae);
-                actualizarInventario($conexionData, $partidasData);
-                if ($validarSaldo == 0 || $credito == 0) {
+                actualizarInventario($conexionData, $partidasData);*/
+                if ($validarSaldo == 0 && $credito == 0) {
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
                     //exit;
@@ -3785,8 +3784,9 @@ switch ($funcion) {
                     ]);
                     exit();
                 } else {
-                    guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                    enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
+                    //guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                    $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
+                    var_dump($resultado);
                     header('Content-Type: application/json; charset=UTF-8');
                     echo json_encode([
                         'success' => false,

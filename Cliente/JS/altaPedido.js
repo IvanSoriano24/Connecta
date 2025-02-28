@@ -226,10 +226,7 @@ async function completarPrecioProducto(cveArt, filaTabla) {
     const listaPrecioElement = filaTabla.querySelector(".listaPrecios");
     let descuento = filaTabla.querySelector(".descuento");
     const descuentoCliente = document.getElementById("descuentoCliente").value;
-    console.log(descuento);
-    console.log(descuentoCliente);
     descuento.value = descuentoCliente;
-    console.log(descuento);
     descuento.readOnly = false;
     const cvePrecio = listaPrecioElement ? listaPrecioElement.value : "1";
     // Obtener el precio del producto
