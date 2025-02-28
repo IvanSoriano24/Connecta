@@ -12,7 +12,8 @@ include 'reportes.php';
 
 session_start();
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae){
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -190,7 +191,8 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
 //     }
 // }
 
-function mostrarPedidos($conexionData, $filtroFecha) {
+function mostrarPedidos($conexionData, $filtroFecha)
+{
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
 
@@ -317,7 +319,6 @@ function mostrarPedidos($conexionData, $filtroFecha) {
 
         header('Content-Type: application/json; charset=UTF-8');
         echo json_encode(['success' => true, 'data' => $clientes]);
-
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
@@ -537,17 +538,26 @@ function actualizarPedido($conexionData, $formularioData, $partidasData)
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     $FECHA_DOC = $formularioData['diaAlta'];
     $FECHA_ENT = $formularioData['entrega'];
+
     $CAN_TOT = 0;
     $IMPORTE = 0;
+    $DES_TOT = 0; // Variable para el importe con descuento
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['cantidad'];
-        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario'];
+        $CAN_TOT += $partida['cantidad']; // Sumar cantidades totales
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
+    }
+
+    // Aplicar descuento
+    if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
+        $DES_TOT = $IMPORTE - ($IMPORTE * ($descuentoCliente / 100)); // Aplicar porcentaje de descuento
+    } else {
+        $DES_TOT = $IMPORTE; // Si no hay descuento, el total queda igual al importe
     }
 
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     $IMP_TOT4 = $CAN_TOT * 0.16;
-    $DES_TOT = $formularioData['descuentoCliente'];
     $CONDICION = $formularioData['condicion'];
 
     // Crear la consulta SQL para actualizar el pedido
@@ -850,7 +860,8 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
 
     return ['success' => true, 'message' => 'Inventario actualizado correctamente'];
 }
-function formatearClaveCliente($clave){
+function formatearClaveCliente($clave)
+{
     // Asegurar que la clave sea un string y eliminar espacios innecesarios
     $clave = trim((string) $clave);
     $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
@@ -863,14 +874,15 @@ function formatearClaveCliente($clave){
     $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
     return $clave;
 }
-function obtenerDatosCliente($conexionData, $claveCliente, $claveSae){
+function obtenerDatosCliente($conexionData, $claveCliente, $claveSae)
+{
     /*// Obtener solo la clave del cliente (primera parte antes del espacio)
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos 
     $clave = $claveArray[0]; // Tomar solo la primera parte
     //    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
     $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);*/
     $clave = formatearClaveCliente($claveCliente);
-    
+
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -895,7 +907,7 @@ function obtenerDatosCliente($conexionData, $claveCliente, $claveSae){
         FROM $nombreTabla
         WHERE CLAVE = '$clave'
     ";
-    
+
     $stmt = sqlsrv_query($conn, $sql, [$clave]);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al obtener datos del cliente', 'errors' => sqlsrv_errors()]));
@@ -909,7 +921,8 @@ function obtenerDatosCliente($conexionData, $claveCliente, $claveSae){
 
     return $datosCliente;
 }
-function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus){
+function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -939,12 +952,23 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $FECHA_DOC = $formularioData['diaAlta']; // Fecha del documento
     $FECHA_ENT = $formularioData['entrega'];
     // Sumar los totales de las partidas
-    $CAN_TOT = 0; // Inicializar la variable para la cantidad total
+    $CAN_TOT = 0;
     $IMPORTE = 0;
+    $DES_TOT = 0; // Variable para el importe con descuento
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+
     foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['cantidad']; // Acumula la cantidad total
-        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Suma al importe total
+        $CAN_TOT += $partida['cantidad']; // Sumar cantidades totales
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
     }
+
+    // Aplicar descuento
+    if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
+        $DES_TOT = $IMPORTE - ($IMPORTE * ($descuentoCliente / 100)); // Aplicar porcentaje de descuento
+    } else {
+        $DES_TOT = $IMPORTE; // Si no hay descuento, el total queda igual al importe
+    }
+
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
     $IMP_TOT1 = 0;
@@ -955,7 +979,6 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;
     $IMP_TOT8 = 0;
-    $DES_TOT = $formularioData['descuentoCliente'];
     $DES_FIN = $formularioData['descuentofin'];
     $CONDICION = $formularioData['condicion'];
     $RFC = $formularioData['rfc'];
@@ -976,7 +999,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
     $TIP_DOC_E = 0; ////
-    $DES_TOT_PORC = 0; ////
+    $DES_TOT_PORC = $formularioData['descuentoCliente'];; ////
     $COM_TOT_PORC = 0; ////
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
@@ -1255,7 +1278,8 @@ function actualizarFolio($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function actualizarInventario($conexionData, $partidasData){
+function actualizarInventario($conexionData, $partidasData)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1330,7 +1354,8 @@ function obtenerFolioSiguiente($conexionData)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF){
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF)
+{
 
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
@@ -1419,7 +1444,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito){
+function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito)
+{
     // Conectar a SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1573,7 +1599,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     sqlsrv_close($conn);
     return $result;
 }
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF){
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
+{
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
 
@@ -1664,9 +1691,10 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave){
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave)
+{
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    
+
     //$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
     $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
     // ✅ Verifica que los valores no estén vacíos
@@ -2794,11 +2822,21 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     $FECHA_DOC = $formularioData['diaAlta']; // Fecha del documento
     $FECHA_ENT = $formularioData['entrega'];
     // Sumar los totales de las partidas
-    $CAN_TOT = 0; // Inicializar la variable para la cantidad total
+    $CAN_TOT = 0;
     $IMPORTE = 0;
+    $DES_TOT = 0; // Variable para el importe con descuento
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+
     foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['cantidad']; // Acumula la cantidad total
-        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Suma al importe total
+        $CAN_TOT += $partida['cantidad']; // Sumar cantidades totales
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
+    }
+
+    // Aplicar descuento
+    if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
+        $DES_TOT = $IMPORTE - ($IMPORTE * ($descuentoCliente / 100)); // Aplicar porcentaje de descuento
+    } else {
+        $DES_TOT = $IMPORTE; // Si no hay descuento, el total queda igual al importe
     }
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
@@ -2810,8 +2848,7 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;
     $IMP_TOT8 = 0;
-    $DES_TOT = $formularioData['descuento'];
-    $DES_FIN = $formularioData['descuento'];
+    $DES_FIN = 0;
     $CONDICION = $formularioData['condicion'];
     $RFC = $formularioData['rfc'];
     $FECHA_ELAB = $formularioData['diaAlta'];
@@ -2831,7 +2868,7 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
     $TIP_DOC_E = 0; ////
-    $DES_TOT_PORC = 0; ////
+    $DES_TOT_PORC = $formularioData['descuento'];; ////
     $COM_TOT_PORC = 0; ////
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
@@ -3329,7 +3366,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function validarSaldo($conexionData, $clave, $claveSae){
+function validarSaldo($conexionData, $clave, $claveSae)
+{
     // Establecer los datos de conexión
     $serverName = $conexionData['host'];
     $database = $conexionData['nombreBase'];
@@ -3377,7 +3415,8 @@ function validarSaldo($conexionData, $clave, $claveSae){
         return -1; // Código de error
     }
 }
-function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente){
+function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
+{
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
     // Crear el cuerpo de la solicitud para la API
@@ -3421,7 +3460,8 @@ function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente){
 
     return $result;
 }
-function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa) {
+function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // Validar que se cuente con los datos mínimos requeridos
@@ -3443,30 +3483,30 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
         'diaAlta'    => ['stringValue' => isset($formularioData['diaAlta']) ? $formularioData['diaAlta'] : ''],
         //'partidas'   => ['stringValue' => json_encode($partidasData)], // Guardamos las partidas como JSON
         "partidas" => [
-                        "arrayValue" => [
-                            "values" => array_map(function ($partidasData) {
-                                return [
-                                    "mapValue" => [
-                                        "fields" => [
-                                            "cantidad" => ["stringValue" => $partidasData["cantidad"]],
-                                            "producto" => ["stringValue" => $partidasData["producto"]],
-                                            "unidad" => ["stringValue" => $partidasData["unidad"]],
-                                            "descuento1" => ["stringValue" => $partidasData["descuento1"]],
-                                            "descuento2" => ["stringValue" => $partidasData["descuento2"]],
-                                            "ieps" => ["stringValue" => $partidasData["ieps"]],
-                                            "impuesto2" => ["stringValue" => $partidasData["impuesto2"]],
-                                            "isr" => ["stringValue" => $partidasData["isr"]],
-                                            "iva" => ["stringValue" => $partidasData["iva"]],
-                                            "comision" => ["stringValue" => $partidasData["comision"]],
-                                            "precioUnitario" => ["stringValue" => $partidasData["precioUnitario"]],
-                                            "subtotal" => ["stringValue" => $partidasData["subtotal"]],
-                                            "descripcion" => ["stringValue" => $partidasData["descripcion"]],
-                                        ]
-                                    ]
-                                ];
-                            }, $partidasData)
+            "arrayValue" => [
+                "values" => array_map(function ($partidasData) {
+                    return [
+                        "mapValue" => [
+                            "fields" => [
+                                "cantidad" => ["stringValue" => $partidasData["cantidad"]],
+                                "producto" => ["stringValue" => $partidasData["producto"]],
+                                "unidad" => ["stringValue" => $partidasData["unidad"]],
+                                "descuento1" => ["stringValue" => $partidasData["descuento1"]],
+                                "descuento2" => ["stringValue" => $partidasData["descuento2"]],
+                                "ieps" => ["stringValue" => $partidasData["ieps"]],
+                                "impuesto2" => ["stringValue" => $partidasData["impuesto2"]],
+                                "isr" => ["stringValue" => $partidasData["isr"]],
+                                "iva" => ["stringValue" => $partidasData["iva"]],
+                                "comision" => ["stringValue" => $partidasData["comision"]],
+                                "precioUnitario" => ["stringValue" => $partidasData["precioUnitario"]],
+                                "subtotal" => ["stringValue" => $partidasData["subtotal"]],
+                                "descripcion" => ["stringValue" => $partidasData["descripcion"]],
+                            ]
                         ]
-                    ],
+                    ];
+                }, $partidasData)
+            ]
+        ],
         'claveSae'   => ['stringValue' => $claveSae],
         'noEmpresa'  => ['stringValue' => $noEmpresa],
         'status' => ['stringValue' => 'Sin Autorizar']
@@ -3702,7 +3742,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-        $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido

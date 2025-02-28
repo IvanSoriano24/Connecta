@@ -110,7 +110,7 @@ function obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae){
     }
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $sql = "SELECT NOMBRE, RFC, CALLE, NUMEXT, NUMINT, COLONIA, MUNICIPIO, ESTADO, PAIS, CODIGO, TELEFONO, EMAILPRED 
+    $sql = "SELECT NOMBRE, RFC, CALLE, NUMEXT, NUMINT, COLONIA, MUNICIPIO, ESTADO, PAIS, CODIGO, TELEFONO, EMAILPRED, DESCUENTO 
             FROM $nombreTabla WHERE [CLAVE] = ?";
 
     $params = [$clienteId];
@@ -941,7 +941,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
         $cantidad = $partida['CANT'];
         $desc1 = $partida['DESC1'] ?? 0;
         $desc2 = $partida['DESC2'] ?? 0;
-        $descTotal = $datosPedidoAutoriza['DES_TOT'];
+        $descTotal = $datosClientePedidoAutoriza['DESCUENTO'];
         $descuentos = $desc1 + $desc2 + $descTotal;
         // Sumar todos los impuestos
         $impuestos = ($partida['IMPU1'] + $partida['IMPU2'] + $partida['IMPU3'] + $partida['IMPU4'] +
