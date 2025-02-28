@@ -189,7 +189,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 
-function verificarConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+function verificarConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     
@@ -215,7 +215,7 @@ function verificarConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     // Buscar si existe un documento con el mismo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if (isset($fields['noEmpresa']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if (isset($fields['claveSae']) && $fields['claveSae']['stringValue'] === $claveSae) {
             echo json_encode(['success' => true, 'tieneConexion' => true]);
             return;
         }
@@ -238,9 +238,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Decodificar el JSON recibido
             $input = json_decode(file_get_contents('php://input'), true);
         
-            if (isset($input['noEmpresa'])) {
-                $noEmpresa = $input['noEmpresa'];
-                verificarConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+            if (isset($input['claveSae'])) {
+                $claveSae = $input['claveSae'];
+                verificarConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
             } else {
                 echo json_encode(['success' => false, 'message' => 'No se recibió el número de empresa']);
             }

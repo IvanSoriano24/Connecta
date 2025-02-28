@@ -515,7 +515,8 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function actualizarPedido($conexionData, $formularioData, $partidasData){
+function actualizarPedido($conexionData, $formularioData, $partidasData)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1443,7 +1444,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito){
+function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito)
+{
     // Conectar a SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2065,7 +2067,7 @@ function obtenerImpuesto($conexionData, $cveEsqImpu, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function validarExistencias($conexionData, $partidasData)
+function validarExistencias($conexionData, $partidasData, $claveSae)
 {
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
@@ -2076,7 +2078,6 @@ function validarExistencias($conexionData, $partidasData)
         "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
-    $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
@@ -3740,7 +3741,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+            $resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
 
             if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
@@ -3767,10 +3768,10 @@ switch ($funcion) {
                 /*$estatus = "E";
                 $validarSaldo = 0;
                 $credito = 0;*/
-                /*guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                 actualizarFolio($conexionData, $claveSae);
-                actualizarInventario($conexionData, $partidasData);*/
+                actualizarInventario($conexionData, $partidasData);
                 if ($validarSaldo == 0 && $credito == 0) {
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
@@ -3784,9 +3785,8 @@ switch ($funcion) {
                     ]);
                     exit();
                 } else {
-                    //guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                    $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
-                    var_dump($resultado);
+                    guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                    $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);                    
                     header('Content-Type: application/json; charset=UTF-8');
                     echo json_encode([
                         'success' => false,
@@ -4038,40 +4038,51 @@ switch ($funcion) {
         $clienteId = $formularioData['cliente'];
         $clave = formatearClaveCliente($clienteId);
         // Validar crédito del cliente
-        $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
 
-        if ($validacionCredito['success']) {
-            $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
-            if ($validarSaldo == 0) {
-                guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $claveSae);
-                guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $claveSae);
-                actualizarFolio($conexionData, $claveSae);
-                actualizarInventarioEcomers($conexionData, $partidasData, $claveSae);
-                $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                validarCorreoClienteEcomers($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $noEmpresa);
-                remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
-                // 📌 Respuesta en caso de éxito sin PDF
-                header('Content-Type: application/json; charset=UTF-8');
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'El pedido se completó correctamente.',
-                ]);
-                exit;
+        $resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
+        if ($resultadoValidacion['success']) {
+            $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
+            if ($validacionCredito['success']) {
+                $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
+                if ($validarSaldo == 0) {
+                    guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $claveSae);
+                    guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $claveSae);
+                    actualizarFolio($conexionData, $claveSae);
+                    actualizarInventarioEcomers($conexionData, $partidasData, $claveSae);
+                    $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                    validarCorreoClienteEcomers($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $noEmpresa);
+                    remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
+                    // 📌 Respuesta en caso de éxito sin PDF
+                    header('Content-Type: application/json; charset=UTF-8');
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'El pedido se completó correctamente.',
+                    ]);
+                    exit;
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'saldo' => true,
+                        'message' => 'Tienes Saldo vencido.',
+                    ]);
+                }
             } else {
+                // Error de crédito
                 echo json_encode([
                     'success' => false,
-                    'saldo' => true,
-                    'message' => 'Tienes Saldo vencido.',
+                    'credit' => true,
+                    'message' => 'Límite de crédito excedido.',
+                    'saldoActual' => $validacionCredito['saldoActual'],
+                    'limiteCredito' => $validacionCredito['limiteCredito'],
                 ]);
             }
         } else {
-            // Error de crédito
+            // Error de existencias
             echo json_encode([
                 'success' => false,
-                'credit' => true,
-                'message' => 'Límite de crédito excedido.',
-                'saldoActual' => $validacionCredito['saldoActual'],
-                'limiteCredito' => $validacionCredito['limiteCredito'],
+                'exist' => true,
+                'message' => $resultadoValidacion['message'],
+                'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
             ]);
         }
         break;

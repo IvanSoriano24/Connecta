@@ -39,7 +39,7 @@ if (isset($_SESSION['usuario'])) {
 	<!-- My CSS -->
 	<link rel="stylesheet" href="CSS/style.css">
 	<link rel="stylesheet" href="CSS/selec.css">
-	<title>AdminHub</title>
+	<title>MDConnecta</title>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<style>
@@ -148,7 +148,7 @@ if (isset($_SESSION['usuario'])) {
 						},
 						body: JSON.stringify({
 							action: 'verificar',
-							noEmpresa: noEmpresa
+							claveSae: claveSae
 						})
 					})
 					.then(response => response.json())

@@ -46,7 +46,7 @@ if (isset($_SESSION['usuario'])) {
     <link rel="stylesheet" href="CSS/selec.css">
     <link rel="stylesheet" href="CSS/carrito.css">
 
-    <title>AdminHub</title>
+    <title>MDConnecta</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -279,25 +279,25 @@ if (isset($_SESSION['usuario'])) {
                                         <div class="col-md-6 mb-2">
                                             <label for="folio" class="form-label">No. Pedido:</label>
                                             <input type="text" id="folio" class="form-control form-control-sm"
-                                                readonly>
+                                            style="text-align: center; vertical-align: middle;"    readonly>
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label for="nombreCliente" class="form-label">Nombre
                                                 Cliente:</label>
                                             <input type="text" id="nombreCliente"
-                                                class="form-control form-control-sm" readonly>
+                                            style="text-align: center; vertical-align: middle;"    class="form-control form-control-sm" readonly>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
                                             <label for="status" class="form-label">Status:</label>
                                             <input type="text" id="status" class="form-control form-control-sm"
-                                                readonly>
+                                            style="text-align: center; vertical-align: middle;"    readonly>
                                         </div>
-                                        <div class="col-md-3 mb-2">
+                                        <div class="col-md-6 mb-2">
                                             <label for="diaAlta" class="form-label">Dia Alta:</label>
                                             <input type="text" id="diaAlta" class="form-control form-control-sm"
-                                                readonly>
+                                            style="text-align: center; vertical-align: middle;"    readonly>
                                         </div>
                                     </div>
                                     <br>
