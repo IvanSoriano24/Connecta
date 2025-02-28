@@ -65,17 +65,16 @@ function agregarFilaPartidas() {
       </td>
       <td><input type="number" class="cantidad" value="0" readonly /></td>
       <td><input type="text" class="unidad" readonly /></td>
-      <td><input type="number" class="descuento1" style="width: 70px;" value="0"  readonly /></td>
-      <td><input type="number" class="descuento2" style="width: 70px;" value="0" readonly /></td>
-      <td><input type="number" class="ieps" value="0" readonly /></td>
+      <td><input type="number" class="descuento" style="width: 100px;" value="0"  readonly /></td>
       <td><input type="number" class="iva" value="0" readonly /></td>
-      <td><input type="number" class="comision" value="0" readonly /></td>
       <td><input type="number" class="precioUnidad" value="0" readonly /></td>
       <td><input type="number" class="subtotalPartida" value="0" readonly /></td>
       <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
       <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
       <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td>
       <td><input type="text" class="COSTO_PROM" value="0" readonly hidden /></td>
+      <td><input type="number" class="ieps" value="0" readonly hidden /></td>
+      <td><input type="number" class="comision" value="0" readonly hidden/></td>
   `;
 
   // Añadir evento al botón de eliminar con delegación
@@ -116,7 +115,7 @@ function agregarFilaPartidas() {
     TOT_PARTIDA: 0,
   });
 
-  console.log("Partidas actuales después de agregar:", partidasData);
+  //console.log("Partidas actuales después de agregar:", partidasData);
 }
 function eliminarPartidaFormulario(numPar, filaAEliminar) {
   Swal.fire({
@@ -225,6 +224,13 @@ async function completarPrecioProducto(cveArt, filaTabla) {
   try {
     // Obtener la lista de precios correctamente
     const listaPrecioElement = filaTabla.querySelector(".listaPrecios");
+    let descuento = filaTabla.querySelector(".descuento");
+    const descuentoCliente = document.getElementById("descuentoCliente").value;
+    console.log(descuento);
+    console.log(descuentoCliente);
+    descuento.value = descuentoCliente;
+    console.log(descuento);
+    descuento.readOnly = false;
     const cvePrecio = listaPrecioElement ? listaPrecioElement.value : "1";
     // Obtener el precio del producto
     const precio = await obtenerPrecioProducto(cveArt, cvePrecio);
@@ -250,7 +256,7 @@ async function completarPrecioProducto(cveArt, filaTabla) {
 
     // Obtén los campos de la fila
     const impuesto1Input = filaTabla.querySelector(".ieps");
-    const impuesto2Input = filaTabla.querySelector(".descuento2");
+    const impuesto2Input = filaTabla.querySelector(".impuesto2");
     const impuesto4Input = filaTabla.querySelector(".iva");
     const impuesto3Input = filaTabla.querySelector(".impuesto3");
     /*const impuesto1Input = document.querySelector(".ieps");
@@ -489,7 +495,7 @@ function obtenerDatosFormulario() {
     calle: document.getElementById("calle").value,
     numE: document.getElementById("numE").value,
     numI: document.getElementById("numI").value,
-    descuento: document.getElementById("descuento").value,
+    descuento: document.getElementById("descuentoCliente").value,
     colonia: document.getElementById("colonia").value,
     codigoPostal: document.getElementById("codigoPostal").value,
     poblacion: document.getElementById("poblacion").value,
@@ -514,8 +520,7 @@ function obtenerDatosPartidas() {
       cantidad: fila.querySelector(".cantidad").value,
       producto: fila.querySelector(".producto").value,
       unidad: fila.querySelector(".unidad").value,
-      descuento1: fila.querySelector(".descuento1").value,
-      descuento2: fila.querySelector(".descuento2").value,
+      descuento: fila.querySelector(".descuento").value,
       ieps: fila.querySelector(".ieps").value,
       impuesto2: fila.querySelector(".impuesto2").value,
       isr: fila.querySelector(".impuesto3").value,
@@ -1047,7 +1052,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
 function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
   $(
-    "#entrega, #supedido, #entrega, #condicion, #descuento, #descuentofin, #enviar"
+    "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar"
   ).prop("disabled", false);
 }
 function llenarDatosCliente(cliente) {
@@ -1063,6 +1068,7 @@ function llenarDatosCliente(cliente) {
   $("#regimenFiscal").val(cliente.REGIMEN_FISCAL || "");
   $("#cliente").val(cliente.CLAVE || "");
   $("#listaPrecios").val(cliente.LISTA_PREC || "");
+  $("#descuentoCliente").val(cliente.DESCUENTO || 0);
 
   // Validar el crédito del cliente
   validarCreditoCliente(cliente.CLAVE);

@@ -190,36 +190,33 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
 //     }
 // }
 
-function mostrarPedidos($conexionData, $filtroFecha)
-{
+function mostrarPedidos($conexionData, $filtroFecha) {
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
 
-    // Parámetros de paginación (puedes enviarlos desde el cliente)
+    // Parámetros de paginación
     $pagina = isset($_POST['pagina']) ? (int)$_POST['pagina'] : 1;
     $porPagina = isset($_POST['porPagina']) ? (int)$_POST['porPagina'] : 50;
     $offset = ($pagina - 1) * $porPagina;
 
     try {
-        // Validar si el número de empresa está definido en la sesión
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
         }
-        // Obtener el número de empresa y clave SAE de la sesión
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
         if (!is_numeric($noEmpresa)) {
             echo json_encode(['success' => false, 'message' => 'El número de empresa no es válido']);
             exit;
         }
-        // Obtener tipo de usuario y clave de vendedor desde la sesión
+
         $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
         $claveVendedor = $_SESSION['empresa']['claveUsuario'] ?? null;
         if ($claveVendedor != null) {
             $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
         }
-        // Configuración de conexión
+
         $serverName = $conexionData['host'];
         $connectionInfo = [
             "Database" => $conexionData['nombreBase'],
@@ -232,13 +229,13 @@ function mostrarPedidos($conexionData, $filtroFecha)
             die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
         }
 
-        // Construir el nombre de las tablas dinámicamente
+        // Construir nombres de tablas dinámicamente
         $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $nombreTabla2  = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $nombreTabla3  = "[{$conexionData['nombreBase']}].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-        // Reescribir la consulta usando JOINs en lugar de subconsultas
-        $sql = "SELECT 
+        // Reescribir la consulta evitando duplicados con `DISTINCT`
+        $sql = "SELECT DISTINCT 
                     f.TIP_DOC AS Tipo,
                     f.CVE_DOC AS Clave,
                     f.CVE_CLPV AS Cliente,
@@ -262,14 +259,16 @@ function mostrarPedidos($conexionData, $filtroFecha)
         } elseif ($filtroFecha == 'Mes Anterior') {
             $sql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
         }
-        // Para usuarios no administradores, filtrar por vendedor
+
+        // Filtrar por vendedor si el usuario no es administrador
         if ($tipoUsuario !== 'ADMINISTRADOR') {
             $sql .= " AND f.CVE_VEND = ? ";
             $params = [intval($claveVendedor)];
         } else {
             $params = [];
         }
-        // Agregar orden y paginación (requiere SQL Server 2012 o superior)
+
+        // Agregar orden y paginación
         $sql .= " ORDER BY f.FECHAELAB DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
         $params[] = $offset;
         $params[] = $porPagina;
@@ -280,9 +279,12 @@ function mostrarPedidos($conexionData, $filtroFecha)
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
 
-        // Arreglo para almacenar los datos
+        // Arreglo para almacenar los pedidos evitando duplicados
         $clientes = [];
+        $clavesRegistradas = [];
+
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            // Validar codificación y manejar nulos
             foreach ($row as $key => $value) {
                 if ($value !== null && is_string($value)) {
                     $value = trim($value);
@@ -297,8 +299,14 @@ function mostrarPedidos($conexionData, $filtroFecha)
                 }
                 $row[$key] = $value;
             }
-            $clientes[] = $row;
+
+            // 🚨 Evitar pedidos duplicados usando CVE_DOC como clave única
+            if (!in_array($row['Clave'], $clavesRegistradas)) {
+                $clavesRegistradas[] = $row['Clave']; // Registrar la clave para evitar repetición
+                $clientes[] = $row;
+            }
         }
+
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
 
@@ -306,8 +314,10 @@ function mostrarPedidos($conexionData, $filtroFecha)
             echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
             exit;
         }
+
         header('Content-Type: application/json; charset=UTF-8');
         echo json_encode(['success' => true, 'data' => $clientes]);
+
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
@@ -537,7 +547,7 @@ function actualizarPedido($conexionData, $formularioData, $partidasData)
 
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     $IMP_TOT4 = $CAN_TOT * 0.16;
-    $DES_TOT = $formularioData['descuento'];
+    $DES_TOT = $formularioData['descuentoCliente'];
     $CONDICION = $formularioData['condicion'];
 
     // Crear la consulta SQL para actualizar el pedido
@@ -643,8 +653,8 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         $IMPU4 = $partida['iva']; // Impuesto 2
         // Agregar los cálculos para los demás impuestos...
         $PXS = 0;
-        $DESC1 = $partida['descuento1'];
-        $DESC2 = $partida['descuento2'];
+        $DESC1 = $partida['descuento'];
+        $DESC2 = 0;
         $COMI = $partida['comision'];
         $NUM_ALMA = $formularioData['almacen'];
         $UNI_VENTA = $partida['unidad'];
@@ -945,8 +955,8 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;
     $IMP_TOT8 = 0;
-    $DES_TOT = $formularioData['descuento'];
-    $DES_FIN = $formularioData['descuento'];
+    $DES_TOT = $formularioData['descuentoCliente'];
+    $DES_FIN = $formularioData['descuentofin'];
     $CONDICION = $formularioData['condicion'];
     $RFC = $formularioData['rfc'];
     $FECHA_ELAB = $formularioData['diaAlta'];
@@ -1088,8 +1098,8 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
             $IMPU4 = $partida['iva']; // Impuesto 2
             // Agregar los cálculos para los demás impuestos...
             $PXS = 0;
-            $DESC1 = $partida['descuento1'];
-            $DESC2 = $partida['descuento2'];
+            $DESC1 = $partida['descuento'];
+            $DESC2 = 0;
             $COMI = $partida['comision'];
             $CVE_UNIDAD = $partida['CVE_UNIDAD'];
             $NUM_ALMA = $formularioData['almacen'];
@@ -1793,7 +1803,7 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
         // Búsqueda por nombre
         $sql = "SELECT DISTINCT 
                 [CLAVE], [NOMBRE], [CALLE], [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
-                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC]
+                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO]
             FROM $nombreTabla
             WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') OR [CLAVE] = '$clienteClave'
               AND [CVE_VEND] = '$claveVendedor'";
@@ -1801,7 +1811,7 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
         // Búsqueda por clave
         $sql = "SELECT DISTINCT 
                 [CLAVE], [NOMBRE], [CALLE], [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
-                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC]
+                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO]
             FROM $nombreTabla
             WHERE [CLAVE] = '$clienteClave' OR LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre')
               AND [CVE_VEND] = '$claveVendedor'";

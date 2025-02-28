@@ -844,10 +844,9 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
 
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
-        $desc1 = $partida['descuento1'] ?? 0;
-        $desc2 = $partida['descuento2'] ?? 0;
-        $descTotal = intval($formularioData['descuento'] ?? 0);
-        $descuentos = $desc1 + $desc2 + $descTotal;
+        $desc1 = $partida['descuento'] ?? 0;
+        $descTotal = intval($formularioData['descuentoCliente'] ?? 0);
+        $descuentos = $desc1  + $descTotal;
 
         $ieps = intval($partida['ieps'] ?? 0);
         $impuesto2 = intval($partida['impuesto2'] ?? 0);
@@ -855,7 +854,7 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
         $iva = intval($partida['iva'] ?? 0);
         $impuestos = $ieps + $impuesto2 + $isr + $iva;
 
-        $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($desc2 / 100)) * (1 - ($descTotal / 100));
+        $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($descTotal / 100));
         $subtotalPartida = $precioConDescuento * $cantidad;
 
         $subtotal += $subtotalPartida;

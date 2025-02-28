@@ -489,9 +489,9 @@ if (isset($_SESSION['usuario'])) {
 
                             </div>
                             <div class="form-element">
-                                <label for="descuento">Descuento </label>
+                                <label for="descuentoCliente">Descuento </label>
                                 <div style="display: flex; align-items: center;">
-                                    <input type="text" name="descuento" id="descuento" style="width: 110px;" disabled>
+                                    <input type="text" name="descuentoCliente" id="descuentoCliente" style="width: 110px;" disabled>
                                     <button type="button" class="btn ms-2" id="AyudaDescuento">
                                         <i class="bx bx-help-circle"></i>
                                     </button>
@@ -588,11 +588,8 @@ if (isset($_SESSION['usuario'])) {
                                                 <th>Producto</th>
                                                 <th>Cant.</th>
                                                 <th>Unidad</th>
-                                                <th>Desc.1</th>
-                                                <th>Desc.2</th>
-                                                <th>I.E.P.S</th>
+                                                <th>Desc.</th>
                                                 <th>I.V.A</th>
-                                                <th>Comision</th>
                                                 <th>Prec.Unit</th>
                                                 <th>Subtotal por Partida</th>
                                             </tr>

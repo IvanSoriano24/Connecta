@@ -220,11 +220,11 @@ session_destroy(); */
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
     <script src="JS/ventas.js"></script>
-    <script>
+    <!--<script>
         $(document).ready(function() {
             datosPedidos();
         });
-    </script>
+    </script>-->
     <script>
         // Asignar el evento "change" al select del filtro (asegúrate que el id sea correcto)
         document.getElementById("filtroFecha").addEventListener("change", function() {

@@ -92,7 +92,8 @@ function mostrarClientes($conexionData)
                         TELEFONO, 
                         SALDO, 
                         VAL_RFC AS EstadoDatosTimbrado, 
-                        NOMBRECOMERCIAL 
+                        NOMBRECOMERCIAL,
+                        DESCUENTO 
                     FROM 
                         $nombreTabla
                     WHERE 
@@ -108,7 +109,8 @@ function mostrarClientes($conexionData)
                         TELEFONO, 
                         SALDO, 
                         VAL_RFC AS EstadoDatosTimbrado, 
-                        NOMBRECOMERCIAL 
+                        NOMBRECOMERCIAL,
+                        DESCUENTO
                     FROM 
                         $nombreTabla
                     WHERE 
@@ -178,12 +180,8 @@ function mostrarClienteEspecifico($clave, $conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
-    // Limpiar la clave y convertirla a UTF-8
-    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-    $clave = str_pad($clave, 20, ' ', STR_PAD_LEFT);
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Crear la consulta SQL con un parámetro
     $sql = "SELECT TOP (1) [CLAVE], [STATUS], [NOMBRE], [RFC], [CALLE], [NUMINT], [NUMEXT], 
                     [CRUZAMIENTOS], [COLONIA], [CODIGO], [LOCALIDAD], [MUNICIPIO], [ESTADO], 
@@ -191,7 +189,7 @@ function mostrarClienteEspecifico($clave, $conexionData)
                     [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO],
                     [CON_CREDITO], [DIAREV], [DIAPAGO], [DIASCRED], [DIAREV], [METODODEPAGO], [LISTA_PREC], [DESCUENTO]
             FROM $nombreTabla 
-            WHERE CAST(LTRIM(RTRIM([CLAVE])) AS NVARCHAR(MAX)) = CAST(? AS NVARCHAR(MAX))";
+            WHERE [CLAVE] = ?";
 
     // Preparar el parámetro
     $params = array($clave);
@@ -212,7 +210,7 @@ function mostrarClienteEspecifico($clave, $conexionData)
             'cliente' => $cliente
         ]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
+        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado', 'errors' => sqlsrv_errors()]);
     }
 
     // Cerrar la conexión
@@ -326,7 +324,7 @@ function formatearClaveCliente($clave)
 {
     // Asegurar que la clave sea un string y eliminar espacios innecesarios
     $clave = trim((string) $clave);
-
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
     // Si la clave ya tiene 10 caracteres, devolverla tal cual
     if (strlen($clave) === 10) {
         return $clave;
@@ -441,7 +439,8 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
 
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -450,6 +449,7 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $clave = $_GET['clave'];
+        $clave = formatearClaveCliente($clave);
         mostrarClienteEspecifico($clave, $conexionData, $noEmpresa);
         break;
     case 3:
