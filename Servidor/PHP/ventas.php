@@ -955,7 +955,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $CAN_TOT = 0;
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
-    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    $descuentoCliente = $formularioData['descuento']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
         $CAN_TOT += $partida['cantidad']; // Sumar cantidades totales
@@ -979,7 +979,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;
     $IMP_TOT8 = 0;
-    $DES_FIN = $formularioData['descuentofin'];
+    $DES_FIN = $formularioData['descuentoFin'];
     $CONDICION = $formularioData['condicion'];
     $RFC = $formularioData['rfc'];
     $FECHA_ELAB = $formularioData['diaAlta'];
@@ -999,7 +999,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
     $TIP_DOC_E = 0; ////
-    $DES_TOT_PORC = $formularioData['descuentoCliente'];; ////
+    $DES_TOT_PORC = $formularioData['descuento'];; ////
     $COM_TOT_PORC = 0; ////
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
@@ -3491,8 +3491,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
                                 "cantidad" => ["stringValue" => $partidasData["cantidad"]],
                                 "producto" => ["stringValue" => $partidasData["producto"]],
                                 "unidad" => ["stringValue" => $partidasData["unidad"]],
-                                "descuento1" => ["stringValue" => $partidasData["descuento1"]],
-                                "descuento2" => ["stringValue" => $partidasData["descuento2"]],
+                                "descuento" => ["stringValue" => $partidasData["descuento"]],
                                 "ieps" => ["stringValue" => $partidasData["ieps"]],
                                 "impuesto2" => ["stringValue" => $partidasData["impuesto2"]],
                                 "isr" => ["stringValue" => $partidasData["isr"]],

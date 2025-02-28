@@ -523,9 +523,9 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element"></div>
 
                             <div class="form-element">
-                                <label for="descuentofin">Descuento Fin </label>
+                                <label for="descuentoFin">Descuento Fin </label>
                                 <div style="display: flex; align-items: center;">
-                                    <input type="text" name="descuentofin" id="descuentofin" style="width: 110px;" disabled>
+                                    <input type="text" name="descuentoFin" id="descuentoFin" style="width: 110px;" disabled>
                                     <button type="button" class="btn ms-2" id="AyudaDescuentofin">
                                         <i class="bx bx-help-circle"></i>
                                     </button>
