@@ -260,7 +260,7 @@ function actualizarInve($conexionData, $pedidoId, $claveSae)
         'message' => "COSTO_PROM actualizado a 0 para todos los productos del pedido $pedidoId"
     ]);*/
 }
-function insertarNimve($conexionData, $pedidoId, $claveSae)
+function insertarMimve($conexionData, $pedidoId, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -282,8 +282,6 @@ function insertarNimve($conexionData, $pedidoId, $claveSae)
     }
     
     // Asegura que el ID del pedido tenga el formato correcto (10 caracteres con espacios a la izquierda)
-    $refer = $pedidoId;
-
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
@@ -330,6 +328,7 @@ function insertarNimve($conexionData, $pedidoId, $claveSae)
     $numMov = $ultimos['NUM_MOV'];
     $eLtpd = $ultimos['E_LTPD'];
     $cveFolio = $ultimos['CVE_FOLIO'];
+    $refer = $pedidoId;
 
     // ✅ 3. Insertar los productos en MINVEXX
     while ($row = sqlsrv_fetch_array($stmtPartidas, SQLSRV_FETCH_ASSOC)) {
@@ -998,7 +997,6 @@ function insertarFactr($conexionData, $pedidoId, $claveSae)
         ]);
         die();
     }
-    $docAnt = $pedidoId;
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
@@ -1052,7 +1050,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae)
     $datMostr = 0;
     $cvePedi = '';  // Vacío según la traza
     $tipDocE = 'P';
-    //$docAnt = $pedidoId;
+    $docAnt = $pedidoId;
     $tipDocAnt = 'F';
 
     // ✅ 4. Insertar en FACTRXX
@@ -1387,7 +1385,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae){
             IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, DESC1, 
             DESC2, DESC3, COMI, APAR, ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
             TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, 
-            APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, 
+            APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, UUID,
             IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, 
             TOTIMP6, TOTIMP7, TOTIMP8)
         VALUES (
@@ -1395,7 +1393,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae){
         ?, ?, ?, ?, ?, ?, ?, ?, ?, 
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, "",
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?)";
 
@@ -2418,7 +2416,7 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
 
     validarLotes($conexionData, $pedidoId, $claveSae);
 
-    insertarNimve($conexionData, $pedidoId, $claveSae);
+    insertarMimve($conexionData, $pedidoId, $claveSae);
     actualizarInve2($conexionData, $pedidoId, $claveSae);
     actualizarInve3($conexionData, $pedidoId, $claveSae); 
     actualizarInveClaro($conexionData, $pedidoId, $claveSae);

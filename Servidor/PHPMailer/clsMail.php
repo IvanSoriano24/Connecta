@@ -7,7 +7,8 @@ require 'ArchivosMailer/Exception.php';
 require 'ArchivosMailer/PHPMailer.php';
 require 'ArchivosMailer/SMTP.php';
 
-class clsMail {
+class clsMail
+{
     private $mail;
     private $defaultUser = 'betovargas584@gmail.com'; // Correo por defecto
     private $defaultPass = 'tbkn bjyu segx vcgm'; // Contraseña por defecto
@@ -18,12 +19,13 @@ class clsMail {
     //private $defaultUser = 'josemanuelnavarroreval@gmail.com'; // Correo por defecto
     //private $defaultPass = 'ntdc qhcf ymxm guks'; // Contraseña por defecto
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->mail = new PHPMailer();
         $this->mail->isSMTP();
         $this->mail->SMTPAuth = true;
         $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Cifrado TLS
-        $this->mail->Host = 'smtp.gmail.com'; 
+        $this->mail->Host = 'smtp.gmail.com';
         //$this->mail->Host = 'mail.grupointerzenda'; // Servidor SMTP de Gmail
         $this->mail->Port = 587; // Puerto para TLS
         //$this->mail->Port = 995; // Puerto para TLS
@@ -31,25 +33,24 @@ class clsMail {
     }
 
     public function metEnviar(
-        string $titulo, 
-        string $nombre, 
-        string $correo, 
-        string $asunto, 
-        string $bodyHTML, 
-        string $archivoAdjunto = null, 
-        string $correoRemitente = null, 
+        string $titulo,
+        string $nombre,
+        string $correo,
+        string $asunto,
+        string $bodyHTML,
+        string $archivoAdjunto = null,
+        string $correoRemitente = null,
         string $passwordRemitente = null
     ) {
         try {
-            if ($correoRemitente == null || $passwordRemitente == null) {
-                $correoRemitente = $this->defaultUser;
-                $passwordRemitente = $this->defaultPass;
+            if ($correoRemitente === "" || $passwordRemitente === "") {
+                $remitente = $this->defaultUser;
+                $password = $this->defaultPass;
+            } else {
+                // Usar remitente y contraseña por defecto si no se proporciona
+                $remitente = $correoRemitente;
+                $password = $passwordRemitente;
             }
-            // Usar remitente y contraseña por defecto si no se proporciona
-            $remitente = $correoRemitente;
-            $password = $passwordRemitente;
-            /*var_dump($remitente);
-            var_dump($password);*/
             $this->mail->Username = $remitente;
             $this->mail->Password = $password;
             $this->mail->setFrom($remitente, $titulo); // Remitente dinámico o por defecto
@@ -92,5 +93,3 @@ class clsMail {
 //     'otroremitente@gmail.com',         // Remitente dinámico
 //     'su-contraseña-aqui'               // Contraseña del remitente
 // );
-
-?>

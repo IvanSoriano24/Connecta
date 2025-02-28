@@ -75,6 +75,7 @@ function agregarFilaPartidas() {
       <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
       <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
       <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td>
+      <td><input type="text" class="COSTO_PROM" value="0" readonly hidden /></td>
   `;
 
   // Añadir evento al botón de eliminar con delegación
@@ -353,7 +354,10 @@ function mostrarListaProductos(productos, input) {
             campoUnidad.value = producto.UNI_MED;
           }
           const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
+          const COSTO_PROM = filaTabla.querySelector(".COSTO_PROM");
+          
           CVE_UNIDAD.value = producto.CVE_UNIDAD;
+          COSTO_PROM.value = producto.COSTO_PROM;
           // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
           const campoCantidad = filaTabla.querySelector("input.cantidad");
           if (campoCantidad) {
@@ -520,6 +524,7 @@ function obtenerDatosPartidas() {
       precioUnitario: fila.querySelector(".precioUnidad").value,
       subtotal: fila.querySelector(".subtotalPartida").value,
       CVE_UNIDAD: fila.querySelector(".CVE_UNIDAD").value,
+      COSTO_PROM: fila.querySelector(".COSTO_PROM").value,
     };
     partidasData.push(partida);
   });
@@ -1004,8 +1009,10 @@ function showCustomerSuggestionsProductos() {
 async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   inputProducto.val(`${producto.CVE_ART}`); // Mostrar el producto seleccionado
   const filaProd = inputProducto.closest("tr")[0]; // Asegurar que obtenemos el elemento DOM
-  const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
+  const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD"); 
+  const COSTO_PROM = filaTabla.querySelector(".COSTO_PROM");
   CVE_UNIDAD.val(`${producto.CVE_UNIDAD}`);
+  COSTO_PROM.val(`${producto.COSTO_PROM}`);
   if (!filaProd) {
     console.error("Error: No se encontró la fila del producto.");
     return; // 🚨 Salir de la función si `filaProd` no es válido

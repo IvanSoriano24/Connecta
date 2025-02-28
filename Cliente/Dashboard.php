@@ -61,6 +61,15 @@ if (isset($_SESSION['usuario'])) {
 				<!--<form method="POST" action="../Servidor/PHP/whatsappp.php">
 			<button type="submit">Realizar Pedido</button>
 			</form>-->
+			<?php
+				/*echo $contrasena;
+				if($contrasena === ""){
+					echo "Es vacio";
+				}else{
+					echo "No es vacio";
+				}*/
+				
+			?>
 			</main>
 			<!-- MAIN -->
 		</section>

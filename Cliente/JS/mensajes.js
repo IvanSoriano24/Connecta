@@ -89,13 +89,24 @@ function cargarPedidos() {
         tbody.empty();
 
         pedidos.forEach((pedido) => {
+          const color =
+            pedido.status === "Autorizado"
+              ? "green"
+              : pedido.status === "Rechazado"
+              ? "red"
+              : pedido.status === "Sin Autorizar"
+              ? "blue"
+              : "black";
+
           const row = `
                     <tr>
                         <td>${pedido.folio || "-"}</td>
                         <td>${pedido.cliente || "-"}</td>
                         <td>${pedido.diaAlta || "-"}</td>
                         <td>${pedido.vendedor || "-"}</td>
-                        <td>${pedido.status || "-"}</td>
+                        <td style="color: ${color};">${
+            pedido.status || "-"
+          }</td>
                         <td>${pedido.totalPedido || "-"}</td>
                         <td>
                             <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${
@@ -148,7 +159,7 @@ function verificarNotificaciones() {
 }
 
 // Llamar periódicamente a la función de verificación de notificaciones
-setInterval(verificarNotificaciones, 30000); // Verificar cada 30 segundos
+//setInterval(verificarNotificaciones, 30000); // Verificar cada 30 segundos
 
 $(document).ready(function () {
   cargarComandas();

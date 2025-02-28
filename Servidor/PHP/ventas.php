@@ -1093,6 +1093,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
             $COMI = $partida['comision'];
             $CVE_UNIDAD = $partida['CVE_UNIDAD'];
             $NUM_ALMA = $formularioData['almacen'];
+            $COSTO_PROM = $partida['COSTO_PROM'];
             $UNI_VENTA = $partida['unidad'];
             if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
                 $TIPO_PORD = 'S';
@@ -1120,7 +1121,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 VERSION_SINC, DESCR_ART, ID_RELACION, PREC_NETO,
                 CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
                 IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 4, 4, 4, 4,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4, 4, 4, 4,
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
@@ -1135,6 +1136,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 $CANT,
                 $PXS,
                 $PREC,
+                $COSTO_PROM,
                 $IMPU1,
                 $IMPU2,
                 $IMPU3,
@@ -1399,7 +1401,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         //$emailPred = 'marcosluh92@gmail.com';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1425,7 +1427,7 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     // Configuración de la API de WhatsApp
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBO9IynxQVBnTe9OlB6ytzw5DzOUA4c8ZAZCJFrUUFKisbRUMLLHJGICsnXkZA0bjQReezy43Fv26ydZCS8lCnFay1MUyoVjymGsZATsHxd3nXA1q0YSMx8tvlxUW45xtYM4aDGl1FKKOcZBUZAb14koRLOSZA7TefH1KkG1Bllm5ux3BCFZBaMogExuThZCUwICZCpoDA6mokL79xnZAYNBcicQKwOZC4ZD';
+    $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
 
     // Obtener datos del pedido
     $noPedido = $formularioData['numero'];
@@ -1566,15 +1568,15 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $mail = new clsMail();
 
     // Definir el remitente (si no está definido, se usa uno por defecto)
-    /*$correoRemitente = $_SESSION['usuario']['correo'] ?? null;
-    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? null;
+    $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
+    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
 
-    if ($correoRemitente == null || $contraseñaRemitente == null) {
-        $correoRemitente = null;
-        $contraseñaRemitente = null;
-    }*/
-    $correoRemitente = null;
-    $contraseñaRemitente = null;
+    if ($correoRemitente === "" || $contraseñaRemitente === "") {
+        $correoRemitente = "";
+        $contraseñaRemitente = "";
+    }
+    //$correoRemitente = null;
+    //$contraseñaRemitente = null;
     // Definir el correo de destino (puedes cambiarlo si es necesario)
     $correoDestino = 'desarrollo01@mdcloud.mx';
     //$correoDestino = 'ivan.soriano@mdcloud.mx';
@@ -1653,11 +1655,10 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     }
 }
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave){
-    //$url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     
     //$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
-    $token = 'EAAQbK4YCPPcBOZC3ZC8SJhKg9mI8pVzMo8LbkA2ZCHUAt9AZC4wKPqgnLbz8yXpCJ5TCyCI0ZAlZBPvHl1oso6IFu6Uxw8ZBhhzX8Rnpiy5C0svcAiV3mkaqgop2s2KPe9cZAIqCOIZBbSOO6ZA3JoZBGBtRidskLq9GCBMOZCqH6ZBZBTv3gvcxdcRnOJBQZCRtCDrd6o7OlkgzpFvrbTvcdniATMu3foaQbQARKpkI1AA';
+    $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
     // ✅ Verifica que los valores no estén vacíos
     if (empty($noPedido) || empty($claveSae)) {
         error_log("Error: noPedido o noEmpresa están vacíos.");
@@ -1909,7 +1910,7 @@ function obtenerProductos($conexionData)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL
-    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD]
+    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [COSTO_PROM]
         FROM $nombreTabla";
 
     $stmt = sqlsrv_query($conn, $sql);
@@ -2921,6 +2922,10 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
     sqlsrv_begin_transaction($conn);
     // Iterar sobre las partidas recibidas
     if (isset($partidasData) && is_array($partidasData)) {
+        $NUM_PAR = 0;
+        foreach ($partidasData as $partida) {
+            $NUM_PAR = $NUM_PAR + 1;
+        }
         foreach ($partidasData as $partida) {
             // Extraer los datos de la partida
             $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
@@ -2928,7 +2933,7 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
             $CVE_ART = $partida['producto']; // Clave del producto
             $CANT = $partida['cantidad']; // Cantidad
             $PREC = $partida['precioUnitario']; // Precio
-            $NUM_PAR = $formularioData['numero'];
+            //$NUM_PAR = $formularioData['numero'];
             // Calcular los impuestos y totales
             $IMPU1 = $partida['ieps']; // Impuesto 1
             $IMPU3 = $partida['isr'];
@@ -2942,6 +2947,7 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
             $DESC2 = $partida['descuento2'];
             $COMI = $partida['comision'];
             $CVE_UNIDAD = $partida['CVE_UNIDAD'];
+            $COSTO_PROM = $partida['COSTO_PROM'];
             $NUM_ALMA = $formularioData['almacen'];
             $UNI_VENTA = $partida['unidad'];
             if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
@@ -2970,7 +2976,7 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
                 VERSION_SINC, DESCR_ART, ID_RELACION, PREC_NETO,
                 CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
                 IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 4, 4, 4, 4,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4, 4, 4, 4,
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
@@ -2985,6 +2991,7 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
                 $CANT,
                 $PXS,
                 $PREC,
+                $COSTO_PROM,
                 $IMPU1,
                 $IMPU2,
                 $IMPU3,
@@ -3213,7 +3220,7 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
         //$emailPred = 'marcosluh92@gmail.com';
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
-        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -3361,8 +3368,8 @@ function validarSaldo($conexionData, $clave, $claveSae){
     }
 }
 function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente){
-    $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';
-    $token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD';
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
     // Crear el cuerpo de la solicitud para la API
     $data = [
         "messaging_product" => "whatsapp",
@@ -3685,7 +3692,7 @@ switch ($funcion) {
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
-            $resultadoValidacion = validarExistencias($conexionData, $partidasData);
+        $resultadoValidacion = validarExistencias($conexionData, $partidasData);
 
             if ($resultadoValidacion['success']) {
                 // Calcular el total del pedido
@@ -3709,12 +3716,14 @@ switch ($funcion) {
                 } else if ($validarSaldo == 1 || $credito == 1) {
                     $estatus = "C";
                 }
-                $estatus = "E";
+                /*$estatus = "E";
+                $validarSaldo = 0;
+                $credito = 0;*/
                 guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                 actualizarFolio($conexionData, $claveSae);
                 actualizarInventario($conexionData, $partidasData);
-                //if ($validarSaldo == 0 || $credito == 0) {
+                if ($validarSaldo == 0 || $credito == 0) {
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
                     //exit;

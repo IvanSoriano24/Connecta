@@ -254,7 +254,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 
 function enviarWhatsApp($numero, $pedidoId, $nombreCliente){
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBO9IynxQVBnTe9OlB6ytzw5DzOUA4c8ZAZCJFrUUFKisbRUMLLHJGICsnXkZA0bjQReezy43Fv26ydZCS8lCnFay1MUyoVjymGsZATsHxd3nXA1q0YSMx8tvlxUW45xtYM4aDGl1FKKOcZBUZAb14koRLOSZA7TefH1KkG1Bllm5ux3BCFZBaMogExuThZCUwICZCpoDA6mokL79xnZAYNBcicQKwOZC4ZD';
+    $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
     // Crear el cuerpo de la solicitud para la API
     $data = [
         "messaging_product" => "whatsapp",
