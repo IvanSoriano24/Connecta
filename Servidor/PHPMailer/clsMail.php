@@ -43,6 +43,7 @@ class clsMail
         string $passwordRemitente = null
     ) {
         try {
+            
             if ($correoRemitente === "" || $passwordRemitente === "") {
                 $remitente = $this->defaultUser;
                 $password = $this->defaultPass;
@@ -51,6 +52,7 @@ class clsMail
                 $remitente = $correoRemitente;
                 $password = $passwordRemitente;
             }
+            
             $this->mail->Username = $remitente;
             $this->mail->Password = $password;
             $this->mail->setFrom($remitente, $titulo); // Remitente dinámico o por defecto

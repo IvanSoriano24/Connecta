@@ -135,7 +135,8 @@ function obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae){
         'ubicacion' => trim($clienteData['MUNICIPIO'] . ", " . $clienteData['ESTADO'] . ", " . $clienteData['PAIS']) ?? 'N/A',
         'codigoPostal' => trim($clienteData['CODIGO']) ?? 'N/A',
         'telefono' => $clienteData['TELEFONO'] ?? 'N/A',
-        'email' => $clienteData['EMAILPRED'] ?? 'N/A'
+        'email' => $clienteData['EMAILPRED'] ?? 'N/A',
+        'DESCUENTO' => $clienteData['DESCUENTO'] ?? 0
     ];
 }
 /****************************************************************************************************************/
@@ -1041,7 +1042,7 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
         $cantidad = $partida['CANT'];
         $desc1 = $partida['DESC1'] ?? 0;
         $desc2 = $partida['DESC2'] ?? 0;
-        $descTotal = $datosRemisiones['DES_TOT'];
+        $descTotal = $datosClienteRemision['DESCUENTO'];
         $descuentos = $desc1 + $desc2 + $descTotal;
         // Sumar todos los impuestos
         $impuestos = ($partida['IMPU1'] + $partida['IMPU2'] + $partida['IMPU3'] + $partida['IMPU4'] +

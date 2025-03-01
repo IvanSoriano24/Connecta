@@ -663,17 +663,17 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $mail = new clsMail();
 
     // Definir el remitente (si no está definido, se usa uno por defecto)
-    /*$correoRemitente = $_SESSION['usuario']['correo'] ?? null;
-    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? null;
-    if ($correoRemitente == null || $contraseñaRemitente == null) {
-        $correoRemitente = null;
-        $contraseñaRemitente = null;
-    }*/
-    $correoRemitente = null;
-    $contraseñaRemitente = null;
+    $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
+    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
+    if ($correoRemitente == "" || $contraseñaRemitente == "") {
+        $correoRemitente = "";
+        $contraseñaRemitente = "";
+    }
+    /*$correoRemitente = "";
+    $contraseñaRemitente = "";*/
     // Definir el correo de destino (puedes cambiarlo si es necesario)
-    //$correoDestino = 'desarrollo01@mdcloud.mx';
-    $correoDestino = 'ivan.soriano@mdcloud.mx';
+    $correoDestino = 'desarrollo01@mdcloud.mx';
+    //$correoDestino = 'ivan.soriano@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión
     $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
