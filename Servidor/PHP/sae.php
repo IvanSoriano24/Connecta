@@ -74,7 +74,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
                     'password' => ['stringValue' => $data['password']],
                     'nombreBase' => ['stringValue' => $data['nombreBase']],
                     'noEmpresa' => ['stringValue' => $data['noEmpresa']],
-                    'claveSae' => ['claveSae' => $data['claveSae']],
+                    'claveSae' => ['stringValue' => $data['claveSae']],
                 ],
             ];
             // Hacemos la solicitud PATCH para actualizar el documento
@@ -87,6 +87,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
             ];
             $context = stream_context_create($options);
             $updateResult = file_get_contents($url, false, $context);
+            
             // Si la actualización falla
             if ($updateResult === FALSE) {
                 return ['success' => false, 'message' => 'Error al actualizar el documento en Firebase'];

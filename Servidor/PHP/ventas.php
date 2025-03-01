@@ -3797,11 +3797,11 @@ switch ($funcion) {
                 }
                 /*$estatus = "E";
                 $validarSaldo = 0;
-                $credito = 0;
+                $credito = 0;*/
                 guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                 actualizarFolio($conexionData, $claveSae);
-                actualizarInventario($conexionData, $partidasData);*/
+                actualizarInventario($conexionData, $partidasData);
                 if ($validarSaldo == 0 && $credito == 0) {
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
