@@ -874,6 +874,20 @@ function formatearClaveCliente($clave)
     $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
     return $clave;
 }
+function formatearClaveVendedor($vendedor)
+{
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $vendedor = trim((string) $vendedor);
+    $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($vendedor) === 5) {
+        return $vendedor;
+    }
+
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
+    return $vendedor;
+}
 function obtenerDatosCliente($conexionData, $claveCliente, $claveSae)
 {
     /*// Obtener solo la clave del cliente (primera parte antes del espacio)
@@ -1444,8 +1458,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito)
-{
+function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito){
     // Conectar a SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1463,7 +1476,7 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     // Configuración de la API de WhatsApp
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBO4iM9Lx8wIkvXRinDsDDfjxHPMCB2iQ5l6wP0oLV9t50gmuJRVtMCuGRoMcIXnL09LdZA3ULhTYIoZBduO1s4asnVEXEj6zE8gW9YHqmBKMZBkaZBdKNUsZBbREbZBNusH0Ae4bEZAmZBUmHNriEml9sFw4ZBWsqEQcRsZB8fMI2zZCMMv5yapbVsxEqODCSMWV5U1UwWZC0pQ5iCmqibcsZD';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     /*$token = 'EAAQbK4YCPPcBOzWI7Hbwn6q9gHWPDTMuI9zLrleTIyF5OagzZAA4np5ZASo5rnV2EloX3Wfd34H796GPJwcJzlrCxtLl3sUFZBJ5o3kpqygGNeObWgOis8f4mYI6VSDDuHgDQXJl9EBINpijHju6xMPIbceiLlvE43Idv0tM71Bi8qXnZB0IcE08ckTPwE6Ld5yiVUuZCvIFvJfZBZC94eIFtIRxUavZBDDZCz6wZD';
     $url = 'https://graph.facebook.com/v21.0/530466276818765/messages';*/
     // Obtener datos del pedido
@@ -1473,6 +1486,23 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     $claveCliente = $formularioData['cliente'];
     $clave = formatearClaveCliente($claveCliente);
     $fechaElaboracion = $formularioData['diaAlta'];
+    $vendedor = formatearClaveVendedor($vendedor);
+    // Obtener datos del cliente desde la base de datos
+    $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "SELECT NOMBRE FROM $nombreTabla3 WHERE [CVE_VEND] = ?";
+    $stmt = sqlsrv_query($conn, $sql, [$vendedor]);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al consultar al vendedor', 'errors' => sqlsrv_errors()]));
+    }
+
+    $vendedorData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if (!$vendedorData) {
+        echo json_encode(['success' => false, 'message' => 'El cliente no tiene datos registrados.']);
+        sqlsrv_close($conn);
+        return;
+    }
+
+
 
     // Obtener datos del cliente desde la base de datos
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -1489,11 +1519,13 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
         sqlsrv_close($conn);
         return;
     }
+    $vendedor = trim(($vendedorData['NOMBRE']));
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7773750925";
     $numero = "+527773750925";
+    //$numero = "+527773340218";
 
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -1524,7 +1556,7 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     }
     $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
 
-    $mensajeProblema1 = "";
+    /*$mensajeProblema1 = "";
     $mensajeProblema2 = "";
     if ($validarSaldo == 1) {
         $mensajeProblema1 = "Saldo Vendido";
@@ -1534,18 +1566,20 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     }
 
     // Definir el mensaje de problemas del cliente (Saldo vencido)
-    $mensajeProblema = urlencode($mensajeProblema1) . urlencode($mensajeProblema2);
-    // Construcción de la URL para autorizar o rechazar el pedido
-    /*$urlAutorizar = "20&numeroTelefono=" . urlencode($numeroTelefono) .
-        "&clienteNombre=" . urlencode($clienteNombre) .
-        "&noPedido=" . urlencode($noPedido) .
-        "&claveSae=" . urlencode($claveSae) .
-        "&vendedor=" . urlencode($vendedor) .
-        "&clave=" . urlencode($clave) .
-        "&noEmpresa=" . urlencode($noEmpresa) .
-        "&pedido=" . $formularioData .
-        "&productos=" . $partidasData;
-    $urlRechazar = "20&noPedido=" . urlencode($noPedido);*/
+    $mensajeProblema = urlencode($mensajeProblema1) . urlencode($mensajeProblema2);*/
+    $problemas = [];
+
+if ($validarSaldo == 1) {
+    $problemas[] = "• Saldo Vendido";
+}
+if ($credito == 1) {
+    $problemas[] = "• Crédito Excedido";
+}
+
+// Si hay problemas, los une con un espacio
+$mensajeProblema = !empty($problemas) ? implode(" ", $problemas) : "Sin problemas";
+
+
     // Construcción del JSON para enviar el mensaje de WhatsApp con plantilla
     $data = [
         "messaging_product" => "whatsapp",
@@ -1553,15 +1587,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
         "to" => $numero,
         "type" => "template",
         "template" => [
-            "name" => "autorizar_pedido", // Nombre de la plantilla en Meta Business Manager
-            "language" => ["code" => "es_MX"], // Español México
+            "name" => "autorizar_pedido",
+            "language" => ["code" => "es_MX"],
             "components" => [
-                [
-                    "type" => "header",
-                    "parameters" => [
-                        ["type" => "text", "text" => "Buen Día"]
-                    ]
-                ],
                 [
                     "type" => "body",
                     "parameters" => [
@@ -1570,10 +1598,10 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
                         ["type" => "text", "text" => $productosStr], // {{3}} Detalles de los productos
                         ["type" => "text", "text" => $mensajeProblema] // {{4}} Problema del cliente
                     ]
-                ],
+                ]
             ]
         ]
-    ];
+    ];    
 
     // Enviar el mensaje de WhatsApp
     $data_string = json_encode($data, JSON_PRETTY_PRINT);
@@ -1600,104 +1628,55 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     sqlsrv_close($conn);
     return $result;
 }
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
-{
-    // Crear una instancia de la clase clsMail
-    $mail = new clsMail();
+function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente){
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+    // Crear el cuerpo de la solicitud para la API
+    $data = [
+        "messaging_product" => "whatsapp",
+        "to" => $numero, // Número del vendedor
+        "type" => "template",
+        "template" => [
+            "name" => "rechazar_pedido_", // Nombre de la plantilla aprobada
+            "language" => ["code" => "es_MX"], // Idioma de la plantilla
+            "components" => [
+                // Parámetros del cuerpo de la plantilla
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        ["type" => "text", "text" => $nombreCliente], // {{1}}: Nombre del vendedor
+                        ["type" => "text", "text" => $pedidoId]  // {{2}}: Número del pedido
+                    ]
+                ]
+            ]
+        ]
+    ];
 
-    // Definir el remitente (si no está definido, se usa uno por defecto)
-    $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
-    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
+    // Convertir los datos a JSON
+    $data_string = json_encode($data);
 
-    if ($correoRemitente === "" || $contraseñaRemitente === "") {
-        $correoRemitente = "";
-        $contraseñaRemitente = "";
-    }
-    //$correoRemitente = null;
-    //$contraseñaRemitente = null;
-    // Definir el correo de destino (puedes cambiarlo si es necesario)
-    $correoDestino = 'desarrollo01@mdcloud.mx';
-    //$correoDestino = 'ivan.soriano@mdcloud.mx';
+    // Configurar cURL para enviar la solicitud
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $token,
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data_string)
+    ]);
 
-    // Obtener el nombre de la empresa desde la sesión
-    $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
+    // Ejecutar la solicitud y cerrar cURL
+    $result = curl_exec($curl);
+    curl_close($curl);
 
-    // Asunto del correo
-    $asunto = 'Detalles del Pedido #' . $noPedido;
-
-    // Convertir productos a JSON para la URL
-    $productosJson = urlencode(json_encode($partidasData));
-
-    // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    // $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
-
-    // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
-
-    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae);
-
-    // Construcción del cuerpo del correo
-    $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
-    $bodyHTML .= "<p>Por este medio enviamos los detalles de su pedido <b>$noPedido</b>. Por favor, revíselos y confirme:</p>";
-    $bodyHTML .= "<p><b>Fecha y Hora de Elaboración:</b> $fechaElaboracion</p>";
-    $bodyHTML .= "<p><b>Dirección de Envío:</b> $enviarA</p>";
-    $bodyHTML .= "<p><b>Vendedor:</b> $vendedor</p>";
-
-    // Agregar tabla con detalles del pedido
-    $bodyHTML .= "<table style='border-collapse: collapse; width: 100%;' border='1'>
-                    <thead>
-                        <tr>
-                            <th>Clave</th>
-                            <th>Descripción</th>
-                            <th>Cantidad</th>
-                            <th>Total Partida</th>
-                        </tr>
-                    </thead>
-                    <tbody>";
-
-    $total = 0;
-    foreach ($partidasData as $partida) {
-        $clave = htmlspecialchars($partida['producto']);
-        $descripcion = htmlspecialchars($partida['descripcion']);
-        $cantidad = htmlspecialchars($partida['cantidad']);
-        $totalPartida = $cantidad * $partida['precioUnitario'];
-        $total += $totalPartida;
-
-        $bodyHTML .= "<tr>
-                        <td>$clave</td>
-                        <td>$descripcion</td>
-                        <td>$cantidad</td>
-                        <td>$" . number_format($totalPartida, 2) . "</td>
-                      </tr>";
-    }
-
-    $bodyHTML .= "</tbody></table>";
-    $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
-
-    // Botones para confirmar o rechazar el pedido
-    $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
-                  <a href='$urlConfirmar' style='background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Confirmar</a>
-                  <a href='$urlRechazar' style='background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;'>Rechazar</a>";
-
-    $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
-
-    // Enviar el correo con el remitente dinámico
-    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correoDestino, $asunto, $bodyHTML, $rutaPDF, $correoRemitente, $contraseñaRemitente);
-
-    if ($resultado === "Correo enviado exitosamente.") {
-        // En caso de éxito, puedes registrar logs o realizar alguna otra acción
-    } else {
-        error_log("Error al enviar el correo: $resultado");
-        echo json_encode(['success' => false, 'message' => $resultado]);
-    }
+    return $result;
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave)
-{
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave){
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
 
     //$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
-    $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     // ✅ Verifica que los valores no estén vacíos
     if (empty($noPedido) || empty($claveSae)) {
         error_log("Error: noPedido o noEmpresa están vacíos.");
@@ -1800,6 +1779,98 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     error_log("HTTP Status Code: " . $http_code);
 
     return $result;
+}
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
+{
+    // Crear una instancia de la clase clsMail
+    $mail = new clsMail();
+
+    // Definir el remitente (si no está definido, se usa uno por defecto)
+    $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
+    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
+
+    if ($correoRemitente === "" || $contraseñaRemitente === "") {
+        $correoRemitente = "";
+        $contraseñaRemitente = "";
+    }
+    //$correoRemitente = null;
+    //$contraseñaRemitente = null;
+    // Definir el correo de destino (puedes cambiarlo si es necesario)
+    $correoDestino = 'desarrollo01@mdcloud.mx';
+    //$correoDestino = 'ivan.soriano@mdcloud.mx';
+
+    // Obtener el nombre de la empresa desde la sesión
+    $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
+
+    // Asunto del correo
+    $asunto = 'Detalles del Pedido #' . $noPedido;
+
+    // Convertir productos a JSON para la URL
+    $productosJson = urlencode(json_encode($partidasData));
+
+    // URL base del servidor
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    // $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+
+    // URLs para confirmar o rechazar el pedido
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
+
+    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae);
+
+    // Construcción del cuerpo del correo
+    $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
+    $bodyHTML .= "<p>Por este medio enviamos los detalles de su pedido <b>$noPedido</b>. Por favor, revíselos y confirme:</p>";
+    $bodyHTML .= "<p><b>Fecha y Hora de Elaboración:</b> $fechaElaboracion</p>";
+    $bodyHTML .= "<p><b>Dirección de Envío:</b> $enviarA</p>";
+    $bodyHTML .= "<p><b>Vendedor:</b> $vendedor</p>";
+
+    // Agregar tabla con detalles del pedido
+    $bodyHTML .= "<table style='border-collapse: collapse; width: 100%;' border='1'>
+                    <thead>
+                        <tr>
+                            <th>Clave</th>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                            <th>Total Partida</th>
+                        </tr>
+                    </thead>
+                    <tbody>";
+
+    $total = 0;
+    foreach ($partidasData as $partida) {
+        $clave = htmlspecialchars($partida['producto']);
+        $descripcion = htmlspecialchars($partida['descripcion']);
+        $cantidad = htmlspecialchars($partida['cantidad']);
+        $totalPartida = $cantidad * $partida['precioUnitario'];
+        $total += $totalPartida;
+
+        $bodyHTML .= "<tr>
+                        <td>$clave</td>
+                        <td>$descripcion</td>
+                        <td>$cantidad</td>
+                        <td>$" . number_format($totalPartida, 2) . "</td>
+                      </tr>";
+    }
+
+    $bodyHTML .= "</tbody></table>";
+    $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
+
+    // Botones para confirmar o rechazar el pedido
+    $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
+                  <a href='$urlConfirmar' style='background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Confirmar</a>
+                  <a href='$urlRechazar' style='background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;'>Rechazar</a>";
+
+    $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
+
+    // Enviar el correo con el remitente dinámico
+    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correoDestino, $asunto, $bodyHTML, $rutaPDF, $correoRemitente, $contraseñaRemitente);
+
+    if ($resultado === "Correo enviado exitosamente.") {
+        // En caso de éxito, puedes registrar logs o realizar alguna otra acción
+    } else {
+        error_log("Error al enviar el correo: $resultado");
+        echo json_encode(['success' => false, 'message' => $resultado]);
+    }
 }
 function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
 {
@@ -2461,8 +2532,12 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-
-    $claveCliente = $_SESSION['usuario']['claveUsuario']; // Clave del cliente
+    $tipoUsuario = $_SESSION['usuario']['tipoUsuario']; 
+    if ($tipoUsuario === "ADMINISTRADOR"){
+        $claveCliente = 3;
+    }else{
+        $claveCliente = $_SESSION['usuario']['claveUsuario']; // Clave del cliente
+    }
 
     // 📌 Consulta para obtener los productos más vendidos del cliente con su precio
     $sql = "
@@ -3415,51 +3490,6 @@ function validarSaldo($conexionData, $clave, $claveSae)
         return -1; // Código de error
     }
 }
-function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
-{
-    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
-    // Crear el cuerpo de la solicitud para la API
-    $data = [
-        "messaging_product" => "whatsapp",
-        "to" => $numero, // Número del vendedor
-        "type" => "template",
-        "template" => [
-            "name" => "rechazar_pedido_", // Nombre de la plantilla aprobada
-            "language" => ["code" => "es_MX"], // Idioma de la plantilla
-            "components" => [
-                // Parámetros del cuerpo de la plantilla
-                [
-                    "type" => "body",
-                    "parameters" => [
-                        ["type" => "text", "text" => $nombreCliente], // {{1}}: Nombre del vendedor
-                        ["type" => "text", "text" => $pedidoId]  // {{2}}: Número del pedido
-                    ]
-                ]
-            ]
-        ]
-    ];
-
-    // Convertir los datos a JSON
-    $data_string = json_encode($data);
-
-    // Configurar cURL para enviar la solicitud
-    $curl = curl_init($url);
-    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $token,
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($data_string)
-    ]);
-
-    // Ejecutar la solicitud y cerrar cURL
-    $result = curl_exec($curl);
-    curl_close($curl);
-
-    return $result;
-}
 function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -3767,11 +3797,11 @@ switch ($funcion) {
                 }
                 /*$estatus = "E";
                 $validarSaldo = 0;
-                $credito = 0;*/
+                $credito = 0;
                 guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                 actualizarFolio($conexionData, $claveSae);
-                actualizarInventario($conexionData, $partidasData);
+                actualizarInventario($conexionData, $partidasData);*/
                 if ($validarSaldo == 0 && $credito == 0) {
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
@@ -3787,6 +3817,7 @@ switch ($funcion) {
                 } else {
                     guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);                    
+                    var_dump($resultado);
                     header('Content-Type: application/json; charset=UTF-8');
                     echo json_encode([
                         'success' => false,
