@@ -269,6 +269,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'claveSae' => $input['claveSae']
             ];
             $idDocumento = $input['idDocumento'];
+            $idDocumento = trim($idDocumento);
             $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
             if ($resultadoConexion['success']) {
                 $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento);

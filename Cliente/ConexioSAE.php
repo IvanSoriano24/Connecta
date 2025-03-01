@@ -128,7 +128,7 @@ session_destroy(); */
               </div>
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
-                <button type="submit" class="btn-save" id="confirmarConexion">Guardar</button>
+                <button type="button" class="btn-save" id="confirmarConexion">Guardar</button>
                 <button type="button" class="btn-cancel">Cancelar</button>
               </div>
             </form>
