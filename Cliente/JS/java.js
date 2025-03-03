@@ -13,8 +13,8 @@ src="https://cdn.jsdelivr.net/npm/sweetalert2@11"
     };
 
     // Inicializar Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    /*firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();*/
 
 // Función para verificar la conexión
 document.getElementById('checkConnection')?.addEventListener('click', () => {

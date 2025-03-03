@@ -63,12 +63,12 @@ function agregarFilaPartidas() {
             <ul class="suggestions-list-productos position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
           </div>
       </td>
-      <td><input type="number" class="cantidad" value="0" readonly /></td>
+      <td><input type="number" class="cantidad" value="0" readonly style="text-align: right;" /></td>
       <td><input type="text" class="unidad" readonly /></td>
-      <td><input type="number" class="descuento" style="width: 100px;" value="0"  readonly /></td>
-      <td><input type="number" class="iva" value="0" readonly /></td>
-      <td><input type="number" class="precioUnidad" value="0" readonly /></td>
-      <td><input type="number" class="subtotalPartida" value="0" readonly /></td>
+      <td><input type="number" class="descuento" style="width: 100px; text-align: right;" value="0" readonly /></td>
+      <td><input type="number" class="iva" value="0" style="text-align: right;" readonly /></td>
+      <td><input type="number" class="precioUnidad" value="0" style="text-align: right;" readonly /></td>
+      <td><input type="number" class="subtotalPartida" value="0" style="text-align: right;" readonly /></td>
       <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
       <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
       <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td>
@@ -358,7 +358,7 @@ function mostrarListaProductos(productos, input) {
           }
           const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
           const COSTO_PROM = filaTabla.querySelector(".COSTO_PROM");
-          
+
           CVE_UNIDAD.value = producto.CVE_UNIDAD;
           COSTO_PROM.value = producto.COSTO_PROM;
           // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
@@ -727,8 +727,8 @@ function enviarDatosBackend(formularioData, partidasData) {
             <p><strong>Productos sin existencias:</strong></p>
             <ul>
               ${data.productosSinExistencia
-                .map(
-                  (producto) => `
+              .map(
+                (producto) => `
                   <li>
                     <strong>Producto:</strong> ${producto.producto}, 
                     <strong>Existencias Totales:</strong> ${producto.existencias || 0}, 
@@ -736,8 +736,8 @@ function enviarDatosBackend(formularioData, partidasData) {
                     <strong>Disponibles:</strong> ${producto.disponible || 0}
                   </li>
                 `
-                )
-                .join("")}
+              )
+              .join("")}
             </ul>
           `,
           icon: "error",
@@ -1012,7 +1012,7 @@ function showCustomerSuggestionsProductos() {
 async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   inputProducto.val(`${producto.CVE_ART}`); // Mostrar el producto seleccionado
   const filaProd = inputProducto.closest("tr")[0]; // Asegurar que obtenemos el elemento DOM
-  const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD"); 
+  const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
   const COSTO_PROM = filaTabla.querySelector(".COSTO_PROM");
   CVE_UNIDAD.val(`${producto.CVE_UNIDAD}`);
   COSTO_PROM.val(`${producto.COSTO_PROM}`);
@@ -1047,7 +1047,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
 }
 
 
-function llenarDatosProducto(producto) {}
+function llenarDatosProducto(producto) { }
 function desbloquearCampos() {
   $(
     "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar"
@@ -1168,11 +1168,14 @@ document.getElementById("añadirPartida").addEventListener("click", function () 
 document
   .getElementById("tablaProductos")
   .addEventListener("keydown", function (event) {
-    if (event.key === "Tab") {
-      // Verifica si la tecla presionada es el tabulador
+    if (
+      event.key === "Tab" &&
+      event.target.classList.contains("cantidad") // Solo si el evento ocurre en un input de cantidad
+    ) {
       agregarFilaPartidas();
     }
   });
+
 
 $(document).ready(function () {
   $("#guardarPedido").click(async function (event) {
@@ -1201,21 +1204,21 @@ $(document).ready(function () {
       );
       const tablaProductos = document.querySelector("#tablaProductos tbody");
       const filas = tablaProductos.querySelectorAll("tr");
-    
-        const ultimaFila = filas[filas.length - 1];
-        const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
-        const ultimaCantidad =
-          parseFloat(ultimaFila.querySelector(".cantidad").value) || 0;
-    
-        if (ultimoProducto === "" || ultimaCantidad === 0) {
-          Swal.fire({
-            title: "Error",
-            text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de guardar el pedido.",
-            icon: "error",
-            confirmButtonText: "Entendido",
-          });
-          return;
-        }
+
+      const ultimaFila = filas[filas.length - 1];
+      const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
+      const ultimaCantidad =
+        parseFloat(ultimaFila.querySelector(".cantidad").value) || 0;
+
+      if (ultimoProducto === "" || ultimaCantidad === 0) {
+        Swal.fire({
+          title: "Error",
+          text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de guardar el pedido.",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+        return;
+      }
       guardarPedido(id);
 
       return false; // Evita la recarga de la página

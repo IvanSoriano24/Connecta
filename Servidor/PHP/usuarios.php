@@ -972,7 +972,7 @@ function obtenerVendedor($conexionData, $noEmpresa)
         echo json_encode(['success' => false, 'message' => 'No se encontraron vendedores activos.']);
     }
 }
-function obtenerDatosVendedor($conexionData, $noEmpresa, $claveVendedor)
+function obtenerDatosVendedor($conexionData, $noEmpresa, $claveUsuario)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -992,11 +992,11 @@ function obtenerDatosVendedor($conexionData, $noEmpresa, $claveVendedor)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
 
     // **Formatear la clave antes de la consulta**
-    $claveVendedor = str_pad($claveVendedor, 5, " ", STR_PAD_LEFT);
+    $claveUsuario = str_pad($claveUsuario, 5, " ", STR_PAD_LEFT);
 
     $sql = "SELECT CVE_VEND AS clave, NOMBRE AS nombre FROM $nombreTabla WHERE STATUS = 'A' AND CVE_VEND = ?";
 
-    $params = [$claveVendedor];
+    $params = [$claveUsuario];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
@@ -1146,7 +1146,7 @@ function verificarClienteFirebase($claveCliente){
     }
     echo json_encode(['success' => true, 'exists' => false]); // Cliente no existe
 }
-function obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente){
+function obtenerDatosCliente($conexionData, $noEmpresa, $claveUsuario){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1170,7 +1170,7 @@ function obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente){
             FROM $nombreTabla 
             WHERE STATUS = 'A' AND CLAVE = ?";
 
-    $params = [$claveCliente];
+    $params = [$claveUsuario];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
@@ -1293,8 +1293,8 @@ switch ($funcion) {
             break;
         }
         $conexionData = $conexionResult['data'];
-        $claveVendedor = $_GET['claveVendedor'];
-        obtenerDatosVendedor($conexionData, $noEmpresa, $claveVendedor);
+        $claveUsuario = $_GET['claveUsuario'];
+        obtenerDatosVendedor($conexionData, $noEmpresa, $claveUsuario);
         break;
     case 15:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -1326,8 +1326,8 @@ switch ($funcion) {
             break;
         }
         $conexionData = $conexionResult['data'];
-        $claveCliente = $_GET['claveCliente'];
-        obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente);
+        $claveUsuario = $_GET['claveUsuario'];
+        obtenerDatosCliente($conexionData, $noEmpresa, $claveUsuario);
         break;
     case 18:
         $claveVendedor = $_POST['claveVendedor'];

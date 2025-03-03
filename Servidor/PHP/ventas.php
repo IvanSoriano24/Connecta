@@ -473,7 +473,7 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
      p.[COM_TOT_PORC], p.[METODODEPAGO], p.[NUMCTAPAGO], p.[VERSION_SINC],
      p.[FORMADEPAGOSAT], p.[USO_CFDI], p.[TIP_TRASLADO], p.[TIP_FAC],
      p.[REG_FISC],
-     c.[NOMBRE] AS NOMBRE_CLIENTE, c.[TELEFONO] AS TELEFONO_CLIENTE
+     c.[NOMBRE] AS NOMBRE_CLIENTE, c.[TELEFONO] AS TELEFONO_CLIENTE, c.[DESCUENTO], c.[CLAVE]
  FROM $tablaPedidos p
  INNER JOIN $tablaClientes c ON p.[CVE_CLPV] = c.[CLAVE]
  WHERE p.[CVE_DOC] = ?";
@@ -618,8 +618,8 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
-
+    $clave = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
+    $CVE_DOC = str_pad($clave, 20, ' ', STR_PAD_LEFT);
     // Iniciar transacción
     sqlsrv_begin_transaction($conn);
 
@@ -629,20 +629,30 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         sqlsrv_rollback($conn);
         die(json_encode($resultadoInventario));
     }
-
-    // **2. Obtener partidas existentes para comparar con las nuevas**
     $query = "SELECT CVE_ART, NUM_PAR FROM $nombreTabla WHERE CVE_DOC = ?";
     $stmt = sqlsrv_query($conn, $query, [$CVE_DOC]);
+    
     if ($stmt === false) {
-        sqlsrv_rollback($conn);
-        die(json_encode(['success' => false, 'message' => 'Error al obtener partidas existentes', 'errors' => sqlsrv_errors()]));
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al obtener partidas existentes',
+            'errors' => sqlsrv_errors()
+        ]));
     }
-
+    // 🔥 Depuración: Verificar si la consulta devuelve datos
     $partidasExistentes = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $partidasExistentes[$row['CVE_ART']] = $row['NUM_PAR'];
+        $claveNormalizada = trim(strtoupper($row['CVE_ART'])); // Eliminar espacios y convertir en mayúsculas
+        $partidasExistentes[$claveNormalizada] = $row['NUM_PAR'];
     }
+    
     sqlsrv_free_stmt($stmt);
+
+    $query = "SELECT MAX(NUM_PAR) AS NUM_PAR FROM $nombreTabla WHERE CVE_DOC = ?";
+    $stmt = sqlsrv_query($conn, $query, [$CVE_DOC]);
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    
+    $NUM_PAR = ($row && $row['NUM_PAR']) ? $row['NUM_PAR'] + 1 : 1; // Si no hay partidas, empieza desde 1
 
     // **3. Actualizar o insertar las partidas**
     foreach ($partidasData as $partida) {
@@ -653,7 +663,6 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         $CVE_ART = $partida['producto']; // Clave del producto
         $CANT = $partida['cantidad']; // Cantidad
         $PREC = $partida['precioUnitario']; // Precio
-        $NUM_PAR = $formularioData['numero'];
         // Calcular los impuestos y totales
         $IMPU1 = $partida['ieps']; // Impuesto 1
         $IMPU3 = $partida['isr'];
@@ -683,12 +692,14 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
 
         // Consultar la descripción del producto (si es necesario)
         $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
+        //var_dump($partidasExistentes[$CVE_ART]);
         if (isset($partidasExistentes[$CVE_ART])) {
+            $NUM_PAR_EXISTENTE = $partidasExistentes[$CVE_ART];
             // Si la partida ya existe, realizar un UPDATE
             $sql = "UPDATE $nombreTabla SET 
                 CANT = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
                 TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ? 
-                WHERE CVE_DOC = ? AND CVE_ART = ?";
+                WHERE NUM_PAR = ? AND CVE_ART = ?";
             $params = [
                 $CANT,
                 $PREC,
@@ -699,7 +710,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 $TOTIMP1,
                 $TOTIMP4,
                 $TOT_PARTIDA,
-                $CVE_DOC,
+                $NUM_PAR_EXISTENTE,
                 $CVE_ART
             ];
         } else {
@@ -751,19 +762,20 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
             sqlsrv_rollback($conn);
             die(json_encode(['success' => false, 'message' => 'Error al actualizar o insertar una partida', 'errors' => sqlsrv_errors()]));
         }
+        $NUM_PAR++;
     }
     // **4. Eliminar partidas que ya no están en la nueva lista**
-    $productosNuevos = array_column($partidasData, 'producto');
+    /*$productosNuevos = array_column($partidasData, 'producto');
     $productosAEliminar = array_diff(array_keys($partidasExistentes), $productosNuevos);
     foreach ($productosAEliminar as $productoEliminar) {
-        $sql = "DELETE FROM $nombreTabla WHERE CVE_DOC = ? AND CVE_ART = ?";
-        $params = [$CVE_DOC, $productoEliminar];
+        $sql = "DELETE FROM $nombreTabla WHERE CVE_DOC = ? AND NUM_PAR = ?";
+        $params = [$CVE_DOC, $NUM_PAR];
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
             sqlsrv_rollback($conn);
             die(json_encode(['success' => false, 'message' => 'Error al eliminar una partida', 'errors' => sqlsrv_errors()]));
         }
-    }
+    }*/
     // Confirmar transacción
     sqlsrv_commit($conn);
     sqlsrv_close($conn);
@@ -791,6 +803,7 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
     $nombreTablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $nombreTablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
 
     // Obtener las partidas anteriores del pedido
     $query = "SELECT CVE_ART, CANT FROM $nombreTablaPartidas WHERE CVE_DOC = ?";
@@ -814,37 +827,47 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
 
     // Ajustar el inventario
     foreach ($partidasAnteriores as $producto => $cantidadAnterior) {
+        
+        // Si el producto ya no está en las partidas actuales, fue eliminado
         if (!isset($partidasActuales[$producto])) {
+    
             // Si el producto fue eliminado, agregar la cantidad anterior al inventario
-            $sql = "UPDATE $nombreTablaInventario SET EXIST = EXIST + ? WHERE CVE_ART = ?";
+            $sql = "UPDATE $nombreTablaInventario SET APART = APART - ? WHERE CVE_ART = ?";
             $params = [$cantidadAnterior, $producto];
-        } elseif ($partidasActuales[$producto] < $cantidadAnterior) {
+        } 
+        // Si la cantidad fue reducida, ajustar la diferencia
+        elseif ($partidasActuales[$producto] < $cantidadAnterior) {
+    
             // Si la cantidad fue reducida, agregar la diferencia al inventario
             $diferencia = $cantidadAnterior - $partidasActuales[$producto];
-            $sql = "UPDATE $nombreTablaInventario SET EXIST = EXIST + ? WHERE CVE_ART = ?";
+            $sql = "UPDATE $nombreTablaInventario SET APART = APART - ? WHERE CVE_ART = ?";
             $params = [$diferencia, $producto];
-        } elseif ($partidasActuales[$producto] > $cantidadAnterior) {
-            // Si la cantidad fue aumentada, restar la diferencia del inventario
+        } 
+        // Si la cantidad fue aumentada, restar la diferencia del inventario
+        elseif ($partidasActuales[$producto] > $cantidadAnterior) {
+    
             $diferencia = $partidasActuales[$producto] - $cantidadAnterior;
-            $sql = "UPDATE $nombreTablaInventario SET EXIST = EXIST - ? WHERE CVE_ART = ?";
+            $sql = "UPDATE $nombreTablaInventario SET APART = APART + ? WHERE CVE_ART = ?";
             $params = [$diferencia, $producto];
-        } else {
-            // Si las cantidades son iguales, no se realiza ninguna acción
+        } 
+        // Si las cantidades son iguales, no se realiza ninguna acción
+        else {
             continue;
         }
-
+    
+        // Ejecutar la consulta para actualizar el inventario
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
             sqlsrv_rollback($conn);
             die(json_encode(['success' => false, 'message' => 'Error al actualizar inventario', 'errors' => sqlsrv_errors()]));
         }
-    }
+    }    
 
     // Verificar si hay productos nuevos en las partidas actuales
     foreach ($partidasActuales as $producto => $cantidadActual) {
         if (!isset($partidasAnteriores[$producto])) {
             // Si el producto es nuevo, restar la cantidad del inventario
-            $sql = "UPDATE $nombreTablaInventario SET EXIST = EXIST - ? WHERE CVE_ART = ?";
+            $sql = "UPDATE $nombreTablaInventario SET APART = APART - ? WHERE CVE_ART = ?";
             $params = [$cantidadActual, $producto];
             $stmt = sqlsrv_query($conn, $sql, $params);
             if ($stmt === false) {
@@ -1116,6 +1139,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Iniciar la transacción para las inserciones de las partidas
     sqlsrv_begin_transaction($conn);
+    $NUM_PAR = 1;
     // Iterar sobre las partidas recibidas
     if (isset($partidasData) && is_array($partidasData)) {
         foreach ($partidasData as $partida) {
@@ -1125,7 +1149,6 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
             $CVE_ART = $partida['producto']; // Clave del producto
             $CANT = $partida['cantidad']; // Cantidad
             $PREC = $partida['precioUnitario']; // Precio
-            $NUM_PAR = $formularioData['numero'];
             // Calcular los impuestos y totales
             $IMPU1 = $partida['ieps']; // Impuesto 1
             $IMPU3 = $partida['isr'];
@@ -1209,6 +1232,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 sqlsrv_rollback($conn);
                 die(json_encode(['success' => false, 'message' => 'Error al insertar la partida', 'errors' => sqlsrv_errors()]));
             }
+            $NUM_PAR++;
         }
     } else {
         die(json_encode(['success' => false, 'message' => 'Error: partidasData no es un array válido']));
@@ -1292,8 +1316,7 @@ function actualizarFolio($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function actualizarInventario($conexionData, $partidasData)
-{
+function actualizarInventario($conexionData, $partidasData){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1458,7 +1481,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito){
+function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito)
+{
     // Conectar a SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1569,15 +1593,15 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     $mensajeProblema = urlencode($mensajeProblema1) . urlencode($mensajeProblema2);*/
     $problemas = [];
 
-if ($validarSaldo == 1) {
-    $problemas[] = "• Saldo Vendido";
-}
-if ($credito == 1) {
-    $problemas[] = "• Crédito Excedido";
-}
+    if ($validarSaldo == 1) {
+        $problemas[] = "• Saldo Vendido";
+    }
+    if ($credito == 1) {
+        $problemas[] = "• Crédito Excedido";
+    }
 
-// Si hay problemas, los une con un espacio
-$mensajeProblema = !empty($problemas) ? implode(" ", $problemas) : "Sin problemas";
+    // Si hay problemas, los une con un espacio
+    $mensajeProblema = !empty($problemas) ? implode(" ", $problemas) : "Sin problemas";
 
 
     // Construcción del JSON para enviar el mensaje de WhatsApp con plantilla
@@ -1601,7 +1625,7 @@ $mensajeProblema = !empty($problemas) ? implode(" ", $problemas) : "Sin problema
                 ]
             ]
         ]
-    ];    
+    ];
 
     // Enviar el mensaje de WhatsApp
     $data_string = json_encode($data, JSON_PRETTY_PRINT);
@@ -1628,7 +1652,8 @@ $mensajeProblema = !empty($problemas) ? implode(" ", $problemas) : "Sin problema
     sqlsrv_close($conn);
     return $result;
 }
-function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente){
+function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
+{
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     // Crear el cuerpo de la solicitud para la API
@@ -1672,7 +1697,8 @@ function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente){
 
     return $result;
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave){
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave)
+{
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
 
     //$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
@@ -1968,9 +1994,10 @@ function obtenerProductoPedido($claveVendedor, $conexionData, $clienteInput)
 
     // Definir la consulta SQL asegurando la búsqueda insensible a mayúsculas y manejando el guion `-`
     $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD]
-            FROM $nombreTabla
-            WHERE LOWER(LTRIM(RTRIM([DESCR]))) LIKE LOWER(?) 
-            OR LOWER(LTRIM(RTRIM([CVE_ART]))) LIKE LOWER(?)";
+        FROM $nombreTabla
+        WHERE [EXIST] > 0 
+        AND (LOWER(LTRIM(RTRIM([DESCR]))) LIKE LOWER(?) 
+        OR LOWER(LTRIM(RTRIM([CVE_ART]))) LIKE LOWER(?))";
 
     // Agregar `%` al parámetro de búsqueda para permitir coincidencias parciales
     $parametros = ["%$clienteInput%", "%$clienteInput%"];
@@ -2021,7 +2048,7 @@ function obtenerProductos($conexionData)
 
     // Consulta SQL
     $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [COSTO_PROM]
-        FROM $nombreTabla";
+        FROM $nombreTabla WHERE [EXIST] > 0";
 
     $stmt = sqlsrv_query($conn, $sql);
 
@@ -2183,7 +2210,9 @@ function validarExistencias($conexionData, $partidasData, $claveSae)
             $existencias = (float)$row['EXIST'];
             $apartados = (float)$row['APART'];
             $disponible = (float)$row['DISPONIBLE'];
-
+            /*var_dump($existencias);
+            var_dump($apartados);
+            var_dump($disponible);*/
             if ($disponible >= $cantidad) {
                 $productosConExistencia[] = [
                     'producto' => $CVE_ART,
@@ -2355,31 +2384,56 @@ function eliminarPartida($conexionData, $clavePedido, $numPar)
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
-        echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
-        exit;
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
-    // Nombre de la tabla dinámico basado en la empresa
+    $clavePedido = str_pad($clavePedido, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $clavePedido = str_pad($clavePedido, 20, ' ', STR_PAD_LEFT);
+    // Nombre de las tablas dinámico basado en la empresa
     $claveSae = $_SESSION['empresa']['claveSae'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    // Consulta para eliminar la partida
-    $sql = "DELETE FROM $nombreTabla WHERE CVE_DOC = ? AND NUM_PAR = ?";
-    $stmt = sqlsrv_query($conn, $sql, [$clavePedido, $numPar]);
+    // 🚨 1️⃣ Obtener datos de la partida antes de eliminarla
+    $sqlDatos = "SELECT CANT, CVE_ART FROM $tablaPartidas WHERE CVE_DOC = ? AND NUM_PAR = ?";
+    $stmtDatos = sqlsrv_query($conn, $sqlDatos, [$clavePedido, $numPar]);
 
-    if ($stmt === false) {
-        echo json_encode(['success' => false, 'message' => 'Error al eliminar la partida', 'errors' => sqlsrv_errors()]);
+    if ($stmtDatos === false || !($row = sqlsrv_fetch_array($stmtDatos, SQLSRV_FETCH_ASSOC))) {
         sqlsrv_close($conn);
-        exit;
+        die(json_encode(['success' => false, 'message' => 'Error al obtener datos de la partida', 'errors' => sqlsrv_errors()]));
     }
 
-    $filasAfectadas = sqlsrv_rows_affected($stmt);
+    $cantidad = $row['CANT']; // Cantidad de la partida
+    $cveArt = $row['CVE_ART']; // Clave del artículo
 
-    sqlsrv_free_stmt($stmt);
+    sqlsrv_free_stmt($stmtDatos); // Liberar la consulta anterior
+
+    // 🚨 2️⃣ Restar los apartados en inventario antes de eliminar la partida
+    $sqlActualizarInve = "UPDATE $tablaInve SET APART = APART - ? WHERE CVE_ART = ?";
+    $stmtActualizarInve = sqlsrv_query($conn, $sqlActualizarInve, [$cantidad, $cveArt]);
+
+    if ($stmtActualizarInve === false) {
+        sqlsrv_close($conn);
+        die(json_encode(['success' => false, 'message' => 'Error al actualizar apartados en inventario', 'errors' => sqlsrv_errors()]));
+    }
+
+    sqlsrv_free_stmt($stmtActualizarInve); // Liberar la consulta anterior
+
+    // 🚨 3️⃣ Eliminar la partida
+    $sqlEliminar = "DELETE FROM $tablaPartidas WHERE CVE_DOC = ? AND NUM_PAR = ?";
+    $stmtEliminar = sqlsrv_query($conn, $sqlEliminar, [$clavePedido, $numPar]);
+
+    if ($stmtEliminar === false) {
+        sqlsrv_close($conn);
+        die(json_encode(['success' => false, 'message' => 'Error al eliminar la partida', 'errors' => sqlsrv_errors()]));
+    }
+
+    $filasAfectadas = sqlsrv_rows_affected($stmtEliminar);
+    sqlsrv_free_stmt($stmtEliminar);
     sqlsrv_close($conn);
 
+    // 🚨 4️⃣ Responder según el resultado
     if ($filasAfectadas > 0) {
-        echo json_encode(['success' => true, 'message' => 'Partida eliminada correctamente.']);
+        echo json_encode(['success' => true, 'message' => 'Partida eliminada correctamente y apartados ajustados.']);
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontró la partida especificada.']);
     }
@@ -2408,7 +2462,7 @@ function eliminarPedido($conexionData, $pedidoID)
 
     // Actualizar el estatus del pedido
     $query = "UPDATE $nombreTabla SET STATUS = 'C' WHERE CVE_DOC = ?";
-    $stmt = sqlsrv_prepare($conn, $query, [$clave]);
+    $stmt = sqlsrv_prepare($conn, $query, [$pedidoID]);
 
     if (!$stmt) {
         echo json_encode(['success' => false, 'message' => 'Error al preparar la consulta', 'errors' => sqlsrv_errors()]);
@@ -2483,7 +2537,7 @@ function extraerProductos($conexionData, $claveSae)
             [LIN_PROD], 
             [UNI_MED],
             [APART]
-        FROM $nombreTabla
+        FROM $nombreTabla WHERE [EXIST] > 0
     ";
 
     $stmt = sqlsrv_query($conn, $sql);
@@ -2532,16 +2586,16 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    $tipoUsuario = $_SESSION['usuario']['tipoUsuario']; 
-    if ($tipoUsuario === "ADMINISTRADOR"){
+    $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
+    if ($tipoUsuario === "ADMINISTRADOR") {
         $claveCliente = 3;
-    }else{
+    } else {
         $claveCliente = $_SESSION['usuario']['claveUsuario']; // Clave del cliente
     }
 
     // 📌 Consulta para obtener los productos más vendidos del cliente con su precio
     $sql = "
-        SELECT TOP (6)
+        SELECT DISTINCT TOP (6)
             p.CVE_ART, 
             i.DESCR, 
             SUM(p.CANT) AS TOTAL_COMPRADO, 
@@ -2559,6 +2613,7 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
             ON i.CVE_ART = pr.CVE_ART 
             AND pr.CVE_PRECIO = ?  -- 📌 Se filtra por LISTA_PREC
         WHERE f.CVE_CLPV = ?
+        AND i.EXIST > 0 -- 📌 Filtro para productos con existencias mayores a 0
         GROUP BY p.CVE_ART, i.DESCR, i.EXIST, i.LIN_PROD, i.UNI_MED, i.APART, i.CVE_ESQIMPU, i.CVE_UNIDAD, pr.PRECIO
         ORDER BY TOTAL_COMPRADO DESC
     ";
@@ -2630,7 +2685,7 @@ function extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente
     FROM [SAE90Empre02].[dbo].[INVE02] i
     LEFT JOIN [SAE90Empre02].[dbo].[PRECIO_X_PROD02] p 
         ON i.[CVE_ART] = p.[CVE_ART] 
-        AND p.[CVE_PRECIO] = ?";  // Se filtra por LISTA_PREC
+        AND p.[CVE_PRECIO] = ? WHERE i.[EXIST] > 0"; 
 
     $params = [$listaPrecioCliente]; // Parámetro para filtrar por cliente
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -3628,7 +3683,7 @@ switch ($funcion) {
         $clave = $_POST['pedidoID'];
         mostrarPedidoEspecifico($clave, $conexionData, $claveSae);
         break;
-        //Nuevo       
+    //Nuevo       
     case 3:
         if (isset($_SESSION['empresa']['noEmpresa'])) {
             $noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -3816,8 +3871,7 @@ switch ($funcion) {
                     exit();
                 } else {
                     guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                    $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);                    
-                    var_dump($resultado);
+                    //$resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
                     header('Content-Type: application/json; charset=UTF-8');
                     echo json_encode([
                         'success' => false,
@@ -3840,7 +3894,6 @@ switch ($funcion) {
             $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);
 
             if ($resultadoActualizacion['success']) {
-                actualizarInventario($conexionData, $partidasData);
 
                 echo json_encode([
                     'success' => true,
@@ -3875,7 +3928,8 @@ switch ($funcion) {
         }
 
         $conexionData = $conexionResult['data'];
-
+        $clavePedido = $_POST['clavePedido'];
+        $numPar = $_POST['numPar'];
         if (!isset($_POST['clavePedido']) || empty($_POST['clavePedido'])) {
             echo json_encode(['success' => false, 'message' => 'No se proporcionó la clave del pedido']);
             exit;
@@ -3885,10 +3939,6 @@ switch ($funcion) {
             echo json_encode(['success' => false, 'message' => 'No se proporcionó el número de partida']);
             exit;
         }
-
-        $clavePedido = $_POST['clavePedido'];
-        $numPar = $_POST['numPar'];
-
         eliminarPartida($conexionData, $clavePedido, $numPar);
         break;
     case 10:

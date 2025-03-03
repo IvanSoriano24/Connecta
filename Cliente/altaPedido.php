@@ -603,7 +603,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly
                                     hidden>
                                 <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
-                                
+
 
                             </div>
                         </div>

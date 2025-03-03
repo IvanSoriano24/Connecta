@@ -45,13 +45,14 @@ function mostrarProductosEnTabla(productos) {
         let existenciaReal = producto.EXIST - producto.APART; // Se usa `let` en lugar de `const`
   
         const fila = document.createElement("tr");
-        fila.innerHTML = `
+        if (existenciaReal > 0){
+            fila.innerHTML = `
             <td>${producto.CVE_ART}</td>
             <td>${producto.DESCR}</td>
             <td class="text-end">${new Intl.NumberFormat().format(existenciaReal)}</td> <!-- Formato con comas y alineado a la derecha -->
         `;
-  
         tbody.appendChild(fila);
+        }
     });
   }
   

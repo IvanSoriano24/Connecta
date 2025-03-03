@@ -301,23 +301,47 @@ document.addEventListener("DOMContentLoaded", () => {
   
           // 🔄 Actualizar la vista del carrito
           mostrarCarrito();
-        }else if (data.autorizacion) {
+        }else if (result.autorizacion) {
           Swal.fire({
             title: "Saldo vencido",
-            text: data.message || "El pedido se procesó pero debe ser autorizado.",
+            text: result.message || "El pedido se procesó pero debe ser autorizado.",
             icon: "warning",
             confirmButtonText: "Entendido",
           }).then(() => {
             // Redirigir al usuario o realizar otra acción
             //window.location.href = "Ventas.php";
           });
-        }else if (data.credit) {
+        }else if (result.credit) {
           Swal.fire({
             title: "Error al guardar el pedido",
             html: `
-              <p>${data.message || "Ocurrió un error inesperado."}</p>
-              <p><strong>Saldo actual:</strong> ${data.saldoActual?.toFixed(2) || "N/A"}</p>
-              <p><strong>Límite de crédito:</strong> ${data.limiteCredito?.toFixed(2) || "N/A"}</p>
+              <p>${result.message || "Ocurrió un error inesperado."}</p>
+              <p><strong>Saldo actual:</strong> ${result.saldoActual?.toFixed(2) || "N/A"}</p>
+              <p><strong>Límite de crédito:</strong> ${result.limiteCredito?.toFixed(2) || "N/A"}</p>
+            `,
+            icon: "error",
+            confirmButtonText: "Aceptar",
+          });
+        } else if (result.exist) {
+          Swal.fire({
+            title: "Error al guardar el pedido",
+            html: `
+              <p>${result.message || "No hay suficientes existencias para algunos productos."}</p>
+              <p><strong>Productos sin existencias:</strong></p>
+              <ul>
+                ${result.productosSinExistencia
+                .map(
+                  (producto) => `
+                    <li>
+                      <strong>Producto:</strong> ${producto.producto}, 
+                      <strong>Existencias Totales:</strong> ${producto.existencias || 0}, 
+                      <strong>Apartados:</strong> ${producto.apartados || 0}, 
+                      <strong>Disponibles:</strong> ${producto.disponible || 0}
+                    </li>
+                  `
+                )
+                .join("")}
+              </ul>
             `,
             icon: "error",
             confirmButtonText: "Aceptar",

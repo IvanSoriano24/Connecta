@@ -366,15 +366,15 @@ function visualizarUsuario(idUsuario) {
                 method: "GET",
                 data: {
                   numFuncion: "14",
-                  claveVendedor: data.data.claveVendedor,
+                  claveUsuario: data.data.claveUsuario,
                 }, // Nueva función para buscar por clave
                 success: function (responseVendedor) {
                   try {
                     const resVendedor = JSON.parse(responseVendedor);
                     if (resVendedor.success && resVendedor.data) {
                       $("#selectVendedor").append(
-                        `<option value="${data.data.claveVendedor}" selected>
-                          ${resVendedor.data.nombre} || ${data.data.claveVendedor}
+                        `<option value="${data.data.clave}" selected>
+                          ${resVendedor.data.nombre} || ${resVendedor.data.clave}
                       </option>`
                       );
                     }
