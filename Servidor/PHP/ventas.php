@@ -3871,7 +3871,7 @@ switch ($funcion) {
                     exit();
                 } else {
                     guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                    //$resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
+                    $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
                     header('Content-Type: application/json; charset=UTF-8');
                     echo json_encode([
                         'success' => false,
