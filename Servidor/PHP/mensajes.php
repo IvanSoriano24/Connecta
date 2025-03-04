@@ -655,6 +655,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -725,12 +726,12 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
 
-        $bodyHTML .= '<tr>
-                        <td style="text-align: center;">$clave</td>
-                        <td style="text-align: center;">$descripcion</td>
-                        <td style="text-align: right;">$cantidad</td>
-                        <td style="text-align: right;">$" . number_format($totalPartida, 2) . "</td>
-                      </tr>';
+        $bodyHTML .= "<tr>
+                        <td>$clave</td>
+                        <td>$descripcion</td>
+                        <td>$cantidad</td>
+                        <td>$" . number_format($totalPartida, 2) . "</td>
+                      </tr>";
     }
 
     $bodyHTML .= "</tbody></table>";
@@ -792,8 +793,8 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         "to" => $numero,
         "type" => "template",
         "template" => [
-            "name" => "confirmar_pedido_new", // 📌 Nombre EXACTO en Meta Business Manager
-            "language" => ["code" => "es_ES"], // 📌 Corregido a español España
+            "name" => "confirmar_pedido", // 📌 Nombre EXACTO en Meta Business Manager
+            "language" => ["code" => "es_MX"], // 📌 Corregido a español España
             "components" => [
                 [
                     "type" => "header",

@@ -110,9 +110,9 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 
                     curl_close($ch);
                     
-                    //echo "Respuesta de remision.php: " . $remisionResponse;
+                    echo "Respuesta de remision.php: " . $remisionResponse;
                     $remisionData = json_decode($remisionResponse, true);
-                    //echo "Respuesta de decodificada.php: " . $remisionData;
+                    echo "Respuesta de decodificada.php: " . $remisionData;
                     //$cveDoc = trim($remisionData['cveDoc']);
                     
                     // Verificar si la respuesta es un PDF

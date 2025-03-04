@@ -515,7 +515,7 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function actualizarPedido($conexionData, $formularioData, $partidasData)
+function actualizarPedido($conexionData, $formularioData, $partidasData, $estatus)
 {
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
@@ -569,7 +569,8 @@ function actualizarPedido($conexionData, $formularioData, $partidasData)
         IMP_TOT4 = ?, 
         DES_TOT = ?, 
         CONDICION = ?, 
-        CVE_VEND = ? 
+        CVE_VEND = ?,
+        STATUS = ? 
         WHERE CVE_DOC = ?";
 
     $params = [
@@ -581,6 +582,7 @@ function actualizarPedido($conexionData, $formularioData, $partidasData)
         $DES_TOT,
         $CONDICION,
         $CVE_VEND,
+        $estatus,
         $CVE_DOC
     ];
 
@@ -631,7 +633,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
     }
     $query = "SELECT CVE_ART, NUM_PAR FROM $nombreTabla WHERE CVE_DOC = ?";
     $stmt = sqlsrv_query($conn, $query, [$CVE_DOC]);
-    
+
     if ($stmt === false) {
         die(json_encode([
             'success' => false,
@@ -645,13 +647,13 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         $claveNormalizada = trim(strtoupper($row['CVE_ART'])); // Eliminar espacios y convertir en mayúsculas
         $partidasExistentes[$claveNormalizada] = $row['NUM_PAR'];
     }
-    
+
     sqlsrv_free_stmt($stmt);
 
     $query = "SELECT MAX(NUM_PAR) AS NUM_PAR FROM $nombreTabla WHERE CVE_DOC = ?";
     $stmt = sqlsrv_query($conn, $query, [$CVE_DOC]);
     $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-    
+
     $NUM_PAR = ($row && $row['NUM_PAR']) ? $row['NUM_PAR'] + 1 : 1; // Si no hay partidas, empieza desde 1
 
     // **3. Actualizar o insertar las partidas**
@@ -827,41 +829,41 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
 
     // Ajustar el inventario
     foreach ($partidasAnteriores as $producto => $cantidadAnterior) {
-        
+
         // Si el producto ya no está en las partidas actuales, fue eliminado
         if (!isset($partidasActuales[$producto])) {
-    
+
             // Si el producto fue eliminado, agregar la cantidad anterior al inventario
             $sql = "UPDATE $nombreTablaInventario SET APART = APART - ? WHERE CVE_ART = ?";
             $params = [$cantidadAnterior, $producto];
-        } 
+        }
         // Si la cantidad fue reducida, ajustar la diferencia
         elseif ($partidasActuales[$producto] < $cantidadAnterior) {
-    
+
             // Si la cantidad fue reducida, agregar la diferencia al inventario
             $diferencia = $cantidadAnterior - $partidasActuales[$producto];
             $sql = "UPDATE $nombreTablaInventario SET APART = APART - ? WHERE CVE_ART = ?";
             $params = [$diferencia, $producto];
-        } 
+        }
         // Si la cantidad fue aumentada, restar la diferencia del inventario
         elseif ($partidasActuales[$producto] > $cantidadAnterior) {
-    
+
             $diferencia = $partidasActuales[$producto] - $cantidadAnterior;
             $sql = "UPDATE $nombreTablaInventario SET APART = APART + ? WHERE CVE_ART = ?";
             $params = [$diferencia, $producto];
-        } 
+        }
         // Si las cantidades son iguales, no se realiza ninguna acción
         else {
             continue;
         }
-    
+
         // Ejecutar la consulta para actualizar el inventario
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
             sqlsrv_rollback($conn);
             die(json_encode(['success' => false, 'message' => 'Error al actualizar inventario', 'errors' => sqlsrv_errors()]));
         }
-    }    
+    }
 
     // Verificar si hay productos nuevos en las partidas actuales
     foreach ($partidasActuales as $producto => $cantidadActual) {
@@ -1316,7 +1318,8 @@ function actualizarFolio($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function actualizarInventario($conexionData, $partidasData){
+function actualizarInventario($conexionData, $partidasData)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2456,10 +2459,10 @@ function eliminarPedido($conexionData, $pedidoID)
         exit;
     }
     //$clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
+    $pedidoID = str_pad($pedidoID, 20, ' ', STR_PAD_LEFT);
     // Nombre de la tabla dinámico basado en la empresa
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
     // Actualizar el estatus del pedido
     $query = "UPDATE $nombreTabla SET STATUS = 'C' WHERE CVE_DOC = ?";
     $stmt = sqlsrv_prepare($conn, $query, [$pedidoID]);
@@ -2470,7 +2473,7 @@ function eliminarPedido($conexionData, $pedidoID)
     }
 
     if (sqlsrv_execute($stmt)) {
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'pedido' => $pedidoID]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al actualizar el estatus del pedido', 'errors' => sqlsrv_errors()]);
     }
@@ -2685,7 +2688,7 @@ function extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente
     FROM [SAE90Empre02].[dbo].[INVE02] i
     LEFT JOIN [SAE90Empre02].[dbo].[PRECIO_X_PROD02] p 
         ON i.[CVE_ART] = p.[CVE_ART] 
-        AND p.[CVE_PRECIO] = ? WHERE i.[EXIST] > 0"; 
+        AND p.[CVE_PRECIO] = ? WHERE i.[EXIST] > 0";
 
     $params = [$listaPrecioCliente]; // Parámetro para filtrar por cliente
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -3890,21 +3893,66 @@ switch ($funcion) {
             }
             exit(); //borar
         } elseif ($tipoOperacion === 'editar') {
-            // Lógica para edición de pedido
-            $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData);
+            $resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
 
-            if ($resultadoActualizacion['success']) {
+            if ($resultadoValidacion['success']) {
+                // Calcular el total del pedido
+                $totalPedido = calcularTotalPedido($partidasData);
+                $clienteId = $formularioData['cliente'];
+                $clave = formatearClaveCliente($clienteId);
 
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'El pedido fue actualizado correctamente.',
-                ]);
+                // Validar crédito del cliente
+                $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
+
+                if ($validacionCredito['success']) {
+                    $credito = '0';
+                } else {
+                    $credito = '1';
+                }
+
+                $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
+
+                if ($validarSaldo == 0 && $credito == 0) {
+                    $estatus = "E";
+                } else if ($validarSaldo == 1 || $credito == 1) {
+                    $estatus = "C";
+                }
+
+                // Lógica para edición de pedido
+                $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus);
+
+                if ($resultadoActualizacion['success']) {
+                    if ($validarSaldo == 0 && $credito == 0) {
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'El pedido fue actualizado correctamente.',
+                        ]);
+                    } else {
+                        guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                        $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
+                        header('Content-Type: application/json; charset=UTF-8');
+                        echo json_encode([
+                            'success' => false,
+                            'autorizacion' => true,
+                            'message' => 'El pedido se completó pero debe ser autorizado.',
+                        ]);
+                    }
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'No se pudo actualizar el pedido.',
+                    ]);
+                }
             } else {
+                // Error de existencias
                 echo json_encode([
                     'success' => false,
-                    'message' => 'No se pudo actualizar el pedido.',
+                    'exist' => true,
+                    'message' => $resultadoValidacion['message'],
+                    'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
                 ]);
             }
+            exit(); //borar
         } else {
             // Operación desconocida
             echo json_encode([

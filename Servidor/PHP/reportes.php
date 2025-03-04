@@ -967,7 +967,6 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
         $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 0, 0, 'C');
         $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');
     }
-
     // **Calcular totales**
     $subtotalConDescuento = $subtotal - $totalDescuentos;
     $totalFinal = $subtotalConDescuento + $totalImpuestos;

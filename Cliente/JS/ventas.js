@@ -25,7 +25,7 @@ function agregarEventosBotones() {
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
-        confirmButtonText: "Sí, eliminar",
+        confirmButtonText: "Sí, Cancelarlo",
         cancelButtonText: "Cancelar",
       }).then((result) => {
         if (result.isConfirmed) {
@@ -37,6 +37,7 @@ function agregarEventosBotones() {
 }
 
 function eliminarPedido(pedidoID) {
+  alert(pedidoID);
   $.post(
     "../Servidor/PHP/ventas.php",
     { numFuncion: "10", pedidoID: pedidoID },
@@ -48,7 +49,7 @@ function eliminarPedido(pedidoID) {
         if (response.success) {
           Swal.fire({
             title: "Eliminado",
-            text: "El pedido ha sido eliminado correctamente",
+            text: "El pedido ha sido cancelado correctamente",
             icon: "success",
             confirmButtonText: "Entendido",
           }).then(() => {
@@ -57,7 +58,7 @@ function eliminarPedido(pedidoID) {
         } else {
           Swal.fire({
             title: "Error",
-            text: response.message || "No se pudo eliminar el pedido",
+            text: response.message || "No se pudo cancelar el pedido",
             icon: "error",
             confirmButtonText: "Entendido",
           });

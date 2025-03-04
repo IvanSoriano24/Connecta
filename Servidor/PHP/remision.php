@@ -1393,7 +1393,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae){
         ?, ?, ?, ?, ?, ?, ?, ?, ?, 
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?, "",
+        ?, ?, ?, ?, ?, ?, ?, '',
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?)";
 
@@ -2440,8 +2440,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarAlerta($conexionData, $claveSae);
     
     //$cveDoc = '          0000013314';
-    //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
-    //echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
+    //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor); 
+    echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
     return $cveDoc;
 }
 function conectarDB($conexionData)
