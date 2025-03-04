@@ -475,7 +475,7 @@ function actualizarInve2($conexionData, $pedidoId, $claveSae)
         $cveArt = $row['CVE_ART'];
         $cantidad = $row['TOTAL_CANT'];
         $sqlUpdate = "UPDATE $tablaInventario 
-                      SET EXIST = EXIST - ?, APART = APART + ?, VERSION_SINC = ?
+                      SET EXIST = EXIST - ?, APART = APART - ?, VERSION_SINC = ?
                       WHERE CVE_ART = ?";
         $paramsUpdate = [$cantidad, $cantidad, $fechaSinc, $cveArt];
 

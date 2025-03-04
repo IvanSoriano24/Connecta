@@ -636,7 +636,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
 
     $fechaElaboracion = $pedidoInfo['diaAlta'];
     $correo = trim($clienteData['MAIL']);
-    $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    $emailPred = trim($clienteData['EMAILPRED'] ?? ""); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
     //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
@@ -648,14 +648,14 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
 
     //$numeroWhatsApp = '+527773750925';
     //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
-    if ($correo === 'S' && !empty($emailPred)) {
+    if ($correo === 'S' && trim($emailPred) !== "") {
         $numeroWhatsApp = '+527773750925';
         //$numeroWhatsApp = '+527773340218';
         $emailPred = 'desarrollo01@mdcloud.mx';
         //$emailPred = 'marcosluh92@gmail.com';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
 
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
