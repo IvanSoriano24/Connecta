@@ -1476,7 +1476,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         //$emailPred = 'marcosluh92@gmail.com';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
-        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();

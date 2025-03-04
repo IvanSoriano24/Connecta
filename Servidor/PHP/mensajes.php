@@ -467,6 +467,7 @@ function obtenerDetalles($firebaseProjectId, $firebaseApiKey, $pedidoId)
         'data' => [
             'id' => $pedidoId,
             'folio' => $fields['folio']['stringValue'] ?? '',
+            'claveCliente' => $fields['cliente']['stringValue'] ?? '',
             'cliente' => $datosCliente['cliente'] ?? '',
             'status' => $fields['status']['stringValue'] ?? '',
             'enviar' => $fields['enviar']['stringValue'] ?? '',
@@ -591,8 +592,8 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     // Extraer 'enviar a' y 'vendedor' del formulario
     $enviarA = $pedidoInfo['enviar']; // Dirección de envío
     $vendedor = $pedidoInfo['vendedor']; // Número de vendedor
-    $claveCliente = $pedidoInfo['cliente'];
-    $claveCliente = "177";
+    $claveCliente = $pedidoInfo['claveCliente'];
+    //$claveCliente = "177";
     $clave = formatearClaveCliente($claveCliente);
     $noPedido = $folio; // Número de pedido
     /*$claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
