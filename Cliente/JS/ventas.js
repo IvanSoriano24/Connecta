@@ -858,13 +858,13 @@ function actualizarTablaPartidas(pedidoID) {
             <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
         </div>
     </td>
-    <td><input type="number" class="cantidad" value="${partida.CANT}" /></td>
+    <td><input type="number" class="cantidad" value="${partida.CANT}" style="text-align: right;" /></td>
     <td><input type="text" class="unidad" value="Unidad" readonly /></td>
-    <td><input type="number" class="descuento" value="${partida.DESC1}" readonly /></td>
-    <td><input type="number" class="iva" value="${partida.IMPU4}" readonly /></td>
+    <td><input type="number" class="descuento" value="${partida.DESC1}" style="text-align: right;" /></td>
+    <td><input type="number" class="iva" value="${partida.IMPU4}" style="text-align: right;" readonly /></td>
     
-    <td><input type="number" class="precioUnidad" value="${partida.PREC}" readonly /></td>
-    <td><input type="number" class="subtotalPartida" value="${partida.TOT_PARTIDA}" readonly /></td>
+    <td><input type="number" class="precioUnidad" value="${partida.PREC}" style="text-align: right;" readonly /></td>
+    <td><input type="number" class="subtotalPartida" value="${partida.TOT_PARTIDA}" style="text-align: right;" readonly /></td>
     <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
     <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
     <td><input type="number" class="ieps" value="${partida.IMPU1}" readonly hidden /></td>
@@ -872,6 +872,22 @@ function actualizarTablaPartidas(pedidoID) {
     <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td>
       <td><input type="text" class="COSTO_PROM" value="0" readonly hidden /></td>
 `;
+
+  // Validar que la cantidad no sea negativa
+  const cantidadInput = nuevaFila.querySelector(".cantidad");
+  cantidadInput.addEventListener("input", () => {
+    if (parseFloat(cantidadInput.value) < 0) {
+      Swal.fire({
+        title: "Error",
+        text: "La cantidad no puede ser negativa.",
+        icon: "error",
+        confirmButtonText: "Entendido",
+      });
+      cantidadInput.value = 0; // Restablecer el valor a 0
+    } else {
+      calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
+    }
+  });
     tablaProductos.appendChild(nuevaFila);
   });
 }
@@ -944,7 +960,17 @@ function eliminarPartidaFormularioEditar(numPar, clavePedido) {
     }
   });
 }
+function calcularSubtotal(fila) {
+  const cantidadInput = fila.querySelector(".cantidad");
+  const precioInput = fila.querySelector(".precioUnidad");
+  const subtotalInput = fila.querySelector(".subtotalPartida");
 
+  const cantidad = parseFloat(cantidadInput.value) || 0; // Manejar valores no numéricos
+  const precio = parseFloat(precioInput.value) || 0;
+
+  const subtotal = cantidad * precio;
+  subtotalInput.value = subtotal.toFixed(2); // Actualizar el subtotal con dos decimales
+}
 function limpiarTablaPartidas() {
   const tablaProductos = document.querySelector("#tablaProductos tbody");
   tablaProductos.innerHTML = ""; // Limpia todas las filas de la tabla

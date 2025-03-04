@@ -340,7 +340,7 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                 $clienteNombre = $dataCliente['cliente'] ?? 'Cliente Desconocido';
                 $vendedorNombre = $dataCliente['vendedor'] ?? 'Vendedor Desconocido';
 
-                
+
                 // Formatear datos correctamente
                 $pedidos[] = [
                     'id' => basename($document['name']),
@@ -391,7 +391,7 @@ function obtenerDetallesPedido($firebaseProjectId, $firebaseApiKey, $pedidoId)
                 'producto' => $producto['mapValue']['fields']['producto']['stringValue'],
                 'descripcion' => $producto['mapValue']['fields']['descripcion']['stringValue'],
                 'cantidad' => $producto['mapValue']['fields']['cantidad']['stringValue'],
-                'subtotal' => $producto['mapValue']['fields']['subtotal']['stringValue']
+                'subtotal' => number_format($producto['mapValue']['fields']['subtotal']['stringValue'], 2, '.', '')
             ];
         }
         $claveSae = $fields['claveSae']['stringValue'];
@@ -516,7 +516,7 @@ function pedidoAutorizado($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio
         $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
         $rutaPDF = generarPDFP($CVE_DOC, $conexionData, $claveSae, $noEmpresa, $vend, $folio);
         validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa);
-        echo json_encode(['success' => true, 'message' => 'Pedido Autorizado.']);
+        //echo json_encode(['success' => true, 'message' => 'Pedido Autorizado.']);
     }
 }
 function actualizarEstadoPedido($folio, $conexionData, $claveSae)
@@ -638,27 +638,51 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED'] ?? ""); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
-    //$numeroWhatsApp = trim($clienteData['TELEFONO']);
-
+    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    $numeroWhatsApp = trim($clienteData['TELEFONO'] ?? "");
     $clienteNombre = trim($clienteData['NOMBRE']);
     $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773340218';
+    //$numeroWhatsApp = '+527773340218';
 
-    //$numeroWhatsApp = '+527773750925';
-    //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $partidasData);
-    if ($correo === 'S' && trim($emailPred) !== "") {
-        $numeroWhatsApp = '+527773750925';
-        //$numeroWhatsApp = '+527773340218';
-        $emailPred = 'desarrollo01@mdcloud.mx';
-        //$emailPred = 'marcosluh92@gmail.com';
-        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
+    //$emailPred = 'desarrollo01@mdcloud.mx';
+    //$numeroWhatsApp = "7773750925";
+    $emailPred = "";
+    $numeroWhatsApp = "";
 
-        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
-
+    if ($emailPred === "") {
+        $correoBandera = 1;
     } else {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
+        $correoBandera = 0;
+    }
+    if ($numeroWhatsApp === "") {
+        $numeroBandera = 1;
+    } else {
+        $numeroBandera = 0;
+    }
+
+    if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
+        // Enviar notificaciones solo si los datos son válidos
+        if ($correoBandera === 0) {
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF);
+        }
+
+        if ($numeroBandera === 0) {
+            enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        }
+
+        // Determinar la respuesta JSON según las notificaciones enviadas
+        if ($correoBandera === 0 && $numeroBandera === 0) {
+            echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
+        } elseif ($correoBandera === 1 && $numeroBandera === 0) {
+            echo json_encode(['success' => true, 'telefono' => true, 'message' => 'Pedido Autorizado y notificado por WhatsApp.']);
+        } elseif ($correoBandera === 0 && $numeroBandera === 1) {
+            echo json_encode(['success' => true, 'correo' => true, 'message' => 'Pedido Autorizado y notificado por correo.']);
+        } else {
+            echo json_encode(['success' => true, 'notificacion' => false, 'message' => 'Pedido Autorizado, pero no se pudo notificar al cliente.']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'datos' => false, 'message' => 'El cliente no tiene un correo y telefono válido registrado.']);
         die();
     }
     sqlsrv_free_stmt($stmt);
@@ -863,7 +887,8 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     return $result;
 }
-function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId){
+function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId)
+{
 
     $urlFire = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
     $response = @file_get_contents($urlFire);
@@ -1006,7 +1031,7 @@ switch ($funcion) {
         }
         marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $numGuia, $enviarHoy);
         break;
-        /*case 4:
+    /*case 4:
             notificaciones($firebaseProjectId, $firebaseApiKey);
             break;*/
     case 5:

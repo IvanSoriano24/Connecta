@@ -126,13 +126,17 @@ if (isset($_SESSION['usuario'])) {
         width: 60px;
     }
 
-    .unidad,
-    .subtotalPartida,
+    .unidad,    
     .comision,
     .precioUnidad {
         width: 80px;
     }
-
+    .descuento{
+        width: 50px;
+    }
+    .subtotalPartida{
+        width: 90px;
+    }
     .producto {
         width: 150px;
     }

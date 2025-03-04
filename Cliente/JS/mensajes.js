@@ -421,12 +421,33 @@ $("#btnAutorizar").click(function () {
     },
     function (response) {
       if (response.success) {
-        Swal.fire({
-          text: "El pedido fue autorizado",
-          icon: "success",
-        });
-        $("#modalPedido").modal("hide");
-        cargarPedidos(); // Recargar la tabla
+        if(response.notificacion){
+          Swal.fire({
+            text: "El pedido fue autorizado",
+            icon: "success",
+          });
+          $("#modalPedido").modal("hide");
+          cargarPedidos(); // Recargar la tabla
+        } else if(response.telefono){
+          Swal.fire({
+            text: response.message,
+            icon: "success",
+          });
+          $("#modalPedido").modal("hide");
+          cargarPedidos(); // Recargar la tabla
+        }else if(response.correo){
+          Swal.fire({
+            text: response.message,
+            icon: "success",
+          });
+          $("#modalPedido").modal("hide");
+          cargarPedidos(); // Recargar la tabla
+        }else{
+          Swal.fire({
+            text: response.message,
+            icon: "success",
+          });
+        }
       } else {
         Swal.fire({
           text: "Error al autorizar el pedido.",

@@ -682,16 +682,17 @@ class PDFPedidoAutoriza extends FPDF
     private $datosClientePedidoAutoriza;
     private $datosVendedorPedidoAutoriza;
     private $datosPedidoAutoriza;
+    private $emailPred;
 
-    function __construct($datosEmpresaPedidoAutoriza, $datosClientePedidoAutoriza, $datosVendedorPedidoAutoriza, $datosPedidoAutoriza)
+    function __construct($datosEmpresaPedidoAutoriza, $datosClientePedidoAutoriza, $datosVendedorPedidoAutoriza, $datosPedidoAutoriza, $emailPred)
     {
         parent::__construct();
         $this->datosEmpresaPedidoAutoriza = $datosEmpresaPedidoAutoriza;
         $this->datosClientePedidoAutoriza = $datosClientePedidoAutoriza;
         $this->datosVendedorPedidoAutoriza = $datosVendedorPedidoAutoriza;
         $this->datosPedidoAutoriza = $datosPedidoAutoriza;
+        $this->emailPred = $emailPred;
     }
-
     function Header()
     {
         // Información del vendedor
@@ -781,7 +782,7 @@ class PDFPedidoAutoriza extends FPDF
             $this->SetX(140);
             $this->SetFont('Arial', '', 10);
             $this->SetTextColor(39, 39, 51);
-            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1", "Remision Nro: " . $this->datosPedidoAutoriza['FOLIO']), 0, 0, 'L');
+            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1", "Pedido Nro: " . $this->datosPedidoAutoriza['FOLIO']), 0, 0, 'L');
 
             $this->Ln(5);
 
@@ -789,7 +790,7 @@ class PDFPedidoAutoriza extends FPDF
             $this->SetTextColor(39, 39, 51);
             // Email - Cliente a la izquierda
             $this->SetX(10);
-            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->datosClientePedidoAutoriza['email']), 0, 0, 'L');
+            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->emailPred), 0, 0, 'L');
 
             // Empresa: No tiene email, dejamos espacio en blanco
             $this->SetX(140);
@@ -916,7 +917,8 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
     // Obtener datos del cliente
     $clienteId = str_pad(trim($datosPedidoAutoriza['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
     $datosClientePedidoAutoriza = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
-
+    $emailPredArray = explode(';', $datosClientePedidoAutoriza['email']); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     // Obtener datos del vendedor
     $clave = str_pad(trim($vendedor), 5, ' ', STR_PAD_LEFT);
     $datosVendedorPedidoAutoriza = obtenerDatosVendedor($clave);
@@ -927,7 +929,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
     $totalDescuentos = 0;
 
     // Crear el PDF
-    $pdf = new PDFPedidoAutoriza($datosEmpresaPedidoAutoriza, $datosClientePedidoAutoriza, $datosVendedorPedidoAutoriza, $datosPedidoAutoriza);
+    $pdf = new PDFPedidoAutoriza($datosEmpresaPedidoAutoriza, $datosClientePedidoAutoriza, $datosVendedorPedidoAutoriza, $datosPedidoAutoriza, $emailPred);
     $pdf->AddPage();
     $pdf->SetFont('Arial', '', 9);
     $pdf->SetTextColor(39, 39, 51);
