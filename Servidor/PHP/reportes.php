@@ -950,7 +950,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
 
         // **Aplicar descuentos**
         $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($desc2 / 100)) * (1 - ($descTotal / 100));
-        $subtotalPartida = $precioConDescuento * $cantidad;
+        $subtotalPartida = $precioUnitario * $cantidad;
 
         // **Sumar totales**
         $subtotal += $subtotalPartida;

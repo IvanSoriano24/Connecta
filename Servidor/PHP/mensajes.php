@@ -340,6 +340,7 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                 $clienteNombre = $dataCliente['cliente'] ?? 'Cliente Desconocido';
                 $vendedorNombre = $dataCliente['vendedor'] ?? 'Vendedor Desconocido';
 
+                
                 // Formatear datos correctamente
                 $pedidos[] = [
                     'id' => basename($document['name']),
@@ -355,6 +356,10 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                 ];
             }
         }
+        // Ordenar los pedidos por totalPedido de manera descendente
+        usort($pedidos, function ($a, $b) {
+            return $b['folio'] <=> $a['folio'];
+        });
     }
 
     echo json_encode(['success' => true, 'data' => $pedidos]);
@@ -649,7 +654,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         //$emailPred = 'marcosluh92@gmail.com';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
-        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -720,12 +725,12 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
 
-        $bodyHTML .= "<tr>
-                        <td>$clave</td>
-                        <td>$descripcion</td>
-                        <td>$cantidad</td>
-                        <td>$" . number_format($totalPartida, 2) . "</td>
-                      </tr>";
+        $bodyHTML .= '<tr>
+                        <td style="text-align: center;">$clave</td>
+                        <td style="text-align: center;">$descripcion</td>
+                        <td style="text-align: right;">$cantidad</td>
+                        <td style="text-align: right;">$" . number_format($totalPartida, 2) . "</td>
+                      </tr>';
     }
 
     $bodyHTML .= "</tbody></table>";

@@ -1870,12 +1870,12 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
 
-        $bodyHTML .= "<tr>
-                        <td>$clave</td>
-                        <td>$descripcion</td>
-                        <td>$cantidad</td>
-                        <td>$" . number_format($totalPartida, 2) . "</td>
-                      </tr>";
+        $bodyHTML .= '<tr>
+                        <td style="text-align: center;">$clave</td>
+                        <td style="text-align: center;">$descripcion</td>
+                        <td style="text-align: right;">$cantidad</td>
+                        <td style="text-align: right;">$" . number_format($totalPartida, 2) . "</td>
+                      </tr>';
     }
 
     $bodyHTML .= "</tbody></table>";
