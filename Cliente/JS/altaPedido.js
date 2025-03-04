@@ -961,8 +961,9 @@ function showCustomerSuggestions() {
 // Función para seleccionar un cliente desde las sugerencias
 function seleccionarClienteDesdeSugerencia(cliente) {
   const clienteInput = document.getElementById("cliente");
-  clienteInput.value = `${cliente.CLAVE} - ${cliente.NOMBRE}`; // Mostrar cliente seleccionado
+  clienteInput.value = cliente.CLAVE; // Solo guarda la clave, sin el nombre
   clienteId = cliente.CLAVE; // Guardar el ID del cliente
+  alert(clienteInput.value);
 
   // Actualizar estado de cliente seleccionado
   sessionStorage.setItem("clienteSeleccionado", true);
@@ -971,10 +972,26 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   const sugerencias = document.getElementById("clientesSugeridos");
   sugerencias.innerHTML = ""; // Limpiar las sugerencias
   sugerencias.classList.add("d-none"); // Ocultar las sugerencias
-  llenarDatosCliente(cliente);
+  llenarDatosClienteSugerencia(cliente);
   desbloquearCampos();
 }
-
+function llenarDatosClienteSugerencia(cliente) {
+  $("#rfc").val(cliente.RFC || "");
+  $("#nombre").val(cliente.NOMBRE || "");
+  $("#calle").val(cliente.CALLE || "");
+  $("#numE").val(cliente.NUMEXT || "");
+  $("#numI").val(cliente.NUMINT || "");
+  $("#colonia").val(cliente.COLONIA || "");
+  $("#codigoPostal").val(cliente.CODIGO || "");
+  $("#poblacion").val(cliente.LOCALIDAD || "");
+  $("#pais").val(cliente.PAIS || "");
+  $("#regimenFiscal").val(cliente.REGIMEN_FISCAL || "");
+  $("#cliente").val(cliente.CLAVE || "");
+  $("#listaPrecios").val(cliente.LISTA_PREC || "");
+  $("#descuentoCliente").val(cliente.DESCUENTO || 0);
+  // Validar el crédito del cliente
+  validarCreditoCliente(cliente.CLAVE);
+}
 // Función para mostrar sugerencias de prodcuctos
 function showCustomerSuggestionsProductos() {
   const productoInput = document.getElementsByClassName("producto");
@@ -1012,10 +1029,12 @@ function showCustomerSuggestionsProductos() {
 async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   inputProducto.val(`${producto.CVE_ART}`); // Mostrar el producto seleccionado
   const filaProd = inputProducto.closest("tr")[0]; // Asegurar que obtenemos el elemento DOM
-  const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
-  const COSTO_PROM = filaTabla.querySelector(".COSTO_PROM");
-  CVE_UNIDAD.val(`${producto.CVE_UNIDAD}`);
-  COSTO_PROM.val(`${producto.COSTO_PROM}`);
+  const CVE_UNIDAD = filaProd.querySelector(".CVE_UNIDAD");
+  const COSTO_PROM = filaProd.querySelector(".COSTO_PROM");
+  CVE_UNIDAD.value = `${producto.CVE_UNIDAD}`;
+  COSTO_PROM.value = `${producto.COSTO_PROM}`;
+  console.log(producto.COSTO_PROM);
+  console.log(COSTO_PROM.value);
   if (!filaProd) {
     console.error("Error: No se encontró la fila del producto.");
     return; // 🚨 Salir de la función si `filaProd` no es válido
@@ -1067,7 +1086,6 @@ function llenarDatosCliente(cliente) {
   $("#cliente").val(cliente.CLAVE || "");
   $("#listaPrecios").val(cliente.LISTA_PREC || "");
   $("#descuentoCliente").val(cliente.DESCUENTO || 0);
-
   // Validar el crédito del cliente
   validarCreditoCliente(cliente.CLAVE);
 }

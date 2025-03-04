@@ -916,7 +916,9 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
 
     // Obtener datos del cliente
     $clienteId = str_pad(trim($datosPedidoAutoriza['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
+    //var_dump($clienteId);
     $datosClientePedidoAutoriza = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
+    //var_dump($datosClientePedidoAutoriza);
     $emailPredArray = explode(';', $datosClientePedidoAutoriza['email']); // Divide los correos por `;`
     $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     // Obtener datos del vendedor

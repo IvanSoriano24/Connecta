@@ -645,10 +645,10 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $emailPred = 'desarrollo01@mdcloud.mx';
     //$numeroWhatsApp = '+527773340218';
 
-    //$emailPred = 'desarrollo01@mdcloud.mx';
-    //$numeroWhatsApp = "7773750925";
-    $emailPred = "";
-    $numeroWhatsApp = "";
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = "7773750925";
+    //$emailPred = "";
+    //$numeroWhatsApp = "";
 
     if ($emailPred === "") {
         $correoBandera = 1;

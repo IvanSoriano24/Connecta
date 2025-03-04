@@ -1996,7 +1996,7 @@ function obtenerProductoPedido($claveVendedor, $conexionData, $clienteInput)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Definir la consulta SQL asegurando la búsqueda insensible a mayúsculas y manejando el guion `-`
-    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD]
+    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [COSTO_PROM]
         FROM $nombreTabla
         WHERE [EXIST] > 0 
         AND (LOWER(LTRIM(RTRIM([DESCR]))) LIKE LOWER(?) 
