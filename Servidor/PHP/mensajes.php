@@ -511,7 +511,7 @@ function pedidoAutorizado($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio
         $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
         $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
         $rutaPDF = generarPDFP($CVE_DOC, $conexionData, $claveSae, $noEmpresa, $vend, $folio);
-        validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa);
+        validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa, $vend);
         //echo json_encode(['success' => true, 'message' => 'Pedido Autorizado.']);
     }
 }
@@ -557,7 +557,7 @@ function generarPDFP($CVE_DOC, $conexionData, $claveSae, $noEmpresa, $vend, $fol
     $rutaPDF = generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noEmpresa, $vend, $folio);
     return $rutaPDF;
 }
-function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa)
+function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa, $vend)
 {
 
     // Establecer la conexión con SQL Server
@@ -641,8 +641,10 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $emailPred = 'desarrollo01@mdcloud.mx';
     //$numeroWhatsApp = '+527773340218';
 
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = "7773750925";
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = "7773750925";*/
+    $emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527773340218';
     //$emailPred = "";
     //$numeroWhatsApp = "";
 
@@ -660,7 +662,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         // Enviar notificaciones solo si los datos son válidos
         if ($correoBandera === 0) {
-            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF);
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend);
         }
 
         if ($numeroBandera === 0) {
@@ -684,7 +686,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -712,13 +714,13 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vend) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
 
-    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae);
+    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vend) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave);
 
     // Construcción del cuerpo del correo
     $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
@@ -916,6 +918,7 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
 
     // Si no se encuentra el vendedor, asignar un valor por defecto
     $numero = $telefonoVendedor ?? 'No disponible';
+    $numero = "+527773340218";
 
     $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";
 

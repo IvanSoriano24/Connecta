@@ -14,7 +14,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     $claveSae = $_GET['claveSae'];
     $noEmpresa = $_GET['noEmpresa'];
-    $clave = $_GET['clave'];
+    $clave = $_GET['clave'] ?? "";
     // Obtener fecha y hora actual si no está incluida en los parámetros
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
     if ($resultado) {
@@ -82,8 +82,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             } else {
                 $result = json_decode($response, true);
                 if (isset($result['name'])) {
-                    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-                    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+                    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
                     $data = [
                         'numFuncion' => 1,
@@ -168,7 +168,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     }
                 }
             }
-
+            $telefonoVendedor = "+52777375925";
             if (!$telefonoVendedor) {
                 echo "<div class='container'>
                         <div class='title'>Error al Encontrar Vendedor</div>
@@ -256,12 +256,13 @@ function enviarWhatsApp($numero, $pedidoId, $nombreCliente){
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
     // Crear el cuerpo de la solicitud para la API
+    
     $data = [
         "messaging_product" => "whatsapp",
         "to" => $numero, // Número del vendedor
         "type" => "template",
         "template" => [
-            "name" => "rechazar_pedido_", // Nombre de la plantilla aprobada
+            "name" => "rechazar_pedido", // Nombre de la plantilla aprobada
             "language" => ["code" => "es_MX"], // Idioma de la plantilla
             "components" => [
                 // Parámetros del cuerpo de la plantilla

@@ -1578,9 +1578,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     //$numero = "+527773340218";
-
+    $numero = '+527773340218';
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
