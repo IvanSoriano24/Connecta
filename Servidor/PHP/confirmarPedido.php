@@ -168,7 +168,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     }
                 }
             }
-            $telefonoVendedor = "+52777375925";
+            $telefonoVendedor = '+527775681612';
             if (!$telefonoVendedor) {
                 echo "<div class='container'>
                         <div class='title'>Error al Encontrar Vendedor</div>

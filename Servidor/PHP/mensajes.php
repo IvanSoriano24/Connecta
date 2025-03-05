@@ -644,7 +644,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     /*$emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = "7773750925";*/
     $emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527773340218';
+    $numeroWhatsApp = '+527775681612';
     //$emailPred = "";
     //$numeroWhatsApp = "";
 
@@ -918,7 +918,7 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
 
     // Si no se encuentra el vendedor, asignar un valor por defecto
     $numero = $telefonoVendedor ?? 'No disponible';
-    $numero = "+527773340218";
+    $numero = '+527775681612';
 
     $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";
 

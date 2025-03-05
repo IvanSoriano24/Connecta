@@ -1495,13 +1495,9 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     $clienteNombre = trim($clienteData['NOMBRE']);
     //$emailPred = 'desarrollo01@mdcloud.mx';
     $emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527773340218';
+    $numeroWhatsApp = '+527775681612';
     if ($correo === 'S' && !empty($emailPred)) {
         //$numeroWhatsApp = '+527773750925';
-        $numeroWhatsApp = "+527775681612";
-        //$numeroWhatsApp = '+527773340218';
-        //$numeroWhatsApp = '+527773340218';
-        //$emailPred = 'desarrollo01@mdcloud.mx';
         //$emailPred = 'marcosluh92@gmail.com';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
@@ -1742,7 +1738,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
     $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
-    $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido
+    $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido
 
 
     // ✅ Construir la lista de productos
@@ -3416,15 +3412,14 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773340218';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773340218';*/
 
     //$numeroWhatsApp = '+527773750925';
     if ($correo === 'S' && !empty($emailPred)) {
-        $numeroWhatsApp = '+527773750925';
-        //$numeroWhatsApp = '+527773340218';
-        $emailPred = 'desarrollo01@mdcloud.mx';
-        //$emailPred = 'marcosluh92@gmail.com';
+        
+        $emailPred = 'marcos.luna@mdcloud.mx';
+        $numeroWhatsApp = '+527775681612';
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
