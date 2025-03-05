@@ -282,8 +282,9 @@ session_destroy(); */
             <td>${pedido.Nombre || "Sin nombre"}</td>
             <td>${pedido.Estatus || "0"}</td>
             <td>${pedido.FechaElaboracion?.date || "Sin fecha"}</td>
-            <td style="text-align: right;">${pedido.Subtotal ? Math.floor(pedido.Subtotal) : "Sin subtotal"
-            }</td>
+            <td style="text-align: right;">
+                ${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : "Sin subtotal"}
+            </td>
             <td style="text-align: right;">${pedido.TotalComisiones
                 ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
                 : "Sin comisiones"

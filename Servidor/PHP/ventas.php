@@ -996,12 +996,12 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $DES_TOT = 0; // Variable para el importe con descuento
     $descuentoCliente = $formularioData['descuento']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
-    /*foreach ($partidasData as $partida) {
+    foreach ($partidasData as $partida) {
         $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
         $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
     }
     $IMPORT = $IMPORTE;
-    foreach ($partidasData as $partida) {
+    /*foreach ($partidasData as $partida) {
         // Aplicar descuento
         if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
             $DES_TOT = $IMPORT - ($IMPORT * ($descuentoCliente / 100) * ($partida['descuento'] / 100)); // Aplicar porcentaje de descuento
@@ -1009,7 +1009,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
             $DES_TOT = $IMPORT - ($IMPORT * ($partida['descuento'] / 100)); // Si no hay descuento, el total queda igual al importe
         }
     }*/
-    $IMPORTE = $IMPORTE; // Mantener el importe original
+    //$IMPORTE = $IMPORTE; // Mantener el importe original
     $DES_TOT = 0; // Inicializar el total con descuento
     $totalDescuentos = 0; // Inicializar acumulador de descuentos
 
@@ -1574,9 +1574,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = "+527773340218";
-    $numero = '+527773340218';
+    //$numero = '+527773340218';
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {

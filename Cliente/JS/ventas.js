@@ -37,7 +37,6 @@ function agregarEventosBotones() {
 }
 
 function eliminarPedido(pedidoID) {
-  alert(pedidoID);
   $.post(
     "../Servidor/PHP/ventas.php",
     { numFuncion: "10", pedidoID: pedidoID },
@@ -530,11 +529,10 @@ function datosPedidos(limpiarTabla = true) {
                                 <td>${
                                   pedido.FechaElaboracion?.date || "Sin fecha"
                                 }</td>
-                                <td style="text-align: right;">${
-                                  pedido.Subtotal
-                                    ? Math.floor(pedido.Subtotal)
-                                    : "Sin subtotal"
-                                }</td>
+                                <td style="text-align: right;">
+                                    ${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : "Sin subtotal"}
+                                </td>
+
                                 <td style="text-align: right;">${
                                   pedido.TotalComisiones
                                     ? `$${parseFloat(
@@ -893,7 +891,6 @@ function actualizarTablaPartidas(pedidoID) {
 }
 
 function eliminarPartidaFormularioEditar(numPar, clavePedido) {
-  alert(clavePedido);
   Swal.fire({
     title: "¿Estás seguro?",
     text: "¿Deseas eliminar esta partida?",
