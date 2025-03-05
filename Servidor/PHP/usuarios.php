@@ -7,7 +7,7 @@ session_start();
 
 require 'firebase.php';
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
@@ -27,7 +27,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if ($fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if ($fields['claveSae']['stringValue'] === $claveSae) {
             return [
                 'success' => true,
                 'data' => [
@@ -906,7 +906,7 @@ function activarUsuario(){
     exit();
 }
 
-function obtenerVendedor($conexionData, $noEmpresa)
+function obtenerVendedor($conexionData, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -922,9 +922,8 @@ function obtenerVendedor($conexionData, $noEmpresa)
         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-
     // Construcción del nombre de la tabla VEND basado en la empresa
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL para obtener vendedores activos (STATUS = 'A')
     $sql = "
@@ -934,7 +933,6 @@ function obtenerVendedor($conexionData, $noEmpresa)
         FROM $nombreTabla
         WHERE STATUS = 'A'
     ";
-
     $stmt = sqlsrv_query($conn, $sql);
 
     if ($stmt === false) {
@@ -972,7 +970,7 @@ function obtenerVendedor($conexionData, $noEmpresa)
         echo json_encode(['success' => false, 'message' => 'No se encontraron vendedores activos.']);
     }
 }
-function obtenerDatosVendedor($conexionData, $noEmpresa, $claveUsuario)
+function obtenerDatosVendedor($claveUsuario, $conexionData, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -989,7 +987,7 @@ function obtenerDatosVendedor($conexionData, $noEmpresa, $claveUsuario)
         exit;
     }
 
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // **Formatear la clave antes de la consulta**
     $claveUsuario = str_pad($claveUsuario, 5, " ", STR_PAD_LEFT);
@@ -1225,7 +1223,7 @@ switch ($funcion) {
             /*
             DATOS
             */];
-        actualizarUsuario($idUsario, $data);
+        //actualizarUsuario($idUsario, $data);
         break;
 
     case 3:
@@ -1273,13 +1271,14 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
         }
         $conexionData = $conexionResult['data'];
-        obtenerVendedor($conexionData, $noEmpresa);
+        obtenerVendedor($conexionData, $claveSae);
         break;
     case 14:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -1287,14 +1286,17 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $claveUsuario = $_GET['claveUsuario'];
+       
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
         }
         $conexionData = $conexionResult['data'];
-        $claveUsuario = $_GET['claveUsuario'];
-        obtenerDatosVendedor($conexionData, $noEmpresa, $claveUsuario);
+        
+        obtenerDatosVendedor($claveUsuario, $conexionData, $claveSae);
         break;
     case 15:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -1302,7 +1304,8 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = "02";
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = "02";
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -1320,7 +1323,8 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = "02";
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = "02";
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;

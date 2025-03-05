@@ -359,7 +359,7 @@ function visualizarUsuario(idUsuario) {
             if (data.data.tipoUsuario === "VENDEDOR") {
               $("#divVendedor").show();
               $("#selectVendedor").empty();
-
+              alert(data.data.claveUsuario);
               // Llamada AJAX para obtener la información del vendedor por clave
               $.ajax({
                 url: "../Servidor/PHP/usuarios.php",
@@ -439,7 +439,6 @@ function editarUsuario(idUsuario) {
             $("#contrasenaUsuarioCliente").val(data.data.password);
             $("#telefonoUsuarioCliente").val(data.data.telefono);
             $("#idUsuarioCliente").val(idUsuario);
-
             $.ajax({
               url: "../Servidor/PHP/usuarios.php",
               method: "GET",
@@ -559,9 +558,9 @@ function editarUsuario(idUsuario) {
                           `<option value="${vendedor.clave}">${vendedor.nombre} || ${vendedor.clave}</option>`
                         );
                       });
-
+                      console.log(data.data.claveUsuario);
                       // ✅ Ahora obtenemos la clave del vendedor y la seleccionamos correctamente
-                      obtenerClaveVendedor(data.data.claveVendedor);
+                      obtenerClaveVendedor(data.data.claveUsuario);
                     } else {
                       Swal.fire({
                         icon: "warning",
@@ -618,20 +617,20 @@ function editarUsuario(idUsuario) {
 /**
  * Obtiene la clave del vendedor del usuario y la asigna al select usando la función 14 en PHP
  */
-function obtenerClaveVendedor(idUsuario) {
+function obtenerClaveVendedor(clave) {
   $.ajax({
     url: "../Servidor/PHP/usuarios.php",
     method: "GET",
-    data: { numFuncion: "14", claveVendedor: idUsuario }, // Nueva función para buscar por clave
+    data: { numFuncion: "14", claveUsuario: clave }, // Nueva función para buscar por clave
     success: function (responseVendedor) {
       try {
         const data = JSON.parse(responseVendedor);
         if (data.success) {
           console.log(data.data.clave);
-          const claveVendedor = data.data.clave;
+          const claveUsuario = data.data.clave;
 
           // ✅ Asignar la clave del vendedor al select
-          $("#selectVendedor").val(claveVendedor);
+          $("#selectVendedor").val(claveUsuario);
         }
       } catch (error) {
         console.error("Error al procesar la respuesta del vendedor:", error);

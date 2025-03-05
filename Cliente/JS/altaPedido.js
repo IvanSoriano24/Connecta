@@ -474,18 +474,20 @@ function obtenerDatosFormulario() {
   ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
     now.getSeconds()
   ).padStart(2, "0")}`;
+  const diaAlta = new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";
   //const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DD
 
   const campoEntrega = document.getElementById("entrega").value;
   //alert(fechaActual);
   // Si el usuario ha ingresado una fecha, se usa esa, de lo contrario, se usa la fecha actual
   //const entrega = campoEntrega ? campoEntrega : fechaActual;
-
+  //const diaAlta = document.getElementById("diaAlta").value; // Fecha y hora
   const formularioData = {
     claveVendedor: document.getElementById("vendedor").value,
     factura: document.getElementById("factura").value,
     numero: document.getElementById("numero").value,
-    diaAlta: fechaActual, // Fecha y hora
+    diaAlta: diaAlta, // Fecha y hora
+    fechaAlta: fechaActual, // Fecha y hora
     cliente: document.getElementById("cliente").value,
     rfc: document.getElementById("rfc").value,
     nombre: document.getElementById("nombre").value,
@@ -507,6 +509,7 @@ function obtenerDatosFormulario() {
     almacen: document.getElementById("almacen").value,
     destinatario: document.getElementById("destinatario").value,
   };
+  alert(diaAlta);
   return formularioData;
 }
 function obtenerDatosPartidas() {

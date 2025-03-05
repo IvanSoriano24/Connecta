@@ -1044,7 +1044,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae)
     }
 
     // ✅ 3. Definir valores constantes y calcular datos
-    $fechaDoc = date('Y-m-d H:i:s');
+    $fechaDoc = date('Y-m-d') . ' 00.00.00.000';
     $tipDoc = 'R';
     $status = 'O';
     $datMostr = 0;
@@ -2404,7 +2404,6 @@ function generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor) {
 }
 
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor){
-
     actualizarControl($conexionData, $claveSae);
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
@@ -2465,9 +2464,10 @@ function conectarDB($conexionData)
 // ✅ 1. Obtener los productos del pedido
 function obtenerProductosPedido($conn, $conexionData, $pedidoId, $claveSae)
 {
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaProductos = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $params = [str_pad($pedidoId, 10, '0', STR_PAD_LEFT)];
+    $params = [str_pad($pedidoId, 20, ' ', STR_PAD_LEFT)];
     $sql = "SELECT P.CVE_ART, P.CANT, I.CON_LOTE
             FROM $tablaPartidas P
             INNER JOIN $tablaProductos I ON P.CVE_ART = I.CVE_ART
@@ -2581,13 +2581,13 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
     $productos = obtenerProductosPedido($conn, $conexionData, $pedidoId, $claveSae);
     $enlaceLTPDResultados = [];
 
+    
     sqlsrv_begin_transaction($conn);
 
     foreach ($productos as $producto) {
         if ($producto['CON_LOTE'] != 'S') {
             continue;
         }
-
         $claveProducto = $producto['CVE_ART'];
         $cantidadRequerida = (float)$producto['CANT'];
 
@@ -2628,7 +2628,6 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
         'success' => true
     ]);
 }
-
 function notificarVenderdor($conexionData) {}
 /*-------------------------------------------------------------------------------------------------------------------*/
 

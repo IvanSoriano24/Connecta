@@ -21,6 +21,61 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
 {
     // Si el idDocumento es nulo, creamos un nuevo documento
     if ($idDocumento === null) {
+
+        $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+
+        // URL para buscar en la colección EMPRESAS
+        $urlBuscar = $urlBase . "/EMP_USS?key=$firebaseApiKey";
+
+        // Realizar la consulta para obtener todos los documentos de la colección
+        $responseBuscar = file_get_contents($urlBuscar);
+        if ($responseBuscar === false) {
+            echo json_encode(['success' => false, 'message' => 'Error al obtener documentos de la colección.']);
+            return;
+        }
+
+        $dataBuscar = json_decode($responseBuscar, true);
+
+        // Buscar el documento que tenga el campo noEmpresa igual al valor recibido
+        $documentoId = null;
+        if (isset($dataBuscar['documents'])) {
+            foreach ($dataBuscar['documents'] as $document) {
+                $fields = $document['fields'];
+                if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $data['noEmpresa']) {
+                    $documentoId = basename($document['name']); // Extraemos el ID del documento
+                    break;
+                }
+            }
+        }
+        // Construir la URL del documento encontrado para actualizarlo
+        $urlActualizar = "$urlBase/EMP_USS/$documentoId?key=$firebaseApiKey";
+
+        // Obtener la fecha de envío
+
+
+        // Datos de actualización en Firebase
+        $claveSae = $data['claveSae'];
+        $claveSae = $claveSae = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
+        // Datos de actualización en Firebase
+        $data = [
+            'fields' => [
+                'claveSae' => ['stringValue' => $claveSae ],
+            ]
+        ];
+
+        // Agregar `updateMask` para actualizar solo los campos indicados
+        $urlActualizar .= '&updateMask.fieldPaths=claveSae';
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'PATCH',
+                'header' => "Content-Type: application/json\r\n",
+                'content' => json_encode($data)
+            ]
+        ]);
+
+        $response = @file_get_contents($urlActualizar, false, $context);
+
         // URL para crear un nuevo documento
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
         $payload = [
@@ -31,7 +86,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
                 'password' => ['stringValue' => $data['password']],
                 'nombreBase' => ['stringValue' => $data['nombreBase']],
                 'noEmpresa' => ['stringValue' => $data['noEmpresa']],
-                'claveSae' => ['stringValue' => $data['claveSae']],
+                'claveSae' => ['stringValue' => $claveSae],
             ],
         ];
         $options = [
@@ -46,11 +101,83 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
         if ($result === FALSE) {
             return ['success' => false, 'message' => 'Error al guardar en Firebase'];
         }
-        return ['success' => true, 'message' => 'Datos guardados exitosamente en Firebase', 'firebaseResponse' => json_decode($result, true)];
+        $_SESSION['empresa'] = [
+            'claveSae' => $claveSae
+        ];
+        echo ['success' => true, 'message' => 'Datos guardados exitosamente en Firebase', 'firebaseResponse' => json_decode($result, true)];
     } else {
-        // Si el idDocumento no es nulo, buscamos si existe ese documento para actualizarlo
+
+        $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+    
+        // URL para buscar en la colección EMP_USS
+        $urlBuscar = $urlBase . "/EMP_USS?key=$firebaseApiKey";
+    
+        // Realizar la consulta para obtener todos los documentos de la colección
+        $responseBuscar = file_get_contents($urlBuscar);
+        if ($responseBuscar === false) {
+            echo json_encode(['success' => false, 'message' => 'Error al obtener documentos de la colección.']);
+            return;
+        }
+    
+        $dataBuscar = json_decode($responseBuscar, true);
+    
+        // Buscar el documento que tenga el campo noEmpresa igual al valor recibido
+        $documentoId = null;
+        if (isset($dataBuscar['documents'])) {
+            foreach ($dataBuscar['documents'] as $document) {
+                $fields = $document['fields'];
+                if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $data['noEmpresa']) {
+                    $documentoId = basename($document['name']); // Extraemos el ID del documento
+                    break;
+                }
+            }
+        }
+        
+        // Verificar que se haya encontrado el documento en EMP_USS
+        if (!$documentoId) {
+            echo json_encode(['success' => false, 'message' => 'No se encontró documento en EMP_USS para la noEmpresa indicada.']);
+            return;
+        }
+        
+        // Construir la URL del documento encontrado para actualizarlo
+        $urlActualizar = "$urlBase/EMP_USS/$documentoId?key=$firebaseApiKey";
+    
+        // Guardamos la información original en otra variable para usarla más adelante
+        $originalData = $data;
+        
+        // Formatear la claveSae (agrega ceros a la izquierda)
+        $claveSae = str_pad($data['claveSae'], 2, "0", STR_PAD_LEFT);
+    
+        // Datos de actualización en EMP_USS (solo se actualiza claveSae)
+        $payloadEmp = [
+            'fields' => [
+                'claveSae' => ['stringValue' => $claveSae],
+            ]
+        ];
+    
+        // Agregar updateMask para actualizar solo el campo claveSae
+        $urlActualizar .= '&updateMask.fieldPaths=claveSae';
+    
+        $context = stream_context_create([
+            'http' => [
+                'method'  => 'PATCH',
+                'header'  => "Content-Type: application/json\r\n",
+                'content' => json_encode($payloadEmp)
+            ]
+        ]);
+    
+        $response = @file_get_contents($urlActualizar, false, $context);
+    
+        if ($response === false) {
+            $error = error_get_last();
+            echo json_encode(['success' => false, 'message' => 'Error al actualizar EMP_USS.', 'error' => $error['message']]);
+            die();
+        }
+    
+        // Actualizar el documento en la colección CONEXIONES
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES/$idDocumento?key=$firebaseApiKey";
-        // Hacemos la solicitud GET para obtener el documento
+    
+        // Hacemos la solicitud GET para obtener el documento de CONEXIONES
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
@@ -58,66 +185,113 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
             ]
         ]);
         $result = file_get_contents($url, false, $context);
-        // Verifica si la respuesta es válida
         if ($result === FALSE) {
-            return ['success' => false, 'message' => 'Error al obtener el documento de Firebase'];
+            echo json_encode(['success' => false, 'message' => 'Error al obtener el documento de Firebase en CONEXIONES']);
+            return;
         }
         $document = json_decode($result, true);
-        // Si el documento existe, actualizamos los datos
+    
+        // Si el documento existe, se actualizan los datos usando la información original
         if (isset($document['name'])) {
-            // Preparamos los datos de actualización
-            $payload = [
+            $payloadCon = [
                 'fields' => [
-                    'host' => ['stringValue' => $data['host']],
-                    'puerto' => ['stringValue' => $data['puerto']],
-                    'usuario' => ['stringValue' => $data['usuarioSae']],
-                    'password' => ['stringValue' => $data['password']],
-                    'nombreBase' => ['stringValue' => $data['nombreBase']],
-                    'noEmpresa' => ['stringValue' => $data['noEmpresa']],
-                    'claveSae' => ['stringValue' => $data['claveSae']],
+                    'host'       => ['stringValue' => $originalData['host']],
+                    'puerto'     => ['stringValue' => $originalData['puerto']],
+                    'usuario'    => ['stringValue' => $originalData['usuarioSae']],
+                    'password'   => ['stringValue' => $originalData['password']],
+                    'nombreBase' => ['stringValue' => $originalData['nombreBase']],
+                    'noEmpresa'  => ['stringValue' => $originalData['noEmpresa']],
+                    'claveSae'   => ['stringValue' => $claveSae],
                 ],
             ];
-            // Hacemos la solicitud PATCH para actualizar el documento
+    
             $options = [
                 'http' => [
                     'header' => "Content-Type: application/json\r\n",
                     'method' => 'PATCH',
-                    'content' => json_encode($payload),
+                    'content' => json_encode($payloadCon),
                 ],
             ];
             $context = stream_context_create($options);
             $updateResult = file_get_contents($url, false, $context);
-            
-            // Si la actualización falla
+    
             if ($updateResult === FALSE) {
-                return ['success' => false, 'message' => 'Error al actualizar el documento en Firebase'];
+                echo json_encode(['success' => false, 'message' => 'Error al actualizar el documento en Firebase CONEXIONES']);
+                return;
             }
-            return ['success' => true, 'message' => 'Documento actualizado exitosamente'];
+            $_SESSION['empresa'] = [
+                'claveSae' => $claveSae
+            ];
+            echo json_encode(['success' => true, 'message' => 'Documento actualizado exitosamente']);
         } else {
-            return ['success' => false, 'message' => 'No se encontró el documento con el ID especificado'];
+            echo json_encode(['success' => false, 'message' => 'No se encontró el documento con el ID especificado en CONEXIONES']);
         }
-    }
+    }    
 }
 function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
 {
-    // URL para crear un nuevo documento en Firestore
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
-    
-    // Datos a insertar en Firestore
+    $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+
+    // URL para buscar en la colección EMP_USS
+    $urlBuscar = $urlBase . "/EMP_USS?key=$firebaseApiKey";
+
+    // Realizar la consulta para obtener todos los documentos de la colección
+    $responseBuscar = file_get_contents($urlBuscar);
+    if ($responseBuscar === false) {
+        return ['success' => false, 'message' => 'Error al obtener documentos de la colección.'];
+    }
+    $dataBuscar = json_decode($responseBuscar, true);
+
+    // Buscar el documento que tenga el campo noEmpresa igual al valor recibido
+    $documentoId = null;
+    if (isset($dataBuscar['documents'])) {
+        foreach ($dataBuscar['documents'] as $document) {
+            $fields = $document['fields'];
+            if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $data['noEmpresa']) {
+                $documentoId = basename($document['name']); // Extraemos el ID del documento
+                break;
+            }
+        }
+    }
+
+    // Si se encontró un documento, se actualiza el campo 'claveSae'
+    if ($documentoId !== null) {
+        $urlActualizar = "$urlBase/EMP_USS/$documentoId?key=$firebaseApiKey&updateMask.fieldPaths=claveSae";
+        $updatePayload = [
+            'fields' => [
+                'claveSae' => ['stringValue' => $data['claveSae']]
+            ]
+        ];
+        $updateOptions = [
+            'http' => [
+                'method' => 'PATCH',
+                'header' => "Content-Type: application/json\r\n",
+                'content' => json_encode($updatePayload)
+            ]
+        ];
+        $updateContext = stream_context_create($updateOptions);
+        $updateResponse = @file_get_contents($urlActualizar, false, $updateContext);
+        // Se puede manejar el error o continuar según lo requiera la lógica
+        if ($updateResponse === false) {
+            // Opcionalmente podrías retornar o registrar el error
+        }
+    }
+
+    // Crear un nuevo documento en la colección CONEXIONES
+    $urlCrear = "$urlBase/CONEXIONES?key=$firebaseApiKey";
     $payload = [
         'fields' => [
-            'host' => ['stringValue' => $data['host']],
-            'puerto' => ['stringValue' => $data['puerto']],
-            'usuario' => ['stringValue' => $data['usuarioSae']],
-            'password' => ['stringValue' => $data['password']],
+            'host'       => ['stringValue' => $data['host']],
+            'puerto'     => ['stringValue' => $data['puerto']],
+            'usuario'    => ['stringValue' => $data['usuarioSae']],
+            'password'   => ['stringValue' => $data['password']],
             'nombreBase' => ['stringValue' => $data['nombreBase']],
-            'noEmpresa' => ['stringValue' => $data['noEmpresa']],
-            'claveSae' => ['stringValue' => $data['claveSae']],
+            'noEmpresa'  => ['stringValue' => $data['noEmpresa']],
+            'claveSae'   => ['stringValue' => $data['claveSae']],
         ],
     ];
 
-    // Configuración de la solicitud HTTP POST
-    $options = [
+    $createOptions = [
         'http' => [
             'header' => "Content-Type: application/json\r\n",
             'method' => 'POST',
@@ -125,27 +299,26 @@ function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
         ],
     ];
 
-    // Enviar solicitud a Firestore
-    $context = stream_context_create($options);
-    $result = file_get_contents($url, false, $context);
-
-    // Si hay un error en la solicitud
-    if ($result === FALSE) {
+    $createContext = stream_context_create($createOptions);
+    $createResponse = file_get_contents($urlCrear, false, $createContext);
+    if ($createResponse === false) {
         return ['success' => false, 'message' => 'Error al guardar en Firebase'];
     }
 
-    // Decodificar la respuesta JSON
-    $firebaseResponse = json_decode($result, true);
-    
-    // Extraer el ID del documento generado
+    // Decodificar la respuesta y extraer el ID del nuevo documento
+    $firebaseResponse = json_decode($createResponse, true);
     if (isset($firebaseResponse['name'])) {
         $nameParts = explode("/", $firebaseResponse['name']);
-        $documentId = end($nameParts); // Obtener el último elemento que es el ID del documento
+        $documentIdNuevo = end($nameParts); // Se extrae el último elemento que es el ID
     } else {
         return ['success' => false, 'message' => 'No se pudo obtener el ID del documento'];
     }
 
-    return ['success' => true, 'message' => 'Datos guardados exitosamente en Firebase', 'idDocumento' => $documentId];
+    return [
+        'success'    => true,
+        'message'    => 'Datos guardados exitosamente en Firebase',
+        'idDocumento'=> $documentIdNuevo
+    ];
 }
 
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
@@ -168,7 +341,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if ($fields['noEmpresa']['stringValue'] === $noEmpresa && $fields['claveSae']['stringValue'] === $claveSae) {
+        if ($fields['claveSae']['stringValue'] === $claveSae && $fields['claveSae']['stringValue'] === $claveSae) {
             // Extrae solo el ID del documento desde la URL
             $documentId = basename($document['name']);  // Esto da solo el ID del documento
 
@@ -193,7 +366,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
 function verificarConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
-    
+
     $context = stream_context_create([
         'http' => [
             'method' => 'GET',
@@ -238,14 +411,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'verificar':
             // Decodificar el JSON recibido
             $input = json_decode(file_get_contents('php://input'), true);
-        
+
             if (isset($input['claveSae'])) {
                 $claveSae = $input['claveSae'];
                 verificarConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
             } else {
                 echo json_encode(['success' => false, 'message' => 'No se recibió el número de empresa']);
             }
-            break;        
+            break;
         case 'probar':
             $data = [
                 'host' => $input['host'],
@@ -269,34 +442,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'noEmpresa' => $input['noEmpresa'],
                 'claveSae' => $input['claveSae']
             ];
+            
             $idDocumento = $input['idDocumento'];
             $idDocumento = trim($idDocumento);
             $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
             if ($resultadoConexion['success']) {
+                ob_clean();
                 $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento);
+                //echo json_encode($resultadoGuardar);
+                return;
+            } else {
+                echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
+                return;
+            }
+            break;
+        case 'guardarNew':
+            $data = [
+                'host' => $input['host'],
+                'puerto' => $input['puerto'],
+                'usuarioSae' => $input['usuarioSae'],
+                'password' => $input['password'],
+                'nombreBase' => $input['nombreBase'],
+                'noEmpresa' => $input['noEmpresa'],
+                'claveSae' => $input['claveSae']
+            ];
+            $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
+            if ($resultadoConexion['success']) {
+                $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey);
                 echo json_encode($resultadoGuardar);
             } else {
                 echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
             }
             break;
-            case 'guardarNew':
-                $data = [
-                    'host' => $input['host'],
-                    'puerto' => $input['puerto'],
-                    'usuarioSae' => $input['usuarioSae'],
-                    'password' => $input['password'],
-                    'nombreBase' => $input['nombreBase'],
-                    'noEmpresa' => $input['noEmpresa'],
-                    'claveSae' => $input['claveSae']
-                ];
-                $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
-                if ($resultadoConexion['success']) {
-                    $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey);
-                    echo json_encode($resultadoGuardar);
-                } else {
-                    echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
-                }
-                break;
 
         case 'mostrar':
             $noEmpresa = $input['noEmpresa'];

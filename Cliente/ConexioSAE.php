@@ -146,19 +146,6 @@ session_destroy(); */
 
   <!-- JS Para la confirmacion empresa -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    const numeroEmpresa = '<?php echo $noEmpresa ?>'; // Este número debería ser el que obtienes de la sesión o base de datos.
-    const inputNombreBase = document.getElementById('nombreBase');
-    inputNombreBase.addEventListener('blur', function() {
-      if (this.value.trim() !== '') {
-        const claveSae = document.getElementById('claveSae').value;
-        // Verifica si el número de empresa ya está al final
-        if (!this.value.endsWith(claveSae)) {
-          this.value = this.value + claveSae; // Agrega el número de empresa al final
-        }
-      }
-    });
-  </script>
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
   <script src="JS/script.js"></script>

@@ -1044,10 +1044,11 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
     $clave = $claveArray[0];
     $CVE_CLPV = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    $FECHA_CANCELA = "";
     // Crear la consulta SQL para insertar los datos en la base de datos
     $sql = "INSERT INTO $nombreTabla
     (TIP_DOC, CVE_DOC, CVE_CLPV, STATUS, DAT_MOSTR,
-    CVE_VEND, CVE_PEDI, FECHA_DOC, FECHA_ENT, FECHA_VEN, FECHA_CANCELA, CAN_TOT,
+    CVE_VEND, CVE_PEDI, FECHA_DOC, FECHA_ENT, FECHA_VEN, CAN_TOT,
     IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4, IMP_TOT5, IMP_TOT6, IMP_TOT7, IMP_TOT8,
     DES_TOT, DES_FIN, COM_TOT, CONDICION, CVE_OBS, NUM_ALMA, ACT_CXC, ACT_COI, ENLAZADO,
     TIP_DOC_E, NUM_MONED, TIPCAMB, NUM_PAGOS, FECHAELAB, PRIMERPAGO, RFC, CTLPOL, ESCFD, AUTORIZA,
@@ -1057,7 +1058,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     ) 
     VALUES 
     ('P', ?, ?, ?, 0, 
-    ?, '', ?, ?, ?, '', ?,
+    ?, '', ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?, 'S', 'N', ?,
     ?, 1, 1, 1, ?, 0, ?, 0, 'N', 1,
@@ -1066,14 +1067,8 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     '', ?, ?, '', '', ?)";
     // Preparar los parámetros para la consulta
     $params = [
-        $CVE_DOC,
-        $CVE_CLPV,
-        $estatus,
-        $CVE_VEND,
-        $FECHA_DOC,
-        $FECHA_ENT,
-        $FECHA_DOC,
-        $CAN_TOT,
+        $CVE_DOC, $CVE_CLPV, $estatus,
+        $CVE_VEND, $FECHA_DOC, $FECHA_ENT, $FECHA_DOC, $CAN_TOT,
         $IMP_TOT1,
         $IMP_TOT2,
         $IMP_TOT3,
@@ -1457,7 +1452,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         sqlsrv_free_stmt($stmtProducto);
     }
 
-    $fechaElaboracion = $formularioData['diaAlta'];
+    $fechaElaboracion = $formularioData['fechaAlta'];
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
@@ -1466,10 +1461,12 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
+    //$emailPred = 'desarrollo01@mdcloud.mx';
+    $emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527773340218';
     if ($correo === 'S' && !empty($emailPred)) {
-        $numeroWhatsApp = '+527773750925';
+        //$numeroWhatsApp = '+527773750925';
+        $numeroWhatsApp = "+527775681612";
         //$numeroWhatsApp = '+527773340218';
         //$numeroWhatsApp = '+527773340218';
         //$emailPred = 'desarrollo01@mdcloud.mx';
@@ -1529,8 +1526,6 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
         return;
     }
 
-
-
     // Obtener datos del cliente desde la base de datos
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT NOMBRE, TELEFONO FROM $nombreTabla WHERE [CLAVE] = ?";
@@ -1550,8 +1545,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "7773750925";
-    $numero = "+527773750925";
+    $numero = "7775681612";
+    //$numero = "+527773750925";
     //$numero = "+527773340218";
 
     // Obtener descripciones de los productos
@@ -3568,7 +3563,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
         'cliente'    => ['stringValue' => $formularioData['cliente']],
         'enviar'     => ['stringValue' => isset($formularioData['enviar']) ? $formularioData['enviar'] : ''],
         'vendedor'   => ['stringValue' => isset($formularioData['vendedor']) ? $formularioData['vendedor'] : ''],
-        'diaAlta'    => ['stringValue' => isset($formularioData['diaAlta']) ? $formularioData['diaAlta'] : ''],
+        'diaAlta'    => ['stringValue' => isset($formularioData['fechaAlta']) ? $formularioData['fechaAlta'] : ''],
         //'partidas'   => ['stringValue' => json_encode($partidasData)], // Guardamos las partidas como JSON
         "partidas" => [
             "arrayValue" => [

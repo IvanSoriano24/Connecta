@@ -218,6 +218,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function pagarPedido() {
+  const fechaActual = new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";
+
     try {
       // 1️⃣ Mostrar un mensaje de carga
       Swal.fire({
@@ -231,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   
       // 2️⃣ Obtener los datos completos del pedido
-      const datosPedido = await obtenerDatosPedido();
+      const datosPedido = await obtenerDatosPedido(fechaActual);
       if (!datosPedido) {
         Swal.fire({
           title: "Error",
@@ -365,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }  
-  async function obtenerDatosPedido() {
+  async function obtenerDatosPedido(fechaActual) {
     // 1️⃣ Obtener los datos del cliente
     const datosCliente = await obtenerDatosClienteCarro();
     if (!datosCliente) {
@@ -374,13 +376,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 2️⃣ Obtener la fecha actual en formato SQL
-    const fechaActual = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const fecha = `${now.getFullYear()}-${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
+      now.getHours()
+    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
+      now.getSeconds()
+    ).padStart(2, "0")}`;
 
     // 3️⃣ Obtener el nuevo folio
     const nuevoFolio = await obtenerFolioSiguiente();
 
     // 4️⃣ Fusionar datos del cliente con los datos del pedido
     return {
+      fechaAlta: fecha, // Fecha y hora
       numero: nuevoFolio,
       diaAlta: fechaActual,
       almacen: "1", // Definir un almacén por defecto

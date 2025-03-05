@@ -369,11 +369,11 @@ function informaSae() {
           "Error:",
           response.message || "Error al obtener la conexión."
         );
-        Swal.fire({
+        /*Swal.fire({
           title: "Eror",
           text: response.message,
           icon: "error",
-        });
+        });*/
         //alert(response.message || 'Error al obtener la conexión.');
       }
     },
