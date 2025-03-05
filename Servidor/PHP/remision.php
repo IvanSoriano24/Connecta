@@ -1044,7 +1044,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae)
     }
 
     // ✅ 3. Definir valores constantes y calcular datos
-    $fechaDoc = date('Y-m-d') . ' 00.00.00.000';
+    $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
     $tipDoc = 'R';
     $status = 'O';
     $datMostr = 0;
@@ -1309,7 +1309,7 @@ function actualizarInve4($conexionData, $pedidoId, $claveSae)
         'message' => "INVEXX y CLIEXX actualizados correctamente para el pedido $pedidoId"
     ]);*/
 }
-function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae){
+function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1328,15 +1328,21 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae){
         ]);
         die();
     }
-    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); 
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
+    
     // Tablas dinámicas
-    $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    /*$cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);*/
+    
+    // ✅ 1. Convertir `$enlace` en un array asociativo con `CVE_ART` como clave
+    $enlaceMap = [];
+    foreach ($enlace as $lote) {
+        $enlaceMap[trim($lote['CVE_ART'])] = $lote['E_LTPD'];
+    }
+
     // ✅ 2. Obtener las partidas del pedido (`PAR_FACTPXX`)
     $sqlPartidas = "SELECT NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
                            IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, 
@@ -1378,8 +1384,11 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae){
 
     // ✅ 4. Insertar cada partida en `PAR_FACTRXX`
     while ($row = sqlsrv_fetch_array($stmtPartidas, SQLSRV_FETCH_ASSOC)) {
-        $TOT_PARTIDA = 0;
         $TOT_PARTIDA = $row['CANT'] * $row['PREC'];
+
+        // **Buscar `E_LTPD` en `$enlaceMap`, si no existe, usar el valor original de `$row['E_LTPD']`**
+        $eLtpd = isset($enlaceMap[trim($row['CVE_ART'])]) ? $enlaceMap[trim($row['CVE_ART'])] : $row['E_LTPD'];
+
         $sqlInsert = "INSERT INTO $tablaPartidasRemision 
             (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
             IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, DESC1, 
@@ -1397,12 +1406,11 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae){
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?)";
 
-
         $paramsInsert = [
             $cveDoc, $row['NUM_PAR'], $row['CVE_ART'], $row['CANT'], $row['PXS'], $row['PREC'], $row['COST'], $row['IMPU1'], $row['IMPU2'], $row['IMPU3'], $row['IMPU4'],
             $row['IMP1APLA'], $row['IMP2APLA'], $row['IMP3APLA'], $row['IMP4APLA'], $row['TOTIMP1'], $row['TOTIMP2'], $row['TOTIMP3'], $row['TOTIMP4'], $row['DESC1'],
             $row['DESC2'], $row['DESC3'], $row['COMI'], $row['APAR'], 'S', $row['NUM_ALM'], $row['POLIT_APLI'], $row['TIP_CAM'], $row['UNI_VENTA'],
-            $row['TIPO_PROD'], $row['TIPO_ELEM'], $row['CVE_OBS'], $row['REG_SERIE'], $row['E_LTPD'], $numMov, $TOT_PARTIDA, $row['IMPRIMIR'], $row['MAN_IEPS'],
+            $row['TIPO_PROD'], $row['TIPO_ELEM'], $row['CVE_OBS'], $row['REG_SERIE'], $eLtpd, $numMov, $TOT_PARTIDA, $row['IMPRIMIR'], $row['MAN_IEPS'],
             1, 0, 'C', $row['MTO_PORC'], $row['MTO_CUOTA'], $row['CVE_ESQ'], $fechaSinc,
             $row['IMPU5'], $row['IMPU6'], $row['IMPU7'], $row['IMPU8'], $row['IMP5APLA'], $row['IMP6APLA'], $row['IMP7APLA'], $row['IMP8APLA'], $row['TOTIMP5'],
             $row['TOTIMP6'], $row['TOTIMP7'], $row['TOTIMP8']
@@ -1421,11 +1429,6 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae){
     }
 
     sqlsrv_close($conn);
-
-    /*echo json_encode([
-        'success' => true,
-        'message' => "PAR_FACTRXX insertado correctamente para la remisión $cveDoc"
-    ]);*/
 }
 function insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae){
     $serverName = $conexionData['host'];
@@ -2413,8 +2416,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarControl5($conexionData, $claveSae);
     actualizarInve($conexionData, $pedidoId, $claveSae);
 
-    validarLotes($conexionData, $pedidoId, $claveSae);
-
+    $enlace = validarLotes($conexionData, $pedidoId, $claveSae);
+    
     insertarMimve($conexionData, $pedidoId, $claveSae);
     actualizarInve2($conexionData, $pedidoId, $claveSae);
     actualizarInve3($conexionData, $pedidoId, $claveSae); 
@@ -2428,7 +2431,7 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     insertarFactr_Clib($conexionData, $cveDoc, $claveSae);
     actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarInve4($conexionData, $pedidoId, $claveSae);
-    insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae);
+    insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace);
     actualizarFactp($conexionData, $pedidoId, $claveSae);
     actualizarFactp2($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarFactp3($conexionData, $pedidoId, $claveSae);
@@ -2534,7 +2537,7 @@ function actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto,
     }
 }
 // ✅ 4. Insertar en ENLACE_LTPD
-function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae)
+function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto)
 {
     $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $enlaceLTPDResultados = [];
@@ -2567,7 +2570,8 @@ function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae)
             'E_LTPD' => $nuevoELTPD,
             'REG_LTPD' => $lote['REG_LTPD'],
             'CANTIDAD' => $lote['CANTIDAD'],
-            'PXRS' => $lote['CANTIDAD']
+            'PXRS' => $lote['CANTIDAD'],
+            'CVE_ART' => $claveProducto
         ];
     }
 
@@ -2608,7 +2612,8 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
             $lotesUtilizados[] = [
                 'REG_LTPD' => $lote['REG_LTPD'],
                 'CANTIDAD' => $usarCantidad,
-                'LOTE' => $lote['LOTE']
+                'LOTE' => $lote['LOTE'],
+                'CVE_ART' => $claveProducto
             ];
         }
 
@@ -2618,15 +2623,14 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
         }
 
         actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto, $claveSae);
-        $enlaceLTPDResultados = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae);
+        $enlaceLTPDResultados = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto);
+//        var_dump($enlaceLTPDResultados);
     }
 
     sqlsrv_commit($conn);
     sqlsrv_close($conn);
 
-    return json_encode([
-        'success' => true
-    ]);
+    return $enlaceLTPDResultados;
 }
 function notificarVenderdor($conexionData) {}
 /*-------------------------------------------------------------------------------------------------------------------*/

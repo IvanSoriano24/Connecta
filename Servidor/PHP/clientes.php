@@ -43,7 +43,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
 }
 
 // Función para conectar a SQL Server y obtener los datos de clientes
-function mostrarClientes($conexionData)
+function mostrarClientes($conexionData, $claveSae)
 {
     try {
         //session_start();
@@ -80,7 +80,7 @@ function mostrarClientes($conexionData)
         }
 
         // Construir el nombre de la tabla dinámicamente usando el número de empresa
-        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         // Construir la consulta SQL
         if ($tipoUsuario === 'ADMINISTRADOR') {
             // Si el usuario es administrador, mostrar todos los clientes
@@ -424,14 +424,15 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        mostrarClientes($conexionData);
+        mostrarClientes($conexionData, $claveSae);
         break;
     case 2: // 
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -458,7 +459,8 @@ switch ($funcion) {
             exit;
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
 
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);

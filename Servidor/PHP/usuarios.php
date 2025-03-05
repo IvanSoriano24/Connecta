@@ -1288,7 +1288,6 @@ switch ($funcion) {
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
         $claveUsuario = $_GET['claveUsuario'];
-       
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);

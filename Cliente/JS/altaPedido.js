@@ -509,7 +509,6 @@ function obtenerDatosFormulario() {
     almacen: document.getElementById("almacen").value,
     destinatario: document.getElementById("destinatario").value,
   };
-  alert(diaAlta);
   return formularioData;
 }
 function obtenerDatosPartidas() {

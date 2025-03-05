@@ -70,7 +70,6 @@ function obtenerDatosCliente($conexionData, $claveCliente, $claveSae, $claveVend
     $nombreTablaCliente = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sqlCliente = "SELECT NOMBRE FROM $nombreTablaCliente WHERE CLAVE = ?";
     $stmtCliente = sqlsrv_query($conn, $sqlCliente, [$clave]);
-
     if ($stmtCliente === false) {
         sqlsrv_close($conn);
         die(json_encode(['success' => false, 'message' => 'Error al obtener datos del cliente', 'errors' => sqlsrv_errors()]));
@@ -287,7 +286,7 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
     exit;
 }*/
 
-function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus)
+function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionData)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
 
@@ -307,21 +306,17 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus)
 
     $data = json_decode($response, true);
     $pedidos = [];
-
+    $claveSae = $_SESSION['empresa']['claveSae'];
     if (isset($data['documents'])) {
         foreach ($data['documents'] as $document) {
             $fields = $document['fields'];
             $status = $fields['status']['stringValue'] ?? 'Desconocido';
 
             // Validaciones necesarias
-            $claveSae = $fields['claveSae']['stringValue'] ?? '';
+            //$claveSae = $fields['claveSae']['stringValue'] ?? '';
             $noEmpresa = $fields['noEmpresa']['stringValue'] ?? '';
             $claveCliente = $fields['cliente']['stringValue'] ?? '';
             $claveVendedor = $fields['vendedor']['stringValue'] ?? '';
-
-            // Obtener datos de conexión
-            $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
-            $conexionData = $conexionResult['data'] ?? null;
 
             // Aplicar el filtro de estado si está definido
             if ($filtroStatus === '' || $status === $filtroStatus) {
@@ -350,7 +345,7 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                     'enviar' => $fields['enviar']['stringValue'] ?? 'N/A',
                     'vendedor' => $vendedorNombre,
                     'diaAlta' => $fields['diaAlta']['stringValue'] ?? 'N/A',
-                    'claveSae' => $claveSae,
+                    'claveSae' => $fields['claveSae']['stringValue'] ?? 'N/A',
                     'noEmpresa' => $noEmpresa,
                     'status' => $status,
                     'totalPedido' => number_format($totalPedido, 2, '.', ''), // 🔹 Total formateado con 2 decimales
@@ -717,8 +712,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    // $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -1036,8 +1031,18 @@ switch ($funcion) {
             notificaciones($firebaseProjectId, $firebaseApiKey);
             break;*/
     case 5:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        // Obtener datos de conexión
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
         $filtroStatus = $_GET['status'] ?? ''; // Obtener el filtro desde la solicitud
-        pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus);
+        pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionData);
         break;
     case 6:
         $pedidoId = $_GET['pedidoId'];

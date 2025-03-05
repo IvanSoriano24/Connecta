@@ -539,13 +539,13 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
     $FECHA_DOC = $formularioData['diaAlta'];
     $FECHA_ENT = $formularioData['entrega'];
 
-    $CAN_TOT = 0;
+    $SUBTOTAL = 0;
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
     $descuentoCliente = $formularioData['descuento']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['cantidad']; // Sumar cantidades totales
+        $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
         $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
     }
 
@@ -557,9 +557,9 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
     }
 
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
-    $IMP_TOT4 = $CAN_TOT * 0.16;
+    $IMP_TOT4 = $SUBTOTAL * 0.16;
     $CONDICION = $formularioData['condicion'];
-
+    $IMPORTE = $IMPORTE + $IMP_TOT4;
     // Crear la consulta SQL para actualizar el pedido
     $sql = "UPDATE $nombreTabla SET 
         FECHA_DOC = ?, 
@@ -991,29 +991,54 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $FECHA_DOC = $formularioData['diaAlta']; // Fecha del documento
     $FECHA_ENT = $formularioData['entrega'];
     // Sumar los totales de las partidas
-    $CAN_TOT = 0;
+    $SUBTOTAL = 0;
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
     $descuentoCliente = $formularioData['descuento']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
-    foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['cantidad']; // Sumar cantidades totales
+    /*foreach ($partidasData as $partida) {
+        $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
         $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
     }
+    $IMPORT = $IMPORTE;
+    foreach ($partidasData as $partida) {
+        // Aplicar descuento
+        if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
+            $DES_TOT = $IMPORT - ($IMPORT * ($descuentoCliente / 100) * ($partida['descuento'] / 100)); // Aplicar porcentaje de descuento
+        } else {
+            $DES_TOT = $IMPORT - ($IMPORT * ($partida['descuento'] / 100)); // Si no hay descuento, el total queda igual al importe
+        }
+    }*/
+    $IMPORTE = $IMPORTE; // Mantener el importe original
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
 
-    // Aplicar descuento
-    if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
-        $DES_TOT = $IMPORTE - ($IMPORTE * ($descuentoCliente / 100)); // Aplicar porcentaje de descuento
-    } else {
-        $DES_TOT = $IMPORTE; // Si no hay descuento, el total queda igual al importe
+    foreach ($partidasData as $partida) {
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+        $descTotal = $descuentoCliente ?? 0; // Descuento global del cliente
+
+        // **Aplicar los descuentos en cascada**
+        $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($descTotal / 100));
+
+        // **Calcular subtotal de la partida**
+        $subtotalPartida = $precioUnitario * $cantidad;
+
+        // **Sumar el descuento aplicado a la partida**
+        $totalDescuentos += ($precioUnitario - $precioConDescuento) * $cantidad;
     }
+
+    // **Aplicar los descuentos acumulados al importe**
+    $DES_TOT = $IMPORTE - $totalDescuentos;
 
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
     $IMP_TOT1 = 0;
     $IMP_TOT2 = 0;
     $IMP_TOT3 = 0;
-    $IMP_TOT4 = $CAN_TOT * .16;
+    $IMP_TOT4 = $IMPORTE * .16;
+    $IMPORTE = $IMPORTE + $IMP_TOT4;
     $IMP_TOT5 = 0;
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;
@@ -1067,8 +1092,14 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     '', ?, ?, '', '', ?)";
     // Preparar los parámetros para la consulta
     $params = [
-        $CVE_DOC, $CVE_CLPV, $estatus,
-        $CVE_VEND, $FECHA_DOC, $FECHA_ENT, $FECHA_DOC, $CAN_TOT,
+        $CVE_DOC,
+        $CVE_CLPV,
+        $estatus,
+        $CVE_VEND,
+        $FECHA_DOC,
+        $FECHA_ENT,
+        $FECHA_DOC,
+        $SUBTOTAL,
         $IMP_TOT1,
         $IMP_TOT2,
         $IMP_TOT3,
@@ -1358,7 +1389,7 @@ function actualizarInventario($conexionData, $partidasData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerFolioSiguiente($conexionData)
+function obtenerFolioSiguiente($conexionData, $claveSae)
 {
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
@@ -1373,8 +1404,9 @@ function obtenerFolioSiguiente($conexionData)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta SQL para obtener el siguiente folio
-    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente FROM FOLIOSF02 WHERE TIP_DOC = 'P'";
+    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente FROM $nombreTabla WHERE TIP_DOC = 'P'";
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
@@ -1545,8 +1577,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "7775681612";
-    //$numero = "+527773750925";
+    //$numero = "7775681612";
+    $numero = "+527773750925";
     //$numero = "+527773340218";
 
     // Obtener descripciones de los productos
@@ -3707,7 +3739,7 @@ switch ($funcion) {
 
         if ($accion === 'obtenerFolioSiguiente') {
             // Obtener el siguiente folio
-            $folioSiguiente = obtenerFolioSiguiente($conexionData);
+            $folioSiguiente = obtenerFolioSiguiente($conexionData, $claveSae);
             if ($folioSiguiente !== null) {
                 echo json_encode(['success' => true, 'folioSiguiente' => $folioSiguiente]);
             } else {
