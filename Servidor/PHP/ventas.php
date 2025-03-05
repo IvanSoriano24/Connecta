@@ -40,7 +40,8 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
                     'puerto' => $fields['puerto']['stringValue'],
                     'usuario' => $fields['usuario']['stringValue'],
                     'password' => $fields['password']['stringValue'],
-                    'nombreBase' => $fields['nombreBase']['stringValue']
+                    'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'claveSae' => $fields['claveSae']['stringValue'],
                 ]
             ];
         }
@@ -1574,7 +1575,7 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527773750925";
+    $numero = "+527775681612";
     //$numero = "+527773340218";
     //$numero = '+527773340218';
     // Obtener descripciones de los productos
@@ -1620,7 +1621,7 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     $problemas = [];
 
     if ($validarSaldo == 1) {
-        $problemas[] = "• Saldo Vendido";
+        $problemas[] = "• Saldo Vencido";
     }
     if ($credito == 1) {
         $problemas[] = "• Crédito Excedido";
@@ -2632,10 +2633,10 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
             i.CVE_ESQIMPU,
             i.CVE_UNIDAD,
             pr.PRECIO -- 📌 Se une el precio del producto
-        FROM [SAE90Empre02].[dbo].[PAR_FACTF02] p
-        INNER JOIN [SAE90Empre02].[dbo].[FACTF02] f ON p.CVE_DOC = f.CVE_DOC
-        INNER JOIN [SAE90Empre02].[dbo].[INVE02] i ON p.CVE_ART = i.CVE_ART
-        LEFT JOIN [SAE90Empre02].[dbo].[PRECIO_X_PROD02] pr 
+        FROM [mdc_sae01].[dbo].[PAR_FACTF01] p
+        INNER JOIN [mdc_sae01].[dbo].[FACTF01] f ON p.CVE_DOC = f.CVE_DOC
+        INNER JOIN [mdc_sae01].[dbo].[INVE01] i ON p.CVE_ART = i.CVE_ART
+        LEFT JOIN [mdc_sae01].[dbo].[PRECIO_X_PROD01] pr 
             ON i.CVE_ART = pr.CVE_ART 
             AND pr.CVE_PRECIO = ?  -- 📌 Se filtra por LISTA_PREC
         WHERE f.CVE_CLPV = ?
@@ -2645,6 +2646,79 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
     ";
 
     $params = [$listaPrecioCliente, $claveCliente]; // Parámetros para filtrar por LISTA_PREC y cliente
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // 📌 Obtener todas las imágenes de Firebase en un solo lote
+    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app";
+    $imagenesPorArticulo = listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket);
+
+    $productos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $cveArt = $row['CVE_ART'];
+
+        // 📌 Asignar las imágenes correspondientes al producto
+        $row['IMAGEN_ML'] = $imagenesPorArticulo[$cveArt] ?? []; // Si no hay imágenes, asignar un array vacío
+
+        // 📌 Validar si el precio es null, asignar un precio predeterminado
+        $row['PRECIO'] = $row['PRECIO'] ?? 0.00;
+
+        $productos[] = $row;
+    }
+
+    if (count($productos) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'productos' => $productos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function extraerProductosImagenes($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
+    if ($tipoUsuario === "ADMINISTRADOR") {
+        $claveCliente = 3;
+    } else {
+        $claveCliente = $_SESSION['usuario']['claveUsuario']; // Clave del cliente
+    }
+
+    // 📌 Consulta para obtener los productos más vendidos del cliente con su precio
+    $sql = "
+        SELECT 
+        i.[CVE_ART], 
+        i.[DESCR], 
+        i.[EXIST], 
+        i.[LIN_PROD], 
+        i.[UNI_MED],
+        i.[APART],
+        i.[CVE_ESQIMPU],
+        i.[CVE_UNIDAD]
+    FROM [mdc_sae01].[dbo].[INVE01] i
+    WHERE i.[EXIST] > 0
+    ";
+
+    $params = [$claveCliente]; // Parámetros para filtrar por LISTA_PREC y cliente
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
@@ -2708,8 +2782,8 @@ function extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente
         i.[CVE_ESQIMPU],
         i.[CVE_UNIDAD],
         p.[PRECIO] -- Se une el precio del producto
-    FROM [SAE90Empre02].[dbo].[INVE02] i
-    LEFT JOIN [SAE90Empre02].[dbo].[PRECIO_X_PROD02] p 
+    FROM [mdc_sae01].[dbo].[INVE01] i
+    LEFT JOIN [mdc_sae01].[dbo].[PRECIO_X_PROD01] p 
         ON i.[CVE_ART] = p.[CVE_ART] 
         AND p.[CVE_PRECIO] = ? WHERE i.[EXIST] > 0";
 
@@ -4151,7 +4225,7 @@ switch ($funcion) {
         break;
     case 17:
         $noEmpresa = "";
-        $claveSae = "02";
+        $claveSae = "01";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];
@@ -4159,7 +4233,7 @@ switch ($funcion) {
         break;
     case 18:
         $noEmpresa = "";
-        $claveSae = "02";
+        $claveSae = "01";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];
@@ -4238,39 +4312,12 @@ switch ($funcion) {
         }
         break;
     case 20:
-        /*$pedidoId = $_GET['noPedido'];
-        $accion = $_GET['accion'];
-        $nombreCliente = urldecode($_GET['clienteNombre']);
-        $vendedor = urldecode($_GET['vendedor']);
-        $claveSae = $_GET['claveSae'];
-        $noEmpresa = $_GET['noEmpresa'];
-        $numeroTelefono = $_GET['numeroTelefono'];
-        $formularioData= $_GET['pedido'];
-        $partidasData= $_GET['productos'];
+        $noEmpresa = "";
+        $claveSae = "01";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
-
-        if($accion == 'autorizar'){
-            $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-            validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
-        //exit;
-        
-        // Respuesta de éxito
-        header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode([
-            'success' => true,
-            'autorizacion' => false,
-            'message' => 'El pedido se completó correctamente.',
-        ]);
-        }else if($accion == 'rechazar'){
-            enviarRechazoWhatsApp($numeroTelefono, $pedidoId, $nombreCliente);
-            exit;
-        }else{ 
-            echo json_encode([
-                'success' => false,
-                'message' => 'No se recibio una accion.',
-            ]);
-        }
-        break;*/
+        $conexionData = $conexionResult['data'];
+        extraerProductosImagenes($conexionData, $claveSae);
+        break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;

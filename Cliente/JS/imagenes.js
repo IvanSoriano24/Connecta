@@ -1,5 +1,5 @@
 function cargarArticulosConImagenes() {
-    const numFuncion = 17; // Identificador de la función en PHP
+    const numFuncion = 20; // Identificador de la función en PHP
     const xhr = new XMLHttpRequest();
 
     xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
