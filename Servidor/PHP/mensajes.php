@@ -701,7 +701,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     /*$correoRemitente = "";
     $contraseñaRemitente = "";*/
     // Definir el correo de destino (puedes cambiarlo si es necesario)
-    $correoDestino = 'desarrollo01@mdcloud.mx';
+    //$correoDestino = 'desarrollo01@mdcloud.mx';
+    $correoDestino = $correo;
     //$correoDestino = 'ivan.soriano@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión

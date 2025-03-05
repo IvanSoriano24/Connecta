@@ -35,7 +35,8 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
                     'puerto' => $fields['puerto']['stringValue'],
                     'usuario' => $fields['usuario']['stringValue'],
                     'password' => $fields['password']['stringValue'],
-                    'nombreBase' => $fields['nombreBase']['stringValue']
+                    'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'claveSae' => $fields['claveSae']['stringValue']
                 ]
             ];
         }
@@ -1011,7 +1012,7 @@ function obtenerDatosVendedor($claveUsuario, $conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontró el vendedor.']);
     }
 }
-function obtenerClientes($conexionData, $noEmpresa){
+function obtenerClientes($conexionData, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1026,14 +1027,14 @@ function obtenerClientes($conexionData, $noEmpresa){
         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    //$nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND02]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "
     SELECT 
         CLAVE AS clave, 
         NOMBRE AS nombre,
         EMAILPRED AS correo,    -- Asegúrate de que existe este campo en la BD
         TELEFONO AS telefono -- Asegúrate de que existe este campo en la BD
-    FROM [SAE90Empre02].[dbo].[CLIE02]
+    FROM $nombreTabla
     WHERE STATUS = 'A' AND CLASIFIC LIKE '%E%' -- Cambiar la clasificacion a E
     ";
 
@@ -1302,15 +1303,15 @@ switch ($funcion) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
         }
-        $noEmpresa = "02";
-        $claveSae = "02";
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
         }
         $conexionData = $conexionResult['data'];
-        obtenerClientes($conexionData, $noEmpresa);
+        obtenerClientes($conexionData, $claveSae);
         break;
     case 16:
         $claveCliente = $_POST['claveCliente'];

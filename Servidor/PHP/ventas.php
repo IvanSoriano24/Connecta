@@ -1062,7 +1062,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $USO_CFDI = $datosCliente['USO_CFDI'];
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
-    $TIP_DOC_E = 0; ////
+    $TIP_DOC_E = 'O'; ////
     $DES_TOT_PORC = $formularioData['descuento'];; ////
     $COM_TOT_PORC = 0; ////
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
