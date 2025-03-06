@@ -252,17 +252,28 @@ function guardarConexionSAE() {
     success: function (response) {
       console.log("Respuesta del servidor:", response); // Verifica lo que devuelve el servidor
       if (response.success) {
-        alert("Conexión actualizada correctamente.");
+        Swal.fire({
+          title: "¡Éxito!",
+          text: "Conexion actualizada.",
+          icon: "success",
+        });
       } else {
-        alert("Error: " + response.message);
+        Swal.fire({
+          icon: "warning",
+          title: "Campos faltantes",
+          text: "Error " + response.message,
+        });
       }
     },
     error: function (xhr, status, error) {
       console.error("Error:", xhr.responseText); // Mostrar respuesta completa para debug
-      alert("Error al conectar con el servidor: " + error);
+      Swal.fire({
+        icon: "warning",
+        title: "Campos faltantes",
+        text: "Error " + error,
+      });
     },
   });
-  alert("Realizando Cambios");
 }
 function guardarConexionSAENew() {
   const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");

@@ -12,7 +12,7 @@ if (isset($_SESSION['usuario']) && isset($_SESSION['empresa']['razonSocial'])) {
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
     $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
-		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+    $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
   }
 } else {
   header('Location:../crearConexionSae.php');
@@ -100,7 +100,7 @@ session_destroy(); */
                 <label for="txt">Password:</label>
                 <input class="input-mt" type="password" name="password" id="password">
                 <div class="password-container">
-                  <button type="button" class="show-password">Mostrar</button>
+                  <button type="button" class="show-password" id="togglePassword">Mostrar</button>
                 </div>
               </div>
               <div class="form-row">
@@ -128,6 +128,17 @@ session_destroy(); */
   <!-- CONTENT -->
 
   <!-- JS Para la confirmacion empresa -->
+  <script>
+    document.getElementById("togglePassword").addEventListener("click", function() {
+      let passwordInput = document.getElementById("password");
+
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+      } else {
+        passwordInput.type = "password";
+      }
+    });
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>

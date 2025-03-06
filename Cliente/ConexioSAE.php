@@ -12,7 +12,7 @@ if (isset($_SESSION['usuario'])) {
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
     $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
-		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+    $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
   }
 } else {
   header('Location:../index.php');
@@ -117,7 +117,7 @@ session_destroy(); */
                 <label for="txt">Password:</label>
                 <input class="input-mt" type="password" name="password" id="password">
                 <div class="password-container">
-                  <!-- <button type="button" class="show-password">Mostrar</button> -->
+                  <button type="button" class="show-password" id="togglePassword">Mostrar</button>
                 </div>
               </div>
               <div class="form-row">
@@ -149,6 +149,17 @@ session_destroy(); */
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
   <script src="JS/script.js"></script>
+  <script>
+    document.getElementById("togglePassword").addEventListener("click", function() {
+      let passwordInput = document.getElementById("password");
+
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+      } else {
+        passwordInput.type = "password";
+      }
+    });
+  </script>
   <script>
     $(document).ready(function() {
       const claveSae = '<?php echo $claveSae ?>';

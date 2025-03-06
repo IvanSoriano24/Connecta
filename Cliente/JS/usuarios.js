@@ -495,13 +495,12 @@ function editarUsuario(idUsuario) {
                 });
               },
             });
-            
-            $(
-              "#usuarioCliente, #contrasenaUsuarioCliente"
-            ).prop("disabled", false);
-            $(
-              "#selectCliente"
-            ).prop("disabled", true);
+
+            $("#usuarioCliente, #contrasenaUsuarioCliente").prop(
+              "disabled",
+              false
+            );
+            $("#selectCliente").prop("disabled", true);
             // Habilitar los campos para edición
             /*$(
               "#claveUsuarioCliente, #usuarioCliente, #nombreUsuarioCliente, #correoUsuarioCliente, #contrasenaUsuarioCliente, #telefonoUsuarioCliente, #idUsuarioCliente, #selectCliente"
@@ -755,7 +754,7 @@ $("#btnGuardarAsociacion").on("click", function () {
             .empty()
             .append('<li class="list-group-item">Sin asociaciones</li>'); // Limpia la lista de empresas asociadas
           $("#asociarEmpresaModal").modal("hide"); // Cerrar el modal
-          //location.reload();
+          location.reload();
         } else {
           Swal.fire({
             icon: "error",
