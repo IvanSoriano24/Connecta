@@ -39,7 +39,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
                     'usuario' => $fields['usuario']['stringValue'],
                     'password' => $fields['password']['stringValue'],
                     'nombreBase' => $fields['nombreBase']['stringValue'],
-                    'claveSae' => $fields['claveSae']['stringValue']
+                    'claveSae' => $fields['claveSae']['stringValue'],
                 ]
             ];
         }
@@ -310,46 +310,49 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
     if (isset($data['documents'])) {
         foreach ($data['documents'] as $document) {
             $fields = $document['fields'];
-            $status = $fields['status']['stringValue'] ?? 'Desconocido';
+            if ($fields['claveSae']['stringValue'] === $claveSae) {
+                $status = $fields['status']['stringValue'] ?? 'Desconocido';
 
-            // Validaciones necesarias
-            //$claveSae = $fields['claveSae']['stringValue'] ?? '';
-            $noEmpresa = $fields['noEmpresa']['stringValue'] ?? '';
-            $claveCliente = $fields['cliente']['stringValue'] ?? '';
-            $claveVendedor = $fields['vendedor']['stringValue'] ?? '';
+                // Validaciones necesarias
+                //$claveSae = $fields['claveSae']['stringValue'] ?? '';
+                $noEmpresa = $fields['noEmpresa']['stringValue'] ?? '';
+                $claveCliente = $fields['cliente']['stringValue'] ?? '';
+                $claveVendedor = $fields['vendedor']['stringValue'] ?? '';
 
-            // Aplicar el filtro de estado si está definido
-            if ($filtroStatus === '' || $status === $filtroStatus) {
-                // Extraer partidas y calcular total
-                $totalPedido = 0;
-                $partidas = $fields['partidas']['arrayValue']['values'] ?? [];
+                // Aplicar el filtro de estado si está definido
+                if ($filtroStatus === '' || $status === $filtroStatus) {
+                    // Extraer partidas y calcular total
+                    $totalPedido = 0;
+                    $partidas = $fields['partidas']['arrayValue']['values'] ?? [];
 
-                foreach ($partidas as $partida) {
-                    if (isset($partida['mapValue']['fields']['subtotal']['stringValue'])) {
-                        $subtotal = floatval($partida['mapValue']['fields']['subtotal']['stringValue']);
-                        $totalPedido += $subtotal;
+                    foreach ($partidas as $partida) {
+                        if (isset($partida['mapValue']['fields']['subtotal']['stringValue'])) {
+                            $subtotal = floatval($partida['mapValue']['fields']['subtotal']['stringValue']);
+                            $totalPedido += $subtotal;
+                        }
                     }
+
+                    // Obtener datos del cliente
+                    $dataCliente = obtenerDatosCliente($conexionData, $claveCliente, $claveSae, $claveVendedor);
+                    $clienteNombre = $dataCliente['cliente'] ?? 'Cliente Desconocido';
+                    $vendedorNombre = $dataCliente['vendedor'] ?? 'Vendedor Desconocido';
+
+
+                    // Formatear datos correctamente
+                    $pedidos[] = [
+                        'id' => basename($document['name']),
+                        'folio' => $fields['folio']['stringValue'] ?? 'N/A',
+                        'cliente' => $clienteNombre,
+                        'enviar' => $fields['enviar']['stringValue'] ?? 'N/A',
+                        'vendedor' => $vendedorNombre,
+                        'diaAlta' => $fields['diaAlta']['stringValue'] ?? 'N/A',
+                        'claveSae' => $fields['claveSae']['stringValue'] ?? 'N/A',
+                        'noEmpresa' => $noEmpresa,
+                        'status' => $status,
+                        'totalPedido' => number_format($totalPedido, 2, '.', ''), // 🔹 Total formateado con 2 decimales
+                    ];
                 }
-
-                // Obtener datos del cliente
-                $dataCliente = obtenerDatosCliente($conexionData, $claveCliente, $claveSae, $claveVendedor);
-                $clienteNombre = $dataCliente['cliente'] ?? 'Cliente Desconocido';
-                $vendedorNombre = $dataCliente['vendedor'] ?? 'Vendedor Desconocido';
-
-
-                // Formatear datos correctamente
-                $pedidos[] = [
-                    'id' => basename($document['name']),
-                    'folio' => $fields['folio']['stringValue'] ?? 'N/A',
-                    'cliente' => $clienteNombre,
-                    'enviar' => $fields['enviar']['stringValue'] ?? 'N/A',
-                    'vendedor' => $vendedorNombre,
-                    'diaAlta' => $fields['diaAlta']['stringValue'] ?? 'N/A',
-                    'claveSae' => $fields['claveSae']['stringValue'] ?? 'N/A',
-                    'noEmpresa' => $noEmpresa,
-                    'status' => $status,
-                    'totalPedido' => number_format($totalPedido, 2, '.', ''), // 🔹 Total formateado con 2 decimales
-                ];
+            }else{
             }
         }
         // Ordenar los pedidos por totalPedido de manera descendente

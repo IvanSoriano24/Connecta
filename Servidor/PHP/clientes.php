@@ -187,7 +187,7 @@ function mostrarClienteEspecifico($clave, $conexionData)
                     [CRUZAMIENTOS], [COLONIA], [CODIGO], [LOCALIDAD], [MUNICIPIO], [ESTADO], 
                     [PAIS], [NACIONALIDAD], [REFERDIR], [TELEFONO], [CLASIFIC], [FAX], [PAG_WEB], 
                     [CURP], [CVE_ZONA], [IMPRIR], [MAIL], [SALDO], [TELEFONO],
-                    [CON_CREDITO], [DIAREV], [DIAPAGO], [DIASCRED], [DIAREV], [METODODEPAGO], [LISTA_PREC], [DESCUENTO]
+                    [CON_CREDITO], [DIAREV], [DIAPAGO], [DIASCRED], [DIAREV], [METODODEPAGO], [LISTA_PREC], [DESCUENTO], [CVE_VEND]
             FROM $nombreTabla 
             WHERE [CLAVE] = ?";
 

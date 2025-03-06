@@ -132,14 +132,15 @@ function activarUsuario(usuarioId) {
           usuarioId: usuarioId,
         },
         success: function (response) {
+          console.log(response);
           try {
             const res = JSON.parse(response);
             if (res.success) {
               Swal.fire({
                 icon: "success",
                 title: "Éxito",
-                text: "El usuario ha sido activado.",
-                timer: 2000,
+                text: res.message,
+                timer: 3000,
                 showConfirmButton: false,
               }).then(() => {
                 location.reload();

@@ -608,6 +608,6 @@ $(document).ready(function () {
   });
   $("#claveSae").change(function (event) {
     event.preventDefault();
-    informaSae();
+    //informaSae();
   });
 });

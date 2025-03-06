@@ -59,7 +59,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
         // Datos de actualización en Firebase
         $data = [
             'fields' => [
-                'claveSae' => ['stringValue' => $claveSae ],
+                'claveSae' => ['stringValue' => $claveSae],
             ]
         ];
 
@@ -108,75 +108,67 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
     } else {
 
         $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
-    
+
         // URL para buscar en la colección EMP_USS
         $urlBuscar = $urlBase . "/EMP_USS?key=$firebaseApiKey";
-    
+
         // Realizar la consulta para obtener todos los documentos de la colección
         $responseBuscar = file_get_contents($urlBuscar);
         if ($responseBuscar === false) {
             echo json_encode(['success' => false, 'message' => 'Error al obtener documentos de la colección.']);
             return;
         }
-    
+
         $dataBuscar = json_decode($responseBuscar, true);
-    
-        // Buscar el documento que tenga el campo noEmpresa igual al valor recibido
-        $documentoId = null;
+
+        // Guardamos la información original en otra variable para usarla más adelante
+        $originalData = $data;
+
+        // Formatear la claveSae (agrega ceros a la izquierda)
+        $claveSae = str_pad($data['claveSae'], 2, "0", STR_PAD_LEFT);
+
+        // Iterar sobre todos los documentos y actualizar aquellos que cumplan con la condición
         if (isset($dataBuscar['documents'])) {
             foreach ($dataBuscar['documents'] as $document) {
                 $fields = $document['fields'];
                 if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $data['noEmpresa']) {
                     $documentoId = basename($document['name']); // Extraemos el ID del documento
-                    break;
+
+                    // Construir la URL del documento encontrado para actualizarlo
+                    $urlActualizar = "$urlBase/EMP_USS/$documentoId?key=$firebaseApiKey";
+
+                    // Datos de actualización en EMP_USS (solo se actualiza claveSae)
+                    $payloadEmp = [
+                        'fields' => [
+                            'claveSae' => ['stringValue' => $claveSae],
+                        ]
+                    ];
+
+                    // Agregar updateMask para actualizar solo el campo claveSae
+                    $urlActualizar .= '&updateMask.fieldPaths=claveSae';
+
+                    $context = stream_context_create([
+                        'http' => [
+                            'method'  => 'PATCH',
+                            'header'  => "Content-Type: application/json\r\n",
+                            'content' => json_encode($payloadEmp)
+                        ]
+                    ]);
+
+                    $response = @file_get_contents($urlActualizar, false, $context);
+
+                    if ($response === false) {
+                        $error = error_get_last();
+                        echo json_encode(['success' => false, 'message' => 'Error al actualizar EMP_USS.', 'error' => $error['message']]);
+                        die();
+                    }
                 }
             }
         }
-        
-        // Verificar que se haya encontrado el documento en EMP_USS
-        if (!$documentoId) {
-            echo json_encode(['success' => false, 'message' => 'No se encontró documento en EMP_USS para la noEmpresa indicada.']);
-            return;
-        }
-        
-        // Construir la URL del documento encontrado para actualizarlo
-        $urlActualizar = "$urlBase/EMP_USS/$documentoId?key=$firebaseApiKey";
-    
-        // Guardamos la información original en otra variable para usarla más adelante
-        $originalData = $data;
-        
-        // Formatear la claveSae (agrega ceros a la izquierda)
-        $claveSae = str_pad($data['claveSae'], 2, "0", STR_PAD_LEFT);
-    
-        // Datos de actualización en EMP_USS (solo se actualiza claveSae)
-        $payloadEmp = [
-            'fields' => [
-                'claveSae' => ['stringValue' => $claveSae],
-            ]
-        ];
-    
-        // Agregar updateMask para actualizar solo el campo claveSae
-        $urlActualizar .= '&updateMask.fieldPaths=claveSae';
-    
-        $context = stream_context_create([
-            'http' => [
-                'method'  => 'PATCH',
-                'header'  => "Content-Type: application/json\r\n",
-                'content' => json_encode($payloadEmp)
-            ]
-        ]);
-    
-        $response = @file_get_contents($urlActualizar, false, $context);
-    
-        if ($response === false) {
-            $error = error_get_last();
-            echo json_encode(['success' => false, 'message' => 'Error al actualizar EMP_USS.', 'error' => $error['message']]);
-            die();
-        }
-    
+
         // Actualizar el documento en la colección CONEXIONES
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES/$idDocumento?key=$firebaseApiKey";
-    
+
         // Hacemos la solicitud GET para obtener el documento de CONEXIONES
         $context = stream_context_create([
             'http' => [
@@ -190,7 +182,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
             return;
         }
         $document = json_decode($result, true);
-    
+
         // Si el documento existe, se actualizan los datos usando la información original
         if (isset($document['name'])) {
             $payloadCon = [
@@ -204,7 +196,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
                     'claveSae'   => ['stringValue' => $claveSae],
                 ],
             ];
-    
+
             $options = [
                 'http' => [
                     'header' => "Content-Type: application/json\r\n",
@@ -214,7 +206,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
             ];
             $context = stream_context_create($options);
             $updateResult = file_get_contents($url, false, $context);
-    
+
             if ($updateResult === FALSE) {
                 echo json_encode(['success' => false, 'message' => 'Error al actualizar el documento en Firebase CONEXIONES']);
                 return;
@@ -226,7 +218,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
         } else {
             echo json_encode(['success' => false, 'message' => 'No se encontró el documento con el ID especificado en CONEXIONES']);
         }
-    }    
+    }
 }
 function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
 {
@@ -317,7 +309,7 @@ function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
     return [
         'success'    => true,
         'message'    => 'Datos guardados exitosamente en Firebase',
-        'idDocumento'=> $documentIdNuevo
+        'idDocumento' => $documentIdNuevo
     ];
 }
 
@@ -442,7 +434,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'noEmpresa' => $input['noEmpresa'],
                 'claveSae' => $input['claveSae']
             ];
-            
+
             $idDocumento = $input['idDocumento'];
             $idDocumento = trim($idDocumento);
             $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);

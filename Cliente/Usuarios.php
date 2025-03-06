@@ -168,7 +168,6 @@ if (isset($_SESSION['usuario'])) {
                                     <th style="">Rol</th>
                                     <th style="">Editar</th>
                                     <th style="">Visualizar</th>
-                                    <th style="">Asociaciones</th>
                                     <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
                                         <th style="">Dar de Baja</th>
                                         <th style="">Activar</th>
@@ -260,7 +259,7 @@ if (isset($_SESSION['usuario'])) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" id="cerrarModalFooter">Cerrar</button>
-                        <button class="btn btn-primary custom-blue" id="guardarDatosBtn">Guardar Cambios</button>
+                        <button type="button" class="btn btn-primary custom-blue" id="guardarDatosBtn">Guardar Cambios</button>
                     </div>
                 </form>
             </div>

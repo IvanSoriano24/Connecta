@@ -80,6 +80,7 @@ function agregarEventosBotones() {
 
                         document.getElementById('listaPrecios').value = cliente.LISTA_PREC || '1';
                         document.getElementById('descuento').value = cliente.DESCUENTO || 'Sin descuento';
+                        document.getElementById('vendedor').value = cliente.CVE_VEND || 'Sin Vendedor';
 
                         // Mostrar el modal si se está utilizando
                         $('#usuarioModal').modal('show'); // Asegúrate de que estás usando jQuery y Bootstrap para este modal

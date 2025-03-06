@@ -78,15 +78,16 @@ function cargarComandas() {
 }
 function cargarPedidos() {
   const filtroPedido = $("#filtroPedido").val(); // Obtener el filtro seleccionado
+
   $.get(
     "../Servidor/PHP/mensajes.php",
     { numFuncion: "5", status: filtroPedido },
     function (response) {
-      console.log(response); // 🔹 Para depuración
-      if (response.success) {
+      const tbody = $("#tablaPedidos tbody");
+      tbody.empty(); // Limpiar la tabla antes de agregar nuevos datos
+
+      if (response.success && Array.isArray(response.data) && response.data.length > 0) {
         const pedidos = response.data;
-        const tbody = $("#tablaPedidos tbody");
-        tbody.empty();
 
         pedidos.forEach((pedido) => {
           const color =
@@ -100,18 +101,14 @@ function cargarPedidos() {
 
           const row = `
                     <tr>
-                        <td>${pedido.folio || "-"}</td>
-                        <td>${pedido.cliente || "-"}</td>
-                        <td>${pedido.diaAlta || "-"}</td>
-                        <td>${pedido.vendedor || "-"}</td>
-                        <td style="color: ${color};">${
-            pedido.status || "-"
-          }</td>
-                        <td>${pedido.totalPedido || "-"}</td>
+                        <td>${pedido.folio || "N/A"}</td>
+                        <td>${pedido.cliente || "N/A"}</td>
+                        <td>${pedido.diaAlta || "N/A"}</td>
+                        <td>${pedido.vendedor || "N/A"}</td>
+                        <td style="color: ${color};">${pedido.status || "N/A"}</td>
+                        <td>${pedido.totalPedido ? `$${parseFloat(pedido.totalPedido).toFixed(2)}` : "N/A"}</td>
                         <td>
-                            <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${
-                              pedido.id
-                            }')">
+                            <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${pedido.id}')">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </td>
@@ -120,13 +117,24 @@ function cargarPedidos() {
           tbody.append(row);
         });
       } else {
-        console.error("Error en la solicitud:", response.message);
+        console.warn("No hay pedidos para mostrar.");
+        tbody.append(`
+          <tr>
+            <td colspan="7" class="text-center text-muted">No hay datos para mostrar</td>
+          </tr>
+        `);
       }
     },
     "json"
   ).fail(function (jqXHR, textStatus, errorThrown) {
     console.error("Error en la solicitud:", textStatus, errorThrown);
     console.log("Detalles:", jqXHR.responseText);
+
+    $("#tablaPedidos tbody").empty().append(`
+      <tr>
+        <td colspan="7" class="text-center text-danger">Error al obtener los pedidos</td>
+      </tr>
+    `);
   });
 }
 function verificarNotificaciones() {
@@ -163,7 +171,7 @@ function verificarNotificaciones() {
 
 $(document).ready(function () {
   cargarComandas();
-  verificarNotificaciones(); // Verificar notificaciones al cargar la página
+  //verificarNotificaciones(); // Verificar notificaciones al cargar la página
 });
 
 // Escuchar el cambio en el filtro
@@ -421,28 +429,28 @@ $("#btnAutorizar").click(function () {
     },
     function (response) {
       if (response.success) {
-        if(response.notificacion){
+        if (response.notificacion) {
           Swal.fire({
             text: "El pedido fue autorizado",
             icon: "success",
           });
           $("#modalPedido").modal("hide");
           cargarPedidos(); // Recargar la tabla
-        } else if(response.telefono){
+        } else if (response.telefono) {
           Swal.fire({
             text: response.message,
             icon: "success",
           });
           $("#modalPedido").modal("hide");
           cargarPedidos(); // Recargar la tabla
-        }else if(response.correo){
+        } else if (response.correo) {
           Swal.fire({
             text: response.message,
             icon: "success",
           });
           $("#modalPedido").modal("hide");
           cargarPedidos(); // Recargar la tabla
-        }else{
+        } else {
           Swal.fire({
             text: response.message,
             icon: "success",

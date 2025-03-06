@@ -109,9 +109,6 @@ function guardarUsuario($datosUsuario)
         echo json_encode(['success' => false, 'message' => 'No se pudo guardar el usuario.']);
     }
 }
-
-
-
 function mostrarUsuarios($usuarioLogueado, $usuario)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -773,11 +770,9 @@ function eliminarAsociacion()
     echo json_encode(['success' => true, 'message' => 'Asociación eliminada exitosamente.']);
     exit();
 }
-function obtenerAsociacionesUsuarios()
+function obtenerAsociacionesUsuarios($usuario)
 {
     global $firebaseProjectId, $firebaseApiKey;
-
-    $usuario = $_GET['usuarioId'] ?? null;
 
     if (!$usuario) {
         echo json_encode(['success' => false, 'message' => 'Usuario no proporcionado.']);
@@ -816,6 +811,54 @@ function obtenerAsociacionesUsuarios()
     header('Content-Type: application/json');
     echo json_encode(['success' => true, 'data' => $asociaciones]);
     exit();
+}
+function buscarAsociacionesUsuarios($usuario)
+{
+    global $firebaseProjectId, $firebaseApiKey;
+
+    if (!$usuario) {
+        return false;
+    }
+
+    // Obtener los datos del usuario desde Firestore
+    $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/$usuario?key=$firebaseApiKey";
+    $response = @file_get_contents($urlUsuario);
+
+    if ($response === FALSE) {
+        return false; // No se pudo obtener el usuario
+    }
+
+    $dataBuscar = json_decode($response, true);
+
+    // Si no tiene el campo 'usuario', no existe
+    if (!isset($dataBuscar['fields']['usuario']['stringValue'])) {
+        return false;
+    }
+
+    $usuarioFirestore = $dataBuscar['fields']['usuario']['stringValue'];
+
+    // Consultar todas las asociaciones en EMP_USS
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
+    $response = @file_get_contents($url);
+
+    if ($response === FALSE) {
+        return false; // No se pudo obtener asociaciones
+    }
+
+    $data = json_decode($response, true);
+
+    if (!isset($data['documents'])) {
+        return false; // No hay asociaciones
+    }
+
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $usuarioFirestore) {
+            return true; // Encontró una asociación, el usuario está vinculado a una empresa
+        }
+    }
+
+    return false; // No encontró ninguna asociación
 }
 function bajaUsuario()
 {
@@ -875,7 +918,7 @@ function activarUsuario(){
     global $firebaseProjectId, $firebaseApiKey;
 
     $usuarioId = $_POST['usuarioId'] ?? null;
-
+    $empresas = buscarAsociacionesUsuarios($usuarioId);
     if (!$usuarioId) {
         echo json_encode(['success' => false, 'message' => 'ID del usuario no proporcionado.']);
         return;
@@ -883,10 +926,15 @@ function activarUsuario(){
 
     // URL para actualizar el campo `status` del usuario
     $urlUsuarioUpdate = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/$usuarioId?updateMask.fieldPaths=status&key=$firebaseApiKey";
-    $fieldsUsuario = [
-        'status' => ['stringValue' => 'Activo'], // Actualiza el campo `status` a 'Activo'
-    ];
-
+    if($empresas){
+        $fieldsUsuario = [
+            'status' => ['stringValue' => 'Activo'], // Actualiza el campo `status` a 'Activo'
+        ];
+    } else{
+        $fieldsUsuario = [
+            'status' => ['stringValue' => 'Bloqueado'], // Actualiza el campo `status` a 'Activo'
+        ];
+    }
     $optionsUsuario = [
         'http' => [
             'header' => "Content-Type: application/json\r\n",
@@ -902,11 +950,14 @@ function activarUsuario(){
         echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado del usuario.']);
         return;
     }
-
-    echo json_encode(['success' => true, 'message' => 'El usuario ha sido activado exitosamente.']);
+    if($empresas){
+        echo json_encode(['success' => true, 'message' => 'El usuario ha sido activado exitosamente.']);
+    } else{
+        echo json_encode(['success' => true, 'message' => 'El usuario ha sido bloqueado al no tener empresas asociadas.']);
+    }
+    
     exit();
 }
-
 function obtenerVendedor($conexionData, $claveSae)
 {
     $serverName = $conexionData['host'];
@@ -1258,7 +1309,8 @@ switch ($funcion) {
         eliminarAsociacion();
         break;
     case 10:
-        obtenerAsociacionesUsuarios();
+        $usuario = $_GET['usuarioId'] ?? null;
+        obtenerAsociacionesUsuarios($usuario);
         break;
     case 11:
         bajaUsuario();

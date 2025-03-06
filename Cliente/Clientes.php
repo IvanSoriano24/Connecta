@@ -298,9 +298,8 @@ if (isset($_SESSION['usuario'])) {
 										<div class="form-row">
 											<div class="form-group col-md-6">
 												<div class="form-check">
-													<input type="checkbox" class="form-check-input" id="manejoCredito" readonly1>
-													<label class="form-check-label" for="manejoCredito">Manejo de
-														Crédito</label>
+													<input type="checkbox" class="form-check-input" id="manejoCredito" disabled>
+													<label class="form-check-label" for="manejoCredito">Manejo de Crédito</label>
 												</div>
 											</div>
 
@@ -356,7 +355,7 @@ if (isset($_SESSION['usuario'])) {
 									<div class="form-group col-md-6">
 										<label for="vendedor">Vendedor:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="input-fo" id="vendedor" value="<?php echo $claveUsuario ?>" readonly1>
+											<input type="text" class="input-fo" id="vendedor" readonly1>
 											<!-- <div class="input-group-append">
 												<span class="input-group-text"></span>
 											</div> -->
