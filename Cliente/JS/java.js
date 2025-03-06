@@ -1,31 +1,3 @@
-src="https://cdn.jsdelivr.net/npm/sweetalert2@11"
-
-    // Configuración de Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyCh8BFeIi4JcAAe-aW8Z2odIqdytw-wnDA",
-        authDomain: "mdconnecta-4aeb4.firebaseapp.com",
-        databaseURL: "https://mdconnecta-4aeb4-default-rtdb.firebaseio.com",
-        projectId: "mdconnecta-4aeb4",
-        storageBucket: "mdconnecta-4aeb4.appspot.com",
-        messagingSenderId: "134553407299",
-        appId: "1:134553407299:web:1b1b3fc6294a3695e3a9f6",
-        measurementId: "G-8X256NJ6J6"
-    };
-
-    // Inicializar Firebase
-    /*firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();*/
-
-// Función para verificar la conexión
-document.getElementById('checkConnection')?.addEventListener('click', () => {
-    database.ref('.info/connected').on('value', (snapshot) => {
-        if (snapshot.val() === true) {
-            alert('Conexión exitosa a Firebase');
-        } else {
-            alert('No conectado a Firebase');
-        }
-    });
-});
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("form");
     const usuario = document.getElementById("usuario");

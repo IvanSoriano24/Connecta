@@ -402,8 +402,8 @@ function obtenerDatosCliente($conexionData, $claveUsuario){
     }
 
     header('Content-Type: application/json; charset=UTF-8');
+    //return $clientes;
     echo json_encode(['success' => true, 'data' => $clientes]);
-    exit();
 }
 
 

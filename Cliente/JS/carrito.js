@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const formData = new FormData();
       formData.append("numFuncion", "3");
-      formData.append("claveSae", "02");
+      formData.append("claveSae", "01");
       formData.append("accion", "obtenerFolioSiguiente");
       const response = await fetch("../Servidor/PHP/ventas.php", {
         method: "POST",
@@ -218,7 +218,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function pagarPedido() {
-  const fechaActual = new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";
+    const fechaActual =
+      new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";
 
     try {
       // 1️⃣ Mostrar un mensaje de carga
@@ -231,9 +232,10 @@ document.addEventListener("DOMContentLoaded", () => {
           Swal.showLoading();
         },
       });
-  
+
       // 2️⃣ Obtener los datos completos del pedido
       const datosPedido = await obtenerDatosPedido(fechaActual);
+      console.log(datosPedido);
       if (!datosPedido) {
         Swal.fire({
           title: "Error",
@@ -243,50 +245,49 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         return;
       }
-  
+
       // 3️⃣ Obtener los productos del carrito
       const partidas = obtenerPartidasPedido();
-  
+
       // 4️⃣ Crear `FormData`
       const formData = new FormData();
       formData.append("numFuncion", "19");
-  
+
       // 📌 Agregar datos del pedido
       for (const key in datosPedido) {
         formData.append(`formularioData[${key}]`, datosPedido[key]);
       }
-  
+
       // 📌 Agregar las partidas
       partidas.forEach((partida, index) => {
         for (const key in partida) {
           formData.append(`partidasData[${index}][${key}]`, partida[key]);
         }
       });
-  
+
       console.log("Pedido a enviar (FormData):", formData); // Para depuración
-  
+
       // 5️⃣ Enviar la solicitud al backend
       const response = await fetch("../Servidor/PHP/ventas.php", {
         method: "POST",
         body: formData,
       });
-  
+
       // 📌 Verificar el tipo de respuesta
       const contentType = response.headers.get("content-type");
-  
+
       if (contentType && contentType.includes("application/pdf")) {
         // 📌 Si la respuesta es un PDF, abrirlo en una nueva ventana
         const pdfBlob = await response.blob();
         const pdfUrl = URL.createObjectURL(pdfBlob);
         window.open(pdfUrl, "_blank");
-  
+
         Swal.fire({
           title: "Pedido completado",
           text: "El pedido ha sido generado exitosamente. Puedes descargar tu remisión.",
           icon: "success",
           confirmButtonText: "Aceptar",
         });
-  
       } else {
         // 📌 Si la respuesta es JSON, manejarla como éxito o error
         const result = await response.json();
@@ -297,29 +298,35 @@ document.addEventListener("DOMContentLoaded", () => {
             icon: "success",
             confirmButtonText: "Aceptar",
           });
-  
+
           // 🗑️ Borrar carrito después de confirmar el pedido
           localStorage.removeItem("carrito");
-  
+
           // 🔄 Actualizar la vista del carrito
           mostrarCarrito();
-        }else if (result.autorizacion) {
+        } else if (result.autorizacion) {
           Swal.fire({
             title: "Saldo vencido",
-            text: result.message || "El pedido se procesó pero debe ser autorizado.",
+            text:
+              result.message ||
+              "El pedido se procesó pero debe ser autorizado.",
             icon: "warning",
             confirmButtonText: "Entendido",
           }).then(() => {
             // Redirigir al usuario o realizar otra acción
             //window.location.href = "Ventas.php";
           });
-        }else if (result.credit) {
+        } else if (result.credit) {
           Swal.fire({
             title: "Error al guardar el pedido",
             html: `
               <p>${result.message || "Ocurrió un error inesperado."}</p>
-              <p><strong>Saldo actual:</strong> ${result.saldoActual?.toFixed(2) || "N/A"}</p>
-              <p><strong>Límite de crédito:</strong> ${result.limiteCredito?.toFixed(2) || "N/A"}</p>
+              <p><strong>Saldo actual:</strong> ${
+                result.saldoActual?.toFixed(2) || "N/A"
+              }</p>
+              <p><strong>Límite de crédito:</strong> ${
+                result.limiteCredito?.toFixed(2) || "N/A"
+              }</p>
             `,
             icon: "error",
             confirmButtonText: "Aceptar",
@@ -328,21 +335,26 @@ document.addEventListener("DOMContentLoaded", () => {
           Swal.fire({
             title: "Error al guardar el pedido",
             html: `
-              <p>${result.message || "No hay suficientes existencias para algunos productos."}</p>
+              <p>${
+                result.message ||
+                "No hay suficientes existencias para algunos productos."
+              }</p>
               <p><strong>Productos sin existencias:</strong></p>
               <ul>
                 ${result.productosSinExistencia
-                .map(
-                  (producto) => `
+                  .map(
+                    (producto) => `
                     <li>
                       <strong>Producto:</strong> ${producto.producto}, 
-                      <strong>Existencias Totales:</strong> ${producto.existencias || 0}, 
+                      <strong>Existencias Totales:</strong> ${
+                        producto.existencias || 0
+                      }, 
                       <strong>Apartados:</strong> ${producto.apartados || 0}, 
                       <strong>Disponibles:</strong> ${producto.disponible || 0}
                     </li>
                   `
-                )
-                .join("")}
+                  )
+                  .join("")}
               </ul>
             `,
             icon: "error",
@@ -366,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
         confirmButtonText: "Aceptar",
       });
     }
-  }  
+  }
   async function obtenerDatosPedido(fechaActual) {
     // 1️⃣ Obtener los datos del cliente
     const datosCliente = await obtenerDatosClienteCarro();
@@ -375,10 +387,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return null;
     }
 
+    // Definir la fecha y hora actual
+    const now = new Date();
+
     // 2️⃣ Obtener la fecha actual en formato SQL
-    const fecha = `${now.getFullYear()}-${String(
-      now.getMonth() + 1
-    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
+    const fecha = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(now.getDate()).padStart(2, "0")} ${String(
       now.getHours()
     ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
       now.getSeconds()
@@ -415,7 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
       enviar: datosCliente.CALLE, // Puedes cambiarlo según la lógica de negocio
       condicion: "",
     };
-  }
+}
   function obtenerPartidasPedido() {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     let partidasData = [];

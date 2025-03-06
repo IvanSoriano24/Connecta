@@ -1849,8 +1849,9 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     //$correoRemitente = null;
     //$contraseñaRemitente = null;
     // Definir el correo de destino (puedes cambiarlo si es necesario)
-    //$correoDestino = 'desarrollo01@mdcloud.mx';
-    $correoDestino = 'amartinez@grupointerzenda.com';
+    $correoDestino = $correo;
+    $correoDestino = 'desarrollo01@mdcloud.mx';
+    //$correoDestino = 'amartinez@grupointerzenda.com';
     //$correoDestino = 'ivan.soriano@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión
@@ -3521,8 +3522,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     }
 
     // Definir el correo de destino (puedes cambiarlo si es necesario)
-    //$correoDestino = 'desarrollo01@mdcloud.mx';
-    $correoDestino = 'ivan.soriano@mdcloud.mx';
+    //$correoDestino = $correo;
+    $correoDestino = 'desarrollo01@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión
     $titulo = 'Sun Arrow';
@@ -4020,7 +4021,7 @@ switch ($funcion) {
                 $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus);
 
                 if ($resultadoActualizacion['success']) {
-                    if ($validarSaldo == 0 && $credito == 0) {
+                    if ($validarSaldo === 0 && $credito == 0) {
                         echo json_encode([
                             'success' => true,
                             'message' => 'El pedido fue actualizado correctamente.',
@@ -4242,7 +4243,7 @@ switch ($funcion) {
         extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente);
         break;
     case 19:
-        $claveSae = "02";
+        $claveSae = "01";
         $noEmpresa = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
@@ -4271,7 +4272,7 @@ switch ($funcion) {
             $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
             if ($validacionCredito['success']) {
                 $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
-                if ($validarSaldo == 0) {
+                if ($validarSaldo === 0) {
                     guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $claveSae);
                     guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $claveSae);
                     actualizarFolio($conexionData, $claveSae);

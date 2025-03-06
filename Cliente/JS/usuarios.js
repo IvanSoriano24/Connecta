@@ -512,7 +512,7 @@ function editarUsuario(idUsuario) {
             $(
               "#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor"
             ).prop("disabled", false);
-            $( "#usuario").prop("disabled", true);
+            $("#usuario, #rolUsuario").prop("disabled", true);
             // Asignar valores del usuario
             $("#usuario").val(data.data.usuario);
             $("#nombreUsuario").val(data.data.nombre);
@@ -613,7 +613,7 @@ function editarUsuario(idUsuario) {
   });
 }
 
-/**
+/*
  * Obtiene la clave del vendedor del usuario y la asigna al select usando la función 14 en PHP
  */
 function obtenerClaveVendedor(clave) {
@@ -744,16 +744,17 @@ $("#btnGuardarAsociacion").on("click", function () {
             icon: "success",
             title: "Éxito",
             text: "Asociación guardada exitosamente.",
-            timer: 2000,
+            timer: 1000,
             showConfirmButton: false,
+          }).then(() => {
+            $("#selectUsuario").val("").change(); // Limpia el selector de usuarios
+            $("#selectEmpresa").val(""); // Limpia el selector de empresas
+            $("#listaEmpresasAsociadas")
+              .empty()
+              .append('<li class="list-group-item">Sin asociaciones</li>'); // Limpia la lista de empresas asociadas
+            $("#asociarEmpresaModal").modal("hide"); // Cerrar el modal
+            location.reload();
           });
-          $("#selectUsuario").val("").change(); // Limpia el selector de usuarios
-          $("#selectEmpresa").val(""); // Limpia el selector de empresas
-          $("#listaEmpresasAsociadas")
-            .empty()
-            .append('<li class="list-group-item">Sin asociaciones</li>'); // Limpia la lista de empresas asociadas
-          $("#asociarEmpresaModal").modal("hide"); // Cerrar el modal
-          location.reload();
         } else {
           Swal.fire({
             icon: "error",
@@ -822,10 +823,12 @@ $("#listaEmpresasAsociadas").on("click", ".btnEliminarAsociacion", function () {
                 icon: "success",
                 title: "Eliminada",
                 text: "Asociación eliminada exitosamente.",
-                timer: 2000,
+                timer: 1000,
                 showConfirmButton: false,
+              }).then(() => {
+                $("#selectUsuario").trigger("change"); // Recargar las asociaciones
+                location.reload();
               });
-              $("#selectUsuario").trigger("change"); // Recargar las asociaciones
             } else {
               Swal.fire({
                 icon: "error",
@@ -868,18 +871,6 @@ function limpiarFormulario() {
     "#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor"
   ).prop("disabled", false);
 }
-
-// Función para abrir el modal
-document.getElementById("btnAgregar").addEventListener("click", () => {
-  limpiarFormulario();
-  // Usar las funciones de Bootstrap para abrir el modal
-  $("#usuarioModal").modal("show");
-  document.getElementById("guardarDatosBtn").hidden = false;
-  // Eliminar el aria-hidden cuando se muestra el modal
-  $("#usuarioModal").removeAttr("aria-hidden");
-  // Añadir el atributo inert al fondo para evitar que los elementos detrás sean interactivos
-  $(".modal-backdrop").attr("inert", true);
-});
 // Función para obtener los clientes y llenar el select
 function obtenerClientes() {
   $.ajax({
@@ -1002,7 +993,8 @@ function validarCliente(claveCliente, callback) {
 
 // Evento para abrir el modal y obtener los clientes
 $("#btnAgregarCliente").on("click", function () {
-  limpiarFormulario(); // Limpia el formulario antes de abrir
+  habilitarCamposCliente();
+  limpiarFormularioCliente(); // Limpia el formulario antes de abrir
   document.getElementById("guardarDatosClienteBtn").hidden = false;
   $("#usuarioModalCliente").modal("show"); // Mostrar modal
   obtenerClientes(); // Llamar a la función para obtener clientes
@@ -1033,6 +1025,11 @@ function limpiarFormularioCliente() {
   $("#telefonoUsuarioCliente").val("");
   $("#rolUsuario").val(""); // Si es un select, también se debe resetear
   $("#selectCliente").val(""); // Limpiar el textarea
+}
+function habilitarCamposCliente(){
+  $(
+    "#selectCliente, #claveUsuarioCliente, #usuarioCliente, #nombreUsuarioCliente, #correoUsuarioCliente, #contrasenaUsuarioCliente, #telefonoUsuarioCliente, #idUsuarioCliente, #selectCliente"
+  ).prop("disabled", false);
 }
 $(document).ready(function () {
   $("#btnAsociarEmpresa").on("click", function () {
@@ -1071,16 +1068,16 @@ $(document).ready(function () {
     $("#tablaAsociaciones").empty();
   });
 
-  $("#cerrarModalHeader").on("click", function(){
+  $("#cerrarModalHeader").on("click", function () {
     cerrarModal();
   });
-  $("#cerrarModalFooter").on("click", function(){
+  $("#cerrarModalFooter").on("click", function () {
     cerrarModal();
   });
-  $("#cerrarModalHeaderCliente").on("click", function(){
+  $("#cerrarModalHeaderCliente").on("click", function () {
     cerrarModalCliente();
   });
-  $("#cerrarModalFooterCliente").on("click", function(){
+  $("#cerrarModalFooterCliente").on("click", function () {
     cerrarModalCliente();
   });
   /*$('#agregarEmpresaBtn').on('click', function () {
@@ -1511,4 +1508,20 @@ $(document).ready(function () {
       },
     });
   });
+
+  var btnAgregar = document.getElementById("btnAgregar");
+
+  if (btnAgregar) {
+    // Verificar que el botón existe
+    btnAgregar.addEventListener("click", () => {
+      limpiarFormulario();
+      // Usar las funciones de Bootstrap para abrir el modal
+      $("#usuarioModal").modal("show");
+      document.getElementById("guardarDatosBtn").hidden = false;
+      // Eliminar el aria-hidden cuando se muestra el modal
+      $("#usuarioModal").removeAttr("aria-hidden");
+      // Añadir el atributo inert al fondo para evitar que los elementos detrás sean interactivos
+      $(".modal-backdrop").attr("inert", true);
+    });
+  }
 });

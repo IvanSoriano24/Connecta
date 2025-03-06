@@ -265,7 +265,6 @@ if (isset($_SESSION['usuario'])) {
             </div>
         </div>
     </div>
-
     <!-- Modal Cliente -->
     <div id="usuarioModalCliente" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
