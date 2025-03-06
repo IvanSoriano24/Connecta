@@ -148,7 +148,8 @@ if (isset($_SESSION['usuario'])) {
 						},
 						body: JSON.stringify({
 							action: 'verificar',
-							claveSae: claveSae
+							claveSae: claveSae,
+							noEmpresa: noEmpresa
 						})
 					})
 					.then(response => response.json())
@@ -178,11 +179,6 @@ if (isset($_SESSION['usuario'])) {
 							});
 
 						} else {
-							Swal.fire({
-								title: 'Error',
-								text: 'La empresa seleccionada no tiene conexión a SAE.',
-								icon: 'error'
-							});
 							Swal.fire({
 								title: 'Error',
 								text: 'La empresa seleccionada no tiene conexión a SAE.',

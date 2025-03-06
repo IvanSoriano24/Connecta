@@ -1072,10 +1072,18 @@ $(document).ready(function () {
     $("#tablaAsociaciones").empty();
   });
 
-  $("#cerrarModalHeader").on("click", cerrarModal);
-  $("#cerrarModalFooter").on("click", cerrarModal);
-  $("#cerrarModalHeaderCliente").on("click", cerrarModalCliente);
-  $("#cerrarModalFooterCliente").on("click", cerrarModalCliente);
+  $("#cerrarModalHeader").on("click", function(){
+    cerrarModal();
+  });
+  $("#cerrarModalFooter").on("click", function(){
+    cerrarModal();
+  });
+  $("#cerrarModalHeaderCliente").on("click", function(){
+    cerrarModalCliente();
+  });
+  $("#cerrarModalFooterCliente").on("click", function(){
+    cerrarModalCliente();
+  });
   /*$('#agregarEmpresaBtn').on('click', function () {
         const selectedOption = $('#selectEmpresa').find('option:selected'); // Obtener la opción seleccionada
         // Verificar que se haya seleccionado una empresa válida
