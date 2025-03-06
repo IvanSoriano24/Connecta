@@ -1494,14 +1494,13 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    //$emailPred = 'desarrollo01@mdcloud.mx';
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/
     if ($correo === 'S' && !empty($emailPred)) {
-        //$numeroWhatsApp = '+527773750925';
-        //$emailPred = 'marcosluh92@gmail.com';
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
@@ -1579,7 +1578,6 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$numero = "7775681612";
     $numero = "+527772127123";
     //$numero = "+527773340218";
-    //$numero = '+527773340218';
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -3489,16 +3487,15 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773340218';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
 
-    //$numeroWhatsApp = '+527773750925';
     if ($correo === 'S' && !empty($emailPred)) {
         
         /*$emailPred = 'marcos.luna@mdcloud.mx';
         $numeroWhatsApp = '+527775681612';*/
-        $emailPred = 'amartinez@grupointerzenda.com';
-        $numeroWhatsApp = '+527772127123';
+        /*$emailPred = 'amartinez@grupointerzenda.com';
+        $numeroWhatsApp = '+527772127123';*/
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);

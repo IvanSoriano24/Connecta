@@ -360,7 +360,6 @@ function visualizarUsuario(idUsuario) {
             if (data.data.tipoUsuario === "VENDEDOR") {
               $("#divVendedor").show();
               $("#selectVendedor").empty();
-              alert(data.data.claveUsuario);
               // Llamada AJAX para obtener la información del vendedor por clave
               $.ajax({
                 url: "../Servidor/PHP/usuarios.php",
@@ -513,7 +512,7 @@ function editarUsuario(idUsuario) {
             $(
               "#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor"
             ).prop("disabled", false);
-
+            $( "#usuario").prop("disabled", true);
             // Asignar valores del usuario
             $("#usuario").val(data.data.usuario);
             $("#nombreUsuario").val(data.data.nombre);

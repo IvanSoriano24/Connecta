@@ -552,7 +552,6 @@ function obtenerClaveSae($noEmpresa)
 
     return null; // Si no se encuentra, retornar null
 }
-
 function obtenerAsociaciones(){
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -1198,7 +1197,7 @@ function verificarClienteFirebase($claveCliente){
     }
     echo json_encode(['success' => true, 'exists' => false]); // Cliente no existe
 }
-function obtenerDatosCliente($conexionData, $noEmpresa, $claveUsuario){
+function obtenerDatosCliente($conexionData, $noEmpresa, $claveUsuario, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1215,7 +1214,7 @@ function obtenerDatosCliente($conexionData, $noEmpresa, $claveUsuario){
     }
 
     // Tabla de clientes
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($noEmpresa, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta para obtener los datos del cliente
     $sql = "SELECT CLAVE AS clave, NOMBRE AS nombre, EMAILPRED AS correo, TELEFONO AS telefono 
@@ -1376,16 +1375,16 @@ switch ($funcion) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
         }
-        $noEmpresa = "02";
-        $claveSae = "02";
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
         }
         $conexionData = $conexionResult['data'];
-        $claveUsuario = $_GET['claveUsuario'];
-        obtenerDatosCliente($conexionData, $noEmpresa, $claveUsuario);
+        $claveCliente = $_GET['claveCliente'];
+        obtenerDatosCliente($conexionData, $noEmpresa, $claveCliente, $claveSae);
         break;
     case 18:
         $claveVendedor = $_POST['claveVendedor'];
