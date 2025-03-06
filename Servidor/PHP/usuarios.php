@@ -411,6 +411,10 @@ function guardarAsociacion(){
         return;
     }
     $claveSae = obtenerClaveSae($noEmpresa);
+    if(!$claveSae){
+        echo json_encode(['success' => false, 'message' => 'Esta empresa no cuenta con una conexion.']);
+        exit();
+    }
     // Verificar si ya existe la asociación
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
     $response = @file_get_contents($url);
@@ -535,16 +539,14 @@ function obtenerClaveSae($noEmpresa)
     if (!isset($data['documents'])) {
         return null; // Si no hay documentos, retornar null
     }
-
     // Recorrer los documentos para encontrar la coincidencia con `noEmpresa`
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];
 
-        if (
-            isset($fields['noEmpresa']['stringValue']) &&
-            $fields['noEmpresa']['stringValue'] === $noEmpresa
-        ) {
+        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
             return $fields['claveSae']['stringValue'] ?? null; // Retornar `claveSae` si existe
+        } else{
+            return false;
         }
     }
 
