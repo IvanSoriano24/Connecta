@@ -1494,12 +1494,12 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/
+    $emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
@@ -3057,19 +3057,35 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     $CAN_TOT = 0;
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
-    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    $descuentoCliente = $formularioData['descuento']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['cantidad']; // Sumar cantidades totales
+        $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
         $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
     }
 
-    // Aplicar descuento
-    if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
-        $DES_TOT = $IMPORTE - ($IMPORTE * ($descuentoCliente / 100)); // Aplicar porcentaje de descuento
-    } else {
-        $DES_TOT = $IMPORTE; // Si no hay descuento, el total queda igual al importe
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+
+    foreach ($partidasData as $partida) {
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $desc1 = $partida['descuento1'] ?? 0; // Primer descuento
+        $desc2 = $partida['descuento2'] ?? 0;
+        $descTotal = $descuentoCliente ?? 0; // Descuento global del cliente
+
+        // **Aplicar los descuentos en cascada**
+        $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($descTotal / 100) * (1 - ($desc2 / 100)));
+
+        // **Calcular subtotal de la partida**
+        $subtotalPartida = $precioUnitario * $cantidad;
+
+        // **Sumar el descuento aplicado a la partida**
+        $totalDescuentos += ($precioUnitario - $precioConDescuento) * $cantidad;
     }
+
+    // **Aplicar los descuentos acumulados al importe**
+    $DES_TOT = $IMPORTE - $totalDescuentos;
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
     $IMP_TOT1 = 0;
@@ -3488,15 +3504,15 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
+    /*$emailPred = 'marcos.luna@mdcloud.mx';
+        $numeroWhatsApp = '+527775681612';*/
+    $emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';
 
     if ($correo === 'S' && !empty($emailPred)) {
-        
-        /*$emailPred = 'marcos.luna@mdcloud.mx';
-        $numeroWhatsApp = '+527775681612';*/
-        /*$emailPred = 'amartinez@grupointerzenda.com';
-        $numeroWhatsApp = '+527772127123';*/
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
@@ -3513,17 +3529,17 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $mail = new clsMail();
 
     // Definir el remitente (si no está definido, se usa uno por defecto)
-    $correoRemitente = $_SESSION['usuario']['correo'] ?? null;
-    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? null;
+    $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
+    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
 
-    if ($correoRemitente == null || $contraseñaRemitente == null) {
-        $correoRemitente = null;
-        $contraseñaRemitente = null;
+    if ($correoRemitente == "" || $contraseñaRemitente == "") {
+        $correoRemitente = "";
+        $contraseñaRemitente = "";
     }
 
     // Definir el correo de destino (puedes cambiarlo si es necesario)
-    //$correoDestino = $correo;
-    $correoDestino = 'desarrollo01@mdcloud.mx';
+    $correoDestino = $correo;
+    //$correoDestino = 'desarrollo01@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión
     $titulo = 'Sun Arrow';
