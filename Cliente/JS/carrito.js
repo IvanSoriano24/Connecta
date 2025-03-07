@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (result.success) {
           Swal.fire({
             title: "¡Pedido realizado con éxito!",
-            text: `Tu pedido ha sido registrado correctamente con el folio: ${datosPedido.folio}`,
+            text: `Tu pedido ha sido registrado correctamente con el folio: ${datosPedido.numero}`,
             icon: "success",
             confirmButtonText: "Aceptar",
           });
@@ -431,7 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
       enviar: datosCliente.CALLE, // Puedes cambiarlo según la lógica de negocio
       condicion: "",
     };
-}
+  }
   function obtenerPartidasPedido() {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     let partidasData = [];
@@ -451,10 +451,11 @@ document.addEventListener("DOMContentLoaded", () => {
         precioUnitario: producto.precioUnitario,
         subtotal: producto.subtotal,
         CVE_UNIDAD: producto.CVE_UNIDAD,
+        COSTO_PROM: producto.COSTO_PROM,
       };
       partidasData.push(partida);
     });
-
+    //console.log(partidasData);
     return partidasData;
   }
 

@@ -1578,6 +1578,7 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$numero = "7775681612";
     $numero = "+527772127123";
     //$numero = "+527773340218";
+    //$numero = "+527773750925";
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -1850,7 +1851,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     //$contraseñaRemitente = null;
     // Definir el correo de destino (puedes cambiarlo si es necesario)
     $correoDestino = $correo;
-    $correoDestino = 'desarrollo01@mdcloud.mx';
+    //$correoDestino = 'desarrollo01@mdcloud.mx';
     //$correoDestino = 'amartinez@grupointerzenda.com';
     //$correoDestino = 'ivan.soriano@mdcloud.mx';
 
@@ -2783,6 +2784,7 @@ function extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente
         i.[APART],
         i.[CVE_ESQIMPU],
         i.[CVE_UNIDAD],
+        i.[COSTO_PROM],
         p.[PRECIO] -- Se une el precio del producto
     FROM [mdc_sae01].[dbo].[INVE01] i
     LEFT JOIN [mdc_sae01].[dbo].[PRECIO_X_PROD01] p 
@@ -3212,31 +3214,31 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
+
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    // Iniciar la transacción para las inserciones de las partidas
+
+    // Iniciar la transacción
     sqlsrv_begin_transaction($conn);
-    // Iterar sobre las partidas recibidas
+
+    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+
+    // **Obtener el último `NUM_PAR` de la base de datos**
+    $query = "SELECT MAX(NUM_PAR) AS NUM_PAR FROM $nombreTabla WHERE CVE_DOC = ?";
+    $stmt = sqlsrv_query($conn, $query, [$CVE_DOC]);
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+    $NUM_PAR = ($row && $row['NUM_PAR']) ? $row['NUM_PAR'] + 1 : 1; // Si no hay partidas, empieza desde 1
+
     if (isset($partidasData) && is_array($partidasData)) {
-        $NUM_PAR = 0;
         foreach ($partidasData as $partida) {
-            $NUM_PAR = $NUM_PAR + 1;
-        }
-        foreach ($partidasData as $partida) {
-            // Extraer los datos de la partida
-            $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-            $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-            $CVE_ART = $partida['producto']; // Clave del producto
-            $CANT = $partida['cantidad']; // Cantidad
-            $PREC = $partida['precioUnitario']; // Precio
-            //$NUM_PAR = $formularioData['numero'];
-            // Calcular los impuestos y totales
-            $IMPU1 = $partida['ieps']; // Impuesto 1
+            $CVE_ART = $partida['producto'];
+            $CANT = $partida['cantidad'];
+            $PREC = $partida['precioUnitario'];
+            $IMPU1 = $partida['ieps'];
             $IMPU3 = $partida['isr'];
-            //$IMPU1 = 0;
-            //$IMPU2 = $partida['impuesto2']; // Impuesto 2
             $IMPU2 = 0;
-            $IMPU4 = $partida['iva']; // Impuesto 2
-            // Agregar los cálculos para los demás impuestos...
+            $IMPU4 = $partida['iva'];
             $PXS = 0;
             $DESC1 = $partida['descuento1'];
             $DESC2 = $partida['descuento2'];
@@ -3245,23 +3247,16 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
             $COSTO_PROM = $partida['COSTO_PROM'];
             $NUM_ALMA = $formularioData['almacen'];
             $UNI_VENTA = $partida['unidad'];
-            if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
-                $TIPO_PORD = 'S';
-            } else {
-                $TIPO_PORD = 'P';
-            }
-            $TOTIMP1 = $IMPU1 * $CANT * $PREC; // Total impuesto 1
-            $TOTIMP2 = $IMPU2 * $CANT * $PREC; // Total impuesto 2
-            $TOTIMP4 = $IMPU4 * $CANT * $PREC; // Total impuesto 4
-            // Agregar los cálculos para los demás TOTIMP...
-
-            // Calcular el total de la partida (precio * cantidad)
+            $TIPO_PORD = ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') ? 'S' : 'P';
+            $TOTIMP1 = $IMPU1 * $CANT * $PREC;
+            $TOTIMP2 = $IMPU2 * $CANT * $PREC;
+            $TOTIMP4 = $IMPU4 * $CANT * $PREC;
             $TOT_PARTIDA = $PREC * $CANT;
 
-            // Consultar la descripción del producto (si es necesario)
+            // **Obtener la descripción del producto**
             $DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
 
-            // Crear la consulta SQL para insertar los datos de la partida
+            // **INSERTAR PARTIDA**
             $sql = "INSERT INTO $nombreTabla
                 (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA,
                 TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4,
@@ -3279,6 +3274,7 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
                 0, ?, '', '',
                 0, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
+
             $params = [
                 $CVE_DOC,
                 $NUM_PAR,
@@ -3304,22 +3300,22 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
                 $DESCR_ART,
                 $CVE_UNIDAD
             ];
-            // Ejecutar la consulta
+
             $stmt = sqlsrv_query($conn, $sql, $params);
-            //var_dump($stmt);
             if ($stmt === false) {
-                //var_dump(sqlsrv_errors()); // Muestra los errores específicos
+                var_dump(sqlsrv_errors()); // Muestra errores específicos
                 sqlsrv_rollback($conn);
                 die(json_encode(['success' => false, 'message' => 'Error al insertar la partida', 'errors' => sqlsrv_errors()]));
             }
+
+            $NUM_PAR++; // **Incrementar NUM_PAR después de cada inserción**
         }
     } else {
         die(json_encode(['success' => false, 'message' => 'Error: partidasData no es un array válido']));
     }
-    //echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
+
     // Confirmar la transacción
     sqlsrv_commit($conn);
-    // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
@@ -3506,9 +3502,9 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     $clienteNombre = trim($clienteData['NOMBRE']);
 
     /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $numeroWhatsApp = '+527773750925'*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
-        $numeroWhatsApp = '+527775681612';*/
+    $numeroWhatsApp = '+527775681612';*/
     $emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';
 

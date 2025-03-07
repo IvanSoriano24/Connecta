@@ -292,7 +292,6 @@ async function obtenerDatosCliente() {
 
 function abrirModalProducto(producto, precio) {
   const modal = document.getElementById("productModal");
-
   if (!modal) {
     console.error("Error: No se encontró el modal");
     return;
@@ -500,7 +499,6 @@ async function completarPrecioProducto(producto, cantidad, precioBase) {
 }
 async function agregarAlCarrito(producto, cantidad = 1, precio) {
   let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-
   // Buscar si el producto ya está en el carrito
   let productoExistente = carrito.find((item) => item.CVE_ART === producto.CVE_ART);
 
@@ -532,8 +530,8 @@ async function agregarAlCarrito(producto, cantidad = 1, precio) {
       comision: 0,
       subtotal: cantidad * (parseFloat(precio) || 10),
       CVE_UNIDAD: producto.CVE_UNIDAD,
+      COSTO_PROM: producto.COSTO_PROM,
     };
-
     carrito.push(nuevoProducto);
   }
 
