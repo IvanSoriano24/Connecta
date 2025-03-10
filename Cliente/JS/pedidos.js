@@ -1,7 +1,6 @@
 
 function cargarPedidos() {
-  alert("o");
-    $.get('../Servidor/PHP/pedidos.php', { numFuncion: '4' }, function (response) {
+    $.get('../Servidor/PHP/pedido.php', { numFuncion: '4' }, function (response) {
       if (response.success && response.data) {
         const pedidos = response.data;
         const pedidosTable = document.getElementById('datosPedidos');
@@ -14,19 +13,19 @@ function cargarPedidos() {
           // Asegúrate de que las propiedades existan en cada objeto <td>${pedido.id || 'N/A'}</td>
           row.innerHTML = `
             
-            <td>${pedido.pedido || 'Sin pedidos'}</td>
-            <td>${pedido.cliente || 'Sin cliente'}</td>
-            <td>${pedido.total || '0'}</td>
-            <td>${pedido.fecha || 'Sin fecha'}</td>
-            <td>${pedido.estado || 'Sin estado'}</td>
-            <td>
-              <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.id}">Editar</button>
-              <button class="btnCancelarPedido" data-id="${pedido.id}">Cancelar</button>
-            </td>
+            <td>${pedido.Clave || 'Sin pedidos'}</td>
+            <td>${pedido.Subtotal || '0'}</td>
+            <td>${pedido.ImporteTotal || 'Sin fecha'}</td>
+            
           `;
           pedidosTable.appendChild(row);
         });        
-
+/*
+<td>
+              <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.id}">Editar</button>
+              <button class="btnCancelarPedido" data-id="${pedido.id}">Cancelar</button>
+            </td>
+*/
         // Agregar eventos a los botones dinámicos
         agregarEventosBotones();
       } else {

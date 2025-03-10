@@ -1,17 +1,19 @@
 <?php
-    session_start();
+session_start();
 
-    if (isset($_SESSION['usuario'])) {
-        if ($_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
-        $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
-            header('Location:Dashboard.php');
-            exit();
-        }
-        $nombreUsuario = $_SESSION['usuario']["nombre"];
-        $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
-    } else {
-        header('Location:../index.php');
+if (isset($_SESSION['usuario'])) {
+    if (
+        $_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
+        $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA'
+    ) {
+        header('Location:Dashboard.php');
+        exit();
     }
+    $nombreUsuario = $_SESSION['usuario']["nombre"];
+    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+} else {
+    header('Location:../index.php');
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -49,37 +51,37 @@
 </head>
 
 <style>
-.intro {
-    height: 100%;
-}
+    .intro {
+        height: 100%;
+    }
 
-table td,
-table th {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-}
+    table td,
+    table th {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
 
-thead th {
-    color: #fff;
-}
+    thead th {
+        color: #fff;
+    }
 
-.card {
-    border-radius: .5rem;
-}
+    .card {
+        border-radius: .5rem;
+    }
 
-.table-scroll {
-    border-radius: .5rem;
-}
+    .table-scroll {
+        border-radius: .5rem;
+    }
 
-.table-scroll table thead th {
-    font-size: 1.25rem;
-}
+    .table-scroll table thead th {
+        font-size: 1.25rem;
+    }
 
-thead {
-    top: 0;
-    position: sticky;
-}
+    thead {
+        top: 0;
+        position: sticky;
+    }
 </style>
 
 <body>
@@ -110,7 +112,7 @@ thead {
                                                             <table class="table table-striped mb-0">
                                                                 <thead style="background-color:rgb(49, 118, 222);">
                                                                     <tr>
-                                                                    <th scope="col"
+                                                                        <th scope="col"
                                                                             style="background-color: #0d77bd; color: white; ">
                                                                             Clave</th>
                                                                         <th scope="col"
@@ -124,7 +126,7 @@ thead {
                                                                             Total</th>
                                                                     </tr>
                                                                 </thead>
-                                                                <tbody>
+                                                                <tbody id="datosPedidos">
                                                                     <tr>
 
                                                                 </tbody>
@@ -150,7 +152,7 @@ thead {
         <?php include 'FooterEcommerce.php'; ?>
 
     </div>
-    <script src="JS/ventas.js"></script>
+    <script src="JS/pedidos.js"></script>
     <script src="JS/menu.js"></script>
     <!-- Scroll Top -->
     <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
@@ -174,9 +176,9 @@ thead {
 
 
     <script>
-    $(document).ready(function() {
+        /*$(document).ready(function() {
         datosPedidos();
-    });
+    });*/
     </script>
 </body>
 

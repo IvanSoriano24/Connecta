@@ -6,6 +6,166 @@ error_reporting(E_ALL);
 
 require 'firebase.php';
 
+session_start();
+
+function obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae)
+{
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+    $result = file_get_contents($url, false, $context);
+    if ($result === FALSE) {
+        return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
+    }
+    $documents = json_decode($result, true);
+    if (!isset($documents['documents'])) {
+        return ['success' => false, 'message' => 'No se encontraron documentos'];
+    }
+    // Busca el documento donde coincida el campo `noEmpresa`
+    foreach ($documents['documents'] as $document) {
+        $fields = $document['fields'];
+        if ($fields['claveSae']['stringValue'] === $claveSae) {
+            return [
+                'success' => true,
+                'data' => [
+                    'host' => $fields['host']['stringValue'],
+                    'puerto' => $fields['puerto']['stringValue'],
+                    'usuario' => $fields['usuario']['stringValue'],
+                    'password' => $fields['password']['stringValue'],
+                    'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'claveSae' => $fields['claveSae']['stringValue'],
+                ]
+            ];
+        }
+    }
+    return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
+}
+function formatearClaveCliente($clave)
+{
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $clave = trim((string) $clave);
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($clave) === 10) {
+        return $clave;
+    }
+
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    return $clave;
+}
+function mostrarPedidos($conexionData, $claveSae)
+{
+    // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto
+    $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
+
+    // Parámetros de paginación
+    $pagina = isset($_POST['pagina']) ? (int)$_POST['pagina'] : 1;
+    $porPagina = isset($_POST['porPagina']) ? (int)$_POST['porPagina'] : 50;
+    $offset = ($pagina - 1) * $porPagina;
+
+    try {
+
+        $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+        $clave = $_SESSION['usuario']['claveUsuario'] ?? null;
+        if ($clave != null) {
+            $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+        }
+        $claveUsuario = formatearClaveCliente($clave);
+        $serverName = $conexionData['host'];
+        $connectionInfo = [
+            "Database" => $conexionData['nombreBase'],
+            "UID" => $conexionData['usuario'],
+            "PWD" => $conexionData['password'],
+            "TrustServerCertificate" => true
+        ];
+        $conn = sqlsrv_connect($serverName, $connectionInfo);
+        if ($conn === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        }
+
+        // Construir nombres de tablas dinámicamente
+        $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTabla2  = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTabla3  = "[{$conexionData['nombreBase']}].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+        // Reescribir la consulta evitando duplicados con `DISTINCT`
+        $sql = "SELECT DISTINCT 
+                    f.TIP_DOC AS Tipo,
+                    f.FOLIO AS Clave,
+                    f.CVE_CLPV AS Cliente,
+                    c.NOMBRE AS Nombre,
+                    f.STATUS AS Estatus,
+                    f.FECHAELAB AS FechaElaboracion,
+                    f.CAN_TOT AS Subtotal,
+                    f.COM_TOT AS TotalComisiones,
+                    f.IMPORTE AS ImporteTotal,
+                    v.NOMBRE AS NombreVendedor
+                FROM $nombreTabla2 f
+                LEFT JOIN $nombreTabla c ON c.CLAVE = f.CVE_CLPV
+                LEFT JOIN $nombreTabla3 v ON v.CVE_VEND = f.CVE_VEND
+                WHERE f.STATUS IN ('E', 'O') ";
+
+        // Filtrar por vendedor si el usuario no es administrador
+        if ($tipoUsuario === 'CLIENTE') {
+            $sql .= " AND f.CVE_CLPV = ? ";
+            $params = [$claveUsuario];
+        } else {
+            $params = [];
+        }
+        // Ejecutar la consulta
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        }
+
+        // Arreglo para almacenar los pedidos evitando duplicados
+        $clientes = [];
+        $clavesRegistradas = [];
+
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            // Validar codificación y manejar nulos
+            foreach ($row as $key => $value) {
+                if ($value !== null && is_string($value)) {
+                    $value = trim($value);
+                    if (!empty($value)) {
+                        $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
+                        if ($encoding && $encoding !== 'UTF-8') {
+                            $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                        }
+                    }
+                } elseif ($value === null) {
+                    $value = '';
+                }
+                $row[$key] = $value;
+            }
+
+            // 🚨 Evitar pedidos duplicados usando CVE_DOC como clave única
+            if (!in_array($row['Clave'], $clavesRegistradas)) {
+                $clavesRegistradas[] = $row['Clave']; // Registrar la clave para evitar repetición
+                $clientes[] = $row;
+            }
+        }
+
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+
+        if (empty($clientes)) {
+            echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
+            exit;
+        }
+
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(['success' => true, 'data' => $clientes]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
 function altaPedido($data){
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/MONTOPEDIDO?key=$firebaseApiKey";
@@ -25,7 +185,6 @@ function altaPedido($data){
         echo json_encode(['success' => false, 'message' => 'Error al guardar la empresa.']);
     }
 }
-
 function obtenerPedidos() {
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS?key=$firebaseApiKey";
@@ -178,33 +337,6 @@ function cancelarPedido($idPedido) {
     }
 }
 
-function obtenerPedido($idPedido) {
-    global $firebaseProjectId, $firebaseApiKey;
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS/$idPedido?key=$firebaseApiKey";
-    $response = file_get_contents($url);    
-
-    // Asegúrate de que la respuesta sea válida
-    if ($response !== false) {
-        $data = json_decode($response, true);
-        // Verificar si se encontró el pedido
-        if (isset($data['fields'])) {
-            $pedido = $data['fields'];
-            $pedido['id'] = $idPedido; // Asignamos el idPedido manualmente
-            //header('Content-Type: application/json');
-            echo json_encode([
-                'success' => true,
-                'data' => $pedido
-            ]);
-        } else {
-            // Si no se encuentra el pedido, enviar un mensaje de error
-            echo json_encode(['success' => false, 'message' => 'Pedido no encontrado.']);
-        }
-    } else {
-        // Si hubo un error en la respuesta de Firebase, enviar un mensaje de error
-        echo json_encode(['success' => false, 'message' => 'Error al obtener los datos del pedido.']);
-    }
-}
-
 
 
 //http://localhost/MDConnecta/Servidor/PHP/pedido.php?numFuncion=5?idPedido=FYOcALZA6k4v2UpXv6Ln
@@ -252,18 +384,21 @@ switch ($funcion) {
         break;
 
     case 4: // Obtener pedidos
-       // $data = [
-            /*
-            ID del cliente
-            */
-        //];
-        obtenerPedidos();
+       $claveSae = "01";
+       $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        mostrarPedidos($conexionData, $claveSae);
         break;
     
     case 5:
         $idPedido = $_GET['idPedido'];
         //$idPedido = "FYOcALZA6k4v2UpXv6Ln";
-        obtenerPedido($idPedido);
+        //obtenerPedido($idPedido);
         break;
 
     default:

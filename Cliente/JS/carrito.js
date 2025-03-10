@@ -424,7 +424,7 @@ document.addEventListener("DOMContentLoaded", () => {
       poblacion: datosCliente.LOCALIDAD,
       pais: datosCliente.PAIS,
       regimenFiscal: datosCliente.REGIMEN_FISCAL,
-      claveVendedor: 0,
+      claveVendedor: 24,
       vendedor: 0,
       comision: 0,
       entrega: "",
