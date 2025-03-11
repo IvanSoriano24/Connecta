@@ -3059,7 +3059,7 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     $CAN_TOT = 0;
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
-    $descuentoCliente = $formularioData['descuento']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
         $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
@@ -3072,7 +3072,7 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     foreach ($partidasData as $partida) {
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
-        $desc1 = $partida['descuento1'] ?? 0; // Primer descuento
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
         $desc2 = $partida['descuento2'] ?? 0;
         $descTotal = $descuentoCliente ?? 0; // Descuento global del cliente
 
@@ -3118,7 +3118,7 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
     $TIP_DOC_E = 0; ////
-    $DES_TOT_PORC = $formularioData['descuento'];; ////
+    $DES_TOT_PORC = $formularioData['descuentoCliente'];; ////
     $COM_TOT_PORC = 0; ////
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
@@ -3240,7 +3240,7 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
             $IMPU2 = 0;
             $IMPU4 = $partida['iva'];
             $PXS = 0;
-            $DESC1 = $partida['descuento1'];
+            $DESC1 = $partida['descuento'];
             $DESC2 = $partida['descuento2'];
             $COMI = $partida['comision'];
             $CVE_UNIDAD = $partida['CVE_UNIDAD'];
@@ -3511,7 +3511,7 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -4264,7 +4264,8 @@ switch ($funcion) {
         foreach ($_POST['formularioData'] as $key => $value) {
             $formularioData[$key] = trim($value);
         }
-
+        /*var_dump($_POST['partidasData']);
+        exit();*/
         // 📌 Convertir `partidasData` en un array de partidas
         $partidasData = [];
         foreach ($_POST['partidasData'] as $index => $partida) {
@@ -4274,6 +4275,7 @@ switch ($funcion) {
             }
             $partidasData[] = $partidaArray;
         }
+        
         $totalPedido = calcularTotalPedido($partidasData);
         $clienteId = $formularioData['cliente'];
         $clave = formatearClaveCliente($clienteId);
@@ -4285,14 +4287,15 @@ switch ($funcion) {
             if ($validacionCredito['success']) {
                 $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
                 if ($validarSaldo === 0) {
-                    guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $claveSae);
+                    /*guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $claveSae);
                     guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $claveSae);
                     actualizarFolio($conexionData, $claveSae);
-                    actualizarInventarioEcomers($conexionData, $partidasData, $claveSae);
+                    actualizarInventarioEcomers($conexionData, $partidasData, $claveSae);*/
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoClienteEcomers($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $noEmpresa);
-                    remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
+                    //remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                     // 📌 Respuesta en caso de éxito sin PDF
+                    var_dump("Si");
                     header('Content-Type: application/json; charset=UTF-8');
                     echo json_encode([
                         'success' => true,

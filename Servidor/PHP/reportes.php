@@ -857,7 +857,7 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
         $impuestos = $ieps + $impuesto2 + $isr + $iva;
 
         $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($descTotal / 100));
-        $subtotalPartida = $precioConDescuento * $cantidad;
+        $subtotalPartida = $precioUnitario * $cantidad;
 
         $subtotal += $subtotalPartida;
         $totalDescuentos += ($precioUnitario - $precioConDescuento) * $cantidad;
@@ -877,12 +877,14 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
     $subtotalConDescuento = $subtotal - $totalDescuentos;
     $totalFinal = $subtotalConDescuento + $totalImpuestos;
 
+    $total = $subtotal - $subtotalConDescuento + $totalImpuestos;
+
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(155, 7, 'Importe:', 0, 0, 'R');
     $pdf->Cell(40, 7, number_format($subtotal, 2), 0, 1, 'R');
 
     $pdf->Cell(155, 7, 'Descuento:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
+    $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
 
     $pdf->Cell(155, 7, 'Subtotal:', 0, 0, 'R');
     $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
@@ -891,7 +893,7 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
     $pdf->Cell(40, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
 
     $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($totalFinal, 2), 0, 1, 'R');
+    $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
 
     // **Generar el nombre del archivo correctamente**
     $nombreArchivo = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $formularioData['numero']) . ".pdf";

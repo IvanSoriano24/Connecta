@@ -513,7 +513,6 @@ async function agregarAlCarrito(producto, cantidad = 1, precio) {
         : "SRC/noimg.png"; // Imagen de respaldo si no hay
 
     const datosProducto = await completarPrecioProducto(producto, cantidad, precio);
-
     let nuevoProducto = {
       CVE_ART: producto.CVE_ART,
       DESCR: producto.DESCR,
@@ -537,5 +536,5 @@ async function agregarAlCarrito(producto, cantidad = 1, precio) {
 
   // Guardamos la actualización en localStorage
   localStorage.setItem("carrito", JSON.stringify(carrito));
-  mostrarCarrito(); // Asegurar que la vista se actualice
+  //mostrarCarrito(); // Asegurar que la vista se actualice
 }

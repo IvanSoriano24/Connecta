@@ -220,7 +220,6 @@ document.addEventListener("DOMContentLoaded", () => {
   async function pagarPedido() {
     const fechaActual =
       new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";
-
     try {
       // 1️⃣ Mostrar un mensaje de carga
       Swal.fire({
@@ -232,10 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
           Swal.showLoading();
         },
       });
-
       // 2️⃣ Obtener los datos completos del pedido
       const datosPedido = await obtenerDatosPedido(fechaActual);
-      console.log(datosPedido);
       if (!datosPedido) {
         Swal.fire({
           title: "Error",
@@ -245,43 +242,34 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         return;
       }
-
       // 3️⃣ Obtener los productos del carrito
-      const partidas = obtenerPartidasPedido();
-
+      const partidas = await obtenerPartidasPedido(datosPedido.cliente);
       // 4️⃣ Crear `FormData`
       const formData = new FormData();
       formData.append("numFuncion", "19");
-
       // 📌 Agregar datos del pedido
       for (const key in datosPedido) {
         formData.append(`formularioData[${key}]`, datosPedido[key]);
       }
-
       // 📌 Agregar las partidas
       partidas.forEach((partida, index) => {
         for (const key in partida) {
           formData.append(`partidasData[${index}][${key}]`, partida[key]);
         }
       });
-
       console.log("Pedido a enviar (FormData):", formData); // Para depuración
-
       // 5️⃣ Enviar la solicitud al backend
       const response = await fetch("../Servidor/PHP/ventas.php", {
         method: "POST",
         body: formData,
       });
-
       // 📌 Verificar el tipo de respuesta
       const contentType = response.headers.get("content-type");
-
       if (contentType && contentType.includes("application/pdf")) {
         // 📌 Si la respuesta es un PDF, abrirlo en una nueva ventana
         const pdfBlob = await response.blob();
         const pdfUrl = URL.createObjectURL(pdfBlob);
         window.open(pdfUrl, "_blank");
-
         Swal.fire({
           title: "Pedido completado",
           text: "El pedido ha sido generado exitosamente. Puedes descargar tu remisión.",
@@ -298,10 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
             icon: "success",
             confirmButtonText: "Aceptar",
           });
-
           // 🗑️ Borrar carrito después de confirmar el pedido
           localStorage.removeItem("carrito");
-
           // 🔄 Actualizar la vista del carrito
           mostrarCarrito();
         } else if (result.autorizacion) {
@@ -380,85 +366,138 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   async function obtenerDatosPedido(fechaActual) {
-    // 1️⃣ Obtener los datos del cliente
+    // 1️⃣ Obtener los datos del cliente (por ejemplo, del carrito)
     const datosCliente = await obtenerDatosClienteCarro();
     if (!datosCliente) {
       alert("No se pudieron obtener los datos del cliente.");
       return null;
     }
-
-    // Definir la fecha y hora actual
+  
+    // 2️⃣ Definir la fecha y hora actual
     const now = new Date();
-
-    // 2️⃣ Obtener la fecha actual en formato SQL
-    const fecha = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(now.getDate()).padStart(2, "0")} ${String(
-      now.getHours()
-    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
-      now.getSeconds()
-    ).padStart(2, "0")}`;
-
+    const fecha = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+  
     // 3️⃣ Obtener el nuevo folio
     const nuevoFolio = await obtenerFolioSiguiente();
-
-    // 4️⃣ Fusionar datos del cliente con los datos del pedido
+  
+    // 4️⃣ Obtener el descuento del cliente desde Firebase
+    const descuentoFirebase = await obtenerClienteDescunetoDeFirebase(datosCliente.CLAVE);
+    
+      //console.log(descuentoCliente);
+    // 5️⃣ Fusionar los datos del cliente con los datos del pedido
     return {
-      fechaAlta: fecha, // Fecha y hora
+      fechaAlta: fecha,         // Fecha y hora actual
       numero: nuevoFolio,
       diaAlta: fechaActual,
-      almacen: "1", // Definir un almacén por defecto
-      estatus: "E", // Estado inicial del pedido
-
-      // 📌 **Datos del Cliente**
+      almacen: "1",             // Almacén por defecto
+      estatus: "E",             // Estado inicial del pedido
+  
+      // 📌 Datos del Cliente
       cliente: datosCliente.CLAVE,
       rfc: datosCliente.RFC,
       nombre: datosCliente.NOMBRE,
       calle: datosCliente.CALLE,
       numE: datosCliente.NUMEXT,
       numI: datosCliente.NUMINT,
-      descuento: datosCliente.DESCUENTO || 0, // Si no hay descuento, poner 0
+      descuentoCliente: descuentoFirebase, // Descuento obtenido desde Firebase (o el valor local)
       colonia: datosCliente.COLONIA,
       codigoPostal: datosCliente.CODIGO,
       poblacion: datosCliente.LOCALIDAD,
       pais: datosCliente.PAIS,
       regimenFiscal: datosCliente.REGIMEN_FISCAL,
       claveVendedor: 24,
-      vendedor: 0,
+      vendedor: 24,
       comision: 0,
       entrega: "",
-      enviar: datosCliente.CALLE, // Puedes cambiarlo según la lógica de negocio
-      condicion: "",
+      enviar: datosCliente.CALLE, // Puedes modificarlo según la lógica de negocio
+      condicion: ""
     };
   }
-  function obtenerPartidasPedido() {
+  async function obtenerClienteDescunetoDeFirebase(cliente) {
+    try {
+      const response = await $.ajax({
+        url: '../Servidor/PHP/descuento.php', // Ajusta la URL a tu endpoint PHP
+        type: 'GET',
+        dataType: 'json', // Se espera JSON
+        data: { cliente: cliente, numFuncion: 5 }
+      });
+      if (response.success) {
+        // Suponemos que response.data es el valor (por ejemplo, "40")
+        return response.data;
+      } else {
+        console.error('Error en la consulta de descuentos:', response.message);
+        return 0;
+      }
+    } catch (error) {
+      console.error('Error al obtener descuento de Firebase:', error);
+      return 0;
+    }
+  }
+  async function obtenerPartidasPedido(cliente) {
+    console.log("🔍 Cliente recibido en obtenerPartidasPedido:", cliente);
+
+    // Obtener el carrito almacenado en localStorage
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    console.log("🛒 Carrito obtenido del localStorage:", carrito);
+
     let partidasData = [];
 
+    // Obtener los descuentos registrados en Firebase para el cliente
+    const descuentosFirebase = await obtenerDescuentosDeFirebase(cliente);
+    console.log("📌 Descuentos obtenidos de Firebase:", descuentosFirebase);
+
+    // Convertir el array de descuentos a un objeto (mapa) para facilitar la búsqueda
+    const descuentosMap = {};
+    descuentosFirebase.forEach((descuento) => {
+      descuentosMap[descuento.clave] = descuento.descuento;
+    });
+    console.log("📌 Mapa de descuentos:", descuentosMap);
+
+    // Recorrer cada producto del carrito y construir la partida
     carrito.forEach((producto) => {
       const partida = {
         cantidad: producto.cantidad,
         producto: producto.CVE_ART,
         unidad: producto.unidad,
-        descuento1: producto.descuento1 || 0,
+        descuento: descuentosMap[producto.CVE_ART] || producto.descuento1 || 0,
         descuento2: producto.descuento2 || 0,
         ieps: producto.ieps || 0,
         impuesto2: producto.impuesto2 || 0,
         isr: producto.isr || 0, // Impuesto 3
-        iva: producto.iva || 0,
+        iva: producto.iva || 16,
         comision: producto.comision || 0,
         precioUnitario: producto.precioUnitario,
         subtotal: producto.subtotal,
         CVE_UNIDAD: producto.CVE_UNIDAD,
         COSTO_PROM: producto.COSTO_PROM,
       };
+      console.log("✅ Partida generada:", partida);
       partidasData.push(partida);
     });
-    //console.log(partidasData);
+
+    console.log("📌 PartidasData final generado:", partidasData);
     return partidasData;
   }
-
+  // Función para obtener los descuentos de Firebase para un cliente
+  async function obtenerDescuentosDeFirebase(cliente) {
+    try {
+      const response = await $.ajax({
+        url: "../Servidor/PHP/descuento.php", // Ajusta la URL a tu endpoint PHP
+        type: "GET",
+        dataType: "json", // Asegura que la respuesta se trate como JSON
+        data: { cliente: cliente, numFuncion: 4 },
+      });
+      if (response.success) {
+        return response.data; // Se espera un array de objetos { clave, descuento }
+      } else {
+        console.error("Error en la consulta de descuentos:", response.message);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error al obtener descuentos de Firebase:", error);
+      return [];
+    }
+  }
   function mostrarCarrito() {
     const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
     const carritoLista = document.getElementById("carrito-lista");

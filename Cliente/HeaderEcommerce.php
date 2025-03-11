@@ -11,13 +11,14 @@
       <nav id="navmenu" class="navmenu">
         <ul>
           <li><a href="Menu.php" >Inicio</a></li>
-          <li><a href="#">Crédito</a></li>
+          <li><a href="Credito.php">Crédito</a></li>
           <li><a href="Articulos.php">Categoria</a></li>
           <li><a href="Pedidos.php">Pedidos</a></li>
           <li><a href="#">Guias</a></li>
           <li><a href="Carrito.php">Carrito</a></li>
           <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
-          <li><a href="imagenes.php">Imagenes</a></li>
+            <li><a href="Descuentos.php">Descuentos</a></li>
+            <li><a href="imagenes.php">Imagenes</a></li>
           <li><a href="Dashboard.php">MDConnecta</a></li>
           <?php } ?>
          <li><a>Hola <?php echo $nombreUsuario ?> </a></li>
@@ -44,7 +45,6 @@
       </nav>
 
       <a href="" class="btn-getstarted" id="cerrarSesion" name="cerrarSesion">
-      <i class='bx bxs-log-out-circle'></i>
       <span class="text">Cerrar Sesión</span>
       </a>
       

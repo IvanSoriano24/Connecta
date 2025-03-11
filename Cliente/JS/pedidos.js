@@ -10,16 +10,15 @@ function cargarPedidos() {
         pedidos.forEach(pedido => {
           const row = document.createElement('tr');
         
-          // Asegúrate de que las propiedades existan en cada objeto <td>${pedido.id || 'N/A'}</td>
+          // Asegúrate de que las propiedades existan en cada objeto 
           row.innerHTML = `
-            
             <td>${pedido.Clave || 'Sin pedidos'}</td>
-            <td>${pedido.Subtotal || '0'}</td>
-            <td>${pedido.ImporteTotal || 'Sin fecha'}</td>
-            
+            <td>${pedido.Subtotal ? pedido.Subtotal.toFixed(2) : '0.00'}</td>
+            <td>${pedido.ImporteTotal ? pedido.ImporteTotal.toFixed(2) : '0.00'}</td>
           `;
           pedidosTable.appendChild(row);
-        });        
+        });
+             
 /*
 <td>
               <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.id}">Editar</button>

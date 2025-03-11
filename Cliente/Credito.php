@@ -92,53 +92,36 @@ if (isset($_SESSION['usuario'])) {
         <main class="text-center">
             <section id="hero" class="hero section">
                 <!-- Contact Section -->
-                <section id="" class="contact ">
+                <section class="container section-title" data-aos="fade-up">
 
-                    <!-- Section Title -->
-                    <div class="container section-title" data-aos="fade-up">
-                        <h2>Pedidos</h2>
-                        <p></p>
-                        <section class="intro">
-                            <div class="bg-image h-100" style="background-color: #f5f7fa;">
-                                <div class="mask d-flex align-items-center h-100">
-                                    <div class="container">
-                                        <div class="row justify-content-center">
-                                            <div class="col-12">
-                                                <div class="card">
-                                                    <div class="card-body p-0">
-                                                        <div class="table-responsive table-scroll"
-                                                            data-mdb-perfect-scrollbar="true"
-                                                            style="position: relative; height: 700px">
-                                                            <table class="table table-striped mb-0">
-                                                                <thead style="background-color:rgb(49, 118, 222);">
-                                                                    <tr>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Clave</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Cantidad</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Total</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody id="datosPedidos">
-                                                                    <tr>
-
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                    <div class="container py-5">
+                        <div class="row d-flex justify-content-center align-items-center">
+                            <div class="col-lg-10">
+                                <div class="card shadow-lg">
+                                    <div class="card-body p-5">
+                                        <h3 class="text-center mb-4">Tu Credito</h3>
+                                        <br>
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-striped text-center align-middle">
+                                                <thead class="table-dark">
+                                                </thead>
+                                                <tbody id="carrito-lista">
+                                                    <form>
+                                                        <label for="credito">Credito:</label>
+                                                        <input type="number" id="credito">
+                                                        <br>
+                                                        <label for="saldo">Saldo:</label>
+                                                        <input type="number" id="saldo">
+                                                    </form>
+                                                </tbody>
+                                            </table>
                                         </div>
+                                        <hr>
                                     </div>
                                 </div>
                             </div>
-                        </section>
-                    </div><!-- End Section Title -->
-
+                        </div>
+                    </div>
 
                 </section><!-- /Contact Section -->
             </section><!-- /Fin Section -->
@@ -149,7 +132,7 @@ if (isset($_SESSION['usuario'])) {
         <?php include 'FooterEcommerce.php'; ?>
 
     </div>
-    <script src="JS/pedidos.js"></script>
+    <script src="JS/credito.js"></script>
     <script src="JS/menu.js"></script>
     <!-- Scroll Top -->
     <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i

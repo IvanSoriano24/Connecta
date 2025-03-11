@@ -965,7 +965,6 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   const clienteInput = document.getElementById("cliente");
   clienteInput.value = cliente.CLAVE; // Solo guarda la clave, sin el nombre
   clienteId = cliente.CLAVE; // Guardar el ID del cliente
-  alert(clienteInput.value);
 
   // Actualizar estado de cliente seleccionado
   sessionStorage.setItem("clienteSeleccionado", true);
