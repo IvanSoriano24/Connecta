@@ -399,7 +399,7 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
     $SUBTOTAL = 0;
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
-    $descuentoCliente = $formularioData['descuento']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
         $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
@@ -851,7 +851,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $SUBTOTAL = 0;
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
-    $descuentoCliente = $formularioData['descuento']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
         $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
@@ -920,7 +920,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
     $TIP_DOC_E = 'O'; ////
-    $DES_TOT_PORC = $formularioData['descuento'];; ////
+    $DES_TOT_PORC = $formularioData['descuentoCliente'];; ////
     $COM_TOT_PORC = 0; ////
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
     $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
@@ -3616,7 +3616,7 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
 
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $sql = "SELECT REFER, NUM_CPTO, IMPORTE, 
+    $sql = "SELECT REFER, NUM_CPTO, IMPORTE, NO_FACTURA, 
         CONVERT(VARCHAR(10), FECHA_VENC, 120) AS fecha
         FROM $tablaCunetM 
         WHERE CVE_CLIE = ? AND NUM_CPTO = '9'";
@@ -3641,6 +3641,7 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
 
     $REFER = (float)$clienteCxC['REFER'];
     $IMPORTE = (float)$clienteCxC['IMPORTE'];
+    $NO_FACTURA = (float)$clienteCxC['NO_FACTURA'];
     $fechaVencimiento = $clienteCxC['fecha'];
 
     // Asegurarse de que $fechaVencimiento es un objeto DateTime.
@@ -3672,7 +3673,7 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
     }*/
 
     $puedeContinuar = ($totalPedido) <= $IMPORTE;
-    if($puedeContinuar){
+    if ($puedeContinuar) {
         $fondo = false;
     } else {
         $fondo = true;
@@ -3687,10 +3688,12 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
         'IMPORTE' => $IMPORTE,
         'subTotal' => $totalPedido,
         'Vencimiento' => $fechaVencimiento,
-        'Referencia' => $REFER
+        'Referencia' => $REFER,
+        'NO_FACTURA' => $NO_FACTURA
     ];
 }
-function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa){
+function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $no_factura)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $serverName = $conexionData['host'];
@@ -3720,7 +3723,8 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
         'noEmpresa'  => ['stringValue' => $noEmpresa],
         'status' => ['stringValue' => 'Sin Pagar'],
         'creacion' => ['stringValue' => $fechaCreacion],
-        'limite' => ['stringValue' => $fechaLimite]
+        'limite' => ['stringValue' => $fechaLimite],
+        'factura' => ['stringValue' => $no_factura],
     ];
 
     $payload = json_encode(['fields' => $fields]);
@@ -3743,7 +3747,225 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
         return;
     }
 }
+function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    //FALTA FACTURA
+    
+    
+    // Preparar los datos para el INSERT
+    $cve_clie   = $formularioData['cliente']; // Clave del cliente
+    $refer      = $formularioData['referencia'] ?? '000001'; // Puede generarse o venir del formulario
+    $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
+    $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
+    $no_factura = $formularioData['numero']; // Número de factura o pedido
+    $docto      = '';   // Puede ser un código de documento, si aplica
+    $CAN_TOT = 0;
+    $IMPORTE = 0;
+    $DES_TOT = 0; // Variable para el importe con descuento
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
+    foreach ($partidasData as $partida) {
+        $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
+    }
+    $fecha_apli = date("Y-m-d H:i:s");         // Fecha de aplicación: ahora
+    $fecha_venc = date("Y-m-d H:i:s", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
+    $status     = 'A';  // Estado inicial, por ejemplo
+    $usuario    = '0';
+    // Preparar el query INSERT (ajusta los campos según la estructura real de tu tabla)
+    $query = "INSERT INTO $tablaCunetM (
+                    CVE_CLIE, 
+                    REFER, 
+                    NUM_CPTO, 
+                    NUM_CARGO, 
+                    NO_FACTURA, 
+                    DOCTO, 
+                    IMPORTE, 
+                    FECHA_APLI, 
+                    FECHA_VENC,
+                    STATUS,
+                    USUARIO
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    
+    $params = [
+        $cve_clie, $refer, $num_cpto, $num_cargo, $no_factura, $docto,
+        $IMPORTE, $fecha_apli, $fecha_venc, $status, $usuario
+    ];
+    
+    $stmt = sqlsrv_query($conn, $query, $params);
+    if ($stmt === false) {
+        $errors = sqlsrv_errors();
+        sqlsrv_close($conn);
+        return [
+            'success' => false,
+            'message' => 'Error al insertar la cuenta por cobrar',
+            'errors' => $errors
+        ];
+    }
+    
+    sqlsrv_close($conn);
+    return $no_factura;
+}
+function eliminarCxc($conexionData, $anticipo, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    // Conectar a la base de datos
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+
+    // Construir los nombres de las tablas
+    $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_Det" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Iniciar una transacción
+    sqlsrv_begin_transaction($conn);
+
+    try {
+        // Eliminar de la tabla CUEN_M
+        $sqlCunetM = "DELETE FROM $tablaCunetM WHERE [REFER] = ? AND [NO_FACTURA] = ?";
+        $params = [$anticipo['Referencia'], $anticipo['NO_FACTURA']];
+        $stmtCunetM = sqlsrv_prepare($conn, $sqlCunetM, $params);
+        if ($stmtCunetM === false) {
+            throw new Exception('Error al preparar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
+        }
+        if (!sqlsrv_execute($stmtCunetM)) {
+            throw new Exception('Error al ejecutar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
+        }
+
+        // Eliminar de la tabla CUEN_Det
+        $sqlCunetDet = "DELETE FROM $tablaCunetDet WHERE [REFER] = ? AND [NO_FACTURA] = ?";
+        $stmtCunetDet = sqlsrv_prepare($conn, $sqlCunetDet, $params);
+        if ($stmtCunetDet === false) {
+            throw new Exception('Error al preparar la consulta para $tablaCunetDet: ' . print_r(sqlsrv_errors(), true));
+        }
+        if (!sqlsrv_execute($stmtCunetDet)) {
+            throw new Exception('Error al ejecutar la consulta para $tablaCunetDet: ' . print_r(sqlsrv_errors(), true));
+        }
+
+        // Confirmar la transacción
+        sqlsrv_commit($conn);
+    } catch (Exception $e) {
+        // Revertir la transacción en caso de error
+        sqlsrv_rollback($conn);
+        die(json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]));
+    }
+
+    // Liberar recursos y cerrar conexión
+    if (isset($stmtCunetM)) sqlsrv_free_stmt($stmtCunetM);
+    if (isset($stmtCunetDet)) sqlsrv_free_stmt($stmtCunetDet);
+    sqlsrv_close($conn);
+}
+function crearCxc($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    // Conectar a la base de datos
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        // Finalizar ejecución si hay un error al conectar
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+
+    // Construir el nombre de la tabla CUEN_M con formato adecuado
+    $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    /*
+    
+    // Preparar los datos para el INSERT
+    $cve_clie   = $formularioData['cliente']; // Clave del cliente
+    $refer      = $formularioData['referencia'] ?? '000001'; // Puede generarse o venir del formulario
+    $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
+    $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
+    $no_factura = $formularioData['numero']; // Número de factura o pedido
+    $docto      = '';   // Puede ser un código de documento, si aplica
+    $importe    = $formularioData['total'];  // Monto a cobrar
+    $fecha_apli = date("Y-m-d H:i:s");         // Fecha de aplicación: ahora
+    $fecha_venc = date("Y-m-d H:i:s", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
+    $status     = 'Pendiente';  // Estado inicial, por ejemplo
+    $usuario    = $formularioData['usuario'] ?? 'sistema'; // Usuario que registra el movimiento
+    
+    // Preparar el query INSERT (ajusta los campos según la estructura real de tu tabla)
+    $query = "INSERT INTO $tablaCuenM (
+                    CVE_CLIE, 
+                    REFER, 
+                    NUM_CPTO, 
+                    NUM_CARGO, 
+                    NO_FACTURA, 
+                    DOCTO, 
+                    IMPORTE, 
+                    FECHA_APLI, 
+                    FECHA_VENC,
+                    STATUS,
+                    USUARIO
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    
+    $params = [
+        $cve_clie, $refer, $num_cpto, $num_cargo, $no_factura, $docto,
+        $importe, $fecha_apli, $fecha_venc, $status, $usuario
+    ];
+    
+    $stmt = sqlsrv_query($conn, $query, $params);
+    if ($stmt === false) {
+        $errors = sqlsrv_errors();
+        sqlsrv_close($conn);
+        return [
+            'success' => false,
+            'message' => 'Error al insertar la cuenta por cobrar',
+            'errors' => $errors
+        ];
+    }
+    
+    sqlsrv_close($conn);
+    return [
+        'success' => true,
+        'message' => 'Cuenta por cobrar generada correctamente'
+    ];
+    */
+}
 
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -4005,19 +4227,23 @@ switch ($funcion) {
                         ]);
                     }
                 } else {
+
                     $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
+
                     if ($anticipo['success']) {
                         //Funcion para eliminar anticipo
                         var_dump("Si tiene");
                         var_dump($anticipo);
                         exit();
-                        $estatus = 'E';
+                        /*$estatus = 'E';
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
                         $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
+                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);*/
+                        eliminarCxc($conexionData, $anticipo, $claveSae);
+                        crearCxc($conexionData, $anticipo, $claveSae);
                         //exit;
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');
@@ -4028,13 +4254,17 @@ switch ($funcion) {
                         ]);
                         var_dump("Si tiene anticipo");
                     } elseif ($anticipo['sinFondo']) {
-                        //No tiene
+                        //No tiene fondos
                         /*$estatus = 'C';
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);*/
-                        guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
+
+                        //Se crea la factura y se retorna su clave
+                        $no_factura = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
+                        var_dump($no_factura);
+                        guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $no_factura);
                         /*$rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                         validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);*/
                         //exit;
@@ -4045,14 +4275,14 @@ switch ($funcion) {
                             'cxc' => true,
                             'message' => 'El pedido tiene 24 Horas para liquidarse.',
                         ]);
-                    } elseif($anticipo['fechaVencimiento']){
+                    } elseif ($anticipo['fechaVencimiento']) {
                         header('Content-Type: application/json; charset=UTF-8');
                         echo json_encode([
                             'success' => false,
                             'message' => 'Anticipo vencido.',
                         ]);
                         exit();
-                    } else{
+                    } else {
                         header('Content-Type: application/json; charset=UTF-8');
                         echo json_encode([
                             'success' => false,

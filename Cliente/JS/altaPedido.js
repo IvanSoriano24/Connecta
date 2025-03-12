@@ -494,7 +494,7 @@ function obtenerDatosFormulario() {
     calle: document.getElementById("calle").value,
     numE: document.getElementById("numE").value,
     numI: document.getElementById("numI").value,
-    descuento: document.getElementById("descuentoCliente").value,
+    descuentoCliente: document.getElementById("descuentoCliente").value,
     descuentoFin: document.getElementById("descuentoFin").value,
     colonia: document.getElementById("colonia").value,
     codigoPostal: document.getElementById("codigoPostal").value,
