@@ -508,6 +508,7 @@ function obtenerDatosFormulario() {
     enviar: document.getElementById("enviar").value,
     almacen: document.getElementById("almacen").value,
     destinatario: document.getElementById("destinatario").value,
+    conCredito: document.getElementById("conCredito").value,
   };
   return formularioData;
 }
@@ -535,144 +536,6 @@ function obtenerDatosPartidas() {
   });
   return partidasData;
 }
-/*function enviarDatosBackend(formularioData, partidasData) {
-  // Aquí se prepara un objeto FormData para enviar los datos como si fueran un formulario
-  const formData = new FormData();
-  // Agregamos los datos necesarios al FormData
-  formData.append("numFuncion", "8");
-  formData.append("formulario", JSON.stringify(formularioData));
-  formData.append("partidas", JSON.stringify(partidasData));
-
-  // Enviamos la solicitud con fetch
-  fetch("../Servidor/PHP/ventas.php", {
-    method: "POST",
-    body: formData, // Pasamos el FormData directamente
-  })
-    .then((response) => response.json()) // Asumimos que el servidor responde con JSON
-    .then((data) => {
-      console.log("Respuesta del servidor:", data);
-      if (data.success) {
-        Swal.fire({
-          title: "¡Pedido guardado exitosamente!",
-          text: "El pedido se procesó correctamente.",
-          icon: "success",
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          // Redirigir al usuario o realizar otra acción
-          //window.location.href = "Ventas.php";
-        });
-        return;
-      } else if (data.exist) {
-        console.error("Error en la respuesta:", data);
-        Swal.fire({
-          title: "Error al guardar el pedido",
-          html: `
-                <p>${
-                  data.message ||
-                  "No hay suficientes existencias para algunos productos."
-                }</p>
-          title: 'Error al guardar el pedido',
-          html: 
-                <p>${
-                  data.message ||
-                  "No hay suficientes existencias para algunos productos."
-                }</p>
-                <p><strong>Productos sin existencias:</strong></p>
-                <ul>
-                    ${data.productosSinExistencia
-                      .map(
-                        (producto) => `
-                        <li>
-                            <strong>Producto:</strong> ${producto.producto}, 
-                            <strong>Existencias Totales:</strong> ${
-                              producto.existencias || 0
-                            }, 
-                            <strong>Apartados:</strong> ${
-                              producto.apartados || 0
-                            }, 
-                            <strong>Disponibles:</strong> ${
-                              producto.disponible || 0
-                            }
-                        </li>
-                    `
-                      )
-                      .join("")}
-                </ul>
-            `,
-          icon: "error",
-          confirmButtonText: "Aceptar",
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
-      }
-      if (data.credit) {
-        console.error("Error en la respuesta:", data);
-        Swal.fire({
-          title: "Error al guardar el pedido",
-          html: `
-                        <p>${data.message || "Ocurrió un error inesperado."}</p>
-                        <p><strong>Saldo actual:</strong> ${
-                          data.saldoActual?.toFixed(2) || "N/A"
-                        }</p>
-                        <p><strong>Límite de crédito:</strong> ${
-                          data.limiteCredito?.toFixed(2) || "N/A"
-                        }</p>
-                    `,
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
-      } else {
-        console.error("Error en la respuesta:", data);
-        Swal.fire({
-          title: "Error al guardar el pedido",
-          html: `
-                          <p>${
-                            data.message || "Ocurrió un error inesperado."
-                          }</p>
-                          `,
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
-      }
-    })
-    .catch((error) => {
-      console.error("Error al enviar los datos:", error);
-      alert("Ocurrió un error al enviar los datos." + error);
-    });
-  return false;
-}*/
-/*function enviarDatosBackend(formularioData, partidasData) {
-  const formData = new FormData();
-  formData.append("numFuncion", "8");
-  formData.append("formulario", JSON.stringify(formularioData));
-  formData.append("partidas", JSON.stringify(partidasData));
-
-  fetch("../Servidor/PHP/ventas.php", {
-    method: "POST",
-    body: formData,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Error al generar el PDF.");
-      }
-      return response.blob(); // Convertir la respuesta en un archivo blob
-    })
-    .then((blob) => {
-      const url = URL.createObjectURL(blob); // Crear una URL temporal
-      window.open(url, "_blank"); // Abrir en nueva pestaña
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      Swal.fire({
-        title: "Error al generar el PDF",
-        text: error.message,
-        icon: "error",
-        confirmButtonText: "Aceptar",
-      });
-    });
-
-  return false;
-}*/
 function enviarDatosBackend(formularioData, partidasData) {
   const formData = new FormData();
   formData.append("numFuncion", "8");
@@ -888,6 +751,8 @@ function seleccionarClienteDesdeModal(cliente) {
 }
 
 function validarCreditoCliente(clienteId) {
+  //Borrar los mensajes de credito
+  //Mensaje Credito
   let creditoVal = null;
   fetch(`../Servidor/PHP/clientes.php?clienteId=${clienteId}&numFuncion=3`)
     .then((response) => response.json())
@@ -907,7 +772,7 @@ function validarCreditoCliente(clienteId) {
             text: "El cliente no maneja crédito.",
             icon: "info",
           });
-          $("#conCredito").val("S");
+          $("#conCredito").val("N");
         }
       } else {
         Swal.fire({

@@ -48,150 +48,6 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-// Función para conectar a SQL Server y obtener los datos de clientes
-
-// function mostrarPedidos($conexionData, $filtroFecha){
-// 
-//     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
-//     //$filtroFecha = "Mes";
-//     try {
-//         // Validar si el número de empresa está definido en la sesión
-//         if (!isset($_SESSION['empresa']['noEmpresa'])) {
-//             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
-//             exit;
-//         }
-//         // Obtener el número de empresa de la sesión
-//         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-//         $claveSae = $_SESSION['empresa']['claveSae'];
-//         // Validar el formato del número de empresa (asegurarse de que sea numérico)
-//         if (!is_numeric($noEmpresa)) {
-//             echo json_encode(['success' => false, 'message' => 'El número de empresa no es válido']);
-//             exit;
-//         }
-//         // Obtener tipo de usuario y clave de vendedor desde la sesión
-//         $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
-//         $claveVendedor = $_SESSION['empresa']['claveVendedor'] ?? null;
-//         if ($claveVendedor != null) {
-//             $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
-//         }
-//         // Configuración de conexión
-//         $serverName = $conexionData['host'];
-//         $connectionInfo = [
-//             "Database" => $conexionData['nombreBase'], // Nombre de la base de datos
-//             "UID" => $conexionData['usuario'],
-//             "PWD" => $conexionData['password'],
-//             "TrustServerCertificate" => true
-//         ];
-//         $conn = sqlsrv_connect($serverName, $connectionInfo);
-//         if ($conn === false) {
-//             die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
-//         }
-
-//         // Construir el nombre de la tabla dinámicamente usando el número de empresa
-//         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-//         $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-//         $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-//         // Construir la consulta SQL
-//         if ($tipoUsuario === 'ADMINISTRADOR') {
-//             // Si el usuario es administrador, mostrar todos los clientes
-//             $sql = "SELECT 
-//             TIP_DOC AS Tipo,
-//                 CVE_DOC AS Clave,
-//                 CVE_CLPV AS Cliente,
-//                 (SELECT MAX(NOMBRE) FROM $nombreTabla WHERE $nombreTabla.CLAVE = $nombreTabla2.CVE_CLPV) AS Nombre,
-//                 STATUS AS Estatus,
-//                 FECHAELAB AS FechaElaboracion,
-//                 CAN_TOT AS Subtotal,
-//                 COM_TOT AS TotalComisiones,
-//                 IMPORTE AS ImporteTotal,
-//                 (SELECT MAX(NOMBRE) FROM $nombreTabla3 WHERE $nombreTabla3.CVE_VEND = $nombreTabla2.CVE_VEND) AS NombreVendedor
-//             FROM $nombreTabla2
-//             WHERE STATUS IN ('E', 'O')";
-//             if ($filtroFecha == 'Hoy') {
-//                 // Consulta para el día actual
-//                 $sql .= " AND CAST(FECHAELAB AS DATE) = CAST(GETDATE() AS DATE)";
-//             } elseif ($filtroFecha == 'Mes') {
-//                 // Consulta para el mes actual
-//                 $sql .= " AND MONTH(FECHAELAB) = MONTH(GETDATE()) AND YEAR(FECHAELAB) = YEAR(GETDATE())";
-//             } elseif ($filtroFecha == 'Mes Anterior') {
-//                 // Consulta para el mes anterior
-//                 $sql .= " AND MONTH(FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE()))";
-//             } // Si el filtro es 'Todos', no se agrega ningún filtro adicional
-//             $stmt = sqlsrv_query($conn, $sql);
-//         } else {
-//             // Si el usuario no es administrador, filtrar por el número de vendedor
-//             $sql = "SELECT 
-//             TIP_DOC AS Tipo,
-//                 CVE_DOC AS Clave,
-//                 CVE_CLPV AS Cliente,
-//                 (SELECT MAX(NOMBRE) FROM $nombreTabla WHERE $nombreTabla.CLAVE = $nombreTabla2.CVE_CLPV) AS Nombre,
-//                 STATUS AS Estatus,
-//                 FECHAELAB AS FechaElaboracion,
-//                 CAN_TOT AS Subtotal,
-//                 COM_TOT AS TotalComisiones,
-//                 IMPORTE AS ImporteTotal,
-//                 (SELECT MAX(NOMBRE) FROM $nombreTabla3 WHERE $nombreTabla3.CVE_VEND = $nombreTabla2.CVE_VEND) AS NombreVendedor
-//             FROM $nombreTabla2
-//             WHERE STATUS IN ('E', 'O') AND CVE_VEND = ?";
-//             if ($filtroFecha == 'Hoy') {
-//                 // Consulta para el día actual
-//                 $sql .= " AND CAST(FECHAELAB AS DATE) = CAST(GETDATE() AS DATE)";
-//             } elseif ($filtroFecha == 'Mes') {
-//                 // Consulta para el mes actual
-//                 $sql .= " AND MONTH(FECHAELAB) = MONTH(GETDATE()) AND YEAR(FECHAELAB) = YEAR(GETDATE())";
-//             } elseif ($filtroFecha == 'Mes Anterior') {
-//                 // Consulta para el mes anterior
-//                 $sql .= " AND MONTH(FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE()))";
-//             } // Si el filtro es 'Todos', no se agrega ningún filtro adicional
-//             $params = [intval($claveVendedor)];
-//             $stmt = sqlsrv_query($conn, $sql, $params);
-//         }
-//         if ($stmt === false) {
-//             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
-//         }
-//         // Arreglo para almacenar los datos de clientes
-//         $clientes = [];
-//         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-//             foreach ($row as $key => $value) {
-//                 // Limpiar espacios en blanco solo si el valor no es null
-//                 if ($value !== null && is_string($value)) {
-//                     $value = trim($value); // Eliminar espacios en blanco al principio y al final
-
-//                     // Verificar si el valor no está vacío antes de intentar convertirlo
-//                     if (!empty($value)) {
-//                         // Detectar la codificación del valor
-//                         $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
-
-//                         // Si la codificación no se puede detectar o no es UTF-8, convertir la codificación
-//                         if ($encoding && $encoding !== 'UTF-8') {
-//                             $value = mb_convert_encoding($value, 'UTF-8', $encoding);
-//                         }
-//                     }
-//                 } elseif ($value === null) {
-//                     // Si el valor es null, asignar un valor predeterminado
-//                     $value = '';
-//                 }
-//                 // Asignar el valor limpio al campo correspondiente
-//                 $row[$key] = $value;
-//             }
-//             $clientes[] = $row;
-//         }
-//         // Liberar recursos y cerrar la conexión
-//         sqlsrv_free_stmt($stmt);
-//         sqlsrv_close($conn);
-//         // Retornar los datos en formato JSON
-//         if (empty($clientes)) {
-//             echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
-//             exit;
-//         }
-//         header('Content-Type: application/json; charset=UTF-8');
-//         echo json_encode(['success' => true, 'data' => $clientes]);
-//     } catch (Exception $e) {
-//         // Si hay algún error, devuelves un error en formato JSON
-//         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-//     }
-// }
-
 function mostrarPedidos($conexionData, $filtroFecha)
 {
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto
@@ -3736,6 +3592,72 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
 
     //echo json_encode(['success' => true, 'message' => 'Pedido guardado y en espera de ser autorizado.']);
 }
+function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $cliente = $formularioData['cliente'];
+    $cliente = formatearClaveCliente($cliente);
+
+    $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT REFER, NUM_CPTO, IMPORTE, FECHA_VENC
+            FROM $tablaCunetM WHERE CVE_CLIE = ? AND NUM_CPTO = '9'";
+    $params = [$cliente];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
+    }
+    $clienteCxC = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if (!$clienteCxC) {
+        sqlsrv_close($conn);
+        return [
+            'success' => false,
+            'anticipo' => null
+        ];
+    }
+    $REFER = (float)$clienteCxC['REFER'];
+    $IMPORTE = (float)$clienteCxC['IMPORTE'];
+    $fechaVencimiento = $clienteCxC['FECHA_VENC'];
+    // Convertir la fecha del anticipo a un objeto DateTime
+    //$fechaVencimientoObj = DateTime::createFromFormat("Y-m-d", $fechaVencimiento);
+    $fechaActual = new DateTime();
+    if ($fechaVencimiento > $fechaActual) {
+        sqlsrv_close($conn);
+        return [
+            'success' => false,
+            'message' => 'El anticipo tiene una fecha futura y no puede ser utilizado',
+            'IMPORTE' => $IMPORTE,
+            'REFER' => $REFER
+        ];
+    }
+
+    $puedeContinuar = ($totalPedido) <= $IMPORTE;
+
+    sqlsrv_close($conn);
+
+    // Devolver el resultado y los datos relevantes
+    return [
+        'success' => $puedeContinuar,
+        'IMPORTE' => $IMPORTE,
+        'subTotal' => $totalPedido,
+        'fecha' => $fechaVencimiento,
+        'REFER' => $REFER
+    ];
+}
+
 
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -3943,55 +3865,105 @@ switch ($funcion) {
             $resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
 
             if ($resultadoValidacion['success']) {
+
+                $conCredito = $formularioData['conCredito'];
                 // Calcular el total del pedido
                 $totalPedido = calcularTotalPedido($partidasData);
                 $clienteId = $formularioData['cliente'];
                 $clave = formatearClaveCliente($clienteId);
 
-                // Validar crédito del cliente
-                $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
+                if ($conCredito === 'S') {
+                    // Validar crédito del cliente
+                    $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
 
-                if ($validacionCredito['success']) {
-                    $credito = '0';
+                    if ($validacionCredito['success']) {
+                        $credito = '0';
+                    } else {
+                        $credito = '1';
+                    }
+
+                    $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
+
+                    if ($validarSaldo == 0 && $credito == 0) {
+                        $estatus = "E";
+                    } else if ($validarSaldo == 1 || $credito == 1) {
+                        $estatus = "C";
+                    }
+                    /*$estatus = "E";
+                    $validarSaldo = 0;
+                    $credito = 0;*/
+                    guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                    guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
+                    actualizarFolio($conexionData, $claveSae);
+                    actualizarInventario($conexionData, $partidasData);
+                    if ($validarSaldo == 0 && $credito == 0) {
+                        $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
+                        //exit;
+                        // Respuesta de éxito
+                        header('Content-Type: application/json; charset=UTF-8');
+                        echo json_encode([
+                            'success' => true,
+                            'autorizacion' => false,
+                            'message' => 'El pedido se completó correctamente.',
+                        ]);
+                        exit();
+                    } else {
+                        guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                        $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
+                        header('Content-Type: application/json; charset=UTF-8');
+                        echo json_encode([
+                            'success' => false,
+                            'autorizacion' => true,
+                            'message' => 'El pedido se completó pero debe ser autorizado.',
+                        ]);
+                    }
                 } else {
-                    $credito = '1';
-                }
-
-                $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
-
-                if ($validarSaldo == 0 && $credito == 0) {
-                    $estatus = "E";
-                } else if ($validarSaldo == 1 || $credito == 1) {
-                    $estatus = "C";
-                }
-                /*$estatus = "E";
-                $validarSaldo = 0;
-                $credito = 0;*/
-                guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
-                guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
-                actualizarFolio($conexionData, $claveSae);
-                actualizarInventario($conexionData, $partidasData);
-                if ($validarSaldo == 0 && $credito == 0) {
-                    $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                    validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
-                    //exit;
-                    // Respuesta de éxito
-                    header('Content-Type: application/json; charset=UTF-8');
-                    echo json_encode([
-                        'success' => true,
-                        'autorizacion' => false,
-                        'message' => 'El pedido se completó correctamente.',
-                    ]);
+                    $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
+                    if ($anticipo['success']) {
+                        //Funcion para eliminar anticipo
+                        var_dump("Si tiene");
+                        var_dump($anticipo);
+                        exit();
+                        $estatus = 'C';
+                        guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                        guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
+                        actualizarFolio($conexionData, $claveSae);
+                        actualizarInventario($conexionData, $partidasData);
+                        $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
+                        //exit;
+                        // Respuesta de éxito
+                        header('Content-Type: application/json; charset=UTF-8');
+                        echo json_encode([
+                            'success' => true,
+                            'autorizacion' => false,
+                            'message' => 'El pedido se completó correctamente.',
+                        ]);
+                        var_dump("Si tiene anticipo");
+                    } else {
+                        var_dump("No tiene");
+                        var_dump($anticipo);
+                        exit();
+                        //No tiene
+                        $estatus = 'C';
+                        guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                        guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
+                        actualizarFolio($conexionData, $claveSae);
+                        actualizarInventario($conexionData, $partidasData);
+                        /*$rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);*/
+                        //exit;
+                        // Respuesta de éxito
+                        header('Content-Type: application/json; charset=UTF-8');
+                        echo json_encode([
+                            'success' => true,
+                            'autorizacion' => false,
+                            'message' => 'El pedido tiene 24 Horas para liquidarse.',
+                        ]);
+                        
+                    }
                     exit();
-                } else {
-                    guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                    $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
-                    header('Content-Type: application/json; charset=UTF-8');
-                    echo json_encode([
-                        'success' => false,
-                        'autorizacion' => true,
-                        'message' => 'El pedido se completó pero debe ser autorizado.',
-                    ]);
                 }
             } else {
                 // Error de existencias
@@ -4275,7 +4247,7 @@ switch ($funcion) {
             }
             $partidasData[] = $partidaArray;
         }
-        
+
         $totalPedido = calcularTotalPedido($partidasData);
         $clienteId = $formularioData['cliente'];
         $clave = formatearClaveCliente($clienteId);
