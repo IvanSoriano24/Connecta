@@ -608,6 +608,13 @@ function enviarDatosBackend(formularioData, partidasData) {
           icon: "error",
           confirmButtonText: "Aceptar",
         });
+      } else if(data.cxc){
+        Swal.fire({
+          title: "Cuenta por pagar",
+          text: data.message || "El cliente tiene un anticipo vencido",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
       } else {
         Swal.fire({
           title: "Error al guardar el pedido",

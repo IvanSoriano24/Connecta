@@ -3604,7 +3604,11 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
     }
 
     $cliente = $formularioData['cliente'];
@@ -3612,13 +3616,19 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
 
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $sql = "SELECT REFER, NUM_CPTO, IMPORTE, FECHA_VENC
-            FROM $tablaCunetM WHERE CVE_CLIE = ? AND NUM_CPTO = '9'";
+    $sql = "SELECT REFER, NUM_CPTO, IMPORTE, 
+        CONVERT(VARCHAR(10), FECHA_VENC, 120) AS fecha
+        FROM $tablaCunetM 
+        WHERE CVE_CLIE = ? AND NUM_CPTO = '9'";
     $params = [$cliente];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al consultar el cliente',
+            'errors' => sqlsrv_errors()
+        ]));
     }
     $clienteCxC = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     if (!$clienteCxC) {
@@ -3628,34 +3638,110 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
             'anticipo' => null
         ];
     }
+
     $REFER = (float)$clienteCxC['REFER'];
     $IMPORTE = (float)$clienteCxC['IMPORTE'];
-    $fechaVencimiento = $clienteCxC['FECHA_VENC'];
-    // Convertir la fecha del anticipo a un objeto DateTime
-    //$fechaVencimientoObj = DateTime::createFromFormat("Y-m-d", $fechaVencimiento);
+    $fechaVencimiento = $clienteCxC['fecha'];
+
+    // Asegurarse de que $fechaVencimiento es un objeto DateTime.
+    /*if (!($fechaVencimiento instanceof DateTime)) {
+        // Asumimos que el formato en la BD es "Y-m-d H:i:s"
+        $fechaVencimiento = DateTime::createFromFormat("Y-m-d", $fechaVencimiento);
+    }*/
+
+    // Obtener la fecha actual
     $fechaActual = new DateTime();
-    if ($fechaVencimiento > $fechaActual) {
+
+    // Comparar solo la parte de la fecha (Y-m-d) para evitar diferencias por hora o zona
+    $fechaActualStr = $fechaActual->format('Y-m-d');
+    /*var_dump($fechaActualStr);
+    var_dump($fechaVencimiento);*/
+
+    /*if ($fechaActualStr > $fechaVencimiento) {
         sqlsrv_close($conn);
         return [
             'success' => false,
-            'message' => 'El anticipo tiene una fecha futura y no puede ser utilizado',
-            'IMPORTE' => $IMPORTE,
-            'REFER' => $REFER
+            'fechaVencimiento' => true,
+            'sinFondo' => false,
+            'anticipoVencimiento' => true,
+            'message' => 'El anticipo tiene una fecha futura y no puede ser utilizado'
         ];
-    }
+        die();
+    } else {
+        var_dump("Si");
+    }*/
 
     $puedeContinuar = ($totalPedido) <= $IMPORTE;
+    if($puedeContinuar){
+        $fondo = false;
+    } else {
+        $fondo = true;
+    }
 
     sqlsrv_close($conn);
 
     // Devolver el resultado y los datos relevantes
     return [
         'success' => $puedeContinuar,
+        'sinFondo' => $fondo,
         'IMPORTE' => $IMPORTE,
         'subTotal' => $totalPedido,
-        'fecha' => $fechaVencimiento,
-        'REFER' => $REFER
+        'Vencimiento' => $fechaVencimiento,
+        'Referencia' => $REFER
     ];
+}
+function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa){
+    global $firebaseProjectId, $firebaseApiKey;
+
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
+    $fechaLimite = date("Y-m-d H:i:s", strtotime($fechaCreacion . ' + 1 day')); // Suma 24 horas
+
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
+    $fields = [
+        'folio'     => ['stringValue' => $formularioData['numero']],
+        'cliente'    => ['stringValue' => $formularioData['cliente']],
+        'claveSae'   => ['stringValue' => $claveSae],
+        'noEmpresa'  => ['stringValue' => $noEmpresa],
+        'status' => ['stringValue' => 'Sin Pagar'],
+        'creacion' => ['stringValue' => $fechaCreacion],
+        'limite' => ['stringValue' => $fechaLimite]
+    ];
+
+    $payload = json_encode(['fields' => $fields]);
+
+    // Configurar las opciones HTTP para el POST
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+        ],
+    ];
+    $context = stream_context_create($options);
+
+    // Ejecutar la petición a Firebase
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al guardar el pedido autorizado en Firebase.']);
+        return;
+    }
 }
 
 
@@ -3925,7 +4011,7 @@ switch ($funcion) {
                         var_dump("Si tiene");
                         var_dump($anticipo);
                         exit();
-                        $estatus = 'C';
+                        $estatus = 'E';
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
@@ -3941,29 +4027,40 @@ switch ($funcion) {
                             'message' => 'El pedido se completó correctamente.',
                         ]);
                         var_dump("Si tiene anticipo");
-                    } else {
-                        var_dump("No tiene");
-                        var_dump($anticipo);
-                        exit();
+                    } elseif ($anticipo['sinFondo']) {
                         //No tiene
-                        $estatus = 'C';
+                        /*$estatus = 'C';
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
-                        actualizarInventario($conexionData, $partidasData);
+                        actualizarInventario($conexionData, $partidasData);*/
+                        guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                         /*$rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                         validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);*/
                         //exit;
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');
                         echo json_encode([
-                            'success' => true,
-                            'autorizacion' => false,
+                            'success' => false,
+                            'cxc' => true,
                             'message' => 'El pedido tiene 24 Horas para liquidarse.',
                         ]);
-                        
+                    } elseif($anticipo['fechaVencimiento']){
+                        header('Content-Type: application/json; charset=UTF-8');
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Anticipo vencido.',
+                        ]);
+                        exit();
+                    } else{
+                        header('Content-Type: application/json; charset=UTF-8');
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Hubo un error inesperado.',
+                        ]);
+                        exit();
                     }
-                    exit();
+                    //exit();
                 }
             } else {
                 // Error de existencias
