@@ -109,7 +109,6 @@ function verificarPago($conexionData, $cliente, $claveSae, $factura)
 
 function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae) {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=status&key=$firebaseApiKey";
-    echo "DEBUG: URL para cambiar estado de pago: $url\n"; // Depuración
 
     $data = [
         'fields' => [
@@ -126,8 +125,6 @@ function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio,
     ]);
 
     $response = @file_get_contents($url, false, $context);
-    echo "DEBUG: Respuesta de Firebase al actualizar pago:\n";
-    var_dump($response); // Depuración
 
     if ($response === false) {
         echo "Error al actualizar la comanda $pagoId.\n";
@@ -219,23 +216,25 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey){
         $conexionData = $conexionResult['data'];
 
         $pagado = verificarPago($conexionData, $cliente, $claveSae, $factura);
-        echo "DEBUG: Resultado de verificarPago: ";
-        var_dump($pagado); // Depuración
-
+        /*echo "DEBUG: Resultado de verificarPago: ";
+        var_dump($pagado); // Depuración*/
+        //$pagado = true;
         if ($pagado) {
+            date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
+            $fechaHoy = date("Y-m-d H:i:s");
             // Convertir a objetos DateTime
-            $fechaElaboracionObj = new DateTime($fechaElaboracion);
+            $fechaHoyObj = new DateTime($fechaHoy);
             $fechaLimiteObj = new DateTime($fechaLimite);
-
             // Calcular la diferencia
-            $diferencia = $fechaElaboracionObj->diff($fechaLimiteObj);
+            /*$diferencia = $fechaHoyObj->diff($fechaLimiteObj);
             echo "DEBUG: Diferencia entre elaboración y límite:\n";
-            var_dump($diferencia); // Depuración
-
-            if ($diferencia->days === 1 && $diferencia->h === 0 && $diferencia->i === 0 && $diferencia->s === 0) {
+            var_dump($diferencia); // Depuración*/
+            //exit();
+            //if ($diferencia->days == 1 && $diferencia->h === 0 && $diferencia->i === 0 && $diferencia->s === 0) {
+            if($fechaHoyObj <= $fechaLimiteObj){
                 if ($status === 'Sin Pagar') {
                     $pagoId = basename($document['name']);
-                    echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
+                    //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
                     cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                 }
             }
