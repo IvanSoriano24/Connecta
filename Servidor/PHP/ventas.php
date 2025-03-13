@@ -1278,7 +1278,7 @@ function obtenerFolioSiguiente($conexionData, $claveSae)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF)
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $conCredito)
 {
 
     // Establecer la conexión con SQL Server
@@ -1357,9 +1357,9 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/
     if ($correo === 'S' && !empty($emailPred)) {
-        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
+        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1581,7 +1581,7 @@ function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
 
     return $result;
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave)
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito)
 {
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
 
@@ -1595,7 +1595,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson" . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido
 
 
@@ -1690,7 +1690,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     return $result;
 }
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -1725,7 +1725,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     // $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
 
     $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae);
 
@@ -3635,7 +3635,7 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
         sqlsrv_close($conn);
         return [
             'success' => false,
-            'anticipo' => null
+            'sinFondo' => true,
         ];
     }
 
@@ -3680,6 +3680,8 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
     }
 
     $puedeContinuar = true;
+    $fondo = false;
+    $fechaVencimiento = false;
 
     sqlsrv_close($conn);
 
@@ -3694,7 +3696,7 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
         'NO_FACTURA' => $NO_FACTURA
     ];
 }
-function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $no_factura)
+function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -3716,7 +3718,7 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
     }
 
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
-
+    $vendedor = $formularioData['vendedor'];
     $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
     $fechaLimite = date("Y-m-d H:i:s", strtotime($fechaCreacion . ' + 1 day')); // Suma 24 horas
 
@@ -3730,7 +3732,8 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
         'status' => ['stringValue' => 'Sin Pagar'],
         'creacion' => ['stringValue' => $fechaCreacion],
         'limite' => ['stringValue' => $fechaLimite],
-        'factura' => ['stringValue' => $no_factura],
+        'vendedor' => ['stringValue' => $vendedor],
+        'buscar' => ['booleanValue' => false]
     ];
 
     $payload = json_encode(['fields' => $fields]);
@@ -3779,6 +3782,7 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
 
     // Preparar los datos para el INSERT
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
+    $CVE_CLIE = formatearClaveCliente($cve_clie);
     $refer      = $formularioData['referencia'] ?? '000001'; // Puede generarse o venir del formulario
     $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
@@ -3788,6 +3792,13 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
     $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+
+
+    $AFEC_COI = 'A';
+    $NUM_MONED = 1;
+    $TCAMBIO = 1;
+    $TIPO_MOV = 'A';
+
 
     foreach ($partidasData as $partida) {
         $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
@@ -3799,21 +3810,32 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
     $usuario    = '0';
     // Preparar el query INSERT (ajusta los campos según la estructura real de tu tabla)
     $query = "INSERT INTO $tablaCunetM (
-                    CVE_CLIE, 
-                    REFER, 
-                    NUM_CPTO, 
-                    NUM_CARGO, 
-                    NO_FACTURA, 
-                    DOCTO, 
-                    IMPORTE, 
-                    FECHA_APLI, 
-                    FECHA_VENC,
-                    STATUS,
-                    USUARIO
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        CVE_CLIE, 
+        REFER, 
+        NUM_CPTO, 
+        NUM_CARGO, 
+        NO_FACTURA, 
+        DOCTO, 
+        IMPORTE, 
+        FECHA_APLI, 
+        FECHA_VENC,
+        STATUS,
+        USUARIO,
+        AFEC_COI,
+        NUM_MONED,
+        TCAMBIO,
+        TIPO_MOV,
+        FECHA_ENTREGA,
+        IMPMON_EXT,
+        UUID,
+        VERSION_SINC,
+        USUARIOGL,
+        FECHAELAB
+    ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?)";
 
     $params = [
-        $cve_clie,
+        $CVE_CLIE,
         $refer,
         $num_cpto,
         $num_cargo,
@@ -3823,7 +3845,15 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
         $fecha_apli,
         $fecha_venc,
         $status,
-        $usuario
+        $usuario,
+        $AFEC_COI,
+        $NUM_MONED,
+        $TCAMBIO,
+        $TIPO_MOV,
+        $fecha_apli,
+        $IMPORTE,
+        $fecha_apli,
+        $fecha_apli
     ];
 
     $stmt = sqlsrv_query($conn, $query, $params);
@@ -3937,6 +3967,7 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
 
     // Preparar los datos para el INSERT
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
+    $CVE_CLIE = formatearClaveCliente($cve_clie);
     $refer      = $formularioData['referencia'] ?? '000001'; // Puede generarse o venir del formulario
     $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
@@ -3946,6 +3977,14 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
     $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+
+
+
+    $AFEC_COI = 'A';
+    $NUM_MONED = 1;
+    $TCAMBIO = 1;
+    $TIPO_MOV = 'A';
+
 
     foreach ($partidasData as $partida) {
         $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
@@ -3971,11 +4010,21 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
                     FECHA_APLI, 
                     FECHA_VENC,
                     STATUS,
-                    USUARIO
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    USUARIO,
+                    AFEC_COI,
+                    NUM_MONED,
+                    TCAMBIO,
+                    TIPO_MOV,
+                    FECHA_ENTREGA,
+                    IMPMON_EXT,
+                    UUID,
+                    VERSION_SINC,
+                    USUARIOGL,
+                    FECHAELAB
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?)";
 
     $params = [
-        $cve_clie,
+        $CVE_CLIE,
         $refer,
         $num_cpto,
         $num_cargo,
@@ -3985,7 +4034,15 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
         $fecha_apli,
         $fecha_venc,
         $status,
-        $usuario
+        $usuario,
+        $AFEC_COI,
+        $NUM_MONED,
+        $TCAMBIO,
+        $TIPO_MOV,
+        $fecha_apli,
+        $IMPORTE,
+        $fecha_apli,
+        $fecha_apli
     ];
 
     $stmt = sqlsrv_query($conn, $query, $params);
@@ -4005,9 +4062,10 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
         'referencia' => $refer
     ];
 }
-function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData){
+function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData)
+{
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
-    
+
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -4030,6 +4088,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
 
     // Preparar los datos para el INSERT
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
+    $CVE_CLIE = formatearClaveCliente($cve_clie);
     $refer      = $formularioData['referencia'] ?? '000001'; // Puede generarse o venir del formulario
     $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
@@ -4039,7 +4098,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
     $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
-    
+
     foreach ($partidasData as $partida) {
         $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
         $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
@@ -4049,6 +4108,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
     $status     = 'A';  // Estado inicial, por ejemplo
     $usuario    = '0';
 
+    $AFEC_COI = 'A';
 
     $no_factura = "18784";
     $refer = "000001";
@@ -4069,7 +4129,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
               ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
 
     $params = [
-        $cve_clie,
+        $CVE_CLIE,
         $refer,
         $num_cpto,
         $num_cargo,
@@ -4088,14 +4148,13 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
         sqlsrv_close($conn);
         return [
             'success' => false,
-            'message' => 'Error al insertar la cuenta por cobrar',
+            'message' => 'Error al insertar en CUEN_DET',
             'errors' => $errors
         ];
     }
     sqlsrv_close($conn);
     echo json_encode(['success' => true, 'message' => 'CxC creada y pagada.']);
     return;
-
 }
 
 // -----------------------------------------------------------------------------------------------------//
@@ -4337,7 +4396,7 @@ switch ($funcion) {
                     actualizarInventario($conexionData, $partidasData);
                     if ($validarSaldo == 0 && $credito == 0) {
                         $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);
+                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                         //exit;
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');
@@ -4360,6 +4419,7 @@ switch ($funcion) {
                 } else {
 
                     $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
+                    var_dump($anticipo);
                     
                     if ($anticipo['success']) {
                         //Funcion para eliminar anticipo
@@ -4372,13 +4432,14 @@ switch ($funcion) {
                         actualizarFolio($conexionData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
                         $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);*/
+                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
+                        remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa)*/
 
                         eliminarCxc($conexionData, $anticipo, $claveSae, $formularioData);
                         $datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
-                        var_dump($datosCxC);
+                        //var_dump($datosCxC);
                         pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
-                        exit();
+                        //exit();
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');
                         echo json_encode([
@@ -4393,14 +4454,14 @@ switch ($funcion) {
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
-                        actualizarInventario($conexionData, $partidasData);*/
+                        actualizarInventario($conexionData, $partidasData);
+                        $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);*/
 
                         //Se crea la factura y se retorna su clave
-                        $no_factura = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
+                        //$no_factura = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
                         //var_dump($no_factura);
-                        guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $no_factura);
-                        /*$rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                        validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae);*/
+                        guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                         //exit;
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');

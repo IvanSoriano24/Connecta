@@ -14,7 +14,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     $claveSae = $_GET['claveSae'];
     $noEmpresa = $_GET['noEmpresa'];
-    $clave = $_GET['clave'] ?? "";
+    $clave = $_GET['clave'] ?? ""; 
+    $conCredito = $_GET['conCredito'] ?? "";
     // Obtener fecha y hora actual si no está incluida en los parámetros
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
     if ($resultado) {
@@ -25,6 +26,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
           </div>";
     } else {
         if ($accion === 'confirmar') {
+            
             // Obtener la hora actual
             $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
             // Determinar el estado según la hora

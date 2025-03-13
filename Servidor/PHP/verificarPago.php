@@ -40,22 +40,22 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 
-function verificarPago($conexionData, $cliente, $claveSae, $factura)
+function verificarPago($conexionData, $cliente, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
-       "Database" => $conexionData['nombreBase'],
-       "UID" => $conexionData['usuario'],
-       "PWD" => $conexionData['password'],
-       "CharacterSet" => "UTF-8",
-       "TrustServerCertificate" => true
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
 
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
-         echo "DEBUG: Error al conectar con la base de datos:\n";
-         var_dump(sqlsrv_errors());
-         exit;
+        echo "DEBUG: Error al conectar con la base de datos:\n";
+        var_dump(sqlsrv_errors());
+        exit;
     }
 
     // Construir dinámicamente los nombres de las tablas
@@ -85,9 +85,9 @@ function verificarPago($conexionData, $cliente, $claveSae, $factura)
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, [$cliente, $factura]);
     if ($stmt === false) {
-         echo "DEBUG: Error en la consulta:\n";
-         var_dump(sqlsrv_errors());
-         exit;
+        echo "DEBUG: Error en la consulta:\n";
+        var_dump(sqlsrv_errors());
+        exit;
     }
 
     $result = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -98,8 +98,8 @@ function verificarPago($conexionData, $cliente, $claveSae, $factura)
 
     // Si no se encontró registro, se puede considerar que no está pagada.
     if (!$result) {
-         echo "DEBUG: No se encontró registro para la factura $factura y cliente $cliente\n";
-         return false;
+        echo "DEBUG: No se encontró registro para la factura $factura y cliente $cliente\n";
+        return false;
     }
 
     // Retorna true si PAGADA es 1, es decir, si el total abonado es mayor o igual que el importe original.
@@ -107,7 +107,8 @@ function verificarPago($conexionData, $cliente, $claveSae, $factura)
     return $result['PAGADA'] == 1;
 }
 
-function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae) {
+function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=status&key=$firebaseApiKey";
 
     $data = [
@@ -134,7 +135,8 @@ function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio,
     }
 }
 
-function estadoSql($folio, $conexionData, $claveSae){
+function estadoSql($folio, $conexionData, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -178,8 +180,47 @@ function estadoSql($folio, $conexionData, $claveSae){
     return ['success' => true, 'message' => 'Status actualizado'];
 }
 
-function verificarPedidos($firebaseProjectId, $firebaseApiKey){
-    
+function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
+{
+    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    $data = [
+        'numFuncion' => 1,
+        'pedidoId' => $folio,
+        'claveSae' => $claveSae,
+        'noEmpresa' => $noEmpresa,
+        'vendedor' => $vendedor
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $remisionUrl);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/x-www-form-urlencoded'
+    ]);
+
+    $remisionResponse = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        echo 'Error cURL: ' . curl_error($ch);
+    }
+
+    curl_close($ch);
+
+    echo "Respuesta de remision.php: " . $remisionResponse;
+    $remisionData = json_decode($remisionResponse, true);
+    //echo "Respuesta de decodificada.php: " . $remisionData;
+    //$cveDoc = trim($remisionData['cveDoc']);
+
+    // Verificar si la respuesta es un PDF
+    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+}
+
+function verificarPedidos($firebaseProjectId, $firebaseApiKey)
+{
+
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
 
     $response = @file_get_contents($url);
@@ -202,40 +243,45 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey){
         $fechaLimite = $fields['limite']['stringValue'];
         $cliente = $fields['cliente']['stringValue'];
         $claveSae = $fields['claveSae']['stringValue'];
+        $noEmpresa = $fields['noEmpresa']['stringValue'];
         $folio = $fields['folio']['stringValue'];
-        $factura = $fields['factura']['stringValue'];
-        
-        echo "DEBUG: Procesando pago para factura: $factura, cliente: $cliente\n"; // Depuración
+        $buscar = $fields['buscar']['stringValue'];
+        $vendedor = $fields['vendedor']['stringValue'];
 
-        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+        if ($buscar) {
 
-        if (!$conexionResult['success']) {
-            echo json_encode($conexionResult);
-            break;
-        }
-        $conexionData = $conexionResult['data'];
+            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
 
-        $pagado = verificarPago($conexionData, $cliente, $claveSae, $factura);
-        /*echo "DEBUG: Resultado de verificarPago: ";
-        var_dump($pagado); // Depuración*/
-        //$pagado = true;
-        if ($pagado) {
-            date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
-            $fechaHoy = date("Y-m-d H:i:s");
-            // Convertir a objetos DateTime
-            $fechaHoyObj = new DateTime($fechaHoy);
-            $fechaLimiteObj = new DateTime($fechaLimite);
-            // Calcular la diferencia
-            /*$diferencia = $fechaHoyObj->diff($fechaLimiteObj);
-            echo "DEBUG: Diferencia entre elaboración y límite:\n";
-            var_dump($diferencia); // Depuración*/
-            //exit();
-            //if ($diferencia->days == 1 && $diferencia->h === 0 && $diferencia->i === 0 && $diferencia->s === 0) {
-            if($fechaHoyObj <= $fechaLimiteObj){
-                if ($status === 'Sin Pagar') {
-                    $pagoId = basename($document['name']);
-                    //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
-                    cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
+            if (!$conexionResult['success']) {
+                echo json_encode($conexionResult);
+                break;
+            }
+            $conexionData = $conexionResult['data'];
+
+            $pagado = verificarPago($conexionData, $cliente, $claveSae);
+            /*echo "DEBUG: Resultado de verificarPago: ";
+            var_dump($pagado); // Depuración*/
+            //$pagado = true;
+            if ($pagado) {
+                date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
+                $fechaHoy = date("Y-m-d H:i:s");
+                // Convertir a objetos DateTime
+                $fechaHoyObj = new DateTime($fechaHoy);
+                $fechaLimiteObj = new DateTime($fechaLimite);
+                // Calcular la diferencia
+                /*$diferencia = $fechaHoyObj->diff($fechaLimiteObj);
+                echo "DEBUG: Diferencia entre elaboración y límite:\n";
+                var_dump($diferencia); // Depuración*/
+                //exit();
+                //if ($diferencia->days == 1 && $diferencia->h === 0 && $diferencia->i === 0 && $diferencia->s === 0) {
+                if ($fechaHoyObj <= $fechaLimiteObj) {
+                    if ($status === 'Sin Pagar') {
+                        $pagoId = basename($document['name']);
+                        //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
+                        cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
+                        crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
+                        //Remision y Demas
+                    }
                 }
             }
         }
