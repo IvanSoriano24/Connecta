@@ -1,0 +1,237 @@
+<?php
+// <!-- phpDesigner :: Timestamp [13/12/2018 10:34:51 a. m.] -->
+error_reporting(~(E_WARNING|E_NOTICE));
+//error_reporting(0);
+//error_reporting(E_ALL);
+date_default_timezone_set('America/Mexico_City');
+
+$archivo_ini=$argv[1];
+ $archivo_ini=str_replace('\\','/',$archivo_ini);
+
+    include 'sdk2.php';
+
+if(file_exists($archivo_ini)==true)
+{
+	
+
+    $ini_string=file_get_contents($archivo_ini);
+
+
+    $bom = pack("CCC", 0xef, 0xbb, 0xbf);
+    if (0 === strncmp($ini_string, $bom, 3))
+	{
+        echo "BOM detected - file is UTF-8\n";
+        $ini_string = substr($ini_string, 3);
+    }
+
+    if (preg_match('!\S!u', $ini_string))
+    {
+        $ini_string=utf8_decode($ini_string);
+        
+        
+    }else{
+        
+        $ini_string=utf8_encode($ini_string);
+        
+    }
+    
+
+    $conf=ini_to_array_cfdi($ini_string);
+	
+	init_sdk($conf);
+    
+    if($conf['cancelar'] == 'SI')
+    {
+        $respuesta = cfdi_cancelar($conf);
+    }
+    elseif($conf['servicios'] != '')
+	{
+        $respuesta = cargar_modulo_multifacturas($conf);
+    }
+	elseif($conf['modulo'] != '')
+	{
+		$respuesta = mf_ejecuta_modulo($conf);
+	}
+	else
+	{
+
+        $ruta=$conf['SDK']['ruta'];
+        $ruta=str_replace('\\','/',$ruta);
+    
+        $sucursal=$conf['sucursal'];
+        $sucursal=intval($sucursal);
+    
+    
+        $modo_saldo=$conf['SALDO'];
+        $REPORTE_TIMBRADOS=$conf['REPORTE_TIMBRADOS'];
+		if(count($conf['rFE'])>1)
+		{
+			
+			$panama=1;			
+		}
+		if($conf['receptor']['rfc']!='')
+		{
+			$cfdi=1;
+        }
+
+		if($conf['retencion']=='SI')
+		{
+			require_once 'sdk2.php';
+			$respuesta= cfdi_retenicion_generar_xml($conf);
+		}
+		else
+		{
+			
+			if($REPORTE_TIMBRADOS=='SI')
+			{
+				$usuario_=$conf['PAC']['usuario'];
+				$clave_= $conf['PAC']['pass'];
+				$mes=$conf['MES'];
+				$ano=$conf['ANO'];
+				$respuesta=factura_reporte($usuario_,$clave_,$mes,$ano);
+			}
+			elseif($modo_saldo=='SI')
+			{
+				$usuario_=$conf['PAC']['usuario'];
+				$clave_= $conf['PAC']['pass'];
+				$respuesta=saldo_mf($usuario_,$clave_);
+			}
+			elseif($panama==1)
+			{
+//print_r($conf);
+				$respuesta = mf_genera_fepanama($conf);
+			}			
+			elseif($cfdi==1)
+			{			
+				if($conf['version_cfdi']=='4.0'){
+				    
+                    $respuesta=mf_genera_cfdi4($conf);
+				}else{
+				    $respuesta=mf_genera_cfdi($conf);
+				}
+                
+    //print_r($respuesta);
+			}			
+			else
+			{
+//				$respuesta= ticket_generar($conf);
+			}
+		}
+    }
+     
+    $modo_salida=$conf['MODOINI'];
+
+
+     //INI MODO DEFAULT
+     switch($modo_salida)
+     {
+//DEFAULT
+        case 'INI' : 
+
+            $respuesta_ini= arr2ini($respuesta); 
+			
+            break; 
+
+        case 'JSON' : 
+
+            $respuesta_ini= json_encode($respuesta); 
+            break; 
+
+
+        case 'DIVISOR' : 
+            foreach($respuesta AS $key_ => $valor_)
+            {
+                $respuesta2["**********\n$key_"]=$valor_;
+            }
+            $respuesta_ini = arr2ini($respuesta2);
+            break; 
+
+
+        case 'XML' : 
+            foreach($respuesta AS $key_ => $valor_)
+            {
+                $valor_= htmlspecialchars($valor_, ENT_COMPAT,'ISO-8859-1', true);
+                $respuesta2[$key_]=$valor_;
+            }
+            $respuesta_ini = _array2XML_($respuesta2);
+            break; 
+
+        
+        default :
+            $respuesta_ini= arr2ini($respuesta); 
+     }
+     
+     
+     if($conf['RESPUESTA_UTF8']=='NO')
+     {
+         $respuesta_ini=utf8_decode($respuesta_ini);
+     }
+     
+
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') 
+    {
+        $archivo_ini=str_replace('.INI','.ini',$archivo_ini);
+    }
+     
+     
+     $archivo_ini_respuesta=str_replace('.ini','_respuesta.ini',$archivo_ini);
+
+
+
+    $file_target = $archivo_ini_respuesta;
+
+    if (file_exists($file_target)) {
+        chmod($file_target, 0777);
+    } // add write permission
+    if (($wh = fopen($file_target, 'wb')) === false) {
+        return false;
+    } // error messages.
+    if (fwrite($wh, $respuesta_ini) === false) {
+        fclose($wh);
+        return false;
+    }
+    fclose($wh);
+    @chmod($file_target, 0777);
+    
+//    var_dump($respuesta);
+//    var_dump($respuesta_ini);
+
+
+}
+else
+{
+    echo "ERROR: ARCHIVO NO ENCONTRADO";
+}
+
+function remove_utf8_bom($text)
+{
+    $bom = pack('H*','EFBBBF');
+    $text = preg_replace("/^$bom/", '', $text);
+    return $text;
+}
+
+
+function _array2XML_($data, $rootNodeName = 'results', $xml=NULL){
+    if ($xml == null){
+        $xml = simplexml_load_string("<?xml version='1.0' encoding='utf-8'?><$rootNodeName />");
+    }
+
+    foreach($data as $key => $value){
+        if (is_numeric($key)){
+            $key = "nodeId_". (string) $key;
+        }
+
+        if (is_array($value)){
+            $node = $xml->addChild($key);
+            _array2XML_($value, $rootNodeName, $node);
+        } else {
+            $value = htmlentities($value);
+            $xml->addChild($key, $value);
+        }
+
+    }
+
+    return html_entity_decode($xml->asXML());
+}
+
+?>
