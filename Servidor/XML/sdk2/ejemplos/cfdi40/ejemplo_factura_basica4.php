@@ -1,4 +1,5 @@
 <?php
+require '../../../../PHP/firebase.php';
 //ejemplo factura cfdi 4.0
 // Se desactivan los mensajes de debug
 error_reporting(E_ALL ^ (E_NOTICE | E_WARNING | E_DEPRECATED));
@@ -148,20 +149,69 @@ function datosProcuto($CVE_ART){
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+function datosEmpresa(){
+    global $firebaseProjectId, $firebaseApiKey;
+    $noEmpresa = '02';
 
-$cve_doc = '          0000018625';
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+     // Configura el contexto de la solicitud para manejar errores y tiempo de espera
+     $context = stream_context_create([
+        'http' => [
+            'timeout' => 10 // Tiempo máximo de espera en segundos
+        ]
+    ]);
+
+    // Realizar la consulta a Firebase
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        return false; // Error en la petición
+    }
+
+    // Decodifica la respuesta JSON
+    $data = json_decode($response, true);
+    if (!isset($data['documents'])) {
+        return false; // No se encontraron documentos
+    }
+    // Busca los datos de la empresa por noEmpresa
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+            return [
+                'noEmpresa' => $fields['noEmpresa']['stringValue'] ?? null,
+                'id' => $fields['id']['stringValue'] ?? null,
+                'razonSocial' => $fields['razonSocial']['stringValue'] ?? null,
+                'rfc' => $fields['rfc']['stringValue'] ?? null,
+                'regimenFiscal' => $fields['regimenFiscal']['stringValue'] ?? null,
+                'calle' => $fields['calle']['stringValue'] ?? null,
+                'numExterior' => $fields['numExterior']['stringValue'] ?? null,
+                'numInterior' => $fields['numInterior']['stringValue'] ?? null,
+                'entreCalle' => $fields['entreCalle']['stringValue'] ?? null,
+                'colonia' => $fields['colonia']['stringValue'] ?? null,
+                'referencia' => $fields['referencia']['stringValue'] ?? null,
+                'pais' => $fields['pais']['stringValue'] ?? null,
+                'estado' => $fields['estado']['stringValue'] ?? null,
+                'municipio' => $fields['municipio']['stringValue'] ?? null,
+                'codigoPostal' => $fields['codigoPostal']['stringValue'] ?? null,
+                'poblacion' => $fields['poblacion']['stringValue'] ?? null
+            ];
+        }
+    }
+
+    return false; // No se encontró la empresa
+}
+$cve_doc = '          0000018630';
 
 $pedidoData = datosPedido($cve_doc);
 $productosData = datosPartida($cve_doc);
-
 $clienteData = datosCliente($pedidoData['CVE_CLPV']);
+$empresaData = datosEmpresa();
 // Se especifica la version de CFDi 4.0
 $datos['version_cfdi'] = '4.0';
 // Ruta del XML Timbrado
 $datos['cfdi'] = '../../timbrados/cfdi_ejemplo_factura4.xml';
 
 // Ruta del XML de Debug
-$datos['xml_debug'] = '../../timbrados/ejemplo.xml';
+$datos['xml_debug'] = '../../timbrados/xml_'. urlencode($clienteData['NOMBRE']) . '.xml';
 
 // Credenciales de Timbrado
 $datos['PAC']['usuario'] = 'DEMO700101XXX';
@@ -179,7 +229,7 @@ $datos['factura']['descuento'] = $pedidoData['DES_TOT'];
 $datos['factura']['fecha_expedicion'] = $pedidoData['FECHA_DOC']->format('Y-m-d H:i:s');
 $datos['factura']['folio'] = $pedidoData['FOLIO'];
 $datos['factura']['forma_pago'] = $pedidoData['FORMADEPAGOSAT'];
-$datos['factura']['LugarExpedicion'] = '45079';
+$datos['factura']['LugarExpedicion'] = $empresaData['codigoPostal'];
 $datos['factura']['metodo_pago'] = $pedidoData['METODODEPAGO'];
 $datos['factura']['moneda'] = 'MXN';
 $datos['factura']['serie'] = $pedidoData['SERIE'];
@@ -190,25 +240,42 @@ $datos['factura']['total'] = $pedidoData['IMPORTE'];
 $datos['factura']['Exportacion'] = '01';
 
 // Datos del Emisor
-$datos['emisor']['rfc'] = 'LALDS2345'; //RFC DE PRUEBA
+$datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
 $datos['emisor']['nombre'] = 'SUN ARROW';  // EMPRESA DE PRUEBA
-$datos['emisor']['RegimenFiscal'] = '626';
+//$datos['emisor']['RegimenFiscal'] = '626';
+$regimenStr = $empresaData['regimenFiscal'];
+if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
+    $datos['emisor']['RegimenFiscal'] = $matches[1];
+} else {
+    $datos['emisor']['RegimenFiscal'] = $regimenStr;
+}
+
+/*
+// Datos del Emisor
+$datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
+$datos['emisor']['nombre'] = $empresaData['razonSocial'];  // EMPRESA DE PRUEBA
+$regimenStr = $empresaData['regimenFiscal'];
+if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
+    $datos['emisor']['RegimenFiscal'] = $matches[1];
+} else {
+    $datos['emisor']['RegimenFiscal'] = $regimenStr;
+}
+*/
 
 // Datos del Receptor $clienteData['']
 $datos['receptor']['rfc'] = $clienteData['RFC'];
 $datos['receptor']['nombre'] = $clienteData['NOMBRE'];
 $datos['receptor']['UsoCFDI'] = $clienteData['USO_CFDI'];
-$datos['receptor']['DomicilioFiscalReceptor'] = '65000';
+$datos['receptor']['DomicilioFiscalReceptor'] = $clienteData['CODIGO'];
 $datos['receptor']['RegimenFiscalReceptor'] = $clienteData['REG_FISC'];
-
+// $producto[''] $dataProduc['']
 foreach ($productosData as $producto) {
     $dataProduc = datosProcuto($producto['CVE_ART']);
-    
     $concepto = [];
     $concepto['cantidad'] =  $producto['CANT'];
     $concepto['unidad'] =  $producto['UNI_VENTA'];
     $concepto['ID'] = $producto['CVE_ART'];
-    $concepto['descripcion'] =  $producto['DESCR_ART'];
+    $concepto['descripcion'] =  $dataProduc['DESCR'];
     $concepto['valorunitario'] = $producto['PREC'];
     $concepto['importe'] = $producto['TOT_PARTIDA'];
     $concepto['ClaveProdServ'] = $dataProduc['CVE_PRODSERV'];

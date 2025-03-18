@@ -14,7 +14,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     $claveSae = $_GET['claveSae'];
     $noEmpresa = $_GET['noEmpresa'];
-    $clave = $_GET['clave'] ?? ""; 
+    $clave = $_GET['clave'] ?? "";
     $conCredito = $_GET['conCredito'] ?? "";
     // Obtener fecha y hora actual si no está incluida en los parámetros
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
@@ -26,114 +26,170 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
           </div>";
     } else {
         if ($accion === 'confirmar') {
-            
-            // Obtener la hora actual
-            $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
-            // Determinar el estado según la hora
-            $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
 
-            // Preparar datos para Firebase
-            $comanda = [
-                "fields" => [
-                    "idComanda" => ["stringValue" => uniqid()],
-                    "folio" => ["stringValue" => $pedidoId],
-                    "nombreCliente" => ["stringValue" => $nombreCliente],
-                    "enviarA" => ["stringValue" => $enviarA],
-                    "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
-                    "productos" => [
-                        "arrayValue" => [
-                            "values" => array_map(function ($producto) {
-                                return [
-                                    "mapValue" => [
-                                        "fields" => [
-                                            "clave" => ["stringValue" => $producto["producto"]],
-                                            "descripcion" => ["stringValue" => $producto["descripcion"]],
-                                            "cantidad" => ["integerValue" => (int) $producto["cantidad"]],
+            if ($conCredito === 'S') {
+                // Obtener la hora actual
+                $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
+                // Determinar el estado según la hora
+                $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
+
+                // Preparar datos para Firebase
+                $comanda = [
+                    "fields" => [
+                        "idComanda" => ["stringValue" => uniqid()],
+                        "folio" => ["stringValue" => $pedidoId],
+                        "nombreCliente" => ["stringValue" => $nombreCliente],
+                        "enviarA" => ["stringValue" => $enviarA],
+                        "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
+                        "productos" => [
+                            "arrayValue" => [
+                                "values" => array_map(function ($producto) {
+                                    return [
+                                        "mapValue" => [
+                                            "fields" => [
+                                                "clave" => ["stringValue" => $producto["producto"]],
+                                                "descripcion" => ["stringValue" => $producto["descripcion"]],
+                                                "cantidad" => ["integerValue" => (int) $producto["cantidad"]],
+                                            ]
                                         ]
-                                    ]
-                                ];
-                            }, $productos)
-                        ]
-                    ],
-                    "vendedor" => ["stringValue" => $vendedor],
-                    "status" => ["stringValue" => $estadoComanda] // Establecer estado según la hora
-                ]
-            ];
+                                    ];
+                                }, $productos)
+                            ]
+                        ],
+                        "vendedor" => ["stringValue" => $vendedor],
+                        "status" => ["stringValue" => $estadoComanda] // Establecer estado según la hora
+                    ]
+                ];
 
-            // URL de Firebase
-            $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+                // URL de Firebase
+                $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 
-            // Enviar los datos a Firebase
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'POST',
-                    'header' => "Content-Type: application/json\r\n",
-                    'content' => json_encode($comanda)
-                ]
-            ]);
+                // Enviar los datos a Firebase
+                $context = stream_context_create([
+                    'http' => [
+                        'method' => 'POST',
+                        'header' => "Content-Type: application/json\r\n",
+                        'content' => json_encode($comanda)
+                    ]
+                ]);
 
-            $response = @file_get_contents($url, false, $context);
+                $response = @file_get_contents($url, false, $context);
 
-            if ($response === false) {
-                $error = error_get_last();
-                echo "<div class='container'>
+                if ($response === false) {
+                    $error = error_get_last();
+                    echo "<div class='container'>
                         <div class='title'>Error al Conectarse</div>
                         <div class='message'>No se pudo conectar a Firebase: " . $error['message'] . "</div>
                         <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
                       </div>";
-            } else {
-                $result = json_decode($response, true);
-                if (isset($result['name'])) {
-                    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-                    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+                } else {
+                    $result = json_decode($response, true);
+                    if (isset($result['name'])) {
+                        $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                        //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
-                    $data = [
-                        'numFuncion' => 1,
-                        'pedidoId' => $pedidoId,
-                        'claveSae' => $claveSae,
-                        'noEmpresa' => $noEmpresa,
-                        'vendedor' => $vendedor
-                    ];
+                        $data = [
+                            'numFuncion' => 1,
+                            'pedidoId' => $pedidoId,
+                            'claveSae' => $claveSae,
+                            'noEmpresa' => $noEmpresa,
+                            'vendedor' => $vendedor
+                        ];
 
-                    $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_URL, $remisionUrl);
-                    curl_setopt($ch, CURLOPT_POST, true);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                        'Content-Type: application/x-www-form-urlencoded'
-                    ]);
+                        $ch = curl_init();
+                        curl_setopt($ch, CURLOPT_URL, $remisionUrl);
+                        curl_setopt($ch, CURLOPT_POST, true);
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                            'Content-Type: application/x-www-form-urlencoded'
+                        ]);
 
-                    $remisionResponse = curl_exec($ch);
+                        $remisionResponse = curl_exec($ch);
 
-                    if (curl_errno($ch)) {
-                        echo 'Error cURL: ' . curl_error($ch);
-                    }
+                        if (curl_errno($ch)) {
+                            echo 'Error cURL: ' . curl_error($ch);
+                        }
 
-                    curl_close($ch);
-                    
-                    echo "Respuesta de remision.php: " . $remisionResponse;
-                    $remisionData = json_decode($remisionResponse, true);
-                    //echo "Respuesta de decodificada.php: " . $remisionData;
-                    //$cveDoc = trim($remisionData['cveDoc']);
-                    
-                    // Verificar si la respuesta es un PDF
-                    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-                    if (strpos($contentType, 'application/pdf') !== false) {
-                        // Guardar el PDF localmente o redireccionar
-                        file_put_contents("remision.pdf", $remisionResponse);
-                        echo "<script>window.open('remision.pdf', '_blank');</script>";
-                    }
-                    echo "<div class='container'>
+                        curl_close($ch);
+
+                        echo "Respuesta de remision.php: " . $remisionResponse;
+                        $remisionData = json_decode($remisionResponse, true);
+                        //echo "Respuesta de decodificada.php: " . $remisionData;
+                        //$cveDoc = trim($remisionData['cveDoc']);
+
+                        // Verificar si la respuesta es un PDF
+                        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+                        if (strpos($contentType, 'application/pdf') !== false) {
+                            // Guardar el PDF localmente o redireccionar
+                            file_put_contents("remision.pdf", $remisionResponse);
+                            echo "<script>window.open('remision.pdf', '_blank');</script>";
+                        }
+                        echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
                             <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
                           </div>";
-                } else {
-                    echo "<div class='container'>
+                    } else {
+                        echo "<div class='container'>
                             <div class='title'>Error al Registrar</div>
                             <div class='message'>Hubo un problema al registrar los datos en Firebase.</div>
                             <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                          </div>";
+                    }
+                }
+            } else {
+                //Actualizar status para buscar pago
+                $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
+
+                $response = @file_get_contents($url);
+                if ($response === false) {
+                    echo "Error al obtener los ...\n";
+                    return;
+                }
+                $data = json_decode($response, true);
+                if (!isset($data['documents'])) {
+                    echo "No se encontraron ...\n";
+                    return;
+                }
+
+                // Recorrer todas las comandas y verificar si el folio ya está en la base de datos
+                foreach ($data['documents'] as $document) {
+                    $fields = $document['fields'];
+                    if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
+                        $pagoId = basename($document['name']);
+                    }
+                }
+                $urlActualizacion = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=buscar&key=$firebaseApiKey";
+                $data = [
+                    'fields' => [
+                        'buscar' => ['booleanValue' => true]
+                    ]
+                ];
+
+                $context = stream_context_create([
+                    'http' => [
+                        'method' => 'PATCH',
+                        'header' => "Content-Type: application/json\r\n",
+                        'content' => json_encode($data)
+                    ]
+                ]);
+
+                $response = @file_get_contents($urlActualizacion, false, $context);
+
+                if ($response === false) {
+                    $error = error_get_last();
+                    var_dump($error);
+                    echo "<div class='container'>
+                        <div class='title'>Error al actualizar el Pago</div>
+                        <div class='message'>No se pudo actualizar la información del pago.</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+                } else {
+                    echo "<div class='container'>
+                            <div class='title'>Confirmación Exitosa</div>
+                            <div class='message'>El pedido ha sido confirmado y tien 24 horas para pagarlo.</div>
+                            <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
                           </div>";
                 }
             }
@@ -255,11 +311,12 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
           </div>";
 }
 
-function enviarWhatsApp($numero, $pedidoId, $nombreCliente){
+function enviarWhatsApp($numero, $pedidoId, $nombreCliente)
+{
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
     // Crear el cuerpo de la solicitud para la API
-    
+
     $data = [
         "messaging_product" => "whatsapp",
         "to" => $numero, // Número del vendedor

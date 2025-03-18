@@ -1,1 +1,0 @@
-a:3:{s:16:"codigo_mf_numero";i:7;s:15:"codigo_mf_texto";s:53:"ERROR AL GENERAR SELLO, CADENA ORIGINAL MAL FORMADA: ";s:9:"ejecucion";d:31.217999999999968;}
