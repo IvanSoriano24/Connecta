@@ -158,39 +158,55 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     $fields = $document['fields'];
                     if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
                         $pagoId = basename($document['name']);
+                        $status = $fields['status'];
+                        $buscar = $fields['buscar'];
                     }
                 }
-                $urlActualizacion = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=buscar&key=$firebaseApiKey";
-                $data = [
-                    'fields' => [
-                        'buscar' => ['booleanValue' => true]
-                    ]
-                ];
-
-                $context = stream_context_create([
-                    'http' => [
-                        'method' => 'PATCH',
-                        'header' => "Content-Type: application/json\r\n",
-                        'content' => json_encode($data)
-                    ]
-                ]);
-
-                $response = @file_get_contents($urlActualizacion, false, $context);
-
-                if ($response === false) {
-                    $error = error_get_last();
-                    var_dump($error);
+                if ($buscar['booleanValue']) {
                     echo "<div class='container'>
-                        <div class='title'>Error al actualizar el Pago</div>
-                        <div class='message'>No se pudo actualizar la información del pago.</div>
+                        <div class='title'>Pedido aceptado</div>
+                        <div class='message'>El pedido fue aceptado y esperando el pago.</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+                } else if ($status['stringValue'] === 'Pagada') {
+                    echo "<div class='container'>
+                        <div class='title'>Pedido pagado</div>
+                        <div class='message'>El pedido ya fue pagado.</div>
                         <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
                       </div>";
                 } else {
-                    echo "<div class='container'>
+                    $urlActualizacion = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=buscar&key=$firebaseApiKey";
+                    $data = [
+                        'fields' => [
+                            'buscar' => ['booleanValue' => true]
+                        ]
+                    ];
+
+                    $context = stream_context_create([
+                        'http' => [
+                            'method' => 'PATCH',
+                            'header' => "Content-Type: application/json\r\n",
+                            'content' => json_encode($data)
+                        ]
+                    ]);
+
+                    $response = @file_get_contents($urlActualizacion, false, $context);
+
+                    if ($response === false) {
+                        $error = error_get_last();
+                        var_dump($error);
+                        echo "<div class='container'>
+                        <div class='title'>Error al actualizar el Pago</div>
+                        <div class='message'>No se pudo actualizar la información.</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+                    } else {
+                        echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
-                            <div class='message'>El pedido ha sido confirmado y tien 24 horas para pagarlo.</div>
+                            <div class='message'>El pedido ha sido confirmado y tiene 24 horas para pagarlo.</div>
                             <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
                           </div>";
+                    }
                 }
             }
         } elseif ($accion === 'rechazar') {

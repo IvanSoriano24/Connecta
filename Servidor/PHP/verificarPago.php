@@ -282,7 +282,8 @@ function eliminarCxc($conexionData, $claveSae, $cliente)
     // }
     sqlsrv_close($conn);
 }
-function liberarExistencias($conexionData, $folio, $claveSae){
+function liberarExistencias($conexionData, $folio, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -340,11 +341,295 @@ function liberarExistencias($conexionData, $folio, $claveSae){
             echo json_encode(['success' => false, 'message' => 'No se encontró el producto para actualizar']);
         }
     }
+}
+function obtenerFecha($conexionData, $cliente, $claveSae)
+{
+    date_default_timezone_set('America/Mexico_City');
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo "DEBUG: Error al conectar con la base de datos:\n";
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+    $cliente = str_pad($cliente, 10, ' ', STR_PAD_LEFT);
+    // Construir dinámicamente los nombres de las tablas
+    $tablaCuenD = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT FECHAELAB FROM $tablaCuenD WHERE CVE_CLIE = ? AND NUM_CPTO = '9'";
+    $params = [$cliente];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
+    }
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $fechaPago = $row ? $row['FECHAELAB'] : '';
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    return $fechaPago;
+}
+function crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey)
+{
+    date_default_timezone_set('America/Mexico_City');
+
+    $folio = '18784';
+
+    $pedidoData = datosPedido($folio, $claveSae, $conexionData);
+    $productosData = datosPartida($folio, $claveSae, $conexionData);
+    $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
+    $nombreVendedor = vendedorNom($conexionData, $vendedor, $claveSae);
+    $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
+    // Determinar el estado según la hora
+    $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
+    // Preparar datos para Firebase
+    $comanda = [
+        "fields" => [
+            "idComanda" => ["stringValue" => uniqid()],
+            "folio" => ["stringValue" => $folio],
+            "nombreCliente" => ["stringValue" => $clienteData['NOMBRE']],
+            "enviarA" => ["stringValue" => $clienteData['CALLE']],
+            "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
+            "productos" => [
+                "arrayValue" => [
+                    "values" => array_map(function ($productosData) use ($claveSae, $conexionData) { // 🔹 Aquí añadimos use()
+                        $dataProduc = datosProcuto($productosData['CVE_ART'], $claveSae, $conexionData);
+                        return [
+                            "mapValue" => [
+                                "fields" => [
+                                    "clave" => ["stringValue" => $productosData["CVE_ART"]],
+                                    "descripcion" => ["stringValue" => $dataProduc["DESCR"]],
+                                    "cantidad" => ["integerValue" => (int) $productosData["CANT"]],
+                                ]
+                            ]
+                        ];
+                    }, $productosData)
+                ]
+            ],
+            "vendedor" => ["stringValue" => $nombreVendedor],
+            "status" => ["stringValue" => $estadoComanda] // Establecer estado según la hora
+        ]
+    ];    
+
+    // URL de Firebase
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+
+    // Enviar los datos a Firebase
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/json\r\n",
+            'content' => json_encode($comanda)
+        ]
+    ]);
+
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        $error = error_get_last();
+        echo "<div class='container'>
+                        <div class='title'>Error al Conectarse</div>
+                        <div class='message'>No se pudo conectar a Firebase: " . $error['message'] . "</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+    } else {
+        echo "<div class='container'>
+                            <div class='title'>Confirmación Exitosa</div>
+                            <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+                            <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
+                          </div>";
+    }
+}
+function datosCliente($clie, $claveSae, $conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo "DEBUG: Error al conectar con la base de datos:\n";
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+    $nombreTabla   = "[mdc_sae01].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CLAVE = ?";
+    $params = [$clie];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener los resultados
+    $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($clienteData) {
+        return $clienteData;
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function datosPedido($cve_doc, $claveSae, $conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo "DEBUG: Error al conectar con la base de datos:\n";
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+    $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
+    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+    $nombreTabla  = "[mdc_sae01].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CVE_DOC = ?";
+    $params = [$cve_doc];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Obtener los resultados
+    $pedidoData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($pedidoData) {
+        return $pedidoData;
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function datosPartida($cve_doc, $claveSae, $conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo "DEBUG: Error al conectar con la base de datos:\n";
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+    $nombreTabla  = "[mdc_sae01].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
+    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CVE_DOC = ?";
+    $params = [$cve_doc];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    $partidas = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $partidas[] = $row;
+    }
+    return $partidas;
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function datosProcuto($CVE_ART, $claveSae, $conexionData){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo "DEBUG: Error al conectar con la base de datos:\n";
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+    $nombreTabla  = "[mdc_sae01].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CVE_ART = ?";
+    $params = [$CVE_ART];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener los resultados
+    $productoData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($productoData) {
+        return $productoData;
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Producto no encontrado']);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function vendedorNom($conexionData, $vendedor, $claveSae){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo "DEBUG: Error al conectar con la base de datos:\n";
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+    $nombreTabla   = "[mdc_sae01].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $CLAVE = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
+    $sql = "SELECT NOMBRE FROM $nombreTabla WHERE CVE_VEND = ?";
+    $params = [$CLAVE];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
+    }
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $nombreVendedor = $row ? $row['NOMBRE'] : '';
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    return $nombreVendedor;
 
 }
+
 function verificarPedidos($firebaseProjectId, $firebaseApiKey)
 {
-
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
 
     $response = @file_get_contents($url);
@@ -369,9 +654,6 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
         $folio = $fields['folio']['stringValue'];
         $buscar = $fields['buscar']['booleanValue'];
         $vendedor = $fields['vendedor']['stringValue'];
-
-        /*echo "DEBUG: Resultado de buscar: ";
-        var_dump($buscar); // Depuración*/
         if ($buscar) {
             $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
             if (!$conexionResult['success']) {
@@ -379,33 +661,23 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                 break;
             }
             $conexionData = $conexionResult['data'];
-            
+            crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
+            exit();
             $pagado = verificarPago($conexionData, $cliente, $claveSae);
-            echo "DEBUG: Resultado de verificarPago: ";
-            var_dump($pagado); // Depuración
-            //$pagado = true;
             if ($pagado) {
-                date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
-                $fechaHoy = date("Y-m-d H:i:s");
-                // Convertir a objetos DateTime
-                $fechaHoyObj = new DateTime($fechaHoy);
+                $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
                 $fechaLimiteObj = new DateTime($fechaLimite);
-                // Calcular la diferencia
-                /*$diferencia = $fechaHoyObj->diff($fechaLimiteObj);
-                echo "DEBUG: Diferencia entre elaboración y límite:\n";
-                var_dump($diferencia); // Depuración*/
-                //exit();
-                //if ($diferencia->days == 1 && $diferencia->h === 0 && $diferencia->i === 0 && $diferencia->s === 0) {
-                if ($fechaHoyObj <= $fechaLimiteObj) {
+                if ($fechaPago <= $fechaLimiteObj) {
                     if ($status === 'Sin Pagar') {
                         $pagoId = basename($document['name']);
                         //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
                         cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                         eliminarCxc($conexionData, $claveSae, $cliente);
                         crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
+                        //crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
                         //Remision y Demas
                     }
-                } else if($fechaHoyObj > $fechaLimiteObj){
+                } else if ($fechaPago > $fechaLimiteObj) {
                     liberarExistencias($conexionData, $folio, $claveSae);
                     //Notificar
                 }

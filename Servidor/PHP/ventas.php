@@ -4156,6 +4156,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
         $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
         $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
     }
+    $FECHAELAB = date('Y-m-d H:i:s');
     $fecha_apli = date("Y-m-d 00:00:00.000");         // Fecha de aplicación: ahora
     $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
     $status     = 'A';  // Estado inicial, por ejemplo
@@ -4178,8 +4179,9 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
                     FECHA_APLI, 
                     FECHA_VENC,
                     USUARIO,
-                    NO_PARTIDA
-              ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
+                    NO_PARTIDA,
+                    FECHAELAB
+              ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)";
 
     $params = [
         $CVE_CLIE,
@@ -4191,7 +4193,8 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
         $IMPORTE,
         $fecha_apli,
         $fecha_venc,
-        $usuario
+        $usuario,
+        $FECHAELAB
     ];
     //var_dump("de salida");
     $stmt = sqlsrv_query($conn, $query, $params);
@@ -4798,10 +4801,11 @@ switch ($funcion) {
                         actualizarFolio($conexionData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);*/
 
-                        $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                        /*$rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                         validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                         
-                        guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
+                        guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);*/
+                        pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                         exit();
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');
