@@ -381,7 +381,7 @@ function crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracio
 {
     date_default_timezone_set('America/Mexico_City');
 
-    $folio = '18784';
+    //$folio = '18780';
 
     $pedidoData = datosPedido($folio, $claveSae, $conexionData);
     $productosData = datosPartida($folio, $claveSae, $conexionData);

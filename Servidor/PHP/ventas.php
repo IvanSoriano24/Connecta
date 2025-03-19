@@ -4112,7 +4112,8 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
     sqlsrv_close($conn);
     return [
         'factura' => $no_factura,
-        'referencia' => $refer
+        'referencia' => $refer,
+        'importe' => $IMPORTE
     ];
 }
 function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData)
@@ -4503,6 +4504,55 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
+function restarSaldo($conexionData, $claveSae, $datosCxC, $claveCliente){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    $importe = '1250.75';
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "UPDATE $nombreTabla SET
+        [SALDO] = [SALDO] - ?
+        WHERE CLAVE = ?";
+
+    $params = [$importe, $claveCliente];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar el saldo',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+
+    // ✅ Confirmar la transacción si es necesario (solo si se usa `BEGIN TRANSACTION`)
+    // sqlsrv_commit($conn);
+
+    // ✅ Liberar memoria y cerrar conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    return json_encode([
+        'success' => true,
+        'message' => "Saldo actualizado correctamente para el cliente $claveCliente"
+    ]);
+
+}
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -4765,10 +4815,11 @@ switch ($funcion) {
                 } else {
 
                     $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
-                    //var_dump($anticipo);
+                    var_dump($anticipo);
                     /*$anticipo['success'] = false;
                     $anticipo['sinFondo'] = true;*/
-                    //exit();
+                    restarSaldo($conexionData, $claveSae, $anticipo, $clave);
+                    exit();
                     if ($anticipo['success']) {
                         //Funcion para eliminar anticipo
                         /*var_dump("Si tiene");
@@ -4785,6 +4836,7 @@ switch ($funcion) {
                         $datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData); 
                         //var_dump($datosCxC);
                         pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
+                        restarSaldo($conexionData, $claveSae, $datosCxC, $clave);
                         //exit();
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');
