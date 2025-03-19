@@ -1,17 +1,19 @@
 <?php
-    session_start();
+session_start();
 
-    if (isset($_SESSION['usuario'])) {
-        if ($_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
-        $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
-            header('Location:Dashboard.php');
-            exit();
-        }
-        $nombreUsuario = $_SESSION['usuario']["nombre"];
-        $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
-    } else {
-        header('Location:../index.php');
+if (isset($_SESSION['usuario'])) {
+    if (
+        $_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
+        $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA'
+    ) {
+        header('Location:Dashboard.php');
+        exit();
     }
+    $nombreUsuario = $_SESSION['usuario']["nombre"];
+    $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
+} else {
+    header('Location:../index.php');
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -43,6 +45,32 @@
     <!-- Main CSS File -->
     <link href="assets/css/main.css" rel="stylesheet">
     <link rel="stylesheet" href="CSS/articulos.css">
+
+    <style>
+        .custom-delete-btn {
+            background-color: rgba(220, 53, 69, 0.9);
+            /* Rojo semitransparente */
+            border: none;
+            border-radius: 50%;
+            /* Botón circular */
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease;
+        }
+
+        .custom-delete-btn i {
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .custom-delete-btn:hover {
+            background-color: rgba(220, 53, 69, 1);
+        }
+    </style>
 </head>
 
 <body>
@@ -54,7 +82,9 @@
                 <section id="features" class="features section">
                     <!-- Section Title -->
                     <div class="container mt-4">
-                        <h1 class="mb-4">Gestión de Imágenes de Artículos</h1>
+                        <h1 class="mb-4 text-center text-uppercase fw-bold" style="font-size:2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                            Gestión de Imágenes de Artículos
+                        </h1>
                         <div id="product-list" class="row g-3">
                             <!-- Los productos con imágenes se cargarán dinámicamente aquí -->
                         </div>
@@ -82,4 +112,5 @@
     <!-- Main JS File -->
     <script src="assets/js/main.js"></script>
 </body>
+
 </html>

@@ -108,7 +108,7 @@ if (isset($_SESSION['usuario'])) {
                                                     <div class="card-body p-0">
                                                         <div class="table-responsive table-scroll"
                                                             data-mdb-perfect-scrollbar="true"
-                                                            style="position: relative; height: 700px">
+                                                            style="position: relative; height: 500px">
                                                             <table class="table table-striped mb-0">
                                                                 <thead style="background-color:rgb(49, 118, 222);">
                                                                     <tr>
@@ -138,8 +138,6 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                         </section>
                     </div><!-- End Section Title -->
-
-
                 </section><!-- /Contact Section -->
             </section><!-- /Fin Section -->
 
@@ -162,7 +160,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/vendor/php-email-form/validate.js"></script>
+    <!-- <script src="assets/vendor/php-email-form/validate.js"></script> -->
     <script src="assets/vendor/aos/aos.js"></script>
     <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
     <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
@@ -170,13 +168,6 @@ if (isset($_SESSION['usuario'])) {
 
     <!-- Main JS File -->
     <script src="assets/js/main.js"></script>
-
-
-    <script>
-        /*$(document).ready(function() {
-        datosPedidos();
-    });*/
-    </script>
 </body>
 
 </html>

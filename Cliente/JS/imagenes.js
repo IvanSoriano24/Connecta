@@ -1,10 +1,8 @@
 function cargarArticulosConImagenes() {
     const numFuncion = 20; // Identificador de la función en PHP
     const xhr = new XMLHttpRequest();
-
     xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
     xhr.setRequestHeader("Content-Type", "application/json");
-
     xhr.onload = function () {
         if (xhr.status === 200) {
             try {
@@ -25,74 +23,11 @@ function cargarArticulosConImagenes() {
             alert("Error HTTP: " + xhr.status);
         }
     };
-
     xhr.onerror = function () {
         alert("Hubo un problema con la conexión al servidor.");
     };
-
     xhr.send();
 }
-// Original
-// function mostrarArticulos(articulos) {
-//     const productList = document.getElementById("product-list");
-//     productList.innerHTML = ""; // Limpia el contenedor antes de cargar los productos
-
-//     articulos.forEach((articulo) => {
-//         const card = document.createElement("div");
-//         card.classList.add("col-lg-4", "col-md-6");
-
-//         // Crear el carrusel de imágenes
-//         let imagenesHtml = "";
-//         if (Array.isArray(articulo.IMAGEN_ML) && articulo.IMAGEN_ML.length > 0) {
-//             imagenesHtml = `
-//                 <div id="carrusel-${articulo.CVE_ART}" class="carousel slide" data-bs-ride="carousel">
-//                     <div class="carousel-inner">
-//                         ${articulo.IMAGEN_ML.map((imagenUrl, index) => `
-//                             <div class="carousel-item ${index === 0 ? "active" : ""}">
-//                                 <img src="${imagenUrl}" class="d-block w-100" alt="Imagen ${index + 1}">
-//                                 <div class="carousel-caption d-flex justify-content-center">
-//                                     <button class="btn btn-danger btn-sm" onclick="eliminarImagen('${articulo.CVE_ART}', '${imagenUrl}')">Eliminar</button>
-//                                 </div>
-//                             </div>
-//                         `).join("")}
-//                     </div>
-//                     <button class="carousel-control-prev" type="button" data-bs-target="#carrusel-${articulo.CVE_ART}" data-bs-slide="prev">
-//                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-//                         <span class="visually-hidden">Anterior</span>
-//                     </button>
-//                     <button class="carousel-control-next" type="button" data-bs-target="#carrusel-${articulo.CVE_ART}" data-bs-slide="next">
-//                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
-//                         <span class="visually-hidden">Siguiente</span>
-//                     </button>
-//                 </div>
-//             `;
-//         } else {
-//             imagenesHtml = `<p>No hay imágenes disponibles para este producto.</p>`;
-//         }
-
-//         // Crear la tarjeta del producto
-//         card.innerHTML = `
-//             <div class="card h-100">
-//                 <div class="card-body">
-//                     <h5 class="card-title">${articulo.DESCR}</h5>
-//                     <p class="card-text">Existencia: ${articulo.EXIST}</p>
-//                     <p class="card-text">Línea: ${articulo.LIN_PROD}</p>
-//                     <div class="imagenes-container">
-//                         ${imagenesHtml}
-//                     </div>
-//                     <form class="upload-form mt-3" data-cve-art="${articulo.CVE_ART}">
-//                         <input type="file" name="imagen" accept="image/*" class="form-control mb-2" multiple required>
-//                         <button type="submit" class="btn btn-primary btn-sm">Subir Imágenes</button>
-//                     </form>
-//                 </div>
-//             </div>
-//         `;
-
-//         productList.appendChild(card);
-//     });
-
-//     agregarEventosSubida(); // Agregar eventos para subir imágenes
-// }
 function mostrarArticulos(articulos) {
     const productList = document.getElementById("product-list");
     productList.innerHTML = ""; // Limpia el contenedor antes de cargar los productos
@@ -111,7 +46,9 @@ function mostrarArticulos(articulos) {
                             <div class="carousel-item ${index === 0 ? "active" : ""}">
                                 <img src="${imagenUrl}" class="d-block w-100 img-fluid" alt="Imagen ${index + 1}" style="max-height: 300px; object-fit: cover;">
                                 <div class="carousel-caption d-flex justify-content-center">
-                                    <button class="btn btn-danger btn-sm" onclick="eliminarImagen('${articulo.CVE_ART}', '${imagenUrl}')">Eliminar</button>
+                                    <button class="btn btn-danger btn-sm custom-delete-btn" onclick="eliminarImagen('${articulo.CVE_ART}', '${imagenUrl}')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 </div>
                             </div>
                         `).join("")}
@@ -129,7 +66,6 @@ function mostrarArticulos(articulos) {
         } else {
             imagenesHtml = `<p>No hay imágenes disponibles para este producto.</p>`;
         }
-
         // Crear la tarjeta del producto
         card.innerHTML = `
             <div class="card h-100 shadow-sm">
@@ -146,14 +82,10 @@ function mostrarArticulos(articulos) {
                 </div>
             </div>
         `;
-
         productList.appendChild(card);
     });
-
     agregarEventosSubida(); // Agregar eventos para subir imágenes
 }
-
-
 function agregarEventosSubida() {
     const forms = document.querySelectorAll(".upload-form");
     forms.forEach((form) => {
@@ -255,7 +187,9 @@ function actualizarCarrusel(cveArt) {
                                 <div class="carousel-item ${index === 0 ? "active" : ""}">
                                     <img src="${imagenUrl}" class="d-block w-100" alt="Imagen ${index + 1}">
                                     <div class="carousel-caption d-flex justify-content-center">
-                                        <button class="btn btn-danger btn-sm" onclick="eliminarImagen('${cveArt}', '${imagenUrl}')">Eliminar</button>
+                                        <button class="btn btn-danger btn-sm custom-delete-btn" onclick="eliminarImagen('${articulo.CVE_ART}', '${imagenUrl}')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
                                     </div>
                                 </div>
                             `).join("")}
@@ -300,8 +234,14 @@ function subirImagenes(cveArt, files) {
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
-                alert("Imágenes subidas correctamente.");
-                cargarArticulosConImagenes();
+                Swal.fire({
+                    title: "Subida",
+                    text: "Las imagenes se subieron correctamente.",
+                    icon: "success",
+                    confirmButtonColor: "#3085d6",
+                }).then(() => {
+                    actualizarCarrusel(cveArt); // Recargar solo el carrusel del producto
+                });
             } else {
                 alert("Error al subir las imágenes: " + data.message);
             }

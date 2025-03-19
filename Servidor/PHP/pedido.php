@@ -60,20 +60,14 @@ function formatearClaveCliente($clave)
 }
 function mostrarPedidos($conexionData, $claveSae)
 {
-    // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto
-    $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
-
-    // Parámetros de paginación
-    $pagina = isset($_POST['pagina']) ? (int)$_POST['pagina'] : 1;
-    $porPagina = isset($_POST['porPagina']) ? (int)$_POST['porPagina'] : 50;
-    $offset = ($pagina - 1) * $porPagina;
-
     try {
-
         $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
         $clave = $_SESSION['usuario']['claveUsuario'] ?? null;
         if ($clave != null) {
             $clave = mb_convert_encoding(trim($clave), 'UTF-8');
+        } else{
+            echo json_encode(['success' => false, 'message' => 'Usuario si clave']);
+            exit;
         }
         $claveUsuario = formatearClaveCliente($clave);
         $serverName = $conexionData['host'];
@@ -126,7 +120,6 @@ function mostrarPedidos($conexionData, $claveSae)
         // Arreglo para almacenar los pedidos evitando duplicados
         $clientes = [];
         $clavesRegistradas = [];
-
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
             // Validar codificación y manejar nulos
             foreach ($row as $key => $value) {

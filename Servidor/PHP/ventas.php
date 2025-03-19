@@ -1753,12 +1753,12 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
 
-        $bodyHTML .= '<tr>
-                        <td style="text-align: center;">$clave</td>
-                        <td style="text-align: center;">$descripcion</td>
-                        <td style="text-align: right;">$cantidad</td>
-                        <td style="text-align: right;">$" . number_format($totalPartida, 2) . "</td>
-                      </tr>';
+        $bodyHTML .= "<tr>
+                        <td>$clave</td>
+                        <td>$descripcion</td>
+                        <td>$cantidad</td>
+                        <td>$ . number_format($totalPartida, 2) . </td>
+                      </tr>";
     }
 
     $bodyHTML .= "</tbody></table>";
@@ -3720,9 +3720,7 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
             'anticipoVencimiento' => true,
             'message' => 'El anticipo tiene una fecha futura y no puede ser utilizado'
         ];
-        die();
-    } else {
-        var_dump("Si");
+        //die();
     }*/
 
     $puedeContinuar = ($totalPedido) <= $IMPORTE;
@@ -3732,8 +3730,6 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
         $fondo = true;
     }
 
-    //$puedeContinuar = true;
-    //$fondo = false;
     $fechaVencimiento = false;
 
     sqlsrv_close($conn);
@@ -4022,7 +4018,7 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
     $CVE_CLIE = formatearClaveCliente($cve_clie);
     $refer      = $formularioData['referencia'] ?? '000001'; // Puede generarse o venir del formulario
-    $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
+    $num_cpto   = '1';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
     $no_factura = $formularioData['numero']; // Número de factura o pedido
     $docto      = '';   // Puede ser un código de documento, si aplica
@@ -4476,12 +4472,12 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
         $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
 
-        $bodyHTML .= '<tr>
-                        <td style="text-align: center;">$clave</td>
-                        <td style="text-align: center;">$descripcion</td>
-                        <td style="text-align: right;">$cantidad</td>
-                        <td style="text-align: right;">$" . number_format($totalPartida, 2) . "</td>
-                      </tr>';
+        $bodyHTML .= "<tr>
+                        <td>$clave</td>
+                        <td>$descripcion</td>
+                        <td>$cantidad</td>
+                        <td>$ . number_format($totalPartida, 2) . </td>
+                      </tr>";
     }
 
     $bodyHTML .= "</tbody></table>";
@@ -4521,13 +4517,13 @@ function restarSaldo($conexionData, $claveSae, $datosCxC, $claveCliente){
             'errors' => sqlsrv_errors()
         ]));
     }
-    $importe = '1250.75';
+    //$importe = '1250.75';
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "UPDATE $nombreTabla SET
         [SALDO] = [SALDO] - ?
         WHERE CLAVE = ?";
 
-    $params = [$importe, $claveCliente];
+    $params = [$datosCxC['importe'], $claveCliente];
 
     $stmt = sqlsrv_query($conn, $sql, $params);
     
@@ -4814,50 +4810,44 @@ switch ($funcion) {
                 } else {
 
                     $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
-                    //var_dump($anticipo);
-                    /*$anticipo['success'] = false;
-                    $anticipo['sinFondo'] = true;*/
+      
                     if ($anticipo['success']) {
                         //Funcion para eliminar anticipo
                         /*var_dump("Si tiene");
                         var_dump($anticipo);
                         exit();*/
-                        /*$estatus = 'E';
+                        $estatus = 'E';
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
-                        remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa)*/
+                        remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
 
                         eliminarCxc($conexionData, $anticipo, $claveSae, $formularioData);
                         $datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData); 
                         //var_dump($datosCxC);
                         pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                         restarSaldo($conexionData, $claveSae, $datosCxC, $clave);
-                        exit();
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');
                         echo json_encode([
                             'success' => true,
-                            'autorizacion' => false,
                             'message' => 'El pedido se completó correctamente.',
                         ]);
-                    } elseif ($anticipo['sinFondo']) {
-                        var_dump("No");
                         exit();
+                    } elseif ($anticipo['sinFondo']) {
                         //No tiene fondos
-                        /*$estatus = 'C';
+                        $estatus = 'C';
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
-                        actualizarInventario($conexionData, $partidasData);*/
+                        actualizarInventario($conexionData, $partidasData);
 
-                        /*$rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                        $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                         validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                         
-                        guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);*/
-                        pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
-                        exit();
+                        guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
+                        //pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');
                         echo json_encode([
@@ -4865,6 +4855,7 @@ switch ($funcion) {
                             'cxc' => true,
                             'message' => 'El pedido tiene 24 Horas para liquidarse.',
                         ]);
+                        exit();
                     } elseif ($anticipo['fechaVencimiento']) {
                         header('Content-Type: application/json; charset=UTF-8');
                         echo json_encode([
@@ -5082,7 +5073,8 @@ switch ($funcion) {
         break;
     case 14:
         // Obtener conexión
-        $claveSae = "02";
+        $claveSae = "01";
+        $noEmpresa = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae); //Aqui
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);

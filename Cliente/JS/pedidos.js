@@ -13,12 +13,11 @@ function cargarPedidos() {
           // Asegúrate de que las propiedades existan en cada objeto 
           row.innerHTML = `
             <td>${pedido.Clave || 'Sin pedidos'}</td>
-            <td>${pedido.Subtotal ? pedido.Subtotal.toFixed(2) : '0.00'}</td>
-            <td>${pedido.ImporteTotal ? pedido.ImporteTotal.toFixed(2) : '0.00'}</td>
+            <td>$${pedido.Subtotal ? pedido.Subtotal.toFixed(2) : '0.00'}</td>
+            <td>$${pedido.ImporteTotal ? pedido.ImporteTotal.toFixed(2) : '0.00'}</td>
           `;
           pedidosTable.appendChild(row);
         });
-             
 /*
 <td>
               <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.id}">Editar</button>

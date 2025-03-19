@@ -301,6 +301,7 @@ function liberarExistencias($conexionData, $folio, $claveSae)
     $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT [CVE_ART], [CANT] FROM $nombreTabla
         WHERE [CVE_DOC] = ?";
@@ -315,7 +316,6 @@ function liberarExistencias($conexionData, $folio, $claveSae)
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $partidas[] = $row;
     }
-    $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     foreach ($partidas as $partida) {
         $CVE_ART = $partida['CVE_ART'];

@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 if (isset($_SESSION['usuario'])) {
     if (
         $_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
@@ -96,27 +95,20 @@ if (isset($_SESSION['usuario'])) {
 
                     <div class="container py-5">
                         <div class="row d-flex justify-content-center align-items-center">
-                            <div class="col-lg-10">
+                            <div class="col-lg-6">
                                 <div class="card shadow-lg">
-                                    <div class="card-body p-5">
-                                        <h3 class="text-center mb-4">Tu Credito</h3>
-                                        <br>
-                                        <div class="table-responsive">
-                                            <table class="table table-hover table-striped text-center align-middle">
-                                                <thead class="table-dark">
-                                                </thead>
-                                                <tbody id="carrito-lista">
-                                                    <form>
-                                                        <label for="credito">Credito:</label>
-                                                        <input type="number" id="credito">
-                                                        <br>
-                                                        <label for="saldo">Saldo:</label>
-                                                        <input type="number" id="saldo">
-                                                    </form>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <hr>
+                                    <div class="card-body">
+                                        <h3 class="card-title text-center mb-4">Tu Crédito</h3>
+                                        <form>
+                                            <div class="mb-3">
+                                                <label for="credito" class="form-label">Crédito:</label>
+                                                <input type="text" id="credito" style="text-align: right;" class="form-control" readonly1>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="saldo" class="form-label">Saldo:</label>
+                                                <input type="text" id="saldo" style="text-align: right;" class="form-control" readonly1>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -126,11 +118,9 @@ if (isset($_SESSION['usuario'])) {
                 </section><!-- /Contact Section -->
             </section><!-- /Fin Section -->
 
-
         </main>
         <!-- FOOTER -->
         <?php include 'FooterEcommerce.php'; ?>
-
     </div>
     <script src="JS/credito.js"></script>
     <script src="JS/menu.js"></script>
@@ -145,7 +135,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/vendor/php-email-form/validate.js"></script>
+    <!-- <script src="assets/vendor/php-email-form/validate.js"></script> -->
     <script src="assets/vendor/aos/aos.js"></script>
     <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
     <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
@@ -153,13 +143,6 @@ if (isset($_SESSION['usuario'])) {
 
     <!-- Main JS File -->
     <script src="assets/js/main.js"></script>
-
-
-    <script>
-        /*$(document).ready(function() {
-        datosPedidos();
-    });*/
-    </script>
 </body>
 
 </html>

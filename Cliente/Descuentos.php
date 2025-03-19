@@ -60,57 +60,52 @@ if (isset($_SESSION['usuario'])) {
                 <!-- Contact Section -->
                 <section id="" class="contact ">
 
-                    <!-- Section Title -->
-                    <div class="container section-title" data-aos="fade-up">
-                        <h2>Descuentos</h2>
-                        <p></p>
-                        <section class="intro">
-                            <div class="bg-image h-100" style="background-color: #f5f7fa;">
-                                <div class="mask d-flex align-items-center h-100">
-                                    <div class="container">
-                                        <div class="row justify-content-center">
-                                            <div class="col-12">
-                                                <div class="card">
-                                                    <div class="card-body p-0">
-                                                        <div class="table-responsive table-scroll"
-                                                            data-mdb-perfect-scrollbar="true"
-                                                            style="position: relative; height: 700px">
-                                                            <select name="descuentosClientes" id="descuentosClientes" class="form-select mb-2">
-                                                                <option value="">Seleccionar Cliente</option>
-                                                            </select>
-                                                            <input type="text" id="descuentoCliente" style="text-align: right;">
-                                                            <table class="table table-striped mb-0">
-                                                                <thead style="background-color:rgb(49, 118, 222);">
-                                                                    <tr>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Clave</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Descripción</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Descuentos</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody id="datosDescuentos">
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-element"></div>
-                                                        <button type="button" class="btn-save" id="guardarDescuentos" style="width: 150px;">Guardar</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
+                    <main class="container my-5">
+                        <div class="card shadow">
+                            <div class="card-header bg-primary text-white">
+                                <h3 class="mb-0">Descuentos</h3>
+                            </div>
+                            <div class="card-body">
+                                <!-- Selección de Cliente y Descuento Global -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="descuentosClientes" class="form-label">Seleccionar Cliente:</label>
+                                        <select name="descuentosClientes" id="descuentosClientes" class="form-select">
+                                            <option value="">Selecciona un Cliente</option>
+                                        </select>
                                     </div>
-
+                                    <div class="col-md-6">
+                                        <label for="descuentoCliente" class="form-label">Descuento Cliente:</label>
+                                        <input type="text" id="descuentoCliente" class="form-control" style="text-align: right;" readonly>
+                                    </div>
+                                </div>
+                                <!-- Tabla de Productos -->
+                                <div class="table-responsive table-scroll"
+                                                            data-mdb-perfect-scrollbar="true"
+                                                            style="position: relative; height: 500px">
+                                    <table class="table table-striped">
+                                        <thead class="table-dark sticky-top">
+                                            <tr>
+                                                <th>Clave</th>
+                                                <th>Descripción</th>
+                                                <th>Descuento</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="datosDescuentos">
+                                            <!-- Las filas se cargarán dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Botón para guardar -->
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="button" class="btn btn-success" id="guardarDescuentos">Guardar Descuentos</button>
                                 </div>
                             </div>
-                    </div>
-                </section>
+                        </div>
+                    </main>
+    </div>
+    </div>
+    </section>
     </div><!-- End Section Title -->
     </section><!-- /Contact Section -->
     </section><!-- /End Section -->
