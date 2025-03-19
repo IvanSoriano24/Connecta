@@ -3732,8 +3732,8 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
         $fondo = true;
     }
 
-    $puedeContinuar = true;
-    $fondo = false;
+    //$puedeContinuar = true;
+    //$fondo = false;
     $fechaVencimiento = false;
 
     sqlsrv_close($conn);
@@ -4022,7 +4022,7 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
     $CVE_CLIE = formatearClaveCliente($cve_clie);
     $refer      = $formularioData['referencia'] ?? '000001'; // Puede generarse o venir del formulario
-    $num_cpto   = '1';  // Concepto: ajustar según tu lógica de negocio
+    $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
     $no_factura = $formularioData['numero']; // Número de factura o pedido
     $docto      = '';   // Puede ser un código de documento, si aplica
@@ -4523,7 +4523,6 @@ function restarSaldo($conexionData, $claveSae, $datosCxC, $claveCliente){
     }
     $importe = '1250.75';
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
     $sql = "UPDATE $nombreTabla SET
         [SALDO] = [SALDO] - ?
         WHERE CLAVE = ?";
@@ -4815,11 +4814,9 @@ switch ($funcion) {
                 } else {
 
                     $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
-                    var_dump($anticipo);
+                    //var_dump($anticipo);
                     /*$anticipo['success'] = false;
                     $anticipo['sinFondo'] = true;*/
-                    restarSaldo($conexionData, $claveSae, $anticipo, $clave);
-                    exit();
                     if ($anticipo['success']) {
                         //Funcion para eliminar anticipo
                         /*var_dump("Si tiene");
@@ -4837,7 +4834,7 @@ switch ($funcion) {
                         //var_dump($datosCxC);
                         pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                         restarSaldo($conexionData, $claveSae, $datosCxC, $clave);
-                        //exit();
+                        exit();
                         // Respuesta de éxito
                         header('Content-Type: application/json; charset=UTF-8');
                         echo json_encode([
@@ -4846,6 +4843,8 @@ switch ($funcion) {
                             'message' => 'El pedido se completó correctamente.',
                         ]);
                     } elseif ($anticipo['sinFondo']) {
+                        var_dump("No");
+                        exit();
                         //No tiene fondos
                         /*$estatus = 'C';
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
