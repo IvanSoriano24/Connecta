@@ -70,6 +70,26 @@ if (isset($_SESSION['usuario'])) {
         .custom-delete-btn:hover {
             background-color: rgba(220, 53, 69, 1);
         }
+
+        #product-list {
+            max-height: 80vh;
+            /* Altura máxima: 80% de la ventana */
+            overflow-y: auto;
+            padding-right: 15px;
+            /* Para evitar que el scroll se superponga al contenido */
+        }
+
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            /* Fondo semitransparente negro */
+            padding: 0.75rem;
+            /* Espaciado interno para agrandar el icono */
+            border-radius: 50%;
+            /* Bordes redondeados */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+            /* Sombra para mayor contraste */
+        }
     </style>
 </head>
 

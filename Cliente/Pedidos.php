@@ -121,6 +121,9 @@ if (isset($_SESSION['usuario'])) {
                                                                         <th scope="col"
                                                                             style="background-color: #0d77bd; color: white; ">
                                                                             Total</th>
+                                                                        <th scope="col"
+                                                                            style="background-color: #0d77bd; color: white; ">
+                                                                            Visualizar</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody id="datosPedidos">
@@ -132,6 +135,43 @@ if (isset($_SESSION['usuario'])) {
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- MODAL DETALLES PEDIDO -->
+                            <div class="modal fade" id="modalDetallesPedido" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-primary text-white">
+                                            <h5 class="modal-title  w-100 text-center" id="modalDetallesLabel">Detalles del Pedido</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col" style="background-color: #0d77bd; color: white;">Producto</th>
+                                                            <th scope="col" style="background-color: #0d77bd; color: white;">Descripción</th>
+                                                            <th scope="col" style="background-color: #0d77bd; color: white;">Cantidad</th>
+                                                            <th scope="col" style="background-color: #0d77bd; color: white;">Subtotal</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <!-- Las partidas se insertarán aquí dinámicamente -->
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                                            <td><!-- Aquí se insertará el total --></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Salir</button>
                                         </div>
                                     </div>
                                 </div>

@@ -893,7 +893,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $IMP_TOT2 = 0;
     $IMP_TOT3 = 0;
     $IMP_TOT4 = $IMPORTE * .16;
-    $IMPORTE = $IMPORTE + $IMP_TOT4;
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     $IMP_TOT5 = 0;
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;
@@ -2532,8 +2532,8 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
         $claveCliente = 3;
     } else {
         $claveCliente = $_SESSION['usuario']['claveUsuario']; // Clave del cliente
+        $claveCliente = formatearClaveCliente($claveCliente);
     }
-
     // 📌 Consulta para obtener los productos más vendidos del cliente con su precio
     $sql = "
         SELECT DISTINCT TOP (6)
@@ -3005,6 +3005,7 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     $IMP_TOT2 = 0;
     $IMP_TOT3 = 0;
     $IMP_TOT4 = $CAN_TOT * .16;
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     $IMP_TOT5 = 0;
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;

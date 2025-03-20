@@ -65,7 +65,7 @@ function mostrarPedidos($conexionData, $claveSae)
         $clave = $_SESSION['usuario']['claveUsuario'] ?? null;
         if ($clave != null) {
             $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-        } else{
+        } else {
             echo json_encode(['success' => false, 'message' => 'Usuario si clave']);
             exit;
         }
@@ -159,7 +159,8 @@ function mostrarPedidos($conexionData, $claveSae)
     }
 }
 
-function altaPedido($data){
+function altaPedido($data)
+{
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/MONTOPEDIDO?key=$firebaseApiKey";
     $options = [
@@ -178,35 +179,8 @@ function altaPedido($data){
         echo json_encode(['success' => false, 'message' => 'Error al guardar la empresa.']);
     }
 }
-function obtenerPedidos() {
-    global $firebaseProjectId, $firebaseApiKey;
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS?key=$firebaseApiKey";
-
-    $response = file_get_contents($url);
-    if ($response !== false) {
-        $data = json_decode($response, true);
-        $pedidos = [];
-        if (isset($data['documents'])) {
-            foreach ($data['documents'] as $document) {
-                $fields = $document['fields'];
-                $pedidos[] = [
-                    'id' => str_replace('projects/' . $firebaseProjectId . '/databases/(default)/documents/PEDIDOS/', '', $document['name']),
-                    'pedido' => $fields['pedido']['stringValue'] ?? '',
-                    'cliente' => $fields['cliente']['stringValue'] ?? '',
-                    'total' => $fields['total']['stringValue'] ?? '',
-                    'fecha' => $fields['fecha']['stringValue'] ?? '',
-                    'estado' => $fields['estado']['stringValue'] ?? ''
-                ];
-            }
-        }
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'data' => $pedidos]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error al obtener los pedidos.']);
-    }
-}
-
-function actualizarPedido($idPedido, $data) {
+function actualizarPedido($idPedido, $data)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // Codificar el ID y la clave de la API para evitar errores de formato
@@ -215,7 +189,7 @@ function actualizarPedido($idPedido, $data) {
 
     // URL de Firestore para obtener los datos actuales del pedido
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS/$idPedido?key=$firebaseApiKey";
-    
+
     // Obtener los datos actuales del pedido
     $response = file_get_contents($url);
     if ($response === false) {
@@ -274,7 +248,8 @@ function actualizarPedido($idPedido, $data) {
     }
 }
 
-function cancelarPedido($idPedido) {
+function cancelarPedido($idPedido)
+{
     global $firebaseProjectId, $firebaseApiKey;
     // Codificar el ID y la clave de la API para evitar errores de formato
     $idPedido = urlencode($idPedido);
@@ -329,7 +304,103 @@ function cancelarPedido($idPedido) {
         echo json_encode(['success' => false, 'message' => 'Pedido no encontrado.']);
     }
 }
+function obtenerPedido($idPedido, $conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $pedido = str_pad($idPedido, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($pedido, 20, ' ', STR_PAD_LEFT);
 
+    /*$nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2  = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "SELECT p.CVE_DOC, p.CVE_ART, p.CANT, p.TOT_PARTIDA, f.IMPORTE
+    FROM $nombreTabla p LEFT JOIN $nombreTabla2 f ON f.CVE_DOC = p.CVE_DOC WHERE p.CVE_DOC = ?";*/
+
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[INVE"   . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT p.CVE_DOC, p.CVE_ART, p.CANT, p.TOT_PARTIDA, f.CAN_TOT, i.DESCR
+        FROM $nombreTabla p 
+        LEFT JOIN $nombreTabla2 f ON f.CVE_DOC = p.CVE_DOC 
+        LEFT JOIN $nombreTabla3 i ON p.CVE_ART = i.CVE_ART
+        WHERE p.CVE_DOC = ?";
+
+    $param = [$CVE_DOC];
+
+    $stmt = sqlsrv_query($conn, $sql, $param);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    // 📌 Obtener todas las imágenes de Firebase en un solo lote
+    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app";
+    $imagenesPorArticulo = listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket);
+
+    $partidas = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $cveArt = $row['CVE_ART'];
+
+        // 📌 Asignar las imágenes correspondientes al producto
+        $row['IMAGEN_ML'] = $imagenesPorArticulo[$cveArt] ?? []; // Si no hay imágenes, asignar un array vacío
+
+        // 📌 Validar si el precio es null, asignar un precio predeterminado
+        $row['PRECIO'] = $row['PRECIO'] ?? 0.00;
+
+        $partidas[] = $row;
+    }
+
+    if (count($partidas) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'partidas' => $partidas]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron partidas.']);
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket)
+{
+    // Asegurar que el prefijo termine con '/'
+    $url = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o?prefix=imagenes/";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+
+    // Depuración de la respuesta de Firebase
+    //var_dump($data);
+
+    $imagenesPorArticulo = [];
+    if (isset($data['items'])) {
+        foreach ($data['items'] as $item) {
+            $name = $item['name']; // Ejemplo: "imagenes/AB-2PAM/imagen1.jpg"
+            $parts = explode('/', $name);
+
+            if (count($parts) >= 2) {
+                $cveArt = $parts[1]; // "AB-2PAM"
+                $imagenesPorArticulo[$cveArt][] = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o/" . rawurlencode($name) . "?alt=media";
+            }
+        }
+    }
+
+    return $imagenesPorArticulo;
+}
 
 
 //http://localhost/MDConnecta/Servidor/PHP/pedido.php?numFuncion=5?idPedido=FYOcALZA6k4v2UpXv6Ln
@@ -346,13 +417,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     //break;
 }
 switch ($funcion) {
-    case 1: 
+    case 1:
         $data = [
             /*
             DATOS
             'dato' => $fields['dato']['tipoDato'],
-            */
-        ];
+            */];
         altaPedido($data);
         break;
 
@@ -361,8 +431,7 @@ switch ($funcion) {
         $data = [
             /*
             DATOS
-            */
-        ];
+            */];
         actualizarPedido($idPedido, $data);
         break;
 
@@ -372,13 +441,13 @@ switch ($funcion) {
             'fields' => [
                 'estado' => ['stringValue' => 'CANCELADO']
             ]
-        ]; */       
+        ]; */
         cancelarPedido($idPedido);
         break;
 
     case 4: // Obtener pedidos
-       $claveSae = "01";
-       $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
+        $claveSae = "01";
+        $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;
@@ -387,16 +456,22 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         mostrarPedidos($conexionData, $claveSae);
         break;
-    
+
     case 5:
         $idPedido = $_GET['idPedido'];
+        $claveSae = "01";
+        $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
         //$idPedido = "FYOcALZA6k4v2UpXv6Ln";
-        //obtenerPedido($idPedido);
+        obtenerPedido($idPedido, $conexionData, $claveSae);
         break;
 
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;
 }
-
-?>
