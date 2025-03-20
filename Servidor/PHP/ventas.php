@@ -2588,7 +2588,7 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'productos' => $productos]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+        echo json_encode(['success' => false, 'sinDatos' => true, 'message' => 'No se encontraron productos.']);
     }
 
     sqlsrv_free_stmt($stmt);

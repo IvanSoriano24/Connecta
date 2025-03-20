@@ -416,6 +416,15 @@ if (isset($_SESSION['usuario'])) {
 
                 const data = await response.json();
 
+                if (data.sinDatos) {
+                    Swal.fire({
+                        title: "Sin dato",
+                        text: `El sistema no encontro pedidos completados anteriores`,
+                        icon: "info",
+                        confirmButtonText: "Aceptar"
+                    });
+                    return;
+                }
                 if (!data.success) {
                     console.error("Error desde el servidor:", data.message);
                     return;
@@ -449,105 +458,6 @@ if (isset($_SESSION['usuario'])) {
                 console.error("Error en la solicitud:", error);
             }
         }
-
-
-        // function mostrarProductosCuadricula(productos) {
-        //     const contenedorProductos = document.getElementById("product-list");
-
-        //     if (!contenedorProductos) {
-        //         console.error("Error: No se encontró el contenedor para los productos.");
-        //         return;
-        //     }
-
-        //     contenedorProductos.innerHTML = ""; // Limpia el contenedor antes de agregar productos
-
-        //     if (!Array.isArray(productos) || productos.length === 0) {
-        //         contenedorProductos.innerHTML = "<p class='no-products'>No hay productos para mostrar.</p>";
-        //         return;
-        //     }
-
-        //     productos.forEach((producto) => {
-        //         const productItem = document.createElement("div");
-        //         productItem.className = "product-card";
-
-        //         // Generar el carrusel de imágenes si hay múltiples imágenes
-        //         let carruselHtml = "";
-        //         if (Array.isArray(producto.IMAGEN_ML) && producto.IMAGEN_ML.length > 0) {
-        //             carruselHtml = `
-        //             <div id="carrusel-${producto.CVE_ART}" class="carousel slide card-img" data-bs-ride="carousel">
-        //                 <div class="carousel-inner">
-        //                     ${producto.IMAGEN_ML.map((imgUrl, index) => `
-        //                         <div class="carousel-item ${index === 0 ? 'active' : ''}">
-        //                             <img src="${imgUrl}" class="d-block w-100 product-img" alt="${producto.DESCR}">
-        //                         </div>
-        //                     `).join("")}
-        //                 </div>
-        //                 <button class="carousel-control-prev" type="button" data-bs-target="#carrusel-${producto.CVE_ART}" data-bs-slide="prev">
-        //                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        //                 </button>
-        //                 <button class="carousel-control-next" type="button" data-bs-target="#carrusel-${producto.CVE_ART}" data-bs-slide="next">
-        //                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        //                 </button>
-        //             </div>
-        //         `;
-        //         } else {
-        //             carruselHtml = `<div class="card-img">
-        //             <img src="SRC/noimg.png" alt="${producto.DESCR}" class="product-img">
-        //         </div>`;
-        //         }
-
-        //         // Crear la información del producto
-        //         productItem.innerHTML = `
-        //         ${carruselHtml}
-        //         <h3>${producto.DESCR}</h3>
-        //         <p class="price">$${parseFloat(producto.EXIST).toFixed(2)}</p>
-        //         <a href="#" class="btn">Comprar</a>
-        //     `;
-
-        //         // Agregar el producto al contenedor
-        //         contenedorProductos.appendChild(productItem);
-        //     });
-        // }
-
-        // function mostrarProductosCuadricula(productos) {
-        //     const contenedorProductos = document.getElementById("product-list");
-
-        //     if (!contenedorProductos) {
-        //         console.error("Error: No se encontró el contenedor para los productos.");
-        //         return;
-        //     }
-
-        //     contenedorProductos.innerHTML = ""; // Limpia el contenedor
-
-        //     if (!Array.isArray(productos) || productos.length === 0) {
-        //         contenedorProductos.innerHTML = "<p class='no-products'>No hay productos para mostrar.</p>";
-        //         return;
-        //     }
-
-        //     productos.forEach((producto) => {
-        //         const card = document.createElement("div");
-        //         card.className = "card";
-
-        //         // Seleccionar la imagen a mostrar: se utiliza la primera imagen disponible
-        //         let imagenSrc = "SRC/noimg.png";
-        //         if (Array.isArray(producto.IMAGEN_ML) && producto.IMAGEN_ML.length > 0) {
-        //             imagenSrc = producto.IMAGEN_ML[0];
-        //         }
-
-        //         card.innerHTML = `
-        //   <div class="card-image">
-        //     <img src="${imagenSrc}" alt="${producto.DESCR}" class="product-img">
-        //   </div>
-        //   <div class="category"> Producto </div>
-        //   <div class="heading">
-        //     ${producto.DESCR}
-        //     <div class="author"> Precio: <span class="name">$${parseFloat(producto.EXIST).toFixed(2)}</span></div>
-        //   </div>
-        // `;
-
-        //         contenedorProductos.appendChild(card);
-        //     });
-        // }
 
         function mostrarProductosCuadricula(productos) {
             const contenedorProductos = document.getElementById("product-list");

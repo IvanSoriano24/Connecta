@@ -96,7 +96,7 @@
                                     <div class="card-body p-5">
                                         <h3 class="text-center mb-4">🛒 Carrito de Compras</h3>
 
-                                        <div class="div">
+                                        <div class="div" hidden>
                                             <span class="icon">
                                                 <i class='bx bx-file'></i>
                                             </span>

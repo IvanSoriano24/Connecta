@@ -16,6 +16,21 @@ function obtenerCredito() {
           
             document.getElementById("credito").value = creditoFormateado;
             document.getElementById("saldo").value = saldoFormateado;
+            if(creditoFormateado > saldoFormateado){
+              Swal.fire({
+                title: "Credito",
+                text: `Tu credito ${creditoFormateado} es mayor a tu saldo ${saldoFormateado}`,
+                icon: "info",
+                confirmButtonText: "Aceptar"
+            });
+            }else{
+              Swal.fire({
+                title: "Credito",
+                text: `Tu saldo ${saldoFormateado} es mayor a tu credito ${creditoFormateado}`,
+                icon: "info",
+                confirmButtonText: "Aceptar"
+            });
+            }
           } else {
           Swal.fire({ title: "Error", text: res.message, icon: "error" });
         }
