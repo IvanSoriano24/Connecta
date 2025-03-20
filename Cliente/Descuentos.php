@@ -76,7 +76,7 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                     <div class="col-md-6">
                                         <label for="descuentoCliente" class="form-label">Descuento Cliente:</label>
-                                        <input type="text" id="descuentoCliente" class="form-control" style="text-align: right;" readonly>
+                                        <input type="text" id="descuentoCliente" class="form-control" style="text-align: right;">
                                     </div>
                                 </div>
                                 <!-- Tabla de Productos -->
