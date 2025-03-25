@@ -430,6 +430,8 @@ if (isset($_SESSION['usuario'])) {
                     return;
                 }
 
+                alert("Mensaje");
+                console.log(data.productos);
                 // 3️⃣ Mostrar los productos en la cuadrícula
                 mostrarProductosCuadricula(data.productos);
             } catch (error) {

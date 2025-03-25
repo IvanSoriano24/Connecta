@@ -115,7 +115,8 @@ function datosPartida($cve_doc)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosProcuto($CVE_ART){
+function datosProcuto($CVE_ART)
+{
     $serverName = "34.29.174.237";
     $connectionInfo = [
         "Database" => 'mdc_sae01',
@@ -149,13 +150,14 @@ function datosProcuto($CVE_ART){
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosEmpresa(){
+function datosEmpresa()
+{
     global $firebaseProjectId, $firebaseApiKey;
     $noEmpresa = '02';
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-     // Configura el contexto de la solicitud para manejar errores y tiempo de espera
-     $context = stream_context_create([
+    // Configura el contexto de la solicitud para manejar errores y tiempo de espera
+    $context = stream_context_create([
         'http' => [
             'timeout' => 10 // Tiempo máximo de espera en segundos
         ]
@@ -199,7 +201,9 @@ function datosEmpresa(){
 
     return false; // No se encontró la empresa
 }
-$cve_doc = '          0000018630';
+//$cve_doc = '          0000018784';
+//$cve_doc = '          0000018720';
+$cve_doc = '          0000018733';
 
 $pedidoData = datosPedido($cve_doc);
 $productosData = datosPartida($cve_doc);
@@ -208,10 +212,10 @@ $empresaData = datosEmpresa();
 // Se especifica la version de CFDi 4.0
 $datos['version_cfdi'] = '4.0';
 // Ruta del XML Timbrado
-$datos['cfdi'] = '../../timbrados/cfdi_ejemplo_factura4.xml';
+$datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '.xml';
 
 // Ruta del XML de Debug
-$datos['xml_debug'] = '../../timbrados/xml_'. urlencode($clienteData['NOMBRE']) . '.xml';
+$datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '.xml';
 
 // Credenciales de Timbrado
 $datos['PAC']['usuario'] = 'DEMO700101XXX';
@@ -225,15 +229,22 @@ $datos['conf']['pass'] = '12345678a';
 
 // Datos de la Factura || $pedidoData['']
 $datos['factura']['condicionesDePago'] = $pedidoData['CONDICION'];
-$datos['factura']['descuento'] = $pedidoData['DES_TOT'];
-$datos['factura']['fecha_expedicion'] = $pedidoData['FECHA_DOC']->format('Y-m-d H:i:s');
+if(isset($pedidoData['DES_TOT'])){
+    $datos['factura']['descuento'] = $pedidoData['DES_TOT'] ?? 0;
+}
+//$datos['factura']['fecha_expedicion'] = $pedidoData['FECHA_DOC']->format('Y-m-d H:i:s');
+$datos['factura']['fecha_expedicion'] = "AUTO";
 $datos['factura']['folio'] = $pedidoData['FOLIO'];
-$datos['factura']['forma_pago'] = $pedidoData['FORMADEPAGOSAT'];
 $datos['factura']['LugarExpedicion'] = $empresaData['codigoPostal'];
 $datos['factura']['metodo_pago'] = $pedidoData['METODODEPAGO'];
+if ($pedidoData['METODODEPAGO'] === 'PPD') {
+    $datos['factura']['forma_pago'] = '99';
+} else {
+    $datos['factura']['forma_pago'] = $pedidoData['FORMADEPAGOSAT'];
+}
 $datos['factura']['moneda'] = 'MXN';
 $datos['factura']['serie'] = $pedidoData['SERIE'];
-$datos['factura']['subtotal'] = $pedidoData['CANT_TOT'];
+$datos['factura']['subtotal'] = sprintf('%.2f', round($pedidoData['CAN_TOT'], 2));
 $datos['factura']['tipocambio'] = $pedidoData['TIPCAMB'];
 $datos['factura']['tipocomprobante'] = 'I';
 $datos['factura']['total'] = $pedidoData['IMPORTE'];
@@ -241,7 +252,7 @@ $datos['factura']['Exportacion'] = '01';
 
 // Datos del Emisor
 $datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
-$datos['emisor']['nombre'] = 'SUN ARROW';  // EMPRESA DE PRUEBA
+$datos['emisor']['nombre'] = 'ESCUELA KEMPER URGATE';  // EMPRESA DE PRUEBA
 //$datos['emisor']['RegimenFiscal'] = '626';
 $regimenStr = $empresaData['regimenFiscal'];
 if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
@@ -269,47 +280,67 @@ $datos['receptor']['UsoCFDI'] = $clienteData['USO_CFDI'];
 $datos['receptor']['DomicilioFiscalReceptor'] = $clienteData['CODIGO'];
 $datos['receptor']['RegimenFiscalReceptor'] = $clienteData['REG_FISC'];
 // $producto[''] $dataProduc['']
+$IMPU = 0;
+$DES = 0;
+$num = 1;
 foreach ($productosData as $producto) {
     $dataProduc = datosProcuto($producto['CVE_ART']);
     $concepto = [];
+     // Calcular la base imponible restando el descuento, si lo hay
+     $baseImpuesto = $producto['TOT_PARTIDA'];
+     if (isset($producto['DESC1'])) {
+         $precioDes = $producto['TOT_PARTIDA'] * ($producto['DESC1'] / 100);
+         $baseImpuesto = $producto['TOT_PARTIDA'] - $precioDes;
+     }else{
+        $baseImpuesto = $producto['TOT_PARTIDA'];
+     }
     $concepto['cantidad'] =  $producto['CANT'];
     $concepto['unidad'] =  $producto['UNI_VENTA'];
     $concepto['ID'] = $producto['CVE_ART'];
     $concepto['descripcion'] =  $dataProduc['DESCR'];
     $concepto['valorunitario'] = $producto['PREC'];
-    $concepto['importe'] = $producto['TOT_PARTIDA'];
+    $concepto['importe'] = sprintf('%.2f', round($producto['TOT_PARTIDA'], 2));
+    if(isset($pedidoData['DES_TOT'])){
+        $concepto['Descuento'] = round($precioDes, 2);
+        //var_dump(sprintf('%.2f', round($precioDes, 2)));
+
+    }
     $concepto['ClaveProdServ'] = $dataProduc['CVE_PRODSERV'];
     $concepto['ClaveUnidad'] = $dataProduc['CVE_UNIDAD'];
     $concepto['ObjetoImp'] = '02';
 
-    $concepto['Impuestos']['Traslados'][0]['Base'] = $producto['TOT_PARTIDA'];
+    $concepto['Impuestos']['Traslados'][0]['Base'] = sprintf('%.2f', round($baseImpuesto, 2));
     $concepto['Impuestos']['Traslados'][0]['Impuesto'] = '002';
     $concepto['Impuestos']['Traslados'][0]['TipoFactor'] = 'Tasa';
-    $concepto['Impuestos']['Traslados'][0]['TasaOCuota'] = $producto['IMPU4'];
-    $concepto['Impuestos']['Traslados'][0]['Importe'] = $producto['TOTIMP4'];
+    $concepto['Impuestos']['Traslados'][0]['TasaOCuota'] = sprintf('%.6f', $producto['IMPU4'] / 100);
+    $concepto['Impuestos']['Traslados'][0]['Importe'] = sprintf('%.2f', round($baseImpuesto * ($producto['IMPU4'] / 100), 2));
+    
+
+    $IMPU = $IMPU + ($baseImpuesto * ($producto['IMPU4'] / 100));
+    $DES = $DES + round($precioDes, 2);
 
     $datos['conceptos'][] = $concepto;
 }
 
 // Se agregan los Impuestos
-$datos['impuestos']['translados'][0]['Base'] = $pedidoData['CAN_TOT'];
+$datos['impuestos']['translados'][0]['Base'] = sprintf('%.2f', round($pedidoData['CAN_TOT'] - $DES, 2));
 $datos['impuestos']['translados'][0]['impuesto'] = '002';
 $datos['impuestos']['translados'][0]['tasa'] = '0.160000';
-$datos['impuestos']['translados'][0]['importe'] = $pedidoData['IMPORTE'];
+$datos['impuestos']['translados'][0]['importe'] = round($IMPU, 2);
 $datos['impuestos']['translados'][0]['TipoFactor'] = 'Tasa';
 
-$datos['impuestos']['TotalImpuestosTrasladados'] = $pedidoData['IMPORTE'];
+//$datos['impuestos']['TotalImpuestosTrasladados'] = $pedidoData['IMPORTE'];
+$datos['impuestos']['TotalImpuestosTrasladados'] = round($IMPU, 2);
 
 //echo "<pre>";print_r($datos);echo "</pre>";
 $res = mf_genera_cfdi4($datos);
 //$res = mf_default($datos);
 //var_dump($res);
 ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
-
 echo "<h1>Respuesta Generar XML y Timbrado</h1>";
 foreach ($res as $variable => $valor) {
     echo "<hr>";
     $valor = htmlentities($valor);
     $valor = str_replace('&lt;br/&gt;', '<br/>', $valor);
-    //echo "<b>[$variable]=</b>$valor<hr>";
+    echo "<b>[$variable]=</b>$valor<hr>";
 }

@@ -66,7 +66,6 @@ function mf_nodo_retencion($datos,$produccion='NO')
     {
         $res['codigo_mf_numero']=$res_saldo['codigo_mf_numero'];
         $res['codigo_mf_texto']=$res_saldo['codigo_mf_texto'];
-        var_dump($res);
         return $res;
     }
 

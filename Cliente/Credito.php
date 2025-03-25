@@ -113,6 +113,10 @@ if (isset($_SESSION['usuario'])) {
                                 </div>
                             </div>
                         </div>
+                        <h2 class="text-center">Productos Sugeridos</h2>
+                        <div id="product-list">
+                            <!-- El carrusel se insertará aquí dinámicamente -->
+                        </div>
                     </div>
 
                 </section><!-- /Contact Section -->

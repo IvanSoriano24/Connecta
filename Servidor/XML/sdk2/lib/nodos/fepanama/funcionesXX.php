@@ -171,7 +171,6 @@ function firmar_xml_panama($xml_string, $cer_pem, $key_pem, $password,$codigoQR)
         //$decoded = JWT::decode($jwt, $key, array('HS256'));
         //print_r($decoded);
         $firma_qr=$urlqr."chFE=".$chFE."&iAmb=".$iAmb."&digestValue=".$DigestValue."&jwt=".$jwt; 
-        var_dump($firma_qr);
 		//$firma_qr="<![CDATA[".$firma_qr."]]>";
 		//$firma_qr="<![CDATA[$firma_qr]]>";
 		//$firma_qr=trim($firma_qr);

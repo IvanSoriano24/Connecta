@@ -142,8 +142,17 @@ function buscarSujerencias($conexionData, $claveUsuario)
         exit;
     }
 
+    // 📌 Obtener todas las imágenes de Firebase en un solo lote
+    /*$firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app";
+    $imagenesPorArticulo = listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket);*/
+
     $productos = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        /*$cveArt = $row['CVE_ART'];
+
+        // 📌 Asignar las imágenes correspondientes al producto
+        $row['IMAGEN_ML'] = $imagenesPorArticulo[$cveArt] ?? []; // Si no hay imágenes, asignar un array vacío*/
+
         $productos[] = $row;
     }
 
@@ -242,16 +251,16 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $claveUsuario = $_SESSION['usuario']['claveUsuario'];
-        $validarSaldo = validarSaldo($conexionData, $claveUsuario, $claveSae);
-        if ($validarSaldo === 0) {
+        /*$validarSaldo = validarSaldo($conexionData, $claveUsuario, $claveSae);
+        if ($validarSaldo === 0) {*/
             buscarSujerencias($conexionData, $claveUsuario);
-        } else {
+        /*} else {
             echo json_encode([
                 'success' => false,
                 'saldo' => true,
                 'message' => 'Tienes Saldo Vencido.',
             ]);
-        }
+        }*/
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

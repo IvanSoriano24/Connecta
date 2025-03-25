@@ -91,7 +91,6 @@ function mf_licencia($datos=null)
 
 	// Fecha en que caduca la licencia
 	$f_vence_licencia = '2000-01-01';
-    
 //    $licencia_txt='';
     $ruta=$__mf_constantes__[__MF_INTER_DIR__].'licencia_sdk.lic';
 

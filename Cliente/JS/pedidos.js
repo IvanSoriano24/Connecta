@@ -77,9 +77,9 @@ $("#modalDetallesPedido").modal("show");
           // Columna de Descripción
           tbodyHTML += "<td>" + (item.DESCR || "") + "</td>";
           // Columna de Cantidad
-          tbodyHTML += "<td>" + item.CANT + "</td>";
+          tbodyHTML += "<td>" + parseFloat(item.CANT).toFixed(2) + "</td>";
           // Columna de Subtotal
-          tbodyHTML += "<td>" + item.TOT_PARTIDA + "</td>";
+          tbodyHTML += "<td>" + parseFloat(item.TOT_PARTIDA).toFixed(2)  + "</td>";
           tbodyHTML += "</tr>";
         });
 
@@ -88,7 +88,7 @@ $("#modalDetallesPedido").modal("show");
 
         // Asignar el total en el pie de la tabla usando el IMPORTE de cualquier registro (se toma el primero)
         if (pedido.length > 0) {
-          let total = pedido[0].IMPORTE;
+          let total = parseFloat(pedido[0].CAN_TOT).toFixed(2) ;
           $("#modalDetallesPedido table tfoot").html(
             "<tr><td colspan='3' class='text-end'><strong>Total:</strong></td><td>" +
               total +

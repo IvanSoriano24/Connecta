@@ -81,7 +81,7 @@ function mf_default(&$datos)
     {
         if($datos['factura']['descuento']<=0)
         {
-            unset($datos['factura']['descuento']);
+            //unset($datos['factura']['descuento']);
         }
         
     }
