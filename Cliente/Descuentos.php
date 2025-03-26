@@ -25,6 +25,7 @@ if (isset($_SESSION['usuario'])) {
 
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
+    <link rel="stylesheet" href="CSS/tablas.css">
     <link href="css/style1.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
     <link rel="stylesheet" href="CSS/selec.css">
@@ -63,7 +64,7 @@ if (isset($_SESSION['usuario'])) {
                     <main class="container my-5">
                         <div class="card shadow">
                             <div class="card-header bg-primary text-white">
-                                <h3 class="mb-0">Descuentos</h3>
+                                <h3 class="mb-0" style="color:#ffffff">Descuentos</h3>
                             </div>
                             <div class="card-body">
                                 <!-- Selección de Cliente y Descuento Global -->
@@ -76,11 +77,12 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                     <div class="col-md-6">
                                         <label for="descuentoCliente" class="form-label">Descuento Cliente:</label>
-                                        <input type="text" id="descuentoCliente" class="form-control" style="text-align: right;">
+                                        <input type="text" id="descuentoCliente" class="form-control"
+                                            style="text-align: right;">
                                     </div>
                                 </div>
                                 <!-- Tabla de Productos -->
-                                <div class="table-responsive table-scroll"
+                                <!-- <div class="table-responsive table-scroll"
                                                             data-mdb-perfect-scrollbar="true"
                                                             style="position: relative; height: 500px">
                                     <table class="table table-striped">
@@ -92,13 +94,40 @@ if (isset($_SESSION['usuario'])) {
                                             </tr>
                                         </thead>
                                         <tbody id="datosDescuentos">
-                                            <!-- Las filas se cargarán dinámicamente -->
+                                            Las filas se cargarán dinámicamente
                                         </tbody>
                                     </table>
+                                </div> -->
+                        
+                                
+                                <div class="container mt-7">
+                                    <div class="container section-title" data-aos="fade-up">
+                                        <!-- Table -->
+                                        <div class="col">
+                                            <div class="card shadow">
+                                                <div class="table-responsive">
+                                                    <table class="table align-items-center table-flush">
+                                                        <thead class="thead-light">
+                                                            <tr>
+                                                                <th scope="col">Clave</th>
+                                                                <th scope="col">Descripcion</th>
+                                                                <th scope="col">Descuento</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="datosDescuentos">
+                                                            <tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <!-- Botón para guardar -->
                                 <div class="d-flex justify-content-end mt-3">
-                                    <button type="button" class="btn btn-success" id="guardarDescuentos">Guardar Descuentos</button>
+                                    <button type="button" class="btn btn-success" id="guardarDescuentos">Guardar
+                                        Descuentos</button>
                                 </div>
                             </div>
                         </div>

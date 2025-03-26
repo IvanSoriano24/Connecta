@@ -25,6 +25,7 @@ if (isset($_SESSION['usuario'])) {
 
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
+    <link rel="stylesheet" href="CSS/tablas.css">
     <link href="css/style1.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
     <link rel="stylesheet" href="CSS/selec.css">
@@ -50,39 +51,39 @@ if (isset($_SESSION['usuario'])) {
     <link href="assets/css/main.css" rel="stylesheet">
 </head>
 
-<style>
-    .intro {
-        height: 100%;
-    }
+<!-- <style>
+.intro {
+    height: 100%;
+}
 
-    table td,
-    table th {
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-    }
+table td,
+table th {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
 
-    thead th {
-        color: #fff;
-    }
+thead th {
+    color: #fff;
+}
 
-    .card {
-        border-radius: .5rem;
-    }
+.card {
+    border-radius: .5rem;
+}
 
-    .table-scroll {
-        border-radius: .5rem;
-    }
+.table-scroll {
+    border-radius: .5rem;
+}
 
-    .table-scroll table thead th {
-        font-size: 1.25rem;
-    }
+.table-scroll table thead th {
+    font-size: 1.25rem;
+}
 
-    thead {
-        top: 0;
-        position: sticky;
-    }
-</style>
+thead {
+    top: 0;
+    position: sticky;
+}
+</style> -->
 
 <body>
     <div class="hero_area">
@@ -92,99 +93,121 @@ if (isset($_SESSION['usuario'])) {
         <main class="text-center">
             <section id="hero" class="hero section">
                 <!-- Contact Section -->
-                <section id="" class="contact ">
+                <!-- <section id="" class="contact"> -->
 
-                    <!-- Section Title -->
-                    <div class="container section-title" data-aos="fade-up">
+                <!-- Section Title -->
+                <!-- <div class="container section-title" data-aos="fade-up">
                         <h2>Pedidos</h2>
-                        <p></p>
-                        <section class="intro">
-                            <div class="bg-image h-100" style="background-color: #f5f7fa;">
-                                <div class="mask d-flex align-items-center h-100">
-                                    <div class="container">
-                                        <div class="row justify-content-center">
-                                            <div class="col-12">
-                                                <div class="card">
-                                                    <div class="card-body p-0">
-                                                        <div class="table-responsive table-scroll"
-                                                            data-mdb-perfect-scrollbar="true"
-                                                            style="position: relative; height: 500px">
-                                                            <table class="table table-striped mb-0">
-                                                                <thead style="background-color:rgb(49, 118, 222);">
-                                                                    <tr>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Clave</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Cantidad</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Total</th>
-                                                                        <th scope="col"
-                                                                            style="background-color: #0d77bd; color: white; ">
-                                                                            Visualizar</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody id="datosPedidos">
-                                                                    <tr>
+                        <p></p> -->
+                <section class="intro">
+                    <div class="table-responsive table-scroll" data-mdb-perfect-scrollbar="true"
+                        style="position: relative; height: 500px">
+                        
+                        <div class="container mt-7">
+                            <div class="container section-title" data-aos="fade-up">
+                                <h2>Pedidos</h2>
+                                <p></p>
+                                <!-- Table -->
+                                <!-- <h2 class="mb-5">Pedidos</h2><div class="row"> -->
+                                <div class="col">
+                                    <div class="card shadow">
+                                        <!-- <div class="card-header border-0">
+                                                                                <h3 class="mb-0">Card tables</h3>
+                                                                            </div> -->
+                                        <div class="table-responsive">
+                                            <table class="table align-items-center table-flush">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th scope="col">Clave</th>
+                                                        <th scope="col">Cantidad</th>
+                                                        <th scope="col">Total</th>
+                                                        <th scope="col">Visualizar</th>
 
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="datosPedidos">
+                                                    <tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL DETALLES PEDIDO -->
+                    <div class="modal fade" id="modalDetallesPedido" tabindex="-1" aria-labelledby="modalDetallesLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title  w-100 text-center" id="modalDetallesLabel" style="color:#ffffff">Detalles
+                                        del Pedido</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="color:#ffffff"
+                                        aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <!-- TABLA  -->
+                                    <div class="container mt-7">
+                                        <div class="container section-title" data-aos="fade-up">
+                                          
+                                            <!-- Table -->
+                                            <!-- <h2 class="mb-5">Pedidos</h2><div class="row"> -->
+                                            <div class="col">
+                                                <div class="card shadow">
+                                                    <!-- <div class="card-header border-0">
+                                                                                <h3 class="mb-0">Card tables</h3>
+                                                                            </div> -->
+                                                    <div class="table-responsive">
+                                                        <table class="table align-items-center table-flush">
+                                                            <thead class="thead-light">
+                                                                <tr>
+                                                                    <th scope="col">Producto</th>
+                                                                    <th scope="col">Descripción</th>
+                                                                    <th scope="col">Cantidad</th>
+                                                                    <th scope="col">Subtotal</th>
+
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="">
+                                                                <!-- Las partidas se insertarán aquí dinámicamente -->
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr>
+                                                                    <td colspan="3" class="text-end">
+                                                                        <strong>Total:</strong>
+                                                                    </td>
+                                                                    <td>
+                                                                        <!-- Aquí se insertará el total -->
+                                                                    </td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <!-- MODAL DETALLES PEDIDO -->
-                            <div class="modal fade" id="modalDetallesPedido" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered modal-lg">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-primary text-white">
-                                            <h5 class="modal-title  w-100 text-center" id="modalDetallesLabel">Detalles del Pedido</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered table-hover">
-                                                    <thead>
-                                                        <tr>
-                                                            <th scope="col" style="background-color: #0d77bd; color: white;">Producto</th>
-                                                            <th scope="col" style="background-color: #0d77bd; color: white;">Descripción</th>
-                                                            <th scope="col" style="background-color: #0d77bd; color: white;">Cantidad</th>
-                                                            <th scope="col" style="background-color: #0d77bd; color: white;">Subtotal</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <!-- Las partidas se insertarán aquí dinámicamente -->
-                                                    </tbody>
-                                                    <tfoot>
-                                                        <tr>
-                                                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                                                            <td><!-- Aquí se insertará el total --></td>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Salir</button>
-                                        </div>
-                                    </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Salir</button>
                                 </div>
                             </div>
-                        </section>
-                    </div><!-- End Section Title -->
-                </section><!-- /Contact Section -->
-            </section><!-- /Fin Section -->
+                        </div>
+                    </div>
+                </section>
+    </div><!-- End Section Title -->
+    </section><!-- /Contact Section -->
+
+    <!-- </section> -->
+    <!-- /Fin Section -->
 
 
-        </main>
-        <!-- FOOTER -->
-        <?php include 'FooterEcommerce.php'; ?>
+    </main>
+    <!-- FOOTER -->
+    <?php include 'FooterEcommerce.php'; ?>
 
     </div>
     <script src="JS/pedidos.js"></script>
