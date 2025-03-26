@@ -19,13 +19,11 @@ function cargarPedidos() {
             <td>$${
               pedido.ImporteTotal ? pedido.ImporteTotal.toFixed(2) : "0.00"
             }</td>
-            <td>
-              <button class="btnVizualizarPedido" name="btnVizualizarPedido"  data-id="${
-                pedido.Clave
-              }">
-                <i class="fa fa-eye" aria-hidden="true"></i>
-              </button>
-            </td>
+              <td>
+                <a  class="btnVizualizarPedido" name="btnVizualizarPedido" data-id="${pedido.Clave}">
+                <i class="fas fa-eye" style="font-size: 2.3em;"></i> 
+                </a>
+              </td>
           `;
           pedidosTable.appendChild(row);
         });
