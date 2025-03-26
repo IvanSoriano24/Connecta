@@ -396,27 +396,40 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
     $FECHA_DOC = $formularioData['diaAlta'];
     $FECHA_ENT = $formularioData['entrega'];
 
-    $SUBTOTAL = 0;
+    $CAN_TOT = 0;
     $IMPORTE = 0;
     $DES_TOT = 0; // Variable para el importe con descuento
     $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
-        $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
+        $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
         $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
     }
 
     // Aplicar descuento
-    if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
-        $DES_TOT = $IMPORTE - ($IMPORTE * ($descuentoCliente / 100)); // Aplicar porcentaje de descuento
-    } else {
-        $DES_TOT = $IMPORTE; // Si no hay descuento, el total queda igual al importe
+    $IMPORTT = $$IMPORTE;
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
+    foreach ($partidasData as $partida) {
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+
+        // **Aplicar los descuentos en cascada**
+
+        $DES = $IMPORTT * ($desc1 / 100);
+        $DES_TOT = $DES_TOT + $DES;
+
+        $IMP_T4 = ($IMPORTT - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 = $IMP_TOT4 + $IMP_T4;
     }
 
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
-    $IMP_TOT4 = $SUBTOTAL * 0.16;
     $CONDICION = $formularioData['condicion'];
-    $IMPORTE = $IMPORTE + $IMP_TOT4;
     // Crear la consulta SQL para actualizar el pedido
     $sql = "UPDATE $nombreTabla SET 
         FECHA_DOC = ?, 
@@ -541,13 +554,10 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         } else {
             $TIPO_PORD = 'P';
         }
-        $TOTIMP1 = $IMPU1 * $CANT * $PREC; // Total impuesto 1
-        $TOTIMP2 = $IMPU2 * $CANT * $PREC; // Total impuesto 2
-        $TOTIMP4 = $IMPU4 * $CANT * $PREC; // Total impuesto 4
-        // Agregar los cálculos para los demás TOTIMP...
-
-        // Calcular el total de la partida (precio * cantidad)
         $TOT_PARTIDA = $PREC * $CANT;
+        $TOTIMP1 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU1 / 100);
+        $TOTIMP2 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU2 / 100);
+        $TOTIMP4 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU4 / 100);
 
         // Consultar la descripción del producto (si es necesario)
         //var_dump($partidasExistentes[$CVE_ART]);
@@ -855,7 +865,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
         $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
         $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
     }
-    $IMPORT = $IMPORTE;
+    $IMPORTT = $IMPORTE;
     /*foreach ($partidasData as $partida) {
         // Aplicar descuento
         if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
@@ -866,33 +876,31 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     }*/
     //$IMPORTE = $IMPORTE; // Mantener el importe original
     $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
     $totalDescuentos = 0; // Inicializar acumulador de descuentos
-
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
     foreach ($partidasData as $partida) {
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
         $desc1 = $partida['descuento'] ?? 0; // Primer descuento
-        $descTotal = $descuentoCliente ?? 0; // Descuento global del cliente
 
         // **Aplicar los descuentos en cascada**
-        $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($descTotal / 100));
 
-        // **Calcular subtotal de la partida**
-        $subtotalPartida = $precioUnitario * $cantidad;
+        $DES = $IMPORTT * ($desc1 / 100);
+        $DES_TOT = $DES_TOT + $DES;
 
-        // **Sumar el descuento aplicado a la partida**
-        $totalDescuentos += ($precioUnitario - $precioConDescuento) * $cantidad;
+        $IMP_T4 = ($IMPORTT - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 = $IMP_TOT4 + $IMP_T4;
     }
-
-    // **Aplicar los descuentos acumulados al importe**
-    $DES_TOT = $IMPORTE - $totalDescuentos;
 
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
     $IMP_TOT1 = 0;
     $IMP_TOT2 = 0;
     $IMP_TOT3 = 0;
-    $IMP_TOT4 = $IMPORTE * .16;
+
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     $IMP_TOT5 = 0;
     $IMP_TOT6 = 0;
@@ -1053,13 +1061,13 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
             } else {
                 $TIPO_PORD = 'P';
             }
-            $TOTIMP1 = $IMPU1 * $CANT * $PREC; // Total impuesto 1
-            $TOTIMP2 = $IMPU2 * $CANT * $PREC; // Total impuesto 2
-            $TOTIMP4 = $IMPU4 * $CANT * $PREC; // Total impuesto 4
-            // Agregar los cálculos para los demás TOTIMP...
-
             // Calcular el total de la partida (precio * cantidad)
             $TOT_PARTIDA = $PREC * $CANT;
+            $TOTIMP1 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU1 / 100);
+            $TOTIMP2 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU2 / 100);
+            $TOTIMP4 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU4 / 100);
+            // Agregar los cálculos para los demás TOTIMP...
+
 
             // Consultar la descripción del producto (si es necesario)
             //$DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
@@ -2358,7 +2366,8 @@ function eliminarPedido($conexionData, $pedidoID)
 
     sqlsrv_close($conn);
 }
-function liberarExistencias($conexionData, $folio, $claveSae){
+function liberarExistencias($conexionData, $folio, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2416,7 +2425,6 @@ function liberarExistencias($conexionData, $folio, $claveSae){
             echo json_encode(['success' => false, 'message' => 'No se encontró el producto para actualizar']);
         }
     }
-
 }
 
 //--------------Funcion Mostrar Articulos----------------------------------------------------------------
@@ -2978,33 +2986,30 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     }
 
     $DES_TOT = 0; // Inicializar el total con descuento
-    $totalDescuentos = 0; // Inicializar acumulador de descuentos
-
+    $IMPORTT = $IMPORTE;
+    $DES = 0;
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
     foreach ($partidasData as $partida) {
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
         $desc1 = $partida['descuento'] ?? 0; // Primer descuento
-        $desc2 = $partida['descuento2'] ?? 0;
-        $descTotal = $descuentoCliente ?? 0; // Descuento global del cliente
 
         // **Aplicar los descuentos en cascada**
-        $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($descTotal / 100) * (1 - ($desc2 / 100)));
 
-        // **Calcular subtotal de la partida**
-        $subtotalPartida = $precioUnitario * $cantidad;
+        $DES = $IMPORTT * ($desc1 / 100);
+        $DES_TOT = $DES_TOT + $DES;
 
-        // **Sumar el descuento aplicado a la partida**
-        $totalDescuentos += ($precioUnitario - $precioConDescuento) * $cantidad;
+        $IMP_T4 = ($IMPORTT - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 = $IMP_TOT4 + $IMP_T4;
     }
 
-    // **Aplicar los descuentos acumulados al importe**
-    $DES_TOT = $IMPORTE - $totalDescuentos;
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
     $IMP_TOT1 = 0;
     $IMP_TOT2 = 0;
     $IMP_TOT3 = 0;
-    $IMP_TOT4 = $CAN_TOT * .16;
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     $IMP_TOT5 = 0;
     $IMP_TOT6 = 0;
@@ -3160,10 +3165,10 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
             $NUM_ALMA = $formularioData['almacen'];
             $UNI_VENTA = $partida['unidad'];
             $TIPO_PORD = ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') ? 'S' : 'P';
-            $TOTIMP1 = $IMPU1 * $CANT * $PREC;
-            $TOTIMP2 = $IMPU2 * $CANT * $PREC;
-            $TOTIMP4 = $IMPU4 * $CANT * $PREC;
             $TOT_PARTIDA = $PREC * $CANT;
+            $TOTIMP1 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU1 / 100);
+            $TOTIMP2 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU2 / 100);
+            $TOTIMP4 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU4 / 100);
 
             // **Obtener la descripción del producto**
 
@@ -4501,7 +4506,8 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function restarSaldo($conexionData, $claveSae, $datosCxC, $claveCliente){
+function restarSaldo($conexionData, $claveSae, $datosCxC, $claveCliente)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -4527,7 +4533,7 @@ function restarSaldo($conexionData, $claveSae, $datosCxC, $claveCliente){
     $params = [$datosCxC['importe'], $claveCliente];
 
     $stmt = sqlsrv_query($conn, $sql, $params);
-    
+
     if ($stmt === false) {
         die(json_encode([
             'success' => false,
@@ -4547,7 +4553,6 @@ function restarSaldo($conexionData, $claveSae, $datosCxC, $claveCliente){
         'success' => true,
         'message' => "Saldo actualizado correctamente para el cliente $claveCliente"
     ]);
-
 }
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -4811,7 +4816,7 @@ switch ($funcion) {
                 } else {
 
                     $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
-      
+
                     if ($anticipo['success']) {
                         //Funcion para eliminar anticipo
                         /*var_dump("Si tiene");
@@ -4825,7 +4830,7 @@ switch ($funcion) {
                         remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
 
                         eliminarCxc($conexionData, $anticipo, $claveSae, $formularioData);
-                        $datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData); 
+                        $datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
                         //var_dump($datosCxC);
                         pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                         restarSaldo($conexionData, $claveSae, $datosCxC, $clave);
@@ -4846,7 +4851,7 @@ switch ($funcion) {
 
                         $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                         validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
-                        
+
                         guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                         //pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                         // Respuesta de éxito

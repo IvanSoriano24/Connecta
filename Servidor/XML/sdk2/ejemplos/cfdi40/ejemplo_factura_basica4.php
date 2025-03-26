@@ -203,7 +203,8 @@ function datosEmpresa()
 }
 //$cve_doc = '          0000018784';
 //$cve_doc = '          0000018720';
-$cve_doc = '          0000018733';
+$cve_doc = '          0000018725';
+//No hacer pruebas con 0000018758 en adelante
 
 $pedidoData = datosPedido($cve_doc);
 $productosData = datosPartida($cve_doc);
@@ -248,6 +249,7 @@ $datos['factura']['subtotal'] = sprintf('%.2f', round($pedidoData['CAN_TOT'], 2)
 $datos['factura']['tipocambio'] = $pedidoData['TIPCAMB'];
 $datos['factura']['tipocomprobante'] = 'I';
 $datos['factura']['total'] = $pedidoData['IMPORTE'];
+//$datos['factura']['total'] = sprintf('%.2f', $pedidoData['IMPORTE']);
 $datos['factura']['Exportacion'] = '01';
 
 // Datos del Emisor
@@ -282,7 +284,7 @@ $datos['receptor']['RegimenFiscalReceptor'] = $clienteData['REG_FISC'];
 // $producto[''] $dataProduc['']
 $IMPU = 0;
 $DES = 0;
-$num = 1;
+$Sum = 0;
 foreach ($productosData as $producto) {
     $dataProduc = datosProcuto($producto['CVE_ART']);
     $concepto = [];
@@ -299,43 +301,43 @@ foreach ($productosData as $producto) {
     $concepto['ID'] = $producto['CVE_ART'];
     $concepto['descripcion'] =  $dataProduc['DESCR'];
     $concepto['valorunitario'] = $producto['PREC'];
-    $concepto['importe'] = sprintf('%.2f', round($producto['TOT_PARTIDA'], 2));
+    $concepto['importe'] = sprintf('%.3f', $producto['TOT_PARTIDA']); //'%.2f'
     if(isset($pedidoData['DES_TOT'])){
-        $concepto['Descuento'] = round($precioDes, 2);
-        //var_dump(sprintf('%.2f', round($precioDes, 2)));
-
+        //$concepto['Descuento'] = round($precioDes, 2);  //Original
+        $concepto['Descuento'] = sprintf('%.3f', $precioDes);
     }
     $concepto['ClaveProdServ'] = $dataProduc['CVE_PRODSERV'];
     $concepto['ClaveUnidad'] = $dataProduc['CVE_UNIDAD'];
     $concepto['ObjetoImp'] = '02';
 
-    $concepto['Impuestos']['Traslados'][0]['Base'] = sprintf('%.2f', round($baseImpuesto, 2));
+    $concepto['Impuestos']['Traslados'][0]['Base'] = sprintf('%.3f', $baseImpuesto);
     $concepto['Impuestos']['Traslados'][0]['Impuesto'] = '002';
     $concepto['Impuestos']['Traslados'][0]['TipoFactor'] = 'Tasa';
     $concepto['Impuestos']['Traslados'][0]['TasaOCuota'] = sprintf('%.6f', $producto['IMPU4'] / 100);
-    $concepto['Impuestos']['Traslados'][0]['Importe'] = sprintf('%.2f', round($baseImpuesto * ($producto['IMPU4'] / 100), 2));
+    //$concepto['Impuestos']['Traslados'][0]['Importe'] = sprintf('%.2f', round($baseImpuesto * ($producto['IMPU4'] / 100), 2));        //Original
+    $concepto['Impuestos']['Traslados'][0]['Importe'] = sprintf('%.3f', ($baseImpuesto * ($producto['IMPU4'] / 100)));
     
-
-    $IMPU = $IMPU + ($baseImpuesto * ($producto['IMPU4'] / 100));
-    $DES = $DES + round($precioDes, 2);
-
+    $IMPU = $IMPU + ($baseImpuesto * ($producto['IMPU4'] / 100));    
+    $DES = $DES + $precioDes;
+    $Sum = $Sum + $precioDes;
     $datos['conceptos'][] = $concepto;
 }
-
 // Se agregan los Impuestos
-$datos['impuestos']['translados'][0]['Base'] = sprintf('%.2f', round($pedidoData['CAN_TOT'] - $DES, 2));
+$datos['impuestos']['translados'][0]['Base'] = sprintf('%.2f', $pedidoData['CAN_TOT'] - $DES);
 $datos['impuestos']['translados'][0]['impuesto'] = '002';
 $datos['impuestos']['translados'][0]['tasa'] = '0.160000';
-$datos['impuestos']['translados'][0]['importe'] = round($IMPU, 2);
+$datos['impuestos']['translados'][0]['importe'] = sprintf('%.2f',$IMPU); //Original sin sprintf
 $datos['impuestos']['translados'][0]['TipoFactor'] = 'Tasa';
 
-//$datos['impuestos']['TotalImpuestosTrasladados'] = $pedidoData['IMPORTE'];
-$datos['impuestos']['TotalImpuestosTrasladados'] = round($IMPU, 2);
+//$datos['impuestos']['TotalImpuestosTrasladados'] = round($IMPU, 2);   //Original
+$datos['impuestos']['TotalImpuestosTrasladados'] = sprintf('%.2f', $IMPU);
 
+//$datos['factura']['total'] = ($subDescuento + round($IMPU, 2));
 //echo "<pre>";print_r($datos);echo "</pre>";
 $res = mf_genera_cfdi4($datos);
 //$res = mf_default($datos);
 //var_dump($res);
+
 ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
 echo "<h1>Respuesta Generar XML y Timbrado</h1>";
 foreach ($res as $variable => $valor) {
@@ -344,3 +346,9 @@ foreach ($res as $variable => $valor) {
     $valor = str_replace('&lt;br/&gt;', '<br/>', $valor);
     echo "<b>[$variable]=</b>$valor<hr>";
 }
+
+/*
+$datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));
+$datos['conf']['key'] =base64_encode(file_get_contents($empresa['archivo_key']));
+base64_encode(file_get_contents($empresa['archivo_cer']));
+*/
