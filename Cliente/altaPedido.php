@@ -24,6 +24,8 @@ if (isset($_SESSION['usuario'])) {
         $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
         $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
     }
+
+    $csrf_token  = $_SESSION['csrf_token'];
 } else {
     header('Location:../index.php');
 }
@@ -398,6 +400,7 @@ if (isset($_SESSION['usuario'])) {
                             </div>
 
                             <div class="form-element">
+                                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                                 <label for="cliente">Cliente</label>
                                 <div class="input-container" style="position: relative;">
                                     <div style="display: flex; align-items: center; gap: 5px;">

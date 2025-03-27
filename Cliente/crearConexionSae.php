@@ -14,6 +14,7 @@ if (isset($_SESSION['usuario']) && isset($_SESSION['empresa']['razonSocial'])) {
     $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
     $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
   }
+  $csrf_token  = $_SESSION['csrf_token'];
 } else {
   header('Location:../crearConexionSae.php');
 }
@@ -69,6 +70,7 @@ session_destroy(); */
                 <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>"
                   readonly>
                 <input class="input-small" type="text" name="idDocumento" id="idDocumento" value="" hidden>
+                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
               </div>
 
               <div class="form-row">

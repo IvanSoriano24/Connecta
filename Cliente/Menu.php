@@ -429,8 +429,6 @@ if (isset($_SESSION['usuario'])) {
                     console.error("Error desde el servidor:", data.message);
                     return;
                 }
-
-                alert("Mensaje");
                 console.log(data.productos);
                 // 3️⃣ Mostrar los productos en la cuadrícula
                 mostrarProductosCuadricula(data.productos);

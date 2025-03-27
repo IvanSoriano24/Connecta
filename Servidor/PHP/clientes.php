@@ -305,7 +305,7 @@ function formatearClaveCliente($clave)
     // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
     return str_pad($clave, 10, ' ', STR_PAD_LEFT);
 }
-function obtenerDatosCliente($conexionData, $claveUsuario){
+function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -318,7 +318,7 @@ function obtenerDatosCliente($conexionData, $claveUsuario){
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT 
         CLAVE,  
         NOMBRE, 
@@ -334,7 +334,7 @@ function obtenerDatosCliente($conexionData, $claveUsuario){
         NOMBRECOMERCIAL,
         LISTA_PREC 
     FROM 
-        [SAE90Empre02].[dbo].[CLIE02]
+        $nombreTabla
     WHERE 
         CLAVE = ?;";  // ✅ Eliminé el 'AND' incorrecto
 
@@ -444,8 +444,7 @@ switch ($funcion) {
         $clave = formatearClaveCliente($clie);
         validarCreditos($conexionData, $clave);
         break;
-    case 4: // 
-
+    case 4: 
         $noEmpresa = "";
         $claveSae = "02";
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
@@ -458,7 +457,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $clave = $_SESSION['usuario']['claveUsuario'];
         $claveUsuario = formatearClaveCliente($clave);
-        obtenerDatosCliente($conexionData, $claveUsuario);
+        obtenerDatosCliente($conexionData, $claveUsuario, $claveSae);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

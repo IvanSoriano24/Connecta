@@ -49,6 +49,15 @@ if (isset($_SESSION['usuario'])) {
 
     <!-- Main CSS File -->
     <link href="assets/css/main.css" rel="stylesheet">
+    <style>
+        .table-scroll {
+            max-height: 80vh;
+            /* Altura máxima: 80% de la ventana */
+            overflow-y: auto;
+            padding-right: 15px;
+            /* Para evitar que el scroll se superponga al contenido */
+        }
+    </style>
 </head>
 
 <body>
@@ -77,7 +86,7 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                     <div class="col-md-6">
                                         <label for="descuentoCliente" class="form-label">Descuento Cliente:</label>
-                                        <input type="text" id="descuentoCliente" class="form-control"
+                                        <input type="number" id="descuentoCliente" class="form-control"
                                             style="text-align: right;">
                                     </div>
                                 </div>
@@ -98,23 +107,23 @@ if (isset($_SESSION['usuario'])) {
                                         </tbody>
                                     </table>
                                 </div> -->
-                        
-                                
+
+
                                 <div class="container mt-7">
                                     <div class="container section-title" data-aos="fade-up">
                                         <!-- Table -->
                                         <div class="col">
                                             <div class="card shadow">
-                                                <div class="table-responsive">
+                                                <div class="table-responsive table-scroll">
                                                     <table class="table align-items-center table-flush">
-                                                        <thead class="thead-light">
+                                                        <thead class="thead-light sticky-top">
                                                             <tr>
                                                                 <th scope="col">Clave</th>
                                                                 <th scope="col">Descripcion</th>
                                                                 <th scope="col">Descuento</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody id="datosDescuentos">
+                                                        <tbody id="datosDescuentos" >
                                                             <tr>
                                                         </tbody>
                                                     </table>

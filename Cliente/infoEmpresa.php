@@ -14,7 +14,7 @@ if (isset($_SESSION['usuario'])) {
     $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
 		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
   }
-
+  $csrf_token  = $_SESSION['csrf_token'];
 } else {
   header('Location:../index.php');
 }
@@ -106,6 +106,7 @@ if (isset($_SESSION['usuario'])) {
             </div>
             <form onsubmit="return validateForm()">
               <div class="form-row">
+              <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                 <input type="text" name="id" id="id" value="<?php echo $idEmpresa ?>" hidden>
                 <label for="noEmpresa">No. Empresa:</label>
                 <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="" readonly>

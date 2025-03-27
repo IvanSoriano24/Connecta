@@ -204,7 +204,8 @@ function datosEmpresa()
 //$cve_doc = '          0000018784';
 //$cve_doc = '          0000018720';
 //$cve_doc = '          0000018725';
-$cve_doc = '          0000018618';
+//$cve_doc = '          0000018624'; //Redondea el descuento y no es igual al descuento que se tiene
+$cve_doc = '          0000018628';
 //No hacer pruebas con 0000018758 en adelante
 
 $pedidoData = datosPedido($cve_doc);
@@ -232,7 +233,7 @@ $datos['conf']['pass'] = '12345678a';
 // Datos de la Factura || $pedidoData['']
 $datos['factura']['condicionesDePago'] = $pedidoData['CONDICION'];
 if(isset($pedidoData['DES_TOT'])){
-    $datos['factura']['descuento'] = $pedidoData['DES_TOT'] ?? 0;
+    $datos['factura']['descuento'] = sprintf('%.2f',$pedidoData['DES_TOT'] ?? 0);
 }
 //$datos['factura']['fecha_expedicion'] = $pedidoData['FECHA_DOC']->format('Y-m-d H:i:s');
 $datos['factura']['fecha_expedicion'] = "AUTO";
@@ -246,10 +247,11 @@ if ($pedidoData['METODODEPAGO'] === 'PPD') {
 }
 $datos['factura']['moneda'] = 'MXN';
 $datos['factura']['serie'] = $pedidoData['SERIE'];
-$datos['factura']['subtotal'] = sprintf('%.2f', round($pedidoData['CAN_TOT'], 2));
+//$datos['factura']['subtotal'] = sprintf('%.2f', round($pedidoData['CAN_TOT'], 2));    //Original
+$datos['factura']['subtotal'] = sprintf('%.2f',$pedidoData['CAN_TOT']);
 $datos['factura']['tipocambio'] = $pedidoData['TIPCAMB'];
 $datos['factura']['tipocomprobante'] = 'I';
-$datos['factura']['total'] = $pedidoData['IMPORTE'];
+$datos['factura']['total'] = sprintf('%.2f',$pedidoData['IMPORTE']);
 //$datos['factura']['total'] = sprintf('%.2f', $pedidoData['IMPORTE']);
 $datos['factura']['Exportacion'] = '01';
 
@@ -333,7 +335,6 @@ $datos['impuestos']['translados'][0]['TipoFactor'] = 'Tasa';
 //$datos['impuestos']['TotalImpuestosTrasladados'] = round($IMPU, 2);   //Original
 $datos['impuestos']['TotalImpuestosTrasladados'] = sprintf('%.2f', $IMPU);
 
-//$datos['factura']['total'] = ($subDescuento + round($IMPU, 2));
 //echo "<pre>";print_r($datos);echo "</pre>";
 $res = mf_genera_cfdi4($datos);
 //$res = mf_default($datos);

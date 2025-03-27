@@ -13,6 +13,7 @@ if (isset($_SESSION['usuario'])) {
         $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
         $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
     }
+    $csrf_token  = $_SESSION['csrf_token'];
 } else {
     header('Location:../index.php');
 }

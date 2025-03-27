@@ -24,6 +24,7 @@ if (isset($_SESSION['usuario'])) {
         $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
         $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
     }
+    $csrf_token  = $_SESSION['csrf_token'];
 } else {
     header('Location:../index.php');
 }

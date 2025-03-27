@@ -87,7 +87,7 @@ function obtenerDescuentoCliente($conexionData, $claveSae, $cliente)
         "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
-
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -95,7 +95,7 @@ function obtenerDescuentoCliente($conexionData, $claveSae, $cliente)
     $sql = "SELECT 
         DESCUENTO 
     FROM 
-        [SAE90Empre02].[dbo].[CLIE02]
+        $nombreTabla
     WHERE 
         CLAVE = ?;";
 

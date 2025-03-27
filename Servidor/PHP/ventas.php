@@ -418,13 +418,13 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
         $cantidad = $partida['cantidad'];
         $IMPU4 = $partida['iva'];
         $desc1 = $partida['descuento'] ?? 0; // Primer descuento
-
+        $totalPartida = $precioUnitario * $cantidad;
         // **Aplicar los descuentos en cascada**
 
-        $DES = $IMPORTT * ($desc1 / 100);
+        $DES = $totalPartida * ($desc1 / 100);
         $DES_TOT += $DES;
 
-        $IMP_T4 = ($IMPORTT - $DES) * ($IMPU4 / 100);
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
         $IMP_TOT4 += $IMP_T4;
     }
 
@@ -780,11 +780,6 @@ function formatearClaveVendedor($vendedor)
 }
 function obtenerDatosCliente($conexionData, $claveCliente, $claveSae)
 {
-    /*// Obtener solo la clave del cliente (primera parte antes del espacio)
-    $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos 
-    $clave = $claveArray[0]; // Tomar solo la primera parte
-    //    $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);*/
     $clave = formatearClaveCliente($claveCliente);
 
     // Establecer la conexión con SQL Server
@@ -809,7 +804,7 @@ function obtenerDatosCliente($conexionData, $claveCliente, $claveSae)
             METODODEPAGO, NUMCTAPAGO,
             FORMADEPAGOSAT, USO_CFDI, REG_FISC
         FROM $nombreTabla
-        WHERE CLAVE = '$clave'
+        WHERE CLAVE = $clave
     ";
 
     $stmt = sqlsrv_query($conn, $sql, [$clave]);
@@ -858,7 +853,6 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     // Sumar los totales de las partidas
     $SUBTOTAL = 0;
     $IMPORTE = 0;
-    $DES_TOT = 0; // Variable para el importe con descuento
     $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
 
     foreach ($partidasData as $partida) {
@@ -885,13 +879,13 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
         $cantidad = $partida['cantidad'];
         $IMPU4 = $partida['iva'];
         $desc1 = $partida['descuento'] ?? 0; // Primer descuento
-
+        $totalPartida = $precioUnitario * $cantidad;
         // **Aplicar los descuentos en cascada**
-
-        $DES = $IMPORTT * ($desc1 / 100);
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
         $DES_TOT += $DES;
 
-        $IMP_T4 = ($IMPORTT - $DES) * ($IMPU4 / 100);
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
         $IMP_TOT4 += $IMP_T4;
     }
 
@@ -929,9 +923,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $DES_TOT_PORC = $formularioData['descuentoCliente'];; ////
     $COM_TOT_PORC = 0; ////
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
-    $claveArray = explode(' ', $claveCliente, 2); // Limitar a dos elementos
-    $clave = $claveArray[0];
-    $CVE_CLPV = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    $CVE_CLPV = str_pad($claveCliente, 10, ' ', STR_PAD_LEFT);
     $FECHA_CANCELA = "";
     // Crear la consulta SQL para insertar los datos en la base de datos
     $sql = "INSERT INTO $nombreTabla
@@ -1364,7 +1356,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -2542,6 +2534,10 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
         $claveCliente = $_SESSION['usuario']['claveUsuario']; // Clave del cliente
         $claveCliente = formatearClaveCliente($claveCliente);
     }
+    $nombreTabla1 = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla4 = "[{$conexionData['nombreBase']}].[dbo].[PRECIO_X_PROD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // 📌 Consulta para obtener los productos más vendidos del cliente con su precio
     $sql = "
         SELECT DISTINCT TOP (6)
@@ -2555,10 +2551,10 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
             i.CVE_ESQIMPU,
             i.CVE_UNIDAD,
             pr.PRECIO -- 📌 Se une el precio del producto
-        FROM [SAE90Empre02].[dbo].[PAR_FACTF02] p
-        INNER JOIN [SAE90Empre02].[dbo].[FACTF02] f ON p.CVE_DOC = f.CVE_DOC
-        INNER JOIN [SAE90Empre02].[dbo].[INVE02] i ON p.CVE_ART = i.CVE_ART
-        LEFT JOIN [SAE90Empre02].[dbo].[PRECIO_X_PROD02] pr 
+        FROM $nombreTabla1 p
+        INNER JOIN $nombreTabla2 f ON p.CVE_DOC = f.CVE_DOC
+        INNER JOIN $nombreTabla3 i ON p.CVE_ART = i.CVE_ART
+        LEFT JOIN $nombreTabla4 pr 
             ON i.CVE_ART = pr.CVE_ART 
             AND pr.CVE_PRECIO = ?  -- 📌 Se filtra por LISTA_PREC
         WHERE f.CVE_CLPV = ?
@@ -2624,7 +2620,7 @@ function extraerProductosImagenes($conexionData, $claveSae)
     } else {
         $claveCliente = $_SESSION['usuario']['claveUsuario']; // Clave del cliente
     }
-
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // 📌 Consulta para obtener los productos más vendidos del cliente con su precio
     $sql = "
         SELECT 
@@ -2636,7 +2632,7 @@ function extraerProductosImagenes($conexionData, $claveSae)
         i.[APART],
         i.[CVE_ESQIMPU],
         i.[CVE_UNIDAD]
-    FROM [SAE90Empre02].[dbo].[INVE02] i
+    FROM $nombreTabla i
     WHERE i.[EXIST] > 0
     ";
 
@@ -2691,7 +2687,8 @@ function extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente
         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-
+    $nombreTabla1 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[PRECIO_X_PROD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta para obtener los productos más vendidos del cliente
     $sql = "
     SELECT 
@@ -2705,8 +2702,8 @@ function extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente
         i.[CVE_UNIDAD],
         i.[COSTO_PROM],
         p.[PRECIO] -- Se une el precio del producto
-    FROM [SAE90Empre02].[dbo].[INVE02] i
-    LEFT JOIN [SAE90Empre02].[dbo].[PRECIO_X_PROD02] p 
+    FROM $nombreTabla1 i
+    LEFT JOIN $nombreTabla1 p 
         ON i.[CVE_ART] = p.[CVE_ART] 
         AND p.[CVE_PRECIO] = ? WHERE i.[EXIST] > 0";
 
@@ -2995,13 +2992,13 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
         $cantidad = $partida['cantidad'];
         $IMPU4 = $partida['iva'];
         $desc1 = $partida['descuento'] ?? 0; // Primer descuento
-
+        $totalPartida = $precioUnitario * $cantidad;
         // **Aplicar los descuentos en cascada**
 
-        $DES = $IMPORTT * ($desc1 / 100);
+        $DES = $totalPartida * ($desc1 / 100);
         $DES_TOT += $DES;
 
-        $IMP_T4 = ($IMPORTT - $DES) * ($IMPU4 / 100);
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
         $IMP_TOT4 += $IMP_T4;
     }
 
@@ -4753,7 +4750,6 @@ switch ($funcion) {
         $formularioData = json_decode($_POST['formulario'], true); // Datos del formulario desde JS
         $partidasData = json_decode($_POST['partidas'], true); // Datos de las partidas desde JS
         $conexionData = $conexionResult['data'];
-
         $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
         if ($tipoOperacion === 'alta') {
             // Lógica para alta de pedido
@@ -4802,7 +4798,6 @@ switch ($funcion) {
                             'autorizacion' => false,
                             'message' => 'El pedido se completó correctamente.',
                         ]);
-                        var_dump($clave);
                         exit();
                     } else {
                         guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);

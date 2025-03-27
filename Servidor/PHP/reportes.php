@@ -863,7 +863,7 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
         $totalDescuentos += $descuentoPartida;
         $subtotal += $subtotalPartida;
 
-        $impuestoPartida = $subtotalPartida - ($descuentoPartida * (($impuestos / 100)));
+        $impuestoPartida = ($subtotalPartida - $descuentoPartida) * ($impuestos / 100);
         $totalImpuestos += $impuestoPartida;
 
         $pdf->SetTextColor(39, 39, 51);
@@ -964,7 +964,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
         $subtotal += $subtotalPartida;
         $totalDescuentos += $descuentoPartida;
 
-        $impuestoPartida = $subtotalPartida - ($descuentoPartida * (($impuestos / 100)));
+        $impuestoPartida = ($subtotalPartida - $descuentoPartida) * ($impuestos / 100);
         $totalImpuestos += $impuestoPartida;
 
         // **Agregar fila de datos**
@@ -1066,7 +1066,7 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
         $totalDescuentos += $descuentoPartida;
         $subtotal += $subtotalPartida;
 
-        $impuestoPartida = $subtotalPartida - ($descuentoPartida * (($impuestos / 100)));
+        $impuestoPartida = ($subtotalPartida - $descuentoPartida) * ($impuestos / 100);
         $totalImpuestos += $impuestoPartida;
 
         // **Agregar fila de datos**

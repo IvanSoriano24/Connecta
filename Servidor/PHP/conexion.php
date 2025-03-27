@@ -46,8 +46,8 @@ function login($funcion) {
 
         $firebaseApiKey = "AIzaSyCh8BFeIi4JcAAe-aW8Z2odIqdytw-wnDA";
         $firebaseProjectId = "mdconnecta-4aeb4";
-        $privateKeyPath = "/ruta/a/tu/archivo-privado.json"; // Ruta al archivo de clave privada de Firebase
-        $clientEmail = "tu-email@proyecto.iam.gserviceaccount.com"; // Email del proyecto Firebase
+        //$privateKeyPath = "/ruta/a/tu/archivo-privado.json"; // Ruta al archivo de clave privada de Firebase
+        //$clientEmail = "tu-email@proyecto.iam.gserviceaccount.com"; // Email del proyecto Firebase
 
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $usuario = $_POST['usuario'];
@@ -72,9 +72,20 @@ function login($funcion) {
                 $usuarioFirebase = $fields['usuario']['stringValue'];
                 $passwordFirebase = $fields['password']['stringValue'];
                 $statusFirebase = $fields['status']['stringValue']; // Obtener el campo `status`
+                
+                $opciones = [
+                    'cost' => 12,
+                ];
+                $hash = password_hash($passwordFirebase, PASSWORD_BCRYPT, $opciones);
+
+                /*if (password_verify($password, $hash)) {
+                    echo "Contraseña Correcta\n";
+                } else {
+                    echo "Contraseña Incorrecta\n";
+                }*/
 
                 // Validar credenciales y estatus
-                if ($usuarioFirebase === $usuario && $passwordFirebase === $password) {
+                if ($usuarioFirebase === $usuario && (password_verify($password, $hash))) {
                     if ($statusFirebase === 'Bloqueado') {
                         header("Location: /index.php?error=2");
                         exit();

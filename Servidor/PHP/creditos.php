@@ -54,7 +54,7 @@ function formatearClaveCliente($clave)
     return $clave;
 }
 
-function obtenerCredito($conexionData, $claveUsuario)
+function obtenerCredito($conexionData, $claveUsuario, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -69,11 +69,11 @@ function obtenerCredito($conexionData, $claveUsuario)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT 
         SALDO, LIMCRED
     FROM 
-        [SAE90Empre02].[dbo].[CLIE02]
+        $nombreTabla
     WHERE 
         CLAVE = ?;";
 
@@ -89,7 +89,7 @@ function obtenerCredito($conexionData, $claveUsuario)
     sqlsrv_close($conn);
     echo json_encode(['success' => true, 'data' => $creditos]);
 }
-function buscarSujerencias($conexionData, $claveUsuario)
+function buscarSujerencias($conexionData, $claveUsuario, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -105,6 +105,9 @@ function buscarSujerencias($conexionData, $claveUsuario)
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
     $claveCliente = formatearClaveCliente($claveUsuario);
+    $nombreTabla1 = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "
             WITH ultimos AS (
         SELECT TOP (25)
@@ -121,9 +124,9 @@ function buscarSujerencias($conexionData, $claveUsuario)
             MAX(i.CVE_ESQIMPU) AS CVE_ESQIMPU,
             MAX(i.CVE_UNIDAD) AS CVE_UNIDAD,
             MAX(f.FECHA_DOC) AS ULTIMA_COMPRA
-        FROM [SAE90Empre02].[dbo].[PAR_FACTF02] p
-        INNER JOIN [SAE90Empre02].[dbo].[FACTF02] f ON p.CVE_DOC = f.CVE_DOC
-        INNER JOIN [SAE90Empre02].[dbo].[INVE02] i ON p.CVE_ART = i.CVE_ART
+        FROM $nombreTabla1 p
+        INNER JOIN $nombreTabla2 f ON p.CVE_DOC = f.CVE_DOC
+        INNER JOIN $nombreTabla3 i ON p.CVE_ART = i.CVE_ART
         WHERE f.CVE_CLPV = ?
         AND i.EXIST > 0
         GROUP BY p.CVE_ART, p.CANT, p.CVE_DOC
@@ -239,7 +242,7 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $claveUsuario = $_SESSION['usuario']['claveUsuario'];
-        obtenerCredito($conexionData, $claveUsuario);
+        obtenerCredito($conexionData, $claveUsuario, $claveSae);
         break;
     case 2:
         $claveSae = '02';
@@ -253,7 +256,7 @@ switch ($funcion) {
         $claveUsuario = $_SESSION['usuario']['claveUsuario'];
         /*$validarSaldo = validarSaldo($conexionData, $claveUsuario, $claveSae);
         if ($validarSaldo === 0) {*/
-            buscarSujerencias($conexionData, $claveUsuario);
+            buscarSujerencias($conexionData, $claveUsuario, $claveSae);
         /*} else {
             echo json_encode([
                 'success' => false,

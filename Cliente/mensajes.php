@@ -22,6 +22,7 @@ if (isset($_SESSION['usuario'])) {
         $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
         $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
     }
+    $csrf_token  = $_SESSION['csrf_token'];
 } else {
     header('Location:../index.php');
     exit();
@@ -182,6 +183,7 @@ if (isset($_SESSION['usuario'])) {
                                 <form id="formDetalles">
                                     <!-- Campo oculto para el ID -->
                                     <input type="hidden" id="detalleIdComanda">
+                                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
 
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
@@ -274,6 +276,7 @@ if (isset($_SESSION['usuario'])) {
                                     <input type="hidden" id="noEmpresa">
                                     <input type="hidden" id="claveSae">
                                     <input type="hidden" id="vendedor">
+                                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
 
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
