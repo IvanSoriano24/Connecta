@@ -422,10 +422,10 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
         // **Aplicar los descuentos en cascada**
 
         $DES = $IMPORTT * ($desc1 / 100);
-        $DES_TOT = $DES_TOT + $DES;
+        $DES_TOT += $DES;
 
         $IMP_T4 = ($IMPORTT - $DES) * ($IMPU4 / 100);
-        $IMP_TOT4 = $IMP_TOT4 + $IMP_T4;
+        $IMP_TOT4 += $IMP_T4;
     }
 
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
@@ -889,10 +889,10 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
         // **Aplicar los descuentos en cascada**
 
         $DES = $IMPORTT * ($desc1 / 100);
-        $DES_TOT = $DES_TOT + $DES;
+        $DES_TOT += $DES;
 
         $IMP_T4 = ($IMPORTT - $DES) * ($IMPU4 / 100);
-        $IMP_TOT4 = $IMP_TOT4 + $IMP_T4;
+        $IMP_TOT4 += $IMP_T4;
     }
 
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
@@ -1437,9 +1437,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda
+    $numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -1726,8 +1726,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    // $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
@@ -1765,7 +1765,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
                         <td>$clave</td>
                         <td>$descripcion</td>
                         <td>$cantidad</td>
-                        <td>$ . number_format($totalPartida, 2) . </td>
+                        <td>$" . number_format($totalPartida, 2) . "</td>
                       </tr>";
     }
 
@@ -1884,7 +1884,7 @@ function obtenerProductoPedido($claveVendedor, $conexionData, $clienteInput)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Definir la consulta SQL asegurando la búsqueda insensible a mayúsculas y manejando el guion `-`
-    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [COSTO_PROM]
+    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [COSTO_PROM], [UUID]
         FROM $nombreTabla
         WHERE [EXIST] > 0 
         AND (LOWER(LTRIM(RTRIM([DESCR]))) LIKE LOWER(?) 
@@ -1938,7 +1938,7 @@ function obtenerProductos($conexionData)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL
-    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [COSTO_PROM]
+    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [COSTO_PROM], [UUID]
         FROM $nombreTabla WHERE [EXIST] > 0";
 
     $stmt = sqlsrv_query($conn, $sql);
@@ -2555,10 +2555,10 @@ function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
             i.CVE_ESQIMPU,
             i.CVE_UNIDAD,
             pr.PRECIO -- 📌 Se une el precio del producto
-        FROM [mdc_sae01].[dbo].[PAR_FACTF01] p
-        INNER JOIN [mdc_sae01].[dbo].[FACTF01] f ON p.CVE_DOC = f.CVE_DOC
-        INNER JOIN [mdc_sae01].[dbo].[INVE01] i ON p.CVE_ART = i.CVE_ART
-        LEFT JOIN [mdc_sae01].[dbo].[PRECIO_X_PROD01] pr 
+        FROM [SAE90Empre02].[dbo].[PAR_FACTF02] p
+        INNER JOIN [SAE90Empre02].[dbo].[FACTF02] f ON p.CVE_DOC = f.CVE_DOC
+        INNER JOIN [SAE90Empre02].[dbo].[INVE02] i ON p.CVE_ART = i.CVE_ART
+        LEFT JOIN [SAE90Empre02].[dbo].[PRECIO_X_PROD02] pr 
             ON i.CVE_ART = pr.CVE_ART 
             AND pr.CVE_PRECIO = ?  -- 📌 Se filtra por LISTA_PREC
         WHERE f.CVE_CLPV = ?
@@ -2636,7 +2636,7 @@ function extraerProductosImagenes($conexionData, $claveSae)
         i.[APART],
         i.[CVE_ESQIMPU],
         i.[CVE_UNIDAD]
-    FROM [mdc_sae01].[dbo].[INVE01] i
+    FROM [SAE90Empre02].[dbo].[INVE02] i
     WHERE i.[EXIST] > 0
     ";
 
@@ -2705,8 +2705,8 @@ function extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente
         i.[CVE_UNIDAD],
         i.[COSTO_PROM],
         p.[PRECIO] -- Se une el precio del producto
-    FROM [mdc_sae01].[dbo].[INVE01] i
-    LEFT JOIN [mdc_sae01].[dbo].[PRECIO_X_PROD01] p 
+    FROM [SAE90Empre02].[dbo].[INVE02] i
+    LEFT JOIN [SAE90Empre02].[dbo].[PRECIO_X_PROD02] p 
         ON i.[CVE_ART] = p.[CVE_ART] 
         AND p.[CVE_PRECIO] = ? WHERE i.[EXIST] > 0";
 
@@ -2999,10 +2999,10 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
         // **Aplicar los descuentos en cascada**
 
         $DES = $IMPORTT * ($desc1 / 100);
-        $DES_TOT = $DES_TOT + $DES;
+        $DES_TOT += $DES;
 
         $IMP_T4 = ($IMPORTT - $DES) * ($IMPU4 / 100);
-        $IMP_TOT4 = $IMP_TOT4 + $IMP_T4;
+        $IMP_TOT4 += $IMP_T4;
     }
 
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
@@ -3426,7 +3426,7 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
 
-        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -3462,8 +3462,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    // $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -4784,9 +4784,9 @@ switch ($funcion) {
                     } else if ($validarSaldo == 1 || $credito == 1) {
                         $estatus = "C";
                     }
-                    /*$estatus = "E";
+                    $estatus = "E";
                     $validarSaldo = 0;
-                    $credito = 0;*/
+                    $credito = 0;
                     guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                     guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                     actualizarFolio($conexionData, $claveSae);
@@ -4802,6 +4802,7 @@ switch ($funcion) {
                             'autorizacion' => false,
                             'message' => 'El pedido se completó correctamente.',
                         ]);
+                        var_dump($clave);
                         exit();
                     } else {
                         guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
@@ -5079,7 +5080,7 @@ switch ($funcion) {
         break;
     case 14:
         // Obtener conexión
-        $claveSae = "01";
+        $claveSae = "02";
         $noEmpresa = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae); //Aqui
         if (!$conexionResult['success']) {
@@ -5127,23 +5128,23 @@ switch ($funcion) {
         obtenerProductoPedido($clave, $conexionData, $producto, $claveSae);
         break;
     case 17:
-        $noEmpresa = "";
-        $claveSae = "01";
+        $noEmpresa = "02";
+        $claveSae = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];
         extraerProductosE($conexionData, $claveSae, $listaPrecioCliente);
         break;
     case 18:
-        $noEmpresa = "";
-        $claveSae = "01";
+        $noEmpresa = "02";
+        $claveSae = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];
         extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente);
         break;
     case 19:
-        $claveSae = "01";
+        $claveSae = "02";
         $noEmpresa = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
@@ -5219,7 +5220,7 @@ switch ($funcion) {
         break;
     case 20:
         $noEmpresa = "";
-        $claveSae = "01";
+        $claveSae = "02";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         extraerProductosImagenes($conexionData, $claveSae);

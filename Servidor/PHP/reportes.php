@@ -847,8 +847,8 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
         $desc1 = $partida['descuento'] ?? 0;
-        $descTotal = intval($formularioData['descuentoCliente'] ?? 0);
-        $descuentos = $desc1  + $descTotal;
+        //$descTotal = intval($formularioData['descuentoCliente'] ?? 0);
+        //$descuentos = $desc1  + $descTotal;
 
         $ieps = intval($partida['ieps'] ?? 0);
         $impuesto2 = intval($partida['impuesto2'] ?? 0);
@@ -856,35 +856,38 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
         $iva = intval($partida['iva'] ?? 0);
         $impuestos = $ieps + $impuesto2 + $isr + $iva;
 
-        $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($descTotal / 100));
         $subtotalPartida = $precioUnitario * $cantidad;
 
+        $descuentoPartida = $subtotalPartida * (($desc1 / 100));
+        
+        $totalDescuentos += $descuentoPartida;
         $subtotal += $subtotalPartida;
-        $totalDescuentos += ($precioUnitario - $precioConDescuento) * $cantidad;
-        $totalImpuestos += ($subtotalPartida * ($impuestos / 100));
+
+        $impuestoPartida = $subtotalPartida - ($descuentoPartida * (($impuestos / 100)));
+        $totalImpuestos += $impuestoPartida;
 
         $pdf->SetTextColor(39, 39, 51);
         $pdf->Cell(20, 7, $partida['producto'], 1, 0, 'C');
         $pdf->Cell(70, 7, iconv("UTF-8", "ISO-8859-1", $descripcion), 1);
         $pdf->Cell(15, 7, $cantidad, 1, 0, 'C');
         $pdf->Cell(20, 7, number_format($precioUnitario, 2), 1, 0, 'C');
-        $pdf->Cell(20, 7, number_format($descuentos, 2) . "%", 1, 0, 'C');
+        $pdf->Cell(20, 7, number_format($desc1, 2) . "%", 1, 0, 'C');
         $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 1, 0, 'C');
         $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 1, 1, 'R');
     }
 
     // Calcular totales
     $subtotalConDescuento = $subtotal - $totalDescuentos;
-    $totalFinal = $subtotalConDescuento + $totalImpuestos;
+    $total = $subtotalConDescuento + $totalImpuestos;
 
-    $total = $subtotal - $subtotalConDescuento + $totalImpuestos;
+    //$total = $subtotal - $subtotalConDescuento + $totalImpuestos;
 
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(155, 7, 'Importe:', 0, 0, 'R');
     $pdf->Cell(40, 7, number_format($subtotal, 2), 0, 1, 'R');
 
     $pdf->Cell(155, 7, 'Descuento:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
+    $pdf->Cell(40, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
 
     $pdf->Cell(155, 7, 'Subtotal:', 0, 0, 'R');
     $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
@@ -948,20 +951,21 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
         $cantidad = $partida['CANT'];
         $desc1 = $partida['DESC1'] ?? 0;
         $desc2 = $partida['DESC2'] ?? 0;
-        $descTotal = $datosClientePedidoAutoriza['DESCUENTO'];
-        $descuentos = $desc1 + $desc2 + $descTotal;
+        //$descTotal = $datosClientePedidoAutoriza['DESCUENTO'];
+        $descuentos = $desc1 + $desc2;
         // Sumar todos los impuestos
         $impuestos = ($partida['IMPU1'] + $partida['IMPU2'] + $partida['IMPU3'] + $partida['IMPU4'] +
             $partida['IMPU5'] + $partida['IMPU6'] + $partida['IMPU7'] + $partida['IMPU8']) ?? 0;
 
+            $subtotalPartida = $precioUnitario * $cantidad;
         // **Aplicar descuentos**
-        $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($desc2 / 100)) * (1 - ($descTotal / 100));
-        $subtotalPartida = $precioUnitario * $cantidad;
-
+        $descuentoPartida  = $subtotalPartida * (($desc1 / 100));
         // **Sumar totales**
         $subtotal += $subtotalPartida;
-        $totalDescuentos += ($precioUnitario - $precioConDescuento) * $cantidad;
-        $totalImpuestos += ($subtotalPartida * ($impuestos / 100));
+        $totalDescuentos += $descuentoPartida;
+
+        $impuestoPartida = $subtotalPartida - ($descuentoPartida * (($impuestos / 100)));
+        $totalImpuestos += $impuestoPartida;
 
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);
@@ -975,7 +979,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
     }
     // **Calcular totales**
     $subtotalConDescuento = $subtotal - $totalDescuentos;
-    $totalFinal = $subtotalConDescuento + $totalImpuestos;
+    $total = $subtotalConDescuento + $totalImpuestos;
 
     // **Mostrar totales en la factura**
     $pdf->SetFont('Arial', 'B', 10);
@@ -992,7 +996,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
     $pdf->Cell(40, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
 
     $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($totalFinal, 2), 0, 1, 'R');
+    $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
 
     // **Generar el nombre del archivo correctamente**
     $nombreArchivo = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folio) . ".pdf";
@@ -1047,20 +1051,23 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
         $cantidad = $partida['CANT'];
         $desc1 = $partida['DESC1'] ?? 0;
         $desc2 = $partida['DESC2'] ?? 0;
-        $descTotal = $datosClienteRemision['DESCUENTO'];
-        $descuentos = $desc1 + $desc2 + $descTotal;
+        //$descTotal = $datosClienteRemision['DESCUENTO'];
+        $descuentos = $desc1 + $desc2;
         // Sumar todos los impuestos
         $impuestos = ($partida['IMPU1'] + $partida['IMPU2'] + $partida['IMPU3'] + $partida['IMPU4'] +
             $partida['IMPU5'] + $partida['IMPU6'] + $partida['IMPU7'] + $partida['IMPU8']) ?? 0;
-
+        
+        $subtotalPartida = $precioUnitario * $cantidad;
         // **Aplicar descuentos**
-        $precioConDescuento = $precioUnitario * (1 - ($desc1 / 100)) * (1 - ($desc2 / 100)) * (1 - ($descTotal / 100));
-        $subtotalPartida = $precioConDescuento * $cantidad;
+        $descuentoPartida = $subtotalPartida * (($desc1 / 100));
+        
 
         // **Sumar totales**
+        $totalDescuentos += $descuentoPartida;
         $subtotal += $subtotalPartida;
-        $totalDescuentos += ($precioUnitario - $precioConDescuento) * $cantidad;
-        $totalImpuestos += ($subtotalPartida * ($impuestos / 100));
+
+        $impuestoPartida = $subtotalPartida - ($descuentoPartida * (($impuestos / 100)));
+        $totalImpuestos += $impuestoPartida;
 
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);

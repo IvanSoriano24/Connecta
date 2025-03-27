@@ -241,40 +241,11 @@ function validarCreditos($conexionData, $clienteId)
             die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
         }
         $claveSae = $_SESSION['empresa']['claveSae'];
-        //$nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
         // Construir la consulta SQL
-        /*$sql = "SELECT CON_CREDITO, LIMCRED, SALDO FROM $nombreTabla WHERE CLAVE = ?";
-        $params = [$clienteId];
-        $stmt = sqlsrv_query($conn, $sql, $params);
-
-        // Verificar si hubo errores al ejecutar la consulta
-        if ($stmt === false) {
-            throw new Exception('Error al ejecutar la consulta.');
-        }
-
-        // Obtener los datos del cliente
-        $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-
-        if (!$clienteData) {
-            echo json_encode(['success' => false, 'message' => 'Cliente no encontrado.']);
-            exit;
-        }
-
-        // Limpiar y preparar los datos para la respuesta
-        $conCredito = trim($clienteData['CON_CREDITO']);
-        $limiteCredito = (float)$clienteData['LIMCRED'];
-        $saldo = (float)$clienteData['SALDO'];
-
-        // Enviar respuesta con los datos del cliente
-        echo json_encode([
-            'success' => true,
-            'conCredito' => $conCredito,
-            'limiteCredito' => $limiteCredito,
-            'saldo' => $saldo
-        ]);*/
-        $sql = "SELECT CAMPLIB7 FROM $nombreTabla WHERE CVE_CLIE = ?";
+        //$sql = "SELECT CAMPLIB7 FROM $nombreTabla WHERE CVE_CLIE = ?";
+        $sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
         $params = [$clienteId];
         $stmt = sqlsrv_query($conn, $sql, $params);
         
@@ -292,7 +263,8 @@ function validarCreditos($conexionData, $clienteId)
         }
         //var_dump($clienteData);
         // Limpiar y preparar los datos para la respuesta
-        $conCredito = trim($clienteData['CAMPLIB7'] ?? "");
+        //$conCredito = trim($clienteData['CAMPLIB7'] ?? "");
+        $conCredito = trim($clienteData['CAMPLIB8'] ?? "");
 
         // Enviar respuesta con los datos del cliente
         echo json_encode([

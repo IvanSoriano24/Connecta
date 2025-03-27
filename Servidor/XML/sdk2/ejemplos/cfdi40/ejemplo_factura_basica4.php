@@ -12,10 +12,10 @@ date_default_timezone_set('America/Mexico_City');
 require_once '../../sdk2.php';
 function datosCliente($clie)
 {
-    $serverName = "34.29.174.237";
+    $serverName = "187.188.133.4";
     $connectionInfo = [
-        "Database" => 'mdc_sae01',
-        "UID" => 'sa',
+        "Database" => 'SAE90Empre02',
+        "UID" => 'sun',
         "PWD" => 'Green2580a.',
         "TrustServerCertificate" => true
     ];
@@ -24,8 +24,8 @@ function datosCliente($clie)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $claveSae = '01';
-    $nombreTabla   = "[mdc_sae01].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = '02';
+    $nombreTabla   = "[SAE90Empre02].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CLAVE = ?";
@@ -47,10 +47,10 @@ function datosCliente($clie)
 }
 function datosPedido($cve_doc)
 {
-    $serverName = "34.29.174.237";
+    $serverName = "187.188.133.4";
     $connectionInfo = [
-        "Database" => 'mdc_sae01',
-        "UID" => 'sa',
+        "Database" => 'SAE90Empre02',
+        "UID" => 'sun',
         "PWD" => 'Green2580a.',
         "TrustServerCertificate" => true
     ];
@@ -59,8 +59,8 @@ function datosPedido($cve_doc)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $claveSae = '01';
-    $nombreTabla  = "[mdc_sae01].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = '02';
+    $nombreTabla  = "[SAE90Empre02].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -83,10 +83,10 @@ function datosPedido($cve_doc)
 }
 function datosPartida($cve_doc)
 {
-    $serverName = "34.29.174.237";
+    $serverName = "187.188.133.4";
     $connectionInfo = [
-        "Database" => 'mdc_sae01',
-        "UID" => 'sa',
+        "Database" => 'SAE90Empre02',
+        "UID" => 'sun',
         "PWD" => 'Green2580a.',
         "TrustServerCertificate" => true
     ];
@@ -95,8 +95,8 @@ function datosPartida($cve_doc)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $claveSae = '01';
-    $nombreTabla  = "[mdc_sae01].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = '02';
+    $nombreTabla  = "[SAE90Empre02].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -117,10 +117,10 @@ function datosPartida($cve_doc)
 }
 function datosProcuto($CVE_ART)
 {
-    $serverName = "34.29.174.237";
+    $serverName = "187.188.133.4";
     $connectionInfo = [
-        "Database" => 'mdc_sae01',
-        "UID" => 'sa',
+        "Database" => 'SAE90Empre02',
+        "UID" => 'sun',
         "PWD" => 'Green2580a.',
         "TrustServerCertificate" => true
     ];
@@ -129,8 +129,8 @@ function datosProcuto($CVE_ART)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $claveSae = '01';
-    $nombreTabla  = "[mdc_sae01].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $claveSae = '02';
+    $nombreTabla  = "[SAE90Empre02].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_ART = ?";
@@ -203,7 +203,8 @@ function datosEmpresa()
 }
 //$cve_doc = '          0000018784';
 //$cve_doc = '          0000018720';
-$cve_doc = '          0000018725';
+//$cve_doc = '          0000018725';
+$cve_doc = '          0000018618';
 //No hacer pruebas con 0000018758 en adelante
 
 $pedidoData = datosPedido($cve_doc);

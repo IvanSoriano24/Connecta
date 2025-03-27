@@ -25,11 +25,21 @@ function agregarFilaPartidas() {
     const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
     const ultimaCantidad =
       parseFloat(ultimaFila.querySelector(".cantidad").value) || 0;
-
+      const ultimoTotal =
+        parseFloat(ultimaFila.querySelector(".subtotalPartida").value) || 0;
     if (ultimoProducto === "" || ultimaCantidad === 0) {
       Swal.fire({
         title: "Error",
         text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de agregar otra partida.",
+        icon: "error",
+        confirmButtonText: "Entendido",
+      });
+      return;
+    }
+    if(ultimoTotal === 0){
+      Swal.fire({
+        title: "Error",
+        text: "No puedes agregar una partida con un producto de costo 0.",
         icon: "error",
         confirmButtonText: "Entendido",
       });
@@ -852,6 +862,7 @@ function llenarDatosClienteSugerencia(cliente) {
   $("#rfc").val(cliente.RFC || "");
   $("#nombre").val(cliente.NOMBRE || "");
   $("#calle").val(cliente.CALLE || "");
+  $("#enviar").val(cliente.CALLE || "");
   $("#numE").val(cliente.NUMEXT || "");
   $("#numI").val(cliente.NUMINT || "");
   $("#colonia").val(cliente.COLONIA || "");
@@ -949,6 +960,7 @@ function llenarDatosCliente(cliente) {
   $("#rfc").val(cliente.RFC || "");
   $("#nombre").val(cliente.NOMBRE || "");
   $("#calle").val(cliente.CALLE || "");
+  $("#enviar").val(cliente.CALLE || "");
   $("#numE").val(cliente.NUMEXT || "");
   $("#numI").val(cliente.NUMINT || "");
   $("#colonia").val(cliente.COLONIA || "");
@@ -1100,11 +1112,22 @@ $(document).ready(function () {
       const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
       const ultimaCantidad =
         parseFloat(ultimaFila.querySelector(".cantidad").value) || 0;
+        const ultimoTotal =
+        parseFloat(ultimaFila.querySelector(".subtotalPartida").value) || 0;
 
       if (ultimoProducto === "" || ultimaCantidad === 0) {
         Swal.fire({
           title: "Error",
           text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de guardar el pedido.",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+        return;
+      }
+      if(ultimoTotal === 0){
+        Swal.fire({
+          title: "Error",
+          text: "No puedes realizar un pedido con costo 0.",
           icon: "error",
           confirmButtonText: "Entendido",
         });

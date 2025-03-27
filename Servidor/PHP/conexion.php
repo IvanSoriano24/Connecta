@@ -119,15 +119,19 @@ function login($funcion) {
                         cerrarSesion();
                         echo json_encode($resultadoConexion);
                         header("Location: ../../Cliente/index.php?error=4");
+                        //header("Location: /index.php?error=4");
                         exit();
                     }
-                    header("Location: /Menu.php");
+                    //header("Location: /Menu.php");
+                    header("Location: ../../Cliente/Menu.php");
                     exit();
                 }
-                header("Location: /Dashboard.php");
+                //header("Location: /Dashboard.php");
+                header("Location: ../../Cliente/Dashboard.php");
                 exit();
             } else {
-                header("Location: /index.php?error=1");
+                //header("Location: /index.php?error=1");
+                header("Location: ../../Cliente/index.php?error=1");
                 exit();
             }
         }
