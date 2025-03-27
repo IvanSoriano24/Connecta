@@ -334,7 +334,7 @@ function obtenerDatosCliente($conexionData, $claveUsuario){
         NOMBRECOMERCIAL,
         LISTA_PREC 
     FROM 
-        [mdc_sae01].[dbo].[CLIE01]
+        [SAE90Empre02].[dbo].[CLIE02]
     WHERE 
         CLAVE = ?;";  // ✅ Eliminé el 'AND' incorrecto
 
@@ -447,7 +447,7 @@ switch ($funcion) {
     case 4: // 
 
         $noEmpresa = "";
-        $claveSae = "01";
+        $claveSae = "02";
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
 
         if (!$conexionResult['success']) {

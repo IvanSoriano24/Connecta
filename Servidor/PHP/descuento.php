@@ -95,7 +95,7 @@ function obtenerDescuentoCliente($conexionData, $claveSae, $cliente)
     $sql = "SELECT 
         DESCUENTO 
     FROM 
-        [mdc_sae01].[dbo].[CLIE01]
+        [SAE90Empre02].[dbo].[CLIE02]
     WHERE 
         CLAVE = ?;";
 

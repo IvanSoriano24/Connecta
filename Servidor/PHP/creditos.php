@@ -73,7 +73,7 @@ function obtenerCredito($conexionData, $claveUsuario)
     $sql = "SELECT 
         SALDO, LIMCRED
     FROM 
-        [mdc_sae01].[dbo].[CLIE01]
+        [SAE90Empre02].[dbo].[CLIE02]
     WHERE 
         CLAVE = ?;";
 
@@ -121,9 +121,9 @@ function buscarSujerencias($conexionData, $claveUsuario)
             MAX(i.CVE_ESQIMPU) AS CVE_ESQIMPU,
             MAX(i.CVE_UNIDAD) AS CVE_UNIDAD,
             MAX(f.FECHA_DOC) AS ULTIMA_COMPRA
-        FROM [mdc_sae01].[dbo].[PAR_FACTF01] p
-        INNER JOIN [mdc_sae01].[dbo].[FACTF01] f ON p.CVE_DOC = f.CVE_DOC
-        INNER JOIN [mdc_sae01].[dbo].[INVE01] i ON p.CVE_ART = i.CVE_ART
+        FROM [SAE90Empre02].[dbo].[PAR_FACTF02] p
+        INNER JOIN [SAE90Empre02].[dbo].[FACTF02] f ON p.CVE_DOC = f.CVE_DOC
+        INNER JOIN [SAE90Empre02].[dbo].[INVE02] i ON p.CVE_ART = i.CVE_ART
         WHERE f.CVE_CLPV = ?
         AND i.EXIST > 0
         GROUP BY p.CVE_ART, p.CANT, p.CVE_DOC
@@ -230,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 
 switch ($funcion) {
     case 1:
-        $claveSae = '01';
+        $claveSae = '02';
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -242,7 +242,7 @@ switch ($funcion) {
         obtenerCredito($conexionData, $claveUsuario);
         break;
     case 2:
-        $claveSae = '01';
+        $claveSae = '02';
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
