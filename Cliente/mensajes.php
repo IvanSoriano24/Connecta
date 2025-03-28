@@ -183,7 +183,7 @@ if (isset($_SESSION['usuario'])) {
                                 <form id="formDetalles">
                                     <!-- Campo oculto para el ID -->
                                     <input type="hidden" id="detalleIdComanda">
-                                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                                    <input type="hidden" name="csrf_token_C" id="csrf_token_C" value="<?php echo $csrf_token; ?>">
 
                                     <div class="row">
                                         <div class="col-md-6 mb-2">

@@ -108,7 +108,7 @@ function actualizarFolios($conexionData, $claveSae)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Definir los parámetros de la actualización
-    $fechaActual = date('Y-m-d H:i:s'); // Fecha actual
+    $fechaActual = date('Y-m-d 00:00:00.000'); // Fecha actual
     $tipDoc = 'R';  // Tipo de documento
     $serie = 'STAND.'; // Serie del folio
     $folioDesde = 1;  // FOLIODESDE
@@ -1046,12 +1046,12 @@ function insertarFactr($conexionData, $pedidoId, $claveSae)
     // ✅ 3. Definir valores constantes y calcular datos
     $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
     $tipDoc = 'R';
-    $status = 'O';
+    $status = 'E';
     $datMostr = 0;
     $cvePedi = '';  // Vacío según la traza
-    $tipDocE = 'P';
+    $tipDocE = 'F';
     $docAnt = $pedidoId;
-    $tipDocAnt = 'F';
+    $tipDocAnt = 'P';
 
     // ✅ 4. Insertar en FACTRXX
     $sqlInsert = "INSERT INTO $tablaRemisiones 
@@ -2624,7 +2624,7 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
 
         actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto, $claveSae);
         $enlaceLTPDResultados = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto);
-//        var_dump($enlaceLTPDResultados);
+        //var_dump($enlaceLTPDResultados);
     }
 
     sqlsrv_commit($conn);

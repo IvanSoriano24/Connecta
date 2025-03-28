@@ -661,8 +661,6 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                 break;
             }
             $conexionData = $conexionResult['data'];
-            crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
-            exit();
             $pagado = verificarPago($conexionData, $cliente, $claveSae);
             if ($pagado) {
                 $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
@@ -674,7 +672,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                         cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                         eliminarCxc($conexionData, $claveSae, $cliente);
                         crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
-                        //crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
+                        crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
                         //Remision y Demas
                     }
                 } else if ($fechaPago > $fechaLimiteObj) {

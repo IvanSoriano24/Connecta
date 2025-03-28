@@ -370,7 +370,7 @@ function mostrarModalPedido(pedidoId) {
 $("#btnTerminar").click(function () {
   const comandaId = $("#detalleIdComanda").val();
   const numGuia = $("#numGuia").val().trim(); // Obtener y limpiar espacios en la guía
-  const token = $("#csrf_token").val().trim();
+  const token = $("#csrf_token_C").val().trim();
 
   // Validar que el Número de Guía no esté vacío y tenga exactamente 9 dígitos
   if (numGuia === "" || !/^\d{9}$/.test(numGuia)) {

@@ -709,11 +709,12 @@ function abrirModalClientes() {
   const modalElement = document.getElementById("modalClientes");
   const modal = new bootstrap.Modal(modalElement);
   const datosClientes = document.getElementById("datosClientes");
+  const token = document.getElementById("csrf_token").value; 
 
   // Solicitar datos al servidor
   $.post(
     "../Servidor/PHP/clientes.php",
-    { numFuncion: "1" },
+    { numFuncion: "1", token: token },
     function (response) {
       try {
         if (response.success && response.data) {

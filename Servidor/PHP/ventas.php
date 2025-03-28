@@ -1275,9 +1275,8 @@ function obtenerFolioSiguiente($conexionData, $claveSae)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $conCredito)
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito)
 {
-
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1704,9 +1703,6 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     //$contraseñaRemitente = null;
     // Definir el correo de destino (puedes cambiarlo si es necesario)
     $correoDestino = $correo;
-    //$correoDestino = 'desarrollo01@mdcloud.mx';
-    //$correoDestino = 'amartinez@grupointerzenda.com';
-    //$correoDestino = 'ivan.soriano@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión
     $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
@@ -1720,7 +1716,6 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     // URL base del servidor
     //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
     $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
-
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&productos=$productosJson&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
 
@@ -4788,7 +4783,6 @@ switch ($funcion) {
             // Formatear los datos
             $formularioData = formatearFormulario($formularioData);
             $partidasData = formatearPartidas($partidasData);
-
             if ($tipoOperacion === 'alta') {
                 // Lógica para alta de pedido
                 $resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
