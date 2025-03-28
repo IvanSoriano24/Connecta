@@ -220,7 +220,7 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
         'fields' => [
             'status' => ['stringValue' => 'TERMINADA'],
             'fechaEnvio' => ['stringValue' => $fechaEnvio], // Agregar fecha de envío
-            'numGuia' => ['stringValue' => $numGuia] // Guardar número de guía
+            'numGuia' => ['stringValue' => strip_tags($numGuia)] // Guardar número de guía
         ]
     ];
 
@@ -352,7 +352,7 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
                         'totalPedido' => number_format($totalPedido, 2, '.', ''), // 🔹 Total formateado con 2 decimales
                     ];
                 }
-            }else{
+            } else {
             }
         }
         // Ordenar los pedidos por totalPedido de manera descendente
@@ -1025,15 +1025,24 @@ switch ($funcion) {
         obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
         break;
     case 3:
-        $comandaId = $_POST['comandaId'];
-        $numGuia = trim($_POST['numGuia']);
-        $enviarHoy = filter_var($_POST['enviarHoy'], FILTER_VALIDATE_BOOLEAN);
-        // Validar que el Número de Guía no esté vacío
-        if (empty($numGuia)) {
-            echo json_encode(['success' => false, 'message' => 'El Número de Guía debe contener exactamente 9 dígitos numéricos.']);
-            exit;
+        $csrf_token  = $_SESSION['csrf_token'];
+        $csrf_token_form = $_POST['token'];
+        if ($csrf_token === $csrf_token_form) {
+            $comandaId = $_POST['comandaId'];
+            $numGuia = trim($_POST['numGuia']);
+            $enviarHoy = filter_var($_POST['enviarHoy'], FILTER_VALIDATE_BOOLEAN);
+            // Validar que el Número de Guía no esté vacío
+            if (empty($numGuia)) {
+                echo json_encode(['success' => false, 'message' => 'El Número de Guía debe contener exactamente 9 dígitos numéricos.']);
+                exit;
+            }
+            marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $numGuia, $enviarHoy);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error en la sesion.',
+            ]);
         }
-        marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $numGuia, $enviarHoy);
         break;
     /*case 4:
             notificaciones($firebaseProjectId, $firebaseApiKey);
@@ -1057,15 +1066,24 @@ switch ($funcion) {
         obtenerDetallesPedido($firebaseProjectId, $firebaseApiKey, $pedidoId);
         break;
     case 7:
-        $noEmpresa = trim($_POST['noEmpresa']);
-        $claveSae = trim($_POST['claveSae']);
-        $pedidoId = $_POST['pedidoId'];
-        $folio = trim($_POST['folio']);
-        $vend = trim($_POST['vendedor']);
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
-        $conexionData = $conexionResult['data'];
+        $csrf_token  = $_SESSION['csrf_token'];
+        $csrf_token_form = $_POST['token'];
+        if ($csrf_token === $csrf_token_form) {
+            $noEmpresa = trim($_POST['noEmpresa']);
+            $claveSae = trim($_POST['claveSae']);
+            $pedidoId = $_POST['pedidoId'];
+            $folio = trim($_POST['folio']);
+            $vend = trim($_POST['vendedor']);
+            $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+            $conexionData = $conexionResult['data'];
 
-        pedidoAutorizado($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio, $claveSae, $noEmpresa, $vend, $conexionData);
+            pedidoAutorizado($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio, $claveSae, $noEmpresa, $vend, $conexionData);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error en la sesion.',
+            ]);
+        }
         break;
     case 8:
         $vendedor = $_GET['vendedor'];

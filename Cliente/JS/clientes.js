@@ -26,6 +26,7 @@ btnDatosVentas.addEventListener('click', () => {
 
 
 const noEmpresa = sessionStorage.getItem('noEmpresaSeleccionada');
+const token = document.getElementById("csrf_token").value;
 
 // Función para agregar eventos a los botones dinámicos
 function agregarEventosBotones() {
@@ -35,7 +36,7 @@ function agregarEventosBotones() {
         boton.addEventListener('click', function () {
             const clienteId = this.getAttribute('data-id');
             // Realizamos la petición AJAX para obtener los datos del cliente
-            fetch(`../Servidor/PHP/clientes.php?clave=${clienteId}&numFuncion=2`)
+            fetch(`../Servidor/PHP/clientes.php?clave=${clienteId}&numFuncion=2&token=${token}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -100,7 +101,7 @@ function cerrarModal() {
     modal.hide();
 }
 function obtenerClientes(){
-    $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa }, function (response) {
+    $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa, token: token }, function (response) {
         try {
             // Verifica si response es una cadena (string) que necesita ser parseada
             if (typeof response === 'string') {

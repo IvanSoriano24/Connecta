@@ -400,7 +400,7 @@ if (isset($_SESSION['usuario'])) {
                             </div>
 
                             <div class="form-element">
-                                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                            <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
                                 <label for="cliente">Cliente</label>
                                 <div class="input-container" style="position: relative;">
                                     <div style="display: flex; align-items: center; gap: 5px;">

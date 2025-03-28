@@ -21,6 +21,7 @@ if (isset($_SESSION['usuario'])) {
 		$idEmpresa = $_SESSION['empresa']['id'];
 		$noEmpresa = $_SESSION['empresa']['noEmpresa'];
 	}
+	$csrf_token  = $_SESSION['csrf_token'];
 } else {
 	header('Location:../index.php');
 }
@@ -86,6 +87,7 @@ session_destroy(); */
 				<section id="features" class="features section">
 					<!-- Section Title -->
 					<div class="table-data">
+					<input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
 						<div class="order">
 							<div class="head">
 								<table class="table">

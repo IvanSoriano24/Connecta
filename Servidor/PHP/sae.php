@@ -435,17 +435,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'noEmpresa' => $input['noEmpresa'],
                 'claveSae' => $input['claveSae']
             ];
-
-            $idDocumento = $input['idDocumento'];
-            $idDocumento = trim($idDocumento);
-            $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
-            if ($resultadoConexion['success']) {
-                ob_clean();
-                $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento);
-                //echo json_encode($resultadoGuardar);
-                return;
+            $csrf_token_form = $input['token'];
+            $csrf_token  = $_SESSION['csrf_token'];
+            if ($csrf_token === $csrf_token_form) {
+                $idDocumento = $input['idDocumento'];
+                $idDocumento = trim($idDocumento);
+                $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
+                if ($resultadoConexion['success']) {
+                    ob_clean();
+                    $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento);
+                    //echo json_encode($resultadoGuardar);
+                    return;
+                } else {
+                    echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
+                    return;
+                }
             } else {
-                echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
+                echo json_encode(['success' => false, 'message' => 'Error en la sesion']);
                 return;
             }
             break;
@@ -459,12 +465,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'noEmpresa' => $input['noEmpresa'],
                 'claveSae' => $input['claveSae']
             ];
-            $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
-            if ($resultadoConexion['success']) {
-                $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey);
-                echo json_encode($resultadoGuardar);
+            $csrf_token_form = $input['token'];
+            $csrf_token  = $_SESSION['csrf_token'];
+            if ($csrf_token === $csrf_token_form) {
+                $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
+                if ($resultadoConexion['success']) {
+                    $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey);
+                    echo json_encode($resultadoGuardar);
+                } else {
+                    echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
+                }
             } else {
-                echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
+                echo json_encode(['success' => false, 'message' => 'Error en la sesion']);
+                return;
             }
             break;
 

@@ -118,6 +118,7 @@ if (isset($_SESSION['usuario'])) {
 
                 <!-- Botones de acciones principales -->
                 <div class="d-flex justify-content-between mb-3">
+                <input type="hidden" name="token" id="token" value="<?php echo $csrf_token; ?>">
                     <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
                         <button class="btn btn-success" id="btnAgregar">
                             <i class='bx bxs-user-plus'></i> Agregar
@@ -209,6 +210,7 @@ if (isset($_SESSION['usuario'])) {
 
                 <form id="agregarUsuarioForm">
                     <div class="modal-body">
+                    <input type="hidden" name="csrf_token" id="csrf_tokenU" value="<?php echo $csrf_token; ?>">
                         <!-- Formulario de usuario -->
                         <div class="container mt-8">
                             <div class="row">
@@ -234,6 +236,22 @@ if (isset($_SESSION['usuario'])) {
                                     <div class="mb-2">
                                         <label for="contrasenaUsuario" class="form-label">Contraseña</label>
                                         <input type="password" id="contrasenaUsuario" class="form-control">
+                                        <!-- <button type="button" id="togglePassword" style="
+                                            position: absolute;
+                                            right: 10px;
+                                            top: 55%;
+                                            transform: translateY(-50%);
+                                            border: none;
+                                            background: none;
+                                            cursor: pointer;
+                                            outline: none;
+                                            box-shadow: none;
+                                            appearance: none;
+                                            -webkit-appearance: none;
+                                            -moz-appearance: none;
+                                        ">
+                                            <i class="bi bi-eye"></i>
+                                        </button> -->
                                     </div>
                                     <div class="mb-2">
                                         <label for="telefonoUsuario" class="form-label">Teléfono</label>
@@ -246,6 +264,7 @@ if (isset($_SESSION['usuario'])) {
                                             <option value="VENDEDOR">VENDEDOR</option>
                                             <option value="ALMACENISTA">ALMACENISTA</option>
                                             <option value="FACTURISTA">FACTURISTA</option>
+                                            <option value="ADMINISTRADOR">ADMINISTRADOR</option>
                                         </select>
                                     </div>
                                     <div class="mb-2" id="divVendedor" style="display: none;">
@@ -278,7 +297,7 @@ if (isset($_SESSION['usuario'])) {
                     </button>
                 </div>
                 <form id="agregarUsuarioClienteForm">
-                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                    <input type="hidden" name="csrf_token" id="csrf_tokenC" value="<?php echo $csrf_token; ?>">
                     <div class="modal-body">
                         <!-- Formulario de usuario -->
                         <div class="container mt-8">

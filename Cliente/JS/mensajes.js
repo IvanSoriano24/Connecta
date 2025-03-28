@@ -370,6 +370,7 @@ function mostrarModalPedido(pedidoId) {
 $("#btnTerminar").click(function () {
   const comandaId = $("#detalleIdComanda").val();
   const numGuia = $("#numGuia").val().trim(); // Obtener y limpiar espacios en la guía
+  const token = $("#csrf_token").val().trim();
 
   // Validar que el Número de Guía no esté vacío y tenga exactamente 9 dígitos
   if (numGuia === "" || !/^\d{9}$/.test(numGuia)) {
@@ -390,6 +391,7 @@ $("#btnTerminar").click(function () {
       comandaId: comandaId,
       numGuia: numGuia,
       enviarHoy: enviarHoy,
+      token: token,
     },
     function (response) {
       if (response.success) {
@@ -417,6 +419,7 @@ $("#btnAutorizar").click(function () {
   const noEmpresa = $("#noEmpresa").val();
   const claveSae = $("#claveSae").val();
   const vendedor = $("#vendedor").val();
+  const token = $("#csrf_token").val();
   $.post(
     "../Servidor/PHP/mensajes.php",
     {
@@ -426,6 +429,7 @@ $("#btnAutorizar").click(function () {
       noEmpresa: noEmpresa,
       claveSae: claveSae,
       vendedor: vendedor,
+      token: token,
     },
     function (response) {
       if (response.success) {

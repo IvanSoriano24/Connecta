@@ -248,12 +248,12 @@ function validarCreditos($conexionData, $clienteId)
         $sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
         $params = [$clienteId];
         $stmt = sqlsrv_query($conn, $sql, $params);
-        
+
         // Verificar si hubo errores al ejecutar la consulta
         if ($stmt === false) {
             throw new Exception('Error al ejecutar la consulta.');
         }
-        
+
         // Obtener los datos del cliente
         $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
@@ -305,7 +305,8 @@ function formatearClaveCliente($clave)
     // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
     return str_pad($clave, 10, ' ', STR_PAD_LEFT);
 }
-function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae){
+function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -350,7 +351,7 @@ function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae){
         foreach ($row as $key => $value) {
             // Limpiar y convertir datos a UTF-8 si es necesario
             if ($value !== null && is_string($value)) {
-                $value = trim($value); 
+                $value = trim($value);
                 if (!empty($value)) {
                     $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
                     if ($encoding && $encoding !== 'UTF-8') {
@@ -395,35 +396,53 @@ switch ($funcion) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
         }
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
-        if (!$conexionResult['success']) {
-            echo json_encode($conexionResult);
-            break;
+        $csrf_token_form = $_POST['token'];
+        $csrf_token  = $_SESSION['csrf_token'];
+        if ($csrf_token === $csrf_token_form) {
+            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+            $claveSae = $_SESSION['empresa']['claveSae'];
+            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+            if (!$conexionResult['success']) {
+                echo json_encode($conexionResult);
+                break;
+            }
+            // Mostrar los clientes usando los datos de conexión obtenidos
+            $conexionData = $conexionResult['data'];
+            mostrarClientes($conexionData, $claveSae);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error en la sesion.',
+            ]);
         }
-        // Mostrar los clientes usando los datos de conexión obtenidos
-        $conexionData = $conexionResult['data'];
-        mostrarClientes($conexionData, $claveSae);
         break;
     case 2: // 
-        if (!isset($_SESSION['empresa']['noEmpresa'])) {
-            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
-            exit;
-        }
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+        $csrf_token_form = $_GET['token'];
+        $csrf_token  = $_SESSION['csrf_token'];
+        if ($csrf_token === $csrf_token_form) {
+            if (!isset($_SESSION['empresa']['noEmpresa'])) {
+                echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+                exit;
+            }
+            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+            $claveSae = $_SESSION['empresa']['claveSae'];
+            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
 
-        if (!$conexionResult['success']) {
-            echo json_encode($conexionResult);
-            break;
+            if (!$conexionResult['success']) {
+                echo json_encode($conexionResult);
+                break;
+            }
+            // Mostrar los clientes usando los datos de conexión obtenidos
+            $conexionData = $conexionResult['data'];
+            $clave = $_GET['clave'];
+            $clave = formatearClaveCliente($clave);
+            mostrarClienteEspecifico($clave, $conexionData, $noEmpresa);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error en la sesion.',
+            ]);
         }
-        // Mostrar los clientes usando los datos de conexión obtenidos
-        $conexionData = $conexionResult['data'];
-        $clave = $_GET['clave'];
-        $clave = formatearClaveCliente($clave);
-        mostrarClienteEspecifico($clave, $conexionData, $noEmpresa);
         break;
     case 3:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -444,7 +463,7 @@ switch ($funcion) {
         $clave = formatearClaveCliente($clie);
         validarCreditos($conexionData, $clave);
         break;
-    case 4: 
+    case 4:
         $noEmpresa = "";
         $claveSae = "02";
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);

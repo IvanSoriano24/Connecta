@@ -39,7 +39,8 @@ function obtenerConexion($firebaseProjectId, $firebaseApiKey)
     return ['success' => false, 'message' => 'No hay una conexion al sistema'];
 }
 
-function login($funcion) {
+function login($funcion)
+{
     try {
         $tipUsuario = '';
         session_start();
@@ -50,8 +51,8 @@ function login($funcion) {
         //$clientEmail = "tu-email@proyecto.iam.gserviceaccount.com"; // Email del proyecto Firebase
 
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
-            $usuario = $_POST['usuario'];
-            $password = $_POST['password']; 
+            $usuario = strip_tags($_POST['usuario']);
+            $password = strip_tags($_POST['password']);
 
             // URL del API REST de Firebase Firestore
             $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
@@ -72,27 +73,22 @@ function login($funcion) {
                 $usuarioFirebase = $fields['usuario']['stringValue'];
                 $passwordFirebase = $fields['password']['stringValue'];
                 $statusFirebase = $fields['status']['stringValue']; // Obtener el campo `status`
-                
+
                 $opciones = [
                     'cost' => 12,
                 ];
-                $hash = password_hash($passwordFirebase, PASSWORD_BCRYPT, $opciones);
-
-                /*if (password_verify($password, $hash)) {
-                    echo "Contraseña Correcta\n";
-                } else {
-                    echo "Contraseña Incorrecta\n";
-                }*/
+                //$hash = password_hash($passwordFirebase, PASSWORD_BCRYPT, $opciones);
 
                 // Validar credenciales y estatus
-                if ($usuarioFirebase === $usuario && (password_verify($password, $hash))) {
+                if ($usuarioFirebase === $usuario && (password_verify($password, $passwordFirebase))) {
+                //if ($usuarioFirebase === $usuario && $passwordFirebase == $password) {
                     if ($statusFirebase === 'Bloqueado') {
-                        header("Location: /index.php?error=2");
+                        header("Location: ../../Cliente/index.php?error=2");
                         exit();
                     }
 
                     if ($statusFirebase === 'Baja') {
-                        header("Location: /index.php?error=3");
+                        header("Location: ../../Cliente/index.php?error=3");
                         exit();
                     }
 
@@ -114,7 +110,7 @@ function login($funcion) {
 
                     // Generar token JWT para Firebase Storage
                     $usuarioUid = $document['name']; // UID del usuario (ID del documento en Firestore)
-                   /* $tokenFirebase = generarTokenFirebase($usuarioUid, $privateKeyPath, $clientEmail);
+                    /* $tokenFirebase = generarTokenFirebase($usuarioUid, $privateKeyPath, $clientEmail);
                     $_SESSION['firebase_token'] = $tokenFirebase; // Guardar el token en la sesión*/
 
                     $usuarioValido = true;
@@ -150,7 +146,8 @@ function login($funcion) {
         echo $e->getMessage(); // En caso de fallo, se muestra el error
     }
 }
-function generarTokenFirebase($usuarioUid, $privateKeyPath, $clientEmail) {
+function generarTokenFirebase($usuarioUid, $privateKeyPath, $clientEmail)
+{
     $now = time();
     $exp = $now + (60 * 60); // Token válido por 1 hora
 
@@ -177,7 +174,8 @@ function generarTokenFirebase($usuarioUid, $privateKeyPath, $clientEmail) {
     return $unsignedToken . '.' . $base64UrlSignature;
 }
 
-function cerrarSesion() {
+function cerrarSesion()
+{
     session_start();
     session_unset();
     session_destroy();
@@ -188,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $funcion = $_POST["numFuncion"] ?? null;
     switch ($funcion) {
         case 1:
-             login($funcion); // Ejemplo, no incluido aquí
+            login($funcion); // Ejemplo, no incluido aquí
             break;
         case 2:
             cerrarSesion();
@@ -210,4 +208,3 @@ switch ($funcion) {
         cerrarSesion();
         break;
 }
-?>

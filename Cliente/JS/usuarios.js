@@ -2,7 +2,7 @@ var listaUsuarios = []; // Almacena la lista de usuarios globalmente
 /* -------------------------------------------------------------------------- */
 /*                          FUNCIONES AUXILIARES                              */
 /* -------------------------------------------------------------------------- */
-
+const token = document.getElementById("token").value;
 // Cargar usuarios desde el servidor
 function datosUsuarios(tipoUsuario, usuario) {
   $.ajax({
@@ -675,7 +675,7 @@ function cargarUsuarios() {
   $.ajax({
     url: "../Servidor/PHP/usuarios.php",
     method: "GET",
-    data: { numFuncion: "6" }, // Función para obtener usuarios
+    data: { numFuncion: "6", token: token }, // Función para obtener usuarios
     success: function (response) {
       try {
         const res =
@@ -692,6 +692,13 @@ function cargarUsuarios() {
             selectUsuario.append(
               `<option value="${usuario.usuario}" data-usuario="${usuario.usuario}" data-id="${usuario.id}" data-claveUsuario="${usuario.claveUsuario}">${usuario.nombre}</option>`
             );
+          });
+        } else if (res.token) {
+          Swal.fire({
+            title: "Error",
+            text: res.message,
+            icon: "error",
+            confirmButtonText: "Entendido",
           });
         } else {
           alert(res.message || "No se pudieron cargar los usuarios.");
@@ -876,7 +883,7 @@ function obtenerClientes() {
   $.ajax({
     url: "../Servidor/PHP/usuarios.php",
     type: "GET",
-    data: { numFuncion: "15" }, // Llamar a la función 15 en PHP
+    data: { numFuncion: "15", token: token }, // Llamar a la función 15 en PHP
     success: function (response) {
       try {
         const res =
@@ -1026,7 +1033,7 @@ function limpiarFormularioCliente() {
   $("#rolUsuario").val(""); // Si es un select, también se debe resetear
   $("#selectCliente").val(""); // Limpiar el textarea
 }
-function habilitarCamposCliente(){
+function habilitarCamposCliente() {
   $(
     "#selectCliente, #claveUsuarioCliente, #usuarioCliente, #nombreUsuarioCliente, #correoUsuarioCliente, #contrasenaUsuarioCliente, #telefonoUsuarioCliente, #idUsuarioCliente, #selectCliente"
   ).prop("disabled", false);
@@ -1133,6 +1140,7 @@ $(document).ready(function () {
     const telefonoUsuario = $("#telefonoUsuario").val();
     const rolUsuario = $("#rolUsuario").val();
     const claveVendedor = $("#selectVendedor").val();
+    const token = $("#csrf_tokenU").val();
 
     // Validar que todos los campos requeridos estén completos
     if (
@@ -1162,6 +1170,7 @@ $(document).ready(function () {
         telefonoUsuario: telefonoUsuario,
         rolUsuario: rolUsuario,
         claveVendedor: claveVendedor,
+        token: token,
       },
       success: function (response) {
         const res = JSON.parse(response);
@@ -1170,13 +1179,14 @@ $(document).ready(function () {
           Swal.fire({
             text: "Usuario guardado exitosamente.",
             icon: "success",
-          });
-          // Cerrar el modal y limpiar el formulario
-          $("#usuarioModal").modal("hide");
-          $("#agregarUsuarioForm")[0].reset();
+          }).then(() => {
+            // Cerrar el modal y limpiar el formulario
+            $("#usuarioModal").modal("hide");
+            $("#agregarUsuarioForm")[0].reset();
 
-          // Recargar la tabla de usuarios (llama a tu función para mostrar usuarios)
-          location.reload();
+            // Recargar la tabla de usuarios (llama a tu función para mostrar usuarios)
+            location.reload();
+          });
         } else {
           //alert(res.message || 'Error al guardar el usuario.');
           Swal.fire({
@@ -1201,6 +1211,7 @@ $(document).ready(function () {
     const contrasenaUsuario = $("#contrasenaUsuarioCliente").val();
     const telefonoUsuario = $("#telefonoUsuarioCliente").val();
     const claveCliente = $("#claveUsuarioCliente").val();
+    const token = $("#csrf_tokenC").val();
 
     // Validar que todos los campos requeridos estén completos
     if (
@@ -1229,6 +1240,7 @@ $(document).ready(function () {
         rolUsuario: "CLIENTE",
         claveVendedor: "",
         claveCliente: claveCliente,
+        token: token,
       },
       success: function (response) {
         const res = JSON.parse(response);

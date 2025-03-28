@@ -519,6 +519,7 @@ function obtenerDatosFormulario() {
     almacen: document.getElementById("almacen").value,
     destinatario: document.getElementById("destinatario").value,
     conCredito: document.getElementById("conCredito").value,
+    token: document.getElementById("csrf_token").value,
   };
   return formularioData;
 }

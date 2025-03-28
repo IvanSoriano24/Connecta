@@ -209,7 +209,7 @@ function guardarDescuentos($data, $cliente)
     // Construir la estructura de campos usando "integerValue" para números
     $fields = [
         'claveUsuario' => ['stringValue' => $cliente],
-        'descuentoCliente' => ['integerValue' => $convertirDescuento($data["descuentoCliente"])],
+        'descuentoCliente' => ['integerValue' => strip_tags($convertirDescuento($data["descuentoCliente"]))],
         "descuentosProductos" => [
             "arrayValue" => [
                 "values" => array_map(function ($producto) use ($convertirDescuento) {
@@ -218,7 +218,7 @@ function guardarDescuentos($data, $cliente)
                             "fields" => [
                                 "clave" => ["stringValue" => $producto["clave"]],
                                 "descripcion" => ["stringValue" => $producto["descripcion"]],
-                                "descuento" => ["integerValue" => $convertirDescuento($producto["descuento"])],
+                                "descuento" => ["integerValue" => strip_tags($convertirDescuento($producto["descuento"]))],
                             ]
                         ]
                     ];

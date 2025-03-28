@@ -64,23 +64,30 @@ function guardarUsuario($datosUsuario)
     }
 
     // Determinar el estado según el tipo de usuario
-    $status = ($datosUsuario['rolUsuario'] === "CLIENTE") ? "Activo" : "Bloqueado";
-
+    if($idUsuario){
+        $status = obtenerStatus($idUsuario);
+    }else{
+        $status = ($datosUsuario['rolUsuario'] === "CLIENTE") ? "Activo" : "Bloqueado";
+    }
+    
     // Determinar qué clave guardar según el tipo de usuario
     $clave = ($datosUsuario['rolUsuario'] === "CLIENTE") ? $datosUsuario['claveCliente'] : $datosUsuario['claveVendedor'];
-
+    $opciones = [
+        'cost' => 12,
+    ];
     // Formatear los datos para Firebase (estructura de "fields")
     $fields = [
-        'usuario' => ['stringValue' => $datosUsuario['usuario']],
-        'nombre' => ['stringValue' => $datosUsuario['nombreUsuario']],
-        'apellido' => ['stringValue' => $datosUsuario['apellidosUsuario']],
-        'correo' => ['stringValue' => $datosUsuario['correoUsuario']],
-        'password' => ['stringValue' => $datosUsuario['contrasenaUsuario']],
-        'telefono' => ['stringValue' => $datosUsuario['telefonoUsuario']],
-        'tipoUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
-        'descripcionUsuario' => ['stringValue' => $datosUsuario['rolUsuario']],
-        'status' => ['stringValue' => $status], // Se asigna según la condición
-        'claveUsuario' => ['stringValue' => $clave], // Guardar la clave correcta
+        'usuario' => ['stringValue' => strip_tags($datosUsuario['usuario'])],
+        'nombre' => ['stringValue' => strip_tags($datosUsuario['nombreUsuario'])],
+        'apellido' => ['stringValue' => strip_tags($datosUsuario['apellidosUsuario'])],
+        'correo' => ['stringValue' => strip_tags($datosUsuario['correoUsuario'])],
+        //'password' => ['stringValue' => $datosUsuario['contrasenaUsuario']],
+        'password' => ['stringValue' => strip_tags(password_hash($datosUsuario['contrasenaUsuario'], PASSWORD_BCRYPT, $opciones))],
+        'telefono' => ['stringValue' => strip_tags($datosUsuario['telefonoUsuario'])],
+        'tipoUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
+        'descripcionUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
+        'status' => ['stringValue' => strip_tags($status)], // Se asigna según la condición
+        'claveUsuario' => ['stringValue' => strip_tags($clave)], // Guardar la clave correcta
     ];
 
     // Preparar la solicitud
@@ -109,6 +116,29 @@ function guardarUsuario($datosUsuario)
         echo json_encode(['success' => false, 'message' => 'No se pudo guardar el usuario.']);
     }
 }
+function obtenerStatus($idUsuario) {
+    global $firebaseProjectId, $firebaseApiKey;
+    
+    // Construir la URL para obtener el documento del usuario
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/$idUsuario?key=$firebaseApiKey";
+    
+    // Realizar la solicitud GET a Firebase
+    $response = @file_get_contents($url);
+    if ($response === FALSE) {
+        // Si ocurre un error, se puede retornar un valor por defecto o NULL
+        return null;
+    }
+    
+    $data = json_decode($response, true);
+    // Verificar si el campo 'status' existe en el documento
+    if (isset($data['fields']['status']['stringValue'])) {
+        return $data['fields']['status']['stringValue'];
+    }
+    
+    return null;
+}
+
+
 function mostrarUsuarios($usuarioLogueado, $usuario)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -396,7 +426,8 @@ function obtenerUsuarios()
     echo json_encode(['success' => true, 'data' => $usuarios]);
     exit();
 }
-function guardarAsociacion(){
+function guardarAsociacion()
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $empresa = $_POST['empresa'] ?? null;
@@ -405,13 +436,13 @@ function guardarAsociacion(){
     $usuario = $_POST['usuario'] ?? null;
     $claveUsuario = $_POST['claveUsuario'] ?? null;
 
-    
+
     if (!$empresa || !$id || !$noEmpresa || !$usuario) {
         echo json_encode(['success' => false, 'message' => 'Faltan datos para guardar la asociación.']);
         return;
     }
     $claveSae = obtenerClaveSae($noEmpresa);
-    if(!$claveSae){
+    if (!$claveSae) {
         echo json_encode(['success' => false, 'message' => 'Esta empresa no cuenta con una conexion.']);
         exit();
     }
@@ -545,14 +576,15 @@ function obtenerClaveSae($noEmpresa)
 
         if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
             return $fields['claveSae']['stringValue'] ?? null; // Retornar `claveSae` si existe
-        } else{
+        } else {
             return false;
         }
     }
 
     return null; // Si no se encuentra, retornar null
 }
-function obtenerAsociaciones(){
+function obtenerAsociaciones()
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $usuario = $_GET['usuarioId'] ?? null; // Se espera el campo `usuario`
@@ -599,7 +631,8 @@ function obtenerAsociaciones(){
     echo json_encode(['success' => true, 'data' => $asociaciones]);
     exit();
 }
-function obtenerConexiones(){
+function obtenerConexiones()
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $noEmpresa = $_GET['noEmpresa'] ?? null; // Se espera el campo `usuario`
@@ -915,7 +948,8 @@ function bajaUsuario()
     echo json_encode(['success' => true, 'message' => 'El usuario ha sido dado de baja exitosamente.']);
     exit();
 }
-function activarUsuario(){
+function activarUsuario()
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $usuarioId = $_POST['usuarioId'] ?? null;
@@ -927,11 +961,11 @@ function activarUsuario(){
 
     // URL para actualizar el campo `status` del usuario
     $urlUsuarioUpdate = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/$usuarioId?updateMask.fieldPaths=status&key=$firebaseApiKey";
-    if($empresas){
+    if ($empresas) {
         $fieldsUsuario = [
             'status' => ['stringValue' => 'Activo'], // Actualiza el campo `status` a 'Activo'
         ];
-    } else{
+    } else {
         $fieldsUsuario = [
             'status' => ['stringValue' => 'Bloqueado'], // Actualiza el campo `status` a 'Activo'
         ];
@@ -951,12 +985,12 @@ function activarUsuario(){
         echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado del usuario.']);
         return;
     }
-    if($empresas){
+    if ($empresas) {
         echo json_encode(['success' => true, 'message' => 'El usuario ha sido activado exitosamente.']);
-    } else{
+    } else {
         echo json_encode(['success' => true, 'message' => 'El usuario ha sido bloqueado al no tener empresas asociadas.']);
     }
-    
+
     exit();
 }
 function obtenerVendedor($conexionData, $claveSae)
@@ -1064,7 +1098,8 @@ function obtenerDatosVendedor($claveUsuario, $conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontró el vendedor.']);
     }
 }
-function obtenerClientes($conexionData, $claveSae){
+function obtenerClientes($conexionData, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1129,7 +1164,8 @@ function obtenerClientes($conexionData, $claveSae){
         echo json_encode(['success' => false, 'message' => 'No se encontraron clientes activos.']);
     }
 }
-function verificarVendedorFirebase($claveCliente){
+function verificarVendedorFirebase($claveCliente)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // URL de Firebase para obtener la colección de USUARIOS
@@ -1163,7 +1199,8 @@ function verificarVendedorFirebase($claveCliente){
     }
     echo json_encode(['success' => true, 'exists' => false]); // Cliente no existe
 }
-function verificarClienteFirebase($claveCliente){
+function verificarClienteFirebase($claveCliente)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // URL de Firebase para obtener la colección de USUARIOS
@@ -1197,7 +1234,8 @@ function verificarClienteFirebase($claveCliente){
     }
     echo json_encode(['success' => true, 'exists' => false]); // Cliente no existe
 }
-function obtenerDatosCliente($conexionData, $noEmpresa, $claveUsuario, $claveSae){
+function obtenerDatosCliente($conexionData, $noEmpresa, $claveUsuario, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1266,8 +1304,17 @@ switch ($funcion) {
             'claveVendedor' => $_POST['claveVendedor'],
             'claveCliente' => isset($_POST['claveCliente']) ? $_POST['claveCliente'] : null,
         ];
-        // Guardar los datos en Firebase o la base de datos
-        guardarUsuario($datosUsuario);
+        $csrf_token  = $_SESSION['csrf_token'];
+        $csrf_token_form = $_POST['token'];
+        if ($csrf_token === $csrf_token_form) {
+            // Guardar los datos en Firebase o la base de datos
+            guardarUsuario($datosUsuario);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error en la sesion.',
+            ]);
+        }
         break;
 
     case 2: // Editar pedido
@@ -1298,7 +1345,17 @@ switch ($funcion) {
         mostrarUsuario($id);
         exit();
     case 6:
-        obtenerUsuarios();
+        $csrf_token  = $_SESSION['csrf_token'];
+        $csrf_token_form = $_GET['token'];
+        if ($csrf_token === $csrf_token_form) {
+            obtenerUsuarios();
+        } else {
+            echo json_encode([
+                'success' => false,
+                'token' => true,
+                'message' => 'Error en la sesion.',
+            ]);
+        }
         break;
     case 7:
         guardarAsociacion();
@@ -1348,23 +1405,32 @@ switch ($funcion) {
             break;
         }
         $conexionData = $conexionResult['data'];
-        
+
         obtenerDatosVendedor($claveUsuario, $conexionData, $claveSae);
         break;
     case 15:
-        if (!isset($_SESSION['empresa']['noEmpresa'])) {
-            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
-            exit;
+        $csrf_token  = $_SESSION['csrf_token'];
+        $csrf_token_form = $_GET['token'];
+        if ($csrf_token === $csrf_token_form) {
+            if (!isset($_SESSION['empresa']['noEmpresa'])) {
+                echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+                exit;
+            }
+            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+            $claveSae = $_SESSION['empresa']['claveSae'];
+            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+            if (!$conexionResult['success']) {
+                echo json_encode($conexionResult);
+                break;
+            }
+            $conexionData = $conexionResult['data'];
+            obtenerClientes($conexionData, $claveSae);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error en la sesion.',
+            ]);
         }
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
-        if (!$conexionResult['success']) {
-            echo json_encode($conexionResult);
-            break;
-        }
-        $conexionData = $conexionResult['data'];
-        obtenerClientes($conexionData, $claveSae);
         break;
     case 16:
         $claveCliente = $_POST['claveCliente'];
@@ -1390,9 +1456,9 @@ switch ($funcion) {
         $claveVendedor = $_POST['claveVendedor'];
         verificarVendedorFirebase($claveVendedor);
         break;
-        case 19:
-            obtenerConexiones();
-            break;
+    case 19:
+        obtenerConexiones();
+        break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;

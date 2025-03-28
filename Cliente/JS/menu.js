@@ -119,6 +119,7 @@ function guardarEmpresa() {
     municipio: $("#municipio").val(),
     codigoPostal: $("#codigoPostal").val(),
     poblacion: $("#poblacion").val(),
+    token: $("#csrf_token").val(),
   };
   $.ajax({
     url: "../Servidor/PHP/empresas.php",
@@ -242,6 +243,7 @@ function guardarConexionSAE() {
     nombreBase: $("#nombreBase").val(),
     claveSae: $("#claveSae").val(),
     noEmpresa: noEmpresa,
+    token: $("#csrf_token").val(),
   };
   $.ajax({
     url: "../Servidor/PHP/sae.php",
@@ -286,6 +288,7 @@ function guardarConexionSAENew() {
     nombreBase: $("#nombreBase").val(),
     claveSae: $("#claveSae").val(),
     noEmpresa: noEmpresa,
+    token: $("#csrf_token").val(),
   };
 
   $.ajax({

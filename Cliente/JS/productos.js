@@ -1,7 +1,8 @@
+const token = document.getElementById("csrf_token").value;
 function cargarProductosDash() {
   const numFuncion = 11; // Identificador del caso en PHP
   const xhr = new XMLHttpRequest();
-  xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
+  xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion +"&token=" + token, true);
   xhr.setRequestHeader("Content-Type", "application/json");
   xhr.onload = function () {
       if (xhr.status === 200) {

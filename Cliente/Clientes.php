@@ -93,6 +93,7 @@ if (isset($_SESSION['usuario'])) {
 					</div>
 
 					<div class="table-data">
+					<input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
 						<div class="order">
 							<div class="head">
 								<h3>Clientes</h3>

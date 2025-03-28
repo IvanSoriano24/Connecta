@@ -807,7 +807,6 @@ function obtenerDatosPedido(pedidoID) {
 // }
 
 function cargarPartidasPedido(pedidoID) {
-  console.log("Cargando partidas para el pedido:", pedidoID);
 
   $.post(
     "../Servidor/PHP/ventas.php",
