@@ -146,6 +146,53 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
     echo "❓ No se cumplieron las condiciones, devolviendo null\n";
     return null; // por si no se cumple ninguna condición
 }
+
+function crearFactura($folio, $noEmpresa)
+{
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = 'http://localhost/MDConnecta/Servidor/XML/ejemplos/cfdi40/ejemplo_factura_basica4.php';
+
+    $data = [
+        'cve_doc' => $folio,
+        'noEmpresa' => $noEmpresa
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $facturaUrl);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/x-www-form-urlencoded'
+    ]);
+
+    $facturaResponse = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        echo 'Error cURL: ' . curl_error($ch);
+    }
+
+    curl_close($ch);
+
+    //echo "Respuesta de remision.php: " . $remisionResponse;
+    $facturaData = json_decode($facturaResponse, true);
+    //echo "Respuesta de decodificada.php: " . $remisionData;
+    //$cveDoc = trim($remisionData['cveDoc']);
+
+    // Verificar si la respuesta es un PDF
+    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+    if (strpos($contentType, 'application/pdf') !== false) {
+        // Guardar el PDF localmente o redireccionar
+        file_put_contents("remision.pdf", $facturaResponse);
+        echo "<script>window.open('remision.pdf', '_blank');</script>";
+    }
+    echo "<div class='container'>
+        <div class='title'>Confirmación Exitosa</div>
+        <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+        <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
+      </div>";
+}
+
 function verificarHora($firebaseProjectId, $firebaseApiKey)
 {
     $horaActual = (int) date('Hi'); // Formato "Hi" concatenado como un número entero
@@ -182,13 +229,11 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                 $remitido = verificarEstadoPedido($folio, $conexionData, $claveSae);
                 if ($remitido) {
                     //Funcion para crear factura
-                    var_dump("FACTURA");
+                    crearFactura($folio, $noEmpresa);
                 }
             }
         }
-        //var_dump("No encontro documento");
     }
-    //var_dump("Fuera de horario");
 }
 
 verificarHora($firebaseProjectId, $firebaseApiKey);

@@ -150,10 +150,9 @@ function datosProcuto($CVE_ART)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosEmpresa()
+function datosEmpresa($noEmpresa)
 {
     global $firebaseProjectId, $firebaseApiKey;
-    $noEmpresa = '02';
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
     // Configura el contexto de la solicitud para manejar errores y tiempo de espera
@@ -207,21 +206,21 @@ function datosEmpresa()
 //$cve_doc = '          0000018624'; //Redondea el descuento y no es igual al descuento que se tiene
 //$cve_doc = '          0000018628';
 //No hacer pruebas con 0000018758 en adelante
-function cfdi($cve_doc)
+function cfdi($cve_doc, $noEmpresa)
 {
     $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
     $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
     $pedidoData = datosPedido($cve_doc);
     $productosData = datosPartida($cve_doc);
     $clienteData = datosCliente($pedidoData['CVE_CLPV']);
-    $empresaData = datosEmpresa();
+    $empresaData = datosEmpresa($noEmpresa);
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
     // Ruta del XML Timbrado
-    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '.xml';
+    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($pedidoData['FOLIO']) .  '.xml';
 
     // Ruta del XML de Debug
-    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '.xml';
+    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($pedidoData['FOLIO']) .  '.xml';
 
     // Credenciales de Timbrado
     $datos['PAC']['usuario'] = 'DEMO700101XXX';
@@ -268,18 +267,17 @@ function cfdi($cve_doc)
     } else {
         $datos['emisor']['RegimenFiscal'] = $regimenStr;
     }
-
     /*
-// Datos del Emisor
-$datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
-$datos['emisor']['nombre'] = $empresaData['razonSocial'];  // EMPRESA DE PRUEBA
-$regimenStr = $empresaData['regimenFiscal'];
-if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
-    $datos['emisor']['RegimenFiscal'] = $matches[1];
-} else {
-    $datos['emisor']['RegimenFiscal'] = $regimenStr;
-}
-*/
+    // Datos del Emisor
+    $datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
+    $datos['emisor']['nombre'] = $empresaData['razonSocial'];  // EMPRESA DE PRUEBA
+    $regimenStr = $empresaData['regimenFiscal'];
+    if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
+        $datos['emisor']['RegimenFiscal'] = $matches[1];
+    } else {
+        $datos['emisor']['RegimenFiscal'] = $regimenStr;
+    }
+    */
 
     // Datos del Receptor $clienteData['']
     $datos['receptor']['rfc'] = $clienteData['RFC'];
@@ -353,7 +351,9 @@ if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
     }
 }
 $cve_doc = $_POST['cve_doc'];
-cfdi($cve_doc);
+$noEmpresa = $_POST['noEmpresa'];
+//$cve_doc = '18631';
+cfdi($cve_doc, $noEmpresa);
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));
 $datos['conf']['key'] =base64_encode(file_get_contents($empresa['archivo_key']));
