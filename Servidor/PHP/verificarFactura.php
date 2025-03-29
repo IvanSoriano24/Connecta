@@ -147,15 +147,18 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
     return null; // por si no se cumple ninguna condición
 }
 
-function crearFactura($folio, $noEmpresa)
+function crearFactura($folio, $noEmpresa, $claveSae)
 {
-    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    $facturaUrl = 'http://localhost/MDConnecta/Servidor/XML/ejemplos/cfdi40/ejemplo_factura_basica4.php';
+    //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
-        'noEmpresa' => $noEmpresa
+        'noEmpresa' => $noEmpresa,
+        'claveSae' => $claveSae
     ];
+    //var_dump($data);
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $facturaUrl);
@@ -176,19 +179,10 @@ function crearFactura($folio, $noEmpresa)
 
     //echo "Respuesta de remision.php: " . $remisionResponse;
     $facturaData = json_decode($facturaResponse, true);
-    //echo "Respuesta de decodificada.php: " . $remisionData;
-    //$cveDoc = trim($remisionData['cveDoc']);
-
-    // Verificar si la respuesta es un PDF
-    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-    if (strpos($contentType, 'application/pdf') !== false) {
-        // Guardar el PDF localmente o redireccionar
-        file_put_contents("remision.pdf", $facturaResponse);
-        echo "<script>window.open('remision.pdf', '_blank');</script>";
-    }
+    //echo "Respuesta de decodificada.php: " . $facturaData;
     echo "<div class='container'>
         <div class='title'>Confirmación Exitosa</div>
-        <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+        <div class='message'>La factura ha sido realizada correctamente.</div>
         <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
       </div>";
 }
@@ -229,7 +223,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                 $remitido = verificarEstadoPedido($folio, $conexionData, $claveSae);
                 if ($remitido) {
                     //Funcion para crear factura
-                    crearFactura($folio, $noEmpresa);
+                    crearFactura($folio, $noEmpresa, $claveSae);
                 }
             }
         }

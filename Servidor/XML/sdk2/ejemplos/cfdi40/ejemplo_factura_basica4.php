@@ -10,7 +10,7 @@ date_default_timezone_set('America/Mexico_City');
 
 // Se incluye el SDK
 require_once '../../sdk2.php';
-function datosCliente($clie)
+function datosCliente($clie, $claveSae)
 {
     $serverName = "187.188.133.4";
     $connectionInfo = [
@@ -24,7 +24,6 @@ function datosCliente($clie)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $claveSae = '02';
     $nombreTabla   = "[SAE90Empre02].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
@@ -45,7 +44,7 @@ function datosCliente($clie)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosPedido($cve_doc)
+function datosPedido($cve_doc, $claveSae)
 {
     $serverName = "187.188.133.4";
     $connectionInfo = [
@@ -59,7 +58,6 @@ function datosPedido($cve_doc)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $claveSae = '02';
     $nombreTabla  = "[SAE90Empre02].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
@@ -76,12 +74,12 @@ function datosPedido($cve_doc)
     if ($pedidoData) {
         return $pedidoData;
     } else {
-        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
+        echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cve_doc"]);
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosPartida($cve_doc)
+function datosPartida($cve_doc, $claveSae)
 {
     $serverName = "187.188.133.4";
     $connectionInfo = [
@@ -95,7 +93,6 @@ function datosPartida($cve_doc)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $claveSae = '02';
     $nombreTabla  = "[SAE90Empre02].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
@@ -115,7 +112,7 @@ function datosPartida($cve_doc)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosProcuto($CVE_ART)
+function datosProcuto($CVE_ART, $claveSae)
 {
     $serverName = "187.188.133.4";
     $connectionInfo = [
@@ -129,7 +126,7 @@ function datosProcuto($CVE_ART)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $claveSae = '02';
+
     $nombreTabla  = "[SAE90Empre02].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
@@ -206,13 +203,13 @@ function datosEmpresa($noEmpresa)
 //$cve_doc = '          0000018624'; //Redondea el descuento y no es igual al descuento que se tiene
 //$cve_doc = '          0000018628';
 //No hacer pruebas con 0000018758 en adelante
-function cfdi($cve_doc, $noEmpresa)
+function cfdi($cve_doc, $noEmpresa, $claveSae)
 {
     $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
     $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
-    $pedidoData = datosPedido($cve_doc);
-    $productosData = datosPartida($cve_doc);
-    $clienteData = datosCliente($pedidoData['CVE_CLPV']);
+    $pedidoData = datosPedido($cve_doc, $claveSae);
+    $productosData = datosPartida($cve_doc, $claveSae);
+    $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae);
     $empresaData = datosEmpresa($noEmpresa);
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
@@ -278,7 +275,6 @@ function cfdi($cve_doc, $noEmpresa)
         $datos['emisor']['RegimenFiscal'] = $regimenStr;
     }
     */
-
     // Datos del Receptor $clienteData['']
     $datos['receptor']['rfc'] = $clienteData['RFC'];
     $datos['receptor']['nombre'] = $clienteData['NOMBRE'];
@@ -290,7 +286,7 @@ function cfdi($cve_doc, $noEmpresa)
     $DES = 0;
     $Sum = 0;
     foreach ($productosData as $producto) {
-        $dataProduc = datosProcuto($producto['CVE_ART']);
+        $dataProduc = datosProcuto($producto['CVE_ART'], $claveSae);
         $concepto = [];
         // Calcular la base imponible restando el descuento, si lo hay
         $baseImpuesto = $producto['TOT_PARTIDA'];
@@ -336,11 +332,11 @@ function cfdi($cve_doc, $noEmpresa)
     //$datos['impuestos']['TotalImpuestosTrasladados'] = round($IMPU, 2);   //Original
     $datos['impuestos']['TotalImpuestosTrasladados'] = sprintf('%.2f', $IMPU);
 
-    //echo "<pre>";print_r($datos);echo "</pre>";
+    echo "<pre>";print_r($datos);echo "</pre>";
     $res = mf_genera_cfdi4($datos);
-    //$res = mf_default($datos);
-    //var_dump($res);
-
+    /*$res = mf_default($datos);
+    var_dump($res);*/
+    return $res;
     ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
     echo "<h1>Respuesta Generar XML y Timbrado</h1>";
     foreach ($res as $variable => $valor) {
@@ -350,10 +346,13 @@ function cfdi($cve_doc, $noEmpresa)
         echo "<b>[$variable]=</b>$valor<hr>";
     }
 }
+//http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
+//http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
 $cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
+$claveSae = $_POST['claveSae'];
 //$cve_doc = '18631';
-cfdi($cve_doc, $noEmpresa);
+cfdi($cve_doc, $noEmpresa, $claveSae );
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));
 $datos['conf']['key'] =base64_encode(file_get_contents($empresa['archivo_key']));
