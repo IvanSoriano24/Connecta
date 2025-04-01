@@ -2698,7 +2698,7 @@ function extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente
         i.[COSTO_PROM],
         p.[PRECIO] -- Se une el precio del producto
     FROM $nombreTabla1 i
-    LEFT JOIN $nombreTabla1 p 
+    LEFT JOIN $nombreTabla2 p 
         ON i.[CVE_ART] = p.[CVE_ART] 
         AND p.[CVE_PRECIO] = ? WHERE i.[EXIST] > 0";
 

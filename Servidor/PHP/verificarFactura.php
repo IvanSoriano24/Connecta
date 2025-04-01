@@ -152,7 +152,8 @@ function obtenerVendedor($clave, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerEmpresa($noEmpresa){
+function obtenerEmpresa($noEmpresa)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
@@ -423,8 +424,9 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa)
     $enviarA = $clienteData['CALLE']; // Dirección de envío
     $vendedor = $vendedorData['NOMBRE']; // Número de vendedor
     $noPedido = $formularioData['FOLIO']; // Número de pedido
-    /*$claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
-    $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);*/
+    $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($formularioData['FOLIO']) . ".xml";
+    $rutaQr = "../XML/sdk2/timbrados/cfdi_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($formularioData['FOLIO']) . ".png";
+    $rutaCfdi = "../XML/sdk2/timbrados/cfdi_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($formularioData['FOLIO']) . ".xml";
 
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -460,17 +462,27 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa)
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/
     if ($correo === 'S' && !empty($emailPred)) {
-        //enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo); // Enviar correo
+        //$resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
+        $pdfCaption = "Factura de su pedido";
+        $pdfFilename = "Factura_" . urlencode($folio) . ".pdf";
+        $xmlCaption = "XML de su pedido";
+        $xmlFilename = "cfdi_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($formularioData['FOLIO']) . ".xml";
+        //http://localhost/MDConnecta/Servidor
+        $pdfUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" .urlencode($folio) . ".pdf";
+        $xmlUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/timbrados/cfdi_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($formularioData['FOLIO']) . ".xml";
+        $responsePDF = enviarDocumentoWhatsApp($numeroWhatsApp, $pdfUrl, $pdfCaption, $pdfFilename);
+        $responseXML = enviarDocumentoWhatsApp($numeroWhatsApp, $xmlUrl, $xmlCaption, $xmlFilename);
+        
+        //var_dump($responseXML);
 
-        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        //enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
     }
     sqlsrv_close($conn);
 }
-    $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -483,9 +495,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         $correoRemitente = "";
         $contraseñaRemitente = "";
     }
-    //$correoRemitente = null;
-    //$contraseñaRemitente = null;
-    // Definir el correo de destino (puedes cambiarlo si es necesario)
+
     $correoDestino = $correo;
 
     // Asunto del correo
@@ -535,7 +545,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
 
     // Enviar el correo con el remitente dinámico
-    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correoDestino, $asunto, $bodyHTML, $rutaPDF, $correoRemitente, $contraseñaRemitente);
+    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correoDestino, $asunto, $bodyHTML, $rutaPDF, $rutaCfdi, $correoRemitente, $contraseñaRemitente, $rutaXml, $rutaQr);
 
     if ($resultado === "Correo enviado exitosamente.") {
         // En caso de éxito, puedes registrar logs o realizar alguna otra acción
@@ -544,6 +554,110 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
+function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave)
+{
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+    // ✅ Verifica que los valores no estén vacíos
+    if (empty($noPedido) || empty($claveSae)) {
+        error_log("Error: noPedido o noEmpresa están vacíos.");
+        return false;
+    }
+
+    $data = [
+        "messaging_product" => "whatsapp", // 📌 Campo obligatorio
+        "recipient_type" => "individual",
+        "to" => $numeroWhatsApp,
+        "type" => "template",
+        "template" => [
+            "name" => "factura_pedido", // 📌 Nombre EXACTO en Meta Business Manager
+            "language" => ["code" => "es_MX"], // 📌 Corregido a español España
+            "components" => [
+                [
+                    "type" => "header",
+                    "parameters" => [
+                        ["type" => "text", "text" => $clienteNombre] // 📌 Encabezado dinámico
+                    ]
+                ],
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        ["type" => "text", "text" => $noPedido]
+                    ]
+                ]
+            ]
+        ]
+    ];
+    // ✅ Verificar JSON antes de enviarlo
+    $data_string = json_encode($data, JSON_PRETTY_PRINT);
+    error_log("WhatsApp JSON: " . $data_string);
+
+    // ✅ Revisar si el JSON contiene `messaging_product`
+    if (!isset($data['messaging_product'])) {
+        error_log("ERROR: 'messaging_product' no está en la solicitud.");
+        return false;
+    }
+
+    // ✅ Enviar solicitud a WhatsApp API con headers correctos
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer " . $token,
+        "Content-Type: application/json"
+    ]);
+
+    $result = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    error_log("WhatsApp Response: " . $result);
+    error_log("HTTP Status Code: " . $http_code);
+
+    return $result;
+}
+function enviarDocumentoWhatsApp($numeroWhatsApp, $mediaLink, $caption, $filename)
+{
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+
+    // Crear el payload para enviar un documento
+    $data = [
+        "messaging_product" => "whatsapp",
+        "recipient_type" => "individual",
+        "to" => $numeroWhatsApp,
+        "type" => "document",
+        "document" => [
+            "link" => $mediaLink,        // URL pública del archivo o link subido a la API
+            "caption" => $caption,       // Texto descriptivo (opcional)
+            "filename" => $filename      // Nombre del archivo a mostrar en WhatsApp
+        ]
+    ];
+
+    // Inicializar cURL
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer $token",
+        "Content-Type: application/json"
+    ]);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    if (curl_errno($ch)) {
+        $error_msg = curl_error($ch);
+    }
+    curl_close($ch);
+
+    if (isset($error_msg)) {
+        return "Error: " . $error_msg;
+    }
+    return $response;
+}
+
 
 function verificarHora($firebaseProjectId, $firebaseApiKey)
 {
@@ -579,13 +693,14 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                 $conexionData = $conexionResult['data'];
                 //Se verifica que el pedido este remitido
                 $remitido = verificarEstadoPedido($folio, $conexionData, $claveSae);
-                if ($remitido) { 
-                    //$folio = "18490";
+                if ($remitido) {
+                    $folio = "18490";
                     //$folio = "18456";
                     //Funcion para crear factura
                     crearFactura($folio, $noEmpresa, $claveSae);
                     $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData);
                     validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa);
+                    die();
                 }
             }
         }

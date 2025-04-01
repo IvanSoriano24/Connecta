@@ -39,11 +39,13 @@ class clsMail
         string $asunto,
         string $bodyHTML,
         string $archivoAdjunto = null,
+        string $rutaCfdi = null,
         string $correoRemitente = null,
-        string $passwordRemitente = null
+        string $passwordRemitente = null,
+        string $rutaXml = null,
+        string $rutaQr = null
     ) {
         try {
-            
             if ($correoRemitente === "" || $passwordRemitente === "") {
                 $remitente = $this->defaultUser;
                 $password = $this->defaultPass;
@@ -62,8 +64,9 @@ class clsMail
             $this->mail->isHTML(true); // Indicar que el correo tiene contenido HTML
 
             // *Adjuntar el archivo si existe*
-            if (!empty($archivoAdjunto) && file_exists($archivoAdjunto)) {
+            if (!empty($archivoAdjunto) && file_exists($archivoAdjunto) && !empty($rutaCfdi) && file_exists($rutaCfdi)) {
                 $this->mail->addAttachment($archivoAdjunto);
+                $this->mail->addAttachment($rutaCfdi);
             }
 
             // Enviar el correo y manejar errores
@@ -73,9 +76,11 @@ class clsMail
 
             // *Eliminar el archivo adjunto después del envío*
             if (!empty($archivoAdjunto) && file_exists($archivoAdjunto)) {
+                unlink($rutaCfdi);
+                unlink($rutaXml);
+                unlink($rutaQr);
                 unlink($archivoAdjunto);
             }
-
             return "Correo enviado exitosamente.";
         } catch (Exception $e) {
             return "Error al enviar el correo: {$this->mail->ErrorInfo}";

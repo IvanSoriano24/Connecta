@@ -327,7 +327,7 @@ function abrirModalProducto(producto, precio) {
 
   // Configurar el botón "Agregar al carrito"
   const btnAddToCart = document.getElementById("btn-add-to-cart");
-
+  añadirEvento(producto.CVE_ART);
   // Eliminar cualquier evento previo
   btnAddToCart.onclick = null;
 
@@ -414,6 +414,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+function añadirEvento(CVE_ART){
+  
+}
 //-----------------------------------------------------------------------------
 
 // ----------FUNCIONES CARRITO-------------------------------------------------------------------
