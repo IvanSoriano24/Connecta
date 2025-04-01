@@ -70,7 +70,7 @@ function obtenerCredito($conexionData, $claveUsuario, $claveSae)
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $sql = "SELECT 
+    $sql = "SELECT CLAVE,
         SALDO, LIMCRED
     FROM 
         $nombreTabla
@@ -108,12 +108,14 @@ function buscarSujerencias($conexionData, $claveUsuario, $claveSae)
     $nombreTabla1 = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla4 = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "
             WITH ultimos AS (
         SELECT TOP (25)
             p.CVE_DOC,
             p.CVE_ART, 
             p.CANT,
+            c.LISTA_PREC,
             MAX(p.PREC) AS PREC,
             SUM(p.CANT) AS TOTAL_COMPRADO, 
             MAX(i.DESCR) AS DESCR, 
@@ -127,9 +129,10 @@ function buscarSujerencias($conexionData, $claveUsuario, $claveSae)
         FROM $nombreTabla1 p
         INNER JOIN $nombreTabla2 f ON p.CVE_DOC = f.CVE_DOC
         INNER JOIN $nombreTabla3 i ON p.CVE_ART = i.CVE_ART
+        INNER JOIN $nombreTabla4 c ON f.CVE_CLPV = c.CLAVE
         WHERE f.CVE_CLPV = ?
         AND i.EXIST > 0
-        GROUP BY p.CVE_ART, p.CANT, p.CVE_DOC
+        GROUP BY p.CVE_ART, p.CANT, p.CVE_DOC, c.LISTA_PREC
         ORDER BY ULTIMA_COMPRA DESC
     )
     SELECT *
@@ -221,6 +224,104 @@ function validarSaldo($conexionData, $clave, $claveSae)
     }
 }
 
+function extraerProductosSujerencias($conexionData, $claveSae, $listaPrecioCliente, $CVE_ART ){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    $nombreTabla1 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[PRECIO_X_PROD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta para obtener los productos más vendidos del cliente
+    $sql = "
+    SELECT 
+        i.[CVE_ART], 
+        i.[DESCR], 
+        i.[EXIST], 
+        i.[LIN_PROD], 
+        i.[UNI_MED],
+        i.[APART],
+        i.[CVE_ESQIMPU],
+        i.[CVE_UNIDAD],
+        i.[COSTO_PROM],
+        p.[PRECIO] -- Se une el precio del producto
+    FROM $nombreTabla1 i
+    LEFT JOIN $nombreTabla2 p 
+        ON i.[CVE_ART] = p.[CVE_ART] 
+        AND p.[CVE_PRECIO] = ? WHERE i.[EXIST] > 0";
+
+    $params = [$listaPrecioCliente]; // Parámetro para filtrar por cliente
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    // Obtener todas las imágenes de Firebase en un solo lote
+    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app";
+    $imagenesPorArticulo = listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket);
+    $productos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        // Asignar las imágenes correspondientes al producto
+        $row['IMAGEN_ML'] = $imagenesPorArticulo[$CVE_ART] ?? []; // Si no hay imágenes, asignar un array vacío
+
+        $productos[] = $row;
+    }
+
+    if (count($productos) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'productos' => $productos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket)
+{
+    // Asegurar que el prefijo termine con '/'
+    $url = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o?prefix=imagenes/";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+
+    // Depuración de la respuesta de Firebase
+    //var_dump($data);
+
+    $imagenesPorArticulo = [];
+    if (isset($data['items'])) {
+        foreach ($data['items'] as $item) {
+            $name = $item['name']; // Ejemplo: "imagenes/AB-2PAM/imagen1.jpg"
+            $parts = explode('/', $name);
+
+            if (count($parts) >= 2) {
+                $cveArt = $parts[1]; // "AB-2PAM"
+                $imagenesPorArticulo[$cveArt][] = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o/" . rawurlencode($name) . "?alt=media";
+            }
+        }
+    }
+
+    return $imagenesPorArticulo;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     $funcion = $_POST['numFuncion'];
     // Asegúrate de recibir los datos en JSON y decodificarlos correctamente
@@ -256,7 +357,7 @@ switch ($funcion) {
         $claveUsuario = $_SESSION['usuario']['claveUsuario'];
         /*$validarSaldo = validarSaldo($conexionData, $claveUsuario, $claveSae);
         if ($validarSaldo === 0) {*/
-            buscarSujerencias($conexionData, $claveUsuario, $claveSae);
+        buscarSujerencias($conexionData, $claveUsuario, $claveSae);
         /*} else {
             echo json_encode([
                 'success' => false,
@@ -264,6 +365,15 @@ switch ($funcion) {
                 'message' => 'Tienes Saldo Vencido.',
             ]);
         }*/
+        break;
+    case 3:
+        $noEmpresa = "02";
+        $claveSae = "02";
+        $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conexionData = $conexionResult['data'];
+        $listaPrecioCliente = $_GET['listaPrecioCliente'];
+        $articulos = $_GET['articulos'];
+        extraerProductosSujerencias($conexionData, $claveSae, $listaPrecioCliente, $articulos );
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

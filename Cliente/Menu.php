@@ -52,6 +52,8 @@ if (isset($_SESSION['usuario'])) {
 
     <!-- Main CSS File -->
     <link href="assets/css/main.css" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/articulos.css">
+
     <style>
         .hero-img {
             width: 100%;
@@ -193,6 +195,19 @@ if (isset($_SESSION['usuario'])) {
                 min-height: auto;
                 text-align: center;
             }
+        }
+    </style>
+    <style>
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            /* Fondo semitransparente negro */
+            padding: 0.75rem;
+            /* Espaciado interno para agrandar el icono */
+            border-radius: 50%;
+            /* Bordes redondeados */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+            /* Sombra para mayor contraste */
         }
     </style>
     <!-- CSS PARA CARDS -->
@@ -370,17 +385,48 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                 </div>
                             </div>
-
-
                         </div>
                     </div>
             </section>
-
         </main>
-
         <!-- FOOTER -->
         <?php include 'FooterEcommerce.php'; ?>
-
+    </div>
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <!-- Header del Modal -->
+            <div class="modal-header">
+                <h2 id="modal-title">Nombre del Producto</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-image">
+                    <div id="modal-carousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner" id="modal-carousel-inner">
+                            <!-- Imágenes del producto se insertarán aquí -->
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#modal-carousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#modal-carousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-details">
+                    <p class="modal-price" id="modal-price">$0.00</p>
+                    <div class="modal-add-cart">
+                        <input type="number" id="cantidadProducto" value="1" min="1">
+                        <button id="btn-add-to-cart" class="btn btn-primary">Añadir al carrito</button>
+                    </div>
+                    <br><br>
+                    <h3>Descripción</h3>
+                    <p id="modal-description">Descripción del producto aquí.</p>
+                    <h4>Información adicional</h4>
+                    <p id="modal-lin-prod">Línea del Producto: </p>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- Scroll Top -->
     <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
@@ -504,9 +550,13 @@ if (isset($_SESSION['usuario'])) {
                         imagenSrc = producto.IMAGEN_ML[0];
                     }
 
-                    // Estructura de la tarjeta
+                    // Usando JSON.stringify para pasar el objeto producto y el precio
+                    // Se envuelve el JSON con comillas simples para evitar conflictos
+                    const productoJSON = encodeURIComponent(JSON.stringify(producto));
+
+                    // Estructura de la tarjeta con atributo onclick
                     const productCard = `
-                <div class="card">
+                <div class="card" onclick='abrirModalProducto(JSON.parse(decodeURIComponent("${productoJSON}")), ${producto.PRECIO})'>
                     <div class="card-image">
                         <img src="${imagenSrc}" alt="${producto.DESCR}" class="product-img">
                     </div>
@@ -529,17 +579,16 @@ if (isset($_SESSION['usuario'])) {
 
             // Botones de navegación del carrusel
             const prevButton = `
-                <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                </button>
+            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            </button>
             `;
 
             const nextButton = `
-                <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            </button>
             `;
-
             // Agregar los elementos al carrusel
             carousel.appendChild(carouselInner);
             carousel.innerHTML += prevButton + nextButton;
@@ -548,12 +597,261 @@ if (isset($_SESSION['usuario'])) {
             contenedorProductos.appendChild(carousel);
         }
 
+        function abrirModalProducto(producto, precio) {
+            const modal = document.getElementById("productModal");
+            if (!modal) {
+                console.error("Error: No se encontró el modal");
+                return;
+            }
+            //añadirEvento(producto.CVE_ART);
+            // Agregar información del producto
+            document.getElementById("modal-title").textContent = producto.DESCR;
+            document.getElementById("modal-price").textContent = `$${parseFloat(
+                precio
+            ).toFixed(2)}`;
+            document.getElementById("modal-description").textContent = producto.DESCR;
+            document.getElementById(
+                "modal-lin-prod"
+            ).textContent = `Línea del Producto: ${producto.LIN_PROD}`;
 
+            // Generar carrusel de imágenes dentro del modal
+            const modalInner = document.getElementById("modal-carousel-inner");
+            modalInner.innerHTML =
+                Array.isArray(producto.IMAGEN_ML) && producto.IMAGEN_ML.length > 0 ?
+                producto.IMAGEN_ML.map(
+                    (imgUrl, index) => `
+            <div class="carousel-item ${index === 0 ? "active" : ""}">
+                <img src="${imgUrl}" class="d-block w-100" alt="Imagen del Producto">
+            </div>
+            `
+                ).join("") :
+                `<div class="carousel-item active">
+                <img src="SRC/noimg.png" class="d-block w-100" alt="Imagen no disponible">
+           </div>`;
 
+            // Resetear el valor del input de cantidad
+            document.getElementById("cantidadProducto").value = 1;
 
+            // Configurar el botón "Agregar al carrito"
+            const btnAddToCart = document.getElementById("btn-add-to-cart");
 
+            // Eliminar cualquier evento previo
+            btnAddToCart.onclick = null;
+
+            // Asignar nuevo evento al botón
+            btnAddToCart.onclick = () => {
+                const cantidad = parseInt(
+                    document.getElementById("cantidadProducto").value
+                );
+
+                // Validar cantidad
+                if (!cantidad || cantidad <= 0) {
+                    Swal.fire({
+                        title: "Cantidad no válida",
+                        text: "Por favor, ingresa una cantidad mayor a 0.",
+                        icon: "error",
+                        confirmButtonText: "Aceptar",
+                    });
+                    return;
+                }
+
+                // Agregar al carrito
+                agregarAlCarrito(producto, cantidad, precio);
+
+                // Llamar a cerrar el modal
+                //cerrarModal2();
+
+                // Mostrar la alerta después de cerrar el modal
+                setTimeout(() => {
+                    Swal.fire({
+                        title: "Producto agregado",
+                        text: `${cantidad} unidad(es) de "${producto.DESCR}" se agregó correctamente al carrito.`,
+                        icon: "success",
+                        confirmButtonText: "Aceptar",
+                    });
+                }, 300); // Pequeño retraso para evitar solapamiento
+            };
+
+            // Mostrar el modal
+            modal.style.display = "flex";
+            modal.style.opacity = "1";
+            modal.style.visibility = "visible";
+        }
+
+        function cerrarModal2() {
+            const modal = document.getElementById("productModal");
+
+            if (!modal) {
+                // alert("Error: No se encontró el modal");
+                console.error("Error: No se encontró el modal");
+                return;
+            }
+
+            // Ocultar el modal cambiando el estilo
+            modal.style.display = "none";
+            modal.style.opacity = "0";
+            modal.style.visibility = "hidden";
+        }
+
+        function añadirEvento(CVE_ART) {
+            $.ajax({
+                url: "../Servidor/PHP/tblControl.php",
+                type: "GET",
+                data: {
+                    numFuncion: "1",
+                    CVE_ART: CVE_ART
+                },
+                success: function(response) {
+                    try {
+                        const res =
+                            typeof response === "string" ? JSON.parse(response) : response;
+                        if (res.success) {
+                            console.log("Evento Guardado");
+                        } else {
+                            console.log("Evento No Guardado");
+                        }
+                    } catch (error) {
+                        console.error("Error al procesar la respuesta de clientes:", error);
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Error al obtener la lista de clientes.",
+                    });
+                },
+            });
+        }
+
+        async function obtenerImpuesto(cveEsqImpu) {
+            try {
+                const response = await fetch("../Servidor/PHP/ventas.php", {
+                    method: "POST",
+                    body: new URLSearchParams({
+                        cveEsqImpu: cveEsqImpu,
+                        numFuncion: "7",
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    console.error("Error del servidor:", data.message);
+                    return {
+                        impuesto1: 0,
+                        impuesto2: 0,
+                        impuesto3: 0,
+                        impuesto4: 0
+                    };
+                }
+
+                return {
+                    impuesto1: parseFloat(data.impuestos.IMPUESTO1) || 0,
+                    impuesto2: parseFloat(data.impuestos.IMPUESTO2) || 0,
+                    impuesto3: parseFloat(data.impuestos.IMPUESTO3) || 0,
+                    impuesto4: parseFloat(data.impuestos.IMPUESTO4) || 0,
+                };
+            } catch (error) {
+                console.error("Error en la solicitud de impuestos:", error);
+                return {
+                    impuesto1: 0,
+                    impuesto2: 0,
+                    impuesto3: 0,
+                    impuesto4: 0
+                };
+            }
+        }
+        async function completarPrecioProducto(producto, cantidad, precioBase) {
+            try {
+                const CVE_ESQIMPU = producto.CVE_ESQIMPU || "1"; // Si no tiene esquema de impuestos, se asigna "1"
+
+                // Obtener impuestos
+                const impuestos = await obtenerImpuesto(CVE_ESQIMPU);
+
+                // Calcular el precio final con impuestos
+                const impuestoTotal =
+                    (precioBase *
+                        (impuestos.impuesto1 + impuestos.impuesto4 + impuestos.impuesto3)) /
+                    100;
+                const precioFinal = precioBase + impuestoTotal;
+
+                return {
+                    impuestos,
+                };
+            } catch (error) {
+                console.error("Error al calcular el precio del producto:", error);
+            }
+        }
+        async function agregarAlCarrito(producto, cantidad = 1, precio) {
+            let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+            // Buscar si el producto ya está en el carrito
+            let productoExistente = carrito.find((item) => item.CVE_ART === producto.CVE_ART);
+
+            if (productoExistente) {
+                // 📌 Si ya existe, sumamos la cantidad nueva
+                productoExistente.cantidad += cantidad;
+            } else {
+                // 📌 Si no existe, lo agregamos con la cantidad seleccionada
+                let imagenProducto =
+                    Array.isArray(producto.IMAGEN_ML) && producto.IMAGEN_ML.length > 0 ?
+                    producto.IMAGEN_ML[0] // Usar la primera imagen si hay varias
+                    :
+                    "SRC/noimg.png"; // Imagen de respaldo si no hay
+
+                const datosProducto = await completarPrecioProducto(producto, cantidad, precio);
+                let nuevoProducto = {
+                    CVE_ART: producto.CVE_ART,
+                    DESCR: producto.DESCR,
+                    precioUnitario: parseFloat(precio) || 10, // 🛠️ Guardamos con un nombre estándar
+                    cantidad: cantidad,
+                    IMAGEN_ML: imagenProducto,
+                    unidad: producto.UNI_MED,
+                    descuento1: 0,
+                    descuento2: 0,
+                    ieps: datosProducto.impuestos.impuesto1,
+                    impuesto2: datosProducto.impuestos.impuesto2,
+                    isr: datosProducto.impuestos.impuesto3,
+                    iva: datosProducto.impuestos.impuesto4,
+                    comision: 0,
+                    subtotal: cantidad * (parseFloat(precio) || 10),
+                    CVE_UNIDAD: producto.CVE_UNIDAD,
+                    COSTO_PROM: producto.COSTO_PROM,
+                };
+                carrito.push(nuevoProducto);
+            }
+
+            // Guardamos la actualización en localStorage
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+            //mostrarCarrito(); // Asegurar que la vista se actualice
+        }
         // Llamar a la función cuando la página esté lista
         document.addEventListener("DOMContentLoaded", cargarProductos);
+        document.addEventListener("DOMContentLoaded", () => {
+            const closeModalButton = document.querySelector(".close");
+            const modal = document.getElementById("productModal");
+
+            if (!closeModalButton) {
+                // alert("Error: No se encontró el botón de cerrar");
+                console.error("Error: No se encontró el botón de cerrar");
+                return;
+            }
+
+            closeModalButton.addEventListener("click", () => {
+                // alert("Botón de cerrar clickeado");
+                console.log("Botón de cerrar clickeado");
+                cerrarModal2();
+            });
+
+            // Cerrar modal al hacer clic fuera del contenido
+            window.addEventListener("click", (event) => {
+                if (event.target === modal) {
+                    // alert("Clic fuera del modal, cerrando...");
+                    console.log("Clic fuera del modal, cerrando...");
+                    cerrarModal2();
+                }
+            });
+        });
     </script>
 
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

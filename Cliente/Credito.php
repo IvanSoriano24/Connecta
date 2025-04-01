@@ -47,6 +47,7 @@ if (isset($_SESSION['usuario'])) {
 
     <!-- Main CSS File -->
     <link href="assets/css/main.css" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/articulos.css">
 </head>
 
 <style>
@@ -82,6 +83,19 @@ if (isset($_SESSION['usuario'])) {
         position: sticky;
     }
 </style>
+<style>
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            /* Fondo semitransparente negro */
+            padding: 0.75rem;
+            /* Espaciado interno para agrandar el icono */
+            border-radius: 50%;
+            /* Bordes redondeados */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+            /* Sombra para mayor contraste */
+        }
+    </style>
 
 <body>
     <div class="hero_area">
@@ -114,7 +128,7 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                         </div>
                         <h2 class="text-center">Productos Sugeridos</h2>
-                        <div id="product-list">
+                        <div id="product-list" class="product-list">
                             <!-- El carrusel se insertará aquí dinámicamente -->
                         </div>
                     </div>
@@ -125,6 +139,42 @@ if (isset($_SESSION['usuario'])) {
         </main>
         <!-- FOOTER -->
         <?php include 'FooterEcommerce.php'; ?>
+    </div>
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <!-- Header del Modal -->
+            <div class="modal-header">
+                <h2 id="modal-title">Nombre del Producto</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-image">
+                    <div id="modal-carousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner" id="modal-carousel-inner">
+                            <!-- Imágenes del producto se insertarán aquí -->
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#modal-carousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#modal-carousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-details">
+                    <p class="modal-price" id="modal-price">$0.00</p>
+                    <div class="modal-add-cart">
+                        <input type="number" id="cantidadProducto" value="1" min="1">
+                        <button id="btn-add-to-cart" class="btn btn-primary">Añadir al carrito</button>
+                    </div>
+                    <br><br>
+                    <h3>Descripción</h3>
+                    <p id="modal-description">Descripción del producto aquí.</p>
+                    <h4>Información adicional</h4>
+                    <p id="modal-lin-prod">Línea del Producto: </p>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="JS/credito.js"></script>
     <script src="JS/menu.js"></script>

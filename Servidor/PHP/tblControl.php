@@ -12,47 +12,51 @@ session_start();
 
 function guardarArticuloVisto($usuario, $CVE_ART)
 {
+    // Para pruebas
+    var_dump("Entro en Funcion");
+    die();
+
     global $firebaseProjectId, $firebaseApiKey;
+
+    // Valor a sumar (por ejemplo, 1)
     $visto = 1;
-    // Determinar si se trata de una creación (POST) o edición (PATCH)
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/TBLCONTROL?key=$firebaseApiKey";
-    $method = "POST";
     $hora = time();
-    // Formatear los datos para Firebase (estructura de "fields")
+
     $fields = [
         'tipo' => ['stringValue' => "Articulo"],
-        "articulos" => [
-                            "arrayValue" => [
-                                "values" => {
-                                    return [
-                                        "mapValue" => [
-                                            "fields" => [
-                                                "clave" => ["stringValue" => $CVE_ART],
-                                                "hora" => ["stringValue" => (string)$hora],
-                                                "vecesVisto" => ["integerValue" => $visto],
-                                            ]
-                                        ]
-                                    ];
-                                }
+        'articulos' => [
+            'arrayValue' => [
+                'values' => [
+                    [
+                        'mapValue' => [
+                            'fields' => [
+                                'clave' => ['stringValue' => $CVE_ART],
+                                'hora' => ['stringValue' => (string)$hora],
+                                'vecesVisto' => ['integerValue' => $visto]
                             ]
-                        ],
+                        ]
+                    ]
+                ]
+            ]
+        ],
         'usuario' => ['stringValue' => $usuario]
     ];
-    ///HACER UN ARRAY PARA LOS ARTICULOS
-    // Preparar la solicitud
+
+    // URL de la colección en Firestore
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/TBLCONTROL?key=$firebaseApiKey";
+    $method = "POST";
+
     $options = [
         'http' => [
             'header' => "Content-Type: application/json\r\n",
             'method' => $method,
-            'content' => json_encode(['fields' => $fields]),
-        ],
+            'content' => json_encode(['fields' => $fields])
+        ]
     ];
     $context = stream_context_create($options);
 
     // Realizar la solicitud a Firebase
     $response = @file_get_contents($url, false, $context);
-
-    // Manejar la respuesta
     if ($response === FALSE) {
         echo json_encode(['success' => false, 'message' => 'Error al guardar evento en Firebase.']);
         return;
@@ -65,6 +69,7 @@ function guardarArticuloVisto($usuario, $CVE_ART)
         echo json_encode(['success' => false, 'message' => 'No se pudo guardar el evento.']);
     }
 }
+
 function guardaTiempoPagina($usuario, $pagina, $tiempo)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -159,8 +164,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 
 switch ($funcion) {
     case 1:
-
-        guardarBotonPresionado($usuario, $idBoton, $pagina);
+        $usuario = $_SESSION['usuario']['usuario'];
+        $CVE_ART = $_GET['CVE_ART'];
+        guardarArticuloVisto($usuario, $CVE_ART);
         break;
     case 2:
 

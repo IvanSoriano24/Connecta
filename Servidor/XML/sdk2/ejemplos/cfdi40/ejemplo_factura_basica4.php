@@ -336,7 +336,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     $res = mf_genera_cfdi4($datos);
     /*$res = mf_default($datos);
     var_dump($res);*/
-    return $res;
+    return true;
     ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
     echo "<h1>Respuesta Generar XML y Timbrado</h1>";
     foreach ($res as $variable => $valor) {
@@ -352,6 +352,8 @@ $cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
 $claveSae = $_POST['claveSae'];
 //$cve_doc = '18631';
+//$noEmpresa = '02';
+//$claveSae = '02';
 cfdi($cve_doc, $noEmpresa, $claveSae );
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));
