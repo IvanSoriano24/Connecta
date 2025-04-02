@@ -64,9 +64,13 @@ class clsMail
             $this->mail->isHTML(true); // Indicar que el correo tiene contenido HTML
 
             // *Adjuntar el archivo si existe*
-            if (!empty($archivoAdjunto) && file_exists($archivoAdjunto) && !empty($rutaCfdi) && file_exists($rutaCfdi)) {
-                $this->mail->addAttachment($archivoAdjunto);
-                $this->mail->addAttachment($rutaCfdi);
+            if (!empty($archivoAdjunto) && file_exists($archivoAdjunto) ) {
+                if(!empty($rutaCfdi) && file_exists($rutaCfdi)){
+                    $this->mail->addAttachment($archivoAdjunto);
+                    $this->mail->addAttachment($rutaCfdi);
+                }else{
+                    $this->mail->addAttachment($archivoAdjunto);
+                }
             }
 
             // Enviar el correo y manejar errores
@@ -76,10 +80,14 @@ class clsMail
 
             // *Eliminar el archivo adjunto después del envío*
             if (!empty($archivoAdjunto) && file_exists($archivoAdjunto)) {
-                unlink($rutaCfdi);
-                unlink($rutaXml);
-                unlink($rutaQr);
-                unlink($archivoAdjunto);
+                if(!empty($rutaCfdi) && file_exists($rutaCfdi)){
+                    unlink($rutaCfdi);
+                    unlink($rutaXml);
+                    unlink($rutaQr);
+                    unlink($archivoAdjunto);
+                }else{
+                    unlink($archivoAdjunto);
+                }
             }
             return "Correo enviado exitosamente.";
         } catch (Exception $e) {

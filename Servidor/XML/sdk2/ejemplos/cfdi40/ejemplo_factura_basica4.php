@@ -225,9 +225,9 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     $datos['PAC']['produccion'] = 'NO';
 
     // Rutas y clave de los CSD
-    $datos['conf']['cer'] = '../../certificados/EKU9003173C9.cer';
-    $datos['conf']['key'] = '../../certificados/EKU9003173C9.key';
-    $datos['conf']['pass'] = '12345678a';
+    $datos['conf']['cer'] = '../../certificadosM/00001000000513872236.cer';
+    $datos['conf']['key'] = '../../certificadosM/CSD_unidad_LUHM920412GU2_20220708_132000.key';
+    $datos['conf']['pass'] = 'CUSAr279';
 
     // Datos de la Factura || $pedidoData['']
     $datos['factura']['condicionesDePago'] = $pedidoData['CONDICION'];
@@ -255,15 +255,18 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     $datos['factura']['Exportacion'] = '01';
 
     // Datos del Emisor
-    $datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
+    /*$datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'ESCUELA KEMPER URGATE';  // EMPRESA DE PRUEBA
-    //$datos['emisor']['RegimenFiscal'] = '626';
-    $regimenStr = $empresaData['regimenFiscal'];
+    $datos['emisor']['RegimenFiscal'] = '626';*/
+    $datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
+    $datos['emisor']['nombre'] = 'MARCOS LUNA HERNANDEZ';  // EMPRESA DE PRUEBA
+    $datos['emisor']['RegimenFiscal'] = '612';
+    /*$regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
         $datos['emisor']['RegimenFiscal'] = $matches[1];
     } else {
         $datos['emisor']['RegimenFiscal'] = $regimenStr;
-    }
+    }*/
     /*
     // Datos del Emisor
     $datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
@@ -332,11 +335,11 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     //$datos['impuestos']['TotalImpuestosTrasladados'] = round($IMPU, 2);   //Original
     $datos['impuestos']['TotalImpuestosTrasladados'] = sprintf('%.2f', $IMPU);
 
-    echo "<pre>";print_r($datos);echo "</pre>";
+    //echo "<pre>";print_r($datos);echo "</pre>";
     $res = mf_genera_cfdi4($datos);
     /*$res = mf_default($datos);
     var_dump($res);*/
-    return true;
+    
     ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
     echo "<h1>Respuesta Generar XML y Timbrado</h1>";
     foreach ($res as $variable => $valor) {
@@ -345,15 +348,16 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
         $valor = str_replace('&lt;br/&gt;', '<br/>', $valor);
         echo "<b>[$variable]=</b>$valor<hr>";
     }
+    return true;
 }
 //http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
 //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
-$cve_doc = $_POST['cve_doc'];
+/*$cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
-$claveSae = $_POST['claveSae'];
-//$cve_doc = '18631';
-//$noEmpresa = '02';
-//$claveSae = '02';
+$claveSae = $_POST['claveSae'];*/
+$cve_doc = '18632';
+$noEmpresa = '02';
+$claveSae = '02';
 cfdi($cve_doc, $noEmpresa, $claveSae );
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));

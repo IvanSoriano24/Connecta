@@ -475,11 +475,9 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa)
         $pdfUrl = __DIR__ . "\pdfs/Factura_" . urlencode($folio) . ".pdf";
         //$pdfUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/";
         //$responsePDF = enviarDocumentoWhatsApp($numeroWhatsApp, $pdfUrl, $pdfCaption, $pdfFilename);
-        $responsePDF =  enviarDocumentoWhatsAppConMediaID($numeroWhatsApp, $pdfUrl, $pdfCaption, $filename);
+        //$responsePDF =  enviarDocumentoWhatsAppConMediaID($numeroWhatsApp, $pdfUrl, $pdfCaption, $filename);
 
-        var_dump($responsePDF);
-
-        //enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
+        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
