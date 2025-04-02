@@ -225,9 +225,12 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     $datos['PAC']['produccion'] = 'NO';
 
     // Rutas y clave de los CSD
-    $datos['conf']['cer'] = '../../certificadosM/00001000000513872236.cer';
+    $datos['conf']['cer'] = '../../certificados/EKU9003173C9.cer';
+    $datos['conf']['key'] = '../../certificados/EKU9003173C9.key';
+    $datos['conf']['pass'] = '12345678a';
+    /*$datos['conf']['cer'] = '../../certificadosM/00001000000513872236.cer';
     $datos['conf']['key'] = '../../certificadosM/CSD_unidad_LUHM920412GU2_20220708_132000.key';
-    $datos['conf']['pass'] = 'CUSAr279';
+    $datos['conf']['pass'] = 'CUSAr279';*/
 
     // Datos de la Factura || $pedidoData['']
     $datos['factura']['condicionesDePago'] = $pedidoData['CONDICION'];
@@ -255,12 +258,12 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     $datos['factura']['Exportacion'] = '01';
 
     // Datos del Emisor
-    /*$datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
+    $datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'ESCUELA KEMPER URGATE';  // EMPRESA DE PRUEBA
-    $datos['emisor']['RegimenFiscal'] = '626';*/
-    $datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
+    $datos['emisor']['RegimenFiscal'] = '626';
+    /*$datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'MARCOS LUNA HERNANDEZ';  // EMPRESA DE PRUEBA
-    $datos['emisor']['RegimenFiscal'] = '612';
+    $datos['emisor']['RegimenFiscal'] = '612';*/
     /*$regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
         $datos['emisor']['RegimenFiscal'] = $matches[1];
@@ -352,12 +355,12 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
 }
 //http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
 //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
-/*$cve_doc = $_POST['cve_doc'];
+$cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
-$claveSae = $_POST['claveSae'];*/
-$cve_doc = '18632';
+$claveSae = $_POST['claveSae'];
+/*$cve_doc = '18490';
 $noEmpresa = '02';
-$claveSae = '02';
+$claveSae = '02';*/
 cfdi($cve_doc, $noEmpresa, $claveSae );
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));

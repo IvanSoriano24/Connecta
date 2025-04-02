@@ -377,13 +377,13 @@ function crearFactura($folio, $noEmpresa, $claveSae)
     }
 
     curl_close($ch);
-    if($facturaResponse){
+    if ($facturaResponse) {
         echo "<div class='container'>
         <div class='title'>Confirmación Exitosa</div>
         <div class='message'>La factura ha sido realizada correctamente.</div>
         <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
       </div>";
-    } else{
+    } else {
         echo "<div class='container'>
         <div class='title'>Error Exitosa</div>
         <div class='message'>Hubo un error.</div>
@@ -465,172 +465,18 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa)
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/
     if ($correo === 'S' && !empty($emailPred)) {
-        /*$resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave);
-        var_dump($resultadoWhatsApp);*/
-        $pdfCaption = "Factura de su pedido";
-        $pdfFilename = "Factura_" . urlencode($folio) . ".pdf";
-        $filename = 'Factura';
-        //http://localhost/MDConnecta/Servidor
-        //$pdfUrl = "pdfs/Factura_" .urlencode($folio) . ".pdf";
-        $pdfUrl = __DIR__ . "\pdfs/Factura_" . urlencode($folio) . ".pdf";
-        //$pdfUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/";
-        //$responsePDF = enviarDocumentoWhatsApp($numeroWhatsApp, $pdfUrl, $pdfCaption, $pdfFilename);
-        //$responsePDF =  enviarDocumentoWhatsAppConMediaID($numeroWhatsApp, $pdfUrl, $pdfCaption, $filename);
+        //if (isset($rutaCfdi) && isset($rutaQr)) {        //$rutaPDF = "pdfs/Factura_" .urlencode($folio) . ".pdf";
+            //$rutaPDF = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" .urldecode($folio) . ".pdf";
+            $filename = "Factura_" .urldecode($folio) . ".pdf";
+            //$resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $rutaPDF, $filename);
 
-        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
+        //}
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
     }
     sqlsrv_close($conn);
-}
-function enviarDocumentoWhatsAppConMediaID($numeroWhatsApp, $pdfUrl, $caption, $filename)
-{
-    /*var_dump($numeroWhatsApp);
-    var_dump($pdfUrl);
-    var_dump($caption);
-    var_dump($filename);
-    $mimeType = 'application/pdf';*/
-    
-    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-
-    /*$response = uploadMediaToWhatsApp($token, $pdfUrl, $mimeType);
-    $uploadData = json_decode($response, true);
-    $mediaId = isset($uploadData['id']) ? $uploadData['id'] : null;
-    var_dump($mediaId);
-    // Crear el payload para enviar un documento usando media_id
-    $data = [
-        "messaging_product" => "whatsapp",
-        "recipient_type" => "individual",
-        "to" => $numeroWhatsApp,
-        "type" => "document",
-        "document" => [
-            "id" => $mediaId ,       // Usar el media_id obtenido al subir el archivo
-            "caption" => $caption,  // Texto descriptivo (opcional)
-            "filename" => $filename // Nombre del archivo a mostrar en WhatsApp
-        ]
-    ];*/
-    $data = [
-        "messaging_product" => "whatsapp", // 📌 Campo obligatorio
-        "recipient_type" => "individual",
-        "to" => $numeroWhatsApp,
-        "type" => "text",
-        "text" => [
-            "preview_url" => false,
-            "body" => "text-message-content"
-        ]
-    ];
-
-    $data_string = json_encode($data, JSON_PRETTY_PRINT);
-    error_log("WhatsApp JSON: " . $data_string);
-
-    // Inicializar cURL
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $token",
-        "Content-Type: application/json"
-    ]);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $response = curl_exec($ch);
-    if (curl_errno($ch)) {
-        $error_msg = curl_error($ch);
-    }
-    curl_close($ch);
-
-    if (isset($error_msg)) {
-        return "Error: " . $error_msg;
-    }
-    return $response;
-}
-function uploadMediaToWhatsApp($accessToken, $filePath, $mimeType) {
-    // Construir la URL de la API
-    $url = "https://graph.facebook.com/v21.0/509608132246667/media";
-    
-    // Preparar el archivo con curl_file_create
-    if (!file_exists($filePath)) {
-        return "Error: el archivo no existe en la ruta especificada.";
-    }
-    $cfile = curl_file_create($filePath, $mimeType, basename($filePath));
-    
-    // Los campos que se enviarán en la solicitud POST
-    $fields = [
-        'messaging_product' => 'whatsapp',
-        'file' => $cfile
-    ];
-    
-    // Inicializar cURL
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    // Se envía el array $fields y curl se encargará de enviar multipart/form-data
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $accessToken"
-    ]);
-    
-    $response = curl_exec($ch);
-    
-    if (curl_errno($ch)) {
-        $error_msg = curl_error($ch);
-        curl_close($ch);
-        return "Error: " . $error_msg;
-    }
-    
-    curl_close($ch);
-    return $response;
-}
-function enviarDocumentoWhatsApp($numeroWhatsApp, $mediaLink, $caption, $filename)
-{
-    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-
-    // Crear el payload para enviar un documento
-    $data = [
-        "messaging_product" => "whatsapp",
-        "recipient_type" => "individual",
-        "to" => $numeroWhatsApp,
-        "type" => "document",
-        "document" => [
-            "link" => $mediaLink,        // URL pública del archivo o link subido a la API
-            "filename" => $filename      // Nombre del archivo a mostrar en WhatsApp
-        ]
-    ];
-    var_dump($data);
-    // ✅ Verificar JSON antes de enviarlo
-    $data_string = json_encode($data, JSON_PRETTY_PRINT);
-    error_log("WhatsApp JSON: " . $data_string);
-
-    // ✅ Revisar si el JSON contiene `messaging_product`
-    if (!isset($data['messaging_product'])) {
-        error_log("ERROR: 'messaging_product' no está en la solicitud.");
-        return false;
-    }
-
-    // Inicializar cURL
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $token",
-        "Content-Type: application/json"
-    ]);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $response = curl_exec($ch);
-    if (curl_errno($ch)) {
-        $error_msg = curl_error($ch);
-    }
-    curl_close($ch);
-
-    if (isset($error_msg)) {
-        return "Error: " . $error_msg;
-    }
-    return $response;
 }
 function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr)
 {
@@ -649,7 +495,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $correoDestino = $correo;
 
     // Asunto del correo
-    $asunto = 'Detalles del Pedido #' . $noPedido;
+    $asunto = 'Detalles de la Factura #' . $noPedido;
 
     // Convertir productos a JSON para la URL
     $productosJson = urlencode(json_encode($partidasData));
@@ -704,7 +550,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave)
+function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $rutaPDF, $filename)
 {
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
@@ -713,25 +559,32 @@ function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $clav
         error_log("Error: noPedido o noEmpresa están vacíos.");
         return false;
     }
-
     $data = [
         "messaging_product" => "whatsapp", // 📌 Campo obligatorio
         "recipient_type" => "individual",
         "to" => $numeroWhatsApp,
         "type" => "template",
         "template" => [
-            "name" => "factura_pedido", // 📌 Nombre EXACTO en Meta Business Manager
+            "name" => "pedido_factura", // 📌 Nombre EXACTO en Meta Business Manager
             "language" => ["code" => "es_MX"], // 📌 Corregido a español España
             "components" => [
                 [
                     "type" => "header",
                     "parameters" => [
-                        ["type" => "text", "text" => $clienteNombre] // 📌 Encabezado dinámico
+                        [
+                            "type" => "document",
+                            "document" => [
+                                "link" => $rutaPDF,
+                                "filename" => $filename
+                            ]
+                        ]
                     ]
+
                 ],
                 [
                     "type" => "body",
                     "parameters" => [
+                        ["type" => "text", "text" => $clienteNombre],
                         ["type" => "text", "text" => $noPedido]
                     ]
                 ]
@@ -740,14 +593,13 @@ function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $clav
     ];
     // ✅ Verificar JSON antes de enviarlo
     $data_string = json_encode($data, JSON_PRETTY_PRINT);
-    error_log("WhatsApp JSON: " . $data_string);
+    error_log("WhatsApp JSON: " . $data_string);;
 
     // ✅ Revisar si el JSON contiene `messaging_product`
     if (!isset($data['messaging_product'])) {
         error_log("ERROR: 'messaging_product' no está en la solicitud.");
         return false;
     }
-
     // ✅ Enviar solicitud a WhatsApp API con headers correctos
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_URL, $url);
@@ -758,14 +610,11 @@ function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $clav
         "Authorization: Bearer " . $token,
         "Content-Type: application/json"
     ]);
-
     $result = curl_exec($curl);
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     curl_close($curl);
-
     error_log("WhatsApp Response: " . $result);
     error_log("HTTP Status Code: " . $http_code);
-
     return $result;
 }
 
@@ -811,6 +660,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                     //Funcion para crear factura
                     crearFactura($folio, $noEmpresa, $claveSae);
                     $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData);
+                    die();
                     validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa);
                     die();
                 }

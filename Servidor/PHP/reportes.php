@@ -333,7 +333,7 @@ function obtenerDatosPartidasPedido($cveDoc, $conexionData, $claveSae)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL para obtener las partidas de la remisión
-    $sql = "SELECT CVE_ART, CANT, PREC, TOT_PARTIDA, IMPU1, IMPU2, IMPU3, IMPU4, IMPU5, IMPU6, IMPU7, IMPU8, DESC1, DESC2
+    $sql = "SELECT CVE_ART, CANT, PREC, TOT_PARTIDA, IMPU1, IMPU2, IMPU3, IMPU4, IMPU5, IMPU6, IMPU7, IMPU8, DESC1, DESC2, UNI_VENTA, CVE_UNIDAD
             FROM $nombreTabla 
             WHERE CVE_DOC = ?";
 
@@ -360,7 +360,9 @@ function obtenerDatosPartidasPedido($cveDoc, $conexionData, $claveSae)
             'IMPU7' => (float) $row['IMPU7'],
             'IMPU8' => (float) $row['IMPU8'],
             'DESC1' => (float) $row['DESC1'],
-            'DESC2' => (float) $row['DESC2']
+            'DESC2' => (float) $row['DESC2'],
+            'UNI_VENTA' => $row['UNI_VENTA'],
+            'CVE_UNIDAD' => $row['CVE_UNIDAD']
         ];
     }
 
@@ -380,7 +382,7 @@ function obtenerDescripcionProductoPedidoAutoriza($CVE_ART, $conexionData, $clav
         "TrustServerCertificate" => true
     ]);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $sql = "SELECT DESCR FROM $nombreTabla WHERE CVE_ART = ?";
+    $sql = "SELECT DESCR, CVE_PRODSERV FROM $nombreTabla WHERE CVE_ART = ?";
     $stmt = sqlsrv_query($conn, $sql, [$CVE_ART]);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
@@ -388,11 +390,15 @@ function obtenerDescripcionProductoPedidoAutoriza($CVE_ART, $conexionData, $clav
 
     $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     $descripcion = $row ? $row['DESCR'] : '';
+    $CVE_PRODSERV = $row ? $row['CVE_PRODSERV'] : '';
 
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 
-    return $descripcion;
+    return [
+        "DESCR" => $descripcion,
+        "CVE_PRODSERV" => $CVE_PRODSERV
+    ];
 }
 /****************************************************************************************************************/
 
@@ -832,8 +838,9 @@ class PDFPedidoAutoriza extends FPDF
 }
 class PDFFactura extends FPDF
 {
-    private function clipText($text, $maxWidth) {
-        while($this->GetStringWidth($text) > $maxWidth && strlen($text) > 0) {
+    private function clipText($text, $maxWidth)
+    {
+        while ($this->GetStringWidth($text) > $maxWidth && strlen($text) > 0) {
             $text = substr($text, 0, -1);
         }
         return $text;
@@ -850,24 +857,27 @@ class PDFFactura extends FPDF
         $SelloSAT,
         $SelloCFD,
         $RfcProvCertif,
-        $qrFile
-    ) {        
+        $qrFile,
+        $fecha
+    ) {
         // Nos posicionamos en una ubicación fija desde el final de la página (por ejemplo, 50 mm desde el fondo)
-        $this->SetY(-100);
+        //$this->SetY(-150);
         // Opcional: dibujar una línea para separar la sección fiscal
         $this->SetDrawColor(150, 150, 150);
         $this->Line(10, $this->GetY(), 200, $this->GetY());
         $this->Ln(3);
 
         $cellWidth = 110;
+        $yInicio = $this->GetY();
         // Filas con los datos fiscales
-        $this->SetFont('Arial', '', 8);
+        $this->SetFont('Arial', '', 7);
 
         $this->Cell(30, 5, "No. Certificado", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($noCertificado, $cellWidth), 1, 1, 'L');
 
         $this->Cell(30, 5, "Sello", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($sello, $cellWidth), 1, 1, 'L');
+
 
         $this->Cell(30, 5, "Metodo de Pago", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($MetodoPago, $cellWidth), 1, 1, 'L');
@@ -881,6 +891,7 @@ class PDFFactura extends FPDF
         $this->Cell(30, 5, "Tipo Comprobante", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($TipoDeComprobante, $cellWidth), 1, 1, 'L');
 
+
         $this->Cell(30, 5, "Moneda", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($Moneda, $cellWidth), 1, 1, 'L');
 
@@ -893,10 +904,13 @@ class PDFFactura extends FPDF
         $this->Cell(30, 5, "RfcProvCertif", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($RfcProvCertif, $cellWidth), 1, 1, 'L');
 
+        $this->Cell(30, 5, "Fecha Timbrado", 1, 0, 'L');
+        $this->Cell($cellWidth, 5, $this->clipText($fecha, $cellWidth), 1, 1, 'L');
+
         // Si se proporciona el QR y existe, se inserta en el encabezado, por ejemplo a la izquierda o a la derecha del texto
         if ($qrFile && file_exists($qrFile)) {
             // Ejemplo: ubicamos el QR en la esquina superior derecha, antes del logo de la empresa
-            $this->Image($qrFile, 155, 200, 50, 50);
+            $this->Image($qrFile, 155, $yInicio, 50, 50);
         }
     }
 
@@ -906,7 +920,6 @@ class PDFFactura extends FPDF
     private $datosPedidoAutoriza;
     private $emailPred;
     private $regimen;
-    private $fecha;
     private $fechaEmision;
 
     function __construct(
@@ -916,7 +929,6 @@ class PDFFactura extends FPDF
         $datosPedidoAutoriza,
         $emailPred,
         $regimen,
-        $fecha,
         $fechaEmision
     ) {
         parent::__construct();
@@ -926,7 +938,6 @@ class PDFFactura extends FPDF
         $this->datosPedidoAutoriza = $datosPedidoAutoriza;
         $this->emailPred = $emailPred;
         $this->regimen = $regimen;
-        $this->fecha = $fecha;
         $this->fechaEmision = $fechaEmision;
     }
     function Header()
@@ -934,15 +945,11 @@ class PDFFactura extends FPDF
         if ($this->PageNo() == 1) {
             $this->SetFont('Arial', 'B', 12);
             $this->SetTextColor(39, 39, 51);
-            $this->Cell(120, 12, iconv("UTF-8", "ISO-8859-1", "Factura Nro: " . $this->datosPedidoAutoriza['FOLIO']), 0, 0, 'L');
+            $this->Cell(120, 12, iconv("UTF-8", "ISO-8859-1", "Factura : " . $this->datosPedidoAutoriza['FOLIO']), 0, 0, 'L');
             $this->Ln(4);
 
             $this->SetFont('Arial', 'B', 12);
             $this->Cell(120, 12, iconv("UTF-8", "ISO-8859-1", "Fecha de emisión: " . $this->fechaEmision), 0, 0, 'L');
-            $this->Ln(4);
-
-            $this->SetFont('Arial', 'B', 12);
-            $this->Cell(120, 12, iconv("UTF-8", "ISO-8859-1", "Fecha de timbrado: " . $this->fecha), 0, 0, 'L');
             $this->Ln(4);
 
             // Logo de la empresa
@@ -958,6 +965,12 @@ class PDFFactura extends FPDF
             if ($this->datosClientePedidoAutoriza && $this->datosEmpresaPedidoAutoriza) {
                 $this->SetFont('Arial', 'B', 14);
                 $this->SetTextColor(32, 100, 210);
+
+                $this->SetX(10); // Inicia desde la izquierda
+                $this->Cell(90, 10, iconv("UTF-8", "ISO-8859-1", "Datos del Cliente"), 0, 0, 'L');
+                $this->SetX(140); // Posiciona la empresa en la parte derecha
+                $this->Cell(100, 10, iconv("UTF-8", "ISO-8859-1", "Datos del Emisor"), 0, 0, 'L');
+                $this->Ln(5);
 
                 // Cliente - A la Izquierda
                 $this->SetX(10); // Inicia desde la izquierda
@@ -1039,13 +1052,21 @@ class PDFFactura extends FPDF
             $this->SetFillColor(23, 83, 201);
             $this->SetDrawColor(23, 83, 201);
             $this->SetTextColor(255, 255, 255);
-            $this->Cell(20, 8, "Clave", 1, 0, 'C', true);
+            /*$this->Cell(20, 8, "Clave", 1, 0, 'C', true);
             $this->Cell(70, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
             $this->Cell(15, 8, "Cant.", 1, 0, 'C', true);
             $this->Cell(20, 8, "Precio", 1, 0, 'C', true);
             $this->Cell(20, 8, "Descuento", 1, 0, 'C', true);
             $this->Cell(20, 8, "Impuestos", 1, 0, 'C', true);
-            $this->Cell(30, 8, "Subtotal", 1, 1, 'C', true);
+            $this->Cell(30, 8, "Subtotal", 1, 1, 'C', true);*/
+            $this->Cell(10, 8, "Cant.", 1, 0, 'C', true);
+            $this->Cell(28, 8, "Unidad", 1, 0, 'C', true);
+            $this->Cell(15, 8, "Clave SAT", 1, 0, 'C', true);
+            $this->Cell(15, 8, "Clave", 1, 0, 'C', true);
+            $this->Cell(60, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
+            $this->Cell(18, 8, "IVA", 1, 0, 'C', true);
+            $this->Cell(18, 8, "Precio", 1, 0, 'C', true);
+            $this->Cell(22, 8, "Subtotal", 1, 1, 'C', true);
         }
     }
 
@@ -1055,6 +1076,7 @@ class PDFFactura extends FPDF
         $this->SetY(-15);
         $this->SetFont('Arial', 'I', 8);
         // Imprime "Página X de Y" centrado
+        $this->Cell(1, 10, "Este documento es una representacion impresa de un CFDI", 0, 0, 'L');
         $this->Cell(0, 10, 'Pagina ' . $this->PageNo() . ' de {nb}', 0, 0, 'C');
     }
 }
@@ -1183,7 +1205,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
     // **Agregar filas de la tabla con los datos de la remisión**
     foreach ($datosPartidasPedido as $partida) {
         // **Obtener la descripción del producto desde SQL Server**
-        $descripcion = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
+        $productosData = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
 
         // **Cálculos**
         $precioUnitario = $partida['PREC'];
@@ -1209,7 +1231,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);
         $pdf->Cell(20, 7, $partida['CVE_ART'], 0, 0, 'C');
-        $pdf->Cell(70, 7, iconv("UTF-8", "ISO-8859-1", $descripcion), 0);
+        $pdf->Cell(70, 7, iconv("UTF-8", "ISO-8859-1", $productosData["DESCR"]), 0);
         $pdf->Cell(15, 7, $cantidad, 0, 0, 'C');
         $pdf->Cell(20, 7, number_format($precioUnitario, 2), 0, 0, 'C');
         $pdf->Cell(20, 7, number_format($descuentos, 2) . "%", 0, 0, 'C');
@@ -1423,6 +1445,8 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
         $LugarExpedicion = (string)$xml['LugarExpedicion'];
         $Moneda = (string)$xml['Moneda'];
         $TipoDeComprobante = (string)$xml['TipoDeComprobante'];
+        $fecha = new DateTime($fechaEmision);  // Convertir a un objeto DateTime
+        $fechaEmision = $fecha->format('Y-m-d');
 
         // Extraer "FechaTimbrado" usando XPath para llegar al nodo TimbreFiscalDigital
         $timbres = $xml->xpath('//tfd:TimbreFiscalDigital');
@@ -1446,17 +1470,17 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
         $datosPedidoAutoriza,
         $emailPred,
         $regimen,
-        $fecha,
         $fechaEmision
     );
     $pdf->AddPage();
-    $pdf->SetFont('Arial', '', 9);
+    //$pdf->SetFont('Arial', '', 9);
+    $pdf->SetFont('Arial', '', 8);
     $pdf->SetTextColor(39, 39, 51);
 
     // **Agregar filas de la tabla con los datos de la remisión**
     foreach ($datosPartidasPedido as $partida) {
         // **Obtener la descripción del producto desde SQL Server**
-        $descripcion = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
+        $productosData = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
 
         // **Cálculos**
         $precioUnitario = $partida['PREC'];
@@ -1481,13 +1505,23 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
 
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);
-        $pdf->Cell(20, 7, $partida['CVE_ART'], 0, 0, 'C');
+        /*$pdf->Cell(20, 7, $partida['CVE_ART'], 0, 0, 'C');
         $pdf->Cell(70, 7, iconv("UTF-8", "ISO-8859-1", $descripcion), 0);
         $pdf->Cell(15, 7, $cantidad, 0, 0, 'C');
         $pdf->Cell(20, 7, number_format($precioUnitario, 2), 0, 0, 'C');
         $pdf->Cell(20, 7, number_format($descuentos, 2) . "%", 0, 0, 'C');
         $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 0, 0, 'C');
-        $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');
+        $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');*/
+        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C'); //Unidad
+        $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C'); //Clave SAT
+        $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 7);
+        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
+        $pdf->Cell(18, 7, "$" . number_format($precioUnitario, 2), 0, 0, 'R');
+        $pdf->Cell(22, 7, "$" . number_format($subtotalPartida, 2), 0, 1, 'R');
     }
 
     // **Calcular totales**
@@ -1511,6 +1545,14 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
     $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
     $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
 
+    $totalLetraFormatter = new NumberFormatter("es", NumberFormatter::SPELLOUT);
+    $totalEnLetras = $totalLetraFormatter->format($total);
+    // Si deseas que el resultado aparezca en mayúsculas, puedes convertirlo con strtoupper()
+    $pdf->SetFont('Arial', 'B', 8);
+    $pdf->Cell(0, 7, strtoupper($totalEnLetras), 0, 1, 'R');
+
+    $pdf->Ln(3);
+
     // Llamar a la función para imprimir los datos fiscales en la última página
     $pdf->imprimirDatosFiscales(
         $noCertificado,
@@ -1523,7 +1565,8 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
         $SelloSAT,
         $SelloCFD,
         $RfcProvCertif,
-        $qrFile
+        $qrFile,
+        $fecha
     );
 
     $pdf->AliasNbPages();
