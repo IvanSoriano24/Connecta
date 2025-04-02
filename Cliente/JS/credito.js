@@ -255,7 +255,7 @@ function abrirModalProducto(producto, precio) {
     console.error("Error: No se encontró el modal");
     return;
   }
-  //añadirEvento(producto.CVE_ART);
+  añadirEvento(producto.CVE_ART);
   // Agregar información del producto
   document.getElementById("modal-title").textContent = producto.DESCR;
   document.getElementById("modal-price").textContent = `$${parseFloat(
@@ -331,33 +331,24 @@ function abrirModalProducto(producto, precio) {
 }
 function añadirEvento(CVE_ART) {
   $.ajax({
-      url: "../Servidor/PHP/tblControl.php",
-      type: "GET",
-      data: {
-          numFuncion: "1",
-          CVE_ART: CVE_ART
-      },
-      success: function(response) {
-          try {
-              const res =
-                  typeof response === "string" ? JSON.parse(response) : response;
-              if (res.success) {
-                
-                  console.log("Evento Guardado");
-              } else {
-                  console.log("Evento No Guardado");
-              }
-          } catch (error) {
-              console.error("Error al procesar la respuesta de clientes:", error);
-          }
-      },
-      error: function() {
-          Swal.fire({
-              icon: "error",
-              title: "Error",
-              text: "Error al obtener la lista de clientes.",
-          });
-      },
+    url: "../Servidor/PHP/tblControl.php",
+    type: "GET",
+    data: { numFuncion: "1", CVE_ART: CVE_ART },
+    success: function (response) {
+      try {
+        const res = typeof response === "string" ? JSON.parse(response) : response;
+        if (res.success) {
+          //console.log("Evento guardado correctamente.");
+        } else {
+          //console.log("Evento no guardado:", res.message);
+        }
+      } catch (error) {
+        console.error("Error al procesar la respuesta:", error);
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error en la solicitud AJAX:", status, error);
+    },
   });
 }
 function cerrarModal2() {

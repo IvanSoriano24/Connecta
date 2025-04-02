@@ -4809,9 +4809,9 @@ switch ($funcion) {
                         } else if ($validarSaldo == 1 || $credito == 1) {
                             $estatus = "C";
                         }
-                        $estatus = "E";
+                        /*$estatus = "E";
                         $validarSaldo = 0;
-                        $credito = 0;
+                        $credito = 0;*/
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);

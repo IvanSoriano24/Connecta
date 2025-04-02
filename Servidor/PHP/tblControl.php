@@ -10,63 +10,169 @@ global $claveSae;
 
 session_start();
 
-function guardarArticuloVisto($usuario, $CVE_ART)
-{
-    // Para pruebas
-    var_dump("Entro en Funcion");
-    die();
-
+function validarArticuloVisto($usuario, $CVE_ART) {
     global $firebaseProjectId, $firebaseApiKey;
-
-    // Valor a sumar (por ejemplo, 1)
-    $visto = 1;
+    
+    // URL para obtener todos los documentos de la colección TBLCONTROL
+    $url = "https://firestore.googleapis.com/v1/projects/{$firebaseProjectId}/databases/(default)/documents/TBLCONTROL?key={$firebaseApiKey}";
+    
+    $response = @file_get_contents($url);
+    if ($response === false) {
+        error_log("Error al obtener los documentos de TBLCONTROL.");
+        return false;
+    }
+    
+    $responseData = json_decode($response, true);
+    //var_dump($responseData['documents']);
+    // Obtener la fecha de hoy
+    $today = date("Y-m-d");
+    
+    // Recorrer cada documento
+    foreach ($responseData['documents'] as $doc) {
+        // $doc es cada documento; verificamos que tenga 'fields'
+        if (isset($doc['fields'])) {
+            $fields = $doc['fields'];
+            // Verificar que el usuario coincida
+            if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $usuario) {
+                // Validar que el documento sea del día de hoy
+                if (isset($fields['fecha']['stringValue']) && $fields['fecha']['stringValue'] !== $today) {
+                    continue; // no es del día de hoy
+                }
+                // Verificar el array de artículos
+                if (isset($fields['articulos']['arrayValue']['values']) && is_array($fields['articulos']['arrayValue']['values'])) {
+                    foreach ($fields['articulos']['arrayValue']['values'] as $articulo) {
+                        if (isset($articulo['mapValue']['fields']['clave']['stringValue']) && 
+                            $articulo['mapValue']['fields']['clave']['stringValue'] === $CVE_ART) {
+                            // Se encontró el registro para este artículo
+                            return $doc['name']; // Retorna la ruta completa del documento
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+function guardarArticuloVisto($usuario, $CVE_ART) {
+    global $firebaseProjectId, $firebaseApiKey;
+    $today = date("Y-m-d");
     $hora = time();
-
-    $fields = [
-        'tipo' => ['stringValue' => "Articulo"],
-        'articulos' => [
-            'arrayValue' => [
-                'values' => [
-                    [
-                        'mapValue' => [
-                            'fields' => [
-                                'clave' => ['stringValue' => $CVE_ART],
-                                'hora' => ['stringValue' => (string)$hora],
-                                'vecesVisto' => ['integerValue' => $visto]
+    $incremento = 1;
+    
+    // Primero, verificar si ya existe un registro para el usuario y artículo hoy
+    $docName = validarArticuloVisto($usuario, $CVE_ART);
+    /*var_dump($docName);
+    die();*/
+    if ($docName !== false) {
+        // Actualización: obtener el documento existente sin updateMask (GET)
+        $docUrl = "https://firestore.googleapis.com/v1/$docName?key=$firebaseApiKey";
+        $existingResponse = @file_get_contents($docUrl);
+        if ($existingResponse === false) {
+            echo json_encode(['success' => false, 'message' => 'Error al obtener el documento existente.']);
+            die();
+        }
+        $docData = json_decode($existingResponse, true);
+        $currentVisto = 0;
+        if (isset($docData['fields']['articulos']['arrayValue']['values'][0]['mapValue']['fields']['vecesVisto']['integerValue'])) {
+            $currentVisto = (int)$docData['fields']['articulos']['arrayValue']['values'][0]['mapValue']['fields']['vecesVisto']['integerValue'];
+        }
+        $newVisto = $currentVisto + $incremento;
+        
+        // Payload para actualizar (PATCH) el campo "articulos"
+        $updatePayload = [
+            "fields" => [
+                "articulos" => [
+                    "arrayValue" => [
+                        "values" => [
+                            [
+                                "mapValue" => [
+                                    "fields" => [
+                                        "clave" => ["stringValue" => $CVE_ART],
+                                        "ultimaHora" => ["stringValue" => (string)$hora],
+                                        "vecesVisto" => ["integerValue" => $newVisto]
+                                    ]
+                                ]
                             ]
                         ]
                     ]
                 ]
             ]
-        ],
-        'usuario' => ['stringValue' => $usuario]
-    ];
-
-    // URL de la colección en Firestore
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/TBLCONTROL?key=$firebaseApiKey";
-    $method = "POST";
-
-    $options = [
-        'http' => [
-            'header' => "Content-Type: application/json\r\n",
-            'method' => $method,
-            'content' => json_encode(['fields' => $fields])
-        ]
-    ];
-    $context = stream_context_create($options);
-
-    // Realizar la solicitud a Firebase
-    $response = @file_get_contents($url, false, $context);
-    if ($response === FALSE) {
-        echo json_encode(['success' => false, 'message' => 'Error al guardar evento en Firebase.']);
-        return;
-    }
-
-    $data = json_decode($response, true);
-    if (isset($data['name'])) {
-        echo json_encode(['success' => true, 'message' => 'Evento guardado exitosamente.', 'data' => $data]);
+        ];
+        
+        // Para actualizar, se usa PATCH con updateMask sobre "articulos"
+        $updateUrl = "https://firestore.googleapis.com/v1/{$docName}?key={$firebaseApiKey}&updateMask.fieldPaths=articulos";
+        $options = [
+            'http' => [
+                'header' => "Content-Type: application/json\r\n",
+                'method' => 'PATCH',
+                'content' => json_encode($updatePayload)
+            ]
+        ];
+        $context = stream_context_create($options);
+        $updateResponse = @file_get_contents($updateUrl, false, $context);
+        if ($updateResponse === false) {
+            echo json_encode(['success' => false, 'message' => 'Error al actualizar el registro en Firebase.']);
+            die();
+        }
+        $updateData = json_decode($updateResponse, true);
+        echo json_encode(['success' => true, 'message' => 'Registro actualizado exitosamente.', 'data' => $updateData]);
+        die();
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se pudo guardar el evento.']);
+        // No existe: crear un nuevo documento usando POST
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/TBLCONTROL?key=$firebaseApiKey";
+
+        $fields = [
+            'tipo' => ['stringValue' => "Articulo"],
+            'fecha' => ['stringValue' => $today],
+            'articulos' => [
+                'arrayValue' => [
+                    'values' => [
+                        [
+                            'mapValue' => [
+                                'fields' => [
+                                    'clave' => ['stringValue' => $CVE_ART],
+                                    'ultimaHora' => ['stringValue' => (string)$hora],
+                                    'vecesVisto' => ['integerValue' => $incremento]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'usuario' => ['stringValue' => $usuario]
+        ];
+        
+        $options = [
+            'http' => [
+                'header' => "Content-Type: application/json\r\n",
+                'method' => 'POST',
+                'content' => json_encode(['fields' => $fields])
+            ]
+        ];
+
+        $context = stream_context_create($options);
+
+        $createResponse = @file_get_contents($url, false, $context);
+        if ($createResponse === false) {
+            $error = error_get_last();
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Error al crear el registro en Firebase.',
+                'error' => $error // Esto mostrará todo el array del error
+            ]);
+            die();
+        }        
+        $createData = json_decode($createResponse, true);
+        if (isset($createData['name'])) {
+            //return json_encode(['success' => true, 'message' => 'Nuevo registro creado exitosamente.', 'data' => $createData]);
+            echo json_encode(['success' => true, 'message' => 'Nuevo registro creado exitosamente.']);
+            die();
+        } else {
+            //var_dump("No se creo");
+            //return json_encode(['success' => false, 'message' => 'No se pudo crear el registro.']);
+            echo json_encode(['success' => false, 'message' => 'No se pudo crear el registro.']);
+            die();
+        }
     }
 }
 

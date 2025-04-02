@@ -245,7 +245,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
     if (!$conexionResult['success']) {
         echo json_encode($conexionResult);
-        break;
+        die();
     }
     $conexionData = $conexionResult['data'];
     $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
@@ -406,12 +406,12 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
 }
 //http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
 //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
-$cve_doc = $_POST['cve_doc'];
+/*$cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
-$claveSae = $_POST['claveSae'];
-/*$cve_doc = '18490';
+$claveSae = $_POST['claveSae'];*/
+$cve_doc = '18631';
 $noEmpresa = '02';
-$claveSae = '02';*/
+$claveSae = '02';
 cfdi($cve_doc, $noEmpresa, $claveSae);
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));

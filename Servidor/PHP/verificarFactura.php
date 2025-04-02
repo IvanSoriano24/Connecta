@@ -351,8 +351,8 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
 function crearFactura($folio, $noEmpresa, $claveSae)
 {
     //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
-    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -655,7 +655,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                 //Se verifica que el pedido este remitido
                 $remitido = verificarEstadoPedido($folio, $conexionData, $claveSae);
                 if ($remitido) {
-                    $folio = "18490";
+                    $folio = "18631";
                     //$folio = "18456";
                     //Funcion para crear factura
                     crearFactura($folio, $noEmpresa, $claveSae);

@@ -414,30 +414,25 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-function añadirEvento(CVE_ART){
+function añadirEvento(CVE_ART) {
   $.ajax({
     url: "../Servidor/PHP/tblControl.php",
     type: "GET",
     data: { numFuncion: "1", CVE_ART: CVE_ART },
     success: function (response) {
       try {
-        const res =
-          typeof response === "string" ? JSON.parse(response) : response;
+        const res = typeof response === "string" ? JSON.parse(response) : response;
         if (res.success) {
-          console.log("Evento Guardado");
+          //console.log("Evento guardado correctamente.");
         } else {
-          console.log("Evento No Guardado");
+          //console.log("Evento no guardado:", res.message);
         }
       } catch (error) {
-        console.error("Error al procesar la respuesta de clientes:", error);
+        console.error("Error al procesar la respuesta:", error);
       }
     },
-    error: function () {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Error al obtener la lista de clientes.",
-      });
+    error: function (xhr, status, error) {
+      console.error("Error en la solicitud AJAX:", status, error);
     },
   });
 }
