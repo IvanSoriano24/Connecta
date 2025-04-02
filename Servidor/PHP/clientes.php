@@ -88,7 +88,7 @@ function mostrarClientes($conexionData, $claveSae)
                         CLAVE,  
                         NOMBRE, 
                         RFC,
-                        CALLE, 
+                        CALLE_ENVIO AS CALLE, 
                         TELEFONO, 
                         SALDO, 
                         VAL_RFC AS EstadoDatosTimbrado, 

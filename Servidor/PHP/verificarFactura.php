@@ -466,9 +466,9 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa)
     $numeroWhatsApp = '+527772127123';*/
     if ($correo === 'S' && !empty($emailPred)) {
         //if (isset($rutaCfdi) && isset($rutaQr)) {        //$rutaPDF = "pdfs/Factura_" .urlencode($folio) . ".pdf";
-            //$rutaPDF = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" .urldecode($folio) . ".pdf";
+            //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" .urldecode($folio) . ".pdf";
             $filename = "Factura_" .urldecode($folio) . ".pdf";
-            //$resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $rutaPDF, $filename);
+            //$resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $rutaPDFW, $filename);
 
             enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
         //}

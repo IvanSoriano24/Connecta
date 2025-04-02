@@ -54,7 +54,7 @@ class clsMail
                 $remitente = $correoRemitente;
                 $password = $passwordRemitente;
             }
-            
+
             $this->mail->Username = $remitente;
             $this->mail->Password = $password;
             $this->mail->setFrom($remitente, $titulo); // Remitente dinámico o por defecto
@@ -65,8 +65,12 @@ class clsMail
 
             // *Adjuntar el archivo si existe*
             if (!empty($archivoAdjunto) && file_exists($archivoAdjunto)) {
-                $this->mail->addAttachment($archivoAdjunto);
-                $this->mail->addAttachment($rutaCfdi);
+                if (!empty($rutaCfdi) && file_exists($rutaCfdi)) {
+                    $this->mail->addAttachment($archivoAdjunto);
+                    $this->mail->addAttachment($rutaCfdi);
+                } else {
+                    $this->mail->addAttachment($archivoAdjunto);
+                }
             }
 
             // Enviar el correo y manejar errores
@@ -75,32 +79,19 @@ class clsMail
             }
 
             // *Eliminar el archivo adjunto después del envío*
-            /*if (!empty($archivoAdjunto) && file_exists($archivoAdjunto)) {
-                if(!empty($rutaCfdi) && file_exists($rutaCfdi)){
+            if (!empty($archivoAdjunto) && file_exists($archivoAdjunto)) {
+                if (!empty($rutaCfdi) && file_exists($rutaCfdi)) {
                     unlink($rutaCfdi);
                     unlink($rutaXml);
                     unlink($rutaQr);
                     unlink($archivoAdjunto);
-                }else{
+                } else {
                     unlink($archivoAdjunto);
                 }
-            }*/
+            }
             return "Correo enviado exitosamente.";
         } catch (Exception $e) {
             return "Error al enviar el correo: {$this->mail->ErrorInfo}";
         }
     }
 }
-
-// Ejemplo de uso:
-// $mail = new clsMail();
-// echo $mail->metEnviar(
-//     'Mi título',                      // Título del remitente
-//     'Alberto',                         // Nombre del destinatario
-//     'desarrollo02@mdcloud.mx',         // Correo del destinatario
-//     'Asunto del correo',               // Asunto del correo
-//     '<p>Este es el cuerpo en HTML.</p>', // Cuerpo del correo en HTML
-//     null,                              // No se adjunta archivo
-//     'otroremitente@gmail.com',         // Remitente dinámico
-//     'su-contraseña-aqui'               // Contraseña del remitente
-// );

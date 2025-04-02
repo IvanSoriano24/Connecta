@@ -197,12 +197,6 @@ function datosEmpresa($noEmpresa)
 
     return false; // No se encontró la empresa
 }
-//$cve_doc = '          0000018784';
-//$cve_doc = '          0000018720';
-//$cve_doc = '          0000018725';
-//$cve_doc = '          0000018624'; //Redondea el descuento y no es igual al descuento que se tiene
-//$cve_doc = '          0000018628';
-//No hacer pruebas con 0000018758 en adelante
 function cfdi($cve_doc, $noEmpresa, $claveSae)
 {
     $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
@@ -219,6 +213,12 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     // Ruta del XML de Debug
     $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($pedidoData['FOLIO']) .  '.xml';
 
+    /*
+    // Credenciales de Timbrado
+    $datos['PAC']['usuario'] = $empresaData['rfc'];
+    $datos['PAC']['pass'] = $empresaData['rfc'];
+    $datos['PAC']['produccion'] = 'SI';
+    */
     // Credenciales de Timbrado
     $datos['PAC']['usuario'] = 'DEMO700101XXX';
     $datos['PAC']['pass'] = 'DEMO700101XXX';

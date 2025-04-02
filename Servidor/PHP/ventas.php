@@ -6,9 +6,6 @@ error_reporting(E_ALL);
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
-//include 'funciones.php';
-//require_once 'whatsapp.php';
-//require_once 'clientes.php';
 
 session_start();
 
@@ -1806,7 +1803,7 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
     if (preg_match('/[a-zA-Z]/', $clienteInput)) {
         // Búsqueda por nombre
         $sql = "SELECT DISTINCT 
-                [CLAVE], [NOMBRE], [CALLE], [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
+                [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
                 [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO]
             FROM $nombreTabla
             WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') OR [CLAVE] = '$clienteClave'
@@ -1814,7 +1811,7 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
     } else {
         // Búsqueda por clave
         $sql = "SELECT DISTINCT 
-                [CLAVE], [NOMBRE], [CALLE], [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
+                [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
                 [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO]
             FROM $nombreTabla
             WHERE [CLAVE] = '$clienteClave' OR LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre')
