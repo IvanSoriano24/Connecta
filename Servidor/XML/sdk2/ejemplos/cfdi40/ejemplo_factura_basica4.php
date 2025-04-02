@@ -10,13 +10,52 @@ date_default_timezone_set('America/Mexico_City');
 
 // Se incluye el SDK
 require_once '../../sdk2.php';
-function datosCliente($clie, $claveSae)
+function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
 {
-    $serverName = "187.188.133.4";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+    $result = file_get_contents($url, false, $context);
+
+    if ($result === FALSE) {
+        return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
+    }
+    $documents = json_decode($result, true);
+
+    if (!isset($documents['documents'])) {
+        return ['success' => false, 'message' => 'No se encontraron documentos'];
+    }
+    // Busca el documento donde coincida el campo `claveSae`
+    foreach ($documents['documents'] as $document) {
+        $fields = $document['fields'];
+        if ($fields['claveSae']['stringValue'] === $claveSae) {
+            return [
+                'success' => true,
+                'data' => [
+                    'host' => $fields['host']['stringValue'],
+                    'puerto' => $fields['puerto']['stringValue'],
+                    'usuario' => $fields['usuario']['stringValue'],
+                    'password' => $fields['password']['stringValue'],
+                    'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'claveSae' => $fields['claveSae']['stringValue']
+                ]
+            ];
+        }
+    }
+    return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
+}
+function datosCliente($clie, $claveSae, $conexionData)
+{
+    $serverName = $conexionData['host'];
     $connectionInfo = [
-        "Database" => 'SAE90Empre02',
-        "UID" => 'sun',
-        "PWD" => 'Green2580a.',
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -24,7 +63,7 @@ function datosCliente($clie, $claveSae)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $nombreTabla   = "[SAE90Empre02].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CLAVE = ?";
@@ -44,13 +83,14 @@ function datosCliente($clie, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosPedido($cve_doc, $claveSae)
+function datosPedido($cve_doc, $claveSae, $conexionData)
 {
-    $serverName = "187.188.133.4";
+    $serverName = $conexionData['host'];
     $connectionInfo = [
-        "Database" => 'SAE90Empre02',
-        "UID" => 'sun',
-        "PWD" => 'Green2580a.',
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -58,7 +98,7 @@ function datosPedido($cve_doc, $claveSae)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $nombreTabla  = "[SAE90Empre02].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -79,13 +119,14 @@ function datosPedido($cve_doc, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosPartida($cve_doc, $claveSae)
+function datosPartida($cve_doc, $claveSae, $conexionData)
 {
-    $serverName = "187.188.133.4";
+    $serverName = $conexionData['host'];
     $connectionInfo = [
-        "Database" => 'SAE90Empre02',
-        "UID" => 'sun',
-        "PWD" => 'Green2580a.',
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -93,7 +134,7 @@ function datosPartida($cve_doc, $claveSae)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $nombreTabla  = "[SAE90Empre02].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -112,13 +153,14 @@ function datosPartida($cve_doc, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosProcuto($CVE_ART, $claveSae)
+function datosProcuto($CVE_ART, $claveSae, $conexionData)
 {
-    $serverName = "187.188.133.4";
+    $serverName = $conexionData['host'];
     $connectionInfo = [
-        "Database" => 'SAE90Empre02',
-        "UID" => 'sun',
-        "PWD" => 'Green2580a.',
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -127,7 +169,7 @@ function datosProcuto($CVE_ART, $claveSae)
     }
 
 
-    $nombreTabla  = "[SAE90Empre02].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_ART = ?";
@@ -147,9 +189,8 @@ function datosProcuto($CVE_ART, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosEmpresa($noEmpresa)
+function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
-    global $firebaseProjectId, $firebaseApiKey;
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
     // Configura el contexto de la solicitud para manejar errores y tiempo de espera
@@ -199,12 +240,22 @@ function datosEmpresa($noEmpresa)
 }
 function cfdi($cve_doc, $noEmpresa, $claveSae)
 {
+    global $firebaseProjectId, $firebaseApiKey;
+
+    $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+    if (!$conexionResult['success']) {
+        echo json_encode($conexionResult);
+        break;
+    }
+    $conexionData = $conexionResult['data'];
     $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
     $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
-    $pedidoData = datosPedido($cve_doc, $claveSae);
-    $productosData = datosPartida($cve_doc, $claveSae);
-    $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae);
-    $empresaData = datosEmpresa($noEmpresa);
+
+    $pedidoData = datosPedido($cve_doc, $claveSae, $conexionData);
+    $productosData = datosPartida($cve_doc, $claveSae, $conexionData);
+    $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
+    $empresaData = datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
     // Ruta del XML Timbrado
@@ -292,7 +343,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     $DES = 0;
     $Sum = 0;
     foreach ($productosData as $producto) {
-        $dataProduc = datosProcuto($producto['CVE_ART'], $claveSae);
+        $dataProduc = datosProcuto($producto['CVE_ART'], $claveSae, $conexionData);
         $concepto = [];
         // Calcular la base imponible restando el descuento, si lo hay
         $baseImpuesto = $producto['TOT_PARTIDA'];
@@ -342,7 +393,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     $res = mf_genera_cfdi4($datos);
     /*$res = mf_default($datos);
     var_dump($res);*/
-    
+
     ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
     echo "<h1>Respuesta Generar XML y Timbrado</h1>";
     foreach ($res as $variable => $valor) {
@@ -361,7 +412,7 @@ $claveSae = $_POST['claveSae'];
 /*$cve_doc = '18490';
 $noEmpresa = '02';
 $claveSae = '02';*/
-cfdi($cve_doc, $noEmpresa, $claveSae );
+cfdi($cve_doc, $noEmpresa, $claveSae);
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));
 $datos['conf']['key'] =base64_encode(file_get_contents($empresa['archivo_key']));

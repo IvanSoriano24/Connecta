@@ -464,7 +464,7 @@ function datosCliente($clie, $claveSae, $conexionData)
         var_dump(sqlsrv_errors());
         exit;
     }
-    $nombreTabla   = "[mdc_sae01].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CLAVE = ?";
@@ -502,7 +502,7 @@ function datosPedido($cve_doc, $claveSae, $conexionData)
     }
     $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
     $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
-    $nombreTabla  = "[mdc_sae01].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -539,7 +539,7 @@ function datosPartida($cve_doc, $claveSae, $conexionData)
         var_dump(sqlsrv_errors());
         exit;
     }
-    $nombreTabla  = "[mdc_sae01].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
     $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
     $sql = "SELECT * FROM $nombreTabla WHERE
@@ -574,7 +574,7 @@ function datosProcuto($CVE_ART, $claveSae, $conexionData){
         var_dump(sqlsrv_errors());
         exit;
     }
-    $nombreTabla  = "[mdc_sae01].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_ART = ?";
@@ -609,7 +609,7 @@ function vendedorNom($conexionData, $vendedor, $claveSae){
         var_dump(sqlsrv_errors());
         exit;
     }
-    $nombreTabla   = "[mdc_sae01].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $CLAVE = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
     $sql = "SELECT NOMBRE FROM $nombreTabla WHERE CVE_VEND = ?";
     $params = [$CLAVE];
