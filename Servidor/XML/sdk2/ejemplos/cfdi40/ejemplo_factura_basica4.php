@@ -238,7 +238,7 @@ function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 
     return false; // No se encontró la empresa
 }
-function cfdi($cve_doc, $noEmpresa, $claveSae)
+function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -259,10 +259,10 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
     // Ruta del XML Timbrado
-    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($pedidoData['FOLIO']) .  '.xml';
+    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($factura) .  '.xml';
 
     // Ruta del XML de Debug
-    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($pedidoData['FOLIO']) .  '.xml';
+    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($factura) .  '.xml';
 
     /*
     // Credenciales de Timbrado
@@ -290,7 +290,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
     }
     //$datos['factura']['fecha_expedicion'] = $pedidoData['FECHA_DOC']->format('Y-m-d H:i:s');
     $datos['factura']['fecha_expedicion'] = "AUTO";
-    $datos['factura']['folio'] = $pedidoData['FOLIO'];
+    $datos['factura']['folio'] = $factura;
     $datos['factura']['LugarExpedicion'] = $empresaData['codigoPostal'];
     $datos['factura']['metodo_pago'] = $pedidoData['METODODEPAGO'];
     if ($pedidoData['METODODEPAGO'] === 'PPD') {
@@ -422,13 +422,14 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
 }
 //http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
 //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
-/*$cve_doc = $_POST['cve_doc'];
+$cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
-$claveSae = $_POST['claveSae'];*/
-$cve_doc = '18633';
+$claveSae = $_POST['claveSae'];
+$factura = $_POST['factura'];
+/*$cve_doc = '18633';
 $noEmpresa = '02';
-$claveSae = '02';
-cfdi($cve_doc, $noEmpresa, $claveSae);
+$claveSae = '02';*/
+cfdi($cve_doc, $noEmpresa, $claveSae, $factura);
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));
 $datos['conf']['key'] =base64_encode(file_get_contents($empresa['archivo_key']));

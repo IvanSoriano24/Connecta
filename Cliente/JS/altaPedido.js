@@ -160,15 +160,6 @@ function eliminarPartidaFormulario(numPar, filaAEliminar) {
     }
   });
 }
-// // Ocultar sugerencias al hacer clic fuera del input
-// document.addEventListener("click", function (e) {
-//     const listas = document.querySelectorAll(".lista-sugerencias");
-//     listas.forEach(lista => {
-//         if (!lista.contains(e.target) && !lista.previousElementSibling.contains(e.target)) {
-//             lista.classList.add("d-none");
-//         }
-//     });
-// });
 
 function obtenerProductos(input) {
   const numFuncion = 5; // Número de función para identificar la acción (en este caso obtener productos)

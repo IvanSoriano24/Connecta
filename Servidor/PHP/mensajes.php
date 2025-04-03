@@ -647,7 +647,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/ // Interzenda
+    $numeroWhatsApp = '+527772127123'*/; // Interzenda
     //$emailPred = "";
     //$numeroWhatsApp = "";
 

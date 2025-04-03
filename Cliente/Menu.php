@@ -252,9 +252,6 @@ if (isset($_SESSION['usuario'])) {
 </head>
 
 <body>
-    <div>
-
-    </div>
     <div class="hero_area">
         <!-- HEADER -->
         <?php include 'HeaderEcommerce.php'; ?>
@@ -317,10 +314,7 @@ if (isset($_SESSION['usuario'])) {
 
                             <hr>
                             <div class="container mt-5">
-                                <div class="hero-img">
-                                    ACCESORIOS PARA HOMBRE
-                                </div>
-
+                                <!-- Productos mas Vistos
                                 <div class="grid-four">
                                     <div class="gallery-item">
                                         <img src="SRC/prueba.jpg" alt="Individuales">
@@ -339,58 +333,37 @@ if (isset($_SESSION['usuario'])) {
                                         <div class="overlay">KING SIZE</div>
                                     </div>
                                 </div>
-
-                                <div class="gallery">
-                                    <div class="gallery-item">
-                                        <img src="SRC/prueba.jpg" alt="Tenis Sneakers">
-                                        <div class="overlay">Tenis Sneakers</div>
-                                    </div>
-                                    <div class="gallery-item">
-                                        <img src="SRC/prueba.jpg" alt="Botas">
-                                        <div class="overlay">Botas</div>
-                                    </div>
-                                    <!-- <div class="gallery-item">
-                                    <img src="SRC/prueba.jpg" alt="Camisas">
-                                    <div class="overlay">Camisas</div>
-                                </div>
-                                <div class="gallery-item">
-                                    <img src="SRC/prueba.jpg" alt="Polos">
-                                    <div class="overlay">Polos</div>
-                                </div>
-                                <div class="gallery-item">
-                                    <img src="SRC/prueba.jpg" alt="Jeans">
-                                    <div class="overlay">Jeans</div>
-                                </div>
-                                <div class="gallery-item">
-                                    <img src="SRC/prueba.jpg" alt="Pantalones">
-                                    <div class="overlay">Pantalones</div>
-                                </div> -->
-                                </div>
-                                <div class="grid-four">
-                                    <div class="gallery-item">
-                                        <img src="SRC/prueba.jpg" alt="Individuales">
-                                        <div class="overlay">INDIVIDUALES</div>
-                                    </div>
-                                    <div class="gallery-item">
-                                        <img src="SRC/prueba.jpg" alt="Matrimoniales">
-                                        <div class="overlay">MATRIMONIALES</div>
-                                    </div>
-                                    <div class="gallery-item">
-                                        <img src="SRC/prueba.jpg" alt="Queen Size">
-                                        <div class="overlay">QUEEN SIZE</div>
-                                    </div>
-                                    <div class="gallery-item">
-                                        <img src="SRC/prueba.jpg" alt="King Size">
-                                        <div class="overlay">KING SIZE</div>
-                                    </div>
-                                </div>
+    -->
                             </div>
+                            <!-- Otra Categoria
+                                <div class="grid-four">
+                                    <div class="gallery-item">
+                                        <img src="SRC/prueba.jpg" alt="Individuales">
+                                        <div class="overlay">INDIVIDUALES</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="SRC/prueba.jpg" alt="Matrimoniales">
+                                        <div class="overlay">MATRIMONIALES</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="SRC/prueba.jpg" alt="Queen Size">
+                                        <div class="overlay">QUEEN SIZE</div>
+                                    </div>
+                                    <div class="gallery-item">
+                                        <img src="SRC/prueba.jpg" alt="King Size">
+                                        <div class="overlay">KING SIZE</div>
+                                    </div>
+                                </div>
+    -->
                         </div>
                     </div>
-            </section>
-        </main>
-        <!-- FOOTER -->
-        <?php include 'FooterEcommerce.php'; ?>
+                </div>
+    </div>
+    </div>
+    </section>
+    </main>
+    <!-- FOOTER -->
+    <?php include 'FooterEcommerce.php'; ?>
     </div>
     <div id="productModal" class="modal">
         <div class="modal-content">

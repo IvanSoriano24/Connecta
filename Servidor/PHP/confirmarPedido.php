@@ -183,7 +183,6 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                             'buscar' => ['booleanValue' => true]
                         ]
                     ];
-
                     $context = stream_context_create([
                         'http' => [
                             'method' => 'PATCH',
@@ -196,7 +195,6 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 
                     if ($response === false) {
                         $error = error_get_last();
-                        var_dump($error);
                         echo "<div class='container'>
                         <div class='title'>Error al actualizar el Pago</div>
                         <div class='message'>No se pudo actualizar la información.</div>
@@ -238,23 +236,24 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             if (isset($usuariosData['documents'])) {
                 foreach ($usuariosData['documents'] as $document) {
                     $fields = $document['fields'];
-                    if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
-                        if(isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae){
-                            $telefonoVendedor = $fields['telefono']['stringValue'];
-                            break;
+                    if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                        if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                            if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                                $telefonoVendedor = $fields['telefono']['stringValue'];
+                                break;
+                            }
                         }
-                        
                     }
                 }
             }
             //$telefonoVendedor = '+527772127123'; // Interzenda
             $telefonoVendedor = '+527773750925';
             if (!$telefonoVendedor) {
-                echo "<div class='container'>
+                /*echo "<div class='container'>
                         <div class='title'>Error al Encontrar Vendedor</div>
                         <div class='message'>No se encontró el número de teléfono del vendedor.</div>
                         <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
-                      </div>";
+                      </div>";*/
                 exit;
             }
             // Enviar mensaje de WhatsApp

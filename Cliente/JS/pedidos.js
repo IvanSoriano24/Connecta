@@ -118,46 +118,10 @@ function agregarEventosBotones() {
     const idPedido = $(this).data("id");
     vizualizarPedido(idPedido);
   });
-
-  /*// Evento para cancelar pedido
-    $('.btnCancelarPedido').on('click', function () {
-      const idPedido = $(this).data('id');
-      const confirmacion = confirm('¿Estás seguro de que quieres cancelar este pedido?');
-      if (confirmacion) {
-          $.post('../Servidor/PHP/pedido.php', {
-              numFuncion: '3',  // La función 3 es para cancelar el pedido
-              idPedido: idPedido
-          }, function (response) {
-              if (response.success) {
-                location.reload();
-                alert('Pedido cancelado con éxito');
-              } else {
-                  alert('Error al cancelar el pedido: ' + response.message);
-                  console.log('Error al cancelar el pedido: ' + response.message);
-              }
-          }, 'json').fail(function (jqXHR, textStatus, errorThrown) {
-              console.error('Error en la solicitud:', textStatus, errorThrown);
-              console.error('Respuesta del servidor:', jqXHR.responseText); // Verifica la respuesta del servidor
-              console.log('Error al cancelar el pedido. Verifica la consola para más detalles.');
-              alert('Error al cancelar el pedido. Verifica la consola para más detalles.');
-          });
-      }
-  });  */
 }
 
 $(document).ready(function () {
   cargarPedidos();
-  /*// Evento para crear pedido
-    $('#btnCrearPedido').on('click', function () {
-      altaPedido();
-      alert('Abrir formulario para crear pedido.');
-      // Lógica para abrir el modal o formulario...
-    });
-
-    $('#guardarFactura').on('click', function () {
-      altaPedido();
-    });*/
-
   $("#editarPedidoForm").on("submit", function (event) {
     event.preventDefault(); // Evitar la recarga de la página
     // Obtener los valores del formulario

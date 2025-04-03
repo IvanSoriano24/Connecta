@@ -403,8 +403,6 @@ function listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket)
 }
 
 
-//http://localhost/MDConnecta/Servidor/PHP/pedido.php?numFuncion=5?idPedido=FYOcALZA6k4v2UpXv6Ln
-
 // Verificar si la solicitud es POST o GET
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion

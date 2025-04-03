@@ -525,10 +525,10 @@ class PDFPedido extends FPDF
             $this->SetX(140);
             $this->SetFont('Arial', '', 10);
             $this->SetTextColor(39, 39, 51);
-            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1", "Fecha de emisión: " . $this->formularioData['diaAlta']), 0, 0, 'L');
+            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1", "Fecha de emisión: " . $this->formularioData['diaAlta']), 0, 1, 'L');
             $this->Ln(5);
 
-            if(isset($ordenCompra)){
+            if(isset($this->ordenCompra)){
                 $this->SetX(10);
                 $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Oden Compra: " . $this->ordenCompra), 0, 0, 'L');
             }
