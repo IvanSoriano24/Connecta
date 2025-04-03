@@ -375,21 +375,8 @@ function crearFactura($folio, $noEmpresa, $claveSae)
     if (curl_errno($ch)) {
         echo 'Error cURL: ' . curl_error($ch);
     }
-
     curl_close($ch);
-    if ($facturaResponse) {
-        echo "<div class='container'>
-        <div class='title'>Confirmación Exitosa</div>
-        <div class='message'>La factura ha sido realizada correctamente.</div>
-        <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
-      </div>";
-    } else {
-        echo "<div class='container'>
-        <div class='title'>Error Exitosa</div>
-        <div class='message'>Hubo un error.</div>
-        <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
-      </div>";
-    }
+    return $facturaResponse;
 }
 
 function crearPdf($folio, $noEmpresa, $claveSae, $conexionData)
@@ -463,14 +450,14 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa)
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         //if (isset($rutaCfdi) && isset($rutaQr)) {        //$rutaPDF = "pdfs/Factura_" .urlencode($folio) . ".pdf";
-            //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" .urldecode($folio) . ".pdf";
-            $filename = "Factura_" .urldecode($folio) . ".pdf";
-            //$resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $rutaPDFW, $filename);
+        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folio) . ".pdf";
+        $filename = "Factura_" . urldecode($folio) . ".pdf";
+        $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $rutaPDFW, $filename);
 
-            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
+        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
         //}
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
@@ -541,7 +528,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
 
     // Enviar el correo con el remitente dinámico
-    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correoDestino, $asunto, $bodyHTML, $rutaPDF, $rutaCfdi, $correoRemitente, $contraseñaRemitente, $rutaXml, $rutaQr);
+    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correoDestino, $asunto, $bodyHTML, $rutaPDF, $correoRemitente, $contraseñaRemitente, $rutaXml, $rutaQr, $rutaCfdi);
 
     if ($resultado === "Correo enviado exitosamente.") {
         // En caso de éxito, puedes registrar logs o realizar alguna otra acción
@@ -618,6 +605,121 @@ function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPedido, $clav
     return $result;
 }
 
+function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $cveDoc = str_pad($folio, 10, '0', STR_PAD_LEFT);
+    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    
+    $fechaActual = date("Y-m-d H:i:s");
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT CVE_VEND, CVE_CLPV FROM $nombreTabla
+        WHERE CVE_DOC = ?";
+
+    $stmt = sqlsrv_query($conn, $sql, [$cveDoc]);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
+    }
+
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $CVE_VEND = $row ? $row['CVE_VEND'] : "";
+    $CVE_CLPV = $row ? $row['CVE_CLPV'] : "";
+    /************************************************************************************************************/
+    $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+    // Consultar Firebase para obtener los datos del vendedor
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+
+    $response = @file_get_contents($firebaseUrl, false, $context);
+    if ($response === false) {
+        echo "<div class='container'>
+                        <div class='title'>Error al Obtener Información</div>
+                        <div class='message'>No se pudo obtener la información del vendedor.</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+        exit;
+    }
+
+    $usuariosData = json_decode($response, true);
+
+    //var_dump($usuariosData);
+    $telefonoVendedor = null;
+    // Buscar al vendedor por clave
+    if (isset($usuariosData['documents'])) {
+        foreach ($usuariosData['documents'] as $document) {
+            $fields = $document['fields'];
+            //var_dump($document['fields']);
+            if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $CVE_VEND) {
+                if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                    $telefonoVendedor = $fields['telefono']['stringValue'];
+                    $correoVendedor = $fields['correo']['stringValue'];
+                    $nombreVendedor = $fields['nombre']['stringValue'];
+                    
+                    break;
+                }
+            }
+        }
+    }
+    /************************************************************************************************************/
+    $mail = new clsMail();
+    $correoVendedor = "desarrollo01@mdcloud.mx";
+    $clienteData = obtenerCliente($CVE_CLPV, $conexionData, $claveSae);
+    $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folio) . ".xml";
+    $titulo = "MDConnecta";
+    // Definir el remitente (si no está definido, se usa uno por defecto)
+    $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
+    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
+
+    if ($correoRemitente === "" || $contraseñaRemitente === "") {
+        $correoRemitente = "";
+        $contraseñaRemitente = "";
+    }
+
+    $correoDestino = $correoVendedor;
+    $correoDestino = "desarrollo01@mdcloud.mx";
+
+    // Asunto del correo
+    $asunto = 'Problemas con la factura #' . $folio;
+
+    // Construcción del cuerpo del correo
+    $bodyHTML = "<p>Estimado/a <b>$nombreVendedor</b>,</p>";
+    $bodyHTML .= "<p>Se le notifica que hubo un problema al realizar la factura: <b>$folio</b>.</p>";
+    $bodyHTML .= "<p><b>Fecha de Reporte:</b> " . $fechaActual . "</p>";
+    $bodyHTML .= "<p><b>Problema:</b> " . $problema . "</p>";
+    
+    $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
+
+    // Enviar el correo con el remitente dinámico
+    $resultado = $mail->metEnviarError($titulo, $nombreVendedor, $correoDestino, $asunto, $bodyHTML, $correoRemitente, $contraseñaRemitente, $rutaXml);
+
+    if ($resultado === "Correo enviado exitosamente.") {
+        //var_dump('success' . true, 'message' . $resultado);
+        // En caso de éxito, puedes registrar logs o realizar alguna otra acción
+    } else {
+        error_log("Error al enviar el correo: $resultado");
+        echo json_encode(['success' => false, 'message' => $resultado]);
+        var_dump('success' . false, 'message' . $resultado);
+    }
+}
 
 
 function verificarHora($firebaseProjectId, $firebaseApiKey)
@@ -655,14 +757,18 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                 //Se verifica que el pedido este remitido
                 $remitido = verificarEstadoPedido($folio, $conexionData, $claveSae);
                 if ($remitido) {
-                    $folio = "18631";
+                    $folio = "18633";
                     //$folio = "18456";
                     //Funcion para crear factura
-                    crearFactura($folio, $noEmpresa, $claveSae);
-                    $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData);
-                    die();
-                    validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa);
-                    die();
+                    $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae), true);
+                    /*var_dump($respuestaFactura);
+                    die();*/
+                    if ($respuestaFactura['Succes']) {
+                        $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData);
+                        validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa);
+                    } else {
+                        enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema']);
+                    }
                 }
             }
         }

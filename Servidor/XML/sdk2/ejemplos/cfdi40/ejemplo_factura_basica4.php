@@ -391,9 +391,25 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
 
     //echo "<pre>";print_r($datos);echo "</pre>";
     $res = mf_genera_cfdi4($datos);
+    //var_dump($res);
     /*$res = mf_default($datos);
     var_dump($res);*/
 
+    if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            "Succes" => true
+        ]);
+        return;
+    } else {
+        header('Content-Type: application/json');
+        echo json_encode([
+            "Succes" => false,
+            "Problema" => $res['mensaje_original_pac_json']
+            //"Problema" => $res['codigo_mf_texto']
+        ]);
+        return;
+    }
     ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
     echo "<h1>Respuesta Generar XML y Timbrado</h1>";
     foreach ($res as $variable => $valor) {
@@ -402,14 +418,14 @@ function cfdi($cve_doc, $noEmpresa, $claveSae)
         $valor = str_replace('&lt;br/&gt;', '<br/>', $valor);
         echo "<b>[$variable]=</b>$valor<hr>";
     }
-    return true;
+    //return true;
 }
 //http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
 //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
 /*$cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
 $claveSae = $_POST['claveSae'];*/
-$cve_doc = '18631';
+$cve_doc = '18633';
 $noEmpresa = '02';
 $claveSae = '02';
 cfdi($cve_doc, $noEmpresa, $claveSae);

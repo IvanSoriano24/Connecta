@@ -43,7 +43,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function guardarUsuario($datosUsuario)
+function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -88,6 +88,8 @@ function guardarUsuario($datosUsuario)
         'descripcionUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
         'status' => ['stringValue' => strip_tags($status)], // Se asigna según la condición
         'claveUsuario' => ['stringValue' => strip_tags($clave)], // Guardar la clave correcta
+        'noEmpresa' => ['stringValue' => strip_tags($noEmpresa)], 
+        'claveSae' => ['stringValue' => strip_tags($claveSae)],
     ];
 
     // Preparar la solicitud
@@ -1306,9 +1308,13 @@ switch ($funcion) {
         ];
         $csrf_token  = $_SESSION['csrf_token'];
         $csrf_token_form = $_POST['token'];
+
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+
         if ($csrf_token === $csrf_token_form) {
             // Guardar los datos en Firebase o la base de datos
-            guardarUsuario($datosUsuario);
+            guardarUsuario($datosUsuario, $noEmpresa, $claveSae);
         } else {
             echo json_encode([
                 'success' => false,

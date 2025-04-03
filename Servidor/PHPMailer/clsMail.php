@@ -39,11 +39,11 @@ class clsMail
         string $asunto,
         string $bodyHTML,
         string $archivoAdjunto = null,
-        string $rutaCfdi = null,
         string $correoRemitente = null,
         string $passwordRemitente = null,
         string $rutaXml = null,
-        string $rutaQr = null
+        string $rutaQr = null,
+        string $rutaCfdi = null
     ) {
         try {
             if ($correoRemitente === "" || $passwordRemitente === "") {
@@ -88,6 +88,54 @@ class clsMail
                 } else {
                     unlink($archivoAdjunto);
                 }
+            }
+            return "Correo enviado exitosamente.";
+        } catch (Exception $e) {
+            return "Error al enviar el correo: {$this->mail->ErrorInfo}";
+        }
+    }
+
+    public function metEnviarError(
+        string $titulo,
+        string $nombre,
+        string $correo,
+        string $asunto,
+        string $bodyHTML,
+        string $correoRemitente = null,
+        string $passwordRemitente = null,
+        string $rutaXml = null
+    ) {
+        try {
+            if ($correoRemitente === "" || $passwordRemitente === "") {
+                $remitente = $this->defaultUser;
+                $password = $this->defaultPass;
+            } else {
+                // Usar remitente y contraseña por defecto si no se proporciona
+                $remitente = $correoRemitente;
+                $password = $passwordRemitente;
+            }
+
+            $this->mail->Username = $remitente;
+            $this->mail->Password = $password;
+            $this->mail->setFrom($remitente, $titulo); // Remitente dinámico o por defecto
+            $this->mail->addAddress($correo, $nombre); // Destinatario
+            $this->mail->Subject = $asunto; // Asunto del correo
+            $this->mail->Body = $bodyHTML; // Cuerpo del correo
+            $this->mail->isHTML(true); // Indicar que el correo tiene contenido HTML
+
+            // *Adjuntar el archivo si existe*
+            if (!empty($rutaXml) && file_exists($rutaXml)) {
+                $this->mail->addAttachment($rutaXml);
+            }
+
+            // Enviar el correo y manejar errores
+            if (!$this->mail->send()) {
+                return "Error al enviar el correo: " . $this->mail->ErrorInfo;
+            }
+
+            // *Eliminar el archivo adjunto después del envío*
+            if (!empty($rutaXml) && file_exists($rutaXml)) {
+                unlink($rutaXml);
             }
             return "Correo enviado exitosamente.";
         } catch (Exception $e) {

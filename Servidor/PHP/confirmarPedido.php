@@ -239,12 +239,15 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 foreach ($usuariosData['documents'] as $document) {
                     $fields = $document['fields'];
                     if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
-                        $telefonoVendedor = $fields['telefono']['stringValue'];
-                        break;
+                        if(isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae){
+                            $telefonoVendedor = $fields['telefono']['stringValue'];
+                            break;
+                        }
+                        
                     }
                 }
             }
-            //$telefonoVendedor = '+527772127123';
+            //$telefonoVendedor = '+527772127123'; // Interzenda
             $telefonoVendedor = '+527773750925';
             if (!$telefonoVendedor) {
                 echo "<div class='container'>

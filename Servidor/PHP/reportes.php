@@ -408,14 +408,18 @@ class PDFPedido extends FPDF
     private $datosClienteReporte;
     private $datosVendedor;
     private $formularioData;
+    private $ordenCompra;
+    private $emailPred;
 
-    function __construct($datosEmpresaFire, $datosClienteReporte, $datosVendedor, $formularioData)
+    function __construct($datosEmpresaFire, $datosClienteReporte, $datosVendedor, $formularioData, $ordenCompra, $emailPred)
     {
         parent::__construct();
         $this->datosEmpresaFire = $datosEmpresaFire;
         $this->datosClienteReporte = $datosClienteReporte;
         $this->datosVendedor = $datosVendedor;
         $this->formularioData = $formularioData;
+        $this->ordenCompra = $ordenCompra;
+        $this->emailPred = $emailPred;
     }
 
     function Header()
@@ -515,14 +519,19 @@ class PDFPedido extends FPDF
             $this->SetTextColor(39, 39, 51);
             // Email - Cliente a la izquierda
             $this->SetX(10);
-            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->datosClienteReporte['email']), 0, 0, 'L');
+            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->emailPred), 0, 0, 'L');
 
             // Empresa: No tiene email, dejamos espacio en blanco
             $this->SetX(140);
             $this->SetFont('Arial', '', 10);
             $this->SetTextColor(39, 39, 51);
             $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1", "Fecha de emisión: " . $this->formularioData['diaAlta']), 0, 0, 'L');
+            $this->Ln(5);
 
+            if(isset($ordenCompra)){
+                $this->SetX(10);
+                $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Oden Compra: " . $this->ordenCompra), 0, 0, 'L');
+            }
             $this->Ln(15);
         }
 
@@ -531,13 +540,21 @@ class PDFPedido extends FPDF
         $this->SetFillColor(23, 83, 201);
         $this->SetDrawColor(23, 83, 201);
         $this->SetTextColor(255, 255, 255);
-        $this->Cell(20, 8, "Clave", 1, 0, 'C', true);
+        /*$this->Cell(20, 8, "Clave", 1, 0, 'C', true);
         $this->Cell(70, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
         $this->Cell(15, 8, "Cant.", 1, 0, 'C', true);
         $this->Cell(20, 8, "Precio", 1, 0, 'C', true);
         $this->Cell(20, 8, "Descuento", 1, 0, 'C', true);
         $this->Cell(20, 8, "Impuestos", 1, 0, 'C', true);
-        $this->Cell(30, 8, "Subtotal", 1, 1, 'C', true);
+        $this->Cell(30, 8, "Subtotal", 1, 1, 'C', true);*/
+        $this->Cell(10, 8, "Cant.", 1, 0, 'C', true);
+        $this->Cell(28, 8, "Unidad", 1, 0, 'C', true);
+        $this->Cell(15, 8, "Clave SAT", 1, 0, 'C', true); //c
+        $this->Cell(15, 8, "Clave", 1, 0, 'C', true);
+        $this->Cell(60, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
+        $this->Cell(18, 8, "IVA", 1, 0, 'C', true);
+        $this->Cell(18, 8, "Precio", 1, 0, 'C', true);
+        $this->Cell(22, 8, "Subtotal", 1, 1, 'C', true);
     }
 
     function Footer()
@@ -553,14 +570,16 @@ class PDFRemision extends FPDF
     private $datosClienteRemision;
     private $datosVendedorRemision;
     private $datosRemisiones;
+    private $emailPred;
 
-    function __construct($datosEmpresaFireRemision, $datosClienteRemision, $datosVendedorRemision, $datosRemisiones)
+    function __construct($datosEmpresaFireRemision, $datosClienteRemision, $datosVendedorRemision, $datosRemisiones, $emailPred)
     {
         parent::__construct();
         $this->datosEmpresaFireRemision = $datosEmpresaFireRemision;
         $this->datosClienteRemision = $datosClienteRemision;
         $this->datosVendedorRemision = $datosVendedorRemision;
         $this->datosRemisiones = $datosRemisiones;
+        $this->emailPred = $emailPred;
     }
 
     function Header()
@@ -660,7 +679,7 @@ class PDFRemision extends FPDF
             $this->SetTextColor(39, 39, 51);
             // Email - Cliente a la izquierda
             $this->SetX(10);
-            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->datosClienteRemision['email']), 0, 0, 'L');
+            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->emailPred), 0, 0, 'L');
 
             // Empresa: No tiene email, dejamos espacio en blanco
             $this->SetX(140);
@@ -820,13 +839,14 @@ class PDFPedidoAutoriza extends FPDF
         $this->SetFillColor(23, 83, 201);
         $this->SetDrawColor(23, 83, 201);
         $this->SetTextColor(255, 255, 255);
-        $this->Cell(20, 8, "Clave", 1, 0, 'C', true);
-        $this->Cell(70, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
-        $this->Cell(15, 8, "Cant.", 1, 0, 'C', true);
-        $this->Cell(20, 8, "Precio", 1, 0, 'C', true);
-        $this->Cell(20, 8, "Descuento", 1, 0, 'C', true);
-        $this->Cell(20, 8, "Impuestos", 1, 0, 'C', true);
-        $this->Cell(30, 8, "Subtotal", 1, 1, 'C', true);
+        $this->Cell(10, 8, "Cant.", 1, 0, 'C', true);
+        $this->Cell(28, 8, "Unidad", 1, 0, 'C', true);
+        $this->Cell(15, 8, "Clave SAT", 1, 0, 'C', true); 
+        $this->Cell(15, 8, "Clave", 1, 0, 'C', true);
+        $this->Cell(60, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
+        $this->Cell(18, 8, "IVA", 1, 0, 'C', true);
+        $this->Cell(18, 8, "Precio", 1, 0, 'C', true);
+        $this->Cell(22, 8, "Subtotal", 1, 1, 'C', true);
     }
 
     function Footer()
@@ -1081,28 +1101,30 @@ class PDFFactura extends FPDF
     }
 }
 
-function generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa)
-{
+function generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa){
     $datosEmpresaFire = obtenerDatosEmpresaFire($noEmpresa);
 
     $clienteId = str_pad(trim($formularioData['cliente']), 10, ' ', STR_PAD_LEFT);
     $datosClienteReporte = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
 
+    $emailPredArray = explode(';', $datosClienteReporte['email']); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]);
+
     $clave = str_pad(trim($formularioData['claveVendedor']), 5, ' ', STR_PAD_LEFT);
     $datosVendedor = obtenerDatosVendedor($clave);
-
+    $ordenCompra = $formularioData['ordenCompra'];
     // Variables para cálculo de totales
     $subtotal = 0;
     $totalImpuestos = 0;
     $totalDescuentos = 0;
 
-    $pdf = new PDFPedido($datosEmpresaFire, $datosClienteReporte, $datosVendedor, $formularioData);
+    $pdf = new PDFPedido($datosEmpresaFire, $datosClienteReporte, $datosVendedor, $formularioData, $ordenCompra, $emailPred);
     $pdf->AddPage();
     $pdf->SetFont('Arial', '', 9);
     $pdf->SetTextColor(39, 39, 51);
 
     foreach ($partidasData as $partida) {
-        $descripcion = obtenerDescripcionProducto($partida['producto'], $conexionData, $claveSae);
+        $productosData = obtenerDescripcionProductoPedidoAutoriza($partida['producto'], $conexionData, $claveSae);
 
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
@@ -1127,13 +1149,23 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
         $totalImpuestos += $impuestoPartida;
 
         $pdf->SetTextColor(39, 39, 51);
-        $pdf->Cell(20, 7, $partida['producto'], 1, 0, 'C');
-        $pdf->Cell(70, 7, iconv("UTF-8", "ISO-8859-1", $descripcion), 1);
-        $pdf->Cell(15, 7, $cantidad, 1, 0, 'C');
-        $pdf->Cell(20, 7, number_format($precioUnitario, 2), 1, 0, 'C');
+        /*$pdf->Cell(20, 7, $partida['producto'], 0, 0, 'C');
+        $pdf->Cell(70, 7, iconv("UTF-8", "ISO-8859-1", $descripcion), 0);
+        $pdf->Cell(15, 7, $cantidad, 0, 0, 'C');
+        $pdf->Cell(20, 7, number_format($precioUnitario, 2), 0, 0, 'C');
         $pdf->Cell(20, 7, number_format($desc1, 2) . "%", 1, 0, 'C');
-        $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 1, 0, 'C');
-        $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 1, 1, 'R');
+        $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 0, 0, 'C');
+        $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');*/
+        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->Cell(28, 7, $partida['unidad'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $partida['producto'], 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
+        $pdf->Cell(18, 7,"$" . number_format($precioUnitario, 2), 0, 0, 'R');
+        $pdf->Cell(22, 7,"$" . number_format($subtotalPartida, 2), 0, 1, 'R');
     }
 
     // Calcular totales
@@ -1230,13 +1262,16 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
 
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);
-        $pdf->Cell(20, 7, $partida['CVE_ART'], 0, 0, 'C');
-        $pdf->Cell(70, 7, iconv("UTF-8", "ISO-8859-1", $productosData["DESCR"]), 0);
-        $pdf->Cell(15, 7, $cantidad, 0, 0, 'C');
-        $pdf->Cell(20, 7, number_format($precioUnitario, 2), 0, 0, 'C');
-        $pdf->Cell(20, 7, number_format($descuentos, 2) . "%", 0, 0, 'C');
-        $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 0, 0, 'C');
-        $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');
+        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->Cell(28, 7, $partida['unidad'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $partida['producto'], 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
+        $pdf->Cell(18, 7,"$" . number_format($precioUnitario, 2), 0, 0, 'R');
+        $pdf->Cell(22, 7,"$" . number_format($subtotalPartida, 2), 0, 1, 'R');
     }
     // **Calcular totales**
     $subtotalConDescuento = $subtotal - $totalDescuentos;
@@ -1288,6 +1323,9 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
     $clienteId = str_pad(trim($datosRemisiones['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
     $datosClienteRemision = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
 
+    $emailPredArray = explode(';', $datosClienteRemision['email']); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]);
+
     // Obtener datos del vendedor
     $clave = str_pad(trim($vendedor), 5, ' ', STR_PAD_LEFT);
     $datosVendedorRemision = obtenerDatosVendedor($clave);
@@ -1298,7 +1336,7 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
     $totalDescuentos = 0;
 
     // Crear el PDF
-    $pdf = new PDFRemision($datosEmpresaFireRemision, $datosClienteRemision, $datosVendedorRemision, $datosRemisiones);
+    $pdf = new PDFRemision($datosEmpresaFireRemision, $datosClienteRemision, $datosVendedorRemision, $datosRemisiones, $emailPred);
     $pdf->AddPage();
     $pdf->SetFont('Arial', '', 9);
     $pdf->SetTextColor(39, 39, 51);

@@ -1348,7 +1348,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
@@ -3410,7 +3410,7 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
@@ -3439,7 +3439,6 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
 
     // Definir el correo de destino (puedes cambiarlo si es necesario)
     $correoDestino = $correo;
-    //$correoDestino = 'desarrollo01@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión
     $titulo = 'Sun Arrow';
@@ -4280,7 +4279,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
@@ -4418,9 +4417,6 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     //$contraseñaRemitente = null;
     // Definir el correo de destino (puedes cambiarlo si es necesario)
     $correoDestino = $correo;
-    //$correoDestino = 'desarrollo01@mdcloud.mx';
-    //$correoDestino = 'amartinez@grupointerzenda.com';
-    //$correoDestino = 'ivan.soriano@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión
     $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
@@ -4811,11 +4807,11 @@ switch ($funcion) {
                         }
                         /*$estatus = "E";
                         $validarSaldo = 0;
-                        $credito = 0;*/
+                        $credito = 0;
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
-                        actualizarInventario($conexionData, $partidasData);
+                        actualizarInventario($conexionData, $partidasData);*/
                         if ($validarSaldo == 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
@@ -4841,7 +4837,6 @@ switch ($funcion) {
                     } else {
 
                         $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
-
                         if ($anticipo['success']) {
                             //Funcion para eliminar anticipo
                             /*var_dump("Si tiene");

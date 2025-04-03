@@ -647,7 +647,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     //$emailPred = "";
     //$numeroWhatsApp = "";
 
@@ -704,9 +704,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     /*$correoRemitente = "";
     $contraseñaRemitente = "";*/
     // Definir el correo de destino (puedes cambiarlo si es necesario)
-    //$correoDestino = 'desarrollo01@mdcloud.mx';
     $correoDestino = $correo;
-    //$correoDestino = 'ivan.soriano@mdcloud.mx';
 
     // Obtener el nombre de la empresa desde la sesión
     $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
@@ -922,8 +920,8 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
 
     // Si no se encuentra el vendedor, asignar un valor por defecto
     $numero = $telefonoVendedor ?? 'No disponible';
-    $numero = '+527772127123';
-    //$numero = '+527773750925';
+    //$numero = '+527772127123'; // Interzenda
+    $numero = '+527773750925';
 
     $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";
 

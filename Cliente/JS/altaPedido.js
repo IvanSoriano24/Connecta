@@ -520,6 +520,7 @@ function obtenerDatosFormulario() {
     destinatario: document.getElementById("destinatario").value,
     conCredito: document.getElementById("conCredito").value,
     token: document.getElementById("csrf_token").value,
+    ordenCompra: document.getElementById("supedido").value,
   };
   return formularioData;
 }
