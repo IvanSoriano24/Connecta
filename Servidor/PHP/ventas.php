@@ -46,7 +46,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 function mostrarPedidos($conexionData, $filtroFecha)
-{ 
+{
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
 
@@ -2201,7 +2201,51 @@ function eliminarPartida($conexionData, $clavePedido, $numPar)
         echo json_encode(['success' => false, 'message' => 'No se encontró la partida especificada.']);
     }
 }
-function eliminarPedido($conexionData, $pedidoID)
+function pedidoRemitido($conexionData, $pedidoID, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    //$clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
+    $pedidoID = str_pad($pedidoID, 20, ' ', STR_PAD_LEFT);
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT DOC_SIG, TIP_DOC_SIG FROM $nombreTabla
+    WHERE CVE_DOC = ?";
+
+    $params = [$pedidoID];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $DOC_SIG = $row['DOC_SIG'];
+        $TIP_DOC_SIG = $row['TIP_DOC_SIG'];
+    }
+
+    if ($DOC_SIG === null && $TIP_DOC_SIG !== 'R') {
+        return true;
+    } else if ($DOC_SIG !== null && $TIP_DOC_SIG === 'R') {
+        return false;
+    }
+    // Liberar recursos y cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function eliminarPedido($conexionData, $pedidoID, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2220,7 +2264,6 @@ function eliminarPedido($conexionData, $pedidoID)
     //$clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
     $pedidoID = str_pad($pedidoID, 20, ' ', STR_PAD_LEFT);
     // Nombre de la tabla dinámico basado en la empresa
-    $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Actualizar el estatus del pedido
     $query = "UPDATE $nombreTabla SET STATUS = 'C' WHERE CVE_DOC = ?";
@@ -4427,7 +4470,8 @@ function restarSaldo($conexionData, $claveSae, $datosCxC, $claveCliente)
     ]);
 }
 
-function formatearDato($dato) {
+function formatearDato($dato)
+{
     if (is_string($dato)) {
         return htmlspecialchars(strip_tags(trim($dato)), ENT_QUOTES, 'UTF-8');
     }
@@ -4438,13 +4482,15 @@ function formatearDato($dato) {
     // Si es otro tipo (número, boolean, etc.), se devuelve tal cual.
     return $dato;
 }
-function formatearFormulario($formulario) {
+function formatearFormulario($formulario)
+{
     foreach ($formulario as $clave => $valor) {
         $formulario[$clave] = formatearDato($valor);
     }
     return $formulario;
 }
-function formatearPartidas($partidas) {
+function formatearPartidas($partidas)
+{
     foreach ($partidas as $indice => $partida) {
         if (is_array($partida)) {
             foreach ($partida as $clave => $valor) {
@@ -4700,7 +4746,7 @@ switch ($funcion) {
                         actualizarFolio($conexionData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
                         if ($validarSaldo == 0 && $credito == 0) {
-                            
+
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                             // Respuesta de éxito
@@ -4906,8 +4952,13 @@ switch ($funcion) {
         }
         $conexionData = $conexionResult['data'];
         $pedidoID = $_POST['pedidoID'];
-        eliminarPedido($conexionData, $pedidoID);
-        liberarExistencias($conexionData, $pedidoID, $claveSae);
+        $verificado = pedidoRemitido($conexionData, $pedidoID, $claveSae);
+        if ($verificado) {
+            eliminarPedido($conexionData, $pedidoID, $claveSae);
+            liberarExistencias($conexionData, $pedidoID, $claveSae);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Pedido remitido, no se puede cancelar']);
+        }
         break;
     case 11:
         $csrf_token  = $_SESSION['csrf_token'];

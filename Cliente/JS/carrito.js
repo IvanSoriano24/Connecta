@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
       vendedor: 24,
       comision: 0,
       entrega: "",
-      enviar: datosCliente.CALLE, // Puedes modificarlo según la lógica de negocio
+      enviar: datosCliente.CALLE,
       condicion: ""
     };
   }

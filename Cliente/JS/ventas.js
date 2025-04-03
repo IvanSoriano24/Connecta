@@ -37,6 +37,7 @@ function agregarEventosBotones() {
 }
 
 function eliminarPedido(pedidoID) {
+  
   $.post(
     "../Servidor/PHP/ventas.php",
     { numFuncion: "10", pedidoID: pedidoID },
@@ -447,7 +448,7 @@ function actualizarTablaPartidas(pedidoID) {
         </div>
     </td>
     <td><input type="number" class="cantidad" value="${partida.CANT}" style="text-align: right;" /></td>
-    <td><input type="text" class="unidad" value="Unidad" readonly /></td>
+    <td><input type="text" class="unidad" value="${partida.UNI_VENTA}" readonly /></td>
     <td><input type="number" class="descuento" value="${partida.DESC1}" style="text-align: right;" /></td>
     <td><input type="number" class="iva" value="${partida.IMPU4}" style="text-align: right;" readonly /></td>
     
