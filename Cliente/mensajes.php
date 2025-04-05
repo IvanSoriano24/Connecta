@@ -276,7 +276,7 @@ if (isset($_SESSION['usuario'])) {
                                     <input type="hidden" id="noEmpresa">
                                     <input type="hidden" id="claveSae">
                                     <input type="hidden" id="vendedor">
-                                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                                    <input type="hidden" name="csrf_tokenP" id="csrf_tokenP" value="<?php echo $csrf_token; ?>">
 
                                     <div class="row">
                                         <div class="col-md-6 mb-2">

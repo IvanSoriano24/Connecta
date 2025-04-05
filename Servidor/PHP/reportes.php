@@ -964,12 +964,18 @@ class PDFFactura extends FPDF
     {
         if ($this->PageNo() == 1) {
             $this->SetFont('Arial', 'B', 12);
+            $this->SetTextColor(32, 100, 210);
+            $this->Cell(20, 12, iconv("UTF-8", "ISO-8859-1", "Factura# : "), 0, 0, 'L');
             $this->SetTextColor(39, 39, 51);
-            $this->Cell(120, 12, iconv("UTF-8", "ISO-8859-1", "Factura : " . $this->datosPedidoAutoriza['FOLIO']), 0, 0, 'L');
+            $this->Cell(20, 12, iconv("UTF-8", "ISO-8859-1", $this->datosPedidoAutoriza['FOLIO']), 0, 0, 'L');
+            
             $this->Ln(4);
 
+            $this->SetTextColor(32, 100, 210);
             $this->SetFont('Arial', 'B', 12);
-            $this->Cell(120, 12, iconv("UTF-8", "ISO-8859-1", "Fecha de emisión: " . $this->fechaEmision), 0, 0, 'L');
+            $this->Cell(40, 12, iconv("UTF-8", "ISO-8859-1", "Fecha de emisión: "), 0, 0, 'L');
+            $this->SetTextColor(39, 39, 51);
+            $this->Cell(20, 12, iconv("UTF-8", "ISO-8859-1", $this->fechaEmision), 0, 0, 'L');
             $this->Ln(4);
 
             // Logo de la empresa
@@ -1263,9 +1269,9 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);
         $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
-        $pdf->Cell(28, 7, $partida['unidad'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
+        $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
         $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
-        $pdf->Cell(15, 7, $partida['producto'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
         $pdf->SetFont('Arial', '', 8);
         $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
         $pdf->SetFont('Arial', '', 9);

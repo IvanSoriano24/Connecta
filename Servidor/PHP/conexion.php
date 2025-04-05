@@ -199,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo "Método no permitido.";
 }
 
-$funcion = $_POST["numFuncion"];
+/*$funcion = $_POST["numFuncion"];
 switch ($funcion) {
     case 1:
         login($funcion);
@@ -207,4 +207,4 @@ switch ($funcion) {
     case 2:
         cerrarSesion();
         break;
-}
+}*/

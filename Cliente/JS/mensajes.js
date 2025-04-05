@@ -253,7 +253,7 @@ function mostrarModalPedido(pedidoId) {
         });
 
         const status = pedido.status;
-        if (status == "Autorizada" || status == "No Autorizada") {
+        if (status == "Autorizado" || status == "Rechazado") {
           $("#btnAutorizar").hide();
         } else {
           // Deshabilitar el botón "Terminar" inicialmente
@@ -322,7 +322,7 @@ $("#btnAutorizar").click(function () {
   const noEmpresa = $("#noEmpresa").val();
   const claveSae = $("#claveSae").val();
   const vendedor = $("#vendedor").val();
-  const token = $("#csrf_token").val();
+  const token = $("#csrf_tokenP").val();
   $.post(
     "../Servidor/PHP/mensajes.php",
     {
@@ -340,23 +340,29 @@ $("#btnAutorizar").click(function () {
           Swal.fire({
             text: "El pedido fue autorizado",
             icon: "success",
+          }).then(() => {
+            $("#modalPedido").modal("hide");
+            cargarPedidos(); // Recargar la tabla
+            //window.location.reload();
           });
-          $("#modalPedido").modal("hide");
-          cargarPedidos(); // Recargar la tabla
         } else if (response.telefono) {
           Swal.fire({
             text: response.message,
             icon: "success",
+          }).then(() => {
+            $("#modalPedido").modal("hide");
+            cargarPedidos(); // Recargar la tabla
+            //window.location.reload();
           });
-          $("#modalPedido").modal("hide");
-          cargarPedidos(); // Recargar la tabla
         } else if (response.correo) {
           Swal.fire({
             text: response.message,
             icon: "success",
+          }).then(() => {
+            $("#modalPedido").modal("hide");
+            cargarPedidos(); // Recargar la tabla
+            //window.location.reload();
           });
-          $("#modalPedido").modal("hide");
-          cargarPedidos(); // Recargar la tabla
         } else {
           Swal.fire({
             text: response.message,
@@ -387,9 +393,11 @@ $("#btnRechazar").click(function () {
         Swal.fire({
           text: "El pedido fue rechazado",
           icon: "success",
+        }).then(() => {
+          $("#modalPedido").modal("hide");
+          cargarPedidos(); // Recargar la tabla
+          //window.location.reload();
         });
-        $("#modalPedido").modal("hide");
-        cargarPedidos(); // Recargar la tabla
       } else {
         Swal.fire({
           text: "Error al rechazar el pedido.",

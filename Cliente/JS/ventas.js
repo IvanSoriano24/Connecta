@@ -7,9 +7,7 @@ function agregarEventosBotones() {
   botonesEditar.forEach((boton) => {
     boton.addEventListener("click", function () {
       const pedidoID = this.dataset.id; // Obtener el ID del pedido
-      console.log("Redirigiendo con pedidoID:", pedidoID); // Log en consola
-      // Redirigir a altaPedido.php con el ID del pedido como parámetro
-      window.location.href = "altaPedido.php?pedidoID=" + pedidoID;
+      verificarPedido(pedidoID);
     });
   });
 
@@ -37,7 +35,6 @@ function agregarEventosBotones() {
 }
 
 function eliminarPedido(pedidoID) {
-  
   $.post(
     "../Servidor/PHP/ventas.php",
     { numFuncion: "10", pedidoID: pedidoID },
@@ -243,7 +240,13 @@ function datosPedidos(limpiarTabla = true) {
                                   pedido.FechaElaboracion?.date || "Sin fecha"
                                 }</td>
                                 <td style="text-align: right;">
-                                    ${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : "Sin subtotal"}
+                                    ${
+                                      pedido.Subtotal
+                                        ? `$${parseFloat(
+                                            pedido.Subtotal
+                                          ).toFixed(2)}`
+                                        : "Sin subtotal"
+                                    }
                                 </td>
 
                                 <td style="text-align: right;">${
@@ -399,7 +402,6 @@ function obtenerDatosPedido(pedidoID) {
 }
 
 function cargarPartidasPedido(pedidoID) {
-
   $.post(
     "../Servidor/PHP/ventas.php",
     {
@@ -462,21 +464,21 @@ function actualizarTablaPartidas(pedidoID) {
       <td><input type="text" class="COSTO_PROM" value="0" readonly hidden /></td>
 `;
 
-  // Validar que la cantidad no sea negativa
-  const cantidadInput = nuevaFila.querySelector(".cantidad");
-  cantidadInput.addEventListener("input", () => {
-    if (parseFloat(cantidadInput.value) < 0) {
-      Swal.fire({
-        title: "Error",
-        text: "La cantidad no puede ser negativa.",
-        icon: "error",
-        confirmButtonText: "Entendido",
-      });
-      cantidadInput.value = 0; // Restablecer el valor a 0
-    } else {
-      calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
-    }
-  });
+    // Validar que la cantidad no sea negativa
+    const cantidadInput = nuevaFila.querySelector(".cantidad");
+    cantidadInput.addEventListener("input", () => {
+      if (parseFloat(cantidadInput.value) < 0) {
+        Swal.fire({
+          title: "Error",
+          text: "La cantidad no puede ser negativa.",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+        cantidadInput.value = 0; // Restablecer el valor a 0
+      } else {
+        calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
+      }
+    });
     tablaProductos.appendChild(nuevaFila);
   });
 }
@@ -644,6 +646,41 @@ function obtenerFecha() {
   const today = new Date();
   const formattedDate = today.toISOString().split("T")[0];
   document.getElementById("diaAlta").value = formattedDate;
+}
+function verificarPedido(pedidoID) {
+  $.post(
+    "../Servidor/PHP/ventas.php",
+    { numFuncion: "21", pedidoID: pedidoID },
+    function (response) {
+      try {
+        if (typeof response === "string") {
+          response = JSON.parse(response);
+        }
+        if (response.success) {
+          Swal.fire({
+            title: "Error",
+            text: "El pedido ya fue Remitido/Facturado, no es posible editarlo",
+            icon: "error",
+            confirmButtonText: "Entendido",
+          });
+        } else if (response.fail) {
+          console.log("Redirigiendo con pedidoID:", pedidoID); // Log en consola
+          // Redirigir a altaPedido.php con el ID del pedido como parámetro
+          window.location.href = "altaPedido.php?pedidoID=" + pedidoID;
+        }
+      } catch (error) {
+        console.error("Error al procesar la respuesta JSON:", error);
+      }
+    }
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    Swal.fire({
+      title: "Error",
+      text: "Hubo un problema al intentar obtner el pedido",
+      icon: "error",
+      confirmButtonText: "Entendido",
+    });
+    console.log("Detalles del error:", jqXHR.responseText);
+  });
 }
 
 $("#filtroFecha").change(function () {

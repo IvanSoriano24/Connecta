@@ -139,8 +139,6 @@ function obtenerStatus($idUsuario) {
     
     return null;
 }
-
-
 function mostrarUsuarios($usuarioLogueado, $usuario)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -227,8 +225,6 @@ function mostrarUsuarios($usuarioLogueado, $usuario)
     echo json_encode(['success' => true, 'data' => $usuarios]);
     exit();
 }
-
-// Función para obtener un usuario específico
 function mostrarUsuario($idUsuario)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -261,47 +257,6 @@ function mostrarUsuario($idUsuario)
         echo json_encode(['success' => false, 'message' => 'Usuario no encontrado.']);
     }
 }
-
-/*function optenerEmpresas()
-{
-    // Configuración de Firebase
-    global $firebaseProjectId, $firebaseApiKey;
-    $urlEmpUs = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-    // Realizar la solicitud a Firebase
-    $responseEmpUs = file_get_contents($urlEmpUs);
-    if ($responseEmpUs !== false) {
-        $dataEmpUs = json_decode($responseEmpUs, true);
-        if (isset($dataEmpUs['documents'])) {
-            $empresas = [];
-            foreach ($dataEmpUs['documents'] as $document) {
-                $fields = $document['fields'];
-
-                // Agregar todas las empresas sin filtrar por usuario
-                $empresas[] = [
-                    'id' => isset($fields['id']['stringValue']) ? $fields['id']['stringValue'] : "N/A",
-                    'noEmpresa' => isset($fields['noEmpresa']['stringValue']) ? $fields['noEmpresa']['stringValue'] : "No especificado",
-                    'razonSocial' => isset($fields['razonSocial']['stringValue']) ? $fields['razonSocial']['stringValue'] : "Sin Razón Social"
-                ];
-            }
-            // Verificar si se encontraron empresas
-            if (count($empresas) > 0) {
-                // Ordenar por razón social
-                usort($empresas, function ($a, $b) {
-                    return strcmp($a['razonSocial'], $b['razonSocial']);
-                });
-
-                // Devolver las empresas como respuesta JSON
-                echo json_encode(['success' => true, 'data' => $empresas]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'No se encontraron empresas.']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'No se encontraron datos de empresas en Firebase.']);
-        }
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error al obtener los datos de empresas.']);
-    }
-}*/
 function obtenerEmpresasNoAsociadas()
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -372,7 +327,6 @@ function obtenerEmpresasNoAsociadas()
     echo json_encode(['success' => true, 'data' => $empresasDisponibles]);
     exit();
 }
-
 function obtenerUsuarios()
 {
     global $firebaseProjectId, $firebaseApiKey;

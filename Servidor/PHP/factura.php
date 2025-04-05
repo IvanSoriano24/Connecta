@@ -72,8 +72,8 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        $cveDoc = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa);
-        return $cveDoc;
+        $folioFactura = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa);
+        return $folioFactura;
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

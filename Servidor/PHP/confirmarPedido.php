@@ -2,6 +2,113 @@
 date_default_timezone_set('America/Mexico_City');
 require 'firebase.php'; // Archivo de configuración de Firebase
 //session_start();
+function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
+{
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+    $result = file_get_contents($url, false, $context);
+
+    if ($result === FALSE) {
+        return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
+    }
+    $documents = json_decode($result, true);
+
+    if (!isset($documents['documents'])) {
+        return ['success' => false, 'message' => 'No se encontraron documentos'];
+    }
+    // Busca el documento donde coincida el campo `claveSae`
+    foreach ($documents['documents'] as $document) {
+        $fields = $document['fields'];
+        if ($fields['claveSae']['stringValue'] === $claveSae) {
+            return [
+                'success' => true,
+                'data' => [
+                    'host' => $fields['host']['stringValue'],
+                    'puerto' => $fields['puerto']['stringValue'],
+                    'usuario' => $fields['usuario']['stringValue'],
+                    'password' => $fields['password']['stringValue'],
+                    'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'claveSae' => $fields['claveSae']['stringValue']
+                ]
+            ];
+        }
+    }
+    return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
+}
+function obtenerProductos($pedidoId, $conexionData, $claveSae){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $CVE_DOC = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CVE_DOC = ?";
+    $params = [$CVE_DOC];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    $partidas = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $partidas[] = $row;
+    }
+    return $partidas;
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function obtenerDescripcion($producto, $conexionData, $claveSae){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CVE_ART = ?";
+    $params = [$producto];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener los resultados
+    $productoData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($productoData) {
+        return $productoData;
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Producto no encontrado']);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
 
 if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $pedidoId = $_GET['pedidoId'];
@@ -9,13 +116,11 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $nombreCliente = urldecode($_GET['nombreCliente'] ?? 'Desconocido');
     $enviarA = urldecode($_GET['enviarA'] ?? 'No especificado');
     $vendedor = urldecode($_GET['vendedor'] ?? 'Sin vendedor');
-    $productosJson = urldecode($_GET['productos'] ?? '[]');
-    $productos = json_decode($productosJson, true);
-    $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     $claveSae = $_GET['claveSae'];
     $noEmpresa = $_GET['noEmpresa'];
     $clave = $_GET['clave'] ?? "";
     $conCredito = $_GET['credito'] ?? "";
+    $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     // Obtener fecha y hora actual si no está incluida en los parámetros
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
     if ($resultado) {
@@ -28,11 +133,18 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
         if ($accion === 'confirmar') {
 
             if ($conCredito === 'S') {
+                $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+                if (!$conexionResult['success']) {
+                    echo json_encode($conexionResult);
+                    die();
+                }
+                $conexionData = $conexionResult['data'];
+
                 // Obtener la hora actual
                 $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
                 // Determinar el estado según la hora
                 $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
-
+                $producto = obtenerProductos($pedidoId, $conexionData, $claveSae);
                 // Preparar datos para Firebase
                 $comanda = [
                     "fields" => [
@@ -43,17 +155,18 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
                         "productos" => [
                             "arrayValue" => [
-                                "values" => array_map(function ($producto) {
+                                "values" => array_map(function ($producto) use ($conexionData, $claveSae) {
+                                    $productoData = obtenerDescripcion($producto["CVE_ART"], $conexionData, $claveSae);
                                     return [
                                         "mapValue" => [
                                             "fields" => [
-                                                "clave" => ["stringValue" => $producto["producto"]],
-                                                "descripcion" => ["stringValue" => $producto["descripcion"]],
-                                                "cantidad" => ["integerValue" => (int) $producto["cantidad"]],
+                                                "clave" => ["stringValue" => $producto["CVE_ART"]],
+                                                "descripcion" => ["stringValue" => $productoData["DESCR"]],
+                                                "cantidad" => ["integerValue" => (int) $producto["CANT"]],
                                             ]
                                         ]
                                     ];
-                                }, $productos)
+                                }, $producto)
                             ]
                         ],
                         "vendedor" => ["stringValue" => $vendedor],
@@ -220,14 +333,6 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             ]);
 
             $response = @file_get_contents($firebaseUrl, false, $context);
-            if ($response === false) {
-                echo "<div class='container'>
-                        <div class='title'>Error al Obtener Información</div>
-                        <div class='message'>No se pudo obtener la información del vendedor.</div>
-                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
-                      </div>";
-                exit;
-            }
 
             $usuariosData = json_decode($response, true);
             $telefonoVendedor = null;
@@ -259,50 +364,6 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             // Enviar mensaje de WhatsApp
             $resultadoWhatsApp = enviarWhatsApp($telefonoVendedor, $pedidoId, $nombreCliente);
             if ($resultadoWhatsApp) {
-
-                $estadoComanda = "Cancelada"; // "Pendiente" después de 1:00 PM
-
-                // Preparar datos para Firebase
-                $comanda = [
-                    "fields" => [
-                        "idComanda" => ["stringValue" => uniqid()],
-                        "folio" => ["stringValue" => $pedidoId],
-                        "nombreCliente" => ["stringValue" => $nombreCliente],
-                        "enviarA" => ["stringValue" => $enviarA],
-                        "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
-                        "productos" => [
-                            "arrayValue" => [
-                                "values" => array_map(function ($producto) {
-                                    return [
-                                        "mapValue" => [
-                                            "fields" => [
-                                                "clave" => ["stringValue" => $producto["producto"]],
-                                                "descripcion" => ["stringValue" => $producto["descripcion"]],
-                                                "cantidad" => ["integerValue" => (int) $producto["cantidad"]],
-                                            ]
-                                        ]
-                                    ];
-                                }, $productos)
-                            ]
-                        ],
-                        "vendedor" => ["stringValue" => $vendedor],
-                        "status" => ["stringValue" => $estadoComanda] // Establecer estado según la hora
-                    ]
-                ];
-
-                // URL de Firebase
-                $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
-
-                // Enviar los datos a Firebase
-                $context = stream_context_create([
-                    'http' => [
-                        'method' => 'POST',
-                        'header' => "Content-Type: application/json\r\n",
-                        'content' => json_encode($comanda)
-                    ]
-                ]);
-
-                $response = @file_get_contents($url, false, $context);
                 echo "<div class='container'>
                         <div class='title'>Pedido Rechazado</div>
                         <div class='message'>El pedido $pedidoId fue rechazado correctamente y se notificó al vendedor.</div>
@@ -334,7 +395,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 function enviarWhatsApp($numero, $pedidoId, $nombreCliente)
 {
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBOzXdMDZAwhtSRI0xR5WZAzvlg5Rwgk6zG7RYmHeOgnBDE3rqlv5fq41bqhfvwU25rPFD0NTO3N3Ccm82AfI9uNo4l5ZB6mG6yx8KauRdOGVpBE4QigKX4ZBQhLehyAHykO1pHYRQQPquheIk3MKqV585tNMX23AIQMUqKvb2rYvm74TQmKuiQVh72KhyijTjv8JQZANgSFUWRoQZDZD';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     // Crear el cuerpo de la solicitud para la API
 
     $data = [

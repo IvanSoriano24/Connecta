@@ -722,8 +722,67 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     }
 }
 
-function facturar($folio, $conexionData, $claveSae, $noEmpresa){
+function facturar($folio, $claveSae, $noEmpresa){
+    $numFuncion = '1';
+    $pedidoId = $folio;
 
+    // URL del servidor donde se ejecutará la remisión
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+
+    // Datos a enviar a la API de remisión
+    $data = [
+        'numFuncion' => $numFuncion,
+        'pedidoId' => $pedidoId,
+        'claveSae' => $claveSae,
+        'noEmpresa' => $noEmpresa,
+    ];
+
+    // Inicializa cURL
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $facturanUrl);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/x-www-form-urlencoded'
+    ]);
+
+    // Ejecutar la petición y capturar la respuesta
+    $facturaResponse = curl_exec($ch);
+
+    // Verificar errores en cURL
+    if (curl_errno($ch)) {
+        echo 'Error cURL: ' . curl_error($ch);
+        curl_close($ch);
+        return;
+    }
+
+    // Obtener tipo de contenido antes de cerrar cURL
+    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+    curl_close($ch);
+
+    if ($facturaResponse) {
+        // Intenta decodificar como JSON
+        //$facturaData = json_decode($facturaResponse, true);
+
+        if (json_last_error() === JSON_ERROR_NONE && isset($facturaResponse)) {
+            return $facturaResponse;
+            // ✅ La respuesta es un JSON con cveDoc (Pedido procesado correctamente)
+            echo "<div class='container'>
+                    <div class='title'>Confirmación Exitosa</div>
+                    <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+                    <a href='/Menu.php' class='button'>Regresar al inicio</a>
+                  </div>";
+        }
+    } else {
+        // ❌ No hubo respuesta
+        echo "<div class='container error'>
+                <div class='title'>Confirmación Fallida</div>
+                <div class='message'>El pedido falló. No se recibió respuesta del servidor.</div>
+                <a href='/Menu.php' class='button'>Regresar al inicio</a> 
+              </div>";
+    }
 }
 
 function verificarHora($firebaseProjectId, $firebaseApiKey)
@@ -761,14 +820,16 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                 //Se verifica que el pedido este remitido
                 $remitido = verificarEstadoPedido($folio, $conexionData, $claveSae);
                 if ($remitido) {
-                    $folio = "18633";
-                    //$folio = "18456";
+                    //$folio = "18633";
+                    $folio = "18456";
                     //Funcion para crear factura
-                    $folioFactura = facturar($folio, $conexionData, $claveSae, $noEmpresa);
+                    $folioFactura = facturar($folio, $claveSae, $noEmpresa);
+                    //$folioFactura = "18456";
                     //Demas funciones
                     $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
                     if ($respuestaFactura['Succes']) {
                         $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+                        die();
                         validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura);
                     } else {
                         enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
@@ -780,5 +841,3 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
 }
 
 verificarHora($firebaseProjectId, $firebaseApiKey);
-
-//$verificado = verificarComandas();

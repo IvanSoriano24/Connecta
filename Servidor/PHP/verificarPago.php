@@ -167,8 +167,8 @@ function estadoSql($folio, $conexionData, $claveSae)
 }
 function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
     $data = [
         'numFuncion' => 1,
         'pedidoId' => $folio,
@@ -417,7 +417,7 @@ function crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracio
             "vendedor" => ["stringValue" => $nombreVendedor],
             "status" => ["stringValue" => $estadoComanda] // Establecer estado según la hora
         ]
-    ];    
+    ];
 
     // URL de Firebase
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
@@ -559,7 +559,8 @@ function datosPartida($cve_doc, $claveSae, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosProcuto($CVE_ART, $claveSae, $conexionData){
+function datosProcuto($CVE_ART, $claveSae, $conexionData)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -594,7 +595,8 @@ function datosProcuto($CVE_ART, $claveSae, $conexionData){
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function vendedorNom($conexionData, $vendedor, $claveSae){
+function vendedorNom($conexionData, $vendedor, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -625,7 +627,6 @@ function vendedorNom($conexionData, $vendedor, $claveSae){
     sqlsrv_close($conn);
 
     return $nombreVendedor;
-
 }
 
 function verificarPedidos($firebaseProjectId, $firebaseApiKey)
@@ -654,30 +655,31 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
         $folio = $fields['folio']['stringValue'];
         $buscar = $fields['buscar']['booleanValue'];
         $vendedor = $fields['vendedor']['stringValue'];
-        if ($buscar) {
-            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
-            if (!$conexionResult['success']) {
-                echo json_encode($conexionResult);
-                break;
-            }
-            $conexionData = $conexionResult['data'];
-            $pagado = verificarPago($conexionData, $cliente, $claveSae);
-            if ($pagado) {
-                $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
-                $fechaLimiteObj = new DateTime($fechaLimite);
-                if ($fechaPago <= $fechaLimiteObj) {
-                    if ($status === 'Sin Pagar') {
-                        $pagoId = basename($document['name']);
-                        //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
-                        cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
-                        eliminarCxc($conexionData, $claveSae, $cliente);
-                        crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
-                        crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
-                        //Remision y Demas
+        if ($status === 'Sin Pagar') {
+            if ($buscar) {
+                $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+                if ($conexionResult['success']) {
+                    $conexionData = $conexionResult['data'];
+                    $pagado = verificarPago($conexionData, $cliente, $claveSae);
+                    $pagado = true;
+                    if ($pagado) {
+                        $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
+                        $fechaLimiteObj = new DateTime($fechaLimite);
+                        if ($fechaPago <= $fechaLimiteObj) {
+
+                            $pagoId = basename($document['name']);
+                            //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
+                            cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
+                            eliminarCxc($conexionData, $claveSae, $cliente);
+                            crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
+                            crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
+                            //Remision y Demas
+
+                        } else if ($fechaPago > $fechaLimiteObj) {
+                            liberarExistencias($conexionData, $folio, $claveSae);
+                            //Notificar
+                        }
                     }
-                } else if ($fechaPago > $fechaLimiteObj) {
-                    liberarExistencias($conexionData, $folio, $claveSae);
-                    //Notificar
                 }
             }
         }
