@@ -43,7 +43,7 @@ function informaEmpresa() {
         $("#codigoPostal").val(data.codigoPostal);
         $("#poblacion").val(data.poblacion);
         $("#regimenFiscal").val(data.regimenFiscal);
-        mostrarRegimen(data.regimenFiscal);
+        mostrarRegimen(data.regimenFiscal, data.rfc);
       } else {
         console.warn(
           "Error:",
@@ -57,12 +57,11 @@ function informaEmpresa() {
     console.error("Error en la petición:", textStatus, errorThrown);
   });
 }
-
-function mostrarRegimen(clave){
+function mostrarRegimen(clave, rfc) {
   $.ajax({
     url: "../Servidor/PHP/empresas.php",
     method: "POST",
-    data: { action: "regimen"}, // Obtener todos los clientes disponibles
+    data: { action: "regimen" }, // Obtener todos los clientes disponibles
     success: function (responseRegimen) {
       try {
         const resRegimen =
@@ -78,31 +77,41 @@ function mostrarRegimen(clave){
           );
 
           resRegimen.data.forEach((regimen) => {
-            regimenFiscal.append(
-              `<option value="${regimen.c_RegimenFiscal}" 
-                data-descripcion="${regimen.Descripcion}" 
-                data-correo="${regimen.correo || ""}" 
-                data-fisica="${regimen.Fisica || ""}"
-                data-moral="${regimen.Moral || ""}">
-                ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
-              </option>`
-            );
+            if (rfc.length === 12 && regimen.Moral === "Sí") {
+              regimenFiscal.append(
+                `<option value="${regimen.c_RegimenFiscal}" 
+                  data-descripcion="${regimen.Descripcion}" 
+                  data-correo="${regimen.correo || ""}" 
+                  data-fisica="${regimen.Fisica || ""}" 
+                  data-moral="${regimen.Moral || ""}">
+                  ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
+                </option>`
+              );
+            } else if (rfc.length === 13 && regimen.Fisica === "Sí") {
+              regimenFiscal.append(
+                `<option value="${regimen.c_RegimenFiscal}" 
+                  data-descripcion="${regimen.Descripcion}" 
+                  data-correo="${regimen.correo || ""}" 
+                  data-fisica="${regimen.Fisica || ""}" 
+                  data-moral="${regimen.Moral || ""}">
+                  ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
+                </option>`
+              );
+            }
           });
+
+
           regimenFiscal.val(clave);
         } else {
           Swal.fire({
             icon: "warning",
             title: "Aviso",
-            text:
-              resClientes.message || "No se encontraron clientes.",
+            text: resClientes.message || "No se encontraron clientes.",
           });
           $("#regimenFiscalModal").prop("disabled", true);
         }
       } catch (error) {
-        console.error(
-          "Error al procesar la respuesta de clientes:",
-          error
-        );
+        console.error("Error al procesar la respuesta de clientes:", error);
       }
     },
     error: function () {
@@ -154,14 +163,14 @@ function seleccionarEmpresa(noEmpresa) {
   // Guarda el número de empresa en sessionStorage
   sessionStorage.setItem("noEmpresaSeleccionada", noEmpresa);
 }
-function guardarEmpresa(){
+function guardarEmpresa() {
   /*if (!validateForm()) {
     return; // Si la validación falla, no se envía el formulario
   }*/
   const data = {
     action: "save",
     id: $("#noEmpresaModal").val(),
-    noEmpresa: $("#noEmpresaModal").val(), 
+    noEmpresa: $("#noEmpresaModal").val(),
     razonSocial: $("#razonSocialModal").val(),
     rfc: $("#rfcModal").val(),
     regimenFiscal: $("#regimenFiscalModal").val(),
@@ -191,6 +200,62 @@ function guardarEmpresa(){
           icon: "success",
         }).then(() => {
           cerrarModalEmpresa();
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "Error: " + response.message,
+          icon: "error",
+        });
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al enviar la solicitud", error);
+      Swal.fire({
+        title: "Error",
+        text: "Ocurrió un error al guardar la empresa.",
+        icon: "error",
+      });
+    },
+  });
+}
+function guardarEmpresaNew() {
+  /*if (!validateForm()) {
+    return; // Si la validación falla, no se envía el formulario
+  }*/
+  const data = {
+    action: "save",
+    id: $("#noEmpresaNew").val(),
+    noEmpresa: $("#noEmpresaNew").val(),
+    razonSocial: $("#razonSocialNew").val(),
+    rfc: $("#rfcNew").val(),
+    regimenFiscal: $("#regimenFiscalNew").val(),
+    calle: $("#calleNew").val(),
+    numExterior: $("#numExteriorNew").val(),
+    numInterior: $("#numInteriorNew").val() || "*",
+    entreCalle: $("#entreCalleNew").val() || "*",
+    colonia: $("#coloniaNew").val(),
+    referencia: $("#referenciaNew").val(),
+    pais: $("#paisNew").val(),
+    estado: $("#estadoNew").val(),
+    municipio: $("#municipioNew").val(),
+    codigoPostal: $("#codigoPostalNew").val(),
+    poblacion: $("#poblacionNew").val(),
+    token: $("#csrf_tokenNew").val(),
+  };
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    type: "POST",
+    data: data,
+    dataType: "json",
+    success: function (response) {
+      if (response.success) {
+        Swal.fire({
+          title: "¡Éxito!",
+          text: "Documento guardado correctamente.",
+          icon: "success",
+        }).then(() => {
+          cerrarSesionAutomatica();
         });
       } else {
         Swal.fire({
@@ -613,62 +678,150 @@ function limpiarCacheEmpresa() {
   sessionStorage.removeItem("noEmpresaSeleccionada");
   console.log("Cache de la empresa limpiado.");
 }
-function mostrarMoldal(){
+function mostrarMoldal() {
   limpiarFormulario();
   $("#formularioEmpresa").modal("show");
-  obtenerRegimen();
 }
-function obtenerRegimen(){
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+function obtenerRegimen() {
+  // Obtener el valor del RFC y quitar espacios en blanco
+  const rfc = $("#rfcModal").val().trim();
+
+  // Si el RFC es muy corto, deshabilitamos el select y reiniciamos sus opciones
+  if (rfc.length <= 11) {
+    $("#regimenFiscalModal")
+      .prop("disabled", true)
+      .empty()
+      .append("<option selected disabled>Selecciona un régimen</option>");
+    return;
+  }
+  
+  // Habilitamos el select
+  $("#regimenFiscalModal").prop("disabled", false);
+  
   $.ajax({
     url: "../Servidor/PHP/empresas.php",
     method: "POST",
-    data: { action: "regimen"}, // Obtener todos los clientes disponibles
-    success: function (responseRegimen) {
-      try {
-        const resRegimen =
-          typeof responseRegimen === "string"
-            ? JSON.parse(responseRegimen)
-            : responseRegimen;
-
-        if (resRegimen.success && Array.isArray(resRegimen.data)) {
-          const regimenFiscalModal = $("#regimenFiscalModal");
-          regimenFiscalModal.empty();
-          regimenFiscalModal.append(
-            "<option selected disabled>Selecciona un regimen</option>"
-          );
-
-          resRegimen.data.forEach((regimen) => {
-            regimenFiscalModal.append(
+    data: { action: "regimen" },
+    dataType: "json",
+    success: function (resRegimen) {
+      if (resRegimen.success && Array.isArray(resRegimen.data)) {
+        const $regimenFiscalModal = $("#regimenFiscalModal");
+        $regimenFiscalModal.empty();
+        $regimenFiscalModal.append("<option selected disabled>Selecciona un régimen</option>");
+        
+        // Filtrar según el largo del RFC
+        resRegimen.data.forEach((regimen) => {
+          if (rfc.length === 12 && regimen.Moral === "Sí") {
+            $regimenFiscalModal.append(
               `<option value="${regimen.c_RegimenFiscal}" 
                 data-descripcion="${regimen.Descripcion}" 
                 data-correo="${regimen.correo || ""}" 
-                data-fisica="${regimen.Fisica || ""}"
+                data-fisica="${regimen.Fisica || ""}" 
                 data-moral="${regimen.Moral || ""}">
                 ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
               </option>`
             );
-          });
-        } else {
-          Swal.fire({
-            icon: "warning",
-            title: "Aviso",
-            text:
-              resClientes.message || "No se encontraron clientes.",
-          });
-          $("#regimenFiscalModal").prop("disabled", true);
-        }
-      } catch (error) {
-        console.error(
-          "Error al procesar la respuesta de clientes:",
-          error
-        );
+          } else if (rfc.length === 13 && regimen.Fisica === "Sí") {
+            $regimenFiscalModal.append(
+              `<option value="${regimen.c_RegimenFiscal}" 
+                data-descripcion="${regimen.Descripcion}" 
+                data-correo="${regimen.correo || ""}" 
+                data-fisica="${regimen.Fisica || ""}" 
+                data-moral="${regimen.Moral || ""}">
+                ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
+              </option>`
+            );
+          }
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resRegimen.message || "No se encontraron regímenes.",
+        });
+        $("#regimenFiscalModal").prop("disabled", true);
       }
     },
     error: function () {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Error al obtener la lista de clientes.",
+        text: "Error al obtener la lista de regímenes.",
+      });
+    },
+  });
+}
+function obtenerRegimenNew() {
+  // Obtener el valor del RFC y quitar espacios en blanco
+  const rfc = $("#rfcNew").val().trim();
+  // Si el RFC es muy corto, deshabilitamos el select y reiniciamos sus opciones
+  if (rfc.length <= 11) {
+    $("#regimenFiscalNew")
+      .prop("disabled", true)
+      .empty()
+      .append("<option selected disabled>Selecciona un régimen</option>");
+    return;
+  }
+  
+  // Habilitamos el select
+  $("#regimenFiscalNew").prop("disabled", false);
+  
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    method: "POST",
+    data: { action: "regimen" },
+    dataType: "json",
+    success: function (resRegimen) {
+      if (resRegimen.success && Array.isArray(resRegimen.data)) {
+        const $regimenFiscalNew = $("#regimenFiscalNew");
+        $regimenFiscalNew.empty();
+        $regimenFiscalNew.append("<option selected disabled>Selecciona un régimen</option>");
+        
+        // Filtrar según el largo del RFC
+        resRegimen.data.forEach((regimen) => {
+          if (rfc.length === 12 && regimen.Moral === "Sí") {
+            $regimenFiscalNew.append(
+              `<option value="${regimen.c_RegimenFiscal}" 
+                data-descripcion="${regimen.Descripcion}" 
+                data-correo="${regimen.correo || ""}" 
+                data-fisica="${regimen.Fisica || ""}" 
+                data-moral="${regimen.Moral || ""}">
+                ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
+              </option>`
+            );
+          } else if (rfc.length === 13 && regimen.Fisica === "Sí") {
+            $regimenFiscalNew.append(
+              `<option value="${regimen.c_RegimenFiscal}" 
+                data-descripcion="${regimen.Descripcion}" 
+                data-correo="${regimen.correo || ""}" 
+                data-fisica="${regimen.Fisica || ""}" 
+                data-moral="${regimen.Moral || ""}">
+                ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
+              </option>`
+            );
+          }
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resRegimen.message || "No se encontraron regímenes.",
+        });
+        $("#regimenFiscalNew").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de regímenes.",
       });
     },
   });
@@ -698,15 +851,52 @@ function limpiarFormulario() {
   $("#entreCalleModal").val("");
   $("#coloniaModal").val("");
   $("#referenciaModal").val("");
-  $("#paisModal").val(""); 
+  $("#paisModal").val("");
   $("#estadoModal").val("");
   $("#municipioModal").val("");
   $("#codigoPostalModal").val("");
   $("#poblacionModal").val("");
 }
-function validarEmpresa(){
+function validarEmpresa() {
   var noEmpresa = document.getElementById("noEmpresaModal").value;
-  
+
+  const data = {
+    action: "verificar",
+    noEmpresa: noEmpresa,
+  };
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    type: "POST",
+    data: data,
+    dataType: "json",
+    success: function (response) {
+      if (response.success) {
+        Swal.fire({
+          title: "Valida",
+          text: "Este numero de empresa es valido.",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "Este numero de empresa ya esta ocupado",
+          icon: "error",
+        });
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al enviar la solicitud", error);
+      Swal.fire({
+        title: "Error",
+        text: "Ocurrió un error al guardar la empresa.",
+        icon: "error",
+      });
+    },
+  });
+}
+function validarEmpresaNew() {
+  var noEmpresa = document.getElementById("noEmpresaNew").value;
+
   const data = {
     action: "verificar",
     noEmpresa: noEmpresa,
@@ -742,13 +932,62 @@ function validarEmpresa(){
   });
 }
 $(document).ready(function () {
+  $("#rfcModal").on("input", debounce(function() {
+    obtenerRegimen();
+  }, 300));
   $("#cancelarModal").click(function () {
     cerrarModal();
   });
   $("#cancelarModalSae").click(function () {
     cerrarModalSae();
   });
+  $("#cancelarEmpresa").click(function () {
+    event.preventDefault(); // Prevenir el comportamiento por defecto del botón
 
+    // Mostrar el overlay
+    $("#overlay").show();
+
+    Swal.fire({
+      title: "¿Estás seguro de que quieres cerrar sesión?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cerrar sesión",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      // Ocultar el overlay después de la respuesta de SweetAlert
+      $("#overlay").hide();
+
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: "Cerrando Sesión...",
+          text: "Espere un momento",
+          icon: "info",
+          timer: 1500, // Espera 1.5 segundos
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+        });
+
+        // Esperar 1.5 segundos antes de cerrar la sesión
+        setTimeout(() => {
+          $.post(
+            "../Servidor/PHP/conexion.php",
+            { numFuncion: 2 },
+            function (data) {
+              limpiarCacheEmpresa();
+              window.location.href = "index.php"; // Redirigir al login
+            }
+          ).fail(function () {
+            Swal.fire({
+              title: "Error",
+              text: "Error al intentar cerrar sesión.",
+              icon: "error",
+            });
+          });
+        }, 1500);
+      }
+    });
+  });
   // Guardar o actualizar empresa
   $("#confirmarDatos").click(function () {
     event.preventDefault();
@@ -758,7 +997,13 @@ $(document).ready(function () {
     event.preventDefault();
     guardarEmpresa();
   });
-
+  $("#guardarEmpresaNew").click(function () {
+    event.preventDefault();
+    guardarEmpresaNew();
+  });
+  $("#guardarNuevaEmpresa").click(function () {
+    window.location.href = "nuevaEmpresa.php";
+  });
   // Eliminar empresa
   $("#eliminarEmpresa").click(function () {
     eliminarEmpresa();
@@ -775,11 +1020,15 @@ $(document).ready(function () {
   $("#confirmarConexionNew").click(function () {
     guardarConexionSAENew();
   });
-  $("#btnAgregar").click(function(){
+  $("#btnAgregar").click(function () {
     mostrarMoldal();
+    //obtenerRegimen();
   });
-  $("#noEmpresaModal").change(function(){
+  $("#noEmpresaModal").change(function () {
     validarEmpresa();
+  });
+  $("#noEmpresaNew").change(function () {
+    validarEmpresaNew();
   });
   $("#Ayuda").click(function () {
     event.preventDefault();

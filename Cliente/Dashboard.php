@@ -98,6 +98,9 @@ if (isset($_SESSION['usuario'])) {
 				</div>
 				<div class="modal-footer d-flex justify-content-between">
 					<button type="button" class="btn btn-danger" id="cerrarSesionModal">Cerrar Sesion</button>
+					<?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
+					<button type="button" class="btn btn-secondary" id="guardarNuevaEmpresa">Crear Empresa</button>
+					<?php } ?>
 					<button type="button" class="btn btn-primary txt" id="confirmarEmpresa">Confirmar</button>
 				</div>
 			</div>
@@ -259,13 +262,6 @@ if (isset($_SESSION['usuario'])) {
 	<script src="JS/menu.js"></script>
 	<script src="JS/app.js"></script>
 	<script src="JS/script.js"></script>
-	<script>
-		var correo = '<?php echo $correo ?>';
-		var contrasena = '<?php echo $contrasena ?>';
-
-		//console.log(correo);
-		//console.log(contrasena);
-	</script>
 </body>
 
 </html>

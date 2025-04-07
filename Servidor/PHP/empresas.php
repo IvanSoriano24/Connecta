@@ -69,9 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }elseif($action === 'save'){
         try{
+            $noEmpresa = str_pad($_POST['noEmpresa'], 2, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
             $data = [
                 'id' => $_POST['id'],
-                'noEmpresa' => $_POST['noEmpresa'],
+                'noEmpresa' => $noEmpresa,
                 'razonSocial' => $_POST['razonSocial'],
                 'rfc' => $_POST['rfc'],
                 'regimenFiscal' => $_POST['regimenFiscal'],
@@ -118,7 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }elseif($action === 'verificar'){
         try {
-            $noEmpresa = $_POST['noEmpresa'];
+            //$noEmpresa = $_POST['noEmpresa'];
+            $noEmpresa = str_pad($_POST['noEmpresa'], 2, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
             verificarNoEmpresa($noEmpresa);
 
         } catch (Exception $e) {

@@ -208,18 +208,18 @@ if (isset($_SESSION['usuario'])) {
 
         <form onsubmit="return validateForm()">
           <div class="form-row">
-            <input type="hidden" name="csrf_token" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
+            <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
             <label for="noEmpresa">No. Empresa:</label>
             <select name="noEmpresaModal" id="noEmpresaModal" placeholder="Selecciona opcion" value="">
             <option selected disabled>Selecciona un numero de empresa</option>
-              <option value="01">1</option>
-              <option value="02">2</option>
-              <option value="03">3</option>
-              <option value="04">4</option>
-              <option value="05">5</option>
-              <option value="06">6</option>
-              <option value="07">7</option>
-              <option value="08">8</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
               <!-- Agrega más opciones si es necesario -->
             </select>
           </div>
@@ -239,7 +239,7 @@ if (isset($_SESSION['usuario'])) {
           <div class="form-row">
             <!-- <a class='bx bx-message-rounded-error'></a> -->
             <label for="regimenFiscal">Régimen Fiscal: <a class='bx'>*</a></label>
-            <select name="regimenFiscalModal" id="regimenFiscalModal" placeholder="Selecciona opcion" value="">
+            <select name="regimenFiscalModal" id="regimenFiscalModal" placeholder="Selecciona opcion" value="" disabled>
             <option selected disabled>Selecciona un regimen</option>
               <option>626.- Regimen Simplificado de Confianza</option>
               <!-- Agrega más opciones si es necesario -->
@@ -285,12 +285,11 @@ if (isset($_SESSION['usuario'])) {
           <div class="form-row">
             <label for="poblacion">Población:</label>
             <input class="input-m" type="text" name="poblacionModal" id="poblacionModal" placeholder="Poblacion">
-            <button class='bx bx-help-circle' id="Ayuda"></button>
           </div>
 
           <div class="form-buttons">
             <button type="submit" class="btn-save" id="guardarEmpresa">Guardar</button>
-            <button type="button" class="btn-cancel">Cancelar</button>
+            <button type="button" class="btn-cancel" id="cerrarModalFooter">Cancelar</button>
           </div>
         </form>
       </div>
