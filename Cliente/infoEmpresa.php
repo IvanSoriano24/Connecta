@@ -12,7 +12,7 @@ if (isset($_SESSION['usuario'])) {
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
     $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
-		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+    $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
   }
   $csrf_token  = $_SESSION['csrf_token'];
 } else {
@@ -68,7 +68,9 @@ if (isset($_SESSION['usuario'])) {
               </li>
             </ul>
           </div>
-
+          <button class="btn btn-success" id="btnAgregar">
+                            <i class='bx bxs-user-plus'></i> Agregar
+                        </button>
         </div>
         <!-- 
       <ul class="box-info">
@@ -106,7 +108,8 @@ if (isset($_SESSION['usuario'])) {
             </div>
             <form onsubmit="return validateForm()">
               <div class="form-row">
-              <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                <input type="hidden" name="idDocumento" id="idDocumento">
                 <input type="text" name="id" id="id" value="<?php echo $idEmpresa ?>" hidden>
                 <label for="noEmpresa">No. Empresa:</label>
                 <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="" readonly>
@@ -128,8 +131,7 @@ if (isset($_SESSION['usuario'])) {
                 <!-- <a class='bx bx-message-rounded-error'></a> -->
                 <label for="regimenFiscal">Régimen Fiscal: <a class='bx'>*</a></label>
                 <select name="regimenFiscal" id="regimenFiscal" placeholder="Selecciona opcion" value="">
-
-                  <option>626.- Regimen Simplificado de Confianza</option>
+                  <option selected disabled>Selecciona un regimen</option>
                   <!-- Agrega más opciones si es necesario -->
                 </select>
               </div>
@@ -183,11 +185,116 @@ if (isset($_SESSION['usuario'])) {
             </form>
           </div>
         </div>
+        
   </div>
+
+  
   </main>
   <!-- MAIN -->
   </section>
+  
   <!-- CONTENT -->
+  </div>
+  <div id="formularioEmpresa" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Agregar Empresa</h5>
+          <button type="button" class="btn-close custom-close" data-dismiss="modal" aria-label="Close"
+            id="cerrarModalHeader">
+            <span aria-hidden="true"></span><!-- &times; -->
+          </button>
+        </div>
+
+        <form onsubmit="return validateForm()">
+          <div class="form-row">
+            <input type="hidden" name="csrf_token" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
+            <label for="noEmpresa">No. Empresa:</label>
+            <select name="noEmpresaModal" id="noEmpresaModal" placeholder="Selecciona opcion" value="">
+            <option selected disabled>Selecciona un numero de empresa</option>
+              <option value="01">1</option>
+              <option value="02">2</option>
+              <option value="03">3</option>
+              <option value="04">4</option>
+              <option value="05">5</option>
+              <option value="06">6</option>
+              <option value="07">7</option>
+              <option value="08">8</option>
+              <!-- Agrega más opciones si es necesario -->
+            </select>
+          </div>
+
+          <div class="form-row">
+            <!-- <a class='bx bx-message-rounded-error'></a> -->
+            <label for="razonSocial">Razón Social: <a class='bx'> *</a></label>
+            <input class="input-m" type="text" name="razonSocialModal" id="razonSocialModal" values="" >
+          </div>
+
+          <div class="form-row">
+            <!-- <a class='bx bx-message-rounded-error'></a> -->
+            <label for="rfc">RFC:<a class='bx'> *</a></label>
+            <input class="input-m" type="text" name="rfcModal" id="rfcModal" placeholder="RFC" value="">
+          </div>
+
+          <div class="form-row">
+            <!-- <a class='bx bx-message-rounded-error'></a> -->
+            <label for="regimenFiscal">Régimen Fiscal: <a class='bx'>*</a></label>
+            <select name="regimenFiscalModal" id="regimenFiscalModal" placeholder="Selecciona opcion" value="">
+            <option selected disabled>Selecciona un regimen</option>
+              <option>626.- Regimen Simplificado de Confianza</option>
+              <!-- Agrega más opciones si es necesario -->
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label for="Calle">Calle:</label>
+            <input class="input-m" type="text" name="calleModal" id="calleModal" placeholder="Calle">
+          </div>
+
+          <div class="form-row">
+            <label for="numExterior">Num. Exterior:</label>
+            <input class="input-small" type="text" name="numExteriorModal" id="numExteriorModal" placeholder="Num. Exterior">
+            <label for="numInterior">Num. Interior:</label>
+            <input class="input-small" type="text" name="numInteriorModal" id="numInteriorModal" placeholder="Num. Interior">
+            <label for="entreCalle">Entre Calle:</label>
+            <input class="input-m" type="text" name="entreCalleModal" id="entreCalleModal" placeholder="Entre Calle">
+          </div>
+
+          <div class="form-row">
+            <label for="colonia">Colonia:</label>
+            <input class="input-m" type="text" name="coloniaModal" id="coloniaModal" placeholder="Colonia">
+            <label for="referencia">Referencia:</label>
+            <input class="input-m" type="text" name="referenciaModal" id="referenciaModal" placeholder="Referencia">
+          </div>
+
+          <div class="form-row">
+            <label for="pais">País:</label>
+            <input class="input-m" type="text" name="paisModal" id="paisModal" placeholder="País">
+            <label for="estado">Estado:</label>
+            <input class="input-m" type="text" name="estadoModal" id="estadoModal" placeholder="Estado">
+            <label for="municipio">Municipio:</label>
+            <input class="input-m" type="text" name="municipioModal" id="municipioModal" placeholder="Municipio">
+          </div>
+
+          <div class="form-row">
+            <!-- <a class='bx bx-message-rounded-error'></a> -->
+            <label for="cp">Codigo Postal: <a class='bx'> *</a></label>
+            <input class="input-m" type="text" name="codigoPostalModal" id="codigoPostalModal" placeholder="Codigo Postal">
+          </div>
+
+          <div class="form-row">
+            <label for="poblacion">Población:</label>
+            <input class="input-m" type="text" name="poblacionModal" id="poblacionModal" placeholder="Poblacion">
+            <button class='bx bx-help-circle' id="Ayuda"></button>
+          </div>
+
+          <div class="form-buttons">
+            <button type="submit" class="btn-save" id="guardarEmpresa">Guardar</button>
+            <button type="button" class="btn-cancel">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
   </section>
   <!-- CONTENT -->
@@ -196,8 +303,8 @@ if (isset($_SESSION['usuario'])) {
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    $(document).ready(function () {
-      informaEmpresa();  // Llamada a la función cuando la página de la empresa se ha cargado.
+    $(document).ready(function() {
+      informaEmpresa(); // Llamada a la función cuando la página de la empresa se ha cargado.
     });
   </script>
   <script src="JS/menu.js"></script>

@@ -27,10 +27,10 @@ function informaEmpresa() {
 
         // Verifica la estructura de los datos en el console.log
         //console.log(data);  // Esto te mostrará el objeto completo
+        $("#idDocumento").val(data.idDocumento);
         $("#noEmpresa").val(data.noEmpresa);
         $("#razonSocial").val(data.razonSocial);
         $("#rfc").val(data.rfc);
-        $("#regimenFiscal").val(data.regimenFiscal);
         $("#calle").val(data.calle);
         $("#numExterior").val(data.numExterior);
         $("#numInterior").val(data.numInterior);
@@ -42,6 +42,8 @@ function informaEmpresa() {
         $("#municipio").val(data.municipio);
         $("#codigoPostal").val(data.codigoPostal);
         $("#poblacion").val(data.poblacion);
+        $("#regimenFiscal").val(data.regimenFiscal);
+        mostrarRegimen(data.regimenFiscal);
       } else {
         console.warn(
           "Error:",
@@ -53,6 +55,63 @@ function informaEmpresa() {
     "json"
   ).fail(function (jqXHR, textStatus, errorThrown) {
     console.error("Error en la petición:", textStatus, errorThrown);
+  });
+}
+
+function mostrarRegimen(clave){
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    method: "POST",
+    data: { action: "regimen"}, // Obtener todos los clientes disponibles
+    success: function (responseRegimen) {
+      try {
+        const resRegimen =
+          typeof responseRegimen === "string"
+            ? JSON.parse(responseRegimen)
+            : responseRegimen;
+
+        if (resRegimen.success && Array.isArray(resRegimen.data)) {
+          const regimenFiscal = $("#regimenFiscal");
+          regimenFiscal.empty();
+          regimenFiscal.append(
+            "<option selected disabled>Selecciona un regimen</option>"
+          );
+
+          resRegimen.data.forEach((regimen) => {
+            regimenFiscal.append(
+              `<option value="${regimen.c_RegimenFiscal}" 
+                data-descripcion="${regimen.Descripcion}" 
+                data-correo="${regimen.correo || ""}" 
+                data-fisica="${regimen.Fisica || ""}"
+                data-moral="${regimen.Moral || ""}">
+                ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
+              </option>`
+            );
+          });
+          regimenFiscal.val(clave);
+        } else {
+          Swal.fire({
+            icon: "warning",
+            title: "Aviso",
+            text:
+              resClientes.message || "No se encontraron clientes.",
+          });
+          $("#regimenFiscalModal").prop("disabled", true);
+        }
+      } catch (error) {
+        console.error(
+          "Error al procesar la respuesta de clientes:",
+          error
+        );
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de clientes.",
+      });
+    },
   });
 }
 
@@ -95,14 +154,70 @@ function seleccionarEmpresa(noEmpresa) {
   // Guarda el número de empresa en sessionStorage
   sessionStorage.setItem("noEmpresaSeleccionada", noEmpresa);
 }
-
+function guardarEmpresa(){
+  /*if (!validateForm()) {
+    return; // Si la validación falla, no se envía el formulario
+  }*/
+  const data = {
+    action: "save",
+    id: $("#noEmpresaModal").val(),
+    noEmpresa: $("#noEmpresaModal").val(), 
+    razonSocial: $("#razonSocialModal").val(),
+    rfc: $("#rfcModal").val(),
+    regimenFiscal: $("#regimenFiscalModal").val(),
+    calle: $("#calleModal").val(),
+    numExterior: $("#numExteriorModal").val(),
+    numInterior: $("#numInteriorModal").val() || "*",
+    entreCalle: $("#entreCalleModal").val() || "*",
+    colonia: $("#coloniaModal").val(),
+    referencia: $("#referenciaModal").val(),
+    pais: $("#paisModal").val(),
+    estado: $("#estadoModal").val(),
+    municipio: $("#municipioModal").val(),
+    codigoPostal: $("#codigoPostalModal").val(),
+    poblacion: $("#poblacionModal").val(),
+    token: $("#csrf_tokenModal").val(),
+  };
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    type: "POST",
+    data: data,
+    dataType: "json",
+    success: function (response) {
+      if (response.success) {
+        Swal.fire({
+          title: "¡Éxito!",
+          text: "Documento guardado correctamente.",
+          icon: "success",
+        }).then(() => {
+          cerrarModalEmpresa();
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "Error: " + response.message,
+          icon: "error",
+        });
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al enviar la solicitud", error);
+      Swal.fire({
+        title: "Error",
+        text: "Ocurrió un error al guardar la empresa.",
+        icon: "error",
+      });
+    },
+  });
+}
 // Función para guardar o actualizar la empresa
-function guardarEmpresa() {
+function actualizarEmpresa() {
   if (!validateForm()) {
     return; // Si la validación falla, no se envía el formulario
   }
   const data = {
-    action: "save",
+    action: "update",
+    idDocumento: $("#idDocumento").val(),
     id: $("#id").val(),
     noEmpresa: $("#noEmpresa").val(), // Aquí se manda el noEmpresa
     razonSocial: $("#razonSocial").val(),
@@ -498,6 +613,134 @@ function limpiarCacheEmpresa() {
   sessionStorage.removeItem("noEmpresaSeleccionada");
   console.log("Cache de la empresa limpiado.");
 }
+function mostrarMoldal(){
+  limpiarFormulario();
+  $("#formularioEmpresa").modal("show");
+  obtenerRegimen();
+}
+function obtenerRegimen(){
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    method: "POST",
+    data: { action: "regimen"}, // Obtener todos los clientes disponibles
+    success: function (responseRegimen) {
+      try {
+        const resRegimen =
+          typeof responseRegimen === "string"
+            ? JSON.parse(responseRegimen)
+            : responseRegimen;
+
+        if (resRegimen.success && Array.isArray(resRegimen.data)) {
+          const regimenFiscalModal = $("#regimenFiscalModal");
+          regimenFiscalModal.empty();
+          regimenFiscalModal.append(
+            "<option selected disabled>Selecciona un regimen</option>"
+          );
+
+          resRegimen.data.forEach((regimen) => {
+            regimenFiscalModal.append(
+              `<option value="${regimen.c_RegimenFiscal}" 
+                data-descripcion="${regimen.Descripcion}" 
+                data-correo="${regimen.correo || ""}" 
+                data-fisica="${regimen.Fisica || ""}"
+                data-moral="${regimen.Moral || ""}">
+                ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
+              </option>`
+            );
+          });
+        } else {
+          Swal.fire({
+            icon: "warning",
+            title: "Aviso",
+            text:
+              resClientes.message || "No se encontraron clientes.",
+          });
+          $("#regimenFiscalModal").prop("disabled", true);
+        }
+      } catch (error) {
+        console.error(
+          "Error al procesar la respuesta de clientes:",
+          error
+        );
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de clientes.",
+      });
+    },
+  });
+}
+$("#cerrarModalHeader").on("click", function () {
+  cerrarModalEmpresa();
+});
+$("#cerrarModalFooter").on("click", function () {
+  cerrarModalEmpresa();
+});
+function cerrarModalEmpresa() {
+  limpiarFormulario();
+  $("#formularioEmpresa").modal("hide"); // Cierra el modal usando Bootstrap
+  // Restaurar el aria-hidden al cerrar el modal
+  $("#formularioEmpresa").attr("aria-hidden", "true");
+  // Eliminar el atributo inert del fondo al cerrar
+  $(".modal-backdrop").removeAttr("inert");
+}
+function limpiarFormulario() {
+  $("#noEmpresaModal").val("");
+  $("#razonSocialModal").val("");
+  $("#rfcModal").val("");
+  $("#regimenFiscalModal").val("");
+  $("#calleModal").val("");
+  $("#numExteriorModal").val("");
+  $("#numInteriorModal").val("");
+  $("#entreCalleModal").val("");
+  $("#coloniaModal").val("");
+  $("#referenciaModal").val("");
+  $("#paisModal").val(""); 
+  $("#estadoModal").val("");
+  $("#municipioModal").val("");
+  $("#codigoPostalModal").val("");
+  $("#poblacionModal").val("");
+}
+function validarEmpresa(){
+  var noEmpresa = document.getElementById("noEmpresaModal").value;
+  
+  const data = {
+    action: "verificar",
+    noEmpresa: noEmpresa,
+  };
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    type: "POST",
+    data: data,
+    dataType: "json",
+    success: function (response) {
+      if (response.success) {
+        Swal.fire({
+          title: "Valida",
+          text: "Este numero de empresa es valido.",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "Este numero de empresa ya esta ocupado",
+          icon: "error",
+        });
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error("Error al enviar la solicitud", error);
+      Swal.fire({
+        title: "Error",
+        text: "Ocurrió un error al guardar la empresa.",
+        icon: "error",
+      });
+    },
+  });
+}
 $(document).ready(function () {
   $("#cancelarModal").click(function () {
     cerrarModal();
@@ -508,6 +751,10 @@ $(document).ready(function () {
 
   // Guardar o actualizar empresa
   $("#confirmarDatos").click(function () {
+    event.preventDefault();
+    actualizarEmpresa();
+  });
+  $("#guardarEmpresa").click(function () {
     event.preventDefault();
     guardarEmpresa();
   });
@@ -528,7 +775,12 @@ $(document).ready(function () {
   $("#confirmarConexionNew").click(function () {
     guardarConexionSAENew();
   });
-
+  $("#btnAgregar").click(function(){
+    mostrarMoldal();
+  });
+  $("#noEmpresaModal").change(function(){
+    validarEmpresa();
+  });
   $("#Ayuda").click(function () {
     event.preventDefault();
     Swal.fire({

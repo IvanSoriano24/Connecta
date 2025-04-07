@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Catalogo>
+  <row c_RegimenFiscal="601" Descripcion="General de Ley Personas Morales" Fisica="No" Moral="Sí"/>
+  <row c_RegimenFiscal="603" Descripcion="Personas Morales con Fines no Lucrativos" Fisica="No" Moral="Sí"/>
+  <row c_RegimenFiscal="605" Descripcion="Sueldos y Salarios e Ingresos Asimilados a Salarios" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="606" Descripcion="Arrendamiento" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="607" Descripcion="Régimen de Enajenación o Adquisición de Bienes" Fisica="No" Moral="Sí"/>
+  <row c_RegimenFiscal="608" Descripcion="Demás ingresos" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="609" Descripcion="Consolidación" Fisica="No" Moral="Sí"/>
+  <row c_RegimenFiscal="610" Descripcion="Residentes en el Extranjero sin Establecimiento Permanente en México" Fisica="Sí" Moral="Sí"/>
+  <row c_RegimenFiscal="611" Descripcion="Ingresos por Dividendos (socios y accionistas)" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="612" Descripcion="Personas Físicas con Actividades Empresariales y Profesionales" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="614" Descripcion="Ingresos por intereses" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="615" Descripcion="Régimen de los ingresos por obtención de premios" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="616" Descripcion="Sin obligaciones fiscales" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="620" Descripcion="Sociedades Cooperativas de Producción que optan por diferir sus ingresos" Fisica="No" Moral="Sí"/>
+  <row c_RegimenFiscal="621" Descripcion="Incorporación Fiscal" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="622" Descripcion="Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras" Fisica="Sí" Moral="Sí"/>
+  <row c_RegimenFiscal="623" Descripcion="Opcional para Grupos de Sociedades" Fisica="No" Moral="Sí"/>
+  <row c_RegimenFiscal="624" Descripcion="Coordinados" Fisica="No" Moral="Sí"/>
+  <row c_RegimenFiscal="625" Descripcion="Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="626" Descripcion="Régimen Simplificado de Confianza" Fisica="Sí" Moral="Sí"/>
+  <row c_RegimenFiscal="628" Descripcion="Hidrocarburos" Fisica="No" Moral="Sí"/>
+  <row c_RegimenFiscal="629" Descripcion="De los Regímenes Fiscales Preferentes y de las Empresas Multinacionales" Fisica="Sí" Moral="No"/>
+  <row c_RegimenFiscal="630" Descripcion="Enajenación de acciones en bolsa de valores" Fisica="Sí" Moral="No"/>
+</Catalogo>

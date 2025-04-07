@@ -167,8 +167,8 @@ function estadoSql($folio, $conexionData, $claveSae)
 }
 function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
-    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
     $data = [
         'numFuncion' => 1,
         'pedidoId' => $folio,

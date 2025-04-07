@@ -707,12 +707,12 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $numeroWhatsApp = trim($clienteData['TELEFONO'] ?? "");
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
         /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-        /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'*/; // Interzenda
+    $emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123'; // Interzenda
     //$emailPred = "";
     //$numeroWhatsApp = "";
 
@@ -788,8 +788,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
@@ -992,8 +992,8 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
 
     // Si no se encuentra el vendedor, asignar un valor por defecto
     $numero = $telefonoVendedor ?? 'No disponible';
-    //$numero = '+527772127123'; // Interzenda
-    $numero = '+527773750925';
+    $numero = '+527772127123'; // Interzenda
+    //$numero = '+527773750925';
 
     $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";
 

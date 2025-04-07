@@ -5,9 +5,35 @@ function agregarEventosBotones() {
   // Botones de editar
   const botonesEditar = document.querySelectorAll(".btnEditarPedido");
   botonesEditar.forEach((boton) => {
-    boton.addEventListener("click", function () {
+    boton.addEventListener("click", async function () {
+      /*const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      console.log("Redirigiendo con pedidoID:", pedidoID);
+      window.location.href = "altaPedido.php?pedidoID=" + pedidoID;*/
       const pedidoID = this.dataset.id; // Obtener el ID del pedido
-      verificarPedido(pedidoID);
+      try {
+        const res = await verificarPedido(pedidoID);
+        if (res.success) {
+          Swal.fire({
+            title: "Error",
+            text: "El pedido ya fue Remitido/Facturado, no es posible editarlo",
+            icon: "error",
+            confirmButtonText: "Entendido",
+          });
+        } else if (res.fail) {
+          console.log("Redirigiendo con pedidoID:", pedidoID);
+          window.location.href = "altaPedido.php?pedidoID=" + pedidoID;
+        } else {
+          console.error("Respuesta inesperada:", res);
+        }
+      } catch (error) {
+        console.error("Error al verificar el pedido:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Hubo un problema al verificar el pedido",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+      }
     });
   });
 
@@ -349,12 +375,13 @@ function obtenerDatosPedido(pedidoID) {
   $.post(
     "../Servidor/PHP/ventas.php",
     {
-      numFuncion: "2", // Función para obtener el pedido por ID
-      pedidoID: pedidoID,
+      numFuncion: 2, // Función para obtener el pedido por ID
+      pedidoID: pedidoID
     },
     function (response) {
       console.log("Respuesta cruda:", response); // 👈 Imprime lo que llega
       if (response.success) {
+        
         const pedido = response.pedido;
         console.log("Datos del pedido:", pedido);
 
@@ -649,40 +676,27 @@ function obtenerFecha() {
   const formattedDate = today.toISOString().split("T")[0];
   document.getElementById("diaAlta").value = formattedDate;
 }
+// Función que retorna una promesa para verificar el estado del pedido
 function verificarPedido(pedidoID) {
-  $.post(
-    "../Servidor/PHP/ventas.php",
-    { numFuncion: "21", pedidoID: pedidoID },
-    function (response) {
-      console.log(response);
-      try {
-        if (typeof response === "string") {
-          response = JSON.parse(response);
+  return new Promise((resolve, reject) => {
+    $.post(
+      "../Servidor/PHP/ventas.php",
+      { numFuncion: "21", pedidoID: pedidoID },
+      function (response) {
+        try {
+          // Si se configuró dataType "json" en $.post, response ya es un objeto.
+          // Si no, se puede verificar:
+          if (typeof response === "string") {
+            response = JSON.parse(response);
+          }
+          resolve(response);
+        } catch (error) {
+          reject("Error al parsear la respuesta: " + error);
         }
-        if (response.success) {
-          Swal.fire({
-            title: "Error",
-            text: "El pedido ya fue Remitido/Facturado, no es posible editarlo",
-            icon: "error",
-            confirmButtonText: "Entendido",
-          });
-        } else if (response.fail) {
-          console.log("Redirigiendo con pedidoID:", pedidoID); // Log en consola
-          // Redirigir a altaPedido.php con el ID del pedido como parámetro
-          window.location.href = "altaPedido.php?pedidoID=" + pedidoID;
-        }
-      } catch (error) {
-        console.error("Error al procesar la respuesta JSON:", error);
       }
-    }
-  ).fail(function (jqXHR, textStatus, errorThrown) {
-    Swal.fire({
-      title: "Error",
-      text: "Hubo un problema al intentar obtner el pedido",
-      icon: "error",
-      confirmButtonText: "Entendido",
+    ).fail(function (jqXHR, textStatus, errorThrown) {
+      reject("Error en la solicitud AJAX: " + errorThrown);
     });
-    console.log("Detalles del error:", jqXHR.responseText);
   });
 }
 

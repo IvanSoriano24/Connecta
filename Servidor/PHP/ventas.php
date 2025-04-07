@@ -177,8 +177,7 @@ function mostrarPedidos($conexionData, $filtroFecha)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
-{
+function mostrarPedidoEspecifico($clave, $conexionData, $claveSae){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -192,7 +191,6 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $claveSae = $_SESSION['empresa']['claveSae'];
     // Limpiar la clave y construir el nombre de la tabla
     $clave = mb_convert_encoding(trim($clave), 'UTF-8');
@@ -237,15 +235,17 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
 
     // Verificar si se encontró el pedido
     if ($pedido) {
-        return ['success' => true, 'pedido' => $pedido];
+        //var_dump($pedido);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'pedido' => $pedido]);
+        exit;
     } else {
-        return ['success' => false, 'message' => 'Pedido no encontrado'];
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Pedido no encontrado']);
+        exit;
     }
     // Liberar recursos y cerrar la conexión
     sqlsrv_free_stmt($stmt);
-    if (isset($stmtPartidas)) {
-        sqlsrv_free_stmt($stmtPartidas);
-    }
     sqlsrv_close($conn);
 }
 function obtenerPartidasPedido($conexionData, $clavePedido)
@@ -1300,12 +1300,12 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/ // Interzenda
+    $emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123'; // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
@@ -1380,9 +1380,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda
+    $numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -1666,8 +1666,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
 
@@ -3215,8 +3215,8 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
-    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -3346,12 +3346,12 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
 
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/ // Interzenda
+    $emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123'; // Interzenda
 
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
@@ -3391,8 +3391,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -4215,12 +4215,12 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/ // Interzenda
+    $emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123'; // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
@@ -4369,8 +4369,8 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
@@ -4653,12 +4653,12 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
      $numeroWhatsApp = '+527775681612';*/
-    /*$emailPred = 'amartinez@grupointerzenda.com';
-     $numeroWhatsApp = '+527772127123';*/ // Interzenda
+    $emailPred = 'amartinez@grupointerzenda.com';
+     $numeroWhatsApp = '+527772127123'; // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
@@ -4807,8 +4807,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
 
@@ -5018,9 +5018,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda
+    $numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -5129,8 +5129,8 @@ function facturar($folio, $claveSae, $noEmpresa)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -5245,12 +5245,8 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $clave = $_POST['pedidoID'];
 
-        $resultado = mostrarPedidoEspecifico($clave, $conexionData, $claveSae);
-
-        // Y AHORA haces el echo del JSON
-        header('Content-Type: application/json');
-        echo json_encode($resultado);
-        exit;
+        mostrarPedidoEspecifico($clave, $conexionData, $claveSae);
+        
         break;
     case 3:
         if (isset($_SESSION['empresa']['noEmpresa'])) {
