@@ -2,7 +2,7 @@ function obtenerClientes() {
   $.ajax({
     url: "../Servidor/PHP/descuento.php",
     type: "GET",
-    data: { numFuncion: "1" }, // Llamar a la función 15 en PHP
+    data: { numFuncion: "1" }, 
     success: function (response) {
       try {
         const res =

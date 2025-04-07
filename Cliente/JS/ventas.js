@@ -353,6 +353,7 @@ function obtenerDatosPedido(pedidoID) {
       pedidoID: pedidoID,
     },
     function (response) {
+      console.log("Respuesta cruda:", response); // 👈 Imprime lo que llega
       if (response.success) {
         const pedido = response.pedido;
         console.log("Datos del pedido:", pedido);
@@ -396,6 +397,7 @@ function obtenerDatosPedido(pedidoID) {
     },
     "json"
   ).fail(function (jqXHR, textStatus, errorThrown) {
+    //console.log(errorThrown);
     alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
     console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
   });
@@ -652,6 +654,7 @@ function verificarPedido(pedidoID) {
     "../Servidor/PHP/ventas.php",
     { numFuncion: "21", pedidoID: pedidoID },
     function (response) {
+      console.log(response);
       try {
         if (typeof response === "string") {
           response = JSON.parse(response);

@@ -198,7 +198,7 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
     $clave = mb_convert_encoding(trim($clave), 'UTF-8');
     $clave = str_pad($clave, 10, 0, STR_PAD_LEFT);
     $clave = str_pad($clave, 20, ' ', STR_PAD_LEFT);
-    
+
     $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -237,27 +237,73 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
 
     // Verificar si se encontró el pedido
     if ($pedido) {
-        // Obtener partidas
-        $sqlPartidas = "SELECT * FROM $tablaPartidas WHERE [CVE_DOC] = ?";
-        $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $params);
-        if ($stmtPartidas === false) {
-            echo json_encode(['success' => false, 'message' => 'Error al obtener partidas', 'errors' => sqlsrv_errors()]);
-            exit;
-        }
-
-        $partidas = [];
-        while ($row = sqlsrv_fetch_array($stmtPartidas, SQLSRV_FETCH_ASSOC)) {
-            $partidas[] = $row;
-        }
-
-        $pedido['partidas'] = $partidas;
-        echo json_encode(['success' => true, 'pedido' => $pedido]);
+        return ['success' => true, 'pedido' => $pedido];
     } else {
-        echo json_encode(['success' => false, 'message' => 'Pedido no encontrado']);
+        return ['success' => false, 'message' => 'Pedido no encontrado'];
     }
     // Liberar recursos y cerrar la conexión
     sqlsrv_free_stmt($stmt);
+    if (isset($stmtPartidas)) {
+        sqlsrv_free_stmt($stmtPartidas);
+    }
     sqlsrv_close($conn);
+}
+function obtenerPartidasPedido($conexionData, $clavePedido)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    $clavePedido = str_pad($clavePedido, 20, ' ', STR_PAD_LEFT);
+    // Tabla dinámica basada en el número de empresa
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consultar partidas del pedido
+    $sql = "SELECT CVE_DOC, NUM_PAR, CVE_ART, CANT, UNI_VENTA, PREC, IMPU1, IMPU4, DESC1, DESC2, TOT_PARTIDA, DESCR_ART, COMI 
+            FROM $nombreTabla 
+            WHERE CVE_DOC = ?";
+    $stmt = sqlsrv_query($conn, $sql, [$clavePedido]);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al consultar las partidas del pedido', 'errors' => sqlsrv_errors()]);
+        sqlsrv_close($conn);
+        exit;
+    }
+    // Procesar resultados
+    $partidas = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $partidas[] = [
+            'NUM_PAR' => $row['NUM_PAR'],
+            'DESCR_ART' => $row['DESCR_ART'],
+            'CVE_ART' => $row['CVE_ART'],
+            'CANT' => $row['CANT'],
+            'UNI_VENTA' => $row['UNI_VENTA'],
+            'PREC' => $row['PREC'],
+            'IMPU1' => $row['IMPU1'],
+            'IMPU4' => $row['IMPU4'],
+            'DESC1' => $row['DESC1'],
+            'DESC2' => $row['DESC2'],
+            'COMI' => $row['COMI'],
+            'TOT_PARTIDA' => $row['TOT_PARTIDA']
+        ];
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    // Responder con las partidas
+    echo json_encode(['success' => true, 'partidas' => $partidas]);
 }
 function actualizarPedido($conexionData, $formularioData, $partidasData, $estatus)
 {
@@ -2096,63 +2142,6 @@ function validarCreditoCliente($conexionData, $clienteId, $totalPedido, $claveSa
         'saldoActual' => $saldoActual,
         'limiteCredito' => $limiteCredito
     ];
-}
-function obtenerPartidasPedido($conexionData, $clavePedido)
-{
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
-    if ($conn === false) {
-        echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
-        exit;
-    }
-    $clavePedido = str_pad($clavePedido, 20, ' ', STR_PAD_LEFT);
-    // Tabla dinámica basada en el número de empresa
-    $claveSae = $_SESSION['empresa']['claveSae'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
-    // Consultar partidas del pedido
-    $sql = "SELECT CVE_DOC, NUM_PAR, CVE_ART, CANT, UNI_VENTA, PREC, IMPU1, IMPU4, DESC1, DESC2, TOT_PARTIDA, DESCR_ART, COMI 
-            FROM $nombreTabla 
-            WHERE CVE_DOC = ?";
-    $stmt = sqlsrv_query($conn, $sql, [$clavePedido]);
-
-    if ($stmt === false) {
-        echo json_encode(['success' => false, 'message' => 'Error al consultar las partidas del pedido', 'errors' => sqlsrv_errors()]);
-        sqlsrv_close($conn);
-        exit;
-    }
-    // Procesar resultados
-    $partidas = [];
-    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $partidas[] = [
-            'NUM_PAR' => $row['NUM_PAR'],
-            'DESCR_ART' => $row['DESCR_ART'],
-            'CVE_ART' => $row['CVE_ART'],
-            'CANT' => $row['CANT'],
-            'UNI_VENTA' => $row['UNI_VENTA'],
-            'PREC' => $row['PREC'],
-            'IMPU1' => $row['IMPU1'],
-            'IMPU4' => $row['IMPU4'],
-            'DESC1' => $row['DESC1'],
-            'DESC2' => $row['DESC2'],
-            'COMI' => $row['COMI'],
-            'TOT_PARTIDA' => $row['TOT_PARTIDA']
-        ];
-    }
-
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
-
-    // Responder con las partidas
-    echo json_encode(['success' => true, 'partidas' => $partidas]);
 }
 function eliminarPartida($conexionData, $clavePedido, $numPar)
 {
@@ -5255,8 +5244,13 @@ switch ($funcion) {
         }
         $conexionData = $conexionResult['data'];
         $clave = $_POST['pedidoID'];
-        
-        mostrarPedidoEspecifico($clave, $conexionData, $claveSae);
+
+        $resultado = mostrarPedidoEspecifico($clave, $conexionData, $claveSae);
+
+        // Y AHORA haces el echo del JSON
+        header('Content-Type: application/json');
+        echo json_encode($resultado);
+        exit;
         break;
     case 3:
         if (isset($_SESSION['empresa']['noEmpresa'])) {
@@ -5461,7 +5455,6 @@ switch ($funcion) {
                             ]);
                         }
                     } else {
-
                         $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
 
                         /*$anticipo = [
