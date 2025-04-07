@@ -709,7 +709,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
 
     /*$emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773750925';*/
-        /*$emailPred = 'marcos.luna@mdcloud.mx';
+    /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     $emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123'; // Interzenda

@@ -63,12 +63,6 @@ function mostrarPedidos($conexionData, $claveSae)
     try {
         $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
         $clave = $_SESSION['usuario']['claveUsuario'] ?? null;
-        if ($clave != null) {
-            $clave = mb_convert_encoding(trim($clave), 'UTF-8');
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Usuario si clave']);
-            exit;
-        }
         $claveUsuario = formatearClaveCliente($clave);
         $serverName = $conexionData['host'];
         $connectionInfo = [

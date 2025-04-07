@@ -445,12 +445,12 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
     $clave = trim($clienteData['CLAVE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/ // Interzenda
+    $emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123'; // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . urldecode($folioFactura) . ".pdf";

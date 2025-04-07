@@ -4656,9 +4656,9 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     /*$emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
-     $numeroWhatsApp = '+527775681612';*/
+    $numeroWhatsApp = '+527775681612';*/
     $emailPred = 'amartinez@grupointerzenda.com';
-     $numeroWhatsApp = '+527772127123'; // Interzenda
+    $numeroWhatsApp = '+527772127123'; // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
@@ -5672,9 +5672,9 @@ switch ($funcion) {
         }
         break;
     case 11:
-        $csrf_token  = $_SESSION['csrf_token'];
+        /*$csrf_token  = $_SESSION['csrf_token'];
         $csrf_token_form = $_GET['token'];
-        if ($csrf_token === $csrf_token_form) {
+        if ($csrf_token === $csrf_token_form) {*/
             // Empresa por defecto (puedes cambiar este valor según tus necesidades)
             if (!isset($_SESSION['empresa']['noEmpresa'])) {
                 echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
@@ -5694,12 +5694,12 @@ switch ($funcion) {
 
             // Llamar a la función para extraer productos
             extraerProductos($conexionData, $claveSae); //Aqui
-        } else {
+        /*} else {
             echo json_encode([
                 'success' => false,
                 'message' => 'Error en la sesion.',
             ]);
-        }
+        }*/
         break;
     case 12:
         $codigoProducto = isset($_GET['codigoProducto']) ? $_GET['codigoProducto'] : null;

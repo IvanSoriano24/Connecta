@@ -69,34 +69,9 @@ if (isset($_SESSION['usuario'])) {
             </ul>
           </div>
           <button class="btn btn-success" id="btnAgregar">
-                            <i class='bx bxs-user-plus'></i> Agregar
+                            <i class='bx bxs-briefcase'></i> Agregar
                         </button>
         </div>
-        <!-- 
-      <ul class="box-info">
-        <li>
-          <i class='bx bxs-calendar-check' ></i>
-          <span class="text">
-            <h3>1020</h3>
-            <p>New Order</p>
-          </span>
-        </li>
-        <li>
-          <i class='bx bxs-group' ></i>
-          <span class="text">
-            <h3>2834</h3>
-            <p>Visitors</p>
-          </span>
-        </li>
-        <li>
-          <i class='bx bxs-dollar-circle' ></i>
-          <span class="text">
-            <h3>$2543</h3>
-            <p>Total Sales</p>
-          </span>
-        </li>
-      </ul>
--->
         <div class="table-data">
           <div class="order">
             <div class="head">
@@ -104,7 +79,6 @@ if (isset($_SESSION['usuario'])) {
               <!--<i class='bx bx-search'></i> -->
               <!-- <i class='bx bx-filter' > Campos Obligatorios </i> -->
               <a class=''> Campos Obligatorios * </a>
-
             </div>
             <form onsubmit="return validateForm()">
               <div class="form-row">
