@@ -198,7 +198,7 @@ if (isset($_SESSION['usuario'])) {
     </div>
     <!-- MODAL AGREGAR -->
     <div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Agregar Usuario</h5>
@@ -217,11 +217,6 @@ if (isset($_SESSION['usuario'])) {
                                 <div class="col-md-8">
                                     <h5 class="mb-2">Datos del Usuario</h5>
                                     <div class="mb-2">
-                                        <input type="text" id="idUsuario" hidden>
-                                        <label for="usuario" class="form-label">Usuario</label>
-                                        <input type="text" id="usuario" class="form-control">
-                                    </div>
-                                    <div class="mb-2">
                                         <label for="nombreUsuario" class="form-label">Nombre</label>
                                         <input type="text" id="nombreUsuario" class="form-control">
                                     </div>
@@ -234,7 +229,12 @@ if (isset($_SESSION['usuario'])) {
                                         <input type="text" id="correoUsuario" class="form-control">
                                     </div>
                                     <div class="mb-2">
-                                        <label for="contrasenaUsuario" class="form-label">Contraseña</label>
+                                        <input type="text" id="idUsuario" hidden>
+                                        <label for="usuario" class="form-label">Usuario</label>
+                                        <input type="text" id="usuario" class="form-control">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="contrasenaUsuario" class="form-label">Contraseña del Usuario</label>
                                         <input type="password" id="contrasenaUsuario" class="form-control">
                                         <!-- <button type="button" id="togglePassword" style="
                                             position: absolute;
@@ -287,7 +287,7 @@ if (isset($_SESSION['usuario'])) {
     </div>
     <!-- Modal Cliente -->
     <div id="usuarioModalCliente" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Agregar Usuario</h5>
@@ -353,7 +353,7 @@ if (isset($_SESSION['usuario'])) {
     </div>
     <!-- MODAL EMPRESAS -->
     <div id="asociarEmpresaModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Asociar Usuario con Empresa</h5>
@@ -395,7 +395,7 @@ if (isset($_SESSION['usuario'])) {
     </div>
     <!-- Modal Observaciones -->
     <div id="verAsociacionesModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Asociaciones del Usuario</h5>

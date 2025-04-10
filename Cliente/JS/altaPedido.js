@@ -25,8 +25,8 @@ function agregarFilaPartidas() {
     const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
     const ultimaCantidad =
       parseFloat(ultimaFila.querySelector(".cantidad").value) || 0;
-      const ultimoTotal =
-        parseFloat(ultimaFila.querySelector(".subtotalPartida").value) || 0;
+    const ultimoTotal =
+      parseFloat(ultimaFila.querySelector(".subtotalPartida").value) || 0;
     if (ultimoProducto === "" || ultimaCantidad === 0) {
       Swal.fire({
         title: "Error",
@@ -36,7 +36,7 @@ function agregarFilaPartidas() {
       });
       return;
     }
-    if(ultimoTotal === 0){
+    if (ultimoTotal === 0) {
       Swal.fire({
         title: "Error",
         text: "No puedes agregar una partida con un producto de costo 0.",
@@ -475,7 +475,8 @@ function obtenerDatosFormulario() {
   ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
     now.getSeconds()
   ).padStart(2, "0")}`;
-  const diaAlta = new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";
+  const diaAlta =
+    new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";
   //const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DD
 
   const campoEntrega = document.getElementById("entrega").value;
@@ -559,7 +560,12 @@ function enviarDatosBackend(formularioData, partidasData) {
       try {
         return JSON.parse(text); // Intentar convertir a JSON
       } catch (error) {
-        console.error("Error al convertir a JSON:", error, "Texto recibido:", text);
+        console.error(
+          "Error al convertir a JSON:",
+          error,
+          "Texto recibido:",
+          text
+        );
         throw new Error("El servidor no devolvió una respuesta JSON válida.");
       }
     })
@@ -580,7 +586,8 @@ function enviarDatosBackend(formularioData, partidasData) {
       } else if (data.autorizacion) {
         Swal.fire({
           title: "Saldo vencido",
-          text: data.message || "El pedido se procesó pero debe ser autorizado.",
+          text:
+            data.message || "El pedido se procesó pero debe ser autorizado.",
           icon: "warning",
           confirmButtonText: "Entendido",
         }).then(() => {
@@ -591,27 +598,32 @@ function enviarDatosBackend(formularioData, partidasData) {
         Swal.fire({
           title: "Error al guardar el pedido",
           html: `
-            <p>${data.message || "No hay suficientes existencias para algunos productos."}</p>
+            <p>${
+              data.message ||
+              "No hay suficientes existencias para algunos productos."
+            }</p>
             <p><strong>Productos sin existencias:</strong></p>
             <ul>
               ${data.productosSinExistencia
-              .map(
-                (producto) => `
+                .map(
+                  (producto) => `
                   <li>
                     <strong>Producto:</strong> ${producto.producto}, 
-                    <strong>Existencias Totales:</strong> ${producto.existencias || 0}, 
+                    <strong>Existencias Totales:</strong> ${
+                      producto.existencias || 0
+                    }, 
                     <strong>Apartados:</strong> ${producto.apartados || 0}, 
                     <strong>Disponibles:</strong> ${producto.disponible || 0}
                   </li>
                 `
-              )
-              .join("")}
+                )
+                .join("")}
             </ul>
           `,
           icon: "error",
           confirmButtonText: "Aceptar",
         });
-      } else if(data.cxc){
+      } else if (data.cxc) {
         Swal.fire({
           title: "Cuenta por pagar",
           text: data.message || "El cliente tiene una cuenta por pagar",
@@ -701,7 +713,7 @@ function abrirModalClientes() {
   const modalElement = document.getElementById("modalClientes");
   const modal = new bootstrap.Modal(modalElement);
   const datosClientes = document.getElementById("datosClientes");
-  const token = document.getElementById("csrf_token").value; 
+  const token = document.getElementById("csrf_token").value;
 
   // Solicitar datos al servidor
   $.post(
@@ -943,12 +955,12 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   await completarPrecioProducto(producto.CVE_ART, filaProd); // Pasar el nodo DOM, no jQuery
 }
 
-
-function llenarDatosProducto(producto) { }
+function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
-  $(
-    "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar"
-  ).prop("disabled", false);
+  $("#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar").prop(
+    "disabled",
+    false
+  );
 }
 function llenarDatosCliente(cliente) {
   $("#rfc").val(cliente.RFC || "");
@@ -1073,7 +1085,6 @@ document
     }
   });
 
-
 $(document).ready(function () {
   $("#guardarPedido").click(async function (event) {
     event.preventDefault();
@@ -1106,7 +1117,7 @@ $(document).ready(function () {
       const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
       const ultimaCantidad =
         parseFloat(ultimaFila.querySelector(".cantidad").value) || 0;
-        const ultimoTotal =
+      const ultimoTotal =
         parseFloat(ultimaFila.querySelector(".subtotalPartida").value) || 0;
 
       if (ultimoProducto === "" || ultimaCantidad === 0) {
@@ -1118,7 +1129,7 @@ $(document).ready(function () {
         });
         return;
       }
-      if(ultimoTotal === 0){
+      if (ultimoTotal === 0) {
         Swal.fire({
           title: "Error",
           text: "No puedes realizar un pedido con costo 0.",

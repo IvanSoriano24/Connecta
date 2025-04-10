@@ -131,11 +131,14 @@ function obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae)
 
     return [
         'nombre' => trim($clienteData['NOMBRE']) ?? 'Desconocido',
-        'rfc' => trim($clienteData['RFC']) ?? 'N/A',
+        //'rfc' => trim($clienteData['RFC']) ?? 'N/A',
+        'rfc' => $clienteData['RFC'] ?? 'N/A',
         'direccion' => trim($clienteData['CALLE'] . " " . ($clienteData['NUMEXT'] ?? '') . " " . ($clienteData['NUMINT'] ?? '')),
-        'colonia' => trim($clienteData['COLONIA']) ?? 'N/A',
+        //'colonia' => trim($clienteData['COLONIA']) ?? 'N/A',
+        'colonia' => $clienteData['COLONIA'] ?? 'N/A',
         'ubicacion' => trim($clienteData['MUNICIPIO'] . ", " . $clienteData['ESTADO'] . ", " . $clienteData['PAIS']) ?? 'N/A',
-        'codigoPostal' => trim($clienteData['CODIGO']) ?? 'N/A',
+        //'codigoPostal' => trim($clienteData['CODIGO']) ?? 'N/A',
+        'codigoPostal' => $clienteData['CODIGO'] ?? 'N/A',
         'telefono' => $clienteData['TELEFONO'] ?? 'N/A',
         'email' => $clienteData['EMAILPRED'] ?? 'N/A',
         'DESCUENTO' => $clienteData['DESCUENTO'] ?? 0,

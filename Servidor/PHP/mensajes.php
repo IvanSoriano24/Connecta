@@ -170,6 +170,9 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                 }
             }
         }
+        usort($comandas, function ($a, $b) {
+            return strcmp($b['noPedido'], $a['noPedido']);
+        });
         echo json_encode(['success' => true, 'data' => $comandas]);
     }
 }
@@ -560,7 +563,8 @@ function generarPDFP($CVE_DOC, $conexionData, $claveSae, $noEmpresa, $vend, $fol
     $rutaPDF = generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noEmpresa, $vend, $folio);
     return $rutaPDF;
 }
-function validarCreditos($conexionData, $clienteId){
+function validarCreditos($conexionData, $clienteId)
+{
     // Validar si el ID del cliente está proporcionado
     if (!$clienteId) {
         echo json_encode(['success' => false, 'message' => 'ID de cliente no proporcionado.']);
@@ -707,12 +711,12 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $numeroWhatsApp = trim($clienteData['TELEFONO'] ?? "");
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     //$emailPred = "";
     //$numeroWhatsApp = "";
 
@@ -762,7 +766,8 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito){
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito)
+{
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
 
@@ -788,8 +793,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
@@ -816,6 +821,9 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
                     <tbody>";
 
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
         $clave = htmlspecialchars($partida['producto']);
         $descripcion = htmlspecialchars($partida['descripcion']);
@@ -827,12 +835,21 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
                         <td>$clave</td>
                         <td>$descripcion</td>
                         <td>$cantidad</td>
-                        <td>$" . number_format($totalPartida, 2) . "</td>
+                        <td>$ . number_format($totalPartida, 2) . </td>
                       </tr>";
+
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
     $bodyHTML .= "</tbody></table>";
-    $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
+    $bodyHTML .= "<p><b>Total:</b> $" . number_format($IMPORTE, 2) . "</p>";
 
     // Botones para confirmar o rechazar el pedido
     $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
@@ -871,6 +888,9 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     // ✅ Construir la lista de productos
     $productosStr = "";
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
         $producto = $partida['producto'];
         $cantidad = $partida['cantidad'];
@@ -878,7 +898,16 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
         $productosStr .= "$producto - $cantidad unidades, ";
+
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
     // ✅ Eliminar la última coma y espacios
     $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
@@ -904,7 +933,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
                     "parameters" => [
                         ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
                         ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
-                        ["type" => "text", "text" => "$" . number_format($total, 2)] // 📌 Precio total
+                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)] // 📌 Precio total
                     ]
                 ],
                 // ✅ Botón Confirmar
@@ -992,8 +1021,8 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
 
     // Si no se encuentra el vendedor, asignar un valor por defecto
     $numero = $telefonoVendedor ?? 'No disponible';
-    $numero = '+527772127123'; // Interzenda
-    //$numero = '+527773750925';
+    //$numero = '+527772127123'; // Interzenda
+    $numero = '+527773750925';
 
     $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";
 

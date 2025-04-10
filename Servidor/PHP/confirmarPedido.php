@@ -126,7 +126,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     if ($resultado) {
         echo "<div class='container'>
             <div class='title'>Solicitud Inválida</div>
-            <div class='message'>Este pedido ya fue aceptado/cancelado.</div>
+            <div class='message'>Este pedido ya fue aceptado.</div>
             <a href='/index.php' class='button'>Volver al inicio</a>
           </div>";
     } else {
@@ -200,8 +200,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 } else {
                     $result = json_decode($response, true);
                     if (isset($result['name'])) {
-                        $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-                        //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+                        //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                        $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
                         $data = [
                             'numFuncion' => 1,
@@ -351,8 +351,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     }
                 }
             }
-            $telefonoVendedor = '+527772127123'; // Interzenda
-            //$telefonoVendedor = '+527773750925';
+            //$telefonoVendedor = '+527772127123'; // Interzenda
+            $telefonoVendedor = '+527773750925';
             if (!$telefonoVendedor) {
                 /*echo "<div class='container'>
                         <div class='title'>Error al Encontrar Vendedor</div>

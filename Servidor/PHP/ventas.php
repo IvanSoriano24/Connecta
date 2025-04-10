@@ -177,7 +177,8 @@ function mostrarPedidos($conexionData, $filtroFecha)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function mostrarPedidoEspecifico($clave, $conexionData, $claveSae){
+function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -530,7 +531,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
-                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, 0,
+                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
                 0, '', '',
                 0, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
@@ -1033,7 +1034,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
-                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, 0,
+                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
                 0, '', '',
                 0, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
@@ -1300,16 +1301,16 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1380,9 +1381,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda
+    //$numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -1550,6 +1551,9 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     // ✅ Construir la lista de productos
     $productosStr = "";
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
         $producto = $partida['producto'];
         $cantidad = $partida['cantidad'];
@@ -1557,7 +1561,16 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
         $productosStr .= "$producto - $cantidad unidades, ";
+
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
     // ✅ Eliminar la última coma y espacios
     $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
@@ -1583,7 +1596,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
                     "parameters" => [
                         ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
                         ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
-                        ["type" => "text", "text" => "$" . number_format($total, 2)] // 📌 Precio total
+                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)] // 📌 Precio total
                     ]
                 ],
                 // ✅ Botón Confirmar
@@ -1651,9 +1664,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         $correoRemitente = "";
         $contraseñaRemitente = "";
     }
-    //$correoRemitente = null;
-    //$contraseñaRemitente = null;
-    // Definir el correo de destino (puedes cambiarlo si es necesario)
+
     $correoDestino = $correo;
 
     // Obtener el nombre de la empresa desde la sesión
@@ -1666,8 +1677,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
 
@@ -1693,23 +1704,37 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
                     <tbody>";
 
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
         $clave = htmlspecialchars($partida['producto']);
         $descripcion = htmlspecialchars($partida['descripcion']);
         $cantidad = htmlspecialchars($partida['cantidad']);
         $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
+        $IMPORTE = $total;
 
         $bodyHTML .= "<tr>
-                        <td>$clave</td>
+                        <td style='text-align: center;'>$clave</td>
                         <td>$descripcion</td>
-                        <td>$cantidad</td>
-                        <td>$" . number_format($totalPartida, 2) . "</td>
+                        <td style='text-align: right;'>$cantidad</td>
+                        <td style='text-align: right;'>$" . number_format($totalPartida, 2) . "</td>
                       </tr>";
-    }
 
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
+    }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
+    // `
     $bodyHTML .= "</tbody></table>";
-    $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
+    $bodyHTML .= "<p><b>Total:</b> $" . number_format($IMPORTE, 2) . "</p>";
 
     // Botones para confirmar o rechazar el pedido
     $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
@@ -3116,7 +3141,7 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
-                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, 0,
+                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
                 0, '', '',
                 0, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
@@ -3215,8 +3240,8 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -3346,12 +3371,12 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
 
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
@@ -3391,8 +3416,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -3419,6 +3444,9 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
                     <tbody>";
 
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
         $clave = htmlspecialchars($partida['producto']);
         $descripcion = htmlspecialchars($partida['descripcion']);
@@ -3432,10 +3460,19 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
                         <td>$cantidad</td>
                         <td>$" . number_format($totalPartida, 2) . "</td>
                       </tr>";
+
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
     $bodyHTML .= "</tbody></table>";
-    $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
+    $bodyHTML .= "<p><b>Total:</b> $" . number_format($IMPORTE, 2) . "</p>";
 
     // Botones para confirmar o rechazar el pedido
     $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
@@ -4215,12 +4252,12 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
@@ -4253,6 +4290,9 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
     // ✅ Construir la lista de productos
     $productosStr = "";
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
         $producto = $partida['producto'];
         $cantidad = $partida['cantidad'];
@@ -4260,7 +4300,16 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
         $productosStr .= "$producto - $cantidad unidades, ";
+
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
     // ✅ Eliminar la última coma y espacios
     $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
@@ -4286,7 +4335,7 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
                     "parameters" => [
                         ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
                         ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
-                        ["type" => "text", "text" => "$" . number_format($total, 2)] // 📌 Precio total
+                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)] // 📌 Precio total
                     ]
                 ],
                 // ✅ Botón Confirmar
@@ -4369,8 +4418,8 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
@@ -4397,6 +4446,9 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
                     <tbody>";
 
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
         $clave = htmlspecialchars($partida['producto']);
         $descripcion = htmlspecialchars($partida['descripcion']);
@@ -4410,10 +4462,19 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
                         <td>$cantidad</td>
                         <td>$ . number_format($totalPartida, 2) . </td>
                       </tr>";
+
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
     $bodyHTML .= "</tbody></table>";
-    $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
+    $bodyHTML .= "<p><b>Total:</b> $" . number_format($IMPORTE, 2) . "</p>";
 
     // Botones para confirmar o rechazar el pedido
     $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
@@ -4653,12 +4714,12 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
@@ -4690,14 +4751,26 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
     // ✅ Construir la lista de productos
     $productosStr = "";
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
-        $producto = $partida['CVE_ART'];
-        $cantidad = $partida['CANT'];
-        $precioUnitario = $partida['PREC'];
+        $producto = $partida['producto'];
+        $cantidad = $partida['cantidad'];
+        $precioUnitario = $partida['precioUnitario'];
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
         $productosStr .= "$producto - $cantidad unidades, ";
+
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
     // ✅ Eliminar la última coma y espacios
     $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
@@ -4723,7 +4796,7 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
                     "parameters" => [
                         ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
                         ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
-                        ["type" => "text", "text" => "$" . number_format($total, 2)] // 📌 Precio total
+                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)] // 📌 Precio total
                     ]
                 ],
                 // ✅ Botón Confirmar
@@ -4750,7 +4823,7 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
 
     // ✅ Verificar JSON antes de enviarlo
     $data_string = json_encode($data, JSON_PRETTY_PRINT);
-    var_dump($data_string);
+
     error_log("WhatsApp JSON: " . $data_string);
 
     // ✅ Revisar si el JSON contiene `messaging_product`
@@ -4807,8 +4880,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
 
@@ -4834,23 +4907,35 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
                     <tbody>";
 
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
-        $clave = htmlspecialchars($partida['CVE_ART']);
+        $clave = htmlspecialchars($partida['producto']);
         $descripcion = htmlspecialchars($partida['descripcion']);
-        $cantidad = htmlspecialchars($partida['CANT']);
-        $totalPartida = $cantidad * $partida['PREC'];
+        $cantidad = htmlspecialchars($partida['cantidad']);
+        $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
 
         $bodyHTML .= "<tr>
                         <td>$clave</td>
                         <td>$descripcion</td>
                         <td>$cantidad</td>
-                        <td>$" . number_format($totalPartida, 2) . "</td>
-                      </tr>";
+                        <td>$ . number_format($totalPartida, 2) . </td>
+                    </tr>";
+
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
     $bodyHTML .= "</tbody></table>";
-    $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
+    $bodyHTML .= "<p><b>Total a Pagar:</b> $" . number_format($IMPORTE, 2) . "</p>";
 
     // Botones para confirmar o rechazar el pedido
     $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
@@ -5018,9 +5103,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda
+    //$numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -5129,8 +5214,8 @@ function facturar($folio, $claveSae, $noEmpresa)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -5246,7 +5331,7 @@ switch ($funcion) {
         $clave = $_POST['pedidoID'];
 
         mostrarPedidoEspecifico($clave, $conexionData, $claveSae);
-        
+
         break;
     case 3:
         if (isset($_SESSION['empresa']['noEmpresa'])) {
@@ -5425,10 +5510,10 @@ switch ($funcion) {
                         $estatus = "E";
                         $validarSaldo = 0;
                         $credito = 0;
-                        guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                        /*guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
-                        actualizarInventario($conexionData, $partidasData);
+                        actualizarInventario($conexionData, $partidasData);*/
                         if ($validarSaldo == 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
@@ -5675,25 +5760,25 @@ switch ($funcion) {
         /*$csrf_token  = $_SESSION['csrf_token'];
         $csrf_token_form = $_GET['token'];
         if ($csrf_token === $csrf_token_form) {*/
-            // Empresa por defecto (puedes cambiar este valor según tus necesidades)
-            if (!isset($_SESSION['empresa']['noEmpresa'])) {
-                echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
-                exit;
-            }
-            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        // Empresa por defecto (puedes cambiar este valor según tus necesidades)
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
 
-            // Obtener conexión
-            $claveSae = $_SESSION['empresa']['claveSae'];
-            $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
-            if (!$conexionResult['success']) {
-                echo json_encode($conexionResult);
-                break;
-            }
-            // Obtener los datos de conexión
-            $conexionData = $conexionResult['data'];
+        // Obtener conexión
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Obtener los datos de conexión
+        $conexionData = $conexionResult['data'];
 
-            // Llamar a la función para extraer productos
-            extraerProductos($conexionData, $claveSae); //Aqui
+        // Llamar a la función para extraer productos
+        extraerProductos($conexionData, $claveSae); //Aqui
         /*} else {
             echo json_encode([
                 'success' => false,
