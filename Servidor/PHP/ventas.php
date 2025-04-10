@@ -844,14 +844,12 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
         $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
         $IMP_TOT4 += $IMP_T4;
     }
-
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
     $IMP_TOT1 = 0;
     $IMP_TOT2 = 0;
     $IMP_TOT3 = 0;
-
-    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     $IMP_TOT5 = 0;
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;
@@ -1310,7 +1308,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
-        //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1651,7 +1649,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     return $result;
 }
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -1666,7 +1664,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     }
 
     $correoDestino = $correo;
-
+    $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // Obtener el nombre de la empresa desde la sesión
     $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
 
@@ -3379,7 +3377,7 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
     if ($correo === 'S' && !empty($emailPred)) {
-        enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF); // Enviar correo
+        enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conexionData); // Enviar correo
         $conCredito = "S";
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {
@@ -3389,7 +3387,7 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF)
+function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conexionData)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -3406,6 +3404,7 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     // Definir el correo de destino (puedes cambiarlo si es necesario)
     $correoDestino = $correo;
 
+    $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // Obtener el nombre de la empresa desde la sesión
     $titulo = 'Sun Arrow';
 
@@ -3453,12 +3452,13 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
         $cantidad = htmlspecialchars($partida['cantidad']);
         $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
+        $IMPORTE = $total;
 
         $bodyHTML .= "<tr>
-                        <td>$clave</td>
+                        <td style='text-align: center;'>$clave</td>
                         <td>$descripcion</td>
-                        <td>$cantidad</td>
-                        <td>$" . number_format($totalPartida, 2) . "</td>
+                        <td style='text-align: right;'>$cantidad</td>
+                        <td style='text-align: right;'>$" . number_format($totalPartida, 2) . "</td>
                       </tr>";
 
         $IMPU4 = $partida['iva'];
@@ -3701,8 +3701,8 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
         $fondo = true;
     }
 
-    $fechaVencimiento = false;
-    $puedeContinuar = true;
+    /*$fechaVencimiento = false;
+    $puedeContinuar = true;*/
     sqlsrv_close($conn);
 
     // Devolver el resultado y los datos relevantes
@@ -3776,8 +3776,40 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
         return;
     }
 }
+function nuevoFolio($conexionData, $claveSae)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    // Consulta SQL para obtener el siguiente folio
+    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente FROM $nombreTabla WHERE TIP_DOC = 'F'";
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener el siguiente folio
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $folioSiguiente = $row ? $row['FolioSiguiente'] : null;
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    // Retornar el folio siguiente
+    return $folioSiguiente;
+}
 function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData)
 {
+
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
 
     $serverName = $conexionData['host'];
@@ -3796,6 +3828,11 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
             'errors' => sqlsrv_errors()
         ]));
     }
+
+    $folio = nuevoFolio($conexionData, $claveSae);
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     //FALTA FACTURA
 
@@ -3803,31 +3840,48 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
     // Preparar los datos para el INSERT
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
     $CVE_CLIE = formatearClaveCliente($cve_clie);
-    $refer      = $formularioData['referencia'] ?? '000001'; // Puede generarse o venir del formulario
+    $refer      = $CVE_DOC; // Puede generarse o venir del formulario
     $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
-    $no_factura = $formularioData['numero']; // Número de factura o pedido
-    $docto      = '';   // Puede ser un código de documento, si aplica
-    $CAN_TOT = 0;
+    $no_factura = $CVE_DOC; // Número de factura o pedido
+    $docto = $CVE_DOC;   // Puede ser un código de documento, si aplica
     $IMPORTE = 0;
-    $DES_TOT = 0; // Variable para el importe con descuento
-    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    $STRCVEVEND = $formularioData['claveVendedor'];
+
 
 
     $AFEC_COI = 'A';
     $NUM_MONED = 1;
     $TCAMBIO = 1;
-    $TIPO_MOV = 'A';
+    $TIPO_MOV = 'A'; //Aqui
 
-
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
     foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
-        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+        $totalPartida = $precioUnitario * $cantidad;
+        // **Aplicar los descuentos en cascada**
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
     $fecha_apli = date("Y-m-d 00:00:00.000");         // Fecha de aplicación: ahora
     $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
     $status     = 'A';  // Estado inicial, por ejemplo
-    $usuario    = '0';
+    $USUARIO    = '0';
+    $IMPMON_EXT = $IMPORTE;
+    $SIGNO = 1;
     // Preparar el query INSERT (ajusta los campos según la estructura real de tu tabla)
     $query = "INSERT INTO $tablaCunetM (
         CVE_CLIE, 
@@ -3850,9 +3904,12 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
         UUID,
         VERSION_SINC,
         USUARIOGL,
-        FECHAELAB
+        FECHAELAB,
+        IMPMON_EXT,
+        SIGNO,
+        STRCVEVEND
     ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?)";
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?, ?, ?)";
 
     $params = [
         $CVE_CLIE,
@@ -3865,7 +3922,7 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
         $fecha_apli,
         $fecha_venc,
         $status,
-        $usuario,
+        $USUARIO,
         $AFEC_COI,
         $NUM_MONED,
         $TCAMBIO,
@@ -3873,7 +3930,10 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
         $fecha_apli,
         $IMPORTE,
         $fecha_apli,
-        $fecha_apli
+        $fecha_apli,
+        $IMPMON_EXT,
+        $SIGNO,
+        $STRCVEVEND
     ];
 
     $stmt = sqlsrv_query($conn, $query, $params);
@@ -3963,7 +4023,7 @@ function eliminarCxc($conexionData, $anticipo, $claveSae, $formularioData)
     //if (isset($stmtCunetDet)) sqlsrv_free_stmt($stmtCunetDet);
     sqlsrv_close($conn);
 }
-function crearCxc($conexionData, $claveSae, $formularioData, $partidasData, $folioFactura)
+function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
 {
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
 
@@ -3985,42 +4045,55 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData, $fol
     }
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     //FALTA FACTURA
+    $folio = nuevoFolio($conexionData, $claveSae);
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
 
-    $clienteId = $formularioData['cliente'];
-    $clave = formatearClaveCliente($clienteId);
     // Preparar los datos para el INSERT
-    $CVE_CLIE   = $clave; // Clave del cliente
-    //$CVE_CLIE = formatearClaveCliente($cve_clie);
-    $refer      = $folioFactura; // Puede generarse o venir del formulario
-    $num_cpto   = '1';  // Concepto: ajustar según tu lógica de negocio
+    $cve_clie   = $formularioData['cliente']; // Clave del cliente
+    $CVE_CLIE = formatearClaveCliente($cve_clie);
+    $refer      = $CVE_DOC; // Puede generarse o venir del formulario
+    $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
-    $no_factura = $folioFactura; // Número de factura o pedido
-    $docto = $folioFactura;   // Puede ser un código de documento, si aplica
-    $CAN_TOT = 0;
+    $no_factura = $CVE_DOC; // Número de factura o pedido
+    $docto = $CVE_DOC;   // Puede ser un código de documento, si aplica
     $IMPORTE = 0;
-    $DES_TOT = 0; // Variable para el importe con descuento
-    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
-
-
+    $STRCVEVEND = $formularioData['claveVendedor'];
 
     $AFEC_COI = 'A';
     $NUM_MONED = 1;
     $TCAMBIO = 1;
-    $TIPO_MOV = 'A';
+    $TIPO_MOV = 'A'; //Aqui
 
-
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
     foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
-        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+        $totalPartida = $precioUnitario * $cantidad;
+        // **Aplicar los descuentos en cascada**
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
     $fecha_apli = date("Y-m-d 00:00:00.000");         // Fecha de aplicación: ahora
     $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
     $status     = 'A';  // Estado inicial, por ejemplo
-    $usuario    = '0';
+    $USUARIO    = '0';
+    $IMPMON_EXT = $IMPORTE;
+    $SIGNO = 1;
 
 
-    $no_factura = "18784";
-    $refer = "000001";
     // Preparar el query INSERT (ajusta los campos según la estructura real de tu tabla)
     $query = "INSERT INTO $tablaCunetM (
                     CVE_CLIE, 
@@ -4043,8 +4116,11 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData, $fol
                     UUID,
                     VERSION_SINC,
                     USUARIOGL,
-                    FECHAELAB
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?)";
+                    FECHAELAB,
+                    IMPMON_EXT,
+                    SIGNO,
+                    STRCVEVEND
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?, ?, ?)";
 
     $params = [
         $CVE_CLIE,
@@ -4057,7 +4133,7 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData, $fol
         $fecha_apli,
         $fecha_venc,
         $status,
-        $usuario,
+        $USUARIO,
         $AFEC_COI,
         $NUM_MONED,
         $TCAMBIO,
@@ -4065,7 +4141,10 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData, $fol
         $fecha_apli,
         $IMPORTE,
         $fecha_apli,
-        $fecha_apli
+        $fecha_apli,
+        $IMPMON_EXT,
+        $SIGNO,
+        $STRCVEVEND
     ];
 
     $stmt = sqlsrv_query($conn, $query, $params);
@@ -4107,39 +4186,61 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
         ]));
     }
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    //FALTA FACTURA
+
+    $folio = nuevoFolio($conexionData, $claveSae);
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+
 
 
     // Preparar los datos para el INSERT
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
     $CVE_CLIE = formatearClaveCliente($cve_clie);
-    $refer      = $datosCxC['referencia']; // Puede generarse o venir del formulario
-    $num_cpto   = '1';  // 9
+    $refer      = $CVE_DOC; // Puede generarse o venir del formulario
+    $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
-    $no_factura = $datosCxC['factura']; // Número de factura o pedido
-    $docto      = '';   // Puede ser un código de documento, si aplica
-    $CAN_TOT = 0;
+    $no_factura = $CVE_DOC; // Número de factura o pedido
+    $docto = $CVE_DOC;   // Puede ser un código de documento, si aplica
     $IMPORTE = 0;
-    $DES_TOT = 0; // Variable para el importe con descuento
-    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    $STRCVEVEND = $formularioData['claveVendedor'];
 
+    $AFEC_COI = 'A';
+    $NUM_MONED = 1;
+    $TCAMBIO = 1;
+    $TIPO_MOV = 'A'; //Aqui
+
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
     foreach ($partidasData as $partida) {
-        $CAN_TOT += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
-        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+        $totalPartida = $precioUnitario * $cantidad;
+        // **Aplicar los descuentos en cascada**
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
-    $FECHAELAB = date('Y-m-d H:i:s');
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
     $fecha_apli = date("Y-m-d 00:00:00.000");         // Fecha de aplicación: ahora
     $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
     $status     = 'A';  // Estado inicial, por ejemplo
-    $usuario    = '0';
-
-    $AFEC_COI = 'A';
+    $USUARIO    = '0';
+    $IMPMON_EXT = $IMPORTE;
+    $SIGNO = 1;
 
     // Preparar el query INSERT (ajusta los campos según la estructura real de tu tabla)
     $query = "INSERT INTO $tablaCunetM (
                     CVE_CLIE, 
-                    REFER,
-                    ID_MOV, 
+                    REFER, 
                     NUM_CPTO, 
                     NUM_CARGO, 
                     NO_FACTURA, 
@@ -4147,10 +4248,21 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
                     IMPORTE, 
                     FECHA_APLI, 
                     FECHA_VENC,
+                    STATUS,
                     USUARIO,
-                    NO_PARTIDA,
-                    FECHAELAB
-              ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)";
+                    AFEC_COI,
+                    NUM_MONED,
+                    TCAMBIO,
+                    TIPO_MOV,
+                    FECHA_ENTREGA,
+                    IMPMON_EXT,
+                    UUID,
+                    VERSION_SINC,
+                    USUARIOGL,
+                    FECHAELAB,
+                    IMPMON_EXT,
+                    SIGNO,
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?, ?, ?)";
 
     $params = [
         $CVE_CLIE,
@@ -4162,8 +4274,19 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
         $IMPORTE,
         $fecha_apli,
         $fecha_venc,
-        $usuario,
-        $FECHAELAB
+        $status,
+        $USUARIO,
+        $AFEC_COI,
+        $NUM_MONED,
+        $TCAMBIO,
+        $TIPO_MOV,
+        $fecha_apli,
+        $IMPORTE,
+        $fecha_apli,
+        $fecha_apli,
+        $IMPMON_EXT,
+        $SIGNO,
+        $STRCVEVEND
     ];
     //var_dump("de salida");
     $stmt = sqlsrv_query($conn, $query, $params);
@@ -4259,9 +4382,9 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
-        enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
+        enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
-        $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        //$resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -4390,7 +4513,7 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
 
     return $result;
 }
-function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito)
+function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -4416,7 +4539,7 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
 
     // Convertir productos a JSON para la URL
     $productosJson = urlencode(json_encode($partidasData));
-
+    $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // URL base del servidor
     //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
     $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
@@ -4455,12 +4578,13 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
         $cantidad = htmlspecialchars($partida['cantidad']);
         $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
+        $IMPORTE = $total;
 
         $bodyHTML .= "<tr>
-                        <td>$clave</td>
+                        <td style='text-align: center;'>$clave</td>
                         <td>$descripcion</td>
-                        <td>$cantidad</td>
-                        <td>$ . number_format($totalPartida, 2) . </td>
+                        <td style='text-align: right;'>$cantidad</td>
+                        <td style='text-align: right;'>$" . number_format($totalPartida, 2) . "</td>
                       </tr>";
 
         $IMPU4 = $partida['iva'];
@@ -4708,7 +4832,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
 
     $fechaElaboracion = $formularioData['fechaAlta'];
     $correo = trim($clienteData['MAIL']);
-    $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    //$emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
     //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
@@ -4721,7 +4845,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
-        enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
+        enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {
@@ -4755,15 +4879,15 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
     $IMPORTE = 0;
     $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
-        $producto = $partida['producto'];
-        $cantidad = $partida['cantidad'];
-        $precioUnitario = $partida['precioUnitario'];
+        $producto = $partida['CVE_DOC'];
+        $cantidad = $partida['CANT'];
+        $precioUnitario = $partida['PREC'];
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
         $productosStr .= "$producto - $cantidad unidades, ";
 
-        $IMPU4 = $partida['iva'];
-        $desc1 = $partida['descuento'] ?? 0;
+        $IMPU4 = $partida['IMPU4'];
+        $desc1 = $partida['DESC1'] ?? 0;
         $desProcentaje = ($desc1 / 100);
         $DES = $totalPartida * $desProcentaje;
         $DES_TOT += $DES;
@@ -4852,7 +4976,7 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
 
     return $result;
 }
-function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito)
+function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -4872,12 +4996,9 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
 
     // Obtener el nombre de la empresa desde la sesión
     $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
-
+    $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // Asunto del correo
     $asunto = 'Detalles del Pedido #' . $noPedido;
-
-    // Convertir productos a JSON para la URL
-    $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
     //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
@@ -4911,21 +5032,22 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $IMPORTE = 0;
     $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
-        $clave = htmlspecialchars($partida['producto']);
+        $clave = $partida['CVE_DOC'];
         $descripcion = htmlspecialchars($partida['descripcion']);
-        $cantidad = htmlspecialchars($partida['cantidad']);
-        $totalPartida = $cantidad * $partida['precioUnitario'];
+        $cantidad = $partida['CANT'];
+        $totalPartida = $cantidad * $partida['PREC'];
         $total += $totalPartida;
+        $IMPORTE = $total;
 
         $bodyHTML .= "<tr>
-                        <td>$clave</td>
+                        <td style='text-align: center;'>$clave</td>
                         <td>$descripcion</td>
-                        <td>$cantidad</td>
-                        <td>$ . number_format($totalPartida, 2) . </td>
-                    </tr>";
+                        <td style='text-align: right;'>$cantidad</td>
+                        <td style='text-align: right;'>$" . number_format($totalPartida, 2) . "</td>
+                      </tr>";
 
-        $IMPU4 = $partida['iva'];
-        $desc1 = $partida['descuento'] ?? 0;
+        $IMPU4 = $partida['IMPU4'];
+        $desc1 = $partida['DESC1'] ?? 0;
         $desProcentaje = ($desc1 / 100);
         $DES = $totalPartida * $desProcentaje;
         $DES_TOT += $DES;
@@ -5271,6 +5393,33 @@ function facturar($folio, $claveSae, $noEmpresa)
               </div>";
     }
 }
+function obtenerNombreVendedor($vendedor, $conexionData, $claveSae)
+{
+
+    $vendedor = formatearClaveVendedor($vendedor);
+
+    $conn = sqlsrv_connect($conexionData['host'], [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ]);
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "SELECT NOMBRE FROM $nombreTabla WHERE CVE_VEND = ?";
+    $stmt = sqlsrv_query($conn, $sql, [$vendedor]);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
+    }
+
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $nombre = $row ? $row['NOMBRE'] : '';
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    return $nombre;
+}
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -5507,13 +5656,13 @@ switch ($funcion) {
                         } else if ($validarSaldo == 1 || $credito == 1) {
                             $estatus = "C";
                         }
-                        $estatus = "E";
+                        /*$estatus = "E";
                         $validarSaldo = 0;
-                        $credito = 0;
-                        /*guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                        $credito = 0;*/
+                        guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
-                        actualizarInventario($conexionData, $partidasData);*/
+                        actualizarInventario($conexionData, $partidasData);
                         if ($validarSaldo == 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
@@ -5557,10 +5706,8 @@ switch ($funcion) {
                             actualizarFolio($conexionData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
-                            //$folioFactura = facturar($formularioData['numero'], $claveSae, $noEmpresa);
-                            $folioFactura = $formularioData['numero'];
                             eliminarCxc($conexionData, $anticipo, $claveSae, $formularioData);
-                            $datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData, $folioFactura);
+                            $datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
                             pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                             restarSaldo($conexionData, $claveSae, $datosCxC, $clave);
                             // Respuesta de éxito
@@ -5580,6 +5727,7 @@ switch ($funcion) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                             guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
+                            generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
                             // Respuesta de éxito
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([

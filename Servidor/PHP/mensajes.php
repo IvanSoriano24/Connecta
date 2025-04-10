@@ -128,7 +128,6 @@ function formatearClaveVendedor($clave)
     $clave = str_pad($clave, 5, ' ', STR_PAD_LEFT);
     return $clave;
 }
-
 function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
@@ -447,6 +446,11 @@ function obtenerDetalles($firebaseProjectId, $firebaseApiKey, $pedidoId)
             $productos[] = [
                 'producto' => $producto['mapValue']['fields']['producto']['stringValue'] ?? '',
                 'descripcion' => $producto['mapValue']['fields']['descripcion']['stringValue'] ?? '',
+                'iva' => $producto['mapValue']['fields']['iva']['stringValue'] ?? '',
+                'ieps' => $producto['mapValue']['fields']['ieps']['stringValue'] ?? '',
+                'isr' => $producto['mapValue']['fields']['isr']['stringValue'] ?? '',
+                'impuesto2' => $producto['mapValue']['fields']['impuesto2']['stringValue'] ?? '',
+                'descuento' => $producto['mapValue']['fields']['']['stringValue'] ?? 'descuento',
                 'cantidad' => $producto['mapValue']['fields']['cantidad']['stringValue'] ?? '',
                 'precioUnitario' => $producto['mapValue']['fields']['precioUnitario']['stringValue'] ?? '',
                 'subtotal' => $producto['mapValue']['fields']['subtotal']['stringValue'] ?? ''
@@ -631,7 +635,6 @@ function validarCreditos($conexionData, $clienteId)
 }
 function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa, $vend)
 {
-
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -656,7 +659,6 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $pedidoInfo = $detallesPedido['data'];
 
     $partidasData = $pedidoInfo['productos'];
-
     // Extraer 'enviar a' y 'vendedor' del formulario
     $enviarA = $pedidoInfo['enviar']; // Dirección de envío
     $vendedor = $pedidoInfo['vendedor']; // Número de vendedor
@@ -732,12 +734,18 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     }
 
     $dataCredito = validarCreditos($conexionData, $clave);
-    if ($dataCredito['success']) {
-        $conCredito = "S";
+    $credito = json_decode($dataCredito, true);
+    if ($credito['success']) {
+        if ($credito['conCredito'] === 'S') {
+            $conCredito = "S";
+        } else {
+            $conCredito = "N";
+        }
     } else {
-        $conCredito = "N";
+        //
     }
 
+    //var_dump($dataCredito['success']);
 
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         // Enviar notificaciones solo si los datos son válidos
@@ -746,7 +754,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         }
 
         if ($numeroBandera === 0) {
-            enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+            //enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -830,16 +838,19 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         $cantidad = htmlspecialchars($partida['cantidad']);
         $totalPartida = $cantidad * $partida['precioUnitario'];
         $total += $totalPartida;
+        $IMPORTE = $total;
 
         $bodyHTML .= "<tr>
-                        <td>$clave</td>
+                        <td style='text-align: center;'>$clave</td>
                         <td>$descripcion</td>
-                        <td>$cantidad</td>
-                        <td>$ . number_format($totalPartida, 2) . </td>
+                        <td style='text-align: right;'>$cantidad</td>
+                        <td style='text-align: right;'>$" . number_format($totalPartida, 2) . "</td>
                       </tr>";
 
-        $IMPU4 = $partida['iva'];
-        $desc1 = $partida['descuento'] ?? 0;
+        //$IMPU4 = htmlspecialchars($partida['iva']);
+        $IMPU4 = intval(htmlspecialchars($partida['iva']));
+        //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
+        $desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
         $desProcentaje = ($desc1 / 100);
         $DES = $totalPartida * $desProcentaje;
         $DES_TOT += $DES;
@@ -884,7 +895,6 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido
 
-
     // ✅ Construir la lista de productos
     $productosStr = "";
     $total = 0;
@@ -899,8 +909,10 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $total += $totalPartida;
         $productosStr .= "$producto - $cantidad unidades, ";
 
-        $IMPU4 = $partida['iva'];
-        $desc1 = $partida['descuento'] ?? 0;
+        //$IMPU4 = htmlspecialchars($partida['iva']);
+        $IMPU4 = intval(htmlspecialchars($partida['iva']));
+        //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
+        $desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
         $desProcentaje = ($desc1 / 100);
         $DES = $totalPartida * $desProcentaje;
         $DES_TOT += $DES;
@@ -988,9 +1000,10 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     return $result;
 }
-function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId)
+function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $claveSae, $conexionData, $noEmpresa)
 {
 
+    liberarExistencias($folio, $claveSae, $conexionData);
     $urlFire = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
     $response = @file_get_contents($urlFire);
 
@@ -1011,11 +1024,13 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
 
     foreach ($dataUsuarios['documents'] as $document) {
         $fields = $document['fields'];
-
-        // Verificar si la claveUsuario existe y coincide con el vendedor buscado
-        if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
-            $telefonoVendedor = $fields['telefono']['stringValue']; // Guardar solo un número de teléfono
-            break; // Terminar la búsqueda una vez encontrado el vendedor
+        if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+            if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                    $telefonoVendedor = $fields['telefono']['stringValue'];
+                    break;
+                }
+            }
         }
     }
 
@@ -1054,14 +1069,14 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
         echo json_encode(['success' => false, 'message' => 'Error al Autorizar el pedido.', 'error' => $error['message']]);
     } else {
         $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-        $token = 'EAAQbK4YCPPcBO9IynxQVBnTe9OlB6ytzw5DzOUA4c8ZAZCJFrUUFKisbRUMLLHJGICsnXkZA0bjQReezy43Fv26ydZCS8lCnFay1MUyoVjymGsZATsHxd3nXA1q0YSMx8tvlxUW45xtYM4aDGl1FKKOcZBUZAb14koRLOSZA7TefH1KkG1Bllm5ux3BCFZBaMogExuThZCUwICZCpoDA6mokL79xnZAYNBcicQKwOZC4ZD';
+        $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
         // Crear el cuerpo de la solicitud para la API
         $data = [
             "messaging_product" => "whatsapp",
             "to" => $numero, // Número del vendedor
             "type" => "template",
             "template" => [
-                "name" => "rechazar_pedido", // Nombre de la plantilla aprobada
+                "name" => "rechazar_pedido_autorizado", // Nombre de la plantilla aprobada
                 "language" => ["code" => "es_MX"], // Idioma de la plantilla
                 "components" => [
                     // Parámetros del cuerpo de la plantilla
@@ -1093,12 +1108,72 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
         // Ejecutar la solicitud y cerrar cURL
         $result = curl_exec($curl);
         curl_close($curl);
+        var_dump($result);
 
         echo json_encode(['success' => true, 'message' => 'Pedido Rechazado.']);
         //return $result;
     }
 }
+function liberarExistencias($conexionData, $folio, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
 
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT [CVE_ART], [CANT] FROM $nombreTabla
+        WHERE [CVE_DOC] = ?";
+    $params = [$CVE_DOC];
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        echo "DEBUG: Error al actualizar el pedido:\n";
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+    $partidas = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $partidas[] = $row;
+    }
+
+    foreach ($partidas as $partida) {
+        $CVE_ART = $partida['CVE_ART'];
+        $cantidad = $partida['CANT'];
+        // SQL para actualizar los campos EXIST y PEND_SURT
+        $sql = "UPDATE $tablaInve
+            SET    
+                [APART] = [APART] - ?   
+            WHERE [CVE_ART] = '$CVE_ART'";
+        // Preparar la consulta
+        $params = array($cantidad, $cantidad);
+        // Ejecutar la consulta SQL
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al actualizar el inventario', 'errors' => sqlsrv_errors()]));
+        }
+        // Verificar cuántas filas se han afectado
+        $rowsAffected = sqlsrv_rows_affected($stmt);
+        // Retornar el resultado
+        if ($rowsAffected > 0) {
+            // echo json_encode(['success' => true, 'message' => 'Inventario actualizado correctamente']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No se encontró el producto para actualizar']);
+        }
+    }
+}
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -1185,11 +1260,21 @@ switch ($funcion) {
         }
         break;
     case 8:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        // Obtener datos de conexión
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
         $vendedor = $_GET['vendedor'];
         $nombreCliente = $_GET['cliente'];
         $folio = $_GET['folio'];
         $pedidoId = $_GET['pedidoId'];
-        pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId);
+        pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $claveSae, $conexionData, $noEmpresa);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

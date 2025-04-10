@@ -39,8 +39,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function verificarPago($conexionData, $cliente, $claveSae)
-{
+function verificarPago($conexionData, $cliente, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -69,7 +68,7 @@ function verificarPago($conexionData, $cliente, $claveSae)
                            FROM $tablaCuenD 
                            WHERE CVE_CLIE = CUENM.CVE_CLIE 
                              AND REFER = CUENM.REFER 
-                             AND NUM_CARGO = CUENM.NUM_CARGO), 0) >= CUENM.IMPORTE
+                             AND IMPORTE = CUENM.IMPORTE), 0) >= CUENM.IMPORTE
                              AND NUM_CPTO = '9'
               THEN 1 ELSE 0 
             END AS PAGADA
@@ -661,7 +660,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                 if ($conexionResult['success']) {
                     $conexionData = $conexionResult['data'];
                     $pagado = verificarPago($conexionData, $cliente, $claveSae);
-                    $pagado = true;
+                    //$pagado = true;
                     if ($pagado) {
                         $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
                         $fechaLimiteObj = new DateTime($fechaLimite);
