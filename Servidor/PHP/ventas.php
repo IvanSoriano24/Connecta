@@ -3640,11 +3640,16 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
     $cliente = formatearClaveCliente($cliente);
 
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $sql = "SELECT REFER, NUM_CPTO, IMPORTE, NO_FACTURA, 
+    $sql = "SELECT REFER, NUM_CPTO, IMPORTE, NO_FACTURA, DOCTO, 
         CONVERT(VARCHAR(10), FECHA_VENC, 120) AS fecha
-        FROM $tablaCunetM 
-        WHERE CVE_CLIE = ? AND NUM_CPTO = '9'";
+        FROM $tablaCunetM M 
+        INNER JOIN $tablaCunetDet D 
+        ON M.RREFER = D.REFER 
+            AND M.NO_FACTURA = D.NO_FACTURA
+        WHERE CVE_CLIE = ? 
+        AND NUM_CPTO = '9'";
     $params = [$cliente];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -3668,6 +3673,7 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
     $IMPORTE = $clienteCxC['IMPORTE'];
     $NO_FACTURA = $clienteCxC['NO_FACTURA'];
     $fechaVencimiento = $clienteCxC['fecha'];
+    $DOCTO = $clienteCxC['DOCTO'];
 
     // Asegurarse de que $fechaVencimiento es un objeto DateTime.
     /*if (!($fechaVencimiento instanceof DateTime)) {
@@ -3713,7 +3719,8 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
         'subTotal' => $totalPedido,
         'Vencimiento' => $fechaVencimiento,
         'Referencia' => $REFER,
-        'NO_FACTURA' => $NO_FACTURA
+        'NO_FACTURA' => $NO_FACTURA,
+        'DOCTO' => $DOCTO
     ];
 }
 function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa)
@@ -4185,7 +4192,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
             'errors' => sqlsrv_errors()
         ]));
     }
-    $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $folio = nuevoFolio($conexionData, $claveSae);
     $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
@@ -4238,7 +4245,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
     $SIGNO = 1;
 
     // Preparar el query INSERT (ajusta los campos según la estructura real de tu tabla)
-    $query = "INSERT INTO $tablaCunetM (
+    $query = "INSERT INTO $tablaCunetDet (
                     CVE_CLIE, 
                     REFER, 
                     NUM_CPTO, 

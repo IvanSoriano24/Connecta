@@ -39,7 +39,8 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function verificarPago($conexionData, $cliente, $claveSae){
+function verificarPago($conexionData, $cliente, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -659,13 +660,12 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                 $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
                 if ($conexionResult['success']) {
                     $conexionData = $conexionResult['data'];
-                    $pagado = verificarPago($conexionData, $cliente, $claveSae);
-                    //$pagado = true;
-                    if ($pagado) {
-                        $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
-                        $fechaLimiteObj = new DateTime($fechaLimite);
-                        if ($fechaPago <= $fechaLimiteObj) {
-
+                    $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
+                    $fechaLimiteObj = new DateTime($fechaLimite);
+                    if ($fechaPago <= $fechaLimiteObj) {
+                        $pagado = verificarPago($conexionData, $cliente, $claveSae);
+                        //$pagado = true;
+                        if ($pagado) {
                             $pagoId = basename($document['name']);
                             //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
                             cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
@@ -673,11 +673,10 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                             crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
                             crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
                             //Remision y Demas
-
-                        } else if ($fechaPago > $fechaLimiteObj) {
-                            liberarExistencias($conexionData, $folio, $claveSae);
-                            //Notificar
                         }
+                    } else if ($fechaPago > $fechaLimiteObj) {
+                        liberarExistencias($conexionData, $folio, $claveSae);
+                        //Notificar
                     }
                 }
             }
