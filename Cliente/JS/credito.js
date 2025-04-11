@@ -25,7 +25,16 @@ function obtenerCredito() {
           document.getElementById("credito").value = creditoFormateado;
           document.getElementById("saldo").value = saldoFormateado;
 
-          mostrarSugerencias(res.data.LIMCRED, res.data.SALDO, res.data.CLAVE);
+          if(saldoFormateado >= creditoFormateado){
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Saldo mayor a tu credito.",
+              confirmButtonText: "Aceptar",
+            });
+          }else{
+            mostrarSugerencias(res.data.LIMCRED, res.data.SALDO, res.data.CLAVE);
+          }
         } else if (res.saldo) {
           Swal.fire({
             title: "Saldo vencido",

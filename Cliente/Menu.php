@@ -135,6 +135,9 @@ if (isset($_SESSION['usuario'])) {
                 grid-template-columns: repeat(1, 1fr);
             }
         }
+        .card{
+            cursor: pointer;
+        }
     </style>
 
     <style>

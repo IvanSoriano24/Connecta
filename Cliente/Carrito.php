@@ -126,7 +126,6 @@
                                         <div class="d-flex justify-content-between align-items-center">
 
                                             <h4>Subtotal: <span id="subtotal">$0.00</span></h4>
-                                            <h4>Envío: <span>$20.00</span></h4>
                                             <h3>Total: <span id="total">$0.00</span></h3>
                                         </div>
                                         <button class="btn btn-primary btn-lg w-100 mt-4" id="btnPagar">💳 Pagar

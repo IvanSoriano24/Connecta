@@ -64,12 +64,12 @@ function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
     }
 
     // Determinar el estado según el tipo de usuario
-    if($idUsuario){
+    if ($idUsuario) {
         $status = obtenerStatus($idUsuario);
-    }else{
+    } else {
         $status = ($datosUsuario['rolUsuario'] === "CLIENTE") ? "Activo" : "Bloqueado";
     }
-    
+
     // Determinar qué clave guardar según el tipo de usuario
     $clave = ($datosUsuario['rolUsuario'] === "CLIENTE") ? $datosUsuario['claveCliente'] : $datosUsuario['claveVendedor'];
     $opciones = [
@@ -88,7 +88,7 @@ function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
         'descripcionUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
         'status' => ['stringValue' => strip_tags($status)], // Se asigna según la condición
         'claveUsuario' => ['stringValue' => strip_tags($clave)], // Guardar la clave correcta
-        'noEmpresa' => ['stringValue' => strip_tags($noEmpresa)], 
+        'noEmpresa' => ['stringValue' => strip_tags($noEmpresa)],
         'claveSae' => ['stringValue' => strip_tags($claveSae)],
     ];
 
@@ -118,25 +118,26 @@ function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se pudo guardar el usuario.']);
     }
 }
-function obtenerStatus($idUsuario) {
+function obtenerStatus($idUsuario)
+{
     global $firebaseProjectId, $firebaseApiKey;
-    
+
     // Construir la URL para obtener el documento del usuario
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/$idUsuario?key=$firebaseApiKey";
-    
+
     // Realizar la solicitud GET a Firebase
     $response = @file_get_contents($url);
     if ($response === FALSE) {
         // Si ocurre un error, se puede retornar un valor por defecto o NULL
         return null;
     }
-    
+
     $data = json_decode($response, true);
     // Verificar si el campo 'status' existe en el documento
     if (isset($data['fields']['status']['stringValue'])) {
         return $data['fields']['status']['stringValue'];
     }
-    
+
     return null;
 }
 function mostrarUsuarios($usuarioLogueado, $usuario)
@@ -1094,11 +1095,14 @@ function obtenerClientes($conexionData, $claveSae)
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $clave = $row['clave'];
         if (!isset($clientesUnicos[$clave])) {
+            $emailPredArray = explode(';', $row['correo']);
+            $emailPred = trim($emailPredArray[0]);
+
             $clientesUnicos[$clave] = $row['nombre'];
             $clientes[] = [
                 'clave' => $clave,
                 'nombre' => $row['nombre'],
-                'correo' => $row['correo'] ?? '',  // Evita error si el campo es NULL
+                'correo' => $emailPred ?? '',  // Evita error si el campo es NULL
                 'telefono' => $row['telefono'] ?? '' // Evita error si el campo es NULL
             ];
         }
@@ -1112,8 +1116,6 @@ function obtenerClientes($conexionData, $claveSae)
         usort($clientes, function ($a, $b) {
             return strcmp($a['nombre'] ?? '', $b['nombre'] ?? '');
         });
-
-
         echo json_encode(['success' => true, 'data' => $clientes]);
         exit();
     } else {

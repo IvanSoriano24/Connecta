@@ -137,7 +137,9 @@ function mostrarPedidos($conexionData, $claveSae)
                 $clientes[] = $row;
             }
         }
-
+        usort($clientes, function ($a, $b) {
+            return strcmp($a['Clave'], $b['Clave']);
+        });
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
 

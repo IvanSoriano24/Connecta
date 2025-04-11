@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const checkoutTotal = document.getElementById("checkout-total");
   const folioInput = document.getElementById("folioCarrito");
 
-  const envio = 20; // Costo de envío fijo
+  //const envio = 20; // Costo de envío fijo
 
   // Obtener folio del servidor
   async function obtenerFolioSiguiente() {
@@ -331,7 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
       carritoLista.innerHTML =
         "<p class='text-center'>El carrito está vacío.</p>";
       subtotalElement.textContent = "$0.00";
-      totalElement.textContent = "$20.00"; // Solo el costo de envío
+      totalElement.textContent = "0.00"; // Solo el costo de envío
       return;
     }
 
@@ -393,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Actualizar totales
     subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
-    totalElement.textContent = `$${(subtotal + 20).toFixed(2)}`; // 20 es el envío
+    totalElement.textContent = `$${(subtotal).toFixed(2)}`; // 20 es el envío
   }
   async function obtenerDatosClienteCarro() {
     try {

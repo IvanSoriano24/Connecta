@@ -95,6 +95,9 @@ if (isset($_SESSION['usuario'])) {
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
             /* Sombra para mayor contraste */
         }
+        .card{
+            cursor: pointer;
+        }
     </style>
 
 <body>

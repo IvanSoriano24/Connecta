@@ -1751,7 +1751,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
+function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1773,29 +1773,25 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput)
     // Manejo de espacios para la clave
     $clienteClave = str_pad($clienteInput, 10, " ", STR_PAD_LEFT);
     $clienteNombre = '%' . $clienteInput . '%';
-
+    $claveVendedor = str_pad($claveVendedor, 5, " ", STR_PAD_LEFT);
 
     // Construir la consulta SQL
-    $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     if (preg_match('/[a-zA-Z]/', $clienteInput)) {
         // Búsqueda por nombre
-        $sql = "SELECT DISTINCT 
+        $sql = "SELECT DISTINCT
                 [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
-                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO]
+                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO], [CVE_VEND]
             FROM $nombreTabla
-            WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') OR [CLAVE] = '$clienteClave'
-              AND [CVE_VEND] = '$claveVendedor'";
+            WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'";
     } else {
         // Búsqueda por clave
-        $sql = "SELECT DISTINCT 
+        $sql = "SELECT DISTINCT
                 [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
-                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO]
+                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO], [CVE_VEND]
             FROM $nombreTabla
-            WHERE [CLAVE] = '$clienteClave' OR LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre')
-              AND [CVE_VEND] = '$claveVendedor'";
+            WHERE [CLAVE] = '$clienteClave' AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'";
     }
-
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
@@ -3957,7 +3953,7 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
     sqlsrv_close($conn);
     return $no_factura;
 }
-function eliminarCxc($conexionData, $anticipo, $claveSae, $formularioData)
+function eliminarCxc($conexionData, $anticipo, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -4060,7 +4056,7 @@ function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
     $CVE_CLIE = formatearClaveCliente($cve_clie);
     $refer      = $CVE_DOC; // Puede generarse o venir del formulario
-    $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
+    $num_cpto   = '1';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
     $no_factura = $CVE_DOC; // Número de factura o pedido
     $docto = $CVE_DOC;   // Puede ser un código de documento, si aplica
@@ -4198,13 +4194,11 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
     $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
 
-
-
     // Preparar los datos para el INSERT
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
     $CVE_CLIE = formatearClaveCliente($cve_clie);
     $refer      = $CVE_DOC; // Puede generarse o venir del formulario
-    $num_cpto   = '9';  // Concepto: ajustar según tu lógica de negocio
+    $num_cpto   = '22';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
     $no_factura = $CVE_DOC; // Número de factura o pedido
     $docto = $CVE_DOC;   // Puede ser un código de documento, si aplica
@@ -5713,10 +5707,11 @@ switch ($funcion) {
                             actualizarFolio($conexionData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
-                            eliminarCxc($conexionData, $anticipo, $claveSae, $formularioData);
+                            eliminarCxc($conexionData, $anticipo, $claveSae);
                             $datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
                             pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                             restarSaldo($conexionData, $claveSae, $datosCxC, $clave);
+                            //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
                             // Respuesta de éxito
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([

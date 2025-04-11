@@ -51,6 +51,11 @@ if (isset($_SESSION['usuario'])) {
     <link href="assets/css/main.css" rel="stylesheet">
 </head>
 
+<style>
+    .btnVizualizarPedido{
+        cursor:pointer;
+    }
+</style>
 <!-- <style>
 .intro {
     height: 100%;
