@@ -1152,7 +1152,7 @@ $("#AyudaCondicion").click(function () {
   event.preventDefault();
   Swal.fire({
     title: "Ayuda",
-    text: "Condicion es:",
+    text: "Podrás capturar la condición bajo la cual se efectuará el pago del cliente (por ejemplo, Efectivo, Crédito, Cóbrese o Devuélvase - C.O.D., etc.). ",
     icon: "info",
     confirmButtonText: "Entendido",
   });
@@ -1162,7 +1162,7 @@ $("#AyudaDescuento").click(function () {
   event.preventDefault();
   Swal.fire({
     title: "Ayuda",
-    text: "Descuento es:",
+    text: "Al momento de indicar la clave del cliente en el documento de venta, se muestra automáticamente el porcentaje de descuento asignado a dicho cliente desde el Módulo de clientes. ",
     icon: "info",
     confirmButtonText: "Entendido",
   });
@@ -1172,7 +1172,7 @@ $("#AyudaDescuentofin").click(function () {
   event.preventDefault();
   Swal.fire({
     title: "Ayuda",
-    text: "Descuento fin es:",
+    text: "Un descuento financiero, es aquel que se otorga en circunstancias particulares (por Ejemplo, por pronto pago o por adquirir grandes volúmenes de mercancía). ",
     icon: "info",
     confirmButtonText: "Entendido",
   });
