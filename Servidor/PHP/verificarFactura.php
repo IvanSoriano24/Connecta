@@ -790,7 +790,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
     $horaActual = (int) date('Hi'); // Formato "Hi" concatenado como un número entero
     if ($horaActual <= 1455) {
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
-        // Obtener todas las comandas
+        //Obtener todas las comandas
         $response = @file_get_contents($url);
         if ($response === false) {
             echo "Error al obtener las comandas.\n";

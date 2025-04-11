@@ -39,8 +39,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function verificarPago($conexionData, $cliente, $claveSae)
-{
+function verificarPago($conexionData, $cliente, $claveSae) {
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -49,29 +48,40 @@ function verificarPago($conexionData, $cliente, $claveSae)
         "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
+    
     $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
-        echo "DEBUG: Error al conectar con la base de datos:\n";
-        var_dump(sqlsrv_errors());
-        exit;
+        die(json_encode([
+            'success' => false, 
+            'message' => 'Error al conectar con la base de datos', 
+            'errors' => sqlsrv_errors()
+        ]));
     }
+    
+    // Aseguramos que la clave del cliente tenga 10 caracteres, rellenando con espacios a la izquierda
     $cliente = str_pad($cliente, 10, ' ', STR_PAD_LEFT);
+    
     // Construir dinámicamente los nombres de las tablas
     $tablaCuenM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaCuenD = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaClie  = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    // Consulta: se busca la CxC correspondiente al cliente y a la factura,
-    // y se evalúa si el total abonado es mayor o igual al importe original.
+    
+    // Se modifica la consulta para que también retorne las columnas REFER y NO_FACTURA
     $sql = "
         SELECT TOP 1 
+            CUENM.REFER,
+            CUENM.NO_FACTURA,
             CASE 
-              WHEN ISNULL((SELECT SUM(IMPORTE) 
-                           FROM $tablaCuenD 
-                           WHERE CVE_CLIE = CUENM.CVE_CLIE 
-                             AND REFER = CUENM.REFER 
-                             AND IMPORTE = CUENM.IMPORTE), 0) >= CUENM.IMPORTE
-                             AND NUM_CPTO = '9'
-              THEN 1 ELSE 0 
+              WHEN ISNULL(
+                     (SELECT SUM(IMPORTE) 
+                      FROM $tablaCuenD 
+                      WHERE CVE_CLIE = CUENM.CVE_CLIE 
+                        AND REFER = CUENM.REFER 
+                        AND NO_FACTURA = CUENM.NO_FACTURA 
+                        AND IMPORTE = CUENM.IMPORTE
+                     ), 0) >= CUENM.IMPORTE 
+              THEN 1 
+              ELSE 0 
             END AS PAGADA
         FROM $tablaCuenM CUENM
         INNER JOIN $tablaClie CLIENTES ON CLIENTES.CLAVE = CUENM.CVE_CLIE
@@ -79,25 +89,36 @@ function verificarPago($conexionData, $cliente, $claveSae)
           AND CLIENTES.CLAVE = ?
           AND CUENM.NUM_CPTO = '9'
     ";
-    // Ejecutar la consulta
+    
     $stmt = sqlsrv_query($conn, $sql, [$cliente]);
     if ($stmt === false) {
-        echo "DEBUG: Error en la consulta:\n";
-        var_dump(sqlsrv_errors());
-        exit;
+        die(json_encode([
+            'success' => false, 
+            'message' => 'Error en la consulta', 
+            'errors' => sqlsrv_errors()
+        ]));
     }
+    
     $result = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-    echo "DEBUG: Resultado de la consulta:\n";
-    var_dump($result); // Depuración
+    
+    sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
-    // Si no se encontró registro, se puede considerar que no está pagada.
+    
+    // Si no se encontró ningún registro, consideramos que no está pagada.
     if (!$result) {
-        echo "DEBUG: No se encontró registro para cliente $cliente\n";
         return false;
     }
-    // Retorna true si PAGADA es 1, es decir, si el total abonado es mayor o igual que el importe original.
-    echo "DEBUG: Valor de PAGADA: " . $result['PAGADA'] . "\n"; // Depuración
-    return $result['PAGADA'] == 1;
+    
+    // Si PAGADA es 1, entonces devolvemos true junto con los datos de REFER y NO_FACTURA.
+    if ($result['PAGADA'] == 1) {
+        return [
+            'pagada'    => true,
+            'REFER'     => $result['REFER'],
+            'NO_FACTURA'=> $result['NO_FACTURA']
+        ];
+    } else {
+        return false;
+    }
 }
 function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae)
 {
@@ -199,7 +220,7 @@ function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
     // Verificar si la respuesta es un PDF
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
 }
-function eliminarCxc($conexionData, $claveSae, $cliente)
+function eliminarCxc($conexionData, $claveSae, $cliente, $pagado)
 {
     // Configuración de conexión
     $serverName = $conexionData['host'];
@@ -225,9 +246,9 @@ function eliminarCxc($conexionData, $claveSae, $cliente)
     echo "DEBUG: Conexión exitosa.\n";
 
     // Asegurar que el cliente tenga 10 caracteres (rellenados con espacios)
-    $cliente = str_pad($cliente, 10, ' ', STR_PAD_LEFT);
-    echo "DEBUG: Cliente formateado: [" . $cliente . "]\n";
-
+    $cliente = str_pad($cliente, 10, ' ', STR_PAD_LEFT); 
+    $NO_FACTURA = $pagado['NO_FACTURA'];
+    $REFER = $pagado['REFER'];
     // Construir dinámicamente los nombres de las tablas
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_Det" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -237,7 +258,7 @@ function eliminarCxc($conexionData, $claveSae, $cliente)
 
     try {
         // Eliminar de la tabla CUEN_M
-        $sqlCunetM = "DELETE FROM $tablaCunetM WHERE [CVE_CLIE] = ? AND [NUM_CPTO] = '9'";
+        $sqlCunetM = "DELETE FROM $tablaCunetM WHERE [CVE_CLIE] = ? AND [REFER] = $REFER AND [NO_FACTURA] =  $NO_FACTURA";
         $params = [$cliente];
         $stmtCunetM = sqlsrv_prepare($conn, $sqlCunetM, $params);
         if ($stmtCunetM === false) {
@@ -249,9 +270,8 @@ function eliminarCxc($conexionData, $claveSae, $cliente)
         }
 
         // (Si se requiere eliminar de la tabla de detalle, descomenta el siguiente bloque y ajústalo)
-        /*
-        $sqlCunetDet = "DELETE FROM $tablaCunetDet WHERE [CVE_CLIE] = ? AND [NUM_CPTO] = '9'";
-        echo "DEBUG: Consulta a ejecutar en CUEN_Det:\n" . $sqlCunetDet . "\n";
+        
+        $sqlCunetDet = "DELETE FROM $tablaCunetDet WHERE [CVE_CLIE] = ? AND [REFER] = $REFER AND [NO_FACTURA] =  $NO_FACTURA";
         $stmtCunetDet = sqlsrv_prepare($conn, $sqlCunetDet, $params);
         if ($stmtCunetDet === false) {
             throw new Exception('Error al preparar la consulta para ' . $tablaCunetDet . ': ' . print_r(sqlsrv_errors(), true));
@@ -259,8 +279,6 @@ function eliminarCxc($conexionData, $claveSae, $cliente)
         if (!sqlsrv_execute($stmtCunetDet)) {
             throw new Exception('Error al ejecutar la consulta para ' . $tablaCunetDet . ': ' . print_r(sqlsrv_errors(), true));
         }
-        echo "DEBUG: Consulta ejecutada exitosamente para CUEN_Det.\n";
-        */
 
         // Confirmar la transacción
         sqlsrv_commit($conn);
@@ -665,11 +683,13 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                     if ($fechaPago <= $fechaLimiteObj) {
                         $pagado = verificarPago($conexionData, $cliente, $claveSae);
                         //$pagado = true;
-                        if ($pagado) {
+                        if ($pagado['pagada']) {
+                            /*var_dump($pagado);
+                            die();*/
                             $pagoId = basename($document['name']);
                             //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
                             cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
-                            eliminarCxc($conexionData, $claveSae, $cliente);
+                            //eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
                             crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
                             crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
                             //Remision y Demas

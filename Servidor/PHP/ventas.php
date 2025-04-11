@@ -2331,8 +2331,8 @@ function liberarExistencias($conexionData, $folio, $claveSae)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT [CVE_ART], [CANT] FROM $nombreTabla
-        WHERE [CVE_DOC] = ?";
-    $params = [$CVE_DOC];
+        WHERE [CVE_DOC] = '$CVE_DOC'";
+    //$params = [$CVE_DOC];
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         echo "DEBUG: Error al actualizar el pedido:\n";
@@ -3638,21 +3638,21 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $sql = "SELECT REFER, NUM_CPTO, IMPORTE, NO_FACTURA, DOCTO, 
-        CONVERT(VARCHAR(10), FECHA_VENC, 120) AS fecha
+    $sql = "SELECT M.REFER, M.NUM_CPTO, M.IMPORTE, M.NO_FACTURA, M.DOCTO, 
+        CONVERT(VARCHAR(10), M.FECHA_VENC, 120) AS fecha
         FROM $tablaCunetM M 
         INNER JOIN $tablaCunetDet D 
-        ON M.RREFER = D.REFER 
+        ON M.REFER = D.REFER 
             AND M.NO_FACTURA = D.NO_FACTURA
-        WHERE CVE_CLIE = ? 
-        AND NUM_CPTO = '9'";
+        WHERE M.CVE_CLIE = ? 
+        AND M.NUM_CPTO = '9'";
     $params = [$cliente];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
         die(json_encode([
             'success' => false,
-            'message' => 'Error al consultar el cliente',
+            'message' => 'Error al consultar el cliente Anticipo',
             'errors' => sqlsrv_errors()
         ]));
     }

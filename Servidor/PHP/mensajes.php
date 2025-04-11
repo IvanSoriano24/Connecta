@@ -1002,8 +1002,6 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 }
 function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $claveSae, $conexionData, $noEmpresa)
 {
-
-    liberarExistencias($conexionData, $folio, $claveSae);
     $urlFire = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
     $response = @file_get_contents($urlFire);
 
@@ -1108,13 +1106,10 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
         // Ejecutar la solicitud y cerrar cURL
         $result = curl_exec($curl);
         curl_close($curl);
-
-        echo json_encode(['success' => true, 'message' => 'Pedido Rechazado.']);
         //return $result;
     }
 }
-function liberarExistencias($conexionData, $folio, $claveSae)
-{
+function liberarExistencias($conexionData, $folio, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1132,11 +1127,10 @@ function liberarExistencias($conexionData, $folio, $claveSae)
     $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT [CVE_ART], [CANT] FROM $nombreTabla
-        WHERE [CVE_DOC] = '?'";
-    $params = [$CVE_DOC];
+        WHERE [CVE_DOC] = '$CVE_DOC'";
+    //$params = [$CVE_DOC];
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         echo "DEBUG: Error al actualizar el pedido:\n";
@@ -1144,10 +1138,12 @@ function liberarExistencias($conexionData, $folio, $claveSae)
         exit;
     }
     $partidas = [];
+    
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $partidas[] = $row;
     }
-
+    $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    var_dump($partidas);
     foreach ($partidas as $partida) {
         $CVE_ART = $partida['CVE_ART'];
         $cantidad = $partida['CANT'];
@@ -1274,6 +1270,8 @@ switch ($funcion) {
         $folio = $_GET['folio'];
         $pedidoId = $_GET['pedidoId'];
         pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $claveSae, $conexionData, $noEmpresa);
+        liberarExistencias($conexionData, $folio, $claveSae);
+        echo json_encode(['success' => true, 'message' => 'Pedido Rechazado.']);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
