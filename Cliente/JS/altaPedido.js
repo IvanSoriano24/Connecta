@@ -75,7 +75,7 @@ function agregarFilaPartidas() {
       </td>
       <td><input type="number" class="cantidad" value="0" readonly style="text-align: right;" /></td>
       <td><input type="text" class="unidad" readonly /></td>
-      <td><input type="number" class="descuento" style="text-align: right; text-align: right;" value="0" readonly /></td>
+      <td><input type="number" class="descuento" style="text-align: right;" value="0" readonly /></td>
       <td><input type="number" class="iva" value="0" style="text-align: right;" readonly /></td>
       <td><input type="number" class="precioUnidad" value="0" style="text-align: right;" readonly /></td>
       <td><input type="number" class="subtotalPartida" value="0" style="text-align: right;" readonly /></td>

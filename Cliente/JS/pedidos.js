@@ -14,9 +14,9 @@ function cargarPedidos() {
 
           // Asegúrate de que las propiedades existan en cada objeto
           row.innerHTML = `
-            <td>${pedido.Clave || "Sin pedidos"}</td>
-            <td>$${pedido.Subtotal ? pedido.Subtotal.toFixed(2) : "0.00"}</td>
-            <td>$${
+            <td style="text-align: right;">${pedido.Clave || "Sin pedidos"}</td>
+            <td style="text-align: right;">$${pedido.Subtotal ? pedido.Subtotal.toFixed(2) : "0.00"}</td>
+            <td style="text-align: right;">$${
               pedido.ImporteTotal ? pedido.ImporteTotal.toFixed(2) : "0.00"
             }</td>
               <td>

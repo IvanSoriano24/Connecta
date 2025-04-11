@@ -259,7 +259,7 @@ function datosPedidos(limpiarTabla = true) {
               row.innerHTML = `
                                 <td>${pedido.Tipo || "Sin tipo"}</td>
                                 <td>${pedido.Clave || "Sin nombre"}</td>
-                                <td>${pedido.Cliente || "Sin cliente"}</td>
+                                <td >${pedido.Cliente || "Sin cliente"}</td>
                                 <td>${pedido.Nombre || "Sin nombre"}</td>
                                 <td>${pedido.Estatus || "0"}</td>
                                 <td>${

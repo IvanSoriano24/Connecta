@@ -1003,7 +1003,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $claveSae, $conexionData, $noEmpresa)
 {
 
-    liberarExistencias($folio, $claveSae, $conexionData);
+    liberarExistencias($conexionData, $folio, $claveSae);
     $urlFire = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
     $response = @file_get_contents($urlFire);
 
@@ -1108,7 +1108,6 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
         // Ejecutar la solicitud y cerrar cURL
         $result = curl_exec($curl);
         curl_close($curl);
-        var_dump($result);
 
         echo json_encode(['success' => true, 'message' => 'Pedido Rechazado.']);
         //return $result;
@@ -1136,7 +1135,7 @@ function liberarExistencias($conexionData, $folio, $claveSae)
     $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT [CVE_ART], [CANT] FROM $nombreTabla
-        WHERE [CVE_DOC] = ?";
+        WHERE [CVE_DOC] = '?'";
     $params = [$CVE_DOC];
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {

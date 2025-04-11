@@ -400,7 +400,7 @@ function guardarEmpresa($data) {
     $options = [
         'http' => [
             'header'  => "Content-type: application/json\r\n",
-            'method'  => 'POST', // PATCH para actualizar el documento existente
+            'method'  => 'POST', 
             'content' => $payload
         ]
     ];

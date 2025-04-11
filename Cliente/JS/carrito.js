@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (carrito.length === 0) {
       carritoLista.innerHTML =
-        "<p class='text-center'>El carrito está vacío.</p>";
+        "<p class='text-center' style='text-align: right;'>El carrito está vacío.</p>";
       subtotalElement.textContent = "$0.00";
       totalElement.textContent = "0.00"; // Solo el costo de envío
       return;
@@ -368,6 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const totalProducto = precioProducto * producto.cantidad;
       subtotal += totalProducto;
       totalTd.textContent = `$${totalProducto.toFixed(2)}`;
+      totalTd.style = "text-align: right;";
 
       // Botón de eliminar
       const eliminarTd = document.createElement("td");

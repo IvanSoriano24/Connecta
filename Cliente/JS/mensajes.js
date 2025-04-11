@@ -71,7 +71,7 @@ function cargarPedidos() {
                         <td>${pedido.diaAlta || "N/A"}</td>
                         <td>${pedido.vendedor || "N/A"}</td>
                         <td style="color: ${color};">${pedido.status || "N/A"}</td>
-                        <td>${pedido.totalPedido ? `$${parseFloat(pedido.totalPedido).toFixed(2)}` : "N/A"}</td>
+                        <td style="text-align: right;">${pedido.totalPedido ? `$${parseFloat(pedido.totalPedido).toFixed(2)}` : "N/A"}</td>
                         <td>
                             <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${pedido.id}')">
                                 <i class="bi bi-eye"></i>
@@ -134,11 +134,6 @@ function verificarNotificaciones() {
 // Llamar periódicamente a la función de verificación de notificaciones
 //setInterval(verificarNotificaciones, 30000); // Verificar cada 30 segundos
 
-$(document).ready(function () {
-  cargarComandas();
-  //verificarNotificaciones(); // Verificar notificaciones al cargar la página
-});
-
 // Escuchar el cambio en el filtro
 $("#filtroStatus").change(function () {
   cargarComandas(); // Recargar las comandas con el filtro aplicado
@@ -178,7 +173,7 @@ function mostrarModal(comandaId) {
                  <tr>
                         <td>${producto.clave}</td>
                         <td>${producto.descripcion}</td>
-                        <td>${producto.cantidad}</td>
+                        <td style="text-align: right;">${producto.cantidad}</td>
                         <td>
                             <label class="container">
                                 <input type="checkbox" class="producto-check" data-index="${index}">
@@ -247,7 +242,7 @@ function mostrarModalPedido(pedidoId) {
                         <td>${producto.producto}</td>
                         <td>${producto.descripcion}</td>
                         <td>${producto.cantidad}</td>
-                        <td>${producto.subtotal}</td>
+                        <td style="text-align: right;">$${producto.subtotal}</td>
                     </tr>`;
           productosList.append(fila);
         });

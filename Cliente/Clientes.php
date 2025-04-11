@@ -316,7 +316,7 @@ if (isset($_SESSION['usuario'])) {
 										<div class="form-row mb-3">
 											<div class="form-group col-md-6">
 												<label for="diasCredito">Días de Crédito</label>
-												<input type="number" class="input-fo" id="diasCredito" disabled
+												<input type="number" class="input-fo" id="diasCredito" style="text-align: right;" disabled
 													readonly1>
 											</div>
 
@@ -335,7 +335,7 @@ if (isset($_SESSION['usuario'])) {
 
 											<div class="form-group col-md-6">
 												<label for="saldoVentas">Saldo</label>
-												<input type="text" class="input-fo" id="saldoVentas" style="margin-right: 5px;" readonly1>
+												<input type="text" class="input-fo" id="saldoVentas" style="margin-right: 5px; text-align: right;" readonly1>
 											</div>
 										</div>
 
@@ -358,7 +358,7 @@ if (isset($_SESSION['usuario'])) {
 									<div class="form-group col-md-6">
 										<label for="vendedor">Vendedor:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="input-fo" id="vendedor" readonly1>
+											<input type="text" class="input-fo" id="vendedor" style="text-align: right;" readonly1>
 											<!-- <div class="input-group-append">
 												<span class="input-group-text"></span>
 											</div> -->
@@ -368,7 +368,7 @@ if (isset($_SESSION['usuario'])) {
 									<div class="form-group col-md-6">
 										<label for="descuento">% Descuento:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="number" class="input-fo" id="descuento" readonly1>
+											<input type="number" class="input-fo" id="descuento" style="text-align: right;" readonly1>
 											<!-- <div class="input-group-append">
 												<span class="input-group-text">%</span>
 											</div> -->
@@ -380,7 +380,7 @@ if (isset($_SESSION['usuario'])) {
 									<div class="form-group col-md-6">
 										<label for="listaPrecios">Lista de Precios:</label>
 										<div class="input-group" style="margin-right: 20px;">
-											<input type="text" class="input-fo" id="listaPrecios" readonly1>
+											<input type="text" class="input-fo" id="listaPrecios" style="text-align: right;" readonly1>
 										</div>
 									</div>
 								</div>

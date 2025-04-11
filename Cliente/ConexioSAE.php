@@ -92,7 +92,7 @@ session_destroy(); */
 
               <div class="form-row">
                 <label for="claveSae">Sae:</label>
-                <select class="input-mt" name="claveSae" id="claveSae">
+                <select style="text-align: right;" class="input-mt" name="claveSae" id="claveSae">
                   <option value="01">1</option>
                   <option value="02">2</option>
                   <option value="03">3</option>

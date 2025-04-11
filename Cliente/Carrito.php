@@ -88,7 +88,6 @@
             <section id="hero" class="hero section">
                 <!-- Contact Section -->
                 <section class="container section-title" data-aos="fade-up">
-
                     <div class="container py-5">
                         <div class="row d-flex justify-content-center align-items-center">
                             <div class="col-lg-10">
