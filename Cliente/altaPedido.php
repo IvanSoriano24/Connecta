@@ -128,17 +128,20 @@ if (isset($_SESSION['usuario'])) {
         width: 60px;
     }
 
-    .unidad,    
+    .unidad,
     .comision,
     .precioUnidad {
         width: 80px;
     }
-    .descuento{
+
+    .descuento {
         width: 50px;
     }
-    .subtotalPartida{
+
+    .subtotalPartida {
         width: 90px;
     }
+
     .producto {
         width: 150px;
     }
@@ -340,6 +343,29 @@ if (isset($_SESSION['usuario'])) {
 
     /*-------------------------------------------------------*/
 </style>
+<style>
+    .tabla-scroll {
+        height: 250px;
+        /* Altura fija para el área del scroll */
+        overflow-y: auto;
+        /* Activar scroll vertical */
+    }
+
+    .tabla-productos {
+        /*border-collapse: collapse;*/
+        width: 100%;
+    }
+
+    .tabla-productos thead {
+        position: sticky;
+        /* Encabezado fijo */
+        /*top: 0;*/
+       /* background-color: #f4f4f4;*/
+        /* Fondo para destacar */
+        z-index: 1;
+        /* Mantener el encabezado sobre las filas */
+    }
+</style>
 
 <body>
     <!-- <div class=""> -->
@@ -400,7 +426,7 @@ if (isset($_SESSION['usuario'])) {
                             </div>
 
                             <div class="form-element">
-                            <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
+                                <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
                                 <label for="cliente">Cliente</label>
                                 <div class="input-container" style="position: relative;">
                                     <div style="display: flex; align-items: center; gap: 5px;">
@@ -588,23 +614,26 @@ if (isset($_SESSION['usuario'])) {
                                 <div class="table-wrapper">
                                     <button type="button" class="btn-secondary" id="añadirPartida">Añadir
                                         Partida</button>
-                                    <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
-                                        <thead>
-                                            <tr>
-                                                <th>Eliminar</th>
-                                                <th>Producto</th>
-                                                <th>Cant.</th>
-                                                <th>Unidad</th>
-                                                <th>Desc.</th>
-                                                <th>I.V.A</th>
-                                                <th>Prec.Unit</th>
-                                                <th>Subtotal por Partida</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Filas dinámicas -->
-                                        </tbody>
-                                    </table>
+                                        <br>
+                                    <div class="tabla-scroll">
+                                        <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
+                                            <thead>
+                                                <tr>
+                                                    <th>Eliminar</th>
+                                                    <th>Producto</th>
+                                                    <th>Cant.</th>
+                                                    <th>Unidad</th>
+                                                    <th>Desc.</th>
+                                                    <th>I.V.A</th>
+                                                    <th>Prec.Unit</th>
+                                                    <th>Subtotal por Partida</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Filas dinámicas -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
 
                                 <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly

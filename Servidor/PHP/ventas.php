@@ -1345,12 +1345,12 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito); // Enviar correo
 
@@ -1425,9 +1425,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda
+    //$numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -3411,12 +3411,12 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
 
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conexionData); // Enviar correo
@@ -4422,12 +4422,12 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
@@ -4885,12 +4885,12 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
@@ -5272,9 +5272,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda
+    //$numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
