@@ -581,7 +581,7 @@ function enviarDatosBackend(formularioData, partidasData) {
           confirmButtonText: "Aceptar",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
-          //window.location.href = "Ventas.php";
+          window.location.href = "Ventas.php";
         });
       } else if (data.autorizacion) {
         Swal.fire({
@@ -629,6 +629,9 @@ function enviarDatosBackend(formularioData, partidasData) {
           text: data.message || "El cliente tiene una cuenta por pagar",
           icon: "warning",
           confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
         });
       } else {
         Swal.fire({
