@@ -1,5 +1,6 @@
 <?php
 require 'firebase.php';
+session_start();
 
 // Desactiva errores fatales visibles en producción
 /*error_reporting(0)
@@ -211,9 +212,9 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
                 echo json_encode(['success' => false, 'message' => 'Error al actualizar el documento en Firebase CONEXIONES']);
                 return;
             }
-            $_SESSION['empresa'] = [
-                'claveSae' => $claveSae
-            ];
+            
+            $_SESSION['empresa']['claveSae'] = $claveSae;
+            
             echo json_encode(['success' => true, 'message' => 'Documento actualizado exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'No se encontró el documento con el ID especificado en CONEXIONES']);

@@ -465,7 +465,8 @@ switch ($funcion) {
         break;
     case 4:
         $noEmpresa = "";
-        $claveSae = "02";
+        //$claveSae = "02";
+        $claveSae = "01";
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
 
         if (!$conexionResult['success']) {

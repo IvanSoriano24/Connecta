@@ -334,7 +334,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 
 switch ($funcion) {
     case 1:
-        $claveSae = '02';
+        //$claveSae = '02';
+        $claveSae = '01';
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -346,7 +347,8 @@ switch ($funcion) {
         obtenerCredito($conexionData, $claveUsuario, $claveSae);
         break;
     case 2:
-        $claveSae = '02';
+        //$claveSae = '02';
+        $claveSae = '01';
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -367,8 +369,10 @@ switch ($funcion) {
         }*/
         break;
     case 3:
-        $noEmpresa = "02";
-        $claveSae = "02";
+        /*$noEmpresa = "02";
+        $claveSae = "02";*/
+        $noEmpresa = "01";
+        $claveSae = "01";
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];

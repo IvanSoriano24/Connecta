@@ -512,7 +512,7 @@ function editarUsuario(idUsuario) {
             $(
               "#usuario, #nombreUsuario, #apellidosUsuario, #correoUsuario, #contrasenaUsuario, #rolUsuario, #telefonoUsuario, #estatusUsuario, #selectVendedor"
             ).prop("disabled", false);
-            $("#usuario, #rolUsuario").prop("disabled", true);
+            $("#usuario, #rolUsuario, #selectVendedor").prop("disabled", true);
             // Asignar valores del usuario
             $("#usuario").val(data.data.usuario);
             $("#nombreUsuario").val(data.data.nombre);
@@ -568,6 +568,8 @@ function editarUsuario(idUsuario) {
                       });
                       $("#selectVendedor").prop("disabled", true);
                     }
+                    //("#selectVendedor").prop("disabled", true);
+                      
                   } catch (error) {
                     console.error("Error al procesar los vendedores:", error);
                   }
@@ -583,7 +585,7 @@ function editarUsuario(idUsuario) {
             } else {
               $("#divVendedor").hide();
             }
-
+            //$("#selectVendedor").hide();
             // Mostrar modal de edición
             $("#usuarioModal").modal("show");
           }
@@ -944,7 +946,7 @@ $("#selectCliente").on("change", function () {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Cliente ya existente en Firebase.",
+          text: "Cliente ya Existente.",
         });
 
         // Limpiamos los campos

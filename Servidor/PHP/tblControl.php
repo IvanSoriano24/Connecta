@@ -5,7 +5,8 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require 'firebase.php';
-$claveSae = "02";
+//$claveSae = "02";
+$claveSae = "01";
 global $claveSae;
 
 session_start();

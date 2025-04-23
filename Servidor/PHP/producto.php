@@ -60,7 +60,8 @@ function obtenerDetalleProducto($conexionData, $cveArt) {
         exit();
     }
 
-    $sql = "SELECT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED] FROM [{$conexionData['nombreBase']}].[dbo].[INVE02] WHERE [CVE_ART] = ?";
+    //$sql = "SELECT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED] FROM [{$conexionData['nombreBase']}].[dbo].[INVE02] WHERE [CVE_ART] = ?";
+    $sql = "SELECT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED] FROM [{$conexionData['nombreBase']}].[dbo].[INVE01] WHERE [CVE_ART] = ?";
     $stmt = sqlsrv_query($conn, $sql, [$cveArt]);
 
     if ($stmt === false) {
@@ -125,6 +126,7 @@ switch ($funcion) {
 
         //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $noEmpresa = "02";
+        //$noEmpresa = "01";
 
         /*if (!isset($_POST['pedidoID']) || empty($_POST['pedidoID'])) {
             echo json_encode(['success' => false, 'message' => 'No se recibió el ID del pedido']);

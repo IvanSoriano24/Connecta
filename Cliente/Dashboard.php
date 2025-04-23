@@ -262,6 +262,11 @@ if (isset($_SESSION['usuario'])) {
 	<script src="JS/menu.js"></script>
 	<script src="JS/app.js"></script>
 	<script src="JS/script.js"></script>
+
+	<script>
+		//var claveSae = "/*<?php /*echo $claveSae;*/ ?>*/";
+		//alert(claveSae);
+	</script>
 </body>
 
 </html>

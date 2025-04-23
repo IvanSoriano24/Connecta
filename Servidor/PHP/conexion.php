@@ -81,13 +81,13 @@ function login($funcion)
                 if ($usuarioFirebase === $usuario && (password_verify($password, $passwordFirebase))) {
                 //if ($usuarioFirebase === $usuario && $passwordFirebase == $password) {
                     if ($statusFirebase === 'Bloqueado') {
-                        header("Location: /Cliente/index.php?error=2");
+                        header("Location: /index.php?error=2");
                         //header("Location: ../../Cliente/index.php?error=2");
                         exit();
                     }
 
                     if ($statusFirebase === 'Baja') {
-                        header("Location: /Cliente/index.php?error=3");
+                        header("Location: /index.php?error=3");
                         //header("Location: ../../Cliente/index.php?error=3");
                         exit();
                     }

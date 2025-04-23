@@ -87,7 +87,7 @@ session_destroy(); */
                 <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="<?php echo $noEmpresa ?>"
                   readonly>
                 <input class="input-small" type="text" name="idDocumento" id="idDocumento" value="" hidden>
-                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                <input type="hidden" id="csrf_token" name="csrf_token" value="<?php echo $csrf_token; ?>">
               </div>
 
               <div class="form-row">
