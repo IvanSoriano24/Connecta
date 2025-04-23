@@ -3842,7 +3842,7 @@ function nuevoFolio($conexionData, $claveSae)
     }
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta SQL para obtener el siguiente folio
-    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente FROM $nombreTabla WHERE TIP_DOC = 'F'";
+    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente FROM $nombreTabla WHERE TIP_DOC = 'F' AND [SERIE] = 'STAND.'";
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
@@ -3856,9 +3856,7 @@ function nuevoFolio($conexionData, $claveSae)
     // Retornar el folio siguiente
     return $folioSiguiente;
 }
-function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData)
-{
-
+function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData){
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
 
     $serverName = $conexionData['host'];
@@ -3884,7 +3882,6 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
 
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     //FALTA FACTURA
-
 
     // Preparar los datos para el INSERT
     $cve_clie   = $formularioData['cliente']; // Clave del cliente
@@ -3954,11 +3951,10 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
         VERSION_SINC,
         USUARIOGL,
         FECHAELAB,
-        IMPMON_EXT,
         SIGNO,
         STRCVEVEND
     ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?, ?, ?)";
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?, ?)";
 
     $params = [
         $CVE_CLIE,
@@ -3977,10 +3973,9 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
         $TCAMBIO,
         $TIPO_MOV,
         $fecha_apli,
-        $IMPORTE,
-        $fecha_apli,
-        $fecha_apli,
         $IMPMON_EXT,
+        $fecha_apli,
+        $fecha_apli,
         $SIGNO,
         $STRCVEVEND
     ];
@@ -5760,7 +5755,7 @@ switch ($funcion) {
                             restarSaldo($conexionData, $claveSae, $datosCxC, $clave);
                             //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
                             // Respuesta de éxito
-                            //actualizarFolioF($conexionData, $claveSae);
+                            actualizarFolioF($conexionData, $claveSae);
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([
                                 'success' => true,
@@ -5776,13 +5771,15 @@ switch ($funcion) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                             guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
-                            generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
-                            //actualizarFolioF($conexionData, $claveSae);
+                            $fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
+                            actualizarFolio($conexionData, $claveSae);
+                            actualizarFolioF($conexionData, $claveSae);
                             // Respuesta de éxito
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([
                                 'success' => false,
                                 'cxc' => true,
+                                'Factura' => $fac,
                                 'message' => 'El pedido tiene 24 Horas para liquidarse.',
                             ]);
                             exit();
