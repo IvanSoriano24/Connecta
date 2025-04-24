@@ -1352,9 +1352,10 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
-        enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        //enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        var_dump($resultadoWhatsApp);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -1664,6 +1665,8 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
             ]
         ]
     ];
+
+    var_dump($data);
 
     // ✅ Verificar JSON antes de enviarlo
     $data_string = json_encode($data, JSON_PRETTY_PRINT);
@@ -4908,7 +4911,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
-        enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        //enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {
@@ -4942,12 +4945,12 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
     $IMPORTE = 0;
     $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
-        $producto = $partida['CVE_DOC'];
+        $clave = $partida['CVE_ART'];
         $cantidad = $partida['CANT'];
-        $precioUnitario = $partida['PREC'];
-        $totalPartida = $cantidad * $precioUnitario;
+        $totalPartida = $cantidad * $partida['PREC'];
         $total += $totalPartida;
-        $productosStr .= "$producto - $cantidad unidades, ";
+        $IMPORTE = $total;
+        $productosStr .= "$clave - $cantidad unidades, ";
 
         $IMPU4 = $partida['IMPU4'];
         $desc1 = $partida['DESC1'] ?? 0;
@@ -5095,7 +5098,7 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $IMPORTE = 0;
     $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
-        $clave = $partida['CVE_DOC'];
+        $clave = $partida['CVE_ART'];
         $descripcion = htmlspecialchars($partida['descripcion']);
         $cantidad = $partida['CANT'];
         $totalPartida = $cantidad * $partida['PREC'];
@@ -5721,9 +5724,9 @@ switch ($funcion) {
                         } else if ($validarSaldo == 1 || $credito == 1) {
                             $estatus = "C";
                         }
-                        /*$estatus = "E";
+                        $estatus = "E";
                         $validarSaldo = 0;
-                        $credito = 0;*/
+                        $credito = 0;
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
