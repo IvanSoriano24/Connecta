@@ -439,10 +439,12 @@ function editarUsuario(idUsuario) {
             $("#contrasenaUsuarioCliente").val(data.data.password);
             $("#telefonoUsuarioCliente").val(data.data.telefono);
             $("#idUsuarioCliente").val(idUsuario);
+            //let token = document.getElementById("csrf_token").value;
             $.ajax({
               url: "../Servidor/PHP/usuarios.php",
               method: "GET",
-              data: { numFuncion: "15" }, // Obtener todos los clientes disponibles
+              //data: { numFuncion: "15", token: token }, // Obtener todos los clientes disponibles
+              data: { numFuncion: "15"}, // Obtener todos los clientes disponibles
               success: function (responseClientes) {
                 try {
                   const resClientes =

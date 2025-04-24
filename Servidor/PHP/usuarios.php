@@ -1371,9 +1371,9 @@ switch ($funcion) {
         obtenerDatosVendedor($claveUsuario, $conexionData, $claveSae);
         break;
     case 15:
-        $csrf_token  = $_SESSION['csrf_token'];
+        /*$csrf_token = $_SESSION['csrf_token'];
         $csrf_token_form = $_GET['token'];
-        if ($csrf_token === $csrf_token_form) {
+        if ($csrf_token === $csrf_token_form) {*/
             if (!isset($_SESSION['empresa']['noEmpresa'])) {
                 echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
                 exit;
@@ -1387,12 +1387,12 @@ switch ($funcion) {
             }
             $conexionData = $conexionResult['data'];
             obtenerClientes($conexionData, $claveSae);
-        } else {
+        /*} else {
             echo json_encode([
                 'success' => false,
                 'message' => 'Error en la sesion.',
             ]);
-        }
+        }*/
         break;
     case 16:
         $claveCliente = $_POST['claveCliente'];

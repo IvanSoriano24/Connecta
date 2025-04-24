@@ -1821,22 +1821,42 @@ function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput, $cla
     $clienteNombre = '%' . $clienteInput . '%';
     $claveVendedor = str_pad($claveVendedor, 5, " ", STR_PAD_LEFT);
 
+    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+
     // Construir la consulta SQL
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    if (preg_match('/[a-zA-Z]/', $clienteInput)) {
-        // Búsqueda por nombre
-        $sql = "SELECT DISTINCT
-                [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
-                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO], [CVE_VEND]
-            FROM $nombreTabla
-            WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'";
+    if ($tipoUsuario === "ADMINISTRADOR") {
+        if (preg_match('/[a-zA-Z]/', $clienteInput)) {
+            // Búsqueda por nombre
+            $sql = "SELECT DISTINCT
+                    [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
+                    [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO], [CVE_VEND]
+                FROM $nombreTabla
+                WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') AND [STATUS] = 'A'";
+        } else {
+            // Búsqueda por clave
+            $sql = "SELECT DISTINCT
+                    [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
+                    [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO], [CVE_VEND]
+                FROM $nombreTabla
+                WHERE [CLAVE] = '$clienteClave' AND [STATUS] = 'A'";
+        }
     } else {
-        // Búsqueda por clave
-        $sql = "SELECT DISTINCT
-                [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
-                [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO], [CVE_VEND]
-            FROM $nombreTabla
-            WHERE [CLAVE] = '$clienteClave' AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'";
+        if (preg_match('/[a-zA-Z]/', $clienteInput)) {
+            // Búsqueda por nombre
+            $sql = "SELECT DISTINCT
+                    [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
+                    [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO], [CVE_VEND]
+                FROM $nombreTabla
+                WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'";
+        } else {
+            // Búsqueda por clave
+            $sql = "SELECT DISTINCT
+                    [CLAVE], [NOMBRE], [CALLE_ENVIO] AS CALLE, [RFC], [NUMINT], [NUMEXT], [COLONIA], [CODIGO],
+                    [LOCALIDAD], [MUNICIPIO], [ESTADO], [PAIS], [TELEFONO], [LISTA_PREC], [DESCUENTO], [CVE_VEND]
+                FROM $nombreTabla
+                WHERE [CLAVE] = '$clienteClave' AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'";
+        }
     }
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
@@ -3856,7 +3876,8 @@ function nuevoFolio($conexionData, $claveSae)
     // Retornar el folio siguiente
     return $folioSiguiente;
 }
-function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData){
+function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData)
+{
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
 
     $serverName = $conexionData['host'];
@@ -4426,7 +4447,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
-        //$resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -5755,6 +5776,7 @@ switch ($funcion) {
                             restarSaldo($conexionData, $claveSae, $datosCxC, $clave);
                             //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
                             // Respuesta de éxito
+                            actualizarFolio($conexionData, $claveSae);
                             actualizarFolioF($conexionData, $claveSae);
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([

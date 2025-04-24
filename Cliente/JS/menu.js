@@ -401,7 +401,14 @@ function probarConexionSAE() {
     .then((responseData) => {
       console.log("Respuesta del servidor:", responseData);
       if (responseData.success) {
-        alert("Conexión exitosa.");
+        //alert("Conexión exitosa.");
+        Swal.fire({
+          title: "¡Éxito!",
+          text: "Conexion Exitosa.",
+          icon: "success",
+        });
+        document.getElementById('claveSae').value = responseData.numeroTabla || '0';
+        //alert(responseData.numeroTabla); //Insertar dato en el select y desabilitarlo
       } else {
         alert("Error: " + responseData.message);
       }

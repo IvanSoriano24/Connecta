@@ -9,16 +9,49 @@ ini_set('display_errors', 0);*/
 function probarConexionSQLServer($host, $usuario, $password, $nombreBase, $claveSae)
 {
     try {
+        // Establecemos la conexión con la base de datos
         $dsn = "sqlsrv:Server=$host;Database=$nombreBase;TrustServerCertificate=true";
         $conn = new PDO($dsn, $usuario, $password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        return ['success' => true, 'message' => 'Conexión exitosa'];
+
+        // Obtenemos las tablas de tipo "BASE TABLE"
+        $sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
+        $stmt = $conn->query($sql);
+        $tables = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Verificamos que se hayan obtenido tablas
+        if(!$tables || count($tables) === 0) {
+            return [
+                'success' => false, 
+                'message' => 'No se encontraron tablas en la base de datos'
+            ];
+        }
+
+        // Seleccionamos una tabla aleatoriamente
+        $randomIndex = array_rand($tables);
+        $selectedTable = $tables[$randomIndex]['TABLE_NAME'];
+
+        // Extraemos la parte numérica al final del nombre de la tabla
+        $numeroTabla = '';
+        if(preg_match('/(\d+)$/', $selectedTable, $matches)) {
+            $numeroTabla = $matches[1];
+        }
+        // Retornamos el resultado con la tabla y su número extraído
+        return [
+            'success' => true, 
+            'message' => 'Conexión exitosa',
+            'tablaSeleccionada' => $selectedTable,
+            'numeroTabla' => $numeroTabla
+        ];
     } catch (PDOException $e) {
-        return ['success' => false, 'message' => 'Error de conexión: ' . $e->getMessage()];
+        return [
+            'success' => false, 
+            'message' => 'Error de conexión: ' . $e->getMessage()
+        ];
     }
 }
 
-function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento)
+function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento, $resultadoConexion)
 {
     // Si el idDocumento es nulo, creamos un nuevo documento
     if ($idDocumento === null) {
@@ -55,7 +88,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
 
 
         // Datos de actualización en Firebase
-        $claveSae = $data['claveSae'];
+        $claveSae = $resultadoConexion['numeroTabla'];
         $claveSae = $claveSae = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
         // Datos de actualización en Firebase
         $data = [
@@ -126,7 +159,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
         $originalData = $data;
 
         // Formatear la claveSae (agrega ceros a la izquierda)
-        $claveSae = str_pad($data['claveSae'], 2, "0", STR_PAD_LEFT);
+        $claveSae = str_pad($resultadoConexion['numeroTabla'], 2, "0", STR_PAD_LEFT);
 
         // Iterar sobre todos los documentos y actualizar aquellos que cumplan con la condición
         if (isset($dataBuscar['documents'])) {
@@ -221,7 +254,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
         }
     }
 }
-function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
+function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion)
 {
     $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
 
@@ -252,7 +285,7 @@ function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
         $urlActualizar = "$urlBase/EMP_USS/$documentoId?key=$firebaseApiKey&updateMask.fieldPaths=claveSae";
         $updatePayload = [
             'fields' => [
-                'claveSae' => ['stringValue' => $data['claveSae']]
+                'claveSae' => ['stringValue' => $resultadoConexion['numeroTabla']]
             ]
         ];
         $updateOptions = [
@@ -280,7 +313,7 @@ function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey)
             'password'   => ['stringValue' => $data['password']],
             'nombreBase' => ['stringValue' => $data['nombreBase']],
             'noEmpresa'  => ['stringValue' => $data['noEmpresa']],
-            'claveSae'   => ['stringValue' => $data['claveSae']],
+            'claveSae'   => ['stringValue' => $resultadoConexion['numeroTabla']],
         ],
     ];
 
@@ -444,7 +477,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
                 if ($resultadoConexion['success']) {
                     ob_clean();
-                    $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento);
+                    $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento, $resultadoConexion);
                     //echo json_encode($resultadoGuardar);
                     return;
                 } else {
@@ -471,7 +504,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($csrf_token === $csrf_token_form) {
                 $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
                 if ($resultadoConexion['success']) {
-                    $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey);
+                    $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion);
                     echo json_encode($resultadoGuardar);
                 } else {
                     echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
