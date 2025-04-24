@@ -69,8 +69,8 @@ if (isset($_SESSION['usuario'])) {
             </ul>
           </div>
           <button class="btn btn-success" id="btnAgregar">
-                            <i class='bx bxs-briefcase'></i> Agregar
-                        </button>
+            <i class='bx bxs-briefcase'></i> Agregar
+          </button>
         </div>
         <div class="table-data">
           <div class="order">
@@ -159,14 +159,14 @@ if (isset($_SESSION['usuario'])) {
             </form>
           </div>
         </div>
-        
+
   </div>
 
-  
+
   </main>
   <!-- MAIN -->
   </section>
-  
+
   <!-- CONTENT -->
   </div>
   <div id="formularioEmpresa" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -184,7 +184,7 @@ if (isset($_SESSION['usuario'])) {
           <div class="form-row">
             <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
             <label for="noEmpresa">No. Empresa:</label>
-            <select name="noEmpresaModal" id="noEmpresaModal" placeholder="Selecciona opcion" value="">
+            <!--<select name="noEmpresaModal" id="noEmpresaModal" placeholder="Selecciona opcion" value="">
             <option selected disabled>Selecciona un numero de empresa</option>
               <option value="1">1</option>
               <option value="2">2</option>
@@ -197,14 +197,17 @@ if (isset($_SESSION['usuario'])) {
               <option value="9">9</option>
               <option value="10">10</option>
               <option value="11">11</option>
-              <!-- Agrega más opciones si es necesario -->
+             
+            </select>-->
+            <select name="noEmpresaModal" id="noEmpresaModal" placeholder="Selecciona opcion">
+              <option selected disabled>Selecciona un número de empresa</option>
             </select>
           </div>
 
           <div class="form-row">
             <!-- <a class='bx bx-message-rounded-error'></a> -->
             <label for="razonSocial">Razón Social: <a class='bx'> *</a></label>
-            <input class="input-m" type="text" name="razonSocialModal" id="razonSocialModal" values="" >
+            <input class="input-m" type="text" name="razonSocialModal" id="razonSocialModal" values="">
           </div>
 
           <div class="form-row">
@@ -217,7 +220,7 @@ if (isset($_SESSION['usuario'])) {
             <!-- <a class='bx bx-message-rounded-error'></a> -->
             <label for="regimenFiscal">Régimen Fiscal: <a class='bx'>*</a></label>
             <select name="regimenFiscalModal" id="regimenFiscalModal" placeholder="Selecciona opcion" value="" disabled>
-            <option selected disabled>Selecciona un regimen</option>
+              <option selected disabled>Selecciona un regimen</option>
               <option>626.- Regimen Simplificado de Confianza</option>
               <!-- Agrega más opciones si es necesario -->
             </select>
@@ -286,7 +289,13 @@ if (isset($_SESSION['usuario'])) {
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
   <script src="JS/script.js"></script>
-
+  <script>
+        $(document).ready(function() {
+            for (var i = 1; i <= 99; i++) {
+                $('#noEmpresaModal').append('<option value="' + i + '">' + i + '</option>');
+            }
+        });
+    </script>
 </body>
 
 </html>

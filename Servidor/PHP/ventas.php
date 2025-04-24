@@ -4911,7 +4911,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
     if ($correo === 'S' && !empty($emailPred)) {
-        //enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
         $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
     } else {

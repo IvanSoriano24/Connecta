@@ -51,7 +51,11 @@ function cargarPedidos() {
       const tbody = $("#tablaPedidos tbody");
       tbody.empty(); // Limpiar la tabla antes de agregar nuevos datos
 
-      if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+      if (
+        response.success &&
+        Array.isArray(response.data) &&
+        response.data.length > 0
+      ) {
         const pedidos = response.data;
 
         pedidos.forEach((pedido) => {
@@ -70,10 +74,18 @@ function cargarPedidos() {
                         <td>${pedido.cliente || "N/A"}</td>
                         <td>${pedido.diaAlta || "N/A"}</td>
                         <td>${pedido.vendedor || "N/A"}</td>
-                        <td style="color: ${color};">${pedido.status || "N/A"}</td>
-                        <td style="text-align: right;">${pedido.totalPedido ? `$${parseFloat(pedido.totalPedido).toFixed(2)}` : "N/A"}</td>
+                        <td style="color: ${color};">${
+            pedido.status || "N/A"
+          }</td>
+                        <td style="text-align: right;">${
+                          pedido.totalPedido
+                            ? `$${parseFloat(pedido.totalPedido).toFixed(2)}`
+                            : "N/A"
+                        }</td>
                         <td>
-                            <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${pedido.id}')">
+                            <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${
+                              pedido.id
+                            }')">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </td>
@@ -191,6 +203,15 @@ function mostrarModal(comandaId) {
           $("#divFechaEnvio").show();
           $("#fechaEnvio").val(comanda.fechaEnvio);
           $("#btnTerminar").hide();
+          $("#numGuia").prop("disabled", true);
+        }
+        if (status == "Cancelada") {
+          $(".producto-check").prop("checked", true);
+          $(".producto-check").prop("disabled", false);
+          $("#divFechaEnvio").show();
+          $("#fechaEnvio").val(comanda.fechaEnvio);
+          $("#btnTerminar").hide();
+          $("#numGuia").prop("disabled", true);
         } else {
           // Deshabilitar el botón "Terminar" inicialmente
           $("#btnTerminar").prop("disabled", true);

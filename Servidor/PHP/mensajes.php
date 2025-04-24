@@ -152,20 +152,22 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                 $fields = $document['fields'];
                 $status = $fields['status']['stringValue'];
 
-                // Aplicar el filtro de estado si está definido
-                if ($filtroStatus === '' || $status === $filtroStatus) {
-                    $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
-                    $fecha = $fechaHora[0];
-                    $hora = $fechaHora[1];
+                if ($status != "Pendiente") {
+                    // Aplicar el filtro de estado si está definido
+                    if ($filtroStatus === '' || $status === $filtroStatus) {
+                        $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
+                        $fecha = $fechaHora[0];
+                        $hora = $fechaHora[1];
 
-                    $comandas[] = [
-                        'id' => basename($document['name']),
-                        'noPedido' => $fields['folio']['stringValue'],
-                        'nombreCliente' => $fields['nombreCliente']['stringValue'],
-                        'status' => $status,
-                        'fecha' => $fecha,
-                        'hora' => $hora
-                    ];
+                        $comandas[] = [
+                            'id' => basename($document['name']),
+                            'noPedido' => $fields['folio']['stringValue'],
+                            'nombreCliente' => $fields['nombreCliente']['stringValue'],
+                            'status' => $status,
+                            'fecha' => $fecha,
+                            'hora' => $hora
+                        ];
+                    }
                 }
             }
         }
@@ -1109,7 +1111,8 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
         //return $result;
     }
 }
-function liberarExistencias($conexionData, $folio, $claveSae){
+function liberarExistencias($conexionData, $folio, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1138,7 +1141,7 @@ function liberarExistencias($conexionData, $folio, $claveSae){
         exit;
     }
     $partidas = [];
-    
+
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $partidas[] = $row;
     }
