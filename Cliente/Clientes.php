@@ -356,7 +356,7 @@ if (isset($_SESSION['usuario'])) {
 							<div class="col-md-6">
 								<div class="form-row mb-3">
 									<div class="form-group col-md-6">
-										<label for="vendedor">Vendedor:</label>
+										<label for="vendedor">Clave Vendedor:</label>
 										<div class="input-group" style="margin-right: 20px;">
 											<input type="text" class="input-fo" id="vendedor" style="text-align: right;" readonly1>
 											<!-- <div class="input-group-append">
@@ -364,8 +364,20 @@ if (isset($_SESSION['usuario'])) {
 											</div> -->
 										</div>
 									</div>
-
 									<div class="form-group col-md-6">
+										<label for="vendedor">Vendedor:</label>
+										<div class="input-group" style="margin-right: 20px;">
+											<input type="text" class="input-fo" id="vendedorNombre" style="text-align: right;" readonly1>
+											<!-- <div class="input-group-append">
+												<span class="input-group-text"></span>
+											</div> -->
+										</div>
+									</div>
+
+								</div>
+
+								<div class="form-row mb-3">
+								<div class="form-group col-md-6">
 										<label for="descuento">% Descuento:</label>
 										<div class="input-group" style="margin-right: 20px;">
 											<input type="number" class="input-fo" id="descuento" style="text-align: right;" readonly1>
@@ -374,9 +386,6 @@ if (isset($_SESSION['usuario'])) {
 											</div> -->
 										</div>
 									</div>
-								</div>
-
-								<div class="form-row mb-3">
 									<div class="form-group col-md-6">
 										<label for="listaPrecios">Lista de Precios:</label>
 										<div class="input-group" style="margin-right: 20px;">

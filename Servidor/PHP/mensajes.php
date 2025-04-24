@@ -1143,7 +1143,6 @@ function liberarExistencias($conexionData, $folio, $claveSae){
         $partidas[] = $row;
     }
     $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    var_dump($partidas);
     foreach ($partidas as $partida) {
         $CVE_ART = $partida['CVE_ART'];
         $cantidad = $partida['CANT'];

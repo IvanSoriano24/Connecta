@@ -77,7 +77,52 @@ if (isset($_SESSION['usuario'])) {
         background-color: #fff;
     }
 </style>
+<style>
+    .tabla-scroll {
+        height: 350px;
+        /* Altura fija para el área del scroll */
+        overflow-y: auto;
+        /* Activar scroll vertical */
+    }
 
+    .tabla-comandas {
+        /*border-collapse: collapse;*/
+        width: 100%;
+    }
+
+    .tabla-comandas thead {
+        position: sticky;
+        /* Encabezado fijo */
+        /*top: 0;*/
+       /* background-color: #f4f4f4;*/
+        /* Fondo para destacar */
+        z-index: 1;
+        /* Mantener el encabezado sobre las filas */
+    }
+</style>
+<style>
+    .tabla-scroll-pedidos {
+        height: 350px;
+        /* Altura fija para el área del scroll */
+        overflow-y: auto;
+        /* Activar scroll vertical */
+    }
+
+    .tabla-pedidos {
+        /*border-collapse: collapse;*/
+        width: 100%;
+    }
+
+    .tabla-pedidos thead {
+        position: sticky;
+        /* Encabezado fijo */
+        /*top: 0;*/
+       /* background-color: #f4f4f4;*/
+        /* Fondo para destacar */
+        z-index: 1;
+        /* Mantener el encabezado sobre las filas */
+    }
+</style>
 <body>
     <div class="hero_area">
         <!-- SIDEBAR -->
@@ -109,7 +154,8 @@ if (isset($_SESSION['usuario'])) {
                         <div class="table-data">
                             <div class="order">
                                 <div class="head">
-                                    <table id="tablaPedidos">
+                                <div class="tabla-scroll-pedidos">
+                                    <table id="tablaPedidos" class="tabla-pedidos">
                                         <thead>
                                             <tr>
                                                 <th>No. Pedido</th>
@@ -125,6 +171,7 @@ if (isset($_SESSION['usuario'])) {
                                             <!-- Los productos se generarán aquí dinámicamente -->
                                         </tbody>
                                     </table>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -147,7 +194,8 @@ if (isset($_SESSION['usuario'])) {
                         <div class="table-data">
                             <div class="order">
                                 <div class="head">
-                                    <table id="tablaComandas">
+                                <div class="tabla-scroll">
+                                    <table id="tablaComandas" class="tabla-comandas">
                                         <thead>
                                             <tr>
                                                 <th>No. Pedido</th>
@@ -162,6 +210,7 @@ if (isset($_SESSION['usuario'])) {
                                             <!-- Los productos se generarán aquí dinámicamente -->
                                         </tbody>
                                     </table>
+                                </div>
                                 </div>
                             </div>
                         </div>

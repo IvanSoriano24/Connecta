@@ -554,7 +554,7 @@ class PDFPedido extends FPDF
         $this->Cell(28, 8, "Unidad", 1, 0, 'C', true);
         $this->Cell(15, 8, "Clave SAT", 1, 0, 'C', true); //c
         $this->Cell(15, 8, "Clave", 1, 0, 'C', true);
-        $this->Cell(60, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
+        $this->Cell(65, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
         $this->Cell(18, 8, "IVA", 1, 0, 'C', true);
         $this->Cell(18, 8, "Precio", 1, 0, 'C', true);
         $this->Cell(22, 8, "Subtotal", 1, 1, 'C', true);
@@ -1170,7 +1170,7 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
         $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
         $pdf->Cell(15, 7, $partida['producto'], 0, 0, 'C');
         $pdf->SetFont('Arial', '', 8);
-        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->Cell(65, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
         $pdf->SetFont('Arial', '', 9);
         $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
         $pdf->Cell(18, 7,"$" . number_format($precioUnitario, 2), 0, 0, 'R');
@@ -1564,7 +1564,7 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
         $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C'); //Clave SAT
         $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
         $pdf->SetFont('Arial', '', 7);
-        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->Cell(65, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
         $pdf->SetFont('Arial', '', 8);
         $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
         $pdf->Cell(18, 7, "$" . number_format($precioUnitario, 2), 0, 0, 'R');
