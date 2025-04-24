@@ -669,7 +669,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
         $fechaLimite = $fields['limite']['stringValue'];
         $cliente = $fields['cliente']['stringValue'];
         $claveSae = $fields['claveSae']['stringValue'];
-        $noEmpresa = $fields['noEmpresa']['stringValue'];
+        $noEmpresa = $fields['noEmpresa']['integerValue'];
         $folio = $fields['folio']['stringValue'];
         $buscar = $fields['buscar']['booleanValue'];
         $vendedor = $fields['vendedor']['stringValue'];

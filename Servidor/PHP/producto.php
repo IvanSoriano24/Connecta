@@ -28,7 +28,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if ($fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
                 'success' => true,
                 'data' => [

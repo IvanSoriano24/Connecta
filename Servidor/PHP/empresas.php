@@ -1,10 +1,10 @@
 <?php
 require 'firebase.php';
- 
+
 session_start(); // Iniciar sesión al inicio del archivo
 /*var_dump($_SESSION);
 exit;*/
- 
+
 // Verifica si el método de la solicitud es GET
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $action = $_GET['action'];
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         listaEmpresas($usuario); // Llamar a la función para obtener las empresas
     }
 }
- 
+
 // Verifica si el método de la solicitud es POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $claveUsuario = $_POST['claveUsuario'];
                 $claveSae = $_POST['claveSae'];
                 $contrasena = $_POST['contrasena'];
-                
+
                 // Lógica de sesión
                 $_SESSION['empresa'] = [
                     'id' => $id,
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'message' => 'Sesión de empresa guardada correctamente.',
                     'data' => $_SESSION['empresa']
                 ]);
-            } else if(isset($_POST['ed']) && $_POST['ed'] === '2'){
+            } else if (isset($_POST['ed']) && $_POST['ed'] === '2') {
 
                 $id = $_SESSION['empresa']['id'];
                 $noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? 0;
                 $claveSae = $_SESSION['empresa']['claveSae'] ?? 0;
                 $contrasena = $_SESSION['empresa']['contrasena'] ?? 0;
+                //var_dump($noEmpresa);
                 obtenerEmpresa($noEmpresa);
 
                 // Lógica de sesión
@@ -61,18 +62,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'claveSae' => $claveSae,
                     'contrasena' => $contrasena
                 ];
-            }else {
+            } else {
                 echo json_encode(['success' => false, 'message' => 'Faltan parámetros.']);
             }
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
-    }elseif($action === 'save'){
-        try{
-            $noEmpresa = str_pad($_POST['noEmpresa'], 2, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    } elseif ($action === 'save') {
+        try {
+            $noEmpresa = obtenerNoEmpresa();
+            /*var_dump($noEmpresa['id']+1);
+            die;*/
+            //noEmpresa = str_pad($_POST['noEmpresa'], 2, '0', STR_PAD_LEFT);
+            $id = $noEmpresa['id']+1;
+            $empre = $noEmpresa['noEmpresa']+1;
             $data = [
-                'id' => $_POST['id'],
-                'noEmpresa' => $noEmpresa,
+                'id' => $id,
+                'noEmpresa' => $empre,
                 'razonSocial' => $_POST['razonSocial'],
                 'rfc' => $_POST['rfc'],
                 'regimenFiscal' => $_POST['regimenFiscal'],
@@ -89,11 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'poblacion' => $_POST['poblacion']
             ];
             guardarEmpresa($data);
-        }  catch (Exception $e) {
+        } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
-    }elseif($action === 'update'){
-        try{
+    } elseif ($action === 'update') {
+        try {
             $data = [
                 'id' => $_POST['id'],
                 'idDocumento' => $_POST['idDocumento'],
@@ -114,51 +120,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'poblacion' => $_POST['poblacion']
             ];
             actualizarEmpresa($data);
-        }  catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-        }
-    }elseif($action === 'verificar'){
-        try {
-            //$noEmpresa = $_POST['noEmpresa'];
-            $noEmpresa = str_pad($_POST['noEmpresa'], 2, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-            verificarNoEmpresa($noEmpresa);
-
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
-    }elseif($action === 'regimen'){
+    } elseif ($action === 'verificar') {
+        try {
+            //$noEmpresa = $_POST['noEmpresa'];
+            //$noEmpresa = str_pad($_POST['noEmpresa'], 2, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+            $noEmpresa = $_POST['noEmpresa'];
+            verificarNoEmpresa($noEmpresa);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    } elseif ($action === 'regimen') {
         try {
             obtenerRegimenes();
-
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
     }
 }
+function obtenerNoEmpresa()
+{
+    global $firebaseProjectId, $firebaseApiKey;
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+    // Configura el contexto de la solicitud para manejar errores y tiempo de espera
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 10 // Tiempo máximo de espera en segundos
+        ]
+    ]);
+    // Realizar la consulta a Firebase
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        return false; // Error en la petición
+    }
 
-function obtenerRegimenes(){
+    // Decodifica la respuesta JSON
+    $data = json_decode($response, true);
+    if (!isset($data['documents'])) {
+        return false; // No se encontraron documentos
+    }
+
+    if (isset($data['documents'])) {
+        $empresas = [];
+        foreach ($data['documents'] as $document) {
+            $fields = $document['fields'];
+            // Verificar que el usuario coincida
+
+            $empresas[] = [
+                'id' => isset($fields['id']['integerValue']) ? $fields['id']['integerValue'] : "N/A", // Validar id
+                'noEmpresa' => isset($fields['noEmpresa']['integerValue']) ? $fields['noEmpresa']['integerValue'] : "No especificado" // Validar noEmpresa
+            ];
+        }
+        if (count($empresas) > 0) {
+            usort($empresas, function ($a, $b) {
+                return strcmp($a['noEmpresa'], $b['noEmpresa']);
+            });
+        
+            $ultimoDato = end($empresas); // Obtiene el último dato del arreglo ordenado
+        
+            return $ultimoDato; // Retorna solo el último dato
+        }
+         else {
+            return json_encode(['success' => false, 'message' => 'El usuario no tiene empresas asociadas.']);
+        }
+    } else {
+        return json_encode(['success' => false, 'message' => 'No se encontraron relaciones de empresas para este usuario.']);
+    }
+}
+
+function obtenerRegimenes()
+{
     $filePath = "../../Complementos/CAT_REGIMENFISCAL.xml";
     if (!file_exists($filePath)) {
         echo "El archivo no existe en la ruta: $filePath";
         return;
     }
-    
+
     $xmlContent = file_get_contents($filePath);
     if ($xmlContent === false) {
         echo "Error al leer el archivo XML en $filePath";
         return;
     }
-    
+
     try {
         $regimenes = new SimpleXMLElement($xmlContent);
     } catch (Exception $e) {
         echo "Error: " . $e->getMessage();
         return;
     }
-    
+
     $regimen = [];
     // Iterar sobre cada <row>
-    foreach($regimenes->row as $row){
+    foreach ($regimenes->row as $row) {
         //echo "Regimen: " . (string)$row['c_RegimenFiscal'] . " - " . (string)$row['Descripcion'] . "<br/>";
         $regimen[] = [
             'c_RegimenFiscal' => (string)$row['c_RegimenFiscal'],
@@ -181,7 +236,8 @@ function obtenerRegimenes(){
     }
 }
 
-function verificarNoEmpresa($noEmpresa){
+function verificarNoEmpresa($noEmpresa)
+{
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
 
@@ -207,17 +263,17 @@ function verificarNoEmpresa($noEmpresa){
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];
         $documentName = $document['name']; // Aquí obtienes el nombre completo del documento
-        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             echo json_encode(['success' => false, 'message' => 'Número de empresa ocupado']);
             return;
         }
     }
     echo json_encode(['success' => true, 'message' => 'Número de empresa válido']);
     return;
-
 }
 
-function obtenerEmpresa($noEmpresa) {
+function obtenerEmpresa($noEmpresa)
+{
     // Verifica si el número de empresa fue proporcionado
     if (!empty($noEmpresa)) {
         // Intenta obtener los datos desde Firebase
@@ -237,7 +293,8 @@ function obtenerEmpresa($noEmpresa) {
 }
 
 // Función para obtener los datos desde Firebase
-function obtenerDatosEmpresa($noEmpresa) {
+function obtenerDatosEmpresa($noEmpresa)
+{
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
 
@@ -264,11 +321,11 @@ function obtenerDatosEmpresa($noEmpresa) {
         $fields = $document['fields'];
         $documentName = $document['name']; // Aquí obtienes el nombre completo del documento
         $documentId = basename($documentName);
-        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
                 'idDocumento' => $documentId,
-                'noEmpresa' => $fields['noEmpresa']['stringValue'] ?? null,
-                'id' => $fields['id']['stringValue'] ?? null,
+                'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? null,
+                'id' => $fields['id']['integerValue'] ?? null,
                 'razonSocial' => $fields['razonSocial']['stringValue'] ?? null,
                 'rfc' => $fields['rfc']['stringValue'] ?? null,
                 'regimenFiscal' => $fields['regimenFiscal']['stringValue'] ?? null,
@@ -291,7 +348,8 @@ function obtenerDatosEmpresa($noEmpresa) {
 }
 
 // Función para responder en formato JSON
-function responderJson($success, $message, $data = null) {
+function responderJson($success, $message, $data = null)
+{
     header('Content-Type: application/json');
     echo json_encode([
         'success' => $success,
@@ -301,7 +359,8 @@ function responderJson($success, $message, $data = null) {
     exit;
 }
 
-function actualizarEmpresa($data) {
+function actualizarEmpresa($data)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
@@ -314,7 +373,7 @@ function actualizarEmpresa($data) {
 
     $fieldsToSave = [
         'id' => ['stringValue' => $data['id']],
-        'noEmpresa' => ['stringValue' => $data['noEmpresa']],
+        'noEmpresa' => ['integerValue' => $data['noEmpresa']],
         'razonSocial' => ['stringValue' => $data['razonSocial']],
         'rfc' => ['stringValue' => $data['rfc']],
         'regimenFiscal' => ['stringValue' => $data['regimenFiscal']],
@@ -342,7 +401,7 @@ function actualizarEmpresa($data) {
             'content' => $payload
         ]
     ];
-    
+
     // Crear el contexto de la solicitud
     $context  = stream_context_create($options);
 
@@ -351,7 +410,7 @@ function actualizarEmpresa($data) {
         if ($responseActualizar === false) {
             throw new Exception('Error al conectar con Firestore para actualizar el documento.');
         }
-        
+
         // Actualiza los datos en la sesión después de guardar en Firebase
         $_SESSION['empresa'] = [
             'id' => $data['id'],
@@ -369,14 +428,15 @@ function actualizarEmpresa($data) {
 }
 
 // Función para guardar o actualizar empresa
-function guardarEmpresa($data) {
+function guardarEmpresa($data)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
 
     $fieldsToSave = [
-        'id' => ['stringValue' => $data['id']],
-        'noEmpresa' => ['stringValue' => $data['noEmpresa']],
+        'id' => ['integerValue' => $data['id']],
+        'noEmpresa' => ['integerValue' => $data['noEmpresa']],
         'razonSocial' => ['stringValue' => $data['razonSocial']],
         'rfc' => ['stringValue' => $data['rfc']],
         'regimenFiscal' => ['stringValue' => $data['regimenFiscal']],
@@ -400,11 +460,11 @@ function guardarEmpresa($data) {
     $options = [
         'http' => [
             'header'  => "Content-type: application/json\r\n",
-            'method'  => 'POST', 
+            'method'  => 'POST',
             'content' => $payload
         ]
     ];
-    
+
     // Crear el contexto de la solicitud
     $context  = stream_context_create($options);
 
@@ -428,9 +488,9 @@ function sesionEmpresa($data)
         'razonSocial' => $data['razonSocial'],
         'claveSae' => $data['claveSae']
     ];
- 
+
     //header('Content-Type: application/json');
- 
+
     // Responder al cliente con los datos guardados
     echo json_encode([
         'success' => true,
@@ -439,10 +499,11 @@ function sesionEmpresa($data)
     ]);
 }
 // Función para eliminar empresa
-function eliminarEmpresa(){
+function eliminarEmpresa()
+{
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
- 
+
     $options = [
         'http' => [
             'header'  => "Content-type: application/json",
@@ -451,16 +512,17 @@ function eliminarEmpresa(){
     ];
     $context  = stream_context_create($options);
     $response = file_get_contents($url, false, $context);
- 
+
     if ($response !== false) {
         echo json_encode(['success' => true, 'message' => 'Empresa eliminada correctamente.']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al eliminar la empresa.']);
     }
 }
- 
+
 // Función para obtener datos de la empresa
-function listaEmpresas($nombreUsuario) {
+function listaEmpresas($nombreUsuario)
+{
     global $firebaseProjectId, $firebaseApiKey;
     $urlEmpUs = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMP_USS?key=$firebaseApiKey";
     $responseEmpUs = file_get_contents($urlEmpUs);
@@ -473,8 +535,8 @@ function listaEmpresas($nombreUsuario) {
                 // Verificar que el usuario coincida
                 if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $nombreUsuario) {
                     $empresas[] = [
-                        'id' => isset($fields['id']['stringValue']) ? $fields['id']['stringValue'] : "N/A", // Validar id
-                        'noEmpresa' => isset($fields['noEmpresa']['stringValue']) ? $fields['noEmpresa']['stringValue'] : "No especificado", // Validar noEmpresa
+                        'id' => isset($fields['id']['integerValue']) ? $fields['id']['integerValue'] : "N/A", // Validar id
+                        'noEmpresa' => isset($fields['noEmpresa']['integerValue']) ? $fields['noEmpresa']['integerValue'] : "No especificado", // Validar noEmpresa
                         'razonSocial' => isset($fields['empresa']['stringValue']) ? $fields['empresa']['stringValue'] : "Sin Razón Social", // Validar razonSocial
                         'claveUsuario' => isset($fields['claveUsuario']['stringValue']) ? $fields['claveUsuario']['stringValue'] : "Usuario sin Clave",
                         'claveSae' => isset($fields['claveSae']['stringValue']) ? $fields['claveSae']['stringValue'] : "Usuario sin base asociada",
@@ -482,6 +544,7 @@ function listaEmpresas($nombreUsuario) {
                     ];
                 }
             }
+            
             if (count($empresas) > 0) {
                 // Ordenar por razón social si es necesario
                 usort($empresas, function ($a, $b) {
@@ -502,4 +565,3 @@ function listaEmpresas($nombreUsuario) {
         echo json_encode(['success' => false, 'message' => 'Error al obtener las relaciones de empresas del usuario.']);
     }
 }
-?>

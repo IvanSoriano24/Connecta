@@ -86,7 +86,7 @@ if (isset($_SESSION['usuario'])) {
                 <input type="hidden" name="idDocumento" id="idDocumento">
                 <input type="text" name="id" id="id" value="<?php echo $idEmpresa ?>" hidden>
                 <label for="noEmpresa">No. Empresa:</label>
-                <input class="input-small" type="text" name="noEmpresa" id="noEmpresa" value="" readonly>
+                <input class="input-small" type="numer" name="noEmpresa" id="noEmpresa" value="" readonly>
               </div>
 
               <div class="form-row">
@@ -183,8 +183,8 @@ if (isset($_SESSION['usuario'])) {
         <form onsubmit="return validateForm()">
           <div class="form-row">
             <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
-            <label for="noEmpresa">No. Empresa:</label>
-            <!--<select name="noEmpresaModal" id="noEmpresaModal" placeholder="Selecciona opcion" value="">
+            <!--<label for="noEmpresa">No. Empresa:</label>
+            <select name="noEmpresaModal" id="noEmpresaModal" placeholder="Selecciona opcion" value="">
             <option selected disabled>Selecciona un numero de empresa</option>
               <option value="1">1</option>
               <option value="2">2</option>
@@ -198,10 +198,10 @@ if (isset($_SESSION['usuario'])) {
               <option value="10">10</option>
               <option value="11">11</option>
              
-            </select>-->
+            </select>
             <select name="noEmpresaModal" id="noEmpresaModal" placeholder="Selecciona opcion">
               <option selected disabled>Selecciona un número de empresa</option>
-            </select>
+            </select>-->
           </div>
 
           <div class="form-row">
@@ -290,12 +290,12 @@ if (isset($_SESSION['usuario'])) {
   <script src="JS/app.js"></script>
   <script src="JS/script.js"></script>
   <script>
-        $(document).ready(function() {
-            for (var i = 1; i <= 99; i++) {
-                $('#noEmpresaModal').append('<option value="' + i + '">' + i + '</option>');
-            }
-        });
-    </script>
+    $(document).ready(function() {
+      for (var i = 1; i <= 99; i++) {
+        $('#noEmpresaModal').append('<option value="' + i + '">' + i + '</option>');
+      }
+    });
+  </script>
 </body>
 
 </html>

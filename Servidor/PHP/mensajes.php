@@ -319,7 +319,7 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
 
                 // Validaciones necesarias
                 //$claveSae = $fields['claveSae']['stringValue'] ?? '';
-                $noEmpresa = $fields['noEmpresa']['stringValue'] ?? '';
+                $noEmpresa = $fields['noEmpresa']['integerValue'] ?? '';
                 $claveCliente = $fields['cliente']['stringValue'] ?? '';
                 $claveVendedor = $fields['vendedor']['stringValue'] ?? '';
 
@@ -398,7 +398,7 @@ function obtenerDetallesPedido($firebaseProjectId, $firebaseApiKey, $pedidoId)
             ];
         }
         $claveSae = $fields['claveSae']['stringValue'];
-        $noEmpresa = $fields['noEmpresa']['stringValue'];
+        $noEmpresa = $fields['noEmpresa']['integerValue'];
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         $claveCliente = $fields['cliente']['stringValue'];
@@ -461,7 +461,7 @@ function obtenerDetalles($firebaseProjectId, $firebaseApiKey, $pedidoId)
     }
 
     $claveSae = $fields['claveSae']['stringValue'] ?? '';
-    $noEmpresa = $fields['noEmpresa']['stringValue'] ?? '';
+    $noEmpresa = $fields['noEmpresa']['integerValue'] ?? '';
 
     $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
     $conexionData = $conexionResult['data'];
@@ -1026,7 +1026,7 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
         $fields = $document['fields'];
         if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
             if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
-                if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
                     $telefonoVendedor = $fields['telefono']['stringValue'];
                     break;
                 }

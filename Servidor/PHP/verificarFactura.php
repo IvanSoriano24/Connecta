@@ -178,9 +178,9 @@ function obtenerEmpresa($noEmpresa)
     // Busca los datos de la empresa por noEmpresa
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];
-        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
-                'noEmpresa' => $fields['noEmpresa']['stringValue'] ?? null,
+                'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? null,
                 'id' => $fields['id']['stringValue'] ?? null,
                 'razonSocial' => $fields['razonSocial']['stringValue'] ?? null,
                 'rfc' => $fields['rfc']['stringValue'] ?? null,
@@ -668,7 +668,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
             //var_dump($document['fields']);
             if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
                 if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $CVE_VEND) {
-                    if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                    if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
                         $telefonoVendedor = $fields['telefono']['stringValue'];
                         $correoVendedor = $fields['correo']['stringValue'];
                         $nombreVendedor = $fields['nombre']['stringValue'];
@@ -806,7 +806,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
             $status = $fields['status']['stringValue'];
             $folio = $fields['folio']['stringValue'];
             $claveSae = $fields['claveSae']['stringValue'];
-            $noEmpresa = $fields['noEmpresa']['stringValue'];
+            $noEmpresa = $fields['noEmpresa']['integerValue'];
 
             // Si la comanda está pendiente y es de un día anterior
             if ($status === 'TERMINADA') {

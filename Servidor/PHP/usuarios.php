@@ -299,7 +299,7 @@ function obtenerEmpresasNoAsociadas()
         foreach ($dataAsociaciones['documents'] as $document) {
             $fields = $document['fields'];
             if (isset($fields['usuario']['stringValue']) && $fields['usuario']['stringValue'] === $usuario) {
-                $empresasAsociadas[] = $fields['noEmpresa']['stringValue']; // Guardar el `noEmpresa` asociado
+                $empresasAsociadas[] = $fields['noEmpresa']['integerValue']; // Guardar el `noEmpresa` asociado
             }
         }
     }
@@ -308,7 +308,7 @@ function obtenerEmpresasNoAsociadas()
     $empresasDisponibles = [];
     foreach ($dataEmpresas['documents'] as $document) {
         $fields = $document['fields'];
-        $noEmpresa = $fields['noEmpresa']['stringValue'] ?? "No especificado";
+        $noEmpresa = $fields['noEmpresa']['integerValue'] ?? "No especificado";
 
         if (!in_array($noEmpresa, $empresasAsociadas)) {
             $empresasDisponibles[] = [
@@ -531,7 +531,7 @@ function obtenerClaveSae($noEmpresa)
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];
 
-        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return $fields['claveSae']['stringValue'] ?? null; // Retornar `claveSae` si existe
         } else {
             return false;
@@ -577,7 +577,7 @@ function obtenerAsociaciones()
             $asociaciones[] = [
                 'id' => str_replace("projects/$firebaseProjectId/databases/(default)/documents/EMP_USS/", '', $document['name']),
                 'razonSocial' => $fields['empresa']['stringValue'],
-                'noEmpresa' => $fields['noEmpresa']['stringValue'],
+                'noEmpresa' => $fields['noEmpresa']['integerValue'],
                 'claveSae' => $fields['claveSae']['stringValue'] ?? null,
             ];
         }
@@ -621,12 +621,12 @@ function obtenerConexiones()
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];
 
-        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             $conexiones[] = [
                 'id' => str_replace("projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES/", '', $document['name']),
                 'claveSae' => $fields['claveSae']['stringValue'],
                 'nombreBase' => $fields['nombreBase']['stringValue'],
-                'noEmpresa' => $fields['noEmpresa']['stringValue'],
+                'noEmpresa' => $fields['noEmpresa']['integerValue'],
             ];
         }
     }
@@ -794,7 +794,7 @@ function obtenerAsociacionesUsuarios($usuario)
             $asociaciones[] = [
                 'id' => str_replace("projects/$firebaseProjectId/databases/(default)/documents/EMP_USS/", '', $document['name']),
                 'razonSocial' => $fields['empresa']['stringValue'],
-                'noEmpresa' => $fields['noEmpresa']['stringValue'],
+                'noEmpresa' => $fields['noEmpresa']['integerValue'],
             ];
         }
     }

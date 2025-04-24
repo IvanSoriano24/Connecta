@@ -138,6 +138,8 @@ function cargarEmpresa(usuario) {
       if (response.success && response.data) {
         const empresas = response.data;
         const empresaSelect = document.getElementById("empresaSelect");
+        /*console.log("Empresas");
+        console.log(empresas);*/
         empresaSelect.innerHTML =
           "<option selected disabled>Selecciona una empresa</option>";
         empresas.forEach((empresa) => {
@@ -169,8 +171,8 @@ function guardarEmpresa() {
   }*/
   const data = {
     action: "save",
-    id: $("#noEmpresaModal").val(),
-    noEmpresa: $("#noEmpresaModal").val(),
+    //id: $("#noEmpresaModal").val(),
+    //noEmpresa: $("#noEmpresaModal").val(),
     razonSocial: $("#razonSocialModal").val(),
     rfc: $("#rfcModal").val(),
     regimenFiscal: $("#regimenFiscalModal").val(),

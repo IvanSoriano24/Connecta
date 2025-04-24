@@ -79,7 +79,7 @@ $_SESSION['csrf_token'] = $csrf_token;
                             <form onsubmit="return validateForm()">
                                 <div class="form-row">
                                     <input type="hidden" name="csrf_tokenNew" id="csrf_tokenNew" value="<?php echo $csrf_token; ?>">
-                                    <label for="noEmpresa">No. Empresa:</label>
+                                    <!--<label for="noEmpresa">No. Empresa:</label>
                                     <select name="noEmpresaNew" id="noEmpresaNew" placeholder="Selecciona opcion" value="">
                                         <option selected disabled>Selecciona un numero de empresa</option>
                                         <option value="1">1</option>
@@ -90,8 +90,7 @@ $_SESSION['csrf_token'] = $csrf_token;
                                         <option value="6">6</option>
                                         <option value="7">7</option>
                                         <option value="8">8</option>
-                                        <!-- Agrega más opciones si es necesario -->
-                                    </select>
+                                    </select>-->
                                 </div>
 
                                 <div class="form-row">

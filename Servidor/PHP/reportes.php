@@ -36,9 +36,9 @@ function obtenerDatosEmpresaFire($noEmpresa)
     // Buscar la empresa en Firebase
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];
-        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
-                'noEmpresa' => $fields['noEmpresa']['stringValue'] ?? null,
+                'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? null,
                 'razonSocial' => $fields['razonSocial']['stringValue'] ?? null,
                 'rfc' => $fields['rfc']['stringValue'] ?? null,
                 'calle' => $fields['calle']['stringValue'] ?? null,

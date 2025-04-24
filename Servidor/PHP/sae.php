@@ -75,7 +75,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
         if (isset($dataBuscar['documents'])) {
             foreach ($dataBuscar['documents'] as $document) {
                 $fields = $document['fields'];
-                if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $data['noEmpresa']) {
+                if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $data['noEmpresa']) {
                     $documentoId = basename($document['name']); // Extraemos el ID del documento
                     break;
                 }
@@ -165,7 +165,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
         if (isset($dataBuscar['documents'])) {
             foreach ($dataBuscar['documents'] as $document) {
                 $fields = $document['fields'];
-                if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $data['noEmpresa']) {
+                if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $data['noEmpresa']) {
                     $documentoId = basename($document['name']); // Extraemos el ID del documento
 
                     // Construir la URL del documento encontrado para actualizarlo
@@ -273,7 +273,7 @@ function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resulta
     if (isset($dataBuscar['documents'])) {
         foreach ($dataBuscar['documents'] as $document) {
             $fields = $document['fields'];
-            if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $data['noEmpresa']) {
+            if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $data['noEmpresa']) {
                 $documentoId = basename($document['name']); // Extraemos el ID del documento
                 break;
             }
@@ -415,7 +415,7 @@ function verificarConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEm
     // Buscar si existe un documento con el mismo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if (isset($fields['claveSae']) && $fields['claveSae']['stringValue'] === $claveSae && isset($fields['noEmpresa']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if (isset($fields['claveSae']) && $fields['claveSae']['stringValue'] === $claveSae && isset($fields['noEmpresa']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             echo json_encode(['success' => true, 'tieneConexion' => true]);
             return;
         }
