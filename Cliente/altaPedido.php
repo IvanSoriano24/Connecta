@@ -496,10 +496,10 @@ if (isset($_SESSION['usuario'])) {
                                     style="width:180px; align-items: center;" disabled>
 
                             </div>
-                            <div class="form-element">
+                            <!--<div class="form-element">
                                 <label for="esquema">Esquema </label>
                                 <input type="text" name="esquema" id="esquema" value="0" style="width: 170px;" readonly1>
-                            </div>
+                            </div>-->
                         </div>
 
                         <div class="row">
