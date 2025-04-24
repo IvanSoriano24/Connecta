@@ -40,8 +40,9 @@ function agregarEventosBotones() {
   // Botones de eliminar
   const botonesEliminar = document.querySelectorAll(".btnCancelarPedido");
   botonesEliminar.forEach((boton) => {
-    boton.addEventListener("click", function () {
+    /*boton.addEventListener("click", function () {
       const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      console.log(pedidoID);
       Swal.fire({
         title: "¿Estás seguro?",
         text: "Esta acción no se puede deshacer",
@@ -56,6 +57,45 @@ function agregarEventosBotones() {
           eliminarPedido(pedidoID); // Llama a la función para eliminar el pedido
         }
       });
+    });*/
+    boton.addEventListener("click", async function () {
+      const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      try {
+        const res = await verificarPedido(pedidoID);
+        if (res.success) {
+          Swal.fire({
+            title: "Error",
+            text: "El pedido ya fue Remitido/Facturado, no es posible cancelarlo",
+            icon: "error",
+            confirmButtonText: "Entendido",
+          });
+        } else if (res.fail) {
+          Swal.fire({
+            title: "¿Estás seguro?",
+            text: "Esta acción no se puede deshacer",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, Cancelarlo",
+            cancelButtonText: "Cancelar",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              eliminarPedido(pedidoID); // Llama a la función para eliminar el pedido
+            }
+          });
+        } else {
+          console.error("Respuesta inesperada:", res);
+        }
+      } catch (error) {
+        console.error("Error al verificar el pedido:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Hubo un problema al verificar el pedido",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+      }
     });
   });
 }

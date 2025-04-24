@@ -5966,12 +5966,8 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $pedidoID = $_POST['pedidoID'];
         $verificado = pedidoRemitido($conexionData, $pedidoID, $claveSae);
-        if ($verificado) {
-            eliminarPedido($conexionData, $pedidoID, $claveSae);
-            liberarExistencias($conexionData, $pedidoID, $claveSae);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Pedido remitido, no se puede cancelar']);
-        }
+        eliminarPedido($conexionData, $pedidoID, $claveSae);
+        liberarExistencias($conexionData, $pedidoID, $claveSae);
         break;
     case 11:
         /*$csrf_token  = $_SESSION['csrf_token'];
