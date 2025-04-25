@@ -637,7 +637,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     $CVE_VEND = $row ? $row['CVE_VEND'] : "";
     $CVE_CLPV = $row ? $row['CVE_CLPV'] : "";
-    
+
     $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
     // Consultar Firebase para obtener los datos del vendedor
     $context = stream_context_create([
@@ -721,7 +721,8 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     }
 }
 
-function facturar($folio, $claveSae, $noEmpresa){
+function facturar($folio, $claveSae, $noEmpresa)
+{
     $numFuncion = '1';
     $pedidoId = $folio;
 
@@ -768,11 +769,6 @@ function facturar($folio, $claveSae, $noEmpresa){
         if (json_last_error() === JSON_ERROR_NONE && isset($facturaResponse)) {
             return $facturaResponse;
             // ✅ La respuesta es un JSON con cveDoc (Pedido procesado correctamente)
-            echo "<div class='container'>
-                    <div class='title'>Confirmación Exitosa</div>
-                    <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
-                    <a href='/Menu.php' class='button'>Regresar al inicio</a>
-                  </div>";
         }
     } else {
         // ❌ No hubo respuesta
@@ -807,6 +803,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
             $folio = $fields['folio']['stringValue'];
             $claveSae = $fields['claveSae']['stringValue'];
             $noEmpresa = $fields['noEmpresa']['integerValue'];
+            $pagada = $fields['pagada']['booleanValue'];
 
             // Si la comanda está pendiente y es de un día anterior
             if ($status === 'TERMINADA') {
@@ -819,19 +816,28 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                 //Se verifica que el pedido este remitido
                 $remitido = verificarEstadoPedido($folio, $conexionData, $claveSae);
                 if ($remitido) {
-                    //$folio = "18633";
-                    $folio = "18456";
+                    
                     //Funcion para crear factura
-                    $folioFactura = facturar($folio, $claveSae, $noEmpresa);
-                    //$folioFactura = "18456";
-                    //Demas funciones
-                    $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
-                    if ($respuestaFactura['Succes']) {
-                        $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
-                        die();
-                        validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura);
+                    if ($pagada) {
+                        /*$datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
+                        pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
+                        restarSaldo($conexionData, $claveSae, $datosCxC, $clave);*/
+                        //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
+                        //actualizarFolioF($conexionData, $claveSae);
+                        //factura
                     } else {
-                        enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
+
+                        $folioFactura = facturar($folio, $claveSae, $noEmpresa);
+                        //$folioFactura = "18456";
+                        //Demas funciones
+                        $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
+                        if ($respuestaFactura['Succes']) {
+                            $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+                            die();
+                            validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura);
+                        } else {
+                            enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
+                        }
                     }
                 }
             }
