@@ -203,7 +203,7 @@ function obtenerEmpresa($noEmpresa)
     return false; // No se encontró la empresa
 }
 
-function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
+function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
@@ -225,7 +225,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
     // Busca el documento donde coincida el campo `claveSae`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if ($fields['claveSae']['stringValue'] === $claveSae) {
+        if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
                 'success' => true,
                 'data' => [
@@ -810,7 +810,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
 
             // Si la comanda está pendiente y es de un día anterior
             if ($status === 'TERMINADA') {
-                $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+                $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
                 if (!$conexionResult['success']) {
                     echo json_encode($conexionResult);
                     break;

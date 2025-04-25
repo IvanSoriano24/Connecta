@@ -367,7 +367,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if ($fields['claveSae']['stringValue'] === $claveSae && $fields['claveSae']['stringValue'] === $claveSae) {
+        if ($fields['noEmpresa']['integerValue'] === $noEmpresa && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             // Extrae solo el ID del documento desde la URL
             $documentId = basename($document['name']);  // Esto da solo el ID del documento
 

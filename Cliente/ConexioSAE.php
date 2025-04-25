@@ -90,7 +90,7 @@ session_destroy(); */
                 <input type="hidden" id="csrf_token" name="csrf_token" value="<?php echo $csrf_token; ?>">
               </div>
 
-              <div class="form-row">
+              <div class="form-row" hidden>
                 <label for="claveSae">Sae:</label>
                 <select style="text-align: right;" class="input-mt" name="claveSae" id="claveSae" disabled>
                   <option value="01">1</option>

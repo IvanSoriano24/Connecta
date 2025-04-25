@@ -3,7 +3,7 @@ require 'firebase.php';
 
 session_start();
 
-function obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae)
+function obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae, $noEmpresa)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
@@ -23,7 +23,7 @@ function obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae)
     // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if ($fields['claveSae']['stringValue'] === $claveSae) {
+        if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
                 'success' => true,
                 'data' => [
@@ -378,7 +378,7 @@ switch ($funcion) {
     case 2:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae, $noEmpresa);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
             break;

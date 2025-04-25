@@ -74,21 +74,6 @@ session_destroy(); */
               </div>
 
               <div class="form-row">
-                <label for="claveSae">Sae:</label>
-                <select class="input-mt" name="claveSae" id="claveSae">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                </select>
-              </div>
-
-              <div class="form-row">
                 <label for="host">Host:</label>
                 <input class="input-mt" type="text" name="host" id="host" value="">
               </div>

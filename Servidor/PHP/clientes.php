@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 require 'firebase.php';
 session_start();
 
-function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
+function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
@@ -26,7 +26,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
     // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if ($fields['claveSae']['stringValue'] === $claveSae) {
+        if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
                 'success' => true,
                 'data' => [
@@ -34,7 +34,8 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
                     'puerto' => $fields['puerto']['stringValue'],
                     'usuario' => $fields['usuario']['stringValue'],
                     'password' => $fields['password']['stringValue'],
-                    'nombreBase' => $fields['nombreBase']['stringValue']
+                    'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'claveSae' => $fields['claveSae']['stringValue']
                 ]
             ];
         }
@@ -404,7 +405,7 @@ switch ($funcion) {
         if ($csrf_token === $csrf_token_form) {
             $noEmpresa = $_SESSION['empresa']['noEmpresa'];
             $claveSae = $_SESSION['empresa']['claveSae'];
-            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
             if (!$conexionResult['success']) {
                 echo json_encode($conexionResult);
                 break;
@@ -429,7 +430,7 @@ switch ($funcion) {
             }
             $noEmpresa = $_SESSION['empresa']['noEmpresa'];
             $claveSae = $_SESSION['empresa']['claveSae'];
-            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
 
             if (!$conexionResult['success']) {
                 echo json_encode($conexionResult);
@@ -454,7 +455,7 @@ switch ($funcion) {
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
 
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -470,7 +471,7 @@ switch ($funcion) {
         $noEmpresa = "";
         //$claveSae = "02";
         $claveSae = "01";
-        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
 
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
