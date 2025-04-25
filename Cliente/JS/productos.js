@@ -47,13 +47,14 @@ function mostrarProductosEnTabla(productos) {
   
         const fila = document.createElement("tr");
         if (existenciaReal > 0){
+            //console.log(Intl.NumberFormat().format(existenciaReal));
             fila.innerHTML = `
             <td>${producto.CVE_ART}</td>
             <td>${producto.DESCR}</td>
-            <td class="text-end">${new Intl.NumberFormat().format(existenciaReal)}</td> <!-- Formato con comas y alineado a la derecha -->
+            <td class="text-end">${Intl.NumberFormat().format(existenciaReal)}</td>
         `;
         tbody.appendChild(fila);
-        }
+        } //<td class="text-end">${new Intl.NumberFormat().format(existenciaReal)}</td>
     });
   }
   
