@@ -354,7 +354,7 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                     <br>
                                     <div class="mb-4">
-                                        <label class="form-label">Partidas:</label>
+                                        <label class="form-label"><h5>Partidas:</h5></label>
                                         <div class="table-data">
                                             <div class="order">
                                                 <div class="head">

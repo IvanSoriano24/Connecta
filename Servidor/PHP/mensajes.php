@@ -595,8 +595,9 @@ function validarCreditos($conexionData, $clienteId)
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
         // Construir la consulta SQL
-        //$sql = "SELECT CAMPLIB7 FROM $nombreTabla WHERE CVE_CLIE = ?";
-        $sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
+        $sql = "SELECT CAMPLIB7 FROM $nombreTabla WHERE CVE_CLIE = ?";
+
+        //$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
         $params = [$clienteId];
         $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -614,8 +615,8 @@ function validarCreditos($conexionData, $clienteId)
         }
         //var_dump($clienteData);
         // Limpiar y preparar los datos para la respuesta
-        //$conCredito = trim($clienteData['CAMPLIB7'] ?? "");
-        $conCredito = trim($clienteData['CAMPLIB8'] ?? "");
+        $conCredito = trim($clienteData['CAMPLIB7'] ?? "");
+        //$conCredito = trim($clienteData['CAMPLIB8'] ?? "");
 
         // Enviar respuesta con los datos del cliente
         return json_encode([
@@ -756,7 +757,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         }
 
         if ($numeroBandera === 0) {
-            //enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+            enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -910,6 +911,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
         $productosStr .= "$producto - $cantidad unidades, ";
+        $IMPORTE = $total;
 
         //$IMPU4 = htmlspecialchars($partida['iva']);
         $IMPU4 = intval(htmlspecialchars($partida['iva']));
