@@ -633,46 +633,46 @@ function enviarDatosBackend(formularioData, partidasData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      }else if (data.telefono) {
-          Swal.fire({
-            title: "Pedido Guardado",
-            text: data.message || "",
-            icon: "warning",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        }else if (data.correo) {
-          Swal.fire({
-            title: "Pedido Guardado",
-            text: data.message || "",
-            icon: "warning",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        }else if (data.notificacion) {
-          Swal.fire({
-            title: "Pedido Guardado",
-            text: data.message || "",
-            icon: "warning",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        }else if (data.datos) {
-          Swal.fire({
-            title: "Pedido Guardado",
-            text: data.message || "El cliente tiene una cuenta por pagar",
-            icon: "warning",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
+      } else if (data.telefono) {
+        Swal.fire({
+          title: "Pedido Guardado",
+          text: data.message || "",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
+      } else if (data.correo) {
+        Swal.fire({
+          title: "Pedido Guardado",
+          text: data.message || "",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
+      } else if (data.notificacion) {
+        Swal.fire({
+          title: "Pedido Guardado",
+          text: data.message || "",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
+      } else if (data.datos) {
+        Swal.fire({
+          title: "Pedido Guardado",
+          text: data.message || "El cliente tiene una cuenta por pagar",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
       } else {
         Swal.fire({
           title: "Error al guardar el pedido",
@@ -1131,7 +1131,8 @@ document
 $(document).ready(function () {
   $("#guardarPedido").click(async function (event) {
     event.preventDefault();
-
+    const clienteSeleccionado =
+    sessionStorage.getItem("clienteSeleccionado") === "true";
     // Obtener el ID actual del pedido desde el formulario
     let id = document.getElementById("numero").value;
     console.log("ID actual del pedido:", id);
@@ -1153,8 +1154,26 @@ $(document).ready(function () {
         "Número final en el formulario:",
         document.getElementById("numero").value
       );
+      if (!clienteSeleccionado) {
+        Swal.fire({
+          title: "Error",
+          text: "Debes Tener un Cliente para Guardar.",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+        return;
+      }
       const tablaProductos = document.querySelector("#tablaProductos tbody");
       const filas = tablaProductos.querySelectorAll("tr");
+      if (!filas[filas.length - 1]) {
+        Swal.fire({
+          title: "Error",
+          text: "Debes Crear una Partida Antes de Guardar.",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+        return;
+      }
 
       const ultimaFila = filas[filas.length - 1];
       const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
