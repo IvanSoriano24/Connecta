@@ -1351,15 +1351,46 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
-    if ($correo === 'S' && !empty($emailPred)) {
-        //enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
-        var_dump($resultadoWhatsApp);
+    if ($emailPred === "") {
+        $correoBandera = 1;
     } else {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
+        $correoBandera = 0;
+    }
+    if ($numeroWhatsApp === "") {
+        $numeroBandera = 1;
+    } else {
+        $numeroBandera = 0;
+    }
+    if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
+        // Enviar notificaciones solo si los datos son válidos
+        if ($correoBandera === 0) {
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        }
+
+        if ($numeroBandera === 0) {
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        }
+
+        // Determinar la respuesta JSON según las notificaciones enviadas
+        if ($correoBandera === 0 && $numeroBandera === 0) {
+            /*echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
+            die();*/
+        } elseif ($correoBandera === 1 && $numeroBandera === 0) {
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado y Notificado por WhatsApp.']);
+            die();
+        } elseif ($correoBandera === 0 && $numeroBandera === 1) {
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado y notificado por Correo.']);
+            die();
+        } else {
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, pero no se Pudo Notificar al Cliente.']);
+            die();
+        }
+    } else {
+        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado.']);
         die();
     }
+    /*******************************************/
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
@@ -3930,12 +3961,15 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
     $totalDescuentos = 0; // Inicializar acumulador de descuentos
     $IMP_TOT4 = 0;
     $IMP_T4 = 0;
+    $total = 0;
     foreach ($partidasData as $partida) {
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
         $IMPU4 = $partida['iva'];
         $desc1 = $partida['descuento'] ?? 0; // Primer descuento
         $totalPartida = $precioUnitario * $cantidad;
+        $total += $totalPartida;
+        $IMPORTE = $total;
         // **Aplicar los descuentos en cascada**
         $desProcentaje = ($desc1 / 100);
         $DES = $totalPartida * $desProcentaje;
@@ -4447,19 +4481,49 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
-    if ($correo === 'S' && !empty($emailPred)) {
-        enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-
-        $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+    
+    if ($emailPred === "") {
+        $correoBandera = 1;
     } else {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
+        $correoBandera = 0;
+    }
+    if ($numeroWhatsApp === "") {
+        $numeroBandera = 1;
+    } else {
+        $numeroBandera = 0;
+    }
+    if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
+        // Enviar notificaciones solo si los datos son válidos
+        if ($correoBandera === 0) {
+            enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        }
+
+        if ($numeroBandera === 0) {
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        }
+
+        // Determinar la respuesta JSON según las notificaciones enviadas
+        if ($correoBandera === 0 && $numeroBandera === 0) {
+            /*echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
+            die();*/
+        } elseif ($correoBandera === 1 && $numeroBandera === 0) {
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado y Notificado por WhatsApp.']);
+            die();
+        } elseif ($correoBandera === 0 && $numeroBandera === 1) {
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado y notificado por Correo.']);
+            die();
+        } else {
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, pero no se Pudo Notificar al Cliente.']);
+            die();
+        }
+    } else {
+        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado.']);
         die();
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito)
-{
+function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito){
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
 
     //$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
@@ -4488,6 +4552,8 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
         $precioUnitario = $partida['precioUnitario'];
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
+        $IMPORTE = $total;
+
         $productosStr .= "$producto - $cantidad unidades, ";
 
         $IMPU4 = $partida['iva'];
@@ -4910,12 +4976,44 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
-    if ($correo === 'S' && !empty($emailPred)) {
-        enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
 
-        $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+
+    if ($emailPred === "") {
+        $correoBandera = 1;
     } else {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
+        $correoBandera = 0;
+    }
+    if ($numeroWhatsApp === "") {
+        $numeroBandera = 1;
+    } else {
+        $numeroBandera = 0;
+    }
+    if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
+        // Enviar notificaciones solo si los datos son válidos
+        if ($correoBandera === 0) {
+            enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        }
+
+        if ($numeroBandera === 0) {
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        }
+
+        // Determinar la respuesta JSON según las notificaciones enviadas
+        if ($correoBandera === 0 && $numeroBandera === 0) {
+            /*echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
+            die();*/
+        } elseif ($correoBandera === 1 && $numeroBandera === 0) {
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado y Notificado por WhatsApp.']);
+            die();
+        } elseif ($correoBandera === 0 && $numeroBandera === 1) {
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado y notificado por Correo.']);
+            die();
+        } else {
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, pero no se Pudo Notificar al Cliente.']);
+            die();
+        }
+    } else {
+        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado.']);
         die();
     }
     sqlsrv_free_stmt($stmt);
@@ -5766,13 +5864,12 @@ switch ($funcion) {
                         ];*/
 
                         if ($anticipo['success']) {
-
                             //Funcion para eliminar anticipo
                             $estatus = 'E';
                             guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
-                            remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
+                            //remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                             eliminarCxc($conexionData, $anticipo, $claveSae);
                             $datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
                             pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);

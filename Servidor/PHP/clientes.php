@@ -190,7 +190,7 @@ function mostrarClienteEspecifico($clave, $conexionData)
                     C.[PAIS], C.[NACIONALIDAD], C.[REFERDIR], C.[TELEFONO], C.[CLASIFIC], C.[FAX], C.[PAG_WEB], 
                     C.[CURP], C.[CVE_ZONA], C.[IMPRIR], C.[MAIL], C.[SALDO], C.[TELEFONO],
                     C.[CON_CREDITO], C.[DIAREV], C.[DIAPAGO], C.[DIASCRED], C.[DIAREV], C.[METODODEPAGO], C.[LISTA_PREC], C.[DESCUENTO], C.[CVE_VEND],
-                    V.[NOMBRE] AS NombreVendedor
+                    V.[NOMBRE] AS NombreVendedor, C.[LIMCRED], C.[NUMCTAPAGO], C.[DIAREV], C.[DIAPAGO]
             FROM $nombreTabla C 
             INNER JOIN $nombreTabla2 V ON C.CVE_VEND = V.CVE_VEND
             WHERE [CLAVE] = ?";

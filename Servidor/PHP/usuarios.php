@@ -88,7 +88,7 @@ function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
         'descripcionUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
         'status' => ['stringValue' => strip_tags($status)], // Se asigna según la condición
         'claveUsuario' => ['stringValue' => strip_tags($clave)], // Guardar la clave correcta
-        'noEmpresa' => ['stringValue' => strip_tags($noEmpresa)],
+        'noEmpresa' => ['integerValue' => strip_tags($noEmpresa)],
         'claveSae' => ['stringValue' => strip_tags($claveSae)],
     ];
 
@@ -433,7 +433,7 @@ function guardarAsociacion()
     $fields = [
         'empresa' => ['stringValue' => $empresa],
         'id' => ['stringValue' => $id],
-        'noEmpresa' => ['stringValue' => $noEmpresa],
+        'noEmpresa' => ['integerValue' => $noEmpresa],
         'usuario' => ['stringValue' => $usuario],
         'claveUsuario' => ['stringValue' => $claveUsuario],
         'claveSae' => ['stringValue' => $claveSae],

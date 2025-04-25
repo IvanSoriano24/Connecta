@@ -42,6 +42,7 @@ function agregarEventosBotones() {
                     if (data.success) {
                         const cliente = data.cliente;
                         const saldoFormateado = `$${parseFloat(cliente.SALDO || 0).toFixed(2).toLocaleString('es-MX')}`;
+                        const limiteFormateado = `$${parseFloat(cliente.LIMCRED || 0).toFixed(2).toLocaleString('es-MX')}`;
                         // Asignamos los valores de los campos del cliente
                         // Asignar los valores de los campos del cliente, con valores por defecto si están indefinidos
                         document.getElementById('clave').value = cliente.CLAVE || 'Sin clave';
@@ -75,7 +76,7 @@ function agregarEventosBotones() {
                         document.getElementById('diaRevision').value = cliente.DIAREV || 'Sin dias de revicion';
                         document.getElementById('diasCredito').value = cliente.DIASCRED || 'Sin dias de credito';
                         document.getElementById('diaPago').value = cliente.DIAPAGO || '';
-                        //document.getElementById('limiteCredito').value = cliente.PAGINAWEB || 'Sin página web';
+                        document.getElementById('limiteCredito').value = limiteFormateado || 'Sin página web';
                         document.getElementById('saldoVentas').value = saldoFormateado || 'Sin saldo';
                         document.getElementById('metodoPago').value = cliente.METODODEPAGO || 'Sin metodo de pago';
 

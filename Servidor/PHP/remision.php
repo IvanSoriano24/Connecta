@@ -971,13 +971,13 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
     sqlsrv_free_stmt($stmtPedido);
     sqlsrv_free_stmt($stmtInsert);
     sqlsrv_close($conn);
-
+ return $cveBita;
     /*echo json_encode([
         'success' => true,
         'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
     ]);*/
 }
-function insertarFactr($conexionData, $pedidoId, $claveSae)
+function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1103,7 +1103,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae)
         $pedido['AUTOANIO'],
         $pedido['DAT_ENVIO'],
         $pedido['CONTADO'],
-        $pedido['CVE_BITA'],
+        $CVE_BITA,
         $pedido['BLOQ'],
         $tipDocE,
         $pedido['DES_FIN_PORC'],
@@ -2426,8 +2426,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarMulti2($conexionData, $pedidoId, $claveSae); //No Terminada
     actualizarAfac($conexionData, $pedidoId, $claveSae); 
     actualizarControl3($conexionData, $claveSae); 
-    insertarBita($conexionData, $pedidoId, $claveSae);
-    $cveDoc = insertarFactr($conexionData, $pedidoId, $claveSae); 
+    $CVE_BITA = insertarBita($conexionData, $pedidoId, $claveSae);
+    $cveDoc = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA); 
     insertarFactr_Clib($conexionData, $cveDoc, $claveSae);
     actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarInve4($conexionData, $pedidoId, $claveSae);

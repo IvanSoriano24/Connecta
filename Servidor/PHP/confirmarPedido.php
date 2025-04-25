@@ -126,7 +126,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     if ($resultado) {
         echo "<div class='container'>
             <div class='title'>Solicitud Inválida</div>
-            <div class='message'>Este pedido ya fue aceptado.</div>
+            <div class='message'>Este Pedido ya Fue Aceptado.</div>
             <a href='/index.php' class='button'>Volver al inicio</a>
           </div>";
     } else {
@@ -144,6 +144,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
                 // Determinar el estado según la hora
                 $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
+                //$estadoComanda = $horaActual >= 15 ? "Pendiente" : "Abierta"; // "Pendiente" después de 3:00 PM
                 $producto = obtenerProductos($pedidoId, $conexionData, $claveSae);
                 // Preparar datos para Firebase
                 $comanda = [

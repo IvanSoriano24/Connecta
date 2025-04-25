@@ -633,6 +633,46 @@ function enviarDatosBackend(formularioData, partidasData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
+      }else if (data.telefono) {
+          Swal.fire({
+            title: "Pedido Guardado",
+            text: data.message || "",
+            icon: "warning",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        }else if (data.correo) {
+          Swal.fire({
+            title: "Pedido Guardado",
+            text: data.message || "",
+            icon: "warning",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        }else if (data.notificacion) {
+          Swal.fire({
+            title: "Pedido Guardado",
+            text: data.message || "",
+            icon: "warning",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        }else if (data.datos) {
+          Swal.fire({
+            title: "Pedido Guardado",
+            text: data.message || "El cliente tiene una cuenta por pagar",
+            icon: "warning",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
       } else {
         Swal.fire({
           title: "Error al guardar el pedido",

@@ -482,12 +482,12 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="form-element">
                                 <label for="vendedor">Vendedor </label>
-                                <input type="text" name="vendedor" id="vendedor" style="width: 170px;"
+                                <input type="text" name="vendedor" id="vendedor" style="width: 180px;"
                                     value="<?php echo $claveUsuario ?>" readonly>
                             </div>
                             <div class="form-element">
                                 <label for="almacen">Almacen </label>
-                                <input type="text" name="almacen" id="almacen" style="background-color: #e0e0e0;"
+                                <input type="text" name="almacen" id="almacen" style="background-color: #e0e0e0; width: 180px;"
                                     value="1" readonly>
                             </div>
                             <div class="form-element">
