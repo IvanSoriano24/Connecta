@@ -1636,6 +1636,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $precioUnitario = $partida['precioUnitario'];
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
+        $IMPORTE = $total;
         $productosStr .= "$producto - $cantidad unidades, ";
 
         $IMPU4 = $partida['iva'];
@@ -1696,8 +1697,6 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
             ]
         ]
     ];
-
-    var_dump($data);
 
     // ✅ Verificar JSON antes de enviarlo
     $data_string = json_encode($data, JSON_PRETTY_PRINT);
@@ -5976,9 +5975,9 @@ switch ($funcion) {
                         } else if ($validarSaldo == 1 || $credito == 1) {
                             $estatus = "C";
                         }
-                        $estatus = "E";
+                        /*$estatus = "E";
                         $validarSaldo = 0;
-                        $credito = 0;
+                        $credito = 0;*/
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
@@ -6016,7 +6015,7 @@ switch ($funcion) {
                             'Referencia' => $REFER,
                             'NO_FACTURA' => $NO_FACTURA
                         ];*/
-                        $anticipo['success'] = true;
+                        //$anticipo['success'] = true;
                         if ($anticipo['success']) {
                             //Funcion para eliminar anticipo
                             $estatus = 'E';
@@ -6121,9 +6120,9 @@ switch ($funcion) {
                         $estatus = "C";
                     }
 
-                    $estatus = "E";
+                    /*$estatus = "E";
                     $validarSaldo = 0;
-                    $credito = 0;
+                    $credito = 0;*/
 
                     // Lógica para edición de pedido
                     $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus);

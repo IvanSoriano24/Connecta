@@ -360,7 +360,7 @@ if (isset($_SESSION['usuario'])) {
         position: sticky;
         /* Encabezado fijo */
         /*top: 0;*/
-       /* background-color: #f4f4f4;*/
+        /* background-color: #f4f4f4;*/
         /* Fondo para destacar */
         z-index: 1;
         /* Mantener el encabezado sobre las filas */
@@ -614,7 +614,7 @@ if (isset($_SESSION['usuario'])) {
                                 <div class="table-wrapper">
                                     <button type="button" class="btn-secondary" id="añadirPartida">Añadir
                                         Partida</button>
-                                        <br>
+                                    <br>
                                     <div class="tabla-scroll">
                                         <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
                                             <thead>
@@ -635,17 +635,66 @@ if (isset($_SESSION['usuario'])) {
                                         </table>
                                     </div>
                                 </div>
-
                                 <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly
                                     hidden>
                                 <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Modal clientes -->
+                    <div id="modalClientes" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                            <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+                                <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Ayuda Clientes</h5>
+                                    <button type="button" class="btn-close" onclick="cerrarModalClientes()"></button>
+                                </div>
+                                <!-- Filtro Estático -->
+                                <div class="modal-static">
+                                    <div class="form-group row">
+                                        <div class="col-4">
+                                            <label for="filtroCriterioClientes" class="form-label">Filtrar por:</label>
+                                            <select id="filtroCriterioClientes" class="form-control">
+                                                <option value="CLAVE">Clave</option>
+                                                <option value="NOMBRE">Nombre</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-8">
+                                            <label for="campoBusquedaClientes" class="form-label">Buscar:</label>
+                                            <input type="search" id="campoBusquedaClientes" class="form-control"
+                                                placeholder="Escribe aquí...">
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body">
+                                    <!-- Lista de Productos -->
+                                    <div id="">
+                                        <table id="" name="tablalistaProductos" class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Clave</th>
+                                                    <th>Nombre</th>
+                                                    <th>Telefono</th>
+                                                    <th>Saldo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="datosClientes">
+                                                <!-- Contenido dinámico -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
 
-
+                                <!-- Modal Footer -->
+                                <div class="modal-footer">
+                                    <!-- <button type="button" class=" btn-cancel" onclick="cerrarModal()">C</button> -->
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <!-- </div> -->
             </main>
             <!-- MAIN -->
@@ -655,7 +704,7 @@ if (isset($_SESSION['usuario'])) {
     <!-- CONTENT -->
     <!-- Modal Productos -->
     <div id="modalProductos" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
                 <!-- Modal Header -->
                 <div class="modal-header">
@@ -705,62 +754,6 @@ if (isset($_SESSION['usuario'])) {
             </div>
         </div>
     </div>
-
-    <!-- Modal clientes -->
-    <div id="modalClientes" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
-                <!-- Modal Header -->
-                <div class="modal-header">
-                    <h5 class="modal-title">Ayuda Clientes</h5>
-                    <button type="button" class="btn-close" onclick="cerrarModalClientes()"></button>
-                </div>
-                <!-- Filtro Estático -->
-                <div class="modal-static">
-                    <div class="form-group row">
-                        <div class="col-4">
-                            <label for="filtroCriterioClientes" class="form-label">Filtrar por:</label>
-                            <select id="filtroCriterioClientes" class="form-control">
-                                <option value="CLAVE">Clave</option>
-                                <option value="NOMBRE">Nombre</option>
-                            </select>
-                        </div>
-                        <div class="col-8">
-                            <label for="campoBusquedaClientes" class="form-label">Buscar:</label>
-                            <input type="search" id="campoBusquedaClientes" class="form-control"
-                                placeholder="Escribe aquí...">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Body -->
-                <div class="modal-body">
-                    <!-- Lista de Productos -->
-                    <div id="">
-                        <table id="" name="tablalistaProductos" class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Clave</th>
-                                    <th>Nombre</th>
-                                    <th>Telefono</th>
-                                    <th>Saldo</th>
-                                </tr>
-                            </thead>
-                            <tbody id="datosClientes">
-                                <!-- Contenido dinámico -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Modal Footer -->
-                <div class="modal-footer">
-                    <!-- <button type="button" class=" btn-cancel" onclick="cerrarModal()">C</button> -->
-                </div>
-            </div>
-        </div>
-    </div>
-
 
 
     <script src="JS/menu.js"></script>

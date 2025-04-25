@@ -179,7 +179,6 @@ if (isset($_SESSION['usuario'])) {
             <span aria-hidden="true"></span><!-- &times; -->
           </button>
         </div>
-
         <form onsubmit="return validateForm()">
           <div class="form-row">
             <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
