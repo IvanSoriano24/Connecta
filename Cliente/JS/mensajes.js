@@ -333,6 +333,15 @@ $("#btnTerminar").click(function () {
   );
 });
 $("#btnAutorizar").click(function () {
+  Swal.fire({
+    title: "Procesando pedido...",
+    text: "Por favor, espera mientras se autoriza el pedido.",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
   const pedidoId = $("#detalleIdPedido").val();
   const folio = $("#folio").val();
   const noEmpresa = $("#noEmpresa").val();
@@ -397,6 +406,15 @@ $("#btnAutorizar").click(function () {
 });
 
 $("#btnRechazar").click(function () {
+  Swal.fire({
+    title: "Procesando pedido...",
+    text: "Por favor, espera mientras se rechaza el pedido.",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
   const pedidoId = $("#detalleIdPedido").val();
   const folio = $("#folio").val();
   const cliente = $("#nombreCliente").val();

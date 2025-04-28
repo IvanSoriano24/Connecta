@@ -3635,8 +3635,7 @@ function validarSaldo($conexionData, $clave, $claveSae)
         return -1; // Código de error
     }
 }
-function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa)
-{
+function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa){
     global $firebaseProjectId, $firebaseApiKey;
 
     // Validar que se cuente con los datos mínimos requeridos

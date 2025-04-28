@@ -97,16 +97,15 @@ if (isset($_SESSION['usuario'])) {
 						<div class="order">
 							<div class="head">
 								<h3>Clientes</h3>
-								<i class='bx bx-search'></i>
-								<i class='bx bx-filter'></i>
+								<input id="searchTerm" type="text" onkeyup="doSearch()"  />
+								<!--<i class='bx bx-filter'></i>-->
 							</div>
-							<table>
+							<table id="clientes">
 								<thead>
 									<tr>
 										<th>Clave</th>
 										<th>Nombre</th>
 										<th>Calle</th>
-
 										<th>Saldo</th>
 										<th>Estado Datos Timbrado</th>
 										<th>Nombre Comercial</th>

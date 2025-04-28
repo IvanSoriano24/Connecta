@@ -887,7 +887,7 @@ if (isset($_SESSION['usuario'])) {
                                 numFuncion: "16",
                                 clave: claveUsuario,
                             },
-                            success: function(response) {
+                            /*success: function(response) {
 
                                 try {
                                     if (typeof response === "string") {
@@ -920,7 +920,47 @@ if (isset($_SESSION['usuario'])) {
                                 } else {
                                     suggestionsListProductos.empty().append("<li>No se encontraron coincidencias</li>").show();
                                 }
+                            },*/
+                            success: function(response) {
+                                try {
+                                    if (typeof response === "string") {
+                                        response = JSON.parse(response);
+                                    }
+                                } catch (e) {
+                                    console.error("Error al parsear la respuesta JSON", e);
+                                    return;
+                                }
+
+                                const items = suggestionsListProductos.empty().show().find("li"); // lo vaciamos y ya dejamos items en vacío
+
+                                if (response.success && Array.isArray(response.productos) && response.productos.length > 0) {
+                                    suggestionsListProductos.removeClass("d-none");
+
+                                    // 1) Poblar lista
+                                    response.productos.forEach((producto, index) => {
+                                        const listItem = $("<li></li>")
+                                            .text(`${producto.CVE_ART.trim()} - ${producto.DESCR}`)
+                                            .attr("data-index", index)
+                                            .attr("data-producto", JSON.stringify(producto))
+                                            .addClass("suggestion-item")
+                                            .on("click", function() {
+                                                seleccionarProductoDesdeSugerencia($productoInput, producto);
+                                            });
+                                        suggestionsListProductos.append(listItem);
+                                    });
+
+                                    // 2) Preseleccionar la primera opción
+                                    highlightedIndex = 0;
+                                    const allItems = suggestionsListProductos.find("li");
+                                    actualizarDestacadoProducto(allItems, highlightedIndex);
+
+                                } else {
+                                    suggestionsListProductos.empty()
+                                        .append("<li>No se encontraron coincidencias</li>")
+                                        .show();
+                                }
                             },
+
                             error: function() {
                                 console.error("Error en la solicitud AJAX para sugerencias");
                                 suggestionsListProductos.empty().hide();

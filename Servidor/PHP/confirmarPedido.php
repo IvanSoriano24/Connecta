@@ -119,7 +119,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $claveSae = $_GET['claveSae'];
     $noEmpresa = $_GET['noEmpresa'];
     $clave = $_GET['clave'] ?? "";
-    $conCredito = $_GET['credito'] ?? "";
+    $conCredito = $_GET['conCredito'] ?? "";
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     // Obtener fecha y hora actual si no está incluida en los parámetros
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);

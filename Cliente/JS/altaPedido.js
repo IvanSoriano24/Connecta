@@ -66,7 +66,7 @@ function agregarFilaPartidas() {
               <button 
                 type="button" 
                 class="btn ms-2" 
-                onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))">
+                onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))" tabindex="-1">
                 <i class="bx bx-search"></i>
               </button>
             </div>
@@ -74,11 +74,11 @@ function agregarFilaPartidas() {
           </div>
       </td>
       <td><input type="number" class="cantidad" value="0" readonly style="text-align: right;" /></td>
-      <td><input type="text" class="unidad" readonly /></td>
+      <td><input type="text" class="unidad" tabindex="-1" readonly /></td>
       <td><input type="number" class="descuento" style="text-align: right;" value="0" readonly /></td>
-      <td><input type="number" class="iva" value="0" style="text-align: right;" readonly /></td>
-      <td><input type="number" class="precioUnidad" value="0" style="text-align: right;" readonly /></td>
-      <td><input type="number" class="subtotalPartida" value="0" style="text-align: right;" readonly /></td>
+      <td><input type="number" class="iva" value="0" style="text-align: right;" tabindex="-1" readonly /></td>
+      <td><input type="number" class="precioUnidad" value="0" style="text-align: right;" tabindex="-1" readonly /></td>
+      <td><input type="number" class="subtotalPartida" value="0" style="text-align: right;" tabindex="-1" readonly /></td>
       <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
       <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
       <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td>
@@ -415,14 +415,61 @@ function cerrarModal() {
     modal.hide();
   }
 }
+function consolidarPartidasEnTabla() {
+  const mapa = {};
+
+  // 1) Iterar cada fila de la tabla
+  $("#tablaProductos tbody tr").each(function () {
+    const $tr = $(this);
+    const producto = $tr.find(".producto").val();
+    const cantidad = parseFloat($tr.find(".cantidad").val()) || 0;
+    const precio = parseFloat($tr.find(".precioUnidad").val()) || 0;
+
+    if (!mapa[producto]) {
+      // Primera vez que vemos este producto: almacenamos la fila y los datos
+      mapa[producto] = {
+        fila: $tr,
+        cantidadAcumulada: cantidad,
+        precioUnitario: precio,
+      };
+    } else {
+      // Ya existía: sumamos la cantidad y removemos esta fila
+      mapa[producto].cantidadAcumulada += cantidad;
+      $tr.remove();
+    }
+  });
+
+  // 2) Para cada producto agrupado, actualizamos la fila guardada
+  Object.values(mapa).forEach(({ fila, cantidadAcumulada, precioUnitario }) => {
+    // Recalcular subtotal
+    const subtotal = cantidadAcumulada * precioUnitario;
+
+    // Actualizar inputs en la primera fila
+    fila.find(".cantidad").val(cantidadAcumulada);
+    fila.find(".subtotalPartida").val(subtotal.toFixed(2));
+  });
+}
+
 function guardarPedido(id) {
   try {
+    Swal.fire({
+      title: "Procesando pedido...",
+      text: "Por favor, espera mientras se completa el pedido.",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+    consolidarPartidasEnTabla();
     // Obtener la información del formulario y las partidas
     const formularioData = obtenerDatosFormulario();
     console.log("Datos del formulario obtenidos:", formularioData);
 
     const partidasData = obtenerDatosPartidas();
     console.log("Datos de partidas obtenidos:", partidasData);
+
+    return;
 
     // Determinar si es alta o edición
     formularioData.tipoOperacion = id === 0 ? "alta" : "editar";
@@ -1132,7 +1179,7 @@ $(document).ready(function () {
   $("#guardarPedido").click(async function (event) {
     event.preventDefault();
     const clienteSeleccionado =
-    sessionStorage.getItem("clienteSeleccionado") === "true";
+      sessionStorage.getItem("clienteSeleccionado") === "true";
     // Obtener el ID actual del pedido desde el formulario
     let id = document.getElementById("numero").value;
     console.log("ID actual del pedido:", id);
