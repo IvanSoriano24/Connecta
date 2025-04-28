@@ -412,7 +412,12 @@ function probarConexionSAE() {
         document.getElementById('claveSae').value = responseData.numeroTabla || '0';
         //alert(responseData.numeroTabla); //Insertar dato en el select y desabilitarlo
       } else {
-        alert("Error: " + responseData.message);
+        Swal.fire({
+          title: "Error",
+          text: responseData.message,
+          icon: "error",
+        });
+        //alert("Error: " + responseData.message);
       }
     })
     .catch((error) => {

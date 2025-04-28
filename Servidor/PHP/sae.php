@@ -226,7 +226,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
                     'usuario'    => ['stringValue' => $originalData['usuarioSae']],
                     'password'   => ['stringValue' => $originalData['password']],
                     'nombreBase' => ['stringValue' => $originalData['nombreBase']],
-                    'noEmpresa'  => ['stringValue' => $originalData['noEmpresa']],
+                    'noEmpresa'  => ['integerValue' => $originalData['noEmpresa']],
                     'claveSae'   => ['stringValue' => $claveSae],
                 ],
             ];
@@ -312,7 +312,7 @@ function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resulta
             'usuario'    => ['stringValue' => $data['usuarioSae']],
             'password'   => ['stringValue' => $data['password']],
             'nombreBase' => ['stringValue' => $data['nombreBase']],
-            'noEmpresa'  => ['stringValue' => $data['noEmpresa']],
+            'noEmpresa'  => ['integerValue' => $data['noEmpresa']],
             'claveSae'   => ['stringValue' => $resultadoConexion['numeroTabla']],
         ],
     ];
@@ -415,6 +415,7 @@ function verificarConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEm
     // Buscar si existe un documento con el mismo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
+        
         if (isset($fields['claveSae']) && $fields['claveSae']['stringValue'] === $claveSae && isset($fields['noEmpresa']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             echo json_encode(['success' => true, 'tieneConexion' => true]);
             return;
