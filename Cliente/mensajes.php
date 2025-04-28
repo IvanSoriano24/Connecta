@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 if (isset($_SESSION['usuario'])) {
     if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
         header('Location:Menu.php');
@@ -28,10 +27,8 @@ if (isset($_SESSION['usuario'])) {
     exit();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -176,7 +173,6 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                         </div>
                     </div>
-
                 <?php endif; ?>
                 <br>
                 <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR'): ?>
@@ -215,7 +211,6 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                         </div>
                     </div>
-
                 <?php endif; ?>
                 <!-- MODAL -->
                 <!-- Modal para Ver Detalles -->

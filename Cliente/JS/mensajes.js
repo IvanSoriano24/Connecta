@@ -114,37 +114,6 @@ function cargarPedidos() {
     `);
   });
 }
-function verificarNotificaciones() {
-  $.get(
-    "../Servidor/PHP/mensajes.php",
-    { numFuncion: "4" },
-    function (response) {
-      if (response.success) {
-        const { nuevosMensajes, nuevasComandas } = response.data;
-
-        // Mostrar el icono de notificación en el menú de mensajes si hay nuevos mensajes
-        if (nuevosMensajes > 0 || nuevasComandas > 0) {
-          $("#mensajesNotificacion").removeClass("d-none");
-          $("#mensajesNotificacion").text(nuevosMensajes + nuevasComandas); // Total de notificaciones
-        } else {
-          $("#mensajesNotificacion").addClass("d-none");
-        }
-      } else {
-        console.error("Error al verificar notificaciones:", response.message);
-      }
-    },
-    "json"
-  ).fail(function (jqXHR, textStatus, errorThrown) {
-    console.error(
-      "Error en la solicitud de notificaciones:",
-      textStatus,
-      errorThrown
-    );
-  });
-}
-
-// Llamar periódicamente a la función de verificación de notificaciones
-//setInterval(verificarNotificaciones, 30000); // Verificar cada 30 segundos
 
 // Escuchar el cambio en el filtro
 $("#filtroStatus").change(function () {

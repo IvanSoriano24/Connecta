@@ -940,6 +940,38 @@ function validarEmpresaNew() {
     },
   });
 }
+
+function verificarNotificaciones() {
+  $.get(
+    "../Servidor/PHP/mensajes.php",
+    { numFuncion: "4" },
+    function (response) {
+      if (response.success) {
+        const { nuevosPedidos, nuevasComandas } = response.data;
+
+        // Mostrar el icono de notificación en el menú de mensajes si hay nuevos mensajes
+        if (nuevosPedidos > 0 || nuevasComandas > 0) {
+          $("#mensajesNotificacion").removeClass("d-none");
+          $("#mensajesNotificacion").text(nuevosPedidos + nuevasComandas); // Total de notificaciones
+        } else {
+          $("#mensajesNotificacion").addClass("d-none");
+        }
+      } else {
+        console.error("Error al verificar notificaciones:", response.message);
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error(
+      "Error en la solicitud de notificaciones:",
+      textStatus,
+      errorThrown
+    );
+  });
+}
+
+// Llamar periódicamente a la función de verificación de notificaciones
+//setInterval(verificarNotificaciones, 30000); // Verificar cada 30 segundos
 $(document).ready(function () {
   $("#rfcModal").on("input", debounce(function() {
     obtenerRegimen();

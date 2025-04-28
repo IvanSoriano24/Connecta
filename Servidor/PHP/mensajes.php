@@ -250,23 +250,22 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
     }
 }
 
-/*function notificaciones($firebaseProjectId, $firebaseApiKey){
-    $nuevosMensajes = 0;
+function notificaciones($firebaseProjectId, $firebaseApiKey){
+    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+    $nuevosPedidos = 0;
     $nuevasComandas = 0;
-
-    // Verificar mensajes nuevos en Firebase
-    $mensajesUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/MENSAJES?key=$firebaseApiKey";
-    $mensajesResponse = @file_get_contents($mensajesUrl);
-    if ($mensajesResponse !== false) {
-        $mensajesData = json_decode($mensajesResponse, true);
-        foreach ($mensajesData['documents'] as $document) {
+    // Verificar pedidos nuevos en Firebase
+    $pedidosUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+    $pedidosResponse = @file_get_contents($pedidosUrl);
+    if ($pedidosResponse !== false) {
+        $pedidosData = json_decode($pedidosResponse, true);
+        foreach ($pedidosData['documents'] as $document) {
             $fields = $document['fields'];
-            if ($fields['estado']['stringValue'] === 'Pendiente') {
-                $nuevosMensajes++;
+            if ($fields['status']['stringValue'] === 'Sin Autorizar') {
+                $nuevosPedidos++;
             }
         }
     }
-
     // Verificar comandas pendientes en Firebase
     $comandasUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
     $comandasResponse = @file_get_contents($comandasUrl);
@@ -274,21 +273,30 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
         $comandasData = json_decode($comandasResponse, true);
         foreach ($comandasData['documents'] as $document) {
             $fields = $document['fields'];
-            if ($fields['status']['stringValue'] === 'Pendiente') {
+            if ($fields['status']['stringValue'] === 'Abierta') {
                 $nuevasComandas++;
             }
         }
+    }
+    
+    if($tipoUsuario === "ADMINISTRADOR"){
+        $nuevasComandas = 0;
+    }else if($tipoUsuario === "ALMACENISTA"){
+        $nuevosPedidos = 0;
+    }else{
+        $nuevasComandas = 0;
+        $nuevosPedidos = 0;
     }
 
     echo json_encode([
         'success' => true,
         'data' => [
-            'nuevosMensajes' => $nuevosMensajes,
+            'nuevosPedidos' => $nuevosPedidos,
             'nuevasComandas' => $nuevasComandas
         ]
     ]);
     exit;
-}*/
+}
 
 function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionData)
 {
@@ -1217,9 +1225,9 @@ switch ($funcion) {
             ]);
         }
         break;
-    /*case 4:
+    case 4:
             notificaciones($firebaseProjectId, $firebaseApiKey);
-            break;*/
+            break;
     case 5:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
