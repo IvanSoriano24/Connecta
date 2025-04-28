@@ -100,7 +100,6 @@ function mostrarRegimen(clave, rfc) {
             }
           });
 
-
           regimenFiscal.val(clave);
         } else {
           Swal.fire({
@@ -375,9 +374,12 @@ function eliminarEmpresa() {
 }
 
 function probarConexionSAE() {
+  //document.getElementById("claveBancaria").hidden = false;
+
   if (!validateForm2()) {
     return; // Si la validación falla, no se envía el formulario
   }
+  const nombreBanco = $("#nombreBanco").val();
   const data = {
     action: "probar",
     host: $("#host").val(),
@@ -385,6 +387,7 @@ function probarConexionSAE() {
     usuarioSae: $("#usuarioSae").val(),
     password: $("#password").val(),
     nombreBase: $("#nombreBase").val(),
+    nombreBanco: $("#nombreBanco").val(),
     claveSae: $("#claveSae").val(),
   };
   fetch("../Servidor/PHP/sae.php", {
@@ -401,20 +404,36 @@ function probarConexionSAE() {
       return response.json();
     })
     .then((responseData) => {
-      console.log("Respuesta del servidor:", responseData);
+      //console.log("Respuesta del servidor:", responseData);
       if (responseData.success) {
         //alert("Conexión exitosa.");
         Swal.fire({
           title: "¡Éxito!",
           text: "Conexion Exitosa.",
           icon: "success",
+        }).then(() => {
+          document.getElementById("divClaveBancaria").hidden = false;
+          document.getElementById("claveSae").value =
+            responseData.numeroTabla || "0";
+          document.getElementById("claveBancaria").value =
+            responseData.noCuenta || "0";
         });
-        document.getElementById('claveSae').value = responseData.numeroTabla || '0';
-        //alert(responseData.numeroTabla); //Insertar dato en el select y desabilitarlo
+      } else if (responseData.stp) {
+        Swal.fire({
+          title: "¡Éxito!",
+          text: "Conexion Exitosa sin Cuenta STP.",
+          icon: "warning",
+        }).then(() => {
+          document.getElementById("divClaveBancaria").hidden = false;
+          document.getElementById("claveSae").value =
+            responseData.numeroTabla || "0";
+          document.getElementById("claveBancaria").value =
+            responseData.noCuenta || "0";
+        });
       } else {
         Swal.fire({
           title: "Error",
-          text: responseData.message,
+          text: "Error en los datos",
           icon: "error",
         });
         //alert("Error: " + responseData.message);
@@ -427,6 +446,9 @@ function probarConexionSAE() {
 }
 function guardarConexionSAE() {
   const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
+  const nombreBanco = $("#nombreBanco").val();
+  const nombreBase = $("#nombreBase").val();
+
   const data = {
     action: "guardar",
     idDocumento: $("#idDocumento").val(),
@@ -434,9 +456,10 @@ function guardarConexionSAE() {
     puerto: $("#puerto").val(),
     usuarioSae: $("#usuarioSae").val(),
     password: $("#password").val(),
-    nombreBase: $("#nombreBase").val(),
+    nombreBase: nombreBase,
     claveSae: $("#claveSae").val(),
     noEmpresa: noEmpresa,
+    nombreBanco: nombreBanco,
     token: $("#csrf_token").val(),
   };
   $.ajax({
@@ -698,7 +721,7 @@ function mostrarMoldal() {
 }
 function debounce(func, wait) {
   let timeout;
-  return function(...args) {
+  return function (...args) {
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
@@ -715,10 +738,10 @@ function obtenerRegimen() {
       .append("<option selected disabled>Selecciona un régimen</option>");
     return;
   }
-  
+
   // Habilitamos el select
   $("#regimenFiscalModal").prop("disabled", false);
-  
+
   $.ajax({
     url: "../Servidor/PHP/empresas.php",
     method: "POST",
@@ -728,8 +751,10 @@ function obtenerRegimen() {
       if (resRegimen.success && Array.isArray(resRegimen.data)) {
         const $regimenFiscalModal = $("#regimenFiscalModal");
         $regimenFiscalModal.empty();
-        $regimenFiscalModal.append("<option selected disabled>Selecciona un régimen</option>");
-        
+        $regimenFiscalModal.append(
+          "<option selected disabled>Selecciona un régimen</option>"
+        );
+
         // Filtrar según el largo del RFC
         resRegimen.data.forEach((regimen) => {
           if (rfc.length === 12 && regimen.Moral === "Sí") {
@@ -783,10 +808,10 @@ function obtenerRegimenNew() {
       .append("<option selected disabled>Selecciona un régimen</option>");
     return;
   }
-  
+
   // Habilitamos el select
   $("#regimenFiscalNew").prop("disabled", false);
-  
+
   $.ajax({
     url: "../Servidor/PHP/empresas.php",
     method: "POST",
@@ -796,8 +821,10 @@ function obtenerRegimenNew() {
       if (resRegimen.success && Array.isArray(resRegimen.data)) {
         const $regimenFiscalNew = $("#regimenFiscalNew");
         $regimenFiscalNew.empty();
-        $regimenFiscalNew.append("<option selected disabled>Selecciona un régimen</option>");
-        
+        $regimenFiscalNew.append(
+          "<option selected disabled>Selecciona un régimen</option>"
+        );
+
         // Filtrar según el largo del RFC
         resRegimen.data.forEach((regimen) => {
           if (rfc.length === 12 && regimen.Moral === "Sí") {
@@ -978,9 +1005,12 @@ function verificarNotificaciones() {
 // Llamar periódicamente a la función de verificación de notificaciones
 //setInterval(verificarNotificaciones, 30000); // Verificar cada 30 segundos
 $(document).ready(function () {
-  $("#rfcModal").on("input", debounce(function() {
-    obtenerRegimen();
-  }, 300));
+  $("#rfcModal").on(
+    "input",
+    debounce(function () {
+      obtenerRegimen();
+    }, 300)
+  );
   $("#cancelarModal").click(function () {
     cerrarModal();
   });

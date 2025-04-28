@@ -127,6 +127,14 @@ session_destroy(); */
               <div class="form-row">
                 <label for="nombreBase">Nombre Base Datos:</label>
                 <input class="input-mt" type="text" name="nombreBase" id="nombreBase" value="">
+                <div id="divClaveBancaria" class="form-row" hidden>
+                  <label for="txt">Clave Bancaria:</label>
+                  <input class="input-mt" type="text" name="claveBancaria" id="claveBancaria">
+                </div>
+              </div>
+              <div class="form-row">
+                <label for="nombreBase">Nombre Banco:</label>
+                <input class="input-mt" type="text" name="nombreBanco" id="nombreBanco" value="">
               </div>
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>

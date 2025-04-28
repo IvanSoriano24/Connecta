@@ -96,6 +96,10 @@ session_destroy(); */
                 <label for="nombreBase">Nombre Base Datos:</label>
                 <input class="input-mt" type="text" name="nombreBase" id="nombreBase" value="">
               </div>
+              <div class="form-row">
+                <label for="nombreBase">Nombre Banco:</label>
+                <input class="input-mt" type="text" name="nombreBanco" id="nombreBanco" value="">
+              </div>
               <div class="form-buttons">
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
                 <button type="button" class="btn-save" id="confirmarConexionNew">Guardar</button>
