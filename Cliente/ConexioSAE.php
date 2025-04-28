@@ -129,7 +129,7 @@ session_destroy(); */
                 <input class="input-mt" type="text" name="nombreBase" id="nombreBase" value="">
                 <div id="divClaveBancaria" class="form-row" hidden>
                   <label for="txt">Clave Bancaria:</label>
-                  <input class="input-mt" type="text" name="claveBancaria" id="claveBancaria">
+                  <input class="input-mt" type="text" name="claveBancaria" id="claveBancaria" readonly>
                 </div>
               </div>
               <div class="form-row">
