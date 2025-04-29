@@ -38,6 +38,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
                     'usuario' => $fields['usuario']['stringValue'],
                     'password' => $fields['password']['stringValue'],
                     'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'nombreBanco' => $fields['nombreBanco']['stringValue'],
                     'claveSae' => $fields['claveSae']['stringValue'],
                 ]
             ];
@@ -4123,6 +4124,79 @@ function eliminarCxc($conexionData, $anticipo, $claveSae)
     //if (isset($stmtCunetDet)) sqlsrv_free_stmt($stmtCunetDet);
     sqlsrv_close($conn);
 }
+function eliminarCxCBanco($conexionData, $anticipo, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    // Conectar a la base de datos
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+
+    // Construir los nombres de las tablas
+    $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    /*$referencia = $formularioData['referencia'] ?? '000001'; // Puede generarse o venir del formulario
+    $factura = $formularioData['numero']; // Número de factura o pedido*/
+    /*$referencia = '000001';
+    $factura = '18784';*/
+    $referencia = $anticipo['Referencia'];
+    $factura = $anticipo['NO_FACTURA'];
+    // Iniciar una transacción
+    sqlsrv_begin_transaction($conn);
+
+    try {
+        // Eliminar de la tabla CUEN_M
+        $sqlCunetM = "DELETE FROM $tablaCunetM WHERE [REFER] = ? AND [NO_FACTURA] = ?";
+        //$params = [$anticipo['Referencia'], $anticipo['NO_FACTURA']];
+        $params = [$referencia, $factura];
+        $stmtCunetM = sqlsrv_prepare($conn, $sqlCunetM, $params);
+        if ($stmtCunetM === false) {
+            throw new Exception('Error al preparar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
+        }
+        if (!sqlsrv_execute($stmtCunetM)) {
+            throw new Exception('Error al ejecutar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
+        }
+
+        // Eliminar de la tabla CUEN_Det
+        /*$sqlCunetDet = "DELETE FROM $tablaCunetDet WHERE [REFER] = ? AND [NO_FACTURA] = ?";
+        $stmtCunetDet = sqlsrv_prepare($conn, $sqlCunetDet, $params);*/
+        /*if ($stmtCunetDet === false) {
+            throw new Exception('Error al preparar la consulta para $tablaCunetDet: ' . print_r(sqlsrv_errors(), true));
+        }
+        if (!sqlsrv_execute($stmtCunetDet)) {
+            throw new Exception('Error al ejecutar la consulta para $tablaCunetDet: ' . print_r(sqlsrv_errors(), true));
+        }*/
+
+        // Confirmar la transacción
+        sqlsrv_commit($conn);
+    } catch (Exception $e) {
+        // Revertir la transacción en caso de error
+        sqlsrv_rollback($conn);
+        die(json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]));
+    }
+
+    // Liberar recursos y cerrar conexión
+    if (isset($stmtCunetM)) sqlsrv_free_stmt($stmtCunetM);
+    //if (isset($stmtCunetDet)) sqlsrv_free_stmt($stmtCunetDet);
+    sqlsrv_close($conn);
+}
 function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
 {
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
@@ -6022,13 +6096,13 @@ switch ($funcion) {
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             actualizarFolio($conexionData, $claveSae);
-                            //eliminarCxc($conexionData, $anticipo, $claveSae);
+                            eliminarCxc($conexionData, $anticipo, $claveSae);
                             remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                             comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey);
                             /*$datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
                             pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                             restarSaldo($conexionData, $claveSae, $datosCxC, $clave);*/
-                            //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
+                            eliminarCxCBanco($anticipo, $claveSae, $formularioData);
                             //actualizarFolioF($conexionData, $claveSae);
                             // Respuesta de éxito
                             header('Content-Type: application/json; charset=UTF-8');

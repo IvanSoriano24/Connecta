@@ -594,6 +594,7 @@ function informaSae() {
         $("#usuarioSae").val(data.usuarioSae);
         $("#password").val(data.password);
         $("#nombreBase").val(data.nombreBase);
+        $("#nombreBanco").val(data.nombreBanco);
         $("#claveSae").val(data.claveSae);
       } else {
         console.warn(
@@ -635,6 +636,7 @@ function informaSaeInicio(claveSae) {
         $("#usuarioSae").val(data.usuarioSae);
         $("#password").val(data.password);
         $("#nombreBase").val(data.nombreBase);
+        $("#nombreBanco").val(data.nombreBanco);
         $("#claveSae").val(data.claveSae);
       } else {
         console.warn(

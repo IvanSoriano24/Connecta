@@ -93,7 +93,7 @@ function probarConexionBanco($host, $usuario, $password, $nombreBase)
     }
 }
 
-function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento, $resultadoConexion)
+function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento, $resultadoConexion, $resultadoBanco)
 {
     // Si el idDocumento es nulo, creamos un nuevo documento
     if ($idDocumento === null) {
@@ -164,6 +164,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
                 'nombreBanco' => ['stringValue' => $data['nombreBanco']],
                 'noEmpresa' => ['integerValue' => $data['noEmpresa']],
                 'claveSae' => ['stringValue' => $claveSae],
+                'numCuneta' => ['stringValue' => $resultadoBanco['NUM_REG']],
             ],
         ];
         $options = [
@@ -272,6 +273,7 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
                     'nombreBanco' => ['stringValue' => $originalData['nombreBanco']],
                     'noEmpresa'  => ['integerValue' => $originalData['noEmpresa']],
                     'claveSae'   => ['stringValue' => $claveSae],
+                    'numCuneta' => ['stringValue' => $resultadoBanco['NUM_REG']],
                 ],
             ];
 
@@ -424,6 +426,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
                     'usuarioSae' => $fields['usuario']['stringValue'],
                     'password' => $fields['password']['stringValue'],
                     'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'nombreBanco' => $fields['nombreBanco']['stringValue'],
                     'claveSae' => $fields['claveSae']['stringValue'],
 
                 ]
@@ -533,6 +536,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'password' => $input['password'],
                 'nombreBase' => $input['nombreBase'],
                 'noEmpresa' => $input['noEmpresa'],
+                'nombreBanco' => $input['nombreBanco'],
                 'claveSae' => $input['claveSae']
             ];
             $csrf_token_form = $input['token'];
@@ -545,7 +549,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
                     if ($resultadoBanco['success']) {
                         ob_clean();
-                        $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento, $resultadoConexion);
+                        $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento, $resultadoConexion, $resultadoBanco);
                         //echo json_encode($resultadoGuardar);
                         return;
                     } else {

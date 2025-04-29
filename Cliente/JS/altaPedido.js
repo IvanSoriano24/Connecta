@@ -469,8 +469,6 @@ function guardarPedido(id) {
     const partidasData = obtenerDatosPartidas();
     console.log("Datos de partidas obtenidos:", partidasData);
 
-    return;
-
     // Determinar si es alta o edición
     formularioData.tipoOperacion = id === 0 ? "alta" : "editar";
     console.log("Datos preparados para enviar:", formularioData, partidasData);

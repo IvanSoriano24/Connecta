@@ -435,7 +435,6 @@ if (isset($_SESSION['usuario'])) {
                         "Content-Type": "application/json",
                     },
                 });
-
                 const data = await response.json();
 
                 if (data.sinDatos) {
