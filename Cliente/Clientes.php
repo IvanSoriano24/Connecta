@@ -67,8 +67,58 @@ if (isset($_SESSION['usuario'])) {
 		}
 	</style>
 
-</head>
+	<style>
+		/* CSS */
+		.search-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 1rem;
+		}
 
+		.search-head h3 {
+			margin: 0;
+			font-size: 1.5rem;
+			font-weight: 600;
+			color: #333;
+		}
+
+		.input-group {
+			position: relative;
+			width: 300px;
+			/* ajusta al ancho deseado */
+		}
+
+		.search-group .search-input,
+		.input-group .search-input {
+			width: 100%;
+			padding: 0.5rem 1rem;
+			/* espacio a la izquierda para el icono */
+			padding-left: 2.5rem;
+			font-size: 1rem;
+			border: 1px solid #ccc;
+			border-radius: 0.25rem;
+			transition: border-color 0.2s ease, box-shadow 0.2s ease;
+		}
+
+		.input-group .search-icon {
+			position: absolute;
+			left: 0.75rem;
+			top: 50%;
+			transform: translateY(-50%);
+			font-size: 1.2rem;
+			color: #888;
+			pointer-events: none;
+		}
+
+		.input-group .search-input:focus {
+			outline: none;
+			border-color: #007bff;
+			box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+		}
+	</style>
+
+</head>
 <body>
 	<div class="hero_area">
 		<!-- SIDEBAR -->
@@ -93,12 +143,20 @@ if (isset($_SESSION['usuario'])) {
 					</div>
 
 					<div class="table-data">
-					<input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
+						<input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
 						<div class="order">
-							<div class="head">
+							<!-- HTML -->
+							<div class="head search-head">
 								<h3>Clientes</h3>
-								<input id="searchTerm" type="text" onkeyup="doSearch()"  />
-								<!--<i class='bx bx-filter'></i>-->
+								<div class="input-group">
+									<i class='bx bx-search search-icon'></i>
+									<input
+										id="searchTerm"
+										class="search-input"
+										type="text"
+										placeholder="Buscar clientes..."
+										onkeyup="doSearch()" />
+								</div>
 							</div>
 							<table id="clientes">
 								<thead>
@@ -376,7 +434,7 @@ if (isset($_SESSION['usuario'])) {
 								</div>
 
 								<div class="form-row mb-3">
-								<div class="form-group col-md-6">
+									<div class="form-group col-md-6">
 										<label for="descuento">% Descuento:</label>
 										<div class="input-group" style="margin-right: 20px;">
 											<input type="number" class="input-fo" id="descuento" style="text-align: right;" readonly1>

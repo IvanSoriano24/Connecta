@@ -8,10 +8,10 @@ if (isset($_SESSION['usuario'])) {
     $nombreUsuario = $_SESSION['usuario']["nombre"];
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     $correo = $_SESSION['usuario']["correo"];
-    if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+    /*if ($_SESSION['usuario']['tipoUsuario'] == 'ADMINISTRADOR') {
         header('Location:Dashboard.php');
         exit();
-    }
+    }*/
 
     $mostrarModal = isset($_SESSION['empresa']) ? false : true;
 
@@ -182,9 +182,11 @@ session_destroy(); */
                                         <th>Estatus</th>
                                         <th>Fecha Elaboracion</th>
                                         <th>Subtotal</th>
-                                        <th>Total de Comisiones</th>
+                                        <!--<th>Total de Comisiones</th>-->
                                         <th>Importe total</th>
-                                        <th>Nombre del vendedor</th>
+                                        <?php //if ($tipoUsuario == "ADMINISTRADOR") { ?>
+                                            <th>Nombre del vendedor</th>
+                                        <?php //} ?>
                                         <th>Editar</th>
                                         <th>Cancelar</th>
                                     </tr>
@@ -225,6 +227,15 @@ session_destroy(); */
         $(document).ready(function() {
             datosPedidos();
         });
+    </script>-->
+    <!--<script>
+        var tipoUsuario = "<?php // echo $tipoUsuario; ?>";
+        if (tipoUsuario != "ADMINISTRADOR") {
+            document
+                .querySelectorAll("#datosPedidos .nombreVendedor")
+                //.forEach(td => td.remove());
+                .forEach(td => td.remove());
+        }
     </script>-->
     <script>
         // Asignar el evento "change" al select del filtro (asegúrate que el id sea correcto)
@@ -276,25 +287,26 @@ session_destroy(); */
             pedidosTable.innerHTML = ""; // Limpiar la tabla
             pedidos.forEach((pedido) => {
                 const row = document.createElement("tr");
+                const subtotalText = pedido.Subtotal
+    ? `$${Number(pedido.Subtotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : 'Sin subtotal';
+  const importeText = pedido.ImporteTotal
+    ? `$${Number(pedido.ImporteTotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : 'Sin importe';
                 row.innerHTML = `
             <td>${pedido.Tipo || "Sin tipo"}</td>
             <td>${pedido.Clave || "Sin clave"}</td>
             <td>${pedido.Cliente || "Sin cliente"}</td>
             <td>${pedido.Nombre || "Sin nombre"}</td>
             <td>${pedido.Estatus || "0"}</td>
-            <td>${pedido.FechaElaboracion?.date || "Sin fecha"}</td>
-            <td style="text-align: right;">
-                ${pedido.Subtotal ? `$${parseFloat(pedido.Subtotal).toFixed(2)}` : "Sin subtotal"}
-            </td>
-            <td style="text-align: right;">${pedido.TotalComisiones
+            <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
+            <td style="text-align: right;">${subtotalText}</td>
+            <!-- <td style="text-align: right;">${pedido.TotalComisiones
                 ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
                 : "Sin comisiones"
-            }</td>
-            <td style="text-align: right;">${pedido.ImporteTotal
-                ? `$${parseFloat(pedido.ImporteTotal).toFixed(2)}`
-                : "Sin importe"
-            }</td>
-            <td>${pedido.NombreVendedor || "Sin vendedor"}</td>
+            }</td> -->
+            <td style="text-align: right;">${importeText}</td>
+            <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"}</td>
             <td>
                 <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
             }" style="

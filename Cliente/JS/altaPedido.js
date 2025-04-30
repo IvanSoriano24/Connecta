@@ -8,7 +8,7 @@ function agregarFilaPartidas() {
     sessionStorage.getItem("clienteSeleccionado") === "true";
   if (!clienteSeleccionado) {
     Swal.fire({
-      title: "Error",
+      title: "Aviso",
       text: `Debes seleccionar un Cliente primero`,
       icon: "warning",
       confirmButtonText: "Entendido",
@@ -29,7 +29,7 @@ function agregarFilaPartidas() {
       parseFloat(ultimaFila.querySelector(".subtotalPartida").value) || 0;
     if (ultimoProducto === "" || ultimaCantidad === 0) {
       Swal.fire({
-        title: "Error",
+        title: "Aviso",
         text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de agregar otra partida.",
         icon: "error",
         confirmButtonText: "Entendido",
@@ -38,7 +38,7 @@ function agregarFilaPartidas() {
     }
     if (ultimoTotal === 0) {
       Swal.fire({
-        title: "Error",
+        title: "Aviso",
         text: "No puedes agregar una partida con un producto de costo 0.",
         icon: "error",
         confirmButtonText: "Entendido",
@@ -55,7 +55,7 @@ function agregarFilaPartidas() {
   nuevaFila.setAttribute("data-num-par", numPar); // Identificar la fila oninput="mostrarSugerencias(this)
   nuevaFila.innerHTML = `
       <td>
-          <button type="button" class="btn btn-danger btn-sm eliminarPartida" data-num-par="${numPar}">
+          <button type="button" class="btn btn-danger btn-sm eliminarPartida" data-num-par="${numPar}" tabindex="-1" >
               <i class="bx bx-trash"></i>
           </button>
       </td>    
@@ -98,7 +98,7 @@ function agregarFilaPartidas() {
   cantidadInput.addEventListener("input", () => {
     if (parseFloat(cantidadInput.value) < 0) {
       Swal.fire({
-        title: "Error",
+        title: "Aviso",
         text: "La cantidad no puede ser negativa.",
         icon: "error",
         confirmButtonText: "Entendido",
@@ -376,7 +376,7 @@ function mostrarListaProductos(productos, input) {
           // campoCantidad.readOnly = true;
           // campoCantidad.value = "Sin existencias"; // Mensaje opcional
           Swal.fire({
-            title: "Error",
+            title: "Aviso",
             text: `El producto "${producto.CVE_ART}" no tiene existencias disponibles.`,
             icon: "warning",
             confirmButtonText: "Entendido",
@@ -763,7 +763,7 @@ function editarPedido(pedidoID) {
         });
       } else {
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: data.message || "No se pudo actualizar el pedido",
           icon: "error",
           confirmButtonText: "Entendido",
@@ -887,7 +887,7 @@ function validarCreditoCliente(clienteId) {
         }
       } else {
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: data.message || "No se pudo validar el cliente.",
           icon: "error",
         });
@@ -896,7 +896,7 @@ function validarCreditoCliente(clienteId) {
     .catch((error) => {
       console.error("Error al validar el cliente:", error);
       Swal.fire({
-        title: "Error",
+        title: "Aviso",
         text: "Ocurrió un error al validar el cliente.",
         icon: "error",
       });
@@ -1167,12 +1167,19 @@ document
   .addEventListener("keydown", function (event) {
     if (
       event.key === "Tab" &&
-      event.target.classList.contains("cantidad") // Solo si el evento ocurre en un input de cantidad
+      event.target.classList.contains("descuento") // Solo si el evento ocurre en un input de cantidad
     ) {
       agregarFilaPartidas();
     }
   });
-
+  document
+  .getElementById("formularioPedido")
+  .addEventListener("keydown", function (event) {
+    // Si Tab y el target es el input con id "enviar"
+    if (event.key === "Tab" && event.target.id === "enviar") {
+      agregarFilaPartidas();
+    }
+  });
 $(document).ready(function () {
   $("#guardarPedido").click(async function (event) {
     event.preventDefault();
@@ -1201,7 +1208,7 @@ $(document).ready(function () {
       );
       if (!clienteSeleccionado) {
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: "Debes Tener un Cliente para Guardar.",
           icon: "error",
           confirmButtonText: "Entendido",
@@ -1212,7 +1219,7 @@ $(document).ready(function () {
       const filas = tablaProductos.querySelectorAll("tr");
       if (!filas[filas.length - 1]) {
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: "Debes Crear una Partida Antes de Guardar.",
           icon: "error",
           confirmButtonText: "Entendido",
@@ -1229,7 +1236,7 @@ $(document).ready(function () {
 
       if (ultimoProducto === "" || ultimaCantidad === 0) {
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de guardar el pedido.",
           icon: "error",
           confirmButtonText: "Entendido",
@@ -1238,7 +1245,7 @@ $(document).ready(function () {
       }
       if (ultimoTotal === 0) {
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: "No puedes realizar un pedido con costo 0.",
           icon: "error",
           confirmButtonText: "Entendido",

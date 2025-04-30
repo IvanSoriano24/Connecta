@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const datosPedido = await obtenerDatosPedido(fechaActual);
       if (!datosPedido) {
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: "No se pudieron obtener los datos del pedido.",
           icon: "error",
           confirmButtonText: "Aceptar",

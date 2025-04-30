@@ -7,6 +7,7 @@ if (isset($_SESSION['usuario'])) {
 	}
 	$nombreUsuario = $_SESSION['usuario']["usuario"];
 	$nombre = $_SESSION['usuario']["nombre"];
+	$usuario = $_SESSION['usuario']["usuario"];
 	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 	$correo = $_SESSION['usuario']["correo"];
 	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
@@ -89,7 +90,7 @@ if (isset($_SESSION['usuario'])) {
 			<div class="modal-content">
 				<div class="text-center mb-4">
 					<h1 class="display-4 text-primary txth1">Bienvenido</h1>
-					<h2 class="card-title text-center txth2"><?php echo $tipoUsuario; ?></h2>
+					<h2 class="card-title text-center txth2"><?php echo $usuario; ?></h2>
 				</div>
 				<div class="modal-body">
 					<select class="form-select" id="empresaSelect" name="empresaSelect">
@@ -98,10 +99,11 @@ if (isset($_SESSION['usuario'])) {
 				</div>
 				<div class="modal-footer d-flex justify-content-between">
 					<button type="button" class="btn btn-danger" id="cerrarSesionModal">Cerrar Sesion</button>
+					
+					<button type="button" class="btn btn-secondary" id="confirmarEmpresa">Confirmar</button>
 					<?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
-					<button type="button" class="btn btn-secondary" id="guardarNuevaEmpresa">Crear Empresa</button>
+					<button type="button" class="btn btn-primary txt" id="guardarNuevaEmpresa">Crear Empresa</button>
 					<?php } ?>
-					<button type="button" class="btn btn-primary txt" id="confirmarEmpresa">Confirmar</button>
 				</div>
 			</div>
 		</div>

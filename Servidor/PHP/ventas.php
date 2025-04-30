@@ -92,21 +92,24 @@ function mostrarPedidos($conexionData, $filtroFecha)
         $nombreTabla3  = "[{$conexionData['nombreBase']}].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
         // Reescribir la consulta evitando duplicados con `DISTINCT`
-        $sql = "SELECT DISTINCT 
-                    f.TIP_DOC AS Tipo,
-                    f.CVE_DOC AS Clave,
-                    f.CVE_CLPV AS Cliente,
-                    c.NOMBRE AS Nombre,
-                    f.STATUS AS Estatus,
-                    f.FECHAELAB AS FechaElaboracion,
-                    f.CAN_TOT AS Subtotal,
-                    f.COM_TOT AS TotalComisiones,
-                    f.IMPORTE AS ImporteTotal,
-                    v.NOMBRE AS NombreVendedor
-                FROM $nombreTabla2 f
-                LEFT JOIN $nombreTabla c ON c.CLAVE = f.CVE_CLPV
-                LEFT JOIN $nombreTabla3 v ON v.CVE_VEND = f.CVE_VEND
-                WHERE f.STATUS IN ('E', 'O') ";
+        $sql = "
+            SELECT DISTINCT 
+                f.TIP_DOC              AS Tipo,
+                f.CVE_DOC              AS Clave,
+                f.CVE_CLPV             AS Cliente,
+                c.NOMBRE               AS Nombre,
+                f.STATUS               AS Estatus,
+                CONVERT(VARCHAR(10), f.FECHAELAB, 105) AS FechaElaboracion,
+                f.FECHAELAB            AS FechaOrden,    
+                f.CAN_TOT              AS Subtotal,
+                f.COM_TOT              AS TotalComisiones,
+                f.IMPORTE              AS ImporteTotal,
+                v.NOMBRE               AS NombreVendedor
+            FROM $nombreTabla2 f
+            LEFT JOIN $nombreTabla  c ON c.CLAVE   = f.CVE_CLPV
+            LEFT JOIN $nombreTabla3 v ON v.CVE_VEND= f.CVE_VEND
+            WHERE f.STATUS IN ('E','O')
+            ";
 
         // Agregar filtros de fecha
         if ($filtroFecha == 'Hoy') {
@@ -3636,7 +3639,8 @@ function validarSaldo($conexionData, $clave, $claveSae)
         return -1; // Código de error
     }
 }
-function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa){
+function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // Validar que se cuente con los datos mínimos requeridos
@@ -5684,7 +5688,8 @@ function obtenerNombreCliente($cliente, $conexionData, $claveSae)
 
     return $nombre;
 }
-function comanda ($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey){
+function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey)
+{
     date_default_timezone_set('America/Mexico_City');
 
     $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
@@ -5740,7 +5745,8 @@ function comanda ($formularioData, $partidasData, $claveSae, $noEmpresa, $conexi
 
     $response = @file_get_contents($url, false, $context);
 }
-function obtenerProductosComanda($pedidoId, $conexionData, $claveSae){
+function obtenerProductosComanda($pedidoId, $conexionData, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -5774,7 +5780,8 @@ function obtenerProductosComanda($pedidoId, $conexionData, $claveSae){
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerDescripcionComanda($producto, $conexionData, $claveSae){
+function obtenerDescripcionComanda($producto, $conexionData, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],

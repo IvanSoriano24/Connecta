@@ -284,37 +284,54 @@ function obtenerDatosPedido($cveDoc, $conexionData, $claveSae)
     ]);
 
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar a la base de datos',
+            'errors'  => sqlsrv_errors()
+        ]));
     }
 
     // Construcción del nombre de la tabla con clave SAE
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP"
+        . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    // Consulta SQL para obtener los datos de la remisión
-    $sql = "SELECT CVE_CLPV, CVE_VEND, FECHA_DOC, FOLIO, DES_TOT
-            FROM $nombreTabla 
-            WHERE CVE_DOC = ?";
+    // Consulta: convertimos FECHA_DOC a dd-mm-yyyy (estilo 105)
+    $sql = "
+        SELECT 
+          CVE_CLPV,
+          CVE_VEND,
+          CONVERT(VARCHAR(10), FECHA_DOC, 105) AS FECHA_DOC,
+          FOLIO,
+          DES_TOT
+        FROM $nombreTabla
+        WHERE CVE_DOC = ?
+    ";
 
     $params = [$cveDoc];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al consultar la remisión', 'errors' => sqlsrv_errors()]));
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al consultar la remisión',
+            'errors'  => sqlsrv_errors()
+        ]));
     }
 
     $datosPedidoAuto = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     sqlsrv_close($conn);
 
     if (!$datosPedidoAuto) {
-        return null; // Si no encuentra la remisión, retorna null
+        return null; // Si no encuentra la remisión
     }
 
     return [
-        'CVE_CLPV' => trim($datosPedidoAuto['CVE_CLPV']),
-        'CVE_VEND' => trim($datosPedidoAuto['CVE_VEND']),
-        'FECHA_DOC' => $datosPedidoAuto['FECHA_DOC']->format('Y-m-d'),
-        'FOLIO' => (float) $datosPedidoAuto['FOLIO'],
-        'DES_TOT' => (float) $datosPedidoAuto['DES_TOT']
+        'CVE_CLPV'  => trim($datosPedidoAuto['CVE_CLPV']),
+        'CVE_VEND'  => trim($datosPedidoAuto['CVE_VEND']),
+        // FECHA_DOC ya viene en formato "dd-mm-yyyy"
+        'FECHA_DOC' => $datosPedidoAuto['FECHA_DOC'],  
+        'FOLIO'     => (float) $datosPedidoAuto['FOLIO'],
+        'DES_TOT'   => (float) $datosPedidoAuto['DES_TOT']
     ];
 }
 function obtenerDatosPartidasPedido($cveDoc, $conexionData, $claveSae)

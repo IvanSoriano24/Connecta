@@ -14,7 +14,7 @@ function agregarEventosBotones() {
         const res = await verificarPedido(pedidoID);
         if (res.success) {
           Swal.fire({
-            title: "Error",
+            title: "Aviso",
             text: "El pedido ya fue Remitido/Facturado, no es posible editarlo",
             icon: "error",
             confirmButtonText: "Entendido",
@@ -28,7 +28,7 @@ function agregarEventosBotones() {
       } catch (error) {
         console.error("Error al verificar el pedido:", error);
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: "Hubo un problema al verificar el pedido",
           icon: "error",
           confirmButtonText: "Entendido",
@@ -64,7 +64,7 @@ function agregarEventosBotones() {
         const res = await verificarPedido(pedidoID);
         if (res.success) {
           Swal.fire({
-            title: "Error",
+            title: "Aviso",
             text: "El pedido ya fue Remitido/Facturado, no es posible cancelarlo",
             icon: "error",
             confirmButtonText: "Entendido",
@@ -90,7 +90,7 @@ function agregarEventosBotones() {
       } catch (error) {
         console.error("Error al verificar el pedido:", error);
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: "Hubo un problema al verificar el pedido",
           icon: "error",
           confirmButtonText: "Entendido",
@@ -120,7 +120,7 @@ function eliminarPedido(pedidoID) {
           });
         } else {
           Swal.fire({
-            title: "Error",
+            title: "Aviso",
             text: response.message || "No se pudo cancelar el pedido",
             icon: "error",
             confirmButtonText: "Entendido",
@@ -132,7 +132,7 @@ function eliminarPedido(pedidoID) {
     }
   ).fail(function (jqXHR, textStatus, errorThrown) {
     Swal.fire({
-      title: "Error",
+      title: "Aviso",
       text: "Hubo un problema al intentar eliminar el pedido",
       icon: "error",
       confirmButtonText: "Entendido",
@@ -296,6 +296,13 @@ function datosPedidos(limpiarTabla = true) {
 
             pedidos.forEach((pedido) => {
               const row = document.createElement("tr");
+              const subtotalText = pedido.Subtotal
+              ? `$${Number(pedido.Subtotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : 'Sin subtotal';
+            const importeText = pedido.ImporteTotal
+              ? `$${Number(pedido.ImporteTotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : 'Sin importe';
+
               row.innerHTML = `
                                 <td>${pedido.Tipo || "Sin tipo"}</td>
                                 <td>${pedido.Clave || "Sin nombre"}</td>
@@ -303,35 +310,18 @@ function datosPedidos(limpiarTabla = true) {
                                 <td>${pedido.Nombre || "Sin nombre"}</td>
                                 <td>${pedido.Estatus || "0"}</td>
                                 <td>${
-                                  pedido.FechaElaboracion?.date || "Sin fecha"
+                                  pedido.FechaElaboracion || "Sin fecha"
                                 }</td>
-                                <td style="text-align: right;">
-                                    ${
-                                      pedido.Subtotal
-                                        ? `$${parseFloat(
-                                            pedido.Subtotal
-                                          ).toFixed(2)}`
-                                        : "Sin subtotal"
-                                    }
-                                </td>
-
-                                <td style="text-align: right;">${
+                                <td style="text-align: right;">${subtotalText}</td>
+                                <!--<td style="text-align: right;">${
                                   pedido.TotalComisiones
                                     ? `$${parseFloat(
                                         pedido.TotalComisiones
                                       ).toFixed(2)}`
                                     : "Sin Comisiones"
-                                }</td>
-                                <td style="text-align: right;">${
-                                  pedido.ImporteTotal
-                                    ? `$${parseFloat(
-                                        pedido.ImporteTotal
-                                      ).toFixed(2)}`
-                                    : "Sin importe"
-                                }</td>
-                                <td>${
-                                  pedido.NombreVendedor || "Sin vendedor"
-                                }</td>
+                                }</td>-->
+                                <td style="text-align: right;">${importeText}</td>
+                               <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"}</td>
                                 <td>
                                     <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
                                       pedido.Clave
@@ -416,12 +406,11 @@ function obtenerDatosPedido(pedidoID) {
     "../Servidor/PHP/ventas.php",
     {
       numFuncion: 2, // Función para obtener el pedido por ID
-      pedidoID: pedidoID
+      pedidoID: pedidoID,
     },
     function (response) {
       console.log("Respuesta cruda:", response); // 👈 Imprime lo que llega
       if (response.success) {
-        
         const pedido = response.pedido;
         console.log("Datos del pedido:", pedido);
 
@@ -448,7 +437,7 @@ function obtenerDatosPedido(pedidoID) {
         //document.getElementById("descuentofin").value = pedido.DES_FIN || "";
         document.getElementById("cliente").value = pedido.CVE_CLPV || "";
         document.getElementById("supedido").value = pedido.CONDICION || "";
-        document.getElementById("esquema").value = pedido.CONDICION || "";
+        //document.getElementById("esquema").value = pedido.CONDICION || "";
 
         // Actualizar estado de cliente seleccionado en sessionStorage
         sessionStorage.setItem("clienteSeleccionado", true);
@@ -538,7 +527,7 @@ function actualizarTablaPartidas(pedidoID) {
     cantidadInput.addEventListener("input", () => {
       if (parseFloat(cantidadInput.value) < 0) {
         Swal.fire({
-          title: "Error",
+          title: "Aviso",
           text: "La cantidad no puede ser negativa.",
           icon: "error",
           confirmButtonText: "Entendido",
@@ -599,7 +588,7 @@ function eliminarPartidaFormularioEditar(numPar, clavePedido) {
           } else {
             // ❌ Si hubo error en el servidor
             Swal.fire({
-              title: "Error",
+              title: "Aviso",
               text: response.message,
               icon: "error",
               confirmButtonText: "Entendido",
@@ -609,7 +598,7 @@ function eliminarPartidaFormularioEditar(numPar, clavePedido) {
         error: function (xhr, status, error) {
           console.error("Error en la solicitud AJAX:", error);
           Swal.fire({
-            title: "Error",
+            title: "Aviso",
             text: "Hubo un problema al eliminar la partida.",
             icon: "error",
             confirmButtonText: "Entendido",

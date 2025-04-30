@@ -406,7 +406,7 @@ if (isset($_SESSION['usuario'])) {
                             </div> -->
 
                 <div class="card-body ">
-                    <form class="form-container">
+                    <form class="form-container" id="formularioPedido">
                         <!-- 1st row: 4 inputs (2 select, 2 text) -->
                         <div class="row">
                             <div class="form-element">
@@ -431,12 +431,12 @@ if (isset($_SESSION['usuario'])) {
                                 <div class="input-container" style="position: relative;">
                                     <div style="display: flex; align-items: center; gap: 5px;">
                                         <input name="cliente" id="cliente" autocomplete="off"
-                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 170px;" />
-                                        <button id="clearInput" type="button" class="btn" onclick="clearAllFields()"
+                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 170px;" tabindex="-1" />
+                                        <button id="clearInput" type="button" class="btn" onclick="clearAllFields()" tabindex="-1"
                                             style="display: none; padding: 5px 10px;">
                                             <i class="bx bx-x"></i>
                                         </button>
-                                        <button type="button" class="btn" onclick="abrirModalClientes()"
+                                        <button type="button" class="btn" onclick="abrirModalClientes()" tabindex="-1"
                                             style="padding: 5px 5px;">
                                             <i class="bx bx-search"></i>
                                         </button>
@@ -450,16 +450,16 @@ if (isset($_SESSION['usuario'])) {
 
                             <div class="form-element" style="display: none;">
                                 <label for="rfc">RFC <a class='bx'> *</a></label>
-                                <input type="text" name="rfc" id="rfc">
+                                <input type="text" name="rfc" id="rfc" tabindex="-1">
                             </div>
 
                             <div class="form-element">
                                 <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                <input type="text" name="nombre" id="nombre" style="width: 700px;" readonly />
+                                <input type="text" name="nombre" id="nombre" style="width: 700px;" tabindex="-1" readonly />
                             </div>
 
                             <div class="form-element">
-                                <label for="supedido">Su Pedido </label>
+                                <label for="supedido">O.C</label>
                                 <input type="text" name="supedido" id="supedido" style="width:170px;" disabled>
                             </div>
                         </div>
@@ -483,12 +483,12 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element">
                                 <label for="vendedor">Vendedor </label>
                                 <input type="text" name="vendedor" id="vendedor" style="width: 180px;"
-                                    value="<?php echo $claveUsuario ?>" readonly>
+                                    value="<?php echo $claveUsuario ?>" tabindex="-1" readonly>
                             </div>
                             <div class="form-element">
                                 <label for="almacen">Almacen </label>
                                 <input type="text" name="almacen" id="almacen" style="background-color: #e0e0e0; width: 180px;"
-                                    value="1" readonly>
+                                    value="1" tabindex="-1" readonly>
                             </div>
                             <div class="form-element">
                                 <label for="entrega">Entrega </label>
@@ -512,7 +512,7 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="condicion">Condicion </label>
                                 <div style="display: flex; align-items: center;">
                                     <input type="text" name="condicion" style="width: 410px;" id="condicion" disabled>
-                                    <button type="button" class="btn ms-2" id="AyudaCondicion">
+                                    <button type="button" class="btn ms-2" id="AyudaCondicion" tabindex="-1">
                                         <i class="bx bx-help-circle"></i>
                                     </button>
                                 </div>
@@ -524,8 +524,8 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element">
                                 <label for="descuentoCliente">Descuento </label>
                                 <div style="display: flex; align-items: center;">
-                                    <input type="text" name="descuentoCliente" id="descuentoCliente" style="width: 110px;" disabled>
-                                    <button type="button" class="btn ms-2" id="AyudaDescuento">
+                                    <input type="text" name="descuentoCliente" id="descuentoCliente" style="width: 110px;" tabindex="-1" disabled>
+                                    <button type="button" class="btn ms-2" id="AyudaDescuento" tabindex="-1">
                                         <i class="bx bx-help-circle"></i>
                                     </button>
                                 </div>
@@ -558,8 +558,8 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element">
                                 <label for="descuentoFin">Descuento Fin </label>
                                 <div style="display: flex; align-items: center;">
-                                    <input type="text" name="descuentoFin" id="descuentoFin" style="width: 110px;" disabled>
-                                    <button type="button" class="btn ms-2" id="AyudaDescuentofin">
+                                    <input type="text" name="descuentoFin" id="descuentoFin" style="width: 110px;" tabindex="-1" disabled>
+                                    <button type="button" class="btn ms-2" id="AyudaDescuentofin" tabindex="-1">
                                         <i class="bx bx-help-circle"></i>
                                     </button>
                                 </div>
@@ -601,9 +601,9 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                         <div class="row">
                             <div class="form-element"></div>
-                            <button type="button" class="btn-save" id="guardarPedido"
+                            <button type="button" class="btn-save" id="guardarPedido" tabindex="-1"
                                 style="width: 150px;">Guardar</button>
-                            <button type="button" class="btn-cancel" id="cancelarPedido"
+                            <button type="button" class="btn-cancel" id="cancelarPedido" tabindex="-1"
                                 style="width: 150px;">Cancelar</button>
                         </div>
                     </form>
@@ -612,7 +612,7 @@ if (isset($_SESSION['usuario'])) {
                         <div class="order">
                             <div class="table-container">
                                 <div class="table-wrapper">
-                                    <button type="button" class="btn-secondary" id="añadirPartida">Añadir
+                                    <button type="button" class="btn-secondary" id="añadirPartida" tabindex="-1">Añadir
                                         Partida</button>
                                     <br>
                                     <div class="tabla-scroll">
@@ -971,28 +971,37 @@ if (isset($_SESSION['usuario'])) {
                     }
                 });
                 $(document).on("keydown", ".producto", function(e) {
-                    const suggestionsListProductos = $(this).closest("tr").find(".suggestions-list-productos");
+                    const suggestionsListProductos = $(this)
+                        .closest("tr")
+                        .find(".suggestions-list-productos");
                     const items = suggestionsListProductos.find("li");
-                    if (!items.length) return;
 
+                    // Si presionaron Tab o Enter y NO hay sugerencias, 
+                    // evitamos ejecutar la selección
+                    if ((e.key === "Tab" || e.key === "Enter") && items.length === 0) {
+                        // Si quieres que NO tabule al siguiente campo:
+                         //e.preventDefault();
+
+                        // Si quieres que sí tabule, pero sin hacer nada especial, sólo sales:
+                        return;
+                    }
+//Validacion TAB
                     if (e.key === "ArrowDown") {
-                        // Mover hacia abajo en las sugerencias
                         highlightedIndex = (highlightedIndex + 1) % items.length;
                         actualizarDestacadoProducto(items, highlightedIndex);
                         e.preventDefault();
                     } else if (e.key === "ArrowUp") {
-                        // Mover hacia arriba en las sugerencias
                         highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
                         actualizarDestacadoProducto(items, highlightedIndex);
                         e.preventDefault();
                     } else if (e.key === "Tab" || e.key === "Enter") {
-                        // Seleccionar el producto destacado
-                        if (highlightedIndex >= 0) {
-                            const productoSeleccionado = JSON.parse($(items[highlightedIndex]).attr("data-producto"));
-                            seleccionarProductoDesdeSugerencia($(this), productoSeleccionado);
-                            suggestionsListProductos.empty().hide();
-                            e.preventDefault();
-                        }
+                        // Aquí entras sólo si sí hay items
+                        const productoSeleccionado = JSON.parse(
+                            $(items[highlightedIndex]).attr("data-producto")
+                        );
+                        seleccionarProductoDesdeSugerencia($(this), productoSeleccionado);
+                        suggestionsListProductos.empty().hide();
+                        e.preventDefault();
                     }
                 });
 
