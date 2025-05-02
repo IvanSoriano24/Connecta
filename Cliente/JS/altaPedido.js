@@ -901,18 +901,18 @@ function validarCreditoCliente(clienteId) {
       if (data.success) {
         const { conCredito, limiteCredito, saldo } = data;
         if (conCredito === "S") {
-          Swal.fire({
+          /*Swal.fire({
             title: "Cliente válido",
             text: "El cliente tiene crédito disponible.",
             icon: "success",
-          });
-          $("#conCredito").val("S");
+          });*/
+          $("#conCredito").val("C");
         } else {
-          Swal.fire({
+          /*Swal.fire({
             title: "Sin crédito",
             text: "El cliente no maneja crédito.",
             icon: "info",
-          });
+          });*/
           $("#conCredito").val("N");
         }
       } else {

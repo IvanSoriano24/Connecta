@@ -98,7 +98,7 @@
         </h6>
         <h6 class="usuario">
             <i class=""></i> 
-            <span><?php echo !empty($tipoUsuario) ? $tipoUsuario : "Tipo de Usuario"; ?></span>
+            <span><?php echo !empty($nombreUsuario) ? $nombreUsuario : "Tipo de Usuario"; ?></span>
         </h6>
     </div>
     <div class="right-section">

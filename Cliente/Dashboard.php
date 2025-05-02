@@ -90,7 +90,7 @@ if (isset($_SESSION['usuario'])) {
 			<div class="modal-content">
 				<div class="text-center mb-4">
 					<h1 class="display-4 text-primary txth1">Bienvenido</h1>
-					<h2 class="card-title text-center txth2"><?php echo $usuario; ?></h2>
+					<h2 class="card-title text-center txth2"><?php echo $nombreUsuario; ?></h2>
 				</div>
 				<div class="modal-body">
 					<select class="form-select" id="empresaSelect" name="empresaSelect">

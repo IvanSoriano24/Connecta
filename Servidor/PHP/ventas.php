@@ -3997,7 +3997,7 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
         'folio'     => ['stringValue' => $formularioData['numero']],
         'cliente'    => ['stringValue' => $formularioData['cliente']],
         'claveSae'   => ['stringValue' => $claveSae],
-        'noEmpresa'  => ['stringValue' => $noEmpresa],
+        'noEmpresa'  => ['integerValue' => $noEmpresa],
         'status' => ['stringValue' => 'Sin Pagar'],
         'creacion' => ['stringValue' => $fechaCreacion],
         'limite' => ['stringValue' => $fechaLimite],
@@ -5512,7 +5512,7 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
             ]
         ],
         'claveSae'   => ['stringValue' => $claveSae],
-        'noEmpresa'  => ['stringValue' => $noEmpresa],
+        'noEmpresa'  => ['integerValue' => $noEmpresa],
         'status' => ['stringValue' => 'Sin Autorizar']
     ];
 
@@ -6200,13 +6200,13 @@ switch ($funcion) {
                         } else if ($validarSaldo == 1 || $credito == 1) {
                             $estatus = "C";
                         }
-                        $estatus = "E";
+                        /*$estatus = "E";
                         $validarSaldo = 0;
-                        $credito = 0;
-                        /*guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                        $credito = 0;*/
+                        guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
-                        actualizarInventario($conexionData, $partidasData);*/
+                        actualizarInventario($conexionData, $partidasData);
                         if ($validarSaldo == 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);

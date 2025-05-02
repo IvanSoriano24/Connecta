@@ -748,7 +748,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $credito = json_decode($dataCredito, true);
     if ($credito['success']) {
         if ($credito['conCredito'] === 'S') {
-            $conCredito = "S";
+            $conCredito = "C";
         } else {
             $conCredito = "N";
         }
