@@ -10,8 +10,12 @@ require 'ArchivosMailer/SMTP.php';
 class clsMail
 {
     private $mail;
+
     private $defaultUser = 'betovargas584@gmail.com'; // Correo por defecto
     private $defaultPass = 'tbkn bjyu segx vcgm'; // Contraseña por defecto
+
+    //private $defaultUser = 'servicioalcliente@grupointerzenda.com'; // Correo por defecto
+    //private $defaultPass = 'aB159263#1#'; // Contraseña por defecto
 
     /*private $defaultUser = 'sonicjos.ys@gmail.com'; // Correo por defecto
     private $defaultPass = 'dnfb fyvb qpuk xqml'; // Contraseña por defecto*/

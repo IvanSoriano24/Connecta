@@ -350,8 +350,8 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
 
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -447,10 +447,10 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $clave = trim($clienteData['CLAVE']);
     /*$emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773750925';*/
-    /*$emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';*/
-    $emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda
+    $emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527775681612';
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123'; // Interzenda*/
     if ($correo === 'S' && !empty($emailPred)) {
         $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . urldecode($folioFactura) . ".pdf";
@@ -681,7 +681,8 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     }
 
     $mail = new clsMail();
-    $correoVendedor = "amartinez@grupointerzenda.com"; //Interzenda
+    //$correoVendedor = "amartinez@grupointerzenda.com"; //Interzenda
+    $correoVendedor = 'marcos.luna@mdcloud.mx';
     //$correoVendedor = "desarrollo01@mdcloud.mx";
     $clienteData = obtenerCliente($CVE_CLPV, $conexionData, $claveSae);
     $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".xml";
@@ -727,8 +728,8 @@ function facturar($folio, $claveSae, $noEmpresa)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     $data = [

@@ -46,7 +46,139 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function mostrarPedidos($conexionData, $filtroFecha)
+/*function mostrarPedidos($conexionData, $filtroFecha, $filtroVendedor)
+{
+    // Recuperar filtros enviados
+    $filtroFecha    = $_POST['filtroFecha']    ?? 'Todos';
+    $filtroVendedor = $_POST['filtroVendedor'] ?? '';
+
+    // Parámetros de paginación
+    $pagina   = isset($_POST['pagina'])   ? (int)$_POST['pagina']   : 1;
+    $porPagina= isset($_POST['porPagina'])? (int)$_POST['porPagina']: 50;
+    $offset   = ($pagina - 1) * $porPagina;
+
+    try {
+        //session_start();
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success'=>false,'message'=>'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa    = $_SESSION['empresa']['noEmpresa'];
+        $claveSae     = $_SESSION['empresa']['claveSae'];
+        $tipoUsuario  = $_SESSION['usuario']['tipoUsuario'];
+        $claveVendedor= $_SESSION['empresa']['claveUsuario'] ?? '';
+
+        // Aseguramos encoding de la clave de vendedor
+        if ($claveVendedor !== '') {
+            $claveVendedor = mb_convert_encoding(trim($claveVendedor),'UTF-8');
+        }
+
+        // Conectar
+        $conn = sqlsrv_connect($conexionData['host'], [
+            "Database"              => $conexionData['nombreBase'],
+            "UID"                   => $conexionData['usuario'],
+            "PWD"                   => $conexionData['password'],
+            "TrustServerCertificate"=> true
+        ]);
+        if ($conn === false) {
+            die(json_encode(['success'=>false,'message'=>'Error al conectar','errors'=>sqlsrv_errors()]));
+        }
+
+        // Tablas dinámicas
+        $cliTbl = "[{$conexionData['nombreBase']}].[dbo].CLIE".str_pad($claveSae,2,'0',STR_PAD_LEFT);
+        $facTbl = "[{$conexionData['nombreBase']}].[dbo].FACTP".str_pad($claveSae,2,'0',STR_PAD_LEFT);
+        $venTbl = "[{$conexionData['nombreBase']}].[dbo].VEND".str_pad($claveSae,2,'0',STR_PAD_LEFT);
+
+        // Base de la consulta
+        $sql = "
+            SELECT 
+              f.TIP_DOC   AS Tipo,
+              f.CVE_DOC   AS Clave,
+              f.CVE_CLPV  AS Cliente,
+              c.NOMBRE    AS Nombre,
+              f.STATUS    AS Estatus,
+              CONVERT(VARCHAR(10),f.FECHAELAB,105) AS FechaElaboracion,
+              f.CAN_TOT   AS Subtotal,
+              f.IMPORTE   AS ImporteTotal,
+              v.NOMBRE    AS NombreVendedor
+            FROM $facTbl f
+            LEFT JOIN $cliTbl c ON c.CLAVE    = f.CVE_CLPV
+            LEFT JOIN $venTbl v ON v.CVE_VEND = f.CVE_VEND
+            WHERE f.STATUS IN ('E','O')
+        ";
+
+        $params = [];
+
+        // Filtros de fecha
+        if ($filtroFecha === 'Hoy') {
+            $sql .= " AND CAST(f.FECHAELAB AS DATE)=CAST(GETDATE() AS DATE)";
+        } elseif ($filtroFecha === 'Mes') {
+            $sql .= " AND MONTH(f.FECHAELAB)=MONTH(GETDATE()) AND YEAR(f.FECHAELAB)=YEAR(GETDATE())";
+        } elseif ($filtroFecha === 'Mes Anterior') {
+            $sql .= " AND MONTH(f.FECHAELAB)=MONTH(DATEADD(MONTH,-1,GETDATE())) AND YEAR(f.FECHAELAB)=YEAR(DATEADD(MONTH,-1,GETDATE()))";
+        }
+
+        // Filtro por vendedor
+        if ($tipoUsuario === 'ADMINISTRADOR') {
+            
+            if ($filtroVendedor !== '') {
+                $sql      .= " AND f.CVE_VEND = ?";
+                $params[]  = $filtroVendedor;
+            }
+        } else {
+            // Usuarios no ADMIN sólo ven sus pedidos
+            $sql      .= " AND f.CVE_VEND = ?";
+            $params[]  = $claveVendedor;
+        }
+
+        // Orden y paginación
+        $sql .= " ORDER BY f.FECHAELAB DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        $params[] = $offset;
+        $params[] = $porPagina;
+
+        // Ejecutar
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            die(json_encode(['success'=>false,'message'=>'Error al ejecutar la consulta','errors'=>sqlsrv_errors()]));
+        }
+
+        // Recorrer resultados
+        $clientes = [];
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            // Trim y encoding strings
+            foreach ($row as $k => $v) {
+                
+                if (is_string($v)) {
+                    $v = trim($v);
+                    $enc = mb_detect_encoding($v, mb_list_encodings(), true);
+                    if ($enc && $enc !== 'UTF-8') {
+                        $v = mb_convert_encoding($v,'UTF-8',$enc);
+                    }
+                } elseif ($v === null) {
+                    $v = '';
+                }
+                $row[$k] = $v;
+            }
+            var_dump($row);
+            $clientes[] = $row;
+        }
+
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+
+        if (empty($clientes)) {
+            echo json_encode(['success'=>false,'message'=>'No se encontraron pedidos']);
+            exit;
+        }
+
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(['success'=>true,'data'=>$clientes]);
+
+    } catch (Exception $e) {
+        echo json_encode(['success'=>false,'message'=>$e->getMessage()]);
+    }
+}*/
+function mostrarPedidos($conexionData, $filtroFecha, $filtroVendedor)
 {
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
@@ -858,7 +990,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;
     $IMP_TOT8 = 0;
-    $DES_FIN = $formularioData['descuentoFin'];
+    $DES_FIN = $formularioData['descuentoFin'] || 0;
     $CONDICION = $formularioData['condicion'];
     $RFC = $formularioData['rfc'];
     $FECHA_ELAB = $formularioData['diaAlta'];
@@ -1349,10 +1481,10 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
-    /*$emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';*/
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527775681612';
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
@@ -1373,7 +1505,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         }
 
         if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -1463,7 +1595,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$numero = "7775681612";
     //$numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
+    $numero = '+527775681612';
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -3468,10 +3601,10 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
 
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
-    /*$emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';*/
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527775681612';
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
@@ -4551,10 +4684,10 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
-    /*$emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';*/
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527775681612';
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
@@ -5047,10 +5180,10 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
-    /*$emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';*/
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527775681612';
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
@@ -5468,7 +5601,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$numero = "7775681612";
     //$numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
+    $numero = '+527775681612';
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -5847,7 +5981,8 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $filtroFecha = $_POST['filtroFecha'];
-        mostrarPedidos($conexionData, $filtroFecha);
+        $filtroVendedor = $_POST['filtroVendedor'];
+        mostrarPedidos($conexionData, $filtroFecha, $filtroVendedor);
         break;
     case 2:
 
@@ -6055,13 +6190,13 @@ switch ($funcion) {
                         } else if ($validarSaldo == 1 || $credito == 1) {
                             $estatus = "C";
                         }
-                        /*$estatus = "E";
+                        $estatus = "E";
                         $validarSaldo = 0;
-                        $credito = 0;*/
-                        guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                        $credito = 0;
+                        /*guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
-                        actualizarInventario($conexionData, $partidasData);
+                        actualizarInventario($conexionData, $partidasData);*/
                         if ($validarSaldo == 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);

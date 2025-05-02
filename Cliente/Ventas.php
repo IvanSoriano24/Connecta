@@ -172,6 +172,14 @@ session_destroy(); */
                                     </select>
                                 </td>
                             </tr>
+                            <?php if($tipoUsuario === "ADMINISTRADOR"){ ?>
+                            <tr>
+                                <td>
+                                    <select id="filtroVendedor">
+                                    </select>
+                                </td>
+                            </tr>
+                            <?php } ?>
                             <table>
                                 <thead>
                                     <tr>
@@ -288,11 +296,11 @@ session_destroy(); */
             pedidos.forEach((pedido) => {
                 const row = document.createElement("tr");
                 const subtotalText = pedido.Subtotal
-    ? `$${Number(pedido.Subtotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : 'Sin subtotal';
-  const importeText = pedido.ImporteTotal
-    ? `$${Number(pedido.ImporteTotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : 'Sin importe';
+                    ? `$${Number(pedido.Subtotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    : 'Sin subtotal';
+                const importeText = pedido.ImporteTotal
+                    ? `$${Number(pedido.ImporteTotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    : 'Sin importe';
                 row.innerHTML = `
             <td>${pedido.Tipo || "Sin tipo"}</td>
             <td>${pedido.Clave || "Sin clave"}</td>
@@ -348,14 +356,5 @@ session_destroy(); */
             agregarEventosBotones && agregarEventosBotones();
         }
     </script>
-
 </body>
-
 </html>
-<!-- 
-				<script>
-			var empresa = '<?php // echo $nombreEmpresa 
-                            ?>'
-			console.log(empresa);
-		</script>
-		-->

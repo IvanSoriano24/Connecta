@@ -138,12 +138,24 @@ function agregarEventosBotones() {
                         // Mostrar el modal si se está utilizando
                         $('#usuarioModal').modal('show'); // Asegúrate de que estás usando jQuery y Bootstrap para este modal
                     } else {
-                        alert('Error al obtener la información del cliente');
+                        Swal.fire({
+                            title: "Aviso",
+                            text: "Error al obtener la información del cliente.",
+                            icon: "warning",
+                            confirmButtonText: "Aceptar",
+                          });
+                        //alert('Error al obtener la información del cliente');
                     }
                 })
                 .catch(error => {
                     console.error('Error al obtener los datos del cliente:', error);
-                    alert('Hubo un error al intentar cargar la información del cliente.');
+                    Swal.fire({
+                        title: "Aviso",
+                        text: "Hubo un error al intentar cargar la información del cliente.",
+                        icon: "error",
+                        confirmButtonText: "Aceptar",
+                      });
+                    //alert('Hubo un error al intentar cargar la información del cliente.');
                 });
         });
     });
@@ -183,7 +195,8 @@ function obtenerClientes(){
 
                     // Recorrer los clientes ordenados y agregar las filas a la tabla
                     clientes.forEach(cliente => {
-                        const saldoFormateado = `$${parseFloat(cliente.SALDO || 0).toFixed(2).toLocaleString('es-MX')}`;
+                        const saldo = parseFloat(cliente.SALDO || 0);
+                        const saldoFormateado = `$${saldo.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                         const estadoTimbrado = cliente.EstadoDatosTimbrado ?
                             "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>" :
                             ''; // Centrado de la palomita con display: block y margin: 0 auto

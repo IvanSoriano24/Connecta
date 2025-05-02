@@ -1183,10 +1183,11 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
         $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 0, 0, 'C');
         $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');*/
         $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 7);
         $pdf->Cell(28, 7, $partida['unidad'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
         $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
         $pdf->Cell(15, 7, $partida['producto'], 0, 0, 'C');
-        $pdf->SetFont('Arial', '', 8);
+        //$pdf->SetFont('Arial', '', 6);
         $pdf->Cell(65, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
         $pdf->SetFont('Arial', '', 9);
         $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
@@ -1289,10 +1290,11 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);
         $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 7);
         $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
         $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
         $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
-        $pdf->SetFont('Arial', '', 8);
+        //$pdf->SetFont('Arial', '', 6);
         $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
         $pdf->SetFont('Arial', '', 9);
         $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
@@ -1398,9 +1400,11 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);
         $pdf->Cell(20, 7, $partida['CVE_ART'], 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 6);
         $pdf->Cell(70, 7, iconv("UTF-8", "ISO-8859-1", $descripcion), 0);
         $pdf->Cell(15, 7, $cantidad, 0, 0, 'C');
         $pdf->Cell(20, 7, number_format($precioUnitario, 2), 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 9);
         $pdf->Cell(20, 7, number_format($descuentos, 2) . "%", 0, 0, 'C');
         $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 0, 0, 'C');
         $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');
@@ -1577,10 +1581,10 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
         $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 0, 0, 'C');
         $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');*/
         $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 7);
         $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C'); //Unidad
         $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C'); //Clave SAT
         $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
-        $pdf->SetFont('Arial', '', 7);
         $pdf->Cell(65, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
         $pdf->SetFont('Arial', '', 8);
         $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');

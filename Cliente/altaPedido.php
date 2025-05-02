@@ -312,11 +312,11 @@ if (isset($_SESSION['usuario'])) {
         top: 80%;
         /* La lista aparece justo debajo del input */
         left: 0;
-        width: 100%;
+        width: 180%;
         /* Se ajusta al ancho del input */
         background: white;
         border: 1px solid #ccc;
-        max-height: 100px;
+        max-height: 200px;
         /* Altura máxima para evitar que cubra todo */
         overflow-y: auto;
         /* Habilita el scroll si hay muchas sugerencias */
@@ -555,7 +555,7 @@ if (isset($_SESSION['usuario'])) {
 
                             <div class="form-element"></div>
 
-                            <div class="form-element">
+                            <!--<div class="form-element">
                                 <label for="descuentoFin">Descuento Fin </label>
                                 <div style="display: flex; align-items: center;">
                                     <input type="text" name="descuentoFin" id="descuentoFin" style="width: 110px;" tabindex="-1" disabled>
@@ -563,7 +563,7 @@ if (isset($_SESSION['usuario'])) {
                                         <i class="bx bx-help-circle"></i>
                                     </button>
                                 </div>
-                            </div>
+                            </div>-->
                         </div>
                         <div class="row" style="display: none;">
                             <div class="form-element">

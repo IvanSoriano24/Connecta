@@ -176,6 +176,7 @@ function cargarPedidos(filtroFecha) {
       numFuncion: "1",
       noEmpresa: noEmpresa,
       filtroFecha: filtroFecha,
+      filtroVendedor: filtroVendedor,
     },
     function (response) {
       console.log("Respuesta del servidor:", response);
@@ -260,6 +261,7 @@ function datosPedidos(limpiarTabla = true) {
       numFuncion: "1",
       noEmpresa: noEmpresa,
       filtroFecha: filtroFecha,
+      filtroVendedor: filtroVendedor,
       pagina: paginaActual,
       porPagina: registrosPorPagina,
     },
@@ -297,11 +299,17 @@ function datosPedidos(limpiarTabla = true) {
             pedidos.forEach((pedido) => {
               const row = document.createElement("tr");
               const subtotalText = pedido.Subtotal
-              ? `$${Number(pedido.Subtotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-              : 'Sin subtotal';
-            const importeText = pedido.ImporteTotal
-              ? `$${Number(pedido.ImporteTotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-              : 'Sin importe';
+                ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
+                : "Sin subtotal";
+              const importeText = pedido.ImporteTotal
+                ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
+                : "Sin importe";
 
               row.innerHTML = `
                                 <td>${pedido.Tipo || "Sin tipo"}</td>
@@ -321,7 +329,9 @@ function datosPedidos(limpiarTabla = true) {
                                     : "Sin Comisiones"
                                 }</td>-->
                                 <td style="text-align: right;">${importeText}</td>
-                               <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"}</td>
+                               <td class="nombreVendedor">${
+                                 pedido.NombreVendedor || "Sin vendedor"
+                               }</td>
                                 <td>
                                     <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
                                       pedido.Clave
@@ -448,13 +458,25 @@ function obtenerDatosPedido(pedidoID) {
 
         console.log("Datos del pedido cargados correctamente.");
       } else {
-        alert("No se pudo cargar el pedido: " + response.message);
+        Swal.fire({
+          title: "Aviso",
+          text: "No se pudo cargar el pedido.",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
+        //alert("No se pudo cargar el pedido: " + response.message);
       }
     },
     "json"
   ).fail(function (jqXHR, textStatus, errorThrown) {
     //console.log(errorThrown);
-    alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+    Swal.fire({
+      title: "Aviso",
+      text: "Error al cargar el pedido.",
+      icon: "error",
+      confirmButtonText: "Aceptar",
+    });
+    //alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
     console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
   });
 }
@@ -475,13 +497,25 @@ function cargarPartidasPedido(pedidoID) {
         console.log("Partidas cargadas correctamente.");
       } else {
         console.error("Error al obtener partidas:", response.message);
-        alert("No se pudieron cargar las partidas: " + response.message);
+        Swal.fire({
+          title: "Aviso",
+          text: "No se pudieron cargar las partidas.",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
+        //alert("No se pudieron cargar las partidas: " + response.message);
       }
     },
     "json"
   ).fail(function (jqXHR, textStatus, errorThrown) {
     console.error("Error al cargar las partidas:", textStatus, errorThrown);
-    alert("Error al cargar las partidas: " + textStatus + " " + errorThrown);
+    Swal.fire({
+      title: "Aviso",
+      text: "Error al cargar las partidas.",
+      icon: "error",
+      confirmButtonText: "Aceptar",
+    });
+    //alert("Error al cargar las partidas: " + textStatus + " " + errorThrown);
   });
 }
 function actualizarTablaPartidas(pedidoID) {
@@ -623,55 +657,6 @@ function limpiarTablaPartidas() {
   const tablaProductos = document.querySelector("#tablaProductos tbody");
   tablaProductos.innerHTML = ""; // Limpia todas las filas de la tabla
 }
-
-function guardarPedido() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const pedidoID = urlParams.get("pedidoID"); // Si existe, estamos en modo edición
-
-  const datosPedido = {
-    pedidoID: pedidoID || null, // Si es edición, incluye el ID del pedido
-    cliente: document.getElementById("cliente").value,
-    rfc: document.getElementById("rfc").value,
-    direccion: document.getElementById("direccion").value,
-    partidas: [],
-  };
-
-  // Recolectar las partidas de la tabla
-  const tablaProductos = document.querySelector("#tablaProductos tbody");
-  const filas = tablaProductos.querySelectorAll("tr");
-  filas.forEach((fila) => {
-    const partida = {
-      cantidad: fila.querySelector(".cantidad").value,
-      producto: fila.querySelector(".producto").value,
-      unidad: fila.querySelector(".unidad").value,
-      descuento1: fila.querySelector(".descuento1").value,
-      descuento2: fila.querySelector(".descuento2").value,
-      ieps: fila.querySelector(".ieps").value,
-      iva: fila.querySelector(".iva").value,
-      comision: fila.querySelector(".comision").value,
-      precioUnidad: fila.querySelector(".precioUnidad").value,
-      subtotal: fila.querySelector(".subtotalPartida").value,
-    };
-    datosPedido.partidas.push(partida);
-  });
-
-  // Enviar datos al servidor
-  $.post(
-    "../Servidor/PHP/guardarPedido.php",
-    datosPedido,
-    function (response) {
-      if (response.success) {
-        alert("Pedido guardado correctamente");
-        window.location.href = "listaPedidos.php"; // Redirigir a la lista de pedidos
-      } else {
-        alert("Error al guardar el pedido: " + response.message);
-      }
-    },
-    "json"
-  ).fail(function (jqXHR, textStatus, errorThrown) {
-    alert("Error en la solicitud: " + textStatus + " " + errorThrown);
-  });
-}
 function obtenerFolioSiguiente() {
   return new Promise((resolve, reject) => {
     $.post(
@@ -728,7 +713,65 @@ function verificarPedido(pedidoID) {
     });
   });
 }
+function llenarFiltroVendedor() {
+  $.ajax({
+    url: "../Servidor/PHP/usuarios.php",
+    method: "GET",
+    data: { numFuncion: "13" }, // Obtener todos los vendedores disponibles
+    success: function (responseVendedores) {
+      console.log("Respuesta del servidor (vendedores):", responseVendedores); // DEBUG
 
+      try {
+        const res =
+          typeof responseVendedores === "string"
+            ? JSON.parse(responseVendedores)
+            : responseVendedores;
+
+        if (res.success && Array.isArray(res.data)) {
+          const selectVendedor = $("#filtroVendedor");
+          selectVendedor.empty();
+          selectVendedor.append(
+            "<option selected disabled>Seleccione un vendedor</option>"
+          );
+
+          res.data.forEach((vendedor) => {
+            selectVendedor.append(
+              `<option value="${vendedor.clave}">${vendedor.nombre} || ${vendedor.clave}</option>`
+            );
+          });
+          console.log(data.data.claveUsuario);
+          // ✅ Ahora obtenemos la clave del vendedor y la seleccionamos correctamente
+          //obtenerClaveVendedor(data.data.claveUsuario);
+        } else {
+          Swal.fire({
+            icon: "warning",
+            title: "Aviso",
+            text: res.message || "No se encontraron vendedores.",
+          });
+          $("#selectVendedor").prop("disabled", true);
+        }
+        //("#selectVendedor").prop("disabled", true);
+      } catch (error) {
+        console.error("Error al procesar los vendedores:", error);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de vendedores.",
+      });
+    },
+  });
+}
+
+let filtroVendedor = "";
+$(document).on("change", "#filtroVendedor", function () {
+  filtroVendedor = $(this).val();
+  // vuelve a cargar desde página 1
+  paginaActual = 1;
+  datosPedidos(true);
+});
 $("#filtroFecha").change(function () {
   var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
   cargarPedidos(filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
@@ -737,6 +780,7 @@ $("#cancelarPedido").click(function () {
   window.location.href = "Ventas.php";
 });
 document.addEventListener("DOMContentLoaded", function () {
+  llenarFiltroVendedor();
   let clienteSeleccionado =
     sessionStorage.getItem("clienteSeleccionado") === "true";
   // Detectar el clic en el enlace para "Crear Pedido"

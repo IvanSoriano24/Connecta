@@ -26,7 +26,13 @@ async function cargarProductos() {
       mostrarProductosCuadricula(data.productos);
     } catch (error) {
       console.error("Error en cargarProductos:", error);
-      alert("Error al cargar los productos.");
+      Swal.fire({
+        title: "Aviso",
+        text: "Error al cargar los productos.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
+      //alert("Error al cargar los productos.");
     }
   }
 
@@ -131,7 +137,13 @@ async function obtenerPrecioProducto(claveProducto) {
     if (response.success) {
       return response.precio; // Retorna el precio
     } else {
-      alert(response.message); // Muestra el mensaje de error
+      Swal.fire({
+        title: "Aviso",
+        text: response.message,
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
+      //alert(response.message); // Muestra el mensaje de error
       return null;
     }
   } catch (error) {

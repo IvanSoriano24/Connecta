@@ -127,7 +127,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
         echo "<div class='container'>
             <div class='title'>Solicitud Inválida</div>
             <div class='message'>Este Pedido ya Fue Aceptado.</div>
-            <a href='/index.php' class='button'>Volver al inicio</a>
+            <!--<a href='/index.php' class='button'>Volver al inicio</a>-->
           </div>";
     } else {
         if ($accion === 'confirmar') {
@@ -196,8 +196,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     $error = error_get_last();
                     echo "<div class='container'>
                         <div class='title'>Error al Conectarse</div>
-                        <div class='message'>No se pudo conectar a Firebase: " . $error['message'] . "</div>
-                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                        <div class='message'>Hubo un error</div>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                       </div>";
                 } else {
                     $result = json_decode($response, true);
@@ -245,13 +245,13 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
-                            <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
+                            <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
                           </div>";
                     } else {
                         echo "<div class='container'>
                             <div class='title'>Error al Registrar</div>
-                            <div class='message'>Hubo un problema al registrar los datos en Firebase.</div>
-                            <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                            <div class='message'>Hubo un problema al registrar los datos.</div>
+                            <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                           </div>";
                     }
                 }
@@ -283,13 +283,13 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     echo "<div class='container'>
                         <div class='title'>Pedido aceptado</div>
                         <div class='message'>El pedido fue aceptado y esperando el pago.</div>
-                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                       </div>";
                 } else if ($status['stringValue'] === 'Pagada') {
                     echo "<div class='container'>
                         <div class='title'>Pedido pagado</div>
                         <div class='message'>El pedido ya fue pagado.</div>
-                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                       </div>";
                 } else {
                     $urlActualizacion = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=buscar&key=$firebaseApiKey";
@@ -313,13 +313,13 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         echo "<div class='container'>
                         <div class='title'>Error al actualizar el Pago</div>
                         <div class='message'>No se pudo actualizar la información.</div>
-                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                       </div>";
                     } else {
                         echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <div class='message'>El pedido ha sido confirmado y tiene 24 horas para pagarlo.</div>
-                            <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
+                            <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
                           </div>";
                     }
                 }
@@ -354,7 +354,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 }
             }
             //$telefonoVendedor = '+527772127123'; // Interzenda
-            $telefonoVendedor = '+527773750925';
+            //$telefonoVendedor = '+527773750925';
+            $telefonoVendedor = '+527775681612';
             if (!$telefonoVendedor) {
                 /*echo "<div class='container'>
                         <div class='title'>Error al Encontrar Vendedor</div>
@@ -369,20 +370,20 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 echo "<div class='container'>
                         <div class='title'>Pedido Rechazado</div>
                         <div class='message'>El pedido $pedidoId fue rechazado correctamente y se notificó al vendedor.</div>
-                        <a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
                       </div>";
             } else {
                 echo "<div class='container'>
                         <div class='title'>Error al Notificar</div>
                         <div class='message'>El pedido fue rechazado, pero no se pudo notificar al vendedor.</div>
-                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                       </div>";
             }
         } else {
             echo "<div class='container'>
                     <div class='title'>Acción no válida</div>
                     <div class='message'>No se reconoció la acción solicitada.</div>
-                    <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                    <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                   </div>";
         }
     }
@@ -390,7 +391,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     echo "<div class='container'>
             <div class='title'>Solicitud Inválida</div>
             <div class='message'>No se enviaron los parámetros necesarios para continuar.</div>
-            <a href='/index.php' class='button'>Volver al inicio</a>
+            <!--<a href='/index.php' class='button'>Volver al inicio</a>-->
           </div>";
 }
 

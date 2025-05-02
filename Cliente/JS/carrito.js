@@ -190,7 +190,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1️⃣ Obtener los datos del cliente (por ejemplo, del carrito)
     const datosCliente = await obtenerDatosClienteCarro();
     if (!datosCliente) {
-      alert("No se pudieron obtener los datos del cliente.");
+      Swal.fire({
+        title: "Aviso",
+        text: "No se pudieron obtener los datos del cliente.",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
+      //alert("No se pudieron obtener los datos del cliente.");
       return null;
     }
   

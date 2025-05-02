@@ -161,7 +161,13 @@ async function cargarProductos(LISTA_PREC, articulos, claveUsuario) {
     mostrarProductosCuadricula(data.productos);
   } catch (error) {
     console.error("Error en cargarProductos:", error);
-    alert("Error al cargar los productos.");
+    Swal.fire({
+      title: "Aviso",
+      text: "Error al cargar los productos.",
+      icon: "error",
+      confirmButtonText: "Aceptar",
+    });
+    //alert("Error al cargar los productos.");
   }
 }
 function mostrarProductosCuadricula(productos) {

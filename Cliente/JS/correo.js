@@ -453,12 +453,24 @@ $(document).ready(function () {
           // Habilitamos el select de usuario
           $("#selectVendedor").prop("disabled", false);
         } else {
-          alert(response.message);
+          Swal.fire({
+            title: "Aviso",
+            text: response.message,
+            icon: warning,
+            confirmButtonText: "Aceptar",
+          });
+          //alert(response.message);
         }
       },
       error: function (xhr, status, error) {
         console.error("Error en la solicitud AJAX:", status, error);
-        alert("Error al obtener los usuarios.");
+        Swal.fire({
+          title: "Aviso",
+          text: "Error al obtener los usuarios.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });    
+        //alert("Error al obtener los usuarios.");
       },
     });
   });

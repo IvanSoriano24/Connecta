@@ -174,15 +174,33 @@ function obtenerProductos(input) {
         // Procesamos la respuesta de los productos
         mostrarListaProductos(response.productos, input);
       } else {
-        alert("Error: " + response.message);
+        Swal.fire({
+          title: "Aviso",
+          text: response.message,
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
+        //alert("Error: " + response.message);
       }
     } else {
-      alert("Hubo un problema con la consulta de productos.");
+      Swal.fire({
+        title: "Aviso",
+        text: "Hubo un problema con la consulta de productos.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
+      //alert("Hubo un problema con la consulta de productos.");
     }
   };
 
   xhr.onerror = function () {
-    alert("Hubo un problema con la conexión.");
+    Swal.fire({
+      title: "Aviso",
+      text: "Hubo un problema con la conexión.",
+      icon: "error",
+      confirmButtonText: "Aceptar",
+    });
+    //alert("Hubo un problema con la conexión.");
   };
 
   xhr.send();
@@ -233,7 +251,13 @@ async function completarPrecioProducto(cveArt, filaTabla) {
     // Obtener el precio del producto
     const precio = await obtenerPrecioProducto(cveArt, cvePrecio);
     if (!precio) {
-      alert("No se pudo obtener el precio del producto.");
+      Swal.fire({
+        title: "Aviso",
+        text: "El pedido se procesó correctamente.",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
+      //alert("No se pudo obtener el precio del producto.");
       return;
     }
     // Seleccionar el input correspondiente dentro de la fila
@@ -292,7 +316,13 @@ async function obtenerPrecioProducto(claveProducto, listaPrecioCliente) {
     if (response.success) {
       return response.precio; // Retorna el precio
     } else {
-      alert(response.message); // Muestra el mensaje de error
+      Swal.fire({
+        title: "Aviso",
+        text: response.message,
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
+      //alert(response.message); // Muestra el mensaje de error
       return null;
     }
   } catch (error) {
@@ -542,7 +572,7 @@ function obtenerDatosFormulario() {
     numE: document.getElementById("numE").value,
     numI: document.getElementById("numI").value,
     descuentoCliente: document.getElementById("descuentoCliente").value,
-    descuentoFin: document.getElementById("descuentoFin").value,
+    //descuentoFin: document.getElementById("descuentoFin").value,
     colonia: document.getElementById("colonia").value,
     codigoPostal: document.getElementById("codigoPostal").value,
     poblacion: document.getElementById("poblacion").value,
