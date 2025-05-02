@@ -123,55 +123,55 @@ session_destroy(); */
         }
     </style>
     <style>
-		/* CSS */
-		.search-head {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: 1rem;
-		}
+        /* CSS */
+        .search-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
 
-		.search-head h3 {
-			margin: 0;
-			font-size: 1.5rem;
-			font-weight: 600;
-			color: #333;
-		}
+        .search-head h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
 
-		.input-group {
-			position: relative;
-			width: 300px;
-			/* ajusta al ancho deseado */
-		}
+        .input-group {
+            position: relative;
+            width: 300px;
+            /* ajusta al ancho deseado */
+        }
 
-		.search-group .search-input,
-		.input-group .search-input {
-			width: 100%;
-			padding: 0.5rem 1rem;
-			/* espacio a la izquierda para el icono */
-			padding-left: 2.5rem;
-			font-size: 1rem;
-			border: 1px solid #ccc;
-			border-radius: 0.25rem;
-			transition: border-color 0.2s ease, box-shadow 0.2s ease;
-		}
+        .search-group .search-input,
+        .input-group .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            /* espacio a la izquierda para el icono */
+            padding-left: 2.5rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
 
-		.input-group .search-icon {
-			position: absolute;
-			left: 0.75rem;
-			top: 50%;
-			transform: translateY(-50%);
-			font-size: 1.2rem;
-			color: #888;
-			pointer-events: none;
-		}
+        .input-group .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: #888;
+            pointer-events: none;
+        }
 
-		.input-group .search-input:focus {
-			outline: none;
-			border-color: #007bff;
-			box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-		}
-	</style>
+        .input-group .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+    </style>
 </head>
 
 <body>
@@ -292,7 +292,10 @@ session_destroy(); */
     <script src="JS/script.js"></script>
     <script src="JS/ventas.js"></script>
     <script>
-        llenarFiltroVendedor();
+        var tipoUsuario = "<?php echo $tipoUsuario; ?>";
+        if (tipoUsuario === "ADMINISTRADOR") {
+            llenarFiltroVendedor();
+        }
     </script>
     <!--<script>
         $(document).ready(function() {
@@ -300,8 +303,7 @@ session_destroy(); */
         });
     </script>-->
     <!--<script>
-        var tipoUsuario = "<?php // echo $tipoUsuario; 
-                            ?>";
+      
         if (tipoUsuario != "ADMINISTRADOR") {
             document
                 .querySelectorAll("#datosPedidos .nombreVendedor")
