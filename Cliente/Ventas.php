@@ -291,6 +291,9 @@ session_destroy(); */
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
     <script src="JS/ventas.js"></script>
+    <script>
+        llenarFiltroVendedor();
+    </script>
     <!--<script>
         $(document).ready(function() {
             datosPedidos();

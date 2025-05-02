@@ -826,7 +826,6 @@ function doSearch(){
   }
 }
 document.addEventListener("DOMContentLoaded", function () {
-  llenarFiltroVendedor();
   let clienteSeleccionado =
     sessionStorage.getItem("clienteSeleccionado") === "true";
   // Detectar el clic en el enlace para "Crear Pedido"

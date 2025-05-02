@@ -372,11 +372,21 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
 
     // Verificar si se encontró el pedido
     if ($pedido) {
-        //var_dump($pedido);
+        // Convertimos los DateTime a texto "YYYY-MM-DD" o al formato que quieras
+        $fechaDoc = $pedido['FECHA_DOC']->format('Y-m-d');
+        $fechaEnt = $pedido['FECHA_ENT']->format('Y-m-d');
+    
         header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'pedido' => $pedido]);
+        echo json_encode([
+          'success'   => true,
+          'pedido'    => array_merge($pedido, [
+            'FECHA_DOC' => $fechaDoc,
+            'FECHA_ENT' => $fechaEnt
+          ])
+        ]);
         exit;
-    } else {
+    }
+     else {
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'Pedido no encontrado']);
         exit;
