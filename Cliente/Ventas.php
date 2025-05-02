@@ -122,6 +122,56 @@ session_destroy(); */
             background-color: #0071e2;
         }
     </style>
+    <style>
+		/* CSS */
+		.search-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 1rem;
+		}
+
+		.search-head h3 {
+			margin: 0;
+			font-size: 1.5rem;
+			font-weight: 600;
+			color: #333;
+		}
+
+		.input-group {
+			position: relative;
+			width: 300px;
+			/* ajusta al ancho deseado */
+		}
+
+		.search-group .search-input,
+		.input-group .search-input {
+			width: 100%;
+			padding: 0.5rem 1rem;
+			/* espacio a la izquierda para el icono */
+			padding-left: 2.5rem;
+			font-size: 1rem;
+			border: 1px solid #ccc;
+			border-radius: 0.25rem;
+			transition: border-color 0.2s ease, box-shadow 0.2s ease;
+		}
+
+		.input-group .search-icon {
+			position: absolute;
+			left: 0.75rem;
+			top: 50%;
+			transform: translateY(-50%);
+			font-size: 1.2rem;
+			color: #888;
+			pointer-events: none;
+		}
+
+		.input-group .search-input:focus {
+			outline: none;
+			border-color: #007bff;
+			box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+		}
+	</style>
 </head>
 
 <body>
@@ -159,7 +209,15 @@ session_destroy(); */
                         <div class="order">
                             <div class="head">
                                 <h3></h3>
-                                <i class='bx bx-search'></i>
+                                <div class="input-group">
+                                    <i class='bx bx-search search-icon'></i>
+                                    <input
+                                        id="searchTerm"
+                                        class="search-input"
+                                        type="text"
+                                        placeholder="Buscar pedido..."
+                                        onkeyup="doSearch()" />
+                                </div>
                                 <!-- <i class='bx bx-filter'></i> -->
                             </div>
                             <tr>
@@ -172,15 +230,15 @@ session_destroy(); */
                                     </select>
                                 </td>
                             </tr>
-                            <?php if($tipoUsuario === "ADMINISTRADOR"){ ?>
-                            <tr>
-                                <td>
-                                    <select id="filtroVendedor">
-                                    </select>
-                                </td>
-                            </tr>
+                            <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
+                                <tr>
+                                    <td>
+                                        <select id="filtroVendedor">
+                                        </select>
+                                    </td>
+                                </tr>
                             <?php } ?>
-                            <table>
+                            <table id="pedidos">
                                 <thead>
                                     <tr>
                                         <th>Tipo</th>
@@ -192,9 +250,11 @@ session_destroy(); */
                                         <th>Subtotal</th>
                                         <!--<th>Total de Comisiones</th>-->
                                         <th>Importe total</th>
-                                        <?php //if ($tipoUsuario == "ADMINISTRADOR") { ?>
-                                            <th>Nombre del vendedor</th>
-                                        <?php //} ?>
+                                        <?php //if ($tipoUsuario == "ADMINISTRADOR") { 
+                                        ?>
+                                        <th>Nombre del vendedor</th>
+                                        <?php //} 
+                                        ?>
                                         <th>Editar</th>
                                         <th>Cancelar</th>
                                     </tr>
@@ -237,7 +297,8 @@ session_destroy(); */
         });
     </script>-->
     <!--<script>
-        var tipoUsuario = "<?php // echo $tipoUsuario; ?>";
+        var tipoUsuario = "<?php // echo $tipoUsuario; 
+                            ?>";
         if (tipoUsuario != "ADMINISTRADOR") {
             document
                 .querySelectorAll("#datosPedidos .nombreVendedor")
@@ -295,12 +356,12 @@ session_destroy(); */
             pedidosTable.innerHTML = ""; // Limpiar la tabla
             pedidos.forEach((pedido) => {
                 const row = document.createElement("tr");
-                const subtotalText = pedido.Subtotal
-                    ? `$${Number(pedido.Subtotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                    : 'Sin subtotal';
-                const importeText = pedido.ImporteTotal
-                    ? `$${Number(pedido.ImporteTotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                    : 'Sin importe';
+                const subtotalText = pedido.Subtotal ?
+                    `$${Number(pedido.Subtotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` :
+                    'Sin subtotal';
+                const importeText = pedido.ImporteTotal ?
+                    `$${Number(pedido.ImporteTotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` :
+                    'Sin importe';
                 row.innerHTML = `
             <td>${pedido.Tipo || "Sin tipo"}</td>
             <td>${pedido.Clave || "Sin clave"}</td>
@@ -357,4 +418,5 @@ session_destroy(); */
         }
     </script>
 </body>
+
 </html>

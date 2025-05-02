@@ -260,7 +260,7 @@ function actualizarInve($conexionData, $pedidoId, $claveSae)
         'message' => "COSTO_PROM actualizado a 0 para todos los productos del pedido $pedidoId"
     ]);*/
 }
-function insertarMimve($conexionData, $pedidoId, $claveSae)
+function insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -280,7 +280,7 @@ function insertarMimve($conexionData, $pedidoId, $claveSae)
         ]);
         die();
     }
-    
+
     // Asegura que el ID del pedido tenga el formato correcto (10 caracteres con espacios a la izquierda)
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
@@ -328,8 +328,9 @@ function insertarMimve($conexionData, $pedidoId, $claveSae)
     $numMov = $ultimos['NUM_MOV'];
     $eLtpd = $ultimos['E_LTPD'];
     $cveFolio = $ultimos['CVE_FOLIO'];
-    $refer = $pedidoId;
-
+    //$refer = $pedidoId;
+    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $refer = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
     // ✅ 3. Insertar los productos en MINVEXX
     while ($row = sqlsrv_fetch_array($stmtPartidas, SQLSRV_FETCH_ASSOC)) {
         // Obtener datos del producto en INVEXX
@@ -713,7 +714,8 @@ function actualizarInveAmazon($conexionData, $pedidoId, $claveSae)
         'errors' => $errores
     ]);*/
 }
-function actualizarAfac($conexionData, $pedidoId, $claveSae){
+function actualizarAfac($conexionData, $pedidoId, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -738,10 +740,10 @@ function actualizarAfac($conexionData, $pedidoId, $claveSae){
     $sqlPedido = "SELECT CAN_TOT, IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4, IMP_TOT5, IMP_TOT6, IMP_TOT7, IMP_TOT8, DES_TOT, DES_FIN, COM_TOT, FECHA_DOC 
                   FROM $tablaPedidos 
                   WHERE CVE_DOC = ?";
-    
+
     $paramsPedido = [$pedidoId];
     $stmtPedido = sqlsrv_query($conn, $sqlPedido, $paramsPedido);
-    
+
     if ($stmtPedido === false) {
         die(json_encode([
             'success' => false,
@@ -761,7 +763,7 @@ function actualizarAfac($conexionData, $pedidoId, $claveSae){
     // 📌 Calcular valores a actualizar
     $totalVenta = $pedido['CAN_TOT']; // 📌 Total de venta
     $totalImpuestos = $pedido['IMP_TOT1'] + $pedido['IMP_TOT2'] + $pedido['IMP_TOT3'] + $pedido['IMP_TOT4'] +
-                      $pedido['IMP_TOT5'] + $pedido['IMP_TOT6'] + $pedido['IMP_TOT7'] + $pedido['IMP_TOT8']; // 📌 Suma de impuestos
+        $pedido['IMP_TOT5'] + $pedido['IMP_TOT6'] + $pedido['IMP_TOT7'] + $pedido['IMP_TOT8']; // 📌 Suma de impuestos
     $totalDescuento = $pedido['DES_TOT']; // 📌 Descuento total
     $descuentoFinal = $pedido['DES_FIN']; // 📌 Descuento final
     $comisiones = $pedido['COM_TOT']; // 📌 Comisiones
@@ -971,7 +973,7 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
     sqlsrv_free_stmt($stmtPedido);
     sqlsrv_free_stmt($stmtInsert);
     sqlsrv_close($conn);
- return $cveBita;
+    return $cveBita;
     /*echo json_encode([
         'success' => true,
         'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
@@ -1309,7 +1311,8 @@ function actualizarInve4($conexionData, $pedidoId, $claveSae)
         'message' => "INVEXX y CLIEXX actualizados correctamente para el pedido $pedidoId"
     ]);*/
 }
-function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace){
+function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1328,15 +1331,15 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
         ]);
         die();
     }
-    
-    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); 
+
+    $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
-    
+
     // Tablas dinámicas
     $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    
+
     // ✅ 1. Convertir `$enlace` en un array asociativo con `CVE_ART` como clave
     $enlaceMap = [];
     foreach ($enlace as $lote) {
@@ -1407,13 +1410,63 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
         ?, ?, ?)";
 
         $paramsInsert = [
-            $cveDoc, $row['NUM_PAR'], $row['CVE_ART'], $row['CANT'], $row['PXS'], $row['PREC'], $row['COST'], $row['IMPU1'], $row['IMPU2'], $row['IMPU3'], $row['IMPU4'],
-            $row['IMP1APLA'], $row['IMP2APLA'], $row['IMP3APLA'], $row['IMP4APLA'], $row['TOTIMP1'], $row['TOTIMP2'], $row['TOTIMP3'], $row['TOTIMP4'], $row['DESC1'],
-            $row['DESC2'], $row['DESC3'], $row['COMI'], $row['APAR'], 'S', $row['NUM_ALM'], $row['POLIT_APLI'], $row['TIP_CAM'], $row['UNI_VENTA'],
-            $row['TIPO_PROD'], $row['TIPO_ELEM'], $row['CVE_OBS'], $row['REG_SERIE'], $eLtpd, $numMov, $TOT_PARTIDA, $row['IMPRIMIR'], $row['MAN_IEPS'],
-            1, 0, 'C', $row['MTO_PORC'], $row['MTO_CUOTA'], $row['CVE_ESQ'], $fechaSinc,
-            $row['IMPU5'], $row['IMPU6'], $row['IMPU7'], $row['IMPU8'], $row['IMP5APLA'], $row['IMP6APLA'], $row['IMP7APLA'], $row['IMP8APLA'], $row['TOTIMP5'],
-            $row['TOTIMP6'], $row['TOTIMP7'], $row['TOTIMP8']
+            $cveDoc,
+            $row['NUM_PAR'],
+            $row['CVE_ART'],
+            $row['CANT'],
+            $row['PXS'],
+            $row['PREC'],
+            $row['COST'],
+            $row['IMPU1'],
+            $row['IMPU2'],
+            $row['IMPU3'],
+            $row['IMPU4'],
+            $row['IMP1APLA'],
+            $row['IMP2APLA'],
+            $row['IMP3APLA'],
+            $row['IMP4APLA'],
+            $row['TOTIMP1'],
+            $row['TOTIMP2'],
+            $row['TOTIMP3'],
+            $row['TOTIMP4'],
+            $row['DESC1'],
+            $row['DESC2'],
+            $row['DESC3'],
+            $row['COMI'],
+            $row['APAR'],
+            'S',
+            $row['NUM_ALM'],
+            $row['POLIT_APLI'],
+            $row['TIP_CAM'],
+            $row['UNI_VENTA'],
+            $row['TIPO_PROD'],
+            $row['TIPO_ELEM'],
+            $row['CVE_OBS'],
+            $row['REG_SERIE'],
+            $eLtpd,
+            $numMov,
+            $TOT_PARTIDA,
+            $row['IMPRIMIR'],
+            $row['MAN_IEPS'],
+            1,
+            0,
+            'C',
+            $row['MTO_PORC'],
+            $row['MTO_CUOTA'],
+            $row['CVE_ESQ'],
+            $fechaSinc,
+            $row['IMPU5'],
+            $row['IMPU6'],
+            $row['IMPU7'],
+            $row['IMPU8'],
+            $row['IMP5APLA'],
+            $row['IMP6APLA'],
+            $row['IMP7APLA'],
+            $row['IMP8APLA'],
+            $row['TOTIMP5'],
+            $row['TOTIMP6'],
+            $row['TOTIMP7'],
+            $row['TOTIMP8']
         ];
 
         $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
@@ -1430,7 +1483,8 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
 
     sqlsrv_close($conn);
 }
-function insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae){
+function insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1822,7 +1876,7 @@ function actualizarControl4($conexionData, $claveSae)
         'message' => "TBLCONTROL actualizado correctamente (ID_TABLA = 70, +1 en ULT_CVE)"
     ]);*/
 }
-function actualizarControl5($conexionData, $claveSae) 
+function actualizarControl5($conexionData, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1895,7 +1949,7 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
 
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
-    
+
     // ✅ 1. Obtener los productos y almacenes del pedido
     $sqlProductos = "SELECT DISTINCT CVE_ART, NUM_ALM FROM $tablaPartidas WHERE CVE_DOC = ?";
     $paramsProductos = [$pedidoId];
@@ -1990,7 +2044,7 @@ function actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae)
     // Tablas dinámicas
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    
+
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
@@ -2233,7 +2287,7 @@ function insertarDoctoSig($conexionData, $pedidoId, $cveDoc, $claveSae)
         "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
-    
+
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
@@ -2293,7 +2347,7 @@ function insertarDoctoSig($conexionData, $pedidoId, $cveDoc, $claveSae)
         'message' => "DOCTOSIGFXX insertado correctamente para Pedido $pedidoId y Remisión $cveDoc"
     ]);*/
 }
-function insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae) 
+function insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2324,7 +2378,7 @@ function insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae)
     // 📌 1. Obtener el nuevo `CVE_INFO` (secuencial)
     $sqlUltimoCveInfo = "SELECT ISNULL(MAX(CVE_INFO), 0) + 1 AS NUEVO_CVE_INFO FROM $tablaInfenvio";
     $stmtUltimoCveInfo = sqlsrv_query($conn, $sqlUltimoCveInfo);
-    
+
     if ($stmtUltimoCveInfo === false) {
         die(json_encode([
             'success' => false,
@@ -2374,10 +2428,17 @@ function insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae)
                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     $paramsInsert = [
-        $cveInfo, 
-        $pedido['NOMBRE'], $pedido['CALLE'], $pedido['NUMINT'], $pedido['NUMEXT'], 
-        $pedido['LOCALIDAD'], $pedido['ESTADO'], $pedido['PAIS'], $pedido['MUNICIPIO'], 
-        $codigoPostal, $fechaEnvio
+        $cveInfo,
+        $pedido['NOMBRE'],
+        $pedido['CALLE'],
+        $pedido['NUMINT'],
+        $pedido['NUMEXT'],
+        $pedido['LOCALIDAD'],
+        $pedido['ESTADO'],
+        $pedido['PAIS'],
+        $pedido['MUNICIPIO'],
+        $codigoPostal,
+        $fechaEnvio
     ];
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
@@ -2402,11 +2463,13 @@ function insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae)
 }
 
 
-function generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor) {
+function generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor)
+{
     generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
 }
 
-function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor){
+function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor)
+{
     actualizarControl($conexionData, $claveSae);
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
@@ -2417,17 +2480,17 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarInve($conexionData, $pedidoId, $claveSae);
 
     $enlace = validarLotes($conexionData, $pedidoId, $claveSae);
-    
-    insertarMimve($conexionData, $pedidoId, $claveSae);
+
     actualizarInve2($conexionData, $pedidoId, $claveSae);
-    actualizarInve3($conexionData, $pedidoId, $claveSae); 
+    actualizarInve3($conexionData, $pedidoId, $claveSae);
     actualizarInveClaro($conexionData, $pedidoId, $claveSae);
-    actualizarInveAmazon($conexionData, $pedidoId, $claveSae); 
+    actualizarInveAmazon($conexionData, $pedidoId, $claveSae);
     actualizarMulti2($conexionData, $pedidoId, $claveSae); //No Terminada
-    actualizarAfac($conexionData, $pedidoId, $claveSae); 
-    actualizarControl3($conexionData, $claveSae); 
+    actualizarAfac($conexionData, $pedidoId, $claveSae);
+    actualizarControl3($conexionData, $claveSae);
     $CVE_BITA = insertarBita($conexionData, $pedidoId, $claveSae);
-    $cveDoc = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA); 
+    $cveDoc = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA);
+    insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc);
     insertarFactr_Clib($conexionData, $cveDoc, $claveSae);
     actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarInve4($conexionData, $pedidoId, $claveSae);
@@ -2440,7 +2503,7 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
     actualizarAlerta($conexionData, $claveSae);
-    
+
     //$cveDoc = '          0000013314';
     //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor); 
     echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
@@ -2585,7 +2648,7 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
     $productos = obtenerProductosPedido($conn, $conexionData, $pedidoId, $claveSae);
     $enlaceLTPDResultados = [];
 
-    
+
     sqlsrv_begin_transaction($conn);
 
     foreach ($productos as $producto) {
@@ -2661,7 +2724,7 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $pedidoId = $_POST['pedidoId'];
-        
+
         $cveDoc = crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor);
         echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
         break;
