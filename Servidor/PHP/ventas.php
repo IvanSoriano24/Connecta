@@ -178,9 +178,9 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
         echo json_encode(['success'=>false,'message'=>$e->getMessage()]);
     }
 }*/
-function mostrarPedidos($conexionData, $filtroFecha, $filtroVendedor)
+function mostrarPedidos($conexionData, $filtroFecha)
 {
-    // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto
+    // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
 
     // Parámetros de paginación
@@ -298,7 +298,6 @@ function mostrarPedidos($conexionData, $filtroFecha, $filtroVendedor)
                 $clientes[] = $row;
             }
         }
-
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
 
@@ -375,18 +374,17 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
         // Convertimos los DateTime a texto "YYYY-MM-DD" o al formato que quieras
         $fechaDoc = $pedido['FECHA_DOC']->format('Y-m-d');
         $fechaEnt = $pedido['FECHA_ENT']->format('Y-m-d');
-    
+
         header('Content-Type: application/json');
         echo json_encode([
-          'success'   => true,
-          'pedido'    => array_merge($pedido, [
-            'FECHA_DOC' => $fechaDoc,
-            'FECHA_ENT' => $fechaEnt
-          ])
+            'success'   => true,
+            'pedido'    => array_merge($pedido, [
+                'FECHA_DOC' => $fechaDoc,
+                'FECHA_ENT' => $fechaEnt
+            ])
         ]);
         exit;
-    }
-     else {
+    } else {
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'message' => 'Pedido no encontrado']);
         exit;
@@ -5962,6 +5960,46 @@ function obtenerDescripcionComanda($producto, $conexionData, $claveSae)
     sqlsrv_close($conn);
 }
 
+function obtenerMunicipios(){
+    $filePath = "../../Complementos/estados.xml";
+    if (!file_exists($filePath)) {
+        echo "El archivo no existe en la ruta: $filePath";
+        return;
+    }
+
+    $xmlContent = file_get_contents($filePath);
+    if ($xmlContent === false) {
+        echo "Error al leer el archivo XML en $filePath";
+        return;
+    }
+
+    try {
+        $estados = new SimpleXMLElement($xmlContent);
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        return;
+    }
+
+    $estado = [];
+    // Iterar sobre cada <row>
+    foreach ($estados->estado as $item) {
+        //echo "Clave: " . $banco['claveCB'] . " - " . $banco['tipoConcepto'] . "<br/>";
+        $estado[] = [
+            'clave' => (string)$item->clave,
+            'estado' => (string)$item->estado,
+            'abreviatura' => (string)$item->abreviatura
+        ];
+    }
+    if (!empty($estado)) {
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'estados' => $estado]);
+        exit();
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron ninguna clave.']);
+    }
+}
+
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -5992,8 +6030,8 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $filtroFecha = $_POST['filtroFecha'];
-        $filtroVendedor = $_POST['filtroVendedor'];
-        mostrarPedidos($conexionData, $filtroFecha, $filtroVendedor);
+        //$filtroVendedor = $_POST['filtroVendedor']; , $filtroVendedor
+        mostrarPedidos($conexionData, $filtroFecha);
         break;
     case 2:
 
@@ -6709,6 +6747,9 @@ switch ($funcion) {
         } else {
             echo json_encode(['success' => false, 'fail' => true, 'message' => 'Pedido no Remitido, se puede cancelar']);
         }
+        break;
+    case 22:
+        obtenerMunicipios();
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

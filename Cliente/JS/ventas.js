@@ -176,7 +176,7 @@ function cargarPedidos(filtroFecha) {
       numFuncion: "1",
       noEmpresa: noEmpresa,
       filtroFecha: filtroFecha,
-      filtroVendedor: filtroVendedor,
+      //filtroVendedor: filtroVendedor,
     },
     function (response) {
       console.log("Respuesta del servidor:", response);
@@ -261,7 +261,7 @@ function datosPedidos(limpiarTabla = true) {
       numFuncion: "1",
       noEmpresa: noEmpresa,
       filtroFecha: filtroFecha,
-      filtroVendedor: filtroVendedor,
+      //filtroVendedor: filtroVendedor,
       pagina: paginaActual,
       porPagina: registrosPorPagina,
     },
@@ -765,13 +765,13 @@ function llenarFiltroVendedor() {
   });
 }
 
-let filtroVendedor = "";
+/*let filtroVendedor = "";
 $(document).on("change", "#filtroVendedor", function () {
   filtroVendedor = $(this).val();
   // vuelve a cargar desde página 1
   paginaActual = 1;
   datosPedidos(true);
-});
+});*/
 $("#filtroFecha").change(function () {
   var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
   cargarPedidos(filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro

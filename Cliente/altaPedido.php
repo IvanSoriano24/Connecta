@@ -533,7 +533,7 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                         <div class="row">
                             <div class="form-element">
-                                <label for="enviar">Enviar a </label>
+                                <label for="enviar">Enviar a <input type="button" id="datosEnvio" value="Datos de Envio"> <a class='bx'> *</a> </label>
                                 <div style="display: flex; align-items: center;">
                                     <input type="text" name="enviar" style="width:410px;" id="enviar" disabled>
                                     <button type="button" class="btn ms-2" id="AyudaEnviarA">
@@ -692,6 +692,77 @@ if (isset($_SESSION['usuario'])) {
                                     <!-- <button type="button" class=" btn-cancel" onclick="cerrarModal()">C</button> -->
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="modalEnvio" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Datos de Envio</h5>
+                                <button type="button" class="btn-close custom-close" data-dismiss="modal" aria-label="Close"
+                                    id="cerrarModalHeader">
+                                    <span aria-hidden="true"></span><!-- &times; -->
+                                </button>
+                            </div>
+                            <form id="modalDatosEnvio">
+                                <div class="form-row">
+                                    <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <h5>Direccion</h5>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <h5>Detalles del Contacto</h5>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+
+                                    <br>
+                                    <label for="razonSocial">Nombre del Contacto: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="nombreContacto" id="nombreContacto" values="">
+
+                                    <br>
+                                    <label for="rfc">País:<a class='bx'> *</a></label>
+                                    <select name="paisContacto" id="paisContacto" placeholder="Selecciona opcion" value="">
+                                        <option value="MX">México</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label for="razonSocial">Compañia: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="compañiaContacto" id="compañiaContacto" values="">
+                                    <label for="regimenFiscal">Estados: <a class='bx'>*</a></label>
+                                    <select name="estadoContacto" id="estadoContacto" placeholder="Selecciona opcion" value="" disabled>
+                                        <option selected disabled>Selecciona un Estado</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <label for="razonSocial">Número de Teléfono: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="telefonoContacto" id="telefonoContacto" values="">
+                                    <label for="rfc">Línea 1 de la Direccion:<a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="direccion1Contacto" id="direccion1Contacto" value="">
+                                </div>
+                                <div class="form-row">
+                                    <label for="razonSocial">Correo Electrónico: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="correoContacto" id="correoContacto" values="">
+                                    <label for="rfc">Línea 2 de la Direccion:<a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="direccion2Contacto" id="direccion2Contacto" value="">
+                                    <br>
+                                </div>
+                                <div class="form-row">
+                                    <!--<label for="razonSocial">Correo Electrónico: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="correoContacto" id="correoContacto" values="">-->
+                                    <div style="text-align: right;">
+                                        <label for="rfc">Codigo Postal:<a class='bx'> *</a></label>
+                                        <input class="input-m" type="text" name="codigoContacto" id="codigoContacto" value="">
+                                    </div>
+                                </div>
+                                <div class="form-buttons">
+                                    <button type="submit" class="btn-save" id="guardarEmpresa">Guardar</button>
+                                    <button type="button" class="btn-cancel" id="cerrarModalFooter">Cancelar</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -980,12 +1051,12 @@ if (isset($_SESSION['usuario'])) {
                     // evitamos ejecutar la selección
                     if ((e.key === "Tab" || e.key === "Enter") && items.length === 0) {
                         // Si quieres que NO tabule al siguiente campo:
-                         //e.preventDefault();
+                        //e.preventDefault();
 
                         // Si quieres que sí tabule, pero sin hacer nada especial, sólo sales:
                         return;
                     }
-//Validacion TAB
+                    //Validacion TAB
                     if (e.key === "ArrowDown") {
                         highlightedIndex = (highlightedIndex + 1) % items.length;
                         actualizarDestacadoProducto(items, highlightedIndex);

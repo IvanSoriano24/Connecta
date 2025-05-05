@@ -231,12 +231,12 @@ session_destroy(); */
                                 </td>
                             </tr>
                             <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
-                                <tr>
+                                <!--<tr>
                                     <td>
                                         <select id="filtroVendedor">
                                         </select>
                                     </td>
-                                </tr>
+                                </tr> -->
                             <?php } ?>
                             <table id="pedidos">
                                 <thead>
@@ -294,7 +294,7 @@ session_destroy(); */
     <script>
         var tipoUsuario = "<?php echo $tipoUsuario; ?>";
         if (tipoUsuario === "ADMINISTRADOR") {
-            llenarFiltroVendedor();
+            //llenarFiltroVendedor();
         }
     </script>
     <!--<script>

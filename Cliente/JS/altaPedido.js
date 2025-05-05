@@ -1128,7 +1128,62 @@ function toggleClearButton() {
     clearButton.hide();
   }
 }
+function obtenerMunicipios() {
+  // Obtener el valor del RFC y quitar espacios en blanco
+  const pais = $("#paisContacto").val().trim();
+  // Si el RFC es muy corto, deshabilitamos el select y reiniciamos sus opciones
+  if (!pais) {
+    $("#estadoContacto")
+      .prop("disabled", true)
+      .empty()
+      .append("<option selected disabled>Selecciona un Estado</option>");
+    return;
+  }
 
+  // Habilitamos el select
+  $("#estadoContacto").prop("disabled", false);
+
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "22" },
+    dataType: "json",
+    success: function (resRegimen) {
+      if (resRegimen.success && Array.isArray(resRegimen.estados)) {
+        const $regimenFiscalNew = $("#estadoContacto");
+        $regimenFiscalNew.empty();
+        $regimenFiscalNew.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resRegimen.estados.forEach((regimen) => {
+          $regimenFiscalNew.append(
+            `<option value="${regimen.clave}" 
+                data-estado="${regimen.estado}" 
+                data-abreviatura="${regimen.abreviatura || ""}" 
+                data-fisica="${regimen.Fisica || ""}">
+                ${regimen.estado} || ${regimen.abreviatura}
+              </option>`
+          );
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resRegimen.message || "No se encontraron estados.",
+        });
+        $("#estadoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
 // Limpiar todos los campos
 function clearAllFields() {
   // Limpiar valores de los inputs
@@ -1185,7 +1240,11 @@ function cerrarModalClientes() {
   const modal = bootstrap.Modal.getInstance(modalElement);
   modal.hide();
 }
-
+function mostrarMoldal() {
+  //limpiarFormulario();
+  obtenerMunicipios();
+  $("#modalEnvio").modal("show");
+}
 // // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 // document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
 
@@ -1202,7 +1261,7 @@ document
       agregarFilaPartidas();
     }
   });
-  document
+document
   .getElementById("formularioPedido")
   .addEventListener("keydown", function (event) {
     // Si Tab y el target es el input con id "enviar"
@@ -1334,4 +1393,8 @@ $("#AyudaEnviarA").click(function () {
 
 $("#cancelarPedido").click(function () {
   window.location.href = "Ventas.php";
+});
+$("#datosEnvio").click(function () {
+  mostrarMoldal();
+  //obtenerRegimen();
 });

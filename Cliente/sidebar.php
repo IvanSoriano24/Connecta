@@ -21,7 +21,8 @@
         
         <br>
         <a href="Dashboard.php" class="brand">
-            <img src="SRC/logomd.png" alt="" style="width: 170px; height: auto;" id="logonav">
+            <!--<img src="SRC/logomd.png" alt="" style="width: 170px; height: auto;" id="logonav">-->
+            <img src="SRC/imagen.png" alt="" style="width: 170px; height: auto;" id="logonav">
         </a>
         <br>
         <li class="active">
