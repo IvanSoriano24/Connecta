@@ -906,7 +906,7 @@ function validarCreditoCliente(clienteId) {
             text: "El cliente tiene crédito disponible.",
             icon: "success",
           });*/
-          $("#conCredito").val("C");
+          $("#conCredito").val("S");
         } else {
           /*Swal.fire({
             title: "Sin crédito",

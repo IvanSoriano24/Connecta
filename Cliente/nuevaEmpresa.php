@@ -159,6 +159,7 @@ $_SESSION['csrf_token'] = $csrf_token;
                                 <div class="form-buttons">
                                     <button type="submit" class="btn-save" id="guardarEmpresaNew">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cancelarEmpresa">Cancelar</button>
+                                    <button type="button" class="btn-cancel" id="cerrarSesion">Cerrar Sesión</button>
                                 </div>
                             </form>
                         </div>

@@ -1000,8 +1000,9 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $IMP_TOT6 = 0;
     $IMP_TOT7 = 0;
     $IMP_TOT8 = 0;
-    $DES_FIN = $formularioData['descuentoFin'] || 0;
-    $CONDICION = $formularioData['condicion'];
+    //$DES_FIN = $formularioData['descuentoFin'] || 0;
+    $DES_FIN = 0;
+    $CONDICION = $formularioData['condicion'] || "";
     $RFC = $formularioData['rfc'];
     $FECHA_ELAB = $formularioData['diaAlta'];
     $TIP_DOC = $formularioData['factura'];
@@ -1515,7 +1516,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         }
 
         if ($numeroBandera === 0) {
-            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -6200,9 +6201,9 @@ switch ($funcion) {
                         } else if ($validarSaldo == 1 || $credito == 1) {
                             $estatus = "C";
                         }
-                        /*$estatus = "E";
+                        $estatus = "E";
                         $validarSaldo = 0;
-                        $credito = 0;*/
+                        $credito = 0;
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);

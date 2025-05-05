@@ -54,7 +54,7 @@
             </li>
         <?php } ?>
         <li>
-            <a href="Mensajes.php">
+            <a href="mensajes.php">
                 <i class='bx bxs-message-dots'></i>
                 <span class="text">Mensajes</span>
                 <span id="mensajesNotificacion" class="badge bg-danger text-white d-none" style="font-size: 0.8rem; margin-left: 10px;">0</span>
