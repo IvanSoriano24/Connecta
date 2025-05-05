@@ -205,7 +205,7 @@ session_destroy(); */
                     </div>
 
                     <!-- TABLA PEDIDOS  -->
-                    <div class="table-data">
+                    <div class="table-data" id="pedidosActivos">
                         <div class="order">
                             <div class="head">
                                 <h3></h3>

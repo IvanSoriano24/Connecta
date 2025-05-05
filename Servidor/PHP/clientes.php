@@ -309,6 +309,72 @@ function formatearClaveCliente($clave)
     // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
     return str_pad($clave, 10, ' ', STR_PAD_LEFT);
 }
+function obtenerDatosClienteAutoriza($conexionData, $claveSae, $claveUsuario){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "SELECT 
+        CLAVE,  
+        CALLE_ENVIO,
+        COLONIA_ENVIO,
+        LOCALIDAD_ENVIO,
+        MUNICIPIO_ENVIO,
+        ESTADO_ENVIO,
+        CODIGO_ENVIO
+    FROM 
+        $nombreTabla
+    WHERE 
+        CLAVE = ?;";  // ✅ Eliminé el 'AND' incorrecto
+
+    $params = [$claveUsuario]; // ✅ No conviertas a entero si CLAVE puede ser alfanumérica
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    $clientes = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        foreach ($row as $key => $value) {
+            // Limpiar y convertir datos a UTF-8 si es necesario
+            if ($value !== null && is_string($value)) {
+                $value = trim($value);
+                if (!empty($value)) {
+                    $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
+                    if ($encoding && $encoding !== 'UTF-8') {
+                        $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                    }
+                }
+            } elseif ($value === null) {
+                $value = ''; // Valor predeterminado si es null
+            }
+            $row[$key] = $value;
+        }
+        $clientes[] = $row;
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    if (empty($clientes)) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
+        exit;
+    }
+
+    header('Content-Type: application/json; charset=UTF-8');
+    //return $clientes;
+    echo json_encode(['success' => true, 'data' => $clientes]);
+}
 function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae)
 {
     $serverName = $conexionData['host'];
@@ -482,6 +548,23 @@ switch ($funcion) {
         $clave = $_SESSION['usuario']['claveUsuario'];
         $claveUsuario = formatearClaveCliente($clave);
         obtenerDatosCliente($conexionData, $claveUsuario, $claveSae);
+        break;
+    case 5:
+        //$noEmpresa = "01";
+        $noEmpresa = "2";
+        //$claveSae = "02";
+        $claveSae = "01";
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        $clave = $_POST["client"];
+        $claveUsuario = formatearClaveCliente($clave);
+        obtenerDatosClienteAutoriza($conexionData, $claveSae, $claveUsuario);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

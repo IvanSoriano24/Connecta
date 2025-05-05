@@ -1240,9 +1240,43 @@ function cerrarModalClientes() {
   const modal = bootstrap.Modal.getInstance(modalElement);
   modal.hide();
 }
+function obtenerDatosEnvio(){
+  const clienteId = document.getElementById("cliente").value;
+  
+  $.ajax({
+    url: "../Servidor/PHP/clientes.php",
+    method: "POST",
+    data: { numFuncion: "5", client: clienteId },
+    dataType: "json",
+    success: function (envios) {
+      if (envios.success && Array.isArray(envios.data)) {
+        
+        $("#codigoContacto").val(envios.data['0'].CODIGO_ENVIO || "");
+        $("#direccion1Contacto").val(envios.data['0'].CALLE_ENVIO || "");
+        $("#direccion2Contacto").val(envios.data['0'].COLONIA_ENVIO || "");
+        //$("#codigoContacto").val(envios.data.CALLE || "");
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: envios.message || "No se encontraron datos de Envio.",
+        });
+        $("#estadoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener los datos de envio.",
+      });
+    },
+  });
+}
 function mostrarMoldal() {
   //limpiarFormulario();
   obtenerMunicipios();
+  obtenerDatosEnvio();
   $("#modalEnvio").modal("show");
 }
 // // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella

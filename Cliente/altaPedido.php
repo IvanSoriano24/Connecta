@@ -533,7 +533,7 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                         <div class="row">
                             <div class="form-element">
-                                <label for="enviar">Enviar a <input type="button" id="datosEnvio" value="Datos de Envio"> <a class='bx'> *</a> </label>
+                                <label for="enviar">Enviar a <input type="button" id="datosEnvio" value="Datos de Envio" disabled> <a class='bx'> *</a> </label>
                                 <div style="display: flex; align-items: center;">
                                     <input type="text" name="enviar" style="width:410px;" id="enviar" disabled>
                                     <button type="button" class="btn ms-2" id="AyudaEnviarA">
@@ -712,50 +712,31 @@ if (isset($_SESSION['usuario'])) {
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
                                         <h5>Direccion</h5>
+                                        <label for="razonSocial">Nombre del Contacto: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="nombreContacto" id="nombreContacto" values="">
+                                    <label for="razonSocial">Compañia: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="compañiaContacto" id="compañiaContacto" values="">
+                                    <label for="razonSocial">Número de Teléfono: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="telefonoContacto" id="telefonoContacto" values="">
+                                    <label for="razonSocial">Correo Electrónico: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="correoContacto" id="correoContacto" values="">
                                     </div>
                                     <div class="form-group col-md-6">
                                         <h5>Detalles del Contacto</h5>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-
-                                    <br>
-                                    <label for="razonSocial">Nombre del Contacto: <a class='bx'> *</a></label>
-                                    <input class="input-m" type="text" name="nombreContacto" id="nombreContacto" values="">
-
-                                    <br>
-                                    <label for="rfc">País:<a class='bx'> *</a></label>
+                                        <label for="rfc">País:<a class='bx'> *</a></label>
                                     <select name="paisContacto" id="paisContacto" placeholder="Selecciona opcion" value="">
                                         <option value="MX">México</option>
                                     </select>
-                                </div>
-                                <div class="form-row">
-                                    <label for="razonSocial">Compañia: <a class='bx'> *</a></label>
-                                    <input class="input-m" type="text" name="compañiaContacto" id="compañiaContacto" values="">
                                     <label for="regimenFiscal">Estados: <a class='bx'>*</a></label>
                                     <select name="estadoContacto" id="estadoContacto" placeholder="Selecciona opcion" value="" disabled>
                                         <option selected disabled>Selecciona un Estado</option>
                                     </select>
-                                </div>
-                                <div class="form-row">
-                                    <label for="razonSocial">Número de Teléfono: <a class='bx'> *</a></label>
-                                    <input class="input-m" type="text" name="telefonoContacto" id="telefonoContacto" values="">
                                     <label for="rfc">Línea 1 de la Direccion:<a class='bx'> *</a></label>
                                     <input class="input-m" type="text" name="direccion1Contacto" id="direccion1Contacto" value="">
-                                </div>
-                                <div class="form-row">
-                                    <label for="razonSocial">Correo Electrónico: <a class='bx'> *</a></label>
-                                    <input class="input-m" type="text" name="correoContacto" id="correoContacto" values="">
                                     <label for="rfc">Línea 2 de la Direccion:<a class='bx'> *</a></label>
                                     <input class="input-m" type="text" name="direccion2Contacto" id="direccion2Contacto" value="">
-                                    <br>
-                                </div>
-                                <div class="form-row">
-                                    <!--<label for="razonSocial">Correo Electrónico: <a class='bx'> *</a></label>
-                                    <input class="input-m" type="text" name="correoContacto" id="correoContacto" values="">-->
-                                    <div style="text-align: right;">
-                                        <label for="rfc">Codigo Postal:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="codigoContacto" id="codigoContacto" value="">
+                                    <label for="rfc">Codigo Postal:<a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="codigoContacto" id="codigoContacto" value="">
                                     </div>
                                 </div>
                                 <div class="form-buttons">

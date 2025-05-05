@@ -2468,8 +2468,76 @@ function generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor)
     generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
 }
 
+function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace) {
+    $urlComanda = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+
+    $response = @file_get_contents($urlComanda);
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener las comandas.']);
+        return;
+    }
+
+    $data = json_decode($response, true);
+    if (!isset($data['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron comandas.']);
+        return;
+    }
+
+    // Buscar la comanda con el folio igual al pedidoId
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
+            $id = str_replace("projects/$firebaseProjectId/databases/(default)/documents/COMANDA/", '', $document['name']);
+
+            // Obtener los productos
+            $productos = $fields['productos']['arrayValue']['values'] ?? [];
+
+            // Actualizar el producto que coincide con CVE_ART
+            foreach ($productos as &$producto) {
+                $productoFields = &$producto['mapValue']['fields'];
+                if (isset($productoFields['clave']['stringValue']) && $productoFields['clave']['stringValue'] === $enlace['CVE_ART']) {
+                    $productoFields['lote'] = ["stringValue" => $enlace['LOTE']];
+                }
+            }
+
+            // Preparar el payload para actualizar
+            $fieldsToSave = [
+                "productos" => [
+                    "arrayValue" => [
+                        "values" => $productos
+                    ]
+                ]
+            ];
+
+            $payload = json_encode(['fields' => $fieldsToSave]);
+
+            $urlUpdate = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$id?updateMask.fieldPaths=productos&key=$firebaseApiKey";
+
+            $options = [
+                'http' => [
+                    'header'  => "Content-type: application/json\r\n",
+                    'method'  => 'PATCH',
+                    'content' => $payload
+                ]
+            ];
+
+            $result = @file_get_contents($urlUpdate, false, $options);
+            if ($result === FALSE) {
+                echo json_encode(['success' => false, 'message' => 'Error al actualizar la comanda.']);
+            } else {
+                echo json_encode(['success' => true, 'message' => 'Comanda actualizada correctamente.']);
+            }
+            return;
+        }
+    }
+
+    echo json_encode(['success' => false, 'message' => 'Comanda con el pedidoId no encontrada.']);
+}
+
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor)
 {
+    global $firebaseProjectId, $firebaseApiKey;
+
     actualizarControl($conexionData, $claveSae);
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
@@ -2503,6 +2571,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
     actualizarAlerta($conexionData, $claveSae);
+
+    actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace);
 
     //$cveDoc = '          0000013314';
     //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor); 
@@ -2634,6 +2704,7 @@ function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $
             'REG_LTPD' => $lote['REG_LTPD'],
             'CANTIDAD' => $lote['CANTIDAD'],
             'PXRS' => $lote['CANTIDAD'],
+            'LOTE' => $lote['LOTE'],
             'CVE_ART' => $claveProducto
         ];
     }
