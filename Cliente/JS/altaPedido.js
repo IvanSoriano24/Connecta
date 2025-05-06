@@ -1130,6 +1130,52 @@ function toggleClearButton() {
     clearButton.hide();
   }
 }
+function obtenerEstados() {
+
+  // Habilitamos el select
+  $("#estadoContacto").prop("disabled", false);
+
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "22" },
+    dataType: "json",
+    success: function (resRegimen) {
+      if (resRegimen.success && Array.isArray(resRegimen.estados)) {
+        const $regimenFiscalNew = $("#estadoContacto");
+        $regimenFiscalNew.empty();
+        $regimenFiscalNew.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resRegimen.estados.forEach((regimen) => {
+          $regimenFiscalNew.append(
+            `<option value="${regimen.clave}" 
+                data-estado="${regimen.estado}" 
+                data-abreviatura="${regimen.abreviatura || ""}" 
+                data-fisica="${regimen.Fisica || ""}">
+                ${regimen.estado} || ${regimen.abreviatura}
+              </option>`
+          );
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resRegimen.message || "No se encontraron estados.",
+        });
+        $("#estadoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
 function obtenerMunicipios() {
   // Obtener el valor del RFC y quitar espacios en blanco
   const pais = $("#paisContacto").val().trim();
@@ -1175,6 +1221,94 @@ function obtenerMunicipios() {
           text: resRegimen.message || "No se encontraron estados.",
         });
         $("#estadoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
+function obtenerEstadosNuevos() {
+
+  // Habilitamos el select
+  $("#estadoNuevoContacto").prop("disabled", false);
+
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "22" },
+    dataType: "json",
+    success: function (resEstado) {
+      if (resEstado.success && Array.isArray(resEstado.data)) {
+        const $estadoNuevoContacto = $("#estadoNuevoContacto");
+        $estadoNuevoContacto.empty();
+        $estadoNuevoContacto.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resEstado.data.forEach((estado) => {
+          $estadoNuevoContacto.append(
+            `<option value="${estado.Clave}" 
+                data-Pais="${estado.Pais}">
+                ${estado.Descripcion}
+              </option>`
+          );
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resEstado.message || "No se encontraron estados.",
+        });
+        //$("#estadoNuevoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
+function obtenerMunicipiosNuevos() {
+  // Habilitamos el select
+  $("#municipioNuevoContacto").prop("disabled", false);
+const estado = document.getElementById("estadoNuevoContacto").value;
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "23", estado: estado },
+    dataType: "json",
+    success: function (resMunicipio) {
+      if (resMunicipio.success && Array.isArray(resMunicipio.data)) {
+        const $municipioNuevoContacto = $("#municipioNuevoContacto");
+        $municipioNuevoContacto.empty();
+        $municipioNuevoContacto.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resMunicipio.data.forEach((municipio) => {
+          $municipioNuevoContacto.append(
+            `<option value="${municipio.Clave}" 
+                data-estado="${municipio.Estado}"
+                data-descripcion="${municipio.Descripcion || ""}">
+                ${municipio.Descripcion}
+              </option>`
+          );
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resMunicipio.message || "No se encontraron municipios.",
+        });
+        //$("#municipioNuevoContacto").prop("disabled", true);
       }
     },
     error: function () {
@@ -1278,6 +1412,60 @@ function obtenerDatosEnvio(){
     },
   });
 }
+function guardarDatosEnvio(){
+  const clienteId = document.getElementById("cliente").value;
+
+  const tituloEnvio = document.getElementById("titutoContacto").value;
+  const nombreContacto = document.getElementById("nombreNuevoContacto").value;
+  const compañia = document.getElementById("compañiaNuevoContacto").value;
+  const telefonoContacto = document.getElementById("telefonoNuevoContacto").value;
+  const correoContacto = document.getElementById("correoNuevoContacto").value;
+  const linea1Contacto = document.getElementById("direccion1NuevoContacto").value;
+  const linea2Contacto = document.getElementById("direccion2NuevoContacto").value;
+  const codigoContacto = document.getElementById("codigoNuevoContacto").value;
+  const estadoContacto = document.getElementById("estadoNuevoContacto").value;
+  const municipioContacto = document.getElementById("municipioNuevoContacto").value;
+  
+  $.ajax({
+    url: "../Servidor/PHP/clientes.php",
+    method: "POST",
+    data: { numFuncion: "6",
+      clienteId: clienteId,
+      tituloEnvio: tituloEnvio,
+      nombreContacto: nombreContacto,
+      compañia: compañia,
+      telefonoContacto: telefonoContacto,
+      correoContacto: correoContacto,
+      linea1Contacto: linea1Contacto,
+      linea2Contacto: linea2Contacto,
+      codigoContacto: codigoContacto,
+      estadoContacto: estadoContacto,
+      municipioContacto: municipioContacto,
+     },
+    dataType: "json",
+    success: function (envios) {
+      if (envios.success && Array.isArray(envios.data)) {
+        
+
+
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: envios.message || "No se encontraron datos de Envio.",
+        });
+        $("#estadoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener los datos de envio.",
+      });
+    },
+  });
+}
 function cerrarModalEnvio() {
   //limpiarFormulario();
   $("#modalEnvio").modal("hide"); // Cierra el modal usando Bootstrap
@@ -1286,11 +1474,23 @@ function cerrarModalEnvio() {
   // Eliminar el atributo inert del fondo al cerrar
   $(".modal-backdrop").removeAttr("inert");
 }
+function cerrarModalNuevoEnvio() {
+  //limpiarFormulario();
+  $("#modalNuevoEnvio").modal("hide"); // Cierra el modal usando Bootstrap
+  // Restaurar el aria-hidden al cerrar el modal
+  $("#modalNuevoEnvio").attr("aria-hidden", "true");
+  // Eliminar el atributo inert del fondo al cerrar
+  $(".modal-backdrop").removeAttr("inert");
+}
 function mostrarMoldal() {
   //limpiarFormulario();
-  obtenerMunicipios();
-  obtenerDatosEnvio();
-  $("#modalEnvio").modal("show");
+  //obtenerMunicipios();
+  //obtenerDatosEnvio();
+  //$("#modalEnvio").modal("show");
+  /*obtenerEstados();
+  obtenerMunicipios();*/
+  obtenerEstadosNuevos();
+  $("#modalNuevoEnvio").modal("show");
 }
 // // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 // document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
@@ -1400,8 +1600,14 @@ $(document).ready(function () {
 $("#cerrarModalHeader").on("click", function () {
   cerrarModalEnvio();
 });
+$("#cerrarModalHeaderNuevo").on("click", function () {
+  cerrarModalNuevoEnvio();
+});
 $("#cerrarModalFooter").on("click", function () {
   cerrarModalEnvio();
+});
+$("#cerrarModalFooterNuevo").on("click", function () {
+  cerrarModalNuevoEnvio();
 });
 $("#AyudaCondicion").click(function () {
   event.preventDefault();
@@ -1448,5 +1654,7 @@ $("#cancelarPedido").click(function () {
 });
 $("#datosEnvio").click(function () {
   mostrarMoldal();
-  //obtenerRegimen();
+});
+$("#estadoNuevoContacto").on("change", function () {
+  obtenerMunicipiosNuevos();
 });

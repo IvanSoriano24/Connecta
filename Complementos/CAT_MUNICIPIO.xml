@@ -1,0 +1,2466 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Catalogo>
+	<row Clave="001" Estado="AGU" Descripcion="Aguascalientes"/>
+	<row Clave="001" Estado="BCN" Descripcion="Ensenada"/>
+	<row Clave="001" Estado="BCS" Descripcion="Comondú"/>
+	<row Clave="001" Estado="CAM" Descripcion="Calkiní"/>
+	<row Clave="001" Estado="COA" Descripcion="Abasolo"/>
+	<row Clave="001" Estado="COL" Descripcion="Armería"/>
+	<row Clave="001" Estado="CHH" Descripcion="Ahumada"/>
+	<row Clave="001" Estado="CHP" Descripcion="Acacoyagua"/>
+	<row Clave="001" Estado="DUR" Descripcion="Canatlán"/>
+	<row Clave="001" Estado="GRO" Descripcion="Acapulco de Juárez"/>
+	<row Clave="001" Estado="GUA" Descripcion="Abasolo"/>
+	<row Clave="001" Estado="HID" Descripcion="Acatlán"/>
+	<row Clave="001" Estado="JAL" Descripcion="Acatic"/>
+	<row Clave="001" Estado="MEX" Descripcion="Acambay de Ruíz Castañeda"/>
+	<row Clave="001" Estado="MIC" Descripcion="Acuitzio"/>
+	<row Clave="001" Estado="MOR" Descripcion="Amacuzac"/>
+	<row Clave="001" Estado="NAY" Descripcion="Acaponeta"/>
+	<row Clave="001" Estado="NLE" Descripcion="Abasolo"/>
+	<row Clave="001" Estado="OAX" Descripcion="Abejones"/>
+	<row Clave="001" Estado="PUE" Descripcion="Acajete"/>
+	<row Clave="001" Estado="QUE" Descripcion="Amealco de Bonfil"/>
+	<row Clave="001" Estado="ROO" Descripcion="Cozumel"/>
+	<row Clave="001" Estado="SIN" Descripcion="Ahome"/>
+	<row Clave="001" Estado="SLP" Descripcion="Ahualulco"/>
+	<row Clave="001" Estado="SON" Descripcion="Aconchi"/>
+	<row Clave="001" Estado="TAB" Descripcion="Balancán"/>
+	<row Clave="001" Estado="TAM" Descripcion="Abasolo"/>
+	<row Clave="001" Estado="TLA" Descripcion="Amaxac de Guerrero"/>
+	<row Clave="001" Estado="VER" Descripcion="Acajete"/>
+	<row Clave="001" Estado="YUC" Descripcion="Abalá"/>
+	<row Clave="001" Estado="ZAC" Descripcion="Apozol"/>
+	<row Clave="002" Estado="AGU" Descripcion="Asientos"/>
+	<row Clave="002" Estado="BCN" Descripcion="Mexicali"/>
+	<row Clave="002" Estado="BCS" Descripcion="Mulegé"/>
+	<row Clave="002" Estado="CAM" Descripcion="Campeche"/>
+	<row Clave="002" Estado="COA" Descripcion="Acuña"/>
+	<row Clave="002" Estado="COL" Descripcion="Colima"/>
+	<row Clave="002" Estado="CHH" Descripcion="Aldama"/>
+	<row Clave="002" Estado="CHP" Descripcion="Acala"/>
+	<row Clave="002" Estado="CMX" Descripcion="Azcapotzalco"/>
+	<row Clave="002" Estado="DUR" Descripcion="Canelas"/>
+	<row Clave="002" Estado="GRO" Descripcion="Ahuacuotzingo"/>
+	<row Clave="002" Estado="GUA" Descripcion="Acámbaro"/>
+	<row Clave="002" Estado="HID" Descripcion="Acaxochitlán"/>
+	<row Clave="002" Estado="JAL" Descripcion="Acatlán de Juárez"/>
+	<row Clave="002" Estado="MEX" Descripcion="Acolman"/>
+	<row Clave="002" Estado="MIC" Descripcion="Aguililla"/>
+	<row Clave="002" Estado="MOR" Descripcion="Atlatlahucan"/>
+	<row Clave="002" Estado="NAY" Descripcion="Ahuacatlán"/>
+	<row Clave="002" Estado="NLE" Descripcion="Agualeguas"/>
+	<row Clave="002" Estado="OAX" Descripcion="Acatlán de Pérez Figueroa"/>
+	<row Clave="002" Estado="PUE" Descripcion="Acateno"/>
+	<row Clave="002" Estado="QUE" Descripcion="Pinal de Amoles"/>
+	<row Clave="002" Estado="ROO" Descripcion="Felipe Carrillo Puerto"/>
+	<row Clave="002" Estado="SIN" Descripcion="Angostura"/>
+	<row Clave="002" Estado="SLP" Descripcion="Alaquines"/>
+	<row Clave="002" Estado="SON" Descripcion="Agua Prieta"/>
+	<row Clave="002" Estado="TAB" Descripcion="Cárdenas"/>
+	<row Clave="002" Estado="TAM" Descripcion="Aldama"/>
+	<row Clave="002" Estado="TLA" Descripcion="Apetatitlán de Antonio Carvajal"/>
+	<row Clave="002" Estado="VER" Descripcion="Acatlán"/>
+	<row Clave="002" Estado="YUC" Descripcion="Acanceh"/>
+	<row Clave="002" Estado="ZAC" Descripcion="Apulco"/>
+	<row Clave="003" Estado="AGU" Descripcion="Calvillo"/>
+	<row Clave="003" Estado="BCN" Descripcion="Tecate"/>
+	<row Clave="003" Estado="BCS" Descripcion="La Paz"/>
+	<row Clave="003" Estado="CAM" Descripcion="Carmen"/>
+	<row Clave="003" Estado="COA" Descripcion="Allende"/>
+	<row Clave="003" Estado="COL" Descripcion="Comala"/>
+	<row Clave="003" Estado="CHH" Descripcion="Allende"/>
+	<row Clave="003" Estado="CHP" Descripcion="Acapetahua"/>
+	<row Clave="003" Estado="CMX" Descripcion="Coyoacán"/>
+	<row Clave="003" Estado="DUR" Descripcion="Coneto de Comonfort"/>
+	<row Clave="003" Estado="GRO" Descripcion="Ajuchitlán del Progreso"/>
+	<row Clave="003" Estado="GUA" Descripcion="San Miguel de Allende"/>
+	<row Clave="003" Estado="HID" Descripcion="Actopan"/>
+	<row Clave="003" Estado="JAL" Descripcion="Ahualulco de Mercado"/>
+	<row Clave="003" Estado="MEX" Descripcion="Aculco"/>
+	<row Clave="003" Estado="MIC" Descripcion="Álvaro Obregón"/>
+	<row Clave="003" Estado="MOR" Descripcion="Axochiapan"/>
+	<row Clave="003" Estado="NAY" Descripcion="Amatlán de Cañas"/>
+	<row Clave="003" Estado="NLE" Descripcion="Los Aldamas"/>
+	<row Clave="003" Estado="OAX" Descripcion="Asunción Cacalotepec"/>
+	<row Clave="003" Estado="PUE" Descripcion="Acatlán"/>
+	<row Clave="003" Estado="QUE" Descripcion="Arroyo Seco"/>
+	<row Clave="003" Estado="ROO" Descripcion="Isla Mujeres"/>
+	<row Clave="003" Estado="SIN" Descripcion="Badiraguato"/>
+	<row Clave="003" Estado="SLP" Descripcion="Aquismón"/>
+	<row Clave="003" Estado="SON" Descripcion="Alamos"/>
+	<row Clave="003" Estado="TAB" Descripcion="Centla"/>
+	<row Clave="003" Estado="TAM" Descripcion="Altamira"/>
+	<row Clave="003" Estado="TLA" Descripcion="Atlangatepec"/>
+	<row Clave="003" Estado="VER" Descripcion="Acayucan"/>
+	<row Clave="003" Estado="YUC" Descripcion="Akil"/>
+	<row Clave="003" Estado="ZAC" Descripcion="Atolinga"/>
+	<row Clave="004" Estado="AGU" Descripcion="Cosío"/>
+	<row Clave="004" Estado="BCN" Descripcion="Tijuana"/>
+	<row Clave="004" Estado="CAM" Descripcion="Champotón"/>
+	<row Clave="004" Estado="COA" Descripcion="Arteaga"/>
+	<row Clave="004" Estado="COL" Descripcion="Coquimatlán"/>
+	<row Clave="004" Estado="CHH" Descripcion="Aquiles Serdán"/>
+	<row Clave="004" Estado="CHP" Descripcion="Altamirano"/>
+	<row Clave="004" Estado="CMX" Descripcion="Cuajimalpa de Morelos"/>
+	<row Clave="004" Estado="DUR" Descripcion="Cuencamé"/>
+	<row Clave="004" Estado="GRO" Descripcion="Alcozauca de Guerrero"/>
+	<row Clave="004" Estado="GUA" Descripcion="Apaseo el Alto"/>
+	<row Clave="004" Estado="HID" Descripcion="Agua Blanca de Iturbide"/>
+	<row Clave="004" Estado="JAL" Descripcion="Amacueca"/>
+	<row Clave="004" Estado="MEX" Descripcion="Almoloya de Alquisiras"/>
+	<row Clave="004" Estado="MIC" Descripcion="Angamacutiro"/>
+	<row Clave="004" Estado="MOR" Descripcion="Ayala"/>
+	<row Clave="004" Estado="NAY" Descripcion="Compostela"/>
+	<row Clave="004" Estado="NLE" Descripcion="Allende"/>
+	<row Clave="004" Estado="OAX" Descripcion="Asunción Cuyotepeji"/>
+	<row Clave="004" Estado="PUE" Descripcion="Acatzingo"/>
+	<row Clave="004" Estado="QUE" Descripcion="Cadereyta de Montes"/>
+	<row Clave="004" Estado="ROO" Descripcion="Othón P. Blanco"/>
+	<row Clave="004" Estado="SIN" Descripcion="Concordia"/>
+	<row Clave="004" Estado="SLP" Descripcion="Armadillo de los Infante"/>
+	<row Clave="004" Estado="SON" Descripcion="Altar"/>
+	<row Clave="004" Estado="TAB" Descripcion="Centro"/>
+	<row Clave="004" Estado="TAM" Descripcion="Antiguo Morelos"/>
+	<row Clave="004" Estado="TLA" Descripcion="Atltzayanca"/>
+	<row Clave="004" Estado="VER" Descripcion="Actopan"/>
+	<row Clave="004" Estado="YUC" Descripcion="Baca"/>
+	<row Clave="004" Estado="ZAC" Descripcion="Benito Juárez"/>
+	<row Clave="005" Estado="AGU" Descripcion="Jesús María"/>
+	<row Clave="005" Estado="BCN" Descripcion="Playas de Rosarito"/>
+	<row Clave="005" Estado="CAM" Descripcion="Hecelchakán"/>
+	<row Clave="005" Estado="COA" Descripcion="Candela"/>
+	<row Clave="005" Estado="COL" Descripcion="Cuauhtémoc"/>
+	<row Clave="005" Estado="CHH" Descripcion="Ascensión"/>
+	<row Clave="005" Estado="CHP" Descripcion="Amatán"/>
+	<row Clave="005" Estado="CMX" Descripcion="Gustavo A. Madero"/>
+	<row Clave="005" Estado="DUR" Descripcion="Durango"/>
+	<row Clave="005" Estado="GRO" Descripcion="Alpoyeca"/>
+	<row Clave="005" Estado="GUA" Descripcion="Apaseo el Grande"/>
+	<row Clave="005" Estado="HID" Descripcion="Ajacuba"/>
+	<row Clave="005" Estado="JAL" Descripcion="Amatitán"/>
+	<row Clave="005" Estado="MEX" Descripcion="Almoloya de Juárez"/>
+	<row Clave="005" Estado="MIC" Descripcion="Angangueo"/>
+	<row Clave="005" Estado="MOR" Descripcion="Coatlán del Río"/>
+	<row Clave="005" Estado="NAY" Descripcion="Huajicori"/>
+	<row Clave="005" Estado="NLE" Descripcion="Anáhuac"/>
+	<row Clave="005" Estado="OAX" Descripcion="Asunción Ixtaltepec"/>
+	<row Clave="005" Estado="PUE" Descripcion="Acteopan"/>
+	<row Clave="005" Estado="QUE" Descripcion="Colón"/>
+	<row Clave="005" Estado="ROO" Descripcion="Benito Juárez"/>
+	<row Clave="005" Estado="SIN" Descripcion="Cosalá"/>
+	<row Clave="005" Estado="SLP" Descripcion="Cárdenas"/>
+	<row Clave="005" Estado="SON" Descripcion="Arivechi"/>
+	<row Clave="005" Estado="TAB" Descripcion="Comalcalco"/>
+	<row Clave="005" Estado="TAM" Descripcion="Burgos"/>
+	<row Clave="005" Estado="TLA" Descripcion="Apizaco"/>
+	<row Clave="005" Estado="VER" Descripcion="Acula"/>
+	<row Clave="005" Estado="YUC" Descripcion="Bokobá"/>
+	<row Clave="005" Estado="ZAC" Descripcion="Calera"/>
+	<row Clave="006" Estado="AGU" Descripcion="Pabellón de Arteaga"/>
+	<row Clave="006" Estado="CAM" Descripcion="Hopelchén"/>
+	<row Clave="006" Estado="COA" Descripcion="Castaños"/>
+	<row Clave="006" Estado="COL" Descripcion="Ixtlahuacán"/>
+	<row Clave="006" Estado="CHH" Descripcion="Bachíniva"/>
+	<row Clave="006" Estado="CHP" Descripcion="Amatenango de la Frontera"/>
+	<row Clave="006" Estado="CMX" Descripcion="Iztacalco"/>
+	<row Clave="006" Estado="DUR" Descripcion="General Simón Bolívar"/>
+	<row Clave="006" Estado="GRO" Descripcion="Apaxtla"/>
+	<row Clave="006" Estado="GUA" Descripcion="Atarjea"/>
+	<row Clave="006" Estado="HID" Descripcion="Alfajayucan"/>
+	<row Clave="006" Estado="JAL" Descripcion="Ameca"/>
+	<row Clave="006" Estado="MEX" Descripcion="Almoloya del Río"/>
+	<row Clave="006" Estado="MIC" Descripcion="Apatzingán"/>
+	<row Clave="006" Estado="MOR" Descripcion="Cuautla"/>
+	<row Clave="006" Estado="NAY" Descripcion="Ixtlán del Río"/>
+	<row Clave="006" Estado="NLE" Descripcion="Apodaca"/>
+	<row Clave="006" Estado="OAX" Descripcion="Asunción Nochixtlán"/>
+	<row Clave="006" Estado="PUE" Descripcion="Ahuacatlán"/>
+	<row Clave="006" Estado="QUE" Descripcion="Corregidora"/>
+	<row Clave="006" Estado="ROO" Descripcion="José María Morelos"/>
+	<row Clave="006" Estado="SIN" Descripcion="Culiacán"/>
+	<row Clave="006" Estado="SLP" Descripcion="Catorce"/>
+	<row Clave="006" Estado="SON" Descripcion="Arizpe"/>
+	<row Clave="006" Estado="TAB" Descripcion="Cunduacán"/>
+	<row Clave="006" Estado="TAM" Descripcion="Bustamante"/>
+	<row Clave="006" Estado="TLA" Descripcion="Calpulalpan"/>
+	<row Clave="006" Estado="VER" Descripcion="Acultzingo"/>
+	<row Clave="006" Estado="YUC" Descripcion="Buctzotz"/>
+	<row Clave="006" Estado="ZAC" Descripcion="Cañitas de Felipe Pescador"/>
+	<row Clave="007" Estado="AGU" Descripcion="Rincón de Romos"/>
+	<row Clave="007" Estado="CAM" Descripcion="Palizada"/>
+	<row Clave="007" Estado="COA" Descripcion="Cuatro Ciénegas"/>
+	<row Clave="007" Estado="COL" Descripcion="Manzanillo"/>
+	<row Clave="007" Estado="CHH" Descripcion="Balleza"/>
+	<row Clave="007" Estado="CHP" Descripcion="Amatenango del Valle"/>
+	<row Clave="007" Estado="CMX" Descripcion="Iztapalapa"/>
+	<row Clave="007" Estado="DUR" Descripcion="Gómez Palacio"/>
+	<row Clave="007" Estado="GRO" Descripcion="Arcelia"/>
+	<row Clave="007" Estado="GUA" Descripcion="Celaya"/>
+	<row Clave="007" Estado="HID" Descripcion="Almoloya"/>
+	<row Clave="007" Estado="JAL" Descripcion="San Juanito de Escobedo"/>
+	<row Clave="007" Estado="MEX" Descripcion="Amanalco"/>
+	<row Clave="007" Estado="MIC" Descripcion="Aporo"/>
+	<row Clave="007" Estado="MOR" Descripcion="Cuernavaca"/>
+	<row Clave="007" Estado="NAY" Descripcion="Jala"/>
+	<row Clave="007" Estado="NLE" Descripcion="Aramberri"/>
+	<row Clave="007" Estado="OAX" Descripcion="Asunción Ocotlán"/>
+	<row Clave="007" Estado="PUE" Descripcion="Ahuatlán"/>
+	<row Clave="007" Estado="QUE" Descripcion="Ezequiel Montes"/>
+	<row Clave="007" Estado="ROO" Descripcion="Lázaro Cárdenas"/>
+	<row Clave="007" Estado="SIN" Descripcion="Choix"/>
+	<row Clave="007" Estado="SLP" Descripcion="Cedral"/>
+	<row Clave="007" Estado="SON" Descripcion="Atil"/>
+	<row Clave="007" Estado="TAB" Descripcion="Emiliano Zapata"/>
+	<row Clave="007" Estado="TAM" Descripcion="Camargo"/>
+	<row Clave="007" Estado="TLA" Descripcion="El Carmen Tequexquitla"/>
+	<row Clave="007" Estado="VER" Descripcion="Camarón de Tejeda"/>
+	<row Clave="007" Estado="YUC" Descripcion="Cacalchén"/>
+	<row Clave="007" Estado="ZAC" Descripcion="Concepción del Oro"/>
+	<row Clave="008" Estado="AGU" Descripcion="San José de Gracia"/>
+	<row Clave="008" Estado="BCS" Descripcion="Los Cabos"/>
+	<row Clave="008" Estado="CAM" Descripcion="Tenabo"/>
+	<row Clave="008" Estado="COA" Descripcion="Escobedo"/>
+	<row Clave="008" Estado="COL" Descripcion="Minatitlán"/>
+	<row Clave="008" Estado="CHH" Descripcion="Batopilas"/>
+	<row Clave="008" Estado="CHP" Descripcion="Angel Albino Corzo"/>
+	<row Clave="008" Estado="CMX" Descripcion="La Magdalena Contreras"/>
+	<row Clave="008" Estado="DUR" Descripcion="Guadalupe Victoria"/>
+	<row Clave="008" Estado="GRO" Descripcion="Atenango del Río"/>
+	<row Clave="008" Estado="GUA" Descripcion="Manuel Doblado"/>
+	<row Clave="008" Estado="HID" Descripcion="Apan"/>
+	<row Clave="008" Estado="JAL" Descripcion="Arandas"/>
+	<row Clave="008" Estado="MEX" Descripcion="Amatepec"/>
+	<row Clave="008" Estado="MIC" Descripcion="Aquila"/>
+	<row Clave="008" Estado="MOR" Descripcion="Emiliano Zapata"/>
+	<row Clave="008" Estado="NAY" Descripcion="Xalisco"/>
+	<row Clave="008" Estado="NLE" Descripcion="Bustamante"/>
+	<row Clave="008" Estado="OAX" Descripcion="Asunción Tlacolulita"/>
+	<row Clave="008" Estado="PUE" Descripcion="Ahuazotepec"/>
+	<row Clave="008" Estado="QUE" Descripcion="Huimilpan"/>
+	<row Clave="008" Estado="ROO" Descripcion="Solidaridad"/>
+	<row Clave="008" Estado="SIN" Descripcion="Elota"/>
+	<row Clave="008" Estado="SLP" Descripcion="Cerritos"/>
+	<row Clave="008" Estado="SON" Descripcion="Bacadéhuachi"/>
+	<row Clave="008" Estado="TAB" Descripcion="Huimanguillo"/>
+	<row Clave="008" Estado="TAM" Descripcion="Casas"/>
+	<row Clave="008" Estado="TLA" Descripcion="Cuapiaxtla"/>
+	<row Clave="008" Estado="VER" Descripcion="Alpatláhuac"/>
+	<row Clave="008" Estado="YUC" Descripcion="Calotmul"/>
+	<row Clave="008" Estado="ZAC" Descripcion="Cuauhtémoc"/>
+	<row Clave="009" Estado="AGU" Descripcion="Tepezalá"/>
+	<row Clave="009" Estado="BCS" Descripcion="Loreto"/>
+	<row Clave="009" Estado="CAM" Descripcion="Escárcega"/>
+	<row Clave="009" Estado="COA" Descripcion="Francisco I. Madero"/>
+	<row Clave="009" Estado="COL" Descripcion="Tecomán"/>
+	<row Clave="009" Estado="CHH" Descripcion="Bocoyna"/>
+	<row Clave="009" Estado="CHP" Descripcion="Arriaga"/>
+	<row Clave="009" Estado="CMX" Descripcion="Milpa Alta"/>
+	<row Clave="009" Estado="DUR" Descripcion="Guanaceví"/>
+	<row Clave="009" Estado="GRO" Descripcion="Atlamajalcingo del Monte"/>
+	<row Clave="009" Estado="GUA" Descripcion="Comonfort"/>
+	<row Clave="009" Estado="HID" Descripcion="El Arenal"/>
+	<row Clave="009" Estado="JAL" Descripcion="El Arenal"/>
+	<row Clave="009" Estado="MEX" Descripcion="Amecameca"/>
+	<row Clave="009" Estado="MIC" Descripcion="Ario"/>
+	<row Clave="009" Estado="MOR" Descripcion="Huitzilac"/>
+	<row Clave="009" Estado="NAY" Descripcion="Del Nayar"/>
+	<row Clave="009" Estado="NLE" Descripcion="Cadereyta Jiménez"/>
+	<row Clave="009" Estado="OAX" Descripcion="Ayotzintepec"/>
+	<row Clave="009" Estado="PUE" Descripcion="Ahuehuetitla"/>
+	<row Clave="009" Estado="QUE" Descripcion="Jalpan de Serra"/>
+	<row Clave="009" Estado="ROO" Descripcion="Tulum"/>
+	<row Clave="009" Estado="SIN" Descripcion="Escuinapa"/>
+	<row Clave="009" Estado="SLP" Descripcion="Cerro de San Pedro"/>
+	<row Clave="009" Estado="SON" Descripcion="Bacanora"/>
+	<row Clave="009" Estado="TAB" Descripcion="Jalapa"/>
+	<row Clave="009" Estado="TAM" Descripcion="Ciudad Madero"/>
+	<row Clave="009" Estado="TLA" Descripcion="Cuaxomulco"/>
+	<row Clave="009" Estado="VER" Descripcion="Alto Lucero de Gutiérrez Barrios"/>
+	<row Clave="009" Estado="YUC" Descripcion="Cansahcab"/>
+	<row Clave="009" Estado="ZAC" Descripcion="Chalchihuites"/>
+	<row Clave="010" Estado="AGU" Descripcion="El Llano"/>
+	<row Clave="010" Estado="CAM" Descripcion="Calakmul"/>
+	<row Clave="010" Estado="COA" Descripcion="Frontera"/>
+	<row Clave="010" Estado="COL" Descripcion="Villa de Álvarez"/>
+	<row Clave="010" Estado="CHH" Descripcion="Buenaventura"/>
+	<row Clave="010" Estado="CHP" Descripcion="Bejucal de Ocampo"/>
+	<row Clave="010" Estado="CMX" Descripcion="Álvaro Obregón"/>
+	<row Clave="010" Estado="DUR" Descripcion="Hidalgo"/>
+	<row Clave="010" Estado="GRO" Descripcion="Atlixtac"/>
+	<row Clave="010" Estado="GUA" Descripcion="Coroneo"/>
+	<row Clave="010" Estado="HID" Descripcion="Atitalaquia"/>
+	<row Clave="010" Estado="JAL" Descripcion="Atemajac de Brizuela"/>
+	<row Clave="010" Estado="MEX" Descripcion="Apaxco"/>
+	<row Clave="010" Estado="MIC" Descripcion="Arteaga"/>
+	<row Clave="010" Estado="MOR" Descripcion="Jantetelco"/>
+	<row Clave="010" Estado="NAY" Descripcion="Rosamorada"/>
+	<row Clave="010" Estado="NLE" Descripcion="El Carmen"/>
+	<row Clave="010" Estado="OAX" Descripcion="El Barrio de la Soledad"/>
+	<row Clave="010" Estado="PUE" Descripcion="Ajalpan"/>
+	<row Clave="010" Estado="QUE" Descripcion="Landa de Matamoros"/>
+	<row Clave="010" Estado="ROO" Descripcion="Bacalar"/>
+	<row Clave="010" Estado="SIN" Descripcion="El Fuerte"/>
+	<row Clave="010" Estado="SLP" Descripcion="Ciudad del Maíz"/>
+	<row Clave="010" Estado="SON" Descripcion="Bacerac"/>
+	<row Clave="010" Estado="TAB" Descripcion="Jalpa de Méndez"/>
+	<row Clave="010" Estado="TAM" Descripcion="Cruillas"/>
+	<row Clave="010" Estado="TLA" Descripcion="Chiautempan"/>
+	<row Clave="010" Estado="VER" Descripcion="Altotonga"/>
+	<row Clave="010" Estado="YUC" Descripcion="Cantamayec"/>
+	<row Clave="010" Estado="ZAC" Descripcion="Fresnillo"/>
+	<row Clave="011" Estado="AGU" Descripcion="San Francisco de los Romo"/>
+	<row Clave="011" Estado="CAM" Descripcion="Candelaria"/>
+	<row Clave="011" Estado="COA" Descripcion="General Cepeda"/>
+	<row Clave="011" Estado="CHH" Descripcion="Camargo"/>
+	<row Clave="011" Estado="CHP" Descripcion="Bella Vista"/>
+	<row Clave="011" Estado="CMX" Descripcion="Tláhuac"/>
+	<row Clave="011" Estado="DUR" Descripcion="Indé"/>
+	<row Clave="011" Estado="GRO" Descripcion="Atoyac de Álvarez"/>
+	<row Clave="011" Estado="GUA" Descripcion="Cortazar"/>
+	<row Clave="011" Estado="HID" Descripcion="Atlapexco"/>
+	<row Clave="011" Estado="JAL" Descripcion="Atengo"/>
+	<row Clave="011" Estado="MEX" Descripcion="Atenco"/>
+	<row Clave="011" Estado="MIC" Descripcion="Briseñas"/>
+	<row Clave="011" Estado="MOR" Descripcion="Jiutepec"/>
+	<row Clave="011" Estado="NAY" Descripcion="Ruíz"/>
+	<row Clave="011" Estado="NLE" Descripcion="Cerralvo"/>
+	<row Clave="011" Estado="OAX" Descripcion="Calihualá"/>
+	<row Clave="011" Estado="PUE" Descripcion="Albino Zertuche"/>
+	<row Clave="011" Estado="QUE" Descripcion="El Marqués"/>
+	<row Clave="011" Estado="ROO" Descripcion="Puerto Morelos"/>
+	<row Clave="011" Estado="SIN" Descripcion="Guasave"/>
+	<row Clave="011" Estado="SLP" Descripcion="Ciudad Fernández"/>
+	<row Clave="011" Estado="SON" Descripcion="Bacoachi"/>
+	<row Clave="011" Estado="TAB" Descripcion="Jonuta"/>
+	<row Clave="011" Estado="TAM" Descripcion="Gómez Farías"/>
+	<row Clave="011" Estado="TLA" Descripcion="Muñoz de Domingo Arenas"/>
+	<row Clave="011" Estado="VER" Descripcion="Alvarado"/>
+	<row Clave="011" Estado="YUC" Descripcion="Celestún"/>
+	<row Clave="011" Estado="ZAC" Descripcion="Trinidad García de la Cadena"/>
+	<row Clave="012" Estado="COA" Descripcion="Guerrero"/>
+	<row Clave="012" Estado="CHH" Descripcion="Carichí"/>
+	<row Clave="012" Estado="CHP" Descripcion="Berriozábal"/>
+	<row Clave="012" Estado="CMX" Descripcion="Tlalpan"/>
+	<row Clave="012" Estado="DUR" Descripcion="Lerdo"/>
+	<row Clave="012" Estado="GRO" Descripcion="Ayutla de los Libres"/>
+	<row Clave="012" Estado="GUA" Descripcion="Cuerámaro"/>
+	<row Clave="012" Estado="HID" Descripcion="Atotonilco el Grande"/>
+	<row Clave="012" Estado="JAL" Descripcion="Atenguillo"/>
+	<row Clave="012" Estado="MEX" Descripcion="Atizapán"/>
+	<row Clave="012" Estado="MIC" Descripcion="Buenavista"/>
+	<row Clave="012" Estado="MOR" Descripcion="Jojutla"/>
+	<row Clave="012" Estado="NAY" Descripcion="San Blas"/>
+	<row Clave="012" Estado="NLE" Descripcion="Ciénega de Flores"/>
+	<row Clave="012" Estado="OAX" Descripcion="Candelaria Loxicha"/>
+	<row Clave="012" Estado="PUE" Descripcion="Aljojuca"/>
+	<row Clave="012" Estado="QUE" Descripcion="Pedro Escobedo"/>
+	<row Clave="012" Estado="SIN" Descripcion="Mazatlán"/>
+	<row Clave="012" Estado="SLP" Descripcion="Tancanhuitz"/>
+	<row Clave="012" Estado="SON" Descripcion="Bácum"/>
+	<row Clave="012" Estado="TAB" Descripcion="Macuspana"/>
+	<row Clave="012" Estado="TAM" Descripcion="González"/>
+	<row Clave="012" Estado="TLA" Descripcion="Españita"/>
+	<row Clave="012" Estado="VER" Descripcion="Amatitlán"/>
+	<row Clave="012" Estado="YUC" Descripcion="Cenotillo"/>
+	<row Clave="012" Estado="ZAC" Descripcion="Genaro Codina"/>
+	<row Clave="013" Estado="COA" Descripcion="Hidalgo"/>
+	<row Clave="013" Estado="CHH" Descripcion="Casas Grandes"/>
+	<row Clave="013" Estado="CHP" Descripcion="Bochil"/>
+	<row Clave="013" Estado="CMX" Descripcion="Xochimilco"/>
+	<row Clave="013" Estado="DUR" Descripcion="Mapimí"/>
+	<row Clave="013" Estado="GRO" Descripcion="Azoyú"/>
+	<row Clave="013" Estado="GUA" Descripcion="Doctor Mora"/>
+	<row Clave="013" Estado="HID" Descripcion="Atotonilco de Tula"/>
+	<row Clave="013" Estado="JAL" Descripcion="Atotonilco el Alto"/>
+	<row Clave="013" Estado="MEX" Descripcion="Atizapán de Zaragoza"/>
+	<row Clave="013" Estado="MIC" Descripcion="Carácuaro"/>
+	<row Clave="013" Estado="MOR" Descripcion="Jonacatepec"/>
+	<row Clave="013" Estado="NAY" Descripcion="San Pedro Lagunillas"/>
+	<row Clave="013" Estado="NLE" Descripcion="China"/>
+	<row Clave="013" Estado="OAX" Descripcion="Ciénega de Zimatlán"/>
+	<row Clave="013" Estado="PUE" Descripcion="Altepexi"/>
+	<row Clave="013" Estado="QUE" Descripcion="Peñamiller"/>
+	<row Clave="013" Estado="SIN" Descripcion="Mocorito"/>
+	<row Clave="013" Estado="SLP" Descripcion="Ciudad Valles"/>
+	<row Clave="013" Estado="SON" Descripcion="Banámichi"/>
+	<row Clave="013" Estado="TAB" Descripcion="Nacajuca"/>
+	<row Clave="013" Estado="TAM" Descripcion="Güémez"/>
+	<row Clave="013" Estado="TLA" Descripcion="Huamantla"/>
+	<row Clave="013" Estado="VER" Descripcion="Naranjos Amatlán"/>
+	<row Clave="013" Estado="YUC" Descripcion="Conkal"/>
+	<row Clave="013" Estado="ZAC" Descripcion="General Enrique Estrada"/>
+	<row Clave="014" Estado="COA" Descripcion="Jiménez"/>
+	<row Clave="014" Estado="CHH" Descripcion="Coronado"/>
+	<row Clave="014" Estado="CHP" Descripcion="El Bosque"/>
+	<row Clave="014" Estado="CMX" Descripcion="Benito Juárez"/>
+	<row Clave="014" Estado="DUR" Descripcion="Mezquital"/>
+	<row Clave="014" Estado="GRO" Descripcion="Benito Juárez"/>
+	<row Clave="014" Estado="GUA" Descripcion="Dolores Hidalgo Cuna de la Independencia Nacional"/>
+	<row Clave="014" Estado="HID" Descripcion="Calnali"/>
+	<row Clave="014" Estado="JAL" Descripcion="Atoyac"/>
+	<row Clave="014" Estado="MEX" Descripcion="Atlacomulco"/>
+	<row Clave="014" Estado="MIC" Descripcion="Coahuayana"/>
+	<row Clave="014" Estado="MOR" Descripcion="Mazatepec"/>
+	<row Clave="014" Estado="NAY" Descripcion="Santa María del Oro"/>
+	<row Clave="014" Estado="NLE" Descripcion="Doctor Arroyo"/>
+	<row Clave="014" Estado="OAX" Descripcion="Ciudad Ixtepec"/>
+	<row Clave="014" Estado="PUE" Descripcion="Amixtlán"/>
+	<row Clave="014" Estado="QUE" Descripcion="Querétaro"/>
+	<row Clave="014" Estado="SIN" Descripcion="Rosario"/>
+	<row Clave="014" Estado="SLP" Descripcion="Coxcatlán"/>
+	<row Clave="014" Estado="SON" Descripcion="Baviácora"/>
+	<row Clave="014" Estado="TAB" Descripcion="Paraíso"/>
+	<row Clave="014" Estado="TAM" Descripcion="Guerrero"/>
+	<row Clave="014" Estado="TLA" Descripcion="Hueyotlipan"/>
+	<row Clave="014" Estado="VER" Descripcion="Amatlán de los Reyes"/>
+	<row Clave="014" Estado="YUC" Descripcion="Cuncunul"/>
+	<row Clave="014" Estado="ZAC" Descripcion="General Francisco R. Murguía"/>
+	<row Clave="015" Estado="COA" Descripcion="Juárez"/>
+	<row Clave="015" Estado="CHH" Descripcion="Coyame del Sotol"/>
+	<row Clave="015" Estado="CHP" Descripcion="Cacahoatán"/>
+	<row Clave="015" Estado="CMX" Descripcion="Cuauhtémoc"/>
+	<row Clave="015" Estado="DUR" Descripcion="Nazas"/>
+	<row Clave="015" Estado="GRO" Descripcion="Buenavista de Cuéllar"/>
+	<row Clave="015" Estado="GUA" Descripcion="Guanajuato"/>
+	<row Clave="015" Estado="HID" Descripcion="Cardonal"/>
+	<row Clave="015" Estado="JAL" Descripcion="Autlán de Navarro"/>
+	<row Clave="015" Estado="MEX" Descripcion="Atlautla"/>
+	<row Clave="015" Estado="MIC" Descripcion="Coalcomán de Vázquez Pallares"/>
+	<row Clave="015" Estado="MOR" Descripcion="Miacatlán"/>
+	<row Clave="015" Estado="NAY" Descripcion="Santiago Ixcuintla"/>
+	<row Clave="015" Estado="NLE" Descripcion="Doctor Coss"/>
+	<row Clave="015" Estado="OAX" Descripcion="Coatecas Altas"/>
+	<row Clave="015" Estado="PUE" Descripcion="Amozoc"/>
+	<row Clave="015" Estado="QUE" Descripcion="San Joaquín"/>
+	<row Clave="015" Estado="SIN" Descripcion="Salvador Alvarado"/>
+	<row Clave="015" Estado="SLP" Descripcion="Charcas"/>
+	<row Clave="015" Estado="SON" Descripcion="Bavispe"/>
+	<row Clave="015" Estado="TAB" Descripcion="Tacotalpa"/>
+	<row Clave="015" Estado="TAM" Descripcion="Gustavo Díaz Ordaz"/>
+	<row Clave="015" Estado="TLA" Descripcion="Ixtacuixtla de Mariano Matamoros"/>
+	<row Clave="015" Estado="VER" Descripcion="Angel R. Cabada"/>
+	<row Clave="015" Estado="YUC" Descripcion="Cuzamá"/>
+	<row Clave="015" Estado="ZAC" Descripcion="El Plateado de Joaquín Amaro"/>
+	<row Clave="016" Estado="COA" Descripcion="Lamadrid"/>
+	<row Clave="016" Estado="CHH" Descripcion="La Cruz"/>
+	<row Clave="016" Estado="CHP" Descripcion="Catazajá"/>
+	<row Clave="016" Estado="CMX" Descripcion="Miguel Hidalgo"/>
+	<row Clave="016" Estado="DUR" Descripcion="Nombre de Dios"/>
+	<row Clave="016" Estado="GRO" Descripcion="Coahuayutla de José María Izazaga"/>
+	<row Clave="016" Estado="GUA" Descripcion="Huanímaro"/>
+	<row Clave="016" Estado="HID" Descripcion="Cuautepec de Hinojosa"/>
+	<row Clave="016" Estado="JAL" Descripcion="Ayotlán"/>
+	<row Clave="016" Estado="MEX" Descripcion="Axapusco"/>
+	<row Clave="016" Estado="MIC" Descripcion="Coeneo"/>
+	<row Clave="016" Estado="MOR" Descripcion="Ocuituco"/>
+	<row Clave="016" Estado="NAY" Descripcion="Tecuala"/>
+	<row Clave="016" Estado="NLE" Descripcion="Doctor González"/>
+	<row Clave="016" Estado="OAX" Descripcion="Coicoyán de las Flores"/>
+	<row Clave="016" Estado="PUE" Descripcion="Aquixtla"/>
+	<row Clave="016" Estado="QUE" Descripcion="San Juan del Río"/>
+	<row Clave="016" Estado="SIN" Descripcion="San Ignacio"/>
+	<row Clave="016" Estado="SLP" Descripcion="Ebano"/>
+	<row Clave="016" Estado="SON" Descripcion="Benjamín Hill"/>
+	<row Clave="016" Estado="TAB" Descripcion="Teapa"/>
+	<row Clave="016" Estado="TAM" Descripcion="Hidalgo"/>
+	<row Clave="016" Estado="TLA" Descripcion="Ixtenco"/>
+	<row Clave="016" Estado="VER" Descripcion="La Antigua"/>
+	<row Clave="016" Estado="YUC" Descripcion="Chacsinkín"/>
+	<row Clave="016" Estado="ZAC" Descripcion="General Pánfilo Natera"/>
+	<row Clave="017" Estado="COA" Descripcion="Matamoros"/>
+	<row Clave="017" Estado="CHH" Descripcion="Cuauhtémoc"/>
+	<row Clave="017" Estado="CHP" Descripcion="Cintalapa"/>
+	<row Clave="017" Estado="CMX" Descripcion="Venustiano Carranza"/>
+	<row Clave="017" Estado="DUR" Descripcion="Ocampo"/>
+	<row Clave="017" Estado="GRO" Descripcion="Cocula"/>
+	<row Clave="017" Estado="GUA" Descripcion="Irapuato"/>
+	<row Clave="017" Estado="HID" Descripcion="Chapantongo"/>
+	<row Clave="017" Estado="JAL" Descripcion="Ayutla"/>
+	<row Clave="017" Estado="MEX" Descripcion="Ayapango"/>
+	<row Clave="017" Estado="MIC" Descripcion="Contepec"/>
+	<row Clave="017" Estado="MOR" Descripcion="Puente de Ixtla"/>
+	<row Clave="017" Estado="NAY" Descripcion="Tepic"/>
+	<row Clave="017" Estado="NLE" Descripcion="Galeana"/>
+	<row Clave="017" Estado="OAX" Descripcion="La Compañía"/>
+	<row Clave="017" Estado="PUE" Descripcion="Atempan"/>
+	<row Clave="017" Estado="QUE" Descripcion="Tequisquiapan"/>
+	<row Clave="017" Estado="SIN" Descripcion="Sinaloa"/>
+	<row Clave="017" Estado="SLP" Descripcion="Guadalcázar"/>
+	<row Clave="017" Estado="SON" Descripcion="Caborca"/>
+	<row Clave="017" Estado="TAB" Descripcion="Tenosique"/>
+	<row Clave="017" Estado="TAM" Descripcion="Jaumave"/>
+	<row Clave="017" Estado="TLA" Descripcion="Mazatecochco de José María Morelos"/>
+	<row Clave="017" Estado="VER" Descripcion="Apazapan"/>
+	<row Clave="017" Estado="YUC" Descripcion="Chankom"/>
+	<row Clave="017" Estado="ZAC" Descripcion="Guadalupe"/>
+	<row Clave="018" Estado="COA" Descripcion="Monclova"/>
+	<row Clave="018" Estado="CHH" Descripcion="Cusihuiriachi"/>
+	<row Clave="018" Estado="CHP" Descripcion="Coapilla"/>
+	<row Clave="018" Estado="DUR" Descripcion="El Oro"/>
+	<row Clave="018" Estado="GRO" Descripcion="Copala"/>
+	<row Clave="018" Estado="GUA" Descripcion="Jaral del Progreso"/>
+	<row Clave="018" Estado="HID" Descripcion="Chapulhuacán"/>
+	<row Clave="018" Estado="JAL" Descripcion="La Barca"/>
+	<row Clave="018" Estado="MEX" Descripcion="Calimaya"/>
+	<row Clave="018" Estado="MIC" Descripcion="Copándaro"/>
+	<row Clave="018" Estado="MOR" Descripcion="Temixco"/>
+	<row Clave="018" Estado="NAY" Descripcion="Tuxpan"/>
+	<row Clave="018" Estado="NLE" Descripcion="García"/>
+	<row Clave="018" Estado="OAX" Descripcion="Concepción Buenavista"/>
+	<row Clave="018" Estado="PUE" Descripcion="Atexcal"/>
+	<row Clave="018" Estado="QUE" Descripcion="Tolimán"/>
+	<row Clave="018" Estado="SIN" Descripcion="Navolato"/>
+	<row Clave="018" Estado="SLP" Descripcion="Huehuetlán"/>
+	<row Clave="018" Estado="SON" Descripcion="Cajeme"/>
+	<row Clave="018" Estado="TAM" Descripcion="Jiménez"/>
+	<row Clave="018" Estado="TLA" Descripcion="Contla de Juan Cuamatzi"/>
+	<row Clave="018" Estado="VER" Descripcion="Aquila"/>
+	<row Clave="018" Estado="YUC" Descripcion="Chapab"/>
+	<row Clave="018" Estado="ZAC" Descripcion="Huanusco"/>
+	<row Clave="019" Estado="COA" Descripcion="Morelos"/>
+	<row Clave="019" Estado="CHH" Descripcion="Chihuahua"/>
+	<row Clave="019" Estado="CHP" Descripcion="Comitán de Domínguez"/>
+	<row Clave="019" Estado="DUR" Descripcion="Otáez"/>
+	<row Clave="019" Estado="GRO" Descripcion="Copalillo"/>
+	<row Clave="019" Estado="GUA" Descripcion="Jerécuaro"/>
+	<row Clave="019" Estado="HID" Descripcion="Chilcuautla"/>
+	<row Clave="019" Estado="JAL" Descripcion="Bolaños"/>
+	<row Clave="019" Estado="MEX" Descripcion="Capulhuac"/>
+	<row Clave="019" Estado="MIC" Descripcion="Cotija"/>
+	<row Clave="019" Estado="MOR" Descripcion="Tepalcingo"/>
+	<row Clave="019" Estado="NAY" Descripcion="La Yesca"/>
+	<row Clave="019" Estado="NLE" Descripcion="San Pedro Garza García"/>
+	<row Clave="019" Estado="OAX" Descripcion="Concepción Pápalo"/>
+	<row Clave="019" Estado="PUE" Descripcion="Atlixco"/>
+	<row Clave="019" Estado="SLP" Descripcion="Lagunillas"/>
+	<row Clave="019" Estado="SON" Descripcion="Cananea"/>
+	<row Clave="019" Estado="TAM" Descripcion="Llera"/>
+	<row Clave="019" Estado="TLA" Descripcion="Tepetitla de Lardizábal"/>
+	<row Clave="019" Estado="VER" Descripcion="Astacinga"/>
+	<row Clave="019" Estado="YUC" Descripcion="Chemax"/>
+	<row Clave="019" Estado="ZAC" Descripcion="Jalpa"/>
+	<row Clave="020" Estado="COA" Descripcion="Múzquiz"/>
+	<row Clave="020" Estado="CHH" Descripcion="Chínipas"/>
+	<row Clave="020" Estado="CHP" Descripcion="La Concordia"/>
+	<row Clave="020" Estado="DUR" Descripcion="Pánuco de Coronado"/>
+	<row Clave="020" Estado="GRO" Descripcion="Copanatoyac"/>
+	<row Clave="020" Estado="GUA" Descripcion="León"/>
+	<row Clave="020" Estado="HID" Descripcion="Eloxochitlán"/>
+	<row Clave="020" Estado="JAL" Descripcion="Cabo Corrientes"/>
+	<row Clave="020" Estado="MEX" Descripcion="Coacalco de Berriozábal"/>
+	<row Clave="020" Estado="MIC" Descripcion="Cuitzeo"/>
+	<row Clave="020" Estado="MOR" Descripcion="Tepoztlán"/>
+	<row Clave="020" Estado="NAY" Descripcion="Bahía de Banderas"/>
+	<row Clave="020" Estado="NLE" Descripcion="General Bravo"/>
+	<row Clave="020" Estado="OAX" Descripcion="Constancia del Rosario"/>
+	<row Clave="020" Estado="PUE" Descripcion="Atoyatempan"/>
+	<row Clave="020" Estado="SLP" Descripcion="Matehuala"/>
+	<row Clave="020" Estado="SON" Descripcion="Carbó"/>
+	<row Clave="020" Estado="TAM" Descripcion="Mainero"/>
+	<row Clave="020" Estado="TLA" Descripcion="Sanctórum de Lázaro Cárdenas"/>
+	<row Clave="020" Estado="VER" Descripcion="Atlahuilco"/>
+	<row Clave="020" Estado="YUC" Descripcion="Chicxulub Pueblo"/>
+	<row Clave="020" Estado="ZAC" Descripcion="Jerez"/>
+	<row Clave="021" Estado="COA" Descripcion="Nadadores"/>
+	<row Clave="021" Estado="CHH" Descripcion="Delicias"/>
+	<row Clave="021" Estado="CHP" Descripcion="Copainalá"/>
+	<row Clave="021" Estado="DUR" Descripcion="Peñón Blanco"/>
+	<row Clave="021" Estado="GRO" Descripcion="Coyuca de Benítez"/>
+	<row Clave="021" Estado="GUA" Descripcion="Moroleón"/>
+	<row Clave="021" Estado="HID" Descripcion="Emiliano Zapata"/>
+	<row Clave="021" Estado="JAL" Descripcion="Casimiro Castillo"/>
+	<row Clave="021" Estado="MEX" Descripcion="Coatepec Harinas"/>
+	<row Clave="021" Estado="MIC" Descripcion="Charapan"/>
+	<row Clave="021" Estado="MOR" Descripcion="Tetecala"/>
+	<row Clave="021" Estado="NLE" Descripcion="General Escobedo"/>
+	<row Clave="021" Estado="OAX" Descripcion="Cosolapa"/>
+	<row Clave="021" Estado="PUE" Descripcion="Atzala"/>
+	<row Clave="021" Estado="SLP" Descripcion="Mexquitic de Carmona"/>
+	<row Clave="021" Estado="SON" Descripcion="La Colorada"/>
+	<row Clave="021" Estado="TAM" Descripcion="El Mante"/>
+	<row Clave="021" Estado="TLA" Descripcion="Nanacamilpa de Mariano Arista"/>
+	<row Clave="021" Estado="VER" Descripcion="Atoyac"/>
+	<row Clave="021" Estado="YUC" Descripcion="Chichimilá"/>
+	<row Clave="021" Estado="ZAC" Descripcion="Jiménez del Teul"/>
+	<row Clave="022" Estado="COA" Descripcion="Nava"/>
+	<row Clave="022" Estado="CHH" Descripcion="Dr. Belisario Domínguez"/>
+	<row Clave="022" Estado="CHP" Descripcion="Chalchihuitán"/>
+	<row Clave="022" Estado="DUR" Descripcion="Poanas"/>
+	<row Clave="022" Estado="GRO" Descripcion="Coyuca de Catalán"/>
+	<row Clave="022" Estado="GUA" Descripcion="Ocampo"/>
+	<row Clave="022" Estado="HID" Descripcion="Epazoyucan"/>
+	<row Clave="022" Estado="JAL" Descripcion="Cihuatlán"/>
+	<row Clave="022" Estado="MEX" Descripcion="Cocotitlán"/>
+	<row Clave="022" Estado="MIC" Descripcion="Charo"/>
+	<row Clave="022" Estado="MOR" Descripcion="Tetela del Volcán"/>
+	<row Clave="022" Estado="NLE" Descripcion="General Terán"/>
+	<row Clave="022" Estado="OAX" Descripcion="Cosoltepec"/>
+	<row Clave="022" Estado="PUE" Descripcion="Atzitzihuacán"/>
+	<row Clave="022" Estado="SLP" Descripcion="Moctezuma"/>
+	<row Clave="022" Estado="SON" Descripcion="Cucurpe"/>
+	<row Clave="022" Estado="TAM" Descripcion="Matamoros"/>
+	<row Clave="022" Estado="TLA" Descripcion="Acuamanala de Miguel Hidalgo"/>
+	<row Clave="022" Estado="VER" Descripcion="Atzacan"/>
+	<row Clave="022" Estado="YUC" Descripcion="Chikindzonot"/>
+	<row Clave="022" Estado="ZAC" Descripcion="Juan Aldama"/>
+	<row Clave="023" Estado="COA" Descripcion="Ocampo"/>
+	<row Clave="023" Estado="CHH" Descripcion="Galeana"/>
+	<row Clave="023" Estado="CHP" Descripcion="Chamula"/>
+	<row Clave="023" Estado="DUR" Descripcion="Pueblo Nuevo"/>
+	<row Clave="023" Estado="GRO" Descripcion="Cuajinicuilapa"/>
+	<row Clave="023" Estado="GUA" Descripcion="Pénjamo"/>
+	<row Clave="023" Estado="HID" Descripcion="Francisco I. Madero"/>
+	<row Clave="023" Estado="JAL" Descripcion="Zapotlán el Grande"/>
+	<row Clave="023" Estado="MEX" Descripcion="Coyotepec"/>
+	<row Clave="023" Estado="MIC" Descripcion="Chavinda"/>
+	<row Clave="023" Estado="MOR" Descripcion="Tlalnepantla"/>
+	<row Clave="023" Estado="NLE" Descripcion="General Treviño"/>
+	<row Clave="023" Estado="OAX" Descripcion="Cuilápam de Guerrero"/>
+	<row Clave="023" Estado="PUE" Descripcion="Atzitzintla"/>
+	<row Clave="023" Estado="SLP" Descripcion="Rayón"/>
+	<row Clave="023" Estado="SON" Descripcion="Cumpas"/>
+	<row Clave="023" Estado="TAM" Descripcion="Méndez"/>
+	<row Clave="023" Estado="TLA" Descripcion="Natívitas"/>
+	<row Clave="023" Estado="VER" Descripcion="Atzalan"/>
+	<row Clave="023" Estado="YUC" Descripcion="Chocholá"/>
+	<row Clave="023" Estado="ZAC" Descripcion="Juchipila"/>
+	<row Clave="024" Estado="COA" Descripcion="Parras"/>
+	<row Clave="024" Estado="CHH" Descripcion="Santa Isabel"/>
+	<row Clave="024" Estado="CHP" Descripcion="Chanal"/>
+	<row Clave="024" Estado="DUR" Descripcion="Rodeo"/>
+	<row Clave="024" Estado="GRO" Descripcion="Cualác"/>
+	<row Clave="024" Estado="GUA" Descripcion="Pueblo Nuevo"/>
+	<row Clave="024" Estado="HID" Descripcion="Huasca de Ocampo"/>
+	<row Clave="024" Estado="JAL" Descripcion="Cocula"/>
+	<row Clave="024" Estado="MEX" Descripcion="Cuautitlán"/>
+	<row Clave="024" Estado="MIC" Descripcion="Cherán"/>
+	<row Clave="024" Estado="MOR" Descripcion="Tlaltizapán de Zapata"/>
+	<row Clave="024" Estado="NLE" Descripcion="General Zaragoza"/>
+	<row Clave="024" Estado="OAX" Descripcion="Cuyamecalco Villa de Zaragoza"/>
+	<row Clave="024" Estado="PUE" Descripcion="Axutla"/>
+	<row Clave="024" Estado="SLP" Descripcion="Rioverde"/>
+	<row Clave="024" Estado="SON" Descripcion="Divisaderos"/>
+	<row Clave="024" Estado="TAM" Descripcion="Mier"/>
+	<row Clave="024" Estado="TLA" Descripcion="Panotla"/>
+	<row Clave="024" Estado="VER" Descripcion="Tlaltetela"/>
+	<row Clave="024" Estado="YUC" Descripcion="Chumayel"/>
+	<row Clave="024" Estado="ZAC" Descripcion="Loreto"/>
+	<row Clave="025" Estado="COA" Descripcion="Piedras Negras"/>
+	<row Clave="025" Estado="CHH" Descripcion="Gómez Farías"/>
+	<row Clave="025" Estado="CHP" Descripcion="Chapultenango"/>
+	<row Clave="025" Estado="DUR" Descripcion="San Bernardo"/>
+	<row Clave="025" Estado="GRO" Descripcion="Cuautepec"/>
+	<row Clave="025" Estado="GUA" Descripcion="Purísima del Rincón"/>
+	<row Clave="025" Estado="HID" Descripcion="Huautla"/>
+	<row Clave="025" Estado="JAL" Descripcion="Colotlán"/>
+	<row Clave="025" Estado="MEX" Descripcion="Chalco"/>
+	<row Clave="025" Estado="MIC" Descripcion="Chilchota"/>
+	<row Clave="025" Estado="MOR" Descripcion="Tlaquiltenango"/>
+	<row Clave="025" Estado="NLE" Descripcion="General Zuazua"/>
+	<row Clave="025" Estado="OAX" Descripcion="Chahuites"/>
+	<row Clave="025" Estado="PUE" Descripcion="Ayotoxco de Guerrero"/>
+	<row Clave="025" Estado="SLP" Descripcion="Salinas"/>
+	<row Clave="025" Estado="SON" Descripcion="Empalme"/>
+	<row Clave="025" Estado="TAM" Descripcion="Miguel Alemán"/>
+	<row Clave="025" Estado="TLA" Descripcion="San Pablo del Monte"/>
+	<row Clave="025" Estado="VER" Descripcion="Ayahualulco"/>
+	<row Clave="025" Estado="YUC" Descripcion="Dzán"/>
+	<row Clave="025" Estado="ZAC" Descripcion="Luis Moya"/>
+	<row Clave="026" Estado="COA" Descripcion="Progreso"/>
+	<row Clave="026" Estado="CHH" Descripcion="Gran Morelos"/>
+	<row Clave="026" Estado="CHP" Descripcion="Chenalhó"/>
+	<row Clave="026" Estado="DUR" Descripcion="San Dimas"/>
+	<row Clave="026" Estado="GRO" Descripcion="Cuetzala del Progreso"/>
+	<row Clave="026" Estado="GUA" Descripcion="Romita"/>
+	<row Clave="026" Estado="HID" Descripcion="Huazalingo"/>
+	<row Clave="026" Estado="JAL" Descripcion="Concepción de Buenos Aires"/>
+	<row Clave="026" Estado="MEX" Descripcion="Chapa de Mota"/>
+	<row Clave="026" Estado="MIC" Descripcion="Chinicuila"/>
+	<row Clave="026" Estado="MOR" Descripcion="Tlayacapan"/>
+	<row Clave="026" Estado="NLE" Descripcion="Guadalupe"/>
+	<row Clave="026" Estado="OAX" Descripcion="Chalcatongo de Hidalgo"/>
+	<row Clave="026" Estado="PUE" Descripcion="Calpan"/>
+	<row Clave="026" Estado="SLP" Descripcion="San Antonio"/>
+	<row Clave="026" Estado="SON" Descripcion="Etchojoa"/>
+	<row Clave="026" Estado="TAM" Descripcion="Miquihuana"/>
+	<row Clave="026" Estado="TLA" Descripcion="Santa Cruz Tlaxcala"/>
+	<row Clave="026" Estado="VER" Descripcion="Banderilla"/>
+	<row Clave="026" Estado="YUC" Descripcion="Dzemul"/>
+	<row Clave="026" Estado="ZAC" Descripcion="Mazapil"/>
+	<row Clave="027" Estado="COA" Descripcion="Ramos Arizpe"/>
+	<row Clave="027" Estado="CHH" Descripcion="Guachochi"/>
+	<row Clave="027" Estado="CHP" Descripcion="Chiapa de Corzo"/>
+	<row Clave="027" Estado="DUR" Descripcion="San Juan de Guadalupe"/>
+	<row Clave="027" Estado="GRO" Descripcion="Cutzamala de Pinzón"/>
+	<row Clave="027" Estado="GUA" Descripcion="Salamanca"/>
+	<row Clave="027" Estado="HID" Descripcion="Huehuetla"/>
+	<row Clave="027" Estado="JAL" Descripcion="Cuautitlán de García Barragán"/>
+	<row Clave="027" Estado="MEX" Descripcion="Chapultepec"/>
+	<row Clave="027" Estado="MIC" Descripcion="Chucándiro"/>
+	<row Clave="027" Estado="MOR" Descripcion="Totolapan"/>
+	<row Clave="027" Estado="NLE" Descripcion="Los Herreras"/>
+	<row Clave="027" Estado="OAX" Descripcion="Chiquihuitlán de Benito Juárez"/>
+	<row Clave="027" Estado="PUE" Descripcion="Caltepec"/>
+	<row Clave="027" Estado="SLP" Descripcion="San Ciro de Acosta"/>
+	<row Clave="027" Estado="SON" Descripcion="Fronteras"/>
+	<row Clave="027" Estado="TAM" Descripcion="Nuevo Laredo"/>
+	<row Clave="027" Estado="TLA" Descripcion="Tenancingo"/>
+	<row Clave="027" Estado="VER" Descripcion="Benito Juárez"/>
+	<row Clave="027" Estado="YUC" Descripcion="Dzidzantún"/>
+	<row Clave="027" Estado="ZAC" Descripcion="Melchor Ocampo"/>
+	<row Clave="028" Estado="COA" Descripcion="Sabinas"/>
+	<row Clave="028" Estado="CHH" Descripcion="Guadalupe"/>
+	<row Clave="028" Estado="CHP" Descripcion="Chiapilla"/>
+	<row Clave="028" Estado="DUR" Descripcion="San Juan del Río"/>
+	<row Clave="028" Estado="GRO" Descripcion="Chilapa de Álvarez"/>
+	<row Clave="028" Estado="GUA" Descripcion="Salvatierra"/>
+	<row Clave="028" Estado="HID" Descripcion="Huejutla de Reyes"/>
+	<row Clave="028" Estado="JAL" Descripcion="Cuautla"/>
+	<row Clave="028" Estado="MEX" Descripcion="Chiautla"/>
+	<row Clave="028" Estado="MIC" Descripcion="Churintzio"/>
+	<row Clave="028" Estado="MOR" Descripcion="Xochitepec"/>
+	<row Clave="028" Estado="NLE" Descripcion="Higueras"/>
+	<row Clave="028" Estado="OAX" Descripcion="Heroica Ciudad de Ejutla de Crespo"/>
+	<row Clave="028" Estado="PUE" Descripcion="Camocuautla"/>
+	<row Clave="028" Estado="SLP" Descripcion="San Luis Potosí"/>
+	<row Clave="028" Estado="SON" Descripcion="Granados"/>
+	<row Clave="028" Estado="TAM" Descripcion="Nuevo Morelos"/>
+	<row Clave="028" Estado="TLA" Descripcion="Teolocholco"/>
+	<row Clave="028" Estado="VER" Descripcion="Boca del Río"/>
+	<row Clave="028" Estado="YUC" Descripcion="Dzilam de Bravo"/>
+	<row Clave="028" Estado="ZAC" Descripcion="Mezquital del Oro"/>
+	<row Clave="029" Estado="COA" Descripcion="Sacramento"/>
+	<row Clave="029" Estado="CHH" Descripcion="Guadalupe y Calvo"/>
+	<row Clave="029" Estado="CHP" Descripcion="Chicoasén"/>
+	<row Clave="029" Estado="DUR" Descripcion="San Luis del Cordero"/>
+	<row Clave="029" Estado="GRO" Descripcion="Chilpancingo de los Bravo"/>
+	<row Clave="029" Estado="GUA" Descripcion="San Diego de la Unión"/>
+	<row Clave="029" Estado="HID" Descripcion="Huichapan"/>
+	<row Clave="029" Estado="JAL" Descripcion="Cuquío"/>
+	<row Clave="029" Estado="MEX" Descripcion="Chicoloapan"/>
+	<row Clave="029" Estado="MIC" Descripcion="Churumuco"/>
+	<row Clave="029" Estado="MOR" Descripcion="Yautepec"/>
+	<row Clave="029" Estado="NLE" Descripcion="Hualahuises"/>
+	<row Clave="029" Estado="OAX" Descripcion="Eloxochitlán de Flores Magón"/>
+	<row Clave="029" Estado="PUE" Descripcion="Caxhuacan"/>
+	<row Clave="029" Estado="SLP" Descripcion="San Martín Chalchicuautla"/>
+	<row Clave="029" Estado="SON" Descripcion="Guaymas"/>
+	<row Clave="029" Estado="TAM" Descripcion="Ocampo"/>
+	<row Clave="029" Estado="TLA" Descripcion="Tepeyanco"/>
+	<row Clave="029" Estado="VER" Descripcion="Calcahualco"/>
+	<row Clave="029" Estado="YUC" Descripcion="Dzilam González"/>
+	<row Clave="029" Estado="ZAC" Descripcion="Miguel Auza"/>
+	<row Clave="030" Estado="COA" Descripcion="Saltillo"/>
+	<row Clave="030" Estado="CHH" Descripcion="Guazapares"/>
+	<row Clave="030" Estado="CHP" Descripcion="Chicomuselo"/>
+	<row Clave="030" Estado="DUR" Descripcion="San Pedro del Gallo"/>
+	<row Clave="030" Estado="GRO" Descripcion="Florencio Villarreal"/>
+	<row Clave="030" Estado="GUA" Descripcion="San Felipe"/>
+	<row Clave="030" Estado="HID" Descripcion="Ixmiquilpan"/>
+	<row Clave="030" Estado="JAL" Descripcion="Chapala"/>
+	<row Clave="030" Estado="MEX" Descripcion="Chiconcuac"/>
+	<row Clave="030" Estado="MIC" Descripcion="Ecuandureo"/>
+	<row Clave="030" Estado="MOR" Descripcion="Yecapixtla"/>
+	<row Clave="030" Estado="NLE" Descripcion="Iturbide"/>
+	<row Clave="030" Estado="OAX" Descripcion="El Espinal"/>
+	<row Clave="030" Estado="PUE" Descripcion="Coatepec"/>
+	<row Clave="030" Estado="SLP" Descripcion="San Nicolás Tolentino"/>
+	<row Clave="030" Estado="SON" Descripcion="Hermosillo"/>
+	<row Clave="030" Estado="TAM" Descripcion="Padilla"/>
+	<row Clave="030" Estado="TLA" Descripcion="Terrenate"/>
+	<row Clave="030" Estado="VER" Descripcion="Camerino Z. Mendoza"/>
+	<row Clave="030" Estado="YUC" Descripcion="Dzitás"/>
+	<row Clave="030" Estado="ZAC" Descripcion="Momax"/>
+	<row Clave="031" Estado="COA" Descripcion="San Buenaventura"/>
+	<row Clave="031" Estado="CHH" Descripcion="Guerrero"/>
+	<row Clave="031" Estado="CHP" Descripcion="Chilón"/>
+	<row Clave="031" Estado="DUR" Descripcion="Santa Clara"/>
+	<row Clave="031" Estado="GRO" Descripcion="General Canuto A. Neri"/>
+	<row Clave="031" Estado="GUA" Descripcion="San Francisco del Rincón"/>
+	<row Clave="031" Estado="HID" Descripcion="Jacala de Ledezma"/>
+	<row Clave="031" Estado="JAL" Descripcion="Chimaltitán"/>
+	<row Clave="031" Estado="MEX" Descripcion="Chimalhuacán"/>
+	<row Clave="031" Estado="MIC" Descripcion="Epitacio Huerta"/>
+	<row Clave="031" Estado="MOR" Descripcion="Zacatepec"/>
+	<row Clave="031" Estado="NLE" Descripcion="Juárez"/>
+	<row Clave="031" Estado="OAX" Descripcion="Tamazulápam del Espíritu Santo"/>
+	<row Clave="031" Estado="PUE" Descripcion="Coatzingo"/>
+	<row Clave="031" Estado="SLP" Descripcion="Santa Catarina"/>
+	<row Clave="031" Estado="SON" Descripcion="Huachinera"/>
+	<row Clave="031" Estado="TAM" Descripcion="Palmillas"/>
+	<row Clave="031" Estado="TLA" Descripcion="Tetla de la Solidaridad"/>
+	<row Clave="031" Estado="VER" Descripcion="Carrillo Puerto"/>
+	<row Clave="031" Estado="YUC" Descripcion="Dzoncauich"/>
+	<row Clave="031" Estado="ZAC" Descripcion="Monte Escobedo"/>
+	<row Clave="032" Estado="COA" Descripcion="San Juan de Sabinas"/>
+	<row Clave="032" Estado="CHH" Descripcion="Hidalgo del Parral"/>
+	<row Clave="032" Estado="CHP" Descripcion="Escuintla"/>
+	<row Clave="032" Estado="DUR" Descripcion="Santiago Papasquiaro"/>
+	<row Clave="032" Estado="GRO" Descripcion="General Heliodoro Castillo"/>
+	<row Clave="032" Estado="GUA" Descripcion="San José Iturbide"/>
+	<row Clave="032" Estado="HID" Descripcion="Jaltocán"/>
+	<row Clave="032" Estado="JAL" Descripcion="Chiquilistlán"/>
+	<row Clave="032" Estado="MEX" Descripcion="Donato Guerra"/>
+	<row Clave="032" Estado="MIC" Descripcion="Erongarícuaro"/>
+	<row Clave="032" Estado="MOR" Descripcion="Zacualpan"/>
+	<row Clave="032" Estado="NLE" Descripcion="Lampazos de Naranjo"/>
+	<row Clave="032" Estado="OAX" Descripcion="Fresnillo de Trujano"/>
+	<row Clave="032" Estado="PUE" Descripcion="Cohetzala"/>
+	<row Clave="032" Estado="SLP" Descripcion="Santa María del Río"/>
+	<row Clave="032" Estado="SON" Descripcion="Huásabas"/>
+	<row Clave="032" Estado="TAM" Descripcion="Reynosa"/>
+	<row Clave="032" Estado="TLA" Descripcion="Tetlatlahuca"/>
+	<row Clave="032" Estado="VER" Descripcion="Catemaco"/>
+	<row Clave="032" Estado="YUC" Descripcion="Espita"/>
+	<row Clave="032" Estado="ZAC" Descripcion="Morelos"/>
+	<row Clave="033" Estado="COA" Descripcion="San Pedro"/>
+	<row Clave="033" Estado="CHH" Descripcion="Huejotitán"/>
+	<row Clave="033" Estado="CHP" Descripcion="Francisco León"/>
+	<row Clave="033" Estado="DUR" Descripcion="Súchil"/>
+	<row Clave="033" Estado="GRO" Descripcion="Huamuxtitlán"/>
+	<row Clave="033" Estado="GUA" Descripcion="San Luis de la Paz"/>
+	<row Clave="033" Estado="HID" Descripcion="Juárez Hidalgo"/>
+	<row Clave="033" Estado="JAL" Descripcion="Degollado"/>
+	<row Clave="033" Estado="MEX" Descripcion="Ecatepec de Morelos"/>
+	<row Clave="033" Estado="MIC" Descripcion="Gabriel Zamora"/>
+	<row Clave="033" Estado="MOR" Descripcion="Temoac"/>
+	<row Clave="033" Estado="NLE" Descripcion="Linares"/>
+	<row Clave="033" Estado="OAX" Descripcion="Guadalupe Etla"/>
+	<row Clave="033" Estado="PUE" Descripcion="Cohuecan"/>
+	<row Clave="033" Estado="SLP" Descripcion="Santo Domingo"/>
+	<row Clave="033" Estado="SON" Descripcion="Huatabampo"/>
+	<row Clave="033" Estado="TAM" Descripcion="Río Bravo"/>
+	<row Clave="033" Estado="TLA" Descripcion="Tlaxcala"/>
+	<row Clave="033" Estado="VER" Descripcion="Cazones de Herrera"/>
+	<row Clave="033" Estado="YUC" Descripcion="Halachó"/>
+	<row Clave="033" Estado="ZAC" Descripcion="Moyahua de Estrada"/>
+	<row Clave="034" Estado="COA" Descripcion="Sierra Mojada"/>
+	<row Clave="034" Estado="CHH" Descripcion="Ignacio Zaragoza"/>
+	<row Clave="034" Estado="CHP" Descripcion="Frontera Comalapa"/>
+	<row Clave="034" Estado="DUR" Descripcion="Tamazula"/>
+	<row Clave="034" Estado="GRO" Descripcion="Huitzuco de los Figueroa"/>
+	<row Clave="034" Estado="GUA" Descripcion="Santa Catarina"/>
+	<row Clave="034" Estado="HID" Descripcion="Lolotla"/>
+	<row Clave="034" Estado="JAL" Descripcion="Ejutla"/>
+	<row Clave="034" Estado="MEX" Descripcion="Ecatzingo"/>
+	<row Clave="034" Estado="MIC" Descripcion="Hidalgo"/>
+	<row Clave="034" Estado="NLE" Descripcion="Marín"/>
+	<row Clave="034" Estado="OAX" Descripcion="Guadalupe de Ramírez"/>
+	<row Clave="034" Estado="PUE" Descripcion="Coronango"/>
+	<row Clave="034" Estado="SLP" Descripcion="San Vicente Tancuayalab"/>
+	<row Clave="034" Estado="SON" Descripcion="Huépac"/>
+	<row Clave="034" Estado="TAM" Descripcion="San Carlos"/>
+	<row Clave="034" Estado="TLA" Descripcion="Tlaxco"/>
+	<row Clave="034" Estado="VER" Descripcion="Cerro Azul"/>
+	<row Clave="034" Estado="YUC" Descripcion="Hocabá"/>
+	<row Clave="034" Estado="ZAC" Descripcion="Nochistlán de Mejía"/>
+	<row Clave="035" Estado="COA" Descripcion="Torreón"/>
+	<row Clave="035" Estado="CHH" Descripcion="Janos"/>
+	<row Clave="035" Estado="CHP" Descripcion="Frontera Hidalgo"/>
+	<row Clave="035" Estado="DUR" Descripcion="Tepehuanes"/>
+	<row Clave="035" Estado="GRO" Descripcion="Iguala de la Independencia"/>
+	<row Clave="035" Estado="GUA" Descripcion="Santa Cruz de Juventino Rosas"/>
+	<row Clave="035" Estado="HID" Descripcion="Metepec"/>
+	<row Clave="035" Estado="JAL" Descripcion="Encarnación de Díaz"/>
+	<row Clave="035" Estado="MEX" Descripcion="Huehuetoca"/>
+	<row Clave="035" Estado="MIC" Descripcion="La Huacana"/>
+	<row Clave="035" Estado="NLE" Descripcion="Melchor Ocampo"/>
+	<row Clave="035" Estado="OAX" Descripcion="Guelatao de Juárez"/>
+	<row Clave="035" Estado="PUE" Descripcion="Coxcatlán"/>
+	<row Clave="035" Estado="SLP" Descripcion="Soledad de Graciano Sánchez"/>
+	<row Clave="035" Estado="SON" Descripcion="Imuris"/>
+	<row Clave="035" Estado="TAM" Descripcion="San Fernando"/>
+	<row Clave="035" Estado="TLA" Descripcion="Tocatlán"/>
+	<row Clave="035" Estado="VER" Descripcion="Citlaltépetl"/>
+	<row Clave="035" Estado="YUC" Descripcion="Hoctún"/>
+	<row Clave="035" Estado="ZAC" Descripcion="Noria de Ángeles"/>
+	<row Clave="036" Estado="COA" Descripcion="Viesca"/>
+	<row Clave="036" Estado="CHH" Descripcion="Jiménez"/>
+	<row Clave="036" Estado="CHP" Descripcion="La Grandeza"/>
+	<row Clave="036" Estado="DUR" Descripcion="Tlahualilo"/>
+	<row Clave="036" Estado="GRO" Descripcion="Igualapa"/>
+	<row Clave="036" Estado="GUA" Descripcion="Santiago Maravatío"/>
+	<row Clave="036" Estado="HID" Descripcion="San Agustín Metzquititlán"/>
+	<row Clave="036" Estado="JAL" Descripcion="Etzatlán"/>
+	<row Clave="036" Estado="MEX" Descripcion="Hueypoxtla"/>
+	<row Clave="036" Estado="MIC" Descripcion="Huandacareo"/>
+	<row Clave="036" Estado="NLE" Descripcion="Mier y Noriega"/>
+	<row Clave="036" Estado="OAX" Descripcion="Guevea de Humboldt"/>
+	<row Clave="036" Estado="PUE" Descripcion="Coyomeapan"/>
+	<row Clave="036" Estado="SLP" Descripcion="Tamasopo"/>
+	<row Clave="036" Estado="SON" Descripcion="Magdalena"/>
+	<row Clave="036" Estado="TAM" Descripcion="San Nicolás"/>
+	<row Clave="036" Estado="TLA" Descripcion="Totolac"/>
+	<row Clave="036" Estado="VER" Descripcion="Coacoatzintla"/>
+	<row Clave="036" Estado="YUC" Descripcion="Homún"/>
+	<row Clave="036" Estado="ZAC" Descripcion="Ojocaliente"/>
+	<row Clave="037" Estado="COA" Descripcion="Villa Unión"/>
+	<row Clave="037" Estado="CHH" Descripcion="Juárez"/>
+	<row Clave="037" Estado="CHP" Descripcion="Huehuetán"/>
+	<row Clave="037" Estado="DUR" Descripcion="Topia"/>
+	<row Clave="037" Estado="GRO" Descripcion="Ixcateopan de Cuauhtémoc"/>
+	<row Clave="037" Estado="GUA" Descripcion="Silao de la Victoria"/>
+	<row Clave="037" Estado="HID" Descripcion="Metztitlán"/>
+	<row Clave="037" Estado="JAL" Descripcion="El Grullo"/>
+	<row Clave="037" Estado="MEX" Descripcion="Huixquilucan"/>
+	<row Clave="037" Estado="MIC" Descripcion="Huaniqueo"/>
+	<row Clave="037" Estado="NLE" Descripcion="Mina"/>
+	<row Clave="037" Estado="OAX" Descripcion="Mesones Hidalgo"/>
+	<row Clave="037" Estado="PUE" Descripcion="Coyotepec"/>
+	<row Clave="037" Estado="SLP" Descripcion="Tamazunchale"/>
+	<row Clave="037" Estado="SON" Descripcion="Mazatán"/>
+	<row Clave="037" Estado="TAM" Descripcion="Soto la Marina"/>
+	<row Clave="037" Estado="TLA" Descripcion="Ziltlaltépec de Trinidad Sánchez Santos"/>
+	<row Clave="037" Estado="VER" Descripcion="Coahuitlán"/>
+	<row Clave="037" Estado="YUC" Descripcion="Huhí"/>
+	<row Clave="037" Estado="ZAC" Descripcion="Pánuco"/>
+	<row Clave="038" Estado="COA" Descripcion="Zaragoza"/>
+	<row Clave="038" Estado="CHH" Descripcion="Julimes"/>
+	<row Clave="038" Estado="CHP" Descripcion="Huixtán"/>
+	<row Clave="038" Estado="DUR" Descripcion="Vicente Guerrero"/>
+	<row Clave="038" Estado="GRO" Descripcion="Zihuatanejo de Azueta"/>
+	<row Clave="038" Estado="GUA" Descripcion="Tarandacuao"/>
+	<row Clave="038" Estado="HID" Descripcion="Mineral del Chico"/>
+	<row Clave="038" Estado="JAL" Descripcion="Guachinango"/>
+	<row Clave="038" Estado="MEX" Descripcion="Isidro Fabela"/>
+	<row Clave="038" Estado="MIC" Descripcion="Huetamo"/>
+	<row Clave="038" Estado="NLE" Descripcion="Montemorelos"/>
+	<row Clave="038" Estado="OAX" Descripcion="Villa Hidalgo"/>
+	<row Clave="038" Estado="PUE" Descripcion="Cuapiaxtla de Madero"/>
+	<row Clave="038" Estado="SLP" Descripcion="Tampacán"/>
+	<row Clave="038" Estado="SON" Descripcion="Moctezuma"/>
+	<row Clave="038" Estado="TAM" Descripcion="Tampico"/>
+	<row Clave="038" Estado="TLA" Descripcion="Tzompantepec"/>
+	<row Clave="038" Estado="VER" Descripcion="Coatepec"/>
+	<row Clave="038" Estado="YUC" Descripcion="Hunucmá"/>
+	<row Clave="038" Estado="ZAC" Descripcion="Pinos"/>
+	<row Clave="039" Estado="CHH" Descripcion="López"/>
+	<row Clave="039" Estado="CHP" Descripcion="Huitiupán"/>
+	<row Clave="039" Estado="DUR" Descripcion="Nuevo Ideal"/>
+	<row Clave="039" Estado="GRO" Descripcion="Juan R. Escudero"/>
+	<row Clave="039" Estado="GUA" Descripcion="Tarimoro"/>
+	<row Clave="039" Estado="HID" Descripcion="Mineral del Monte"/>
+	<row Clave="039" Estado="JAL" Descripcion="Guadalajara"/>
+	<row Clave="039" Estado="MEX" Descripcion="Ixtapaluca"/>
+	<row Clave="039" Estado="MIC" Descripcion="Huiramba"/>
+	<row Clave="039" Estado="NLE" Descripcion="Monterrey"/>
+	<row Clave="039" Estado="OAX" Descripcion="Heroica Ciudad de Huajuapan de León"/>
+	<row Clave="039" Estado="PUE" Descripcion="Cuautempan"/>
+	<row Clave="039" Estado="SLP" Descripcion="Tampamolón Corona"/>
+	<row Clave="039" Estado="SON" Descripcion="Naco"/>
+	<row Clave="039" Estado="TAM" Descripcion="Tula"/>
+	<row Clave="039" Estado="TLA" Descripcion="Xaloztoc"/>
+	<row Clave="039" Estado="VER" Descripcion="Coatzacoalcos"/>
+	<row Clave="039" Estado="YUC" Descripcion="Ixil"/>
+	<row Clave="039" Estado="ZAC" Descripcion="Río Grande"/>
+	<row Clave="040" Estado="CHH" Descripcion="Madera"/>
+	<row Clave="040" Estado="CHP" Descripcion="Huixtla"/>
+	<row Clave="040" Estado="GRO" Descripcion="Leonardo Bravo"/>
+	<row Clave="040" Estado="GUA" Descripcion="Tierra Blanca"/>
+	<row Clave="040" Estado="HID" Descripcion="La Misión"/>
+	<row Clave="040" Estado="JAL" Descripcion="Hostotipaquillo"/>
+	<row Clave="040" Estado="MEX" Descripcion="Ixtapan de la Sal"/>
+	<row Clave="040" Estado="MIC" Descripcion="Indaparapeo"/>
+	<row Clave="040" Estado="NLE" Descripcion="Parás"/>
+	<row Clave="040" Estado="OAX" Descripcion="Huautepec"/>
+	<row Clave="040" Estado="PUE" Descripcion="Cuautinchán"/>
+	<row Clave="040" Estado="SLP" Descripcion="Tamuín"/>
+	<row Clave="040" Estado="SON" Descripcion="Nácori Chico"/>
+	<row Clave="040" Estado="TAM" Descripcion="Valle Hermoso"/>
+	<row Clave="040" Estado="TLA" Descripcion="Xaltocan"/>
+	<row Clave="040" Estado="VER" Descripcion="Coatzintla"/>
+	<row Clave="040" Estado="YUC" Descripcion="Izamal"/>
+	<row Clave="040" Estado="ZAC" Descripcion="Sain Alto"/>
+	<row Clave="041" Estado="CHH" Descripcion="Maguarichi"/>
+	<row Clave="041" Estado="CHP" Descripcion="La Independencia"/>
+	<row Clave="041" Estado="GRO" Descripcion="Malinaltepec"/>
+	<row Clave="041" Estado="GUA" Descripcion="Uriangato"/>
+	<row Clave="041" Estado="HID" Descripcion="Mixquiahuala de Juárez"/>
+	<row Clave="041" Estado="JAL" Descripcion="Huejúcar"/>
+	<row Clave="041" Estado="MEX" Descripcion="Ixtapan del Oro"/>
+	<row Clave="041" Estado="MIC" Descripcion="Irimbo"/>
+	<row Clave="041" Estado="NLE" Descripcion="Pesquería"/>
+	<row Clave="041" Estado="OAX" Descripcion="Huautla de Jiménez"/>
+	<row Clave="041" Estado="PUE" Descripcion="Cuautlancingo"/>
+	<row Clave="041" Estado="SLP" Descripcion="Tanlajás"/>
+	<row Clave="041" Estado="SON" Descripcion="Nacozari de García"/>
+	<row Clave="041" Estado="TAM" Descripcion="Victoria"/>
+	<row Clave="041" Estado="TLA" Descripcion="Papalotla de Xicohténcatl"/>
+	<row Clave="041" Estado="VER" Descripcion="Coetzala"/>
+	<row Clave="041" Estado="YUC" Descripcion="Kanasín"/>
+	<row Clave="041" Estado="ZAC" Descripcion="El Salvador"/>
+	<row Clave="042" Estado="CHH" Descripcion="Manuel Benavides"/>
+	<row Clave="042" Estado="CHP" Descripcion="Ixhuatán"/>
+	<row Clave="042" Estado="GRO" Descripcion="Mártir de Cuilapan"/>
+	<row Clave="042" Estado="GUA" Descripcion="Valle de Santiago"/>
+	<row Clave="042" Estado="HID" Descripcion="Molango de Escamilla"/>
+	<row Clave="042" Estado="JAL" Descripcion="Huejuquilla el Alto"/>
+	<row Clave="042" Estado="MEX" Descripcion="Ixtlahuaca"/>
+	<row Clave="042" Estado="MIC" Descripcion="Ixtlán"/>
+	<row Clave="042" Estado="NLE" Descripcion="Los Ramones"/>
+	<row Clave="042" Estado="OAX" Descripcion="Ixtlán de Juárez"/>
+	<row Clave="042" Estado="PUE" Descripcion="Cuayuca de Andrade"/>
+	<row Clave="042" Estado="SLP" Descripcion="Tanquián de Escobedo"/>
+	<row Clave="042" Estado="SON" Descripcion="Navojoa"/>
+	<row Clave="042" Estado="TAM" Descripcion="Villagrán"/>
+	<row Clave="042" Estado="TLA" Descripcion="Xicohtzinco"/>
+	<row Clave="042" Estado="VER" Descripcion="Colipa"/>
+	<row Clave="042" Estado="YUC" Descripcion="Kantunil"/>
+	<row Clave="042" Estado="ZAC" Descripcion="Sombrerete"/>
+	<row Clave="043" Estado="CHH" Descripcion="Matachí"/>
+	<row Clave="043" Estado="CHP" Descripcion="Ixtacomitán"/>
+	<row Clave="043" Estado="GRO" Descripcion="Metlatónoc"/>
+	<row Clave="043" Estado="GUA" Descripcion="Victoria"/>
+	<row Clave="043" Estado="HID" Descripcion="Nicolás Flores"/>
+	<row Clave="043" Estado="JAL" Descripcion="La Huerta"/>
+	<row Clave="043" Estado="MEX" Descripcion="Xalatlaco"/>
+	<row Clave="043" Estado="MIC" Descripcion="Jacona"/>
+	<row Clave="043" Estado="NLE" Descripcion="Rayones"/>
+	<row Clave="043" Estado="OAX" Descripcion="Heroica Ciudad de Juchitán de Zaragoza"/>
+	<row Clave="043" Estado="PUE" Descripcion="Cuetzalan del Progreso"/>
+	<row Clave="043" Estado="SLP" Descripcion="Tierra Nueva"/>
+	<row Clave="043" Estado="SON" Descripcion="Nogales"/>
+	<row Clave="043" Estado="TAM" Descripcion="Xicoténcatl"/>
+	<row Clave="043" Estado="TLA" Descripcion="Yauhquemehcan"/>
+	<row Clave="043" Estado="VER" Descripcion="Comapa"/>
+	<row Clave="043" Estado="YUC" Descripcion="Kaua"/>
+	<row Clave="043" Estado="ZAC" Descripcion="Susticacán"/>
+	<row Clave="044" Estado="CHH" Descripcion="Matamoros"/>
+	<row Clave="044" Estado="CHP" Descripcion="Ixtapa"/>
+	<row Clave="044" Estado="GRO" Descripcion="Mochitlán"/>
+	<row Clave="044" Estado="GUA" Descripcion="Villagrán"/>
+	<row Clave="044" Estado="HID" Descripcion="Nopala de Villagrán"/>
+	<row Clave="044" Estado="JAL" Descripcion="Ixtlahuacán de los Membrillos"/>
+	<row Clave="044" Estado="MEX" Descripcion="Jaltenco"/>
+	<row Clave="044" Estado="MIC" Descripcion="Jiménez"/>
+	<row Clave="044" Estado="NLE" Descripcion="Sabinas Hidalgo"/>
+	<row Clave="044" Estado="OAX" Descripcion="Loma Bonita"/>
+	<row Clave="044" Estado="PUE" Descripcion="Cuyoaco"/>
+	<row Clave="044" Estado="SLP" Descripcion="Vanegas"/>
+	<row Clave="044" Estado="SON" Descripcion="Onavas"/>
+	<row Clave="044" Estado="TLA" Descripcion="Zacatelco"/>
+	<row Clave="044" Estado="VER" Descripcion="Córdoba"/>
+	<row Clave="044" Estado="YUC" Descripcion="Kinchil"/>
+	<row Clave="044" Estado="ZAC" Descripcion="Tabasco"/>
+	<row Clave="045" Estado="CHH" Descripcion="Meoqui"/>
+	<row Clave="045" Estado="CHP" Descripcion="Ixtapangajoya"/>
+	<row Clave="045" Estado="GRO" Descripcion="Olinalá"/>
+	<row Clave="045" Estado="GUA" Descripcion="Xichú"/>
+	<row Clave="045" Estado="HID" Descripcion="Omitlán de Juárez"/>
+	<row Clave="045" Estado="JAL" Descripcion="Ixtlahuacán del Río"/>
+	<row Clave="045" Estado="MEX" Descripcion="Jilotepec"/>
+	<row Clave="045" Estado="MIC" Descripcion="Jiquilpan"/>
+	<row Clave="045" Estado="NLE" Descripcion="Salinas Victoria"/>
+	<row Clave="045" Estado="OAX" Descripcion="Magdalena Apasco"/>
+	<row Clave="045" Estado="PUE" Descripcion="Chalchicomula de Sesma"/>
+	<row Clave="045" Estado="SLP" Descripcion="Venado"/>
+	<row Clave="045" Estado="SON" Descripcion="Opodepe"/>
+	<row Clave="045" Estado="TLA" Descripcion="Benito Juárez"/>
+	<row Clave="045" Estado="VER" Descripcion="Cosamaloapan de Carpio"/>
+	<row Clave="045" Estado="YUC" Descripcion="Kopomá"/>
+	<row Clave="045" Estado="ZAC" Descripcion="Tepechitlán"/>
+	<row Clave="046" Estado="CHH" Descripcion="Morelos"/>
+	<row Clave="046" Estado="CHP" Descripcion="Jiquipilas"/>
+	<row Clave="046" Estado="GRO" Descripcion="Ometepec"/>
+	<row Clave="046" Estado="GUA" Descripcion="Yuriria"/>
+	<row Clave="046" Estado="HID" Descripcion="San Felipe Orizatlán"/>
+	<row Clave="046" Estado="JAL" Descripcion="Jalostotitlán"/>
+	<row Clave="046" Estado="MEX" Descripcion="Jilotzingo"/>
+	<row Clave="046" Estado="MIC" Descripcion="Juárez"/>
+	<row Clave="046" Estado="NLE" Descripcion="San Nicolás de los Garza"/>
+	<row Clave="046" Estado="OAX" Descripcion="Magdalena Jaltepec"/>
+	<row Clave="046" Estado="PUE" Descripcion="Chapulco"/>
+	<row Clave="046" Estado="SLP" Descripcion="Villa de Arriaga"/>
+	<row Clave="046" Estado="SON" Descripcion="Oquitoa"/>
+	<row Clave="046" Estado="TLA" Descripcion="Emiliano Zapata"/>
+	<row Clave="046" Estado="VER" Descripcion="Cosautlán de Carvajal"/>
+	<row Clave="046" Estado="YUC" Descripcion="Mama"/>
+	<row Clave="046" Estado="ZAC" Descripcion="Tepetongo"/>
+	<row Clave="047" Estado="CHH" Descripcion="Moris"/>
+	<row Clave="047" Estado="CHP" Descripcion="Jitotol"/>
+	<row Clave="047" Estado="GRO" Descripcion="Pedro Ascencio Alquisiras"/>
+	<row Clave="047" Estado="HID" Descripcion="Pacula"/>
+	<row Clave="047" Estado="JAL" Descripcion="Jamay"/>
+	<row Clave="047" Estado="MEX" Descripcion="Jiquipilco"/>
+	<row Clave="047" Estado="MIC" Descripcion="Jungapeo"/>
+	<row Clave="047" Estado="NLE" Descripcion="Hidalgo"/>
+	<row Clave="047" Estado="OAX" Descripcion="Santa Magdalena Jicotlán"/>
+	<row Clave="047" Estado="PUE" Descripcion="Chiautla"/>
+	<row Clave="047" Estado="SLP" Descripcion="Villa de Guadalupe"/>
+	<row Clave="047" Estado="SON" Descripcion="Pitiquito"/>
+	<row Clave="047" Estado="TLA" Descripcion="Lázaro Cárdenas"/>
+	<row Clave="047" Estado="VER" Descripcion="Coscomatepec"/>
+	<row Clave="047" Estado="YUC" Descripcion="Maní"/>
+	<row Clave="047" Estado="ZAC" Descripcion="Teúl de González Ortega"/>
+	<row Clave="048" Estado="CHH" Descripcion="Namiquipa"/>
+	<row Clave="048" Estado="CHP" Descripcion="Juárez"/>
+	<row Clave="048" Estado="GRO" Descripcion="Petatlán"/>
+	<row Clave="048" Estado="HID" Descripcion="Pachuca de Soto"/>
+	<row Clave="048" Estado="JAL" Descripcion="Jesús María"/>
+	<row Clave="048" Estado="MEX" Descripcion="Jocotitlán"/>
+	<row Clave="048" Estado="MIC" Descripcion="Lagunillas"/>
+	<row Clave="048" Estado="NLE" Descripcion="Santa Catarina"/>
+	<row Clave="048" Estado="OAX" Descripcion="Magdalena Mixtepec"/>
+	<row Clave="048" Estado="PUE" Descripcion="Chiautzingo"/>
+	<row Clave="048" Estado="SLP" Descripcion="Villa de la Paz"/>
+	<row Clave="048" Estado="SON" Descripcion="Puerto Peñasco"/>
+	<row Clave="048" Estado="TLA" Descripcion="La Magdalena Tlaltelulco"/>
+	<row Clave="048" Estado="VER" Descripcion="Cosoleacaque"/>
+	<row Clave="048" Estado="YUC" Descripcion="Maxcanú"/>
+	<row Clave="048" Estado="ZAC" Descripcion="Tlaltenango de Sánchez Román"/>
+	<row Clave="049" Estado="CHH" Descripcion="Nonoava"/>
+	<row Clave="049" Estado="CHP" Descripcion="Larráinzar"/>
+	<row Clave="049" Estado="GRO" Descripcion="Pilcaya"/>
+	<row Clave="049" Estado="HID" Descripcion="Pisaflores"/>
+	<row Clave="049" Estado="JAL" Descripcion="Jilotlán de los Dolores"/>
+	<row Clave="049" Estado="MEX" Descripcion="Joquicingo"/>
+	<row Clave="049" Estado="MIC" Descripcion="Madero"/>
+	<row Clave="049" Estado="NLE" Descripcion="Santiago"/>
+	<row Clave="049" Estado="OAX" Descripcion="Magdalena Ocotlán"/>
+	<row Clave="049" Estado="PUE" Descripcion="Chiconcuautla"/>
+	<row Clave="049" Estado="SLP" Descripcion="Villa de Ramos"/>
+	<row Clave="049" Estado="SON" Descripcion="Quiriego"/>
+	<row Clave="049" Estado="TLA" Descripcion="San Damián Texóloc"/>
+	<row Clave="049" Estado="VER" Descripcion="Cotaxtla"/>
+	<row Clave="049" Estado="YUC" Descripcion="Mayapán"/>
+	<row Clave="049" Estado="ZAC" Descripcion="Valparaíso"/>
+	<row Clave="050" Estado="CHH" Descripcion="Nuevo Casas Grandes"/>
+	<row Clave="050" Estado="CHP" Descripcion="La Libertad"/>
+	<row Clave="050" Estado="GRO" Descripcion="Pungarabato"/>
+	<row Clave="050" Estado="HID" Descripcion="Progreso de Obregón"/>
+	<row Clave="050" Estado="JAL" Descripcion="Jocotepec"/>
+	<row Clave="050" Estado="MEX" Descripcion="Juchitepec"/>
+	<row Clave="050" Estado="MIC" Descripcion="Maravatío"/>
+	<row Clave="050" Estado="NLE" Descripcion="Vallecillo"/>
+	<row Clave="050" Estado="OAX" Descripcion="Magdalena Peñasco"/>
+	<row Clave="050" Estado="PUE" Descripcion="Chichiquila"/>
+	<row Clave="050" Estado="SLP" Descripcion="Villa de Reyes"/>
+	<row Clave="050" Estado="SON" Descripcion="Rayón"/>
+	<row Clave="050" Estado="TLA" Descripcion="San Francisco Tetlanohcan"/>
+	<row Clave="050" Estado="VER" Descripcion="Coxquihui"/>
+	<row Clave="050" Estado="YUC" Descripcion="Mérida"/>
+	<row Clave="050" Estado="ZAC" Descripcion="Vetagrande"/>
+	<row Clave="051" Estado="CHH" Descripcion="Ocampo"/>
+	<row Clave="051" Estado="CHP" Descripcion="Mapastepec"/>
+	<row Clave="051" Estado="GRO" Descripcion="Quechultenango"/>
+	<row Clave="051" Estado="HID" Descripcion="Mineral de la Reforma"/>
+	<row Clave="051" Estado="JAL" Descripcion="Juanacatlán"/>
+	<row Clave="051" Estado="MEX" Descripcion="Lerma"/>
+	<row Clave="051" Estado="MIC" Descripcion="Marcos Castellanos"/>
+	<row Clave="051" Estado="NLE" Descripcion="Villaldama"/>
+	<row Clave="051" Estado="OAX" Descripcion="Magdalena Teitipac"/>
+	<row Clave="051" Estado="PUE" Descripcion="Chietla"/>
+	<row Clave="051" Estado="SLP" Descripcion="Villa Hidalgo"/>
+	<row Clave="051" Estado="SON" Descripcion="Rosario"/>
+	<row Clave="051" Estado="TLA" Descripcion="San Jerónimo Zacualpan"/>
+	<row Clave="051" Estado="VER" Descripcion="Coyutla"/>
+	<row Clave="051" Estado="YUC" Descripcion="Mocochá"/>
+	<row Clave="051" Estado="ZAC" Descripcion="Villa de Cos"/>
+	<row Clave="052" Estado="CHH" Descripcion="Ojinaga"/>
+	<row Clave="052" Estado="CHP" Descripcion="Las Margaritas"/>
+	<row Clave="052" Estado="GRO" Descripcion="San Luis Acatlán"/>
+	<row Clave="052" Estado="HID" Descripcion="San Agustín Tlaxiaca"/>
+	<row Clave="052" Estado="JAL" Descripcion="Juchitlán"/>
+	<row Clave="052" Estado="MEX" Descripcion="Malinalco"/>
+	<row Clave="052" Estado="MIC" Descripcion="Lázaro Cárdenas"/>
+	<row Clave="052" Estado="OAX" Descripcion="Magdalena Tequisistlán"/>
+	<row Clave="052" Estado="PUE" Descripcion="Chigmecatitlán"/>
+	<row Clave="052" Estado="SLP" Descripcion="Villa Juárez"/>
+	<row Clave="052" Estado="SON" Descripcion="Sahuaripa"/>
+	<row Clave="052" Estado="TLA" Descripcion="San José Teacalco"/>
+	<row Clave="052" Estado="VER" Descripcion="Cuichapa"/>
+	<row Clave="052" Estado="YUC" Descripcion="Motul"/>
+	<row Clave="052" Estado="ZAC" Descripcion="Villa García"/>
+	<row Clave="053" Estado="CHH" Descripcion="Praxedis G. Guerrero"/>
+	<row Clave="053" Estado="CHP" Descripcion="Mazapa de Madero"/>
+	<row Clave="053" Estado="GRO" Descripcion="San Marcos"/>
+	<row Clave="053" Estado="HID" Descripcion="San Bartolo Tutotepec"/>
+	<row Clave="053" Estado="JAL" Descripcion="Lagos de Moreno"/>
+	<row Clave="053" Estado="MEX" Descripcion="Melchor Ocampo"/>
+	<row Clave="053" Estado="MIC" Descripcion="Morelia"/>
+	<row Clave="053" Estado="OAX" Descripcion="Magdalena Tlacotepec"/>
+	<row Clave="053" Estado="PUE" Descripcion="Chignahuapan"/>
+	<row Clave="053" Estado="SLP" Descripcion="Axtla de Terrazas"/>
+	<row Clave="053" Estado="SON" Descripcion="San Felipe de Jesús"/>
+	<row Clave="053" Estado="TLA" Descripcion="San Juan Huactzinco"/>
+	<row Clave="053" Estado="VER" Descripcion="Cuitláhuac"/>
+	<row Clave="053" Estado="YUC" Descripcion="Muna"/>
+	<row Clave="053" Estado="ZAC" Descripcion="Villa González Ortega"/>
+	<row Clave="054" Estado="CHH" Descripcion="Riva Palacio"/>
+	<row Clave="054" Estado="CHP" Descripcion="Mazatán"/>
+	<row Clave="054" Estado="GRO" Descripcion="San Miguel Totolapan"/>
+	<row Clave="054" Estado="HID" Descripcion="San Salvador"/>
+	<row Clave="054" Estado="JAL" Descripcion="El Limón"/>
+	<row Clave="054" Estado="MEX" Descripcion="Metepec"/>
+	<row Clave="054" Estado="MIC" Descripcion="Morelos"/>
+	<row Clave="054" Estado="OAX" Descripcion="Magdalena Zahuatlán"/>
+	<row Clave="054" Estado="PUE" Descripcion="Chignautla"/>
+	<row Clave="054" Estado="SLP" Descripcion="Xilitla"/>
+	<row Clave="054" Estado="SON" Descripcion="San Javier"/>
+	<row Clave="054" Estado="TLA" Descripcion="San Lorenzo Axocomanitla"/>
+	<row Clave="054" Estado="VER" Descripcion="Chacaltianguis"/>
+	<row Clave="054" Estado="YUC" Descripcion="Muxupip"/>
+	<row Clave="054" Estado="ZAC" Descripcion="Villa Hidalgo"/>
+	<row Clave="055" Estado="CHH" Descripcion="Rosales"/>
+	<row Clave="055" Estado="CHP" Descripcion="Metapa"/>
+	<row Clave="055" Estado="GRO" Descripcion="Taxco de Alarcón"/>
+	<row Clave="055" Estado="HID" Descripcion="Santiago de Anaya"/>
+	<row Clave="055" Estado="JAL" Descripcion="Magdalena"/>
+	<row Clave="055" Estado="MEX" Descripcion="Mexicaltzingo"/>
+	<row Clave="055" Estado="MIC" Descripcion="Múgica"/>
+	<row Clave="055" Estado="OAX" Descripcion="Mariscala de Juárez"/>
+	<row Clave="055" Estado="PUE" Descripcion="Chila"/>
+	<row Clave="055" Estado="SLP" Descripcion="Zaragoza"/>
+	<row Clave="055" Estado="SON" Descripcion="San Luis Río Colorado"/>
+	<row Clave="055" Estado="TLA" Descripcion="San Lucas Tecopilco"/>
+	<row Clave="055" Estado="VER" Descripcion="Chalma"/>
+	<row Clave="055" Estado="YUC" Descripcion="Opichén"/>
+	<row Clave="055" Estado="ZAC" Descripcion="Villanueva"/>
+	<row Clave="056" Estado="CHH" Descripcion="Rosario"/>
+	<row Clave="056" Estado="CHP" Descripcion="Mitontic"/>
+	<row Clave="056" Estado="GRO" Descripcion="Tecoanapa"/>
+	<row Clave="056" Estado="HID" Descripcion="Santiago Tulantepec de Lugo Guerrero"/>
+	<row Clave="056" Estado="JAL" Descripcion="Santa María del Oro"/>
+	<row Clave="056" Estado="MEX" Descripcion="Morelos"/>
+	<row Clave="056" Estado="MIC" Descripcion="Nahuatzen"/>
+	<row Clave="056" Estado="OAX" Descripcion="Mártires de Tacubaya"/>
+	<row Clave="056" Estado="PUE" Descripcion="Chila de la Sal"/>
+	<row Clave="056" Estado="SLP" Descripcion="Villa de Arista"/>
+	<row Clave="056" Estado="SON" Descripcion="San Miguel de Horcasitas"/>
+	<row Clave="056" Estado="TLA" Descripcion="Santa Ana Nopalucan"/>
+	<row Clave="056" Estado="VER" Descripcion="Chiconamel"/>
+	<row Clave="056" Estado="YUC" Descripcion="Oxkutzcab"/>
+	<row Clave="056" Estado="ZAC" Descripcion="Zacatecas"/>
+	<row Clave="057" Estado="CHH" Descripcion="San Francisco de Borja"/>
+	<row Clave="057" Estado="CHP" Descripcion="Motozintla"/>
+	<row Clave="057" Estado="GRO" Descripcion="Técpan de Galeana"/>
+	<row Clave="057" Estado="HID" Descripcion="Singuilucan"/>
+	<row Clave="057" Estado="JAL" Descripcion="La Manzanilla de la Paz"/>
+	<row Clave="057" Estado="MEX" Descripcion="Naucalpan de Juárez"/>
+	<row Clave="057" Estado="MIC" Descripcion="Nocupétaro"/>
+	<row Clave="057" Estado="OAX" Descripcion="Matías Romero Avendaño"/>
+	<row Clave="057" Estado="PUE" Descripcion="Honey"/>
+	<row Clave="057" Estado="SLP" Descripcion="Matlapa"/>
+	<row Clave="057" Estado="SON" Descripcion="San Pedro de la Cueva"/>
+	<row Clave="057" Estado="TLA" Descripcion="Santa Apolonia Teacalco"/>
+	<row Clave="057" Estado="VER" Descripcion="Chiconquiaco"/>
+	<row Clave="057" Estado="YUC" Descripcion="Panabá"/>
+	<row Clave="057" Estado="ZAC" Descripcion="Trancoso"/>
+	<row Clave="058" Estado="CHH" Descripcion="San Francisco de Conchos"/>
+	<row Clave="058" Estado="CHP" Descripcion="Nicolás Ruíz"/>
+	<row Clave="058" Estado="GRO" Descripcion="Teloloapan"/>
+	<row Clave="058" Estado="HID" Descripcion="Tasquillo"/>
+	<row Clave="058" Estado="JAL" Descripcion="Mascota"/>
+	<row Clave="058" Estado="MEX" Descripcion="Nezahualcóyotl"/>
+	<row Clave="058" Estado="MIC" Descripcion="Nuevo Parangaricutiro"/>
+	<row Clave="058" Estado="OAX" Descripcion="Mazatlán Villa de Flores"/>
+	<row Clave="058" Estado="PUE" Descripcion="Chilchotla"/>
+	<row Clave="058" Estado="SLP" Descripcion="El Naranjo"/>
+	<row Clave="058" Estado="SON" Descripcion="Santa Ana"/>
+	<row Clave="058" Estado="TLA" Descripcion="Santa Catarina Ayometla"/>
+	<row Clave="058" Estado="VER" Descripcion="Chicontepec"/>
+	<row Clave="058" Estado="YUC" Descripcion="Peto"/>
+	<row Clave="058" Estado="ZAC" Descripcion="Santa María de la Paz"/>
+	<row Clave="059" Estado="CHH" Descripcion="San Francisco del Oro"/>
+	<row Clave="059" Estado="CHP" Descripcion="Ocosingo"/>
+	<row Clave="059" Estado="GRO" Descripcion="Tepecoacuilco de Trujano"/>
+	<row Clave="059" Estado="HID" Descripcion="Tecozautla"/>
+	<row Clave="059" Estado="JAL" Descripcion="Mazamitla"/>
+	<row Clave="059" Estado="MEX" Descripcion="Nextlalpan"/>
+	<row Clave="059" Estado="MIC" Descripcion="Nuevo Urecho"/>
+	<row Clave="059" Estado="OAX" Descripcion="Miahuatlán de Porfirio Díaz"/>
+	<row Clave="059" Estado="PUE" Descripcion="Chinantla"/>
+	<row Clave="059" Estado="SON" Descripcion="Santa Cruz"/>
+	<row Clave="059" Estado="TLA" Descripcion="Santa Cruz Quilehtla"/>
+	<row Clave="059" Estado="VER" Descripcion="Chinameca"/>
+	<row Clave="059" Estado="YUC" Descripcion="Progreso"/>
+	<row Clave="060" Estado="CHH" Descripcion="Santa Bárbara"/>
+	<row Clave="060" Estado="CHP" Descripcion="Ocotepec"/>
+	<row Clave="060" Estado="GRO" Descripcion="Tetipac"/>
+	<row Clave="060" Estado="HID" Descripcion="Tenango de Doria"/>
+	<row Clave="060" Estado="JAL" Descripcion="Mexticacán"/>
+	<row Clave="060" Estado="MEX" Descripcion="Nicolás Romero"/>
+	<row Clave="060" Estado="MIC" Descripcion="Numarán"/>
+	<row Clave="060" Estado="OAX" Descripcion="Mixistlán de la Reforma"/>
+	<row Clave="060" Estado="PUE" Descripcion="Domingo Arenas"/>
+	<row Clave="060" Estado="SON" Descripcion="Sáric"/>
+	<row Clave="060" Estado="TLA" Descripcion="Santa Isabel Xiloxoxtla"/>
+	<row Clave="060" Estado="VER" Descripcion="Chinampa de Gorostiza"/>
+	<row Clave="060" Estado="YUC" Descripcion="Quintana Roo"/>
+	<row Clave="061" Estado="CHH" Descripcion="Satevó"/>
+	<row Clave="061" Estado="CHP" Descripcion="Ocozocoautla de Espinosa"/>
+	<row Clave="061" Estado="GRO" Descripcion="Tixtla de Guerrero"/>
+	<row Clave="061" Estado="HID" Descripcion="Tepeapulco"/>
+	<row Clave="061" Estado="JAL" Descripcion="Mezquitic"/>
+	<row Clave="061" Estado="MEX" Descripcion="Nopaltepec"/>
+	<row Clave="061" Estado="MIC" Descripcion="Ocampo"/>
+	<row Clave="061" Estado="OAX" Descripcion="Monjas"/>
+	<row Clave="061" Estado="PUE" Descripcion="Eloxochitlán"/>
+	<row Clave="061" Estado="SON" Descripcion="Soyopa"/>
+	<row Clave="061" Estado="VER" Descripcion="Las Choapas"/>
+	<row Clave="061" Estado="YUC" Descripcion="Río Lagartos"/>
+	<row Clave="062" Estado="CHH" Descripcion="Saucillo"/>
+	<row Clave="062" Estado="CHP" Descripcion="Ostuacán"/>
+	<row Clave="062" Estado="GRO" Descripcion="Tlacoachistlahuaca"/>
+	<row Clave="062" Estado="HID" Descripcion="Tepehuacán de Guerrero"/>
+	<row Clave="062" Estado="JAL" Descripcion="Mixtlán"/>
+	<row Clave="062" Estado="MEX" Descripcion="Ocoyoacac"/>
+	<row Clave="062" Estado="MIC" Descripcion="Pajacuarán"/>
+	<row Clave="062" Estado="OAX" Descripcion="Natividad"/>
+	<row Clave="062" Estado="PUE" Descripcion="Epatlán"/>
+	<row Clave="062" Estado="SON" Descripcion="Suaqui Grande"/>
+	<row Clave="062" Estado="VER" Descripcion="Chocamán"/>
+	<row Clave="062" Estado="YUC" Descripcion="Sacalum"/>
+	<row Clave="063" Estado="CHH" Descripcion="Temósachic"/>
+	<row Clave="063" Estado="CHP" Descripcion="Osumacinta"/>
+	<row Clave="063" Estado="GRO" Descripcion="Tlacoapa"/>
+	<row Clave="063" Estado="HID" Descripcion="Tepeji del Río de Ocampo"/>
+	<row Clave="063" Estado="JAL" Descripcion="Ocotlán"/>
+	<row Clave="063" Estado="MEX" Descripcion="Ocuilan"/>
+	<row Clave="063" Estado="MIC" Descripcion="Panindícuaro"/>
+	<row Clave="063" Estado="OAX" Descripcion="Nazareno Etla"/>
+	<row Clave="063" Estado="PUE" Descripcion="Esperanza"/>
+	<row Clave="063" Estado="SON" Descripcion="Tepache"/>
+	<row Clave="063" Estado="VER" Descripcion="Chontla"/>
+	<row Clave="063" Estado="YUC" Descripcion="Samahil"/>
+	<row Clave="064" Estado="CHH" Descripcion="El Tule"/>
+	<row Clave="064" Estado="CHP" Descripcion="Oxchuc"/>
+	<row Clave="064" Estado="GRO" Descripcion="Tlalchapa"/>
+	<row Clave="064" Estado="HID" Descripcion="Tepetitlán"/>
+	<row Clave="064" Estado="JAL" Descripcion="Ojuelos de Jalisco"/>
+	<row Clave="064" Estado="MEX" Descripcion="El Oro"/>
+	<row Clave="064" Estado="MIC" Descripcion="Parácuaro"/>
+	<row Clave="064" Estado="OAX" Descripcion="Nejapa de Madero"/>
+	<row Clave="064" Estado="PUE" Descripcion="Francisco Z. Mena"/>
+	<row Clave="064" Estado="SON" Descripcion="Trincheras"/>
+	<row Clave="064" Estado="VER" Descripcion="Chumatlán"/>
+	<row Clave="064" Estado="YUC" Descripcion="Sanahcat"/>
+	<row Clave="065" Estado="CHH" Descripcion="Urique"/>
+	<row Clave="065" Estado="CHP" Descripcion="Palenque"/>
+	<row Clave="065" Estado="GRO" Descripcion="Tlalixtaquilla de Maldonado"/>
+	<row Clave="065" Estado="HID" Descripcion="Tetepango"/>
+	<row Clave="065" Estado="JAL" Descripcion="Pihuamo"/>
+	<row Clave="065" Estado="MEX" Descripcion="Otumba"/>
+	<row Clave="065" Estado="MIC" Descripcion="Paracho"/>
+	<row Clave="065" Estado="OAX" Descripcion="Ixpantepec Nieves"/>
+	<row Clave="065" Estado="PUE" Descripcion="General Felipe Ángeles"/>
+	<row Clave="065" Estado="SON" Descripcion="Tubutama"/>
+	<row Clave="065" Estado="VER" Descripcion="Emiliano Zapata"/>
+	<row Clave="065" Estado="YUC" Descripcion="San Felipe"/>
+	<row Clave="066" Estado="CHH" Descripcion="Uruachi"/>
+	<row Clave="066" Estado="CHP" Descripcion="Pantelhó"/>
+	<row Clave="066" Estado="GRO" Descripcion="Tlapa de Comonfort"/>
+	<row Clave="066" Estado="HID" Descripcion="Villa de Tezontepec"/>
+	<row Clave="066" Estado="JAL" Descripcion="Poncitlán"/>
+	<row Clave="066" Estado="MEX" Descripcion="Otzoloapan"/>
+	<row Clave="066" Estado="MIC" Descripcion="Pátzcuaro"/>
+	<row Clave="066" Estado="OAX" Descripcion="Santiago Niltepec"/>
+	<row Clave="066" Estado="PUE" Descripcion="Guadalupe"/>
+	<row Clave="066" Estado="SON" Descripcion="Ures"/>
+	<row Clave="066" Estado="VER" Descripcion="Espinal"/>
+	<row Clave="066" Estado="YUC" Descripcion="Santa Elena"/>
+	<row Clave="067" Estado="CHH" Descripcion="Valle de Zaragoza"/>
+	<row Clave="067" Estado="CHP" Descripcion="Pantepec"/>
+	<row Clave="067" Estado="GRO" Descripcion="Tlapehuala"/>
+	<row Clave="067" Estado="HID" Descripcion="Tezontepec de Aldama"/>
+	<row Clave="067" Estado="JAL" Descripcion="Puerto Vallarta"/>
+	<row Clave="067" Estado="MEX" Descripcion="Otzolotepec"/>
+	<row Clave="067" Estado="MIC" Descripcion="Penjamillo"/>
+	<row Clave="067" Estado="OAX" Descripcion="Oaxaca de Juárez"/>
+	<row Clave="067" Estado="PUE" Descripcion="Guadalupe Victoria"/>
+	<row Clave="067" Estado="SON" Descripcion="Villa Hidalgo"/>
+	<row Clave="067" Estado="VER" Descripcion="Filomeno Mata"/>
+	<row Clave="067" Estado="YUC" Descripcion="Seyé"/>
+	<row Clave="068" Estado="CHP" Descripcion="Pichucalco"/>
+	<row Clave="068" Estado="GRO" Descripcion="La Unión de Isidoro Montes de Oca"/>
+	<row Clave="068" Estado="HID" Descripcion="Tianguistengo"/>
+	<row Clave="068" Estado="JAL" Descripcion="Villa Purificación"/>
+	<row Clave="068" Estado="MEX" Descripcion="Ozumba"/>
+	<row Clave="068" Estado="MIC" Descripcion="Peribán"/>
+	<row Clave="068" Estado="OAX" Descripcion="Ocotlán de Morelos"/>
+	<row Clave="068" Estado="PUE" Descripcion="Hermenegildo Galeana"/>
+	<row Clave="068" Estado="SON" Descripcion="Villa Pesqueira"/>
+	<row Clave="068" Estado="VER" Descripcion="Fortín"/>
+	<row Clave="068" Estado="YUC" Descripcion="Sinanché"/>
+	<row Clave="069" Estado="CHP" Descripcion="Pijijiapan"/>
+	<row Clave="069" Estado="GRO" Descripcion="Xalpatláhuac"/>
+	<row Clave="069" Estado="HID" Descripcion="Tizayuca"/>
+	<row Clave="069" Estado="JAL" Descripcion="Quitupan"/>
+	<row Clave="069" Estado="MEX" Descripcion="Papalotla"/>
+	<row Clave="069" Estado="MIC" Descripcion="La Piedad"/>
+	<row Clave="069" Estado="OAX" Descripcion="La Pe"/>
+	<row Clave="069" Estado="PUE" Descripcion="Huaquechula"/>
+	<row Clave="069" Estado="SON" Descripcion="Yécora"/>
+	<row Clave="069" Estado="VER" Descripcion="Gutiérrez Zamora"/>
+	<row Clave="069" Estado="YUC" Descripcion="Sotuta"/>
+	<row Clave="070" Estado="CHP" Descripcion="El Porvenir"/>
+	<row Clave="070" Estado="GRO" Descripcion="Xochihuehuetlán"/>
+	<row Clave="070" Estado="HID" Descripcion="Tlahuelilpan"/>
+	<row Clave="070" Estado="JAL" Descripcion="El Salto"/>
+	<row Clave="070" Estado="MEX" Descripcion="La Paz"/>
+	<row Clave="070" Estado="MIC" Descripcion="Purépero"/>
+	<row Clave="070" Estado="OAX" Descripcion="Pinotepa de Don Luis"/>
+	<row Clave="070" Estado="PUE" Descripcion="Huatlatlauca"/>
+	<row Clave="070" Estado="SON" Descripcion="General Plutarco Elías Calles"/>
+	<row Clave="070" Estado="VER" Descripcion="Hidalgotitlán"/>
+	<row Clave="070" Estado="YUC" Descripcion="Sucilá"/>
+	<row Clave="071" Estado="CHP" Descripcion="Villa Comaltitlán"/>
+	<row Clave="071" Estado="GRO" Descripcion="Xochistlahuaca"/>
+	<row Clave="071" Estado="HID" Descripcion="Tlahuiltepa"/>
+	<row Clave="071" Estado="JAL" Descripcion="San Cristóbal de la Barranca"/>
+	<row Clave="071" Estado="MEX" Descripcion="Polotitlán"/>
+	<row Clave="071" Estado="MIC" Descripcion="Puruándiro"/>
+	<row Clave="071" Estado="OAX" Descripcion="Pluma Hidalgo"/>
+	<row Clave="071" Estado="PUE" Descripcion="Huauchinango"/>
+	<row Clave="071" Estado="SON" Descripcion="Benito Juárez"/>
+	<row Clave="071" Estado="VER" Descripcion="Huatusco"/>
+	<row Clave="071" Estado="YUC" Descripcion="Sudzal"/>
+	<row Clave="072" Estado="CHP" Descripcion="Pueblo Nuevo Solistahuacán"/>
+	<row Clave="072" Estado="GRO" Descripcion="Zapotitlán Tablas"/>
+	<row Clave="072" Estado="HID" Descripcion="Tlanalapa"/>
+	<row Clave="072" Estado="JAL" Descripcion="San Diego de Alejandría"/>
+	<row Clave="072" Estado="MEX" Descripcion="Rayón"/>
+	<row Clave="072" Estado="MIC" Descripcion="Queréndaro"/>
+	<row Clave="072" Estado="OAX" Descripcion="San José del Progreso"/>
+	<row Clave="072" Estado="PUE" Descripcion="Huehuetla"/>
+	<row Clave="072" Estado="SON" Descripcion="San Ignacio Río Muerto"/>
+	<row Clave="072" Estado="VER" Descripcion="Huayacocotla"/>
+	<row Clave="072" Estado="YUC" Descripcion="Suma"/>
+	<row Clave="073" Estado="CHP" Descripcion="Rayón"/>
+	<row Clave="073" Estado="GRO" Descripcion="Zirándaro"/>
+	<row Clave="073" Estado="HID" Descripcion="Tlanchinol"/>
+	<row Clave="073" Estado="JAL" Descripcion="San Juan de los Lagos"/>
+	<row Clave="073" Estado="MEX" Descripcion="San Antonio la Isla"/>
+	<row Clave="073" Estado="MIC" Descripcion="Quiroga"/>
+	<row Clave="073" Estado="OAX" Descripcion="Putla Villa de Guerrero"/>
+	<row Clave="073" Estado="PUE" Descripcion="Huehuetlán el Chico"/>
+	<row Clave="073" Estado="VER" Descripcion="Hueyapan de Ocampo"/>
+	<row Clave="073" Estado="YUC" Descripcion="Tahdziú"/>
+	<row Clave="074" Estado="CHP" Descripcion="Reforma"/>
+	<row Clave="074" Estado="GRO" Descripcion="Zitlala"/>
+	<row Clave="074" Estado="HID" Descripcion="Tlaxcoapan"/>
+	<row Clave="074" Estado="JAL" Descripcion="San Julián"/>
+	<row Clave="074" Estado="MEX" Descripcion="San Felipe del Progreso"/>
+	<row Clave="074" Estado="MIC" Descripcion="Cojumatlán de Régules"/>
+	<row Clave="074" Estado="OAX" Descripcion="Santa Catarina Quioquitani"/>
+	<row Clave="074" Estado="PUE" Descripcion="Huejotzingo"/>
+	<row Clave="074" Estado="VER" Descripcion="Huiloapan de Cuauhtémoc"/>
+	<row Clave="074" Estado="YUC" Descripcion="Tahmek"/>
+	<row Clave="075" Estado="CHP" Descripcion="Las Rosas"/>
+	<row Clave="075" Estado="GRO" Descripcion="Eduardo Neri"/>
+	<row Clave="075" Estado="HID" Descripcion="Tolcayuca"/>
+	<row Clave="075" Estado="JAL" Descripcion="San Marcos"/>
+	<row Clave="075" Estado="MEX" Descripcion="San Martín de las Pirámides"/>
+	<row Clave="075" Estado="MIC" Descripcion="Los Reyes"/>
+	<row Clave="075" Estado="OAX" Descripcion="Reforma de Pineda"/>
+	<row Clave="075" Estado="PUE" Descripcion="Hueyapan"/>
+	<row Clave="075" Estado="VER" Descripcion="Ignacio de la Llave"/>
+	<row Clave="075" Estado="YUC" Descripcion="Teabo"/>
+	<row Clave="076" Estado="CHP" Descripcion="Sabanilla"/>
+	<row Clave="076" Estado="GRO" Descripcion="Acatepec"/>
+	<row Clave="076" Estado="HID" Descripcion="Tula de Allende"/>
+	<row Clave="076" Estado="JAL" Descripcion="San Martín de Bolaños"/>
+	<row Clave="076" Estado="MEX" Descripcion="San Mateo Atenco"/>
+	<row Clave="076" Estado="MIC" Descripcion="Sahuayo"/>
+	<row Clave="076" Estado="OAX" Descripcion="La Reforma"/>
+	<row Clave="076" Estado="PUE" Descripcion="Hueytamalco"/>
+	<row Clave="076" Estado="VER" Descripcion="Ilamatlán"/>
+	<row Clave="076" Estado="YUC" Descripcion="Tecoh"/>
+	<row Clave="077" Estado="CHP" Descripcion="Salto de Agua"/>
+	<row Clave="077" Estado="GRO" Descripcion="Marquelia"/>
+	<row Clave="077" Estado="HID" Descripcion="Tulancingo de Bravo"/>
+	<row Clave="077" Estado="JAL" Descripcion="San Martín Hidalgo"/>
+	<row Clave="077" Estado="MEX" Descripcion="San Simón de Guerrero"/>
+	<row Clave="077" Estado="MIC" Descripcion="San Lucas"/>
+	<row Clave="077" Estado="OAX" Descripcion="Reyes Etla"/>
+	<row Clave="077" Estado="PUE" Descripcion="Hueytlalpan"/>
+	<row Clave="077" Estado="VER" Descripcion="Isla"/>
+	<row Clave="077" Estado="YUC" Descripcion="Tekal de Venegas"/>
+	<row Clave="078" Estado="CHP" Descripcion="San Cristóbal de las Casas"/>
+	<row Clave="078" Estado="GRO" Descripcion="Cochoapa el Grande"/>
+	<row Clave="078" Estado="HID" Descripcion="Xochiatipan"/>
+	<row Clave="078" Estado="JAL" Descripcion="San Miguel el Alto"/>
+	<row Clave="078" Estado="MEX" Descripcion="Santo Tomás"/>
+	<row Clave="078" Estado="MIC" Descripcion="Santa Ana Maya"/>
+	<row Clave="078" Estado="OAX" Descripcion="Rojas de Cuauhtémoc"/>
+	<row Clave="078" Estado="PUE" Descripcion="Huitzilan de Serdán"/>
+	<row Clave="078" Estado="VER" Descripcion="Ixcatepec"/>
+	<row Clave="078" Estado="YUC" Descripcion="Tekantó"/>
+	<row Clave="079" Estado="CHP" Descripcion="San Fernando"/>
+	<row Clave="079" Estado="GRO" Descripcion="José Joaquín de Herrera"/>
+	<row Clave="079" Estado="HID" Descripcion="Xochicoatlán"/>
+	<row Clave="079" Estado="JAL" Descripcion="Gómez Farías"/>
+	<row Clave="079" Estado="MEX" Descripcion="Soyaniquilpan de Juárez"/>
+	<row Clave="079" Estado="MIC" Descripcion="Salvador Escalante"/>
+	<row Clave="079" Estado="OAX" Descripcion="Salina Cruz"/>
+	<row Clave="079" Estado="PUE" Descripcion="Huitziltepec"/>
+	<row Clave="079" Estado="VER" Descripcion="Ixhuacán de los Reyes"/>
+	<row Clave="079" Estado="YUC" Descripcion="Tekax"/>
+	<row Clave="080" Estado="CHP" Descripcion="Siltepec"/>
+	<row Clave="080" Estado="GRO" Descripcion="Juchitán"/>
+	<row Clave="080" Estado="HID" Descripcion="Yahualica"/>
+	<row Clave="080" Estado="JAL" Descripcion="San Sebastián del Oeste"/>
+	<row Clave="080" Estado="MEX" Descripcion="Sultepec"/>
+	<row Clave="080" Estado="MIC" Descripcion="Senguio"/>
+	<row Clave="080" Estado="OAX" Descripcion="San Agustín Amatengo"/>
+	<row Clave="080" Estado="PUE" Descripcion="Atlequizayan"/>
+	<row Clave="080" Estado="VER" Descripcion="Ixhuatlán del Café"/>
+	<row Clave="080" Estado="YUC" Descripcion="Tekit"/>
+	<row Clave="081" Estado="CHP" Descripcion="Simojovel"/>
+	<row Clave="081" Estado="GRO" Descripcion="Iliatenco"/>
+	<row Clave="081" Estado="HID" Descripcion="Zacualtipán de Ángeles"/>
+	<row Clave="081" Estado="JAL" Descripcion="Santa María de los Ángeles"/>
+	<row Clave="081" Estado="MEX" Descripcion="Tecámac"/>
+	<row Clave="081" Estado="MIC" Descripcion="Susupuato"/>
+	<row Clave="081" Estado="OAX" Descripcion="San Agustín Atenango"/>
+	<row Clave="081" Estado="PUE" Descripcion="Ixcamilpa de Guerrero"/>
+	<row Clave="081" Estado="VER" Descripcion="Ixhuatlancillo"/>
+	<row Clave="081" Estado="YUC" Descripcion="Tekom"/>
+	<row Clave="082" Estado="CHP" Descripcion="Sitalá"/>
+	<row Clave="082" Estado="HID" Descripcion="Zapotlán de Juárez"/>
+	<row Clave="082" Estado="JAL" Descripcion="Sayula"/>
+	<row Clave="082" Estado="MEX" Descripcion="Tejupilco"/>
+	<row Clave="082" Estado="MIC" Descripcion="Tacámbaro"/>
+	<row Clave="082" Estado="OAX" Descripcion="San Agustín Chayuco"/>
+	<row Clave="082" Estado="PUE" Descripcion="Ixcaquixtla"/>
+	<row Clave="082" Estado="VER" Descripcion="Ixhuatlán del Sureste"/>
+	<row Clave="082" Estado="YUC" Descripcion="Telchac Pueblo"/>
+	<row Clave="083" Estado="CHP" Descripcion="Socoltenango"/>
+	<row Clave="083" Estado="HID" Descripcion="Zempoala"/>
+	<row Clave="083" Estado="JAL" Descripcion="Tala"/>
+	<row Clave="083" Estado="MEX" Descripcion="Temamatla"/>
+	<row Clave="083" Estado="MIC" Descripcion="Tancítaro"/>
+	<row Clave="083" Estado="OAX" Descripcion="San Agustín de las Juntas"/>
+	<row Clave="083" Estado="PUE" Descripcion="Ixtacamaxtitlán"/>
+	<row Clave="083" Estado="VER" Descripcion="Ixhuatlán de Madero"/>
+	<row Clave="083" Estado="YUC" Descripcion="Telchac Puerto"/>
+	<row Clave="084" Estado="CHP" Descripcion="Solosuchiapa"/>
+	<row Clave="084" Estado="HID" Descripcion="Zimapán"/>
+	<row Clave="084" Estado="JAL" Descripcion="Talpa de Allende"/>
+	<row Clave="084" Estado="MEX" Descripcion="Temascalapa"/>
+	<row Clave="084" Estado="MIC" Descripcion="Tangamandapio"/>
+	<row Clave="084" Estado="OAX" Descripcion="San Agustín Etla"/>
+	<row Clave="084" Estado="PUE" Descripcion="Ixtepec"/>
+	<row Clave="084" Estado="VER" Descripcion="Ixmatlahuacan"/>
+	<row Clave="084" Estado="YUC" Descripcion="Temax"/>
+	<row Clave="085" Estado="CHP" Descripcion="Soyaló"/>
+	<row Clave="085" Estado="JAL" Descripcion="Tamazula de Gordiano"/>
+	<row Clave="085" Estado="MEX" Descripcion="Temascalcingo"/>
+	<row Clave="085" Estado="MIC" Descripcion="Tangancícuaro"/>
+	<row Clave="085" Estado="OAX" Descripcion="San Agustín Loxicha"/>
+	<row Clave="085" Estado="PUE" Descripcion="Izúcar de Matamoros"/>
+	<row Clave="085" Estado="VER" Descripcion="Ixtaczoquitlán"/>
+	<row Clave="085" Estado="YUC" Descripcion="Temozón"/>
+	<row Clave="086" Estado="CHP" Descripcion="Suchiapa"/>
+	<row Clave="086" Estado="JAL" Descripcion="Tapalpa"/>
+	<row Clave="086" Estado="MEX" Descripcion="Temascaltepec"/>
+	<row Clave="086" Estado="MIC" Descripcion="Tanhuato"/>
+	<row Clave="086" Estado="OAX" Descripcion="San Agustín Tlacotepec"/>
+	<row Clave="086" Estado="PUE" Descripcion="Jalpan"/>
+	<row Clave="086" Estado="VER" Descripcion="Jalacingo"/>
+	<row Clave="086" Estado="YUC" Descripcion="Tepakán"/>
+	<row Clave="087" Estado="CHP" Descripcion="Suchiate"/>
+	<row Clave="087" Estado="JAL" Descripcion="Tecalitlán"/>
+	<row Clave="087" Estado="MEX" Descripcion="Temoaya"/>
+	<row Clave="087" Estado="MIC" Descripcion="Taretan"/>
+	<row Clave="087" Estado="OAX" Descripcion="San Agustín Yatareni"/>
+	<row Clave="087" Estado="PUE" Descripcion="Jolalpan"/>
+	<row Clave="087" Estado="VER" Descripcion="Xalapa"/>
+	<row Clave="087" Estado="YUC" Descripcion="Tetiz"/>
+	<row Clave="088" Estado="CHP" Descripcion="Sunuapa"/>
+	<row Clave="088" Estado="JAL" Descripcion="Tecolotlán"/>
+	<row Clave="088" Estado="MEX" Descripcion="Tenancingo"/>
+	<row Clave="088" Estado="MIC" Descripcion="Tarímbaro"/>
+	<row Clave="088" Estado="OAX" Descripcion="San Andrés Cabecera Nueva"/>
+	<row Clave="088" Estado="PUE" Descripcion="Jonotla"/>
+	<row Clave="088" Estado="VER" Descripcion="Jalcomulco"/>
+	<row Clave="088" Estado="YUC" Descripcion="Teya"/>
+	<row Clave="089" Estado="CHP" Descripcion="Tapachula"/>
+	<row Clave="089" Estado="JAL" Descripcion="Techaluta de Montenegro"/>
+	<row Clave="089" Estado="MEX" Descripcion="Tenango del Aire"/>
+	<row Clave="089" Estado="MIC" Descripcion="Tepalcatepec"/>
+	<row Clave="089" Estado="OAX" Descripcion="San Andrés Dinicuiti"/>
+	<row Clave="089" Estado="PUE" Descripcion="Jopala"/>
+	<row Clave="089" Estado="VER" Descripcion="Jáltipan"/>
+	<row Clave="089" Estado="YUC" Descripcion="Ticul"/>
+	<row Clave="090" Estado="CHP" Descripcion="Tapalapa"/>
+	<row Clave="090" Estado="JAL" Descripcion="Tenamaxtlán"/>
+	<row Clave="090" Estado="MEX" Descripcion="Tenango del Valle"/>
+	<row Clave="090" Estado="MIC" Descripcion="Tingambato"/>
+	<row Clave="090" Estado="OAX" Descripcion="San Andrés Huaxpaltepec"/>
+	<row Clave="090" Estado="PUE" Descripcion="Juan C. Bonilla"/>
+	<row Clave="090" Estado="VER" Descripcion="Jamapa"/>
+	<row Clave="090" Estado="YUC" Descripcion="Timucuy"/>
+	<row Clave="091" Estado="CHP" Descripcion="Tapilula"/>
+	<row Clave="091" Estado="JAL" Descripcion="Teocaltiche"/>
+	<row Clave="091" Estado="MEX" Descripcion="Teoloyucan"/>
+	<row Clave="091" Estado="MIC" Descripcion="Tingüindín"/>
+	<row Clave="091" Estado="OAX" Descripcion="San Andrés Huayápam"/>
+	<row Clave="091" Estado="PUE" Descripcion="Juan Galindo"/>
+	<row Clave="091" Estado="VER" Descripcion="Jesús Carranza"/>
+	<row Clave="091" Estado="YUC" Descripcion="Tinum"/>
+	<row Clave="092" Estado="CHP" Descripcion="Tecpatán"/>
+	<row Clave="092" Estado="JAL" Descripcion="Teocuitatlán de Corona"/>
+	<row Clave="092" Estado="MEX" Descripcion="Teotihuacán"/>
+	<row Clave="092" Estado="MIC" Descripcion="Tiquicheo de Nicolás Romero"/>
+	<row Clave="092" Estado="OAX" Descripcion="San Andrés Ixtlahuaca"/>
+	<row Clave="092" Estado="PUE" Descripcion="Juan N. Méndez"/>
+	<row Clave="092" Estado="VER" Descripcion="Xico"/>
+	<row Clave="092" Estado="YUC" Descripcion="Tixcacalcupul"/>
+	<row Clave="093" Estado="CHP" Descripcion="Tenejapa"/>
+	<row Clave="093" Estado="JAL" Descripcion="Tepatitlán de Morelos"/>
+	<row Clave="093" Estado="MEX" Descripcion="Tepetlaoxtoc"/>
+	<row Clave="093" Estado="MIC" Descripcion="Tlalpujahua"/>
+	<row Clave="093" Estado="OAX" Descripcion="San Andrés Lagunas"/>
+	<row Clave="093" Estado="PUE" Descripcion="Lafragua"/>
+	<row Clave="093" Estado="VER" Descripcion="Jilotepec"/>
+	<row Clave="093" Estado="YUC" Descripcion="Tixkokob"/>
+	<row Clave="094" Estado="CHP" Descripcion="Teopisca"/>
+	<row Clave="094" Estado="JAL" Descripcion="Tequila"/>
+	<row Clave="094" Estado="MEX" Descripcion="Tepetlixpa"/>
+	<row Clave="094" Estado="MIC" Descripcion="Tlazazalca"/>
+	<row Clave="094" Estado="OAX" Descripcion="San Andrés Nuxiño"/>
+	<row Clave="094" Estado="PUE" Descripcion="Libres"/>
+	<row Clave="094" Estado="VER" Descripcion="Juan Rodríguez Clara"/>
+	<row Clave="094" Estado="YUC" Descripcion="Tixmehuac"/>
+	<row Clave="095" Estado="JAL" Descripcion="Teuchitlán"/>
+	<row Clave="095" Estado="MEX" Descripcion="Tepotzotlán"/>
+	<row Clave="095" Estado="MIC" Descripcion="Tocumbo"/>
+	<row Clave="095" Estado="OAX" Descripcion="San Andrés Paxtlán"/>
+	<row Clave="095" Estado="PUE" Descripcion="La Magdalena Tlatlauquitepec"/>
+	<row Clave="095" Estado="VER" Descripcion="Juchique de Ferrer"/>
+	<row Clave="095" Estado="YUC" Descripcion="Tixpéhual"/>
+	<row Clave="096" Estado="CHP" Descripcion="Tila"/>
+	<row Clave="096" Estado="JAL" Descripcion="Tizapán el Alto"/>
+	<row Clave="096" Estado="MEX" Descripcion="Tequixquiac"/>
+	<row Clave="096" Estado="MIC" Descripcion="Tumbiscatío"/>
+	<row Clave="096" Estado="OAX" Descripcion="San Andrés Sinaxtla"/>
+	<row Clave="096" Estado="PUE" Descripcion="Mazapiltepec de Juárez"/>
+	<row Clave="096" Estado="VER" Descripcion="Landero y Coss"/>
+	<row Clave="096" Estado="YUC" Descripcion="Tizimín"/>
+	<row Clave="097" Estado="CHP" Descripcion="Tonalá"/>
+	<row Clave="097" Estado="JAL" Descripcion="Tlajomulco de Zúñiga"/>
+	<row Clave="097" Estado="MEX" Descripcion="Texcaltitlán"/>
+	<row Clave="097" Estado="MIC" Descripcion="Turicato"/>
+	<row Clave="097" Estado="OAX" Descripcion="San Andrés Solaga"/>
+	<row Clave="097" Estado="PUE" Descripcion="Mixtla"/>
+	<row Clave="097" Estado="VER" Descripcion="Lerdo de Tejada"/>
+	<row Clave="097" Estado="YUC" Descripcion="Tunkás"/>
+	<row Clave="098" Estado="CHP" Descripcion="Totolapa"/>
+	<row Clave="098" Estado="JAL" Descripcion="San Pedro Tlaquepaque"/>
+	<row Clave="098" Estado="MEX" Descripcion="Texcalyacac"/>
+	<row Clave="098" Estado="MIC" Descripcion="Tuxpan"/>
+	<row Clave="098" Estado="OAX" Descripcion="San Andrés Teotilálpam"/>
+	<row Clave="098" Estado="PUE" Descripcion="Molcaxac"/>
+	<row Clave="098" Estado="VER" Descripcion="Magdalena"/>
+	<row Clave="098" Estado="YUC" Descripcion="Tzucacab"/>
+	<row Clave="099" Estado="CHP" Descripcion="La Trinitaria"/>
+	<row Clave="099" Estado="JAL" Descripcion="Tolimán"/>
+	<row Clave="099" Estado="MEX" Descripcion="Texcoco"/>
+	<row Clave="099" Estado="MIC" Descripcion="Tuzantla"/>
+	<row Clave="099" Estado="OAX" Descripcion="San Andrés Tepetlapa"/>
+	<row Clave="099" Estado="PUE" Descripcion="Cañada Morelos"/>
+	<row Clave="099" Estado="VER" Descripcion="Maltrata"/>
+	<row Clave="099" Estado="YUC" Descripcion="Uayma"/>
+	<row Clave="100" Estado="CHP" Descripcion="Tumbalá"/>
+	<row Clave="100" Estado="JAL" Descripcion="Tomatlán"/>
+	<row Clave="100" Estado="MEX" Descripcion="Tezoyuca"/>
+	<row Clave="100" Estado="MIC" Descripcion="Tzintzuntzan"/>
+	<row Clave="100" Estado="OAX" Descripcion="San Andrés Yaá"/>
+	<row Clave="100" Estado="PUE" Descripcion="Naupan"/>
+	<row Clave="100" Estado="VER" Descripcion="Manlio Fabio Altamirano"/>
+	<row Clave="100" Estado="YUC" Descripcion="Ucú"/>
+	<row Clave="101" Estado="CHP" Descripcion="Tuxtla Gutiérrez"/>
+	<row Clave="101" Estado="JAL" Descripcion="Tonalá"/>
+	<row Clave="101" Estado="MEX" Descripcion="Tianguistenco"/>
+	<row Clave="101" Estado="MIC" Descripcion="Tzitzio"/>
+	<row Clave="101" Estado="OAX" Descripcion="San Andrés Zabache"/>
+	<row Clave="101" Estado="PUE" Descripcion="Nauzontla"/>
+	<row Clave="101" Estado="VER" Descripcion="Mariano Escobedo"/>
+	<row Clave="101" Estado="YUC" Descripcion="Umán"/>
+	<row Clave="102" Estado="CHP" Descripcion="Tuxtla Chico"/>
+	<row Clave="102" Estado="JAL" Descripcion="Tonaya"/>
+	<row Clave="102" Estado="MEX" Descripcion="Timilpan"/>
+	<row Clave="102" Estado="MIC" Descripcion="Uruapan"/>
+	<row Clave="102" Estado="OAX" Descripcion="San Andrés Zautla"/>
+	<row Clave="102" Estado="PUE" Descripcion="Nealtican"/>
+	<row Clave="102" Estado="VER" Descripcion="Martínez de la Torre"/>
+	<row Clave="102" Estado="YUC" Descripcion="Valladolid"/>
+	<row Clave="103" Estado="CHP" Descripcion="Tuzantán"/>
+	<row Clave="103" Estado="JAL" Descripcion="Tonila"/>
+	<row Clave="103" Estado="MEX" Descripcion="Tlalmanalco"/>
+	<row Clave="103" Estado="MIC" Descripcion="Venustiano Carranza"/>
+	<row Clave="103" Estado="OAX" Descripcion="San Antonino Castillo Velasco"/>
+	<row Clave="103" Estado="PUE" Descripcion="Nicolás Bravo"/>
+	<row Clave="103" Estado="VER" Descripcion="Mecatlán"/>
+	<row Clave="103" Estado="YUC" Descripcion="Xocchel"/>
+	<row Clave="104" Estado="CHP" Descripcion="Tzimol"/>
+	<row Clave="104" Estado="JAL" Descripcion="Totatiche"/>
+	<row Clave="104" Estado="MEX" Descripcion="Tlalnepantla de Baz"/>
+	<row Clave="104" Estado="MIC" Descripcion="Villamar"/>
+	<row Clave="104" Estado="OAX" Descripcion="San Antonino el Alto"/>
+	<row Clave="104" Estado="PUE" Descripcion="Nopalucan"/>
+	<row Clave="104" Estado="VER" Descripcion="Mecayapan"/>
+	<row Clave="104" Estado="YUC" Descripcion="Yaxcabá"/>
+	<row Clave="105" Estado="CHP" Descripcion="Unión Juárez"/>
+	<row Clave="105" Estado="JAL" Descripcion="Tototlán"/>
+	<row Clave="105" Estado="MEX" Descripcion="Tlatlaya"/>
+	<row Clave="105" Estado="MIC" Descripcion="Vista Hermosa"/>
+	<row Clave="105" Estado="OAX" Descripcion="San Antonino Monte Verde"/>
+	<row Clave="105" Estado="PUE" Descripcion="Ocotepec"/>
+	<row Clave="105" Estado="VER" Descripcion="Medellín"/>
+	<row Clave="105" Estado="YUC" Descripcion="Yaxkukul"/>
+	<row Clave="106" Estado="CHP" Descripcion="Venustiano Carranza"/>
+	<row Clave="106" Estado="JAL" Descripcion="Tuxcacuesco"/>
+	<row Clave="106" Estado="MEX" Descripcion="Toluca"/>
+	<row Clave="106" Estado="MIC" Descripcion="Yurécuaro"/>
+	<row Clave="106" Estado="OAX" Descripcion="San Antonio Acutla"/>
+	<row Clave="106" Estado="PUE" Descripcion="Ocoyucan"/>
+	<row Clave="106" Estado="VER" Descripcion="Miahuatlán"/>
+	<row Clave="106" Estado="YUC" Descripcion="Yobaín"/>
+	<row Clave="107" Estado="CHP" Descripcion="Villa Corzo"/>
+	<row Clave="107" Estado="JAL" Descripcion="Tuxcueca"/>
+	<row Clave="107" Estado="MEX" Descripcion="Tonatico"/>
+	<row Clave="107" Estado="MIC" Descripcion="Zacapu"/>
+	<row Clave="107" Estado="OAX" Descripcion="San Antonio de la Cal"/>
+	<row Clave="107" Estado="PUE" Descripcion="Olintla"/>
+	<row Clave="107" Estado="VER" Descripcion="Las Minas"/>
+	<row Clave="108" Estado="CHP" Descripcion="Villaflores"/>
+	<row Clave="108" Estado="JAL" Descripcion="Tuxpan"/>
+	<row Clave="108" Estado="MEX" Descripcion="Tultepec"/>
+	<row Clave="108" Estado="MIC" Descripcion="Zamora"/>
+	<row Clave="108" Estado="OAX" Descripcion="San Antonio Huitepec"/>
+	<row Clave="108" Estado="PUE" Descripcion="Oriental"/>
+	<row Clave="108" Estado="VER" Descripcion="Minatitlán"/>
+	<row Clave="109" Estado="CHP" Descripcion="Yajalón"/>
+	<row Clave="109" Estado="JAL" Descripcion="Unión de San Antonio"/>
+	<row Clave="109" Estado="MEX" Descripcion="Tultitlán"/>
+	<row Clave="109" Estado="MIC" Descripcion="Zináparo"/>
+	<row Clave="109" Estado="OAX" Descripcion="San Antonio Nanahuatípam"/>
+	<row Clave="109" Estado="PUE" Descripcion="Pahuatlán"/>
+	<row Clave="109" Estado="VER" Descripcion="Misantla"/>
+	<row Clave="110" Estado="CHP" Descripcion="San Lucas"/>
+	<row Clave="110" Estado="JAL" Descripcion="Unión de Tula"/>
+	<row Clave="110" Estado="MEX" Descripcion="Valle de Bravo"/>
+	<row Clave="110" Estado="MIC" Descripcion="Zinapécuaro"/>
+	<row Clave="110" Estado="OAX" Descripcion="San Antonio Sinicahua"/>
+	<row Clave="110" Estado="PUE" Descripcion="Palmar de Bravo"/>
+	<row Clave="110" Estado="VER" Descripcion="Mixtla de Altamirano"/>
+	<row Clave="111" Estado="CHP" Descripcion="Zinacantán"/>
+	<row Clave="111" Estado="JAL" Descripcion="Valle de Guadalupe"/>
+	<row Clave="111" Estado="MEX" Descripcion="Villa de Allende"/>
+	<row Clave="111" Estado="MIC" Descripcion="Ziracuaretiro"/>
+	<row Clave="111" Estado="OAX" Descripcion="San Antonio Tepetlapa"/>
+	<row Clave="111" Estado="PUE" Descripcion="Pantepec"/>
+	<row Clave="111" Estado="VER" Descripcion="Moloacán"/>
+	<row Clave="112" Estado="CHP" Descripcion="San Juan Cancuc"/>
+	<row Clave="112" Estado="JAL" Descripcion="Valle de Juárez"/>
+	<row Clave="112" Estado="MEX" Descripcion="Villa del Carbón"/>
+	<row Clave="112" Estado="MIC" Descripcion="Zitácuaro"/>
+	<row Clave="112" Estado="OAX" Descripcion="San Baltazar Chichicápam"/>
+	<row Clave="112" Estado="PUE" Descripcion="Petlalcingo"/>
+	<row Clave="112" Estado="VER" Descripcion="Naolinco"/>
+	<row Clave="113" Estado="CHP" Descripcion="Aldama"/>
+	<row Clave="113" Estado="JAL" Descripcion="San Gabriel"/>
+	<row Clave="113" Estado="MEX" Descripcion="Villa Guerrero"/>
+	<row Clave="113" Estado="MIC" Descripcion="José Sixto Verduzco"/>
+	<row Clave="113" Estado="OAX" Descripcion="San Baltazar Loxicha"/>
+	<row Clave="113" Estado="PUE" Descripcion="Piaxtla"/>
+	<row Clave="113" Estado="VER" Descripcion="Naranjal"/>
+	<row Clave="114" Estado="CHP" Descripcion="Benemérito de las Américas"/>
+	<row Clave="114" Estado="JAL" Descripcion="Villa Corona"/>
+	<row Clave="114" Estado="MEX" Descripcion="Villa Victoria"/>
+	<row Clave="114" Estado="OAX" Descripcion="San Baltazar Yatzachi el Bajo"/>
+	<row Clave="114" Estado="PUE" Descripcion="Puebla"/>
+	<row Clave="114" Estado="VER" Descripcion="Nautla"/>
+	<row Clave="115" Estado="CHP" Descripcion="Maravilla Tenejapa"/>
+	<row Clave="115" Estado="JAL" Descripcion="Villa Guerrero"/>
+	<row Clave="115" Estado="MEX" Descripcion="Xonacatlán"/>
+	<row Clave="115" Estado="OAX" Descripcion="San Bartolo Coyotepec"/>
+	<row Clave="115" Estado="PUE" Descripcion="Quecholac"/>
+	<row Clave="115" Estado="VER" Descripcion="Nogales"/>
+	<row Clave="116" Estado="CHP" Descripcion="Marqués de Comillas"/>
+	<row Clave="116" Estado="JAL" Descripcion="Villa Hidalgo"/>
+	<row Clave="116" Estado="MEX" Descripcion="Zacazonapan"/>
+	<row Clave="116" Estado="OAX" Descripcion="San Bartolomé Ayautla"/>
+	<row Clave="116" Estado="PUE" Descripcion="Quimixtlán"/>
+	<row Clave="116" Estado="VER" Descripcion="Oluta"/>
+	<row Clave="117" Estado="CHP" Descripcion="Montecristo de Guerrero"/>
+	<row Clave="117" Estado="JAL" Descripcion="Cañadas de Obregón"/>
+	<row Clave="117" Estado="MEX" Descripcion="Zacualpan"/>
+	<row Clave="117" Estado="OAX" Descripcion="San Bartolomé Loxicha"/>
+	<row Clave="117" Estado="PUE" Descripcion="Rafael Lara Grajales"/>
+	<row Clave="117" Estado="VER" Descripcion="Omealca"/>
+	<row Clave="118" Estado="CHP" Descripcion="San Andrés Duraznal"/>
+	<row Clave="118" Estado="JAL" Descripcion="Yahualica de González Gallo"/>
+	<row Clave="118" Estado="MEX" Descripcion="Zinacantepec"/>
+	<row Clave="118" Estado="OAX" Descripcion="San Bartolomé Quialana"/>
+	<row Clave="118" Estado="PUE" Descripcion="Los Reyes de Juárez"/>
+	<row Clave="118" Estado="VER" Descripcion="Orizaba"/>
+	<row Clave="119" Estado="CHP" Descripcion="Santiago el Pinar"/>
+	<row Clave="119" Estado="JAL" Descripcion="Zacoalco de Torres"/>
+	<row Clave="119" Estado="MEX" Descripcion="Zumpahuacán"/>
+	<row Clave="119" Estado="OAX" Descripcion="San Bartolomé Yucuañe"/>
+	<row Clave="119" Estado="PUE" Descripcion="San Andrés Cholula"/>
+	<row Clave="119" Estado="VER" Descripcion="Otatitlán"/>
+	<row Clave="120" Estado="JAL" Descripcion="Zapopan"/>
+	<row Clave="120" Estado="MEX" Descripcion="Zumpango"/>
+	<row Clave="120" Estado="OAX" Descripcion="San Bartolomé Zoogocho"/>
+	<row Clave="120" Estado="PUE" Descripcion="San Antonio Cañada"/>
+	<row Clave="120" Estado="VER" Descripcion="Oteapan"/>
+	<row Clave="120" Estado="CHP" Descripcion="Capitán Luis Ángel Vidal"/>
+	<row Clave="121" Estado="JAL" Descripcion="Zapotiltic"/>
+	<row Clave="121" Estado="MEX" Descripcion="Cuautitlán Izcalli"/>
+	<row Clave="121" Estado="OAX" Descripcion="San Bartolo Soyaltepec"/>
+	<row Clave="121" Estado="PUE" Descripcion="San Diego la Mesa Tochimiltzingo"/>
+	<row Clave="121" Estado="VER" Descripcion="Ozuluama de Mascareñas"/>
+	<row Clave="121" Estado="CHP" Descripcion="Rincón Chamula San Pedro"/>
+	<row Clave="122" Estado="JAL" Descripcion="Zapotitlán de Vadillo"/>
+	<row Clave="122" Estado="MEX" Descripcion="Valle de Chalco Solidaridad"/>
+	<row Clave="122" Estado="OAX" Descripcion="San Bartolo Yautepec"/>
+	<row Clave="122" Estado="PUE" Descripcion="San Felipe Teotlalcingo"/>
+	<row Clave="122" Estado="VER" Descripcion="Pajapan"/>
+	<row Clave="122" Estado="CHP" Descripcion="El Parral"/>
+	<row Clave="123" Estado="JAL" Descripcion="Zapotlán del Rey"/>
+	<row Clave="123" Estado="MEX" Descripcion="Luvianos"/>
+	<row Clave="123" Estado="OAX" Descripcion="San Bernardo Mixtepec"/>
+	<row Clave="123" Estado="PUE" Descripcion="San Felipe Tepatlán"/>
+	<row Clave="123" Estado="VER" Descripcion="Pánuco"/>
+	<row Clave="123" Estado="CHP" Descripcion="Emiliano Zapata"/>
+	<row Clave="124" Estado="JAL" Descripcion="Zapotlanejo"/>
+	<row Clave="124" Estado="MEX" Descripcion="San José del Rincón"/>
+	<row Clave="124" Estado="OAX" Descripcion="San Blas Atempa"/>
+	<row Clave="124" Estado="PUE" Descripcion="San Gabriel Chilac"/>
+	<row Clave="124" Estado="VER" Descripcion="Papantla"/>
+	<row Clave="124" Estado="CHP" Descripcion="Mezcalapa"/>
+	<row Clave="125" Estado="JAL" Descripcion="San Ignacio Cerro Gordo"/>
+	<row Clave="125" Estado="MEX" Descripcion="Tonanitla"/>
+	<row Clave="125" Estado="OAX" Descripcion="San Carlos Yautepec"/>
+	<row Clave="125" Estado="PUE" Descripcion="San Gregorio Atzompa"/>
+	<row Clave="125" Estado="VER" Descripcion="Paso del Macho"/>
+	<row Clave="126" Estado="OAX" Descripcion="San Cristóbal Amatlán"/>
+	<row Clave="126" Estado="PUE" Descripcion="San Jerónimo Tecuanipan"/>
+	<row Clave="126" Estado="VER" Descripcion="Paso de Ovejas"/>
+	<row Clave="127" Estado="OAX" Descripcion="San Cristóbal Amoltepec"/>
+	<row Clave="127" Estado="PUE" Descripcion="San Jerónimo Xayacatlán"/>
+	<row Clave="127" Estado="VER" Descripcion="La Perla"/>
+	<row Clave="128" Estado="OAX" Descripcion="San Cristóbal Lachirioag"/>
+	<row Clave="128" Estado="PUE" Descripcion="San José Chiapa"/>
+	<row Clave="128" Estado="VER" Descripcion="Perote"/>
+	<row Clave="129" Estado="OAX" Descripcion="San Cristóbal Suchixtlahuaca"/>
+	<row Clave="129" Estado="PUE" Descripcion="San José Miahuatlán"/>
+	<row Clave="129" Estado="VER" Descripcion="Platón Sánchez"/>
+	<row Clave="130" Estado="OAX" Descripcion="San Dionisio del Mar"/>
+	<row Clave="130" Estado="PUE" Descripcion="San Juan Atenco"/>
+	<row Clave="130" Estado="VER" Descripcion="Playa Vicente"/>
+	<row Clave="131" Estado="OAX" Descripcion="San Dionisio Ocotepec"/>
+	<row Clave="131" Estado="PUE" Descripcion="San Juan Atzompa"/>
+	<row Clave="131" Estado="VER" Descripcion="Poza Rica de Hidalgo"/>
+	<row Clave="132" Estado="OAX" Descripcion="San Dionisio Ocotlán"/>
+	<row Clave="132" Estado="PUE" Descripcion="San Martín Texmelucan"/>
+	<row Clave="132" Estado="VER" Descripcion="Las Vigas de Ramírez"/>
+	<row Clave="133" Estado="OAX" Descripcion="San Esteban Atatlahuca"/>
+	<row Clave="133" Estado="PUE" Descripcion="San Martín Totoltepec"/>
+	<row Clave="133" Estado="VER" Descripcion="Pueblo Viejo"/>
+	<row Clave="134" Estado="OAX" Descripcion="San Felipe Jalapa de Díaz"/>
+	<row Clave="134" Estado="PUE" Descripcion="San Matías Tlalancaleca"/>
+	<row Clave="134" Estado="VER" Descripcion="Puente Nacional"/>
+	<row Clave="135" Estado="OAX" Descripcion="San Felipe Tejalápam"/>
+	<row Clave="135" Estado="PUE" Descripcion="San Miguel Ixitlán"/>
+	<row Clave="135" Estado="VER" Descripcion="Rafael Delgado"/>
+	<row Clave="136" Estado="OAX" Descripcion="San Felipe Usila"/>
+	<row Clave="136" Estado="PUE" Descripcion="San Miguel Xoxtla"/>
+	<row Clave="136" Estado="VER" Descripcion="Rafael Lucio"/>
+	<row Clave="137" Estado="OAX" Descripcion="San Francisco Cahuacuá"/>
+	<row Clave="137" Estado="PUE" Descripcion="San Nicolás Buenos Aires"/>
+	<row Clave="137" Estado="VER" Descripcion="Los Reyes"/>
+	<row Clave="138" Estado="OAX" Descripcion="San Francisco Cajonos"/>
+	<row Clave="138" Estado="PUE" Descripcion="San Nicolás de los Ranchos"/>
+	<row Clave="138" Estado="VER" Descripcion="Río Blanco"/>
+	<row Clave="139" Estado="OAX" Descripcion="San Francisco Chapulapa"/>
+	<row Clave="139" Estado="PUE" Descripcion="San Pablo Anicano"/>
+	<row Clave="139" Estado="VER" Descripcion="Saltabarranca"/>
+	<row Clave="140" Estado="OAX" Descripcion="San Francisco Chindúa"/>
+	<row Clave="140" Estado="PUE" Descripcion="San Pedro Cholula"/>
+	<row Clave="140" Estado="VER" Descripcion="San Andrés Tenejapan"/>
+	<row Clave="141" Estado="OAX" Descripcion="San Francisco del Mar"/>
+	<row Clave="141" Estado="PUE" Descripcion="San Pedro Yeloixtlahuaca"/>
+	<row Clave="141" Estado="VER" Descripcion="San Andrés Tuxtla"/>
+	<row Clave="142" Estado="OAX" Descripcion="San Francisco Huehuetlán"/>
+	<row Clave="142" Estado="PUE" Descripcion="San Salvador el Seco"/>
+	<row Clave="142" Estado="VER" Descripcion="San Juan Evangelista"/>
+	<row Clave="143" Estado="OAX" Descripcion="San Francisco Ixhuatán"/>
+	<row Clave="143" Estado="PUE" Descripcion="San Salvador el Verde"/>
+	<row Clave="143" Estado="VER" Descripcion="Santiago Tuxtla"/>
+	<row Clave="144" Estado="OAX" Descripcion="San Francisco Jaltepetongo"/>
+	<row Clave="144" Estado="PUE" Descripcion="San Salvador Huixcolotla"/>
+	<row Clave="144" Estado="VER" Descripcion="Sayula de Alemán"/>
+	<row Clave="145" Estado="OAX" Descripcion="San Francisco Lachigoló"/>
+	<row Clave="145" Estado="PUE" Descripcion="San Sebastián Tlacotepec"/>
+	<row Clave="145" Estado="VER" Descripcion="Soconusco"/>
+	<row Clave="146" Estado="OAX" Descripcion="San Francisco Logueche"/>
+	<row Clave="146" Estado="PUE" Descripcion="Santa Catarina Tlaltempan"/>
+	<row Clave="146" Estado="VER" Descripcion="Sochiapa"/>
+	<row Clave="147" Estado="OAX" Descripcion="San Francisco Nuxaño"/>
+	<row Clave="147" Estado="PUE" Descripcion="Santa Inés Ahuatempan"/>
+	<row Clave="147" Estado="VER" Descripcion="Soledad Atzompa"/>
+	<row Clave="148" Estado="OAX" Descripcion="San Francisco Ozolotepec"/>
+	<row Clave="148" Estado="PUE" Descripcion="Santa Isabel Cholula"/>
+	<row Clave="148" Estado="VER" Descripcion="Soledad de Doblado"/>
+	<row Clave="149" Estado="OAX" Descripcion="San Francisco Sola"/>
+	<row Clave="149" Estado="PUE" Descripcion="Santiago Miahuatlán"/>
+	<row Clave="149" Estado="VER" Descripcion="Soteapan"/>
+	<row Clave="150" Estado="OAX" Descripcion="San Francisco Telixtlahuaca"/>
+	<row Clave="150" Estado="PUE" Descripcion="Huehuetlán el Grande"/>
+	<row Clave="150" Estado="VER" Descripcion="Tamalín"/>
+	<row Clave="151" Estado="OAX" Descripcion="San Francisco Teopan"/>
+	<row Clave="151" Estado="PUE" Descripcion="Santo Tomás Hueyotlipan"/>
+	<row Clave="151" Estado="VER" Descripcion="Tamiahua"/>
+	<row Clave="152" Estado="OAX" Descripcion="San Francisco Tlapancingo"/>
+	<row Clave="152" Estado="PUE" Descripcion="Soltepec"/>
+	<row Clave="152" Estado="VER" Descripcion="Tampico Alto"/>
+	<row Clave="153" Estado="OAX" Descripcion="San Gabriel Mixtepec"/>
+	<row Clave="153" Estado="PUE" Descripcion="Tecali de Herrera"/>
+	<row Clave="153" Estado="VER" Descripcion="Tancoco"/>
+	<row Clave="154" Estado="OAX" Descripcion="San Ildefonso Amatlán"/>
+	<row Clave="154" Estado="PUE" Descripcion="Tecamachalco"/>
+	<row Clave="154" Estado="VER" Descripcion="Tantima"/>
+	<row Clave="155" Estado="OAX" Descripcion="San Ildefonso Sola"/>
+	<row Clave="155" Estado="PUE" Descripcion="Tecomatlán"/>
+	<row Clave="155" Estado="VER" Descripcion="Tantoyuca"/>
+	<row Clave="156" Estado="OAX" Descripcion="San Ildefonso Villa Alta"/>
+	<row Clave="156" Estado="PUE" Descripcion="Tehuacán"/>
+	<row Clave="156" Estado="VER" Descripcion="Tatatila"/>
+	<row Clave="157" Estado="OAX" Descripcion="San Jacinto Amilpas"/>
+	<row Clave="157" Estado="PUE" Descripcion="Tehuitzingo"/>
+	<row Clave="157" Estado="VER" Descripcion="Castillo de Teayo"/>
+	<row Clave="158" Estado="OAX" Descripcion="San Jacinto Tlacotepec"/>
+	<row Clave="158" Estado="PUE" Descripcion="Tenampulco"/>
+	<row Clave="158" Estado="VER" Descripcion="Tecolutla"/>
+	<row Clave="159" Estado="OAX" Descripcion="San Jerónimo Coatlán"/>
+	<row Clave="159" Estado="PUE" Descripcion="Teopantlán"/>
+	<row Clave="159" Estado="VER" Descripcion="Tehuipango"/>
+	<row Clave="160" Estado="OAX" Descripcion="San Jerónimo Silacayoapilla"/>
+	<row Clave="160" Estado="PUE" Descripcion="Teotlalco"/>
+	<row Clave="160" Estado="VER" Descripcion="Álamo Temapache"/>
+	<row Clave="161" Estado="OAX" Descripcion="San Jerónimo Sosola"/>
+	<row Clave="161" Estado="PUE" Descripcion="Tepanco de López"/>
+	<row Clave="161" Estado="VER" Descripcion="Tempoal"/>
+	<row Clave="162" Estado="OAX" Descripcion="San Jerónimo Taviche"/>
+	<row Clave="162" Estado="PUE" Descripcion="Tepango de Rodríguez"/>
+	<row Clave="162" Estado="VER" Descripcion="Tenampa"/>
+	<row Clave="163" Estado="OAX" Descripcion="San Jerónimo Tecóatl"/>
+	<row Clave="163" Estado="PUE" Descripcion="Tepatlaxco de Hidalgo"/>
+	<row Clave="163" Estado="VER" Descripcion="Tenochtitlán"/>
+	<row Clave="164" Estado="OAX" Descripcion="San Jorge Nuchita"/>
+	<row Clave="164" Estado="PUE" Descripcion="Tepeaca"/>
+	<row Clave="164" Estado="VER" Descripcion="Teocelo"/>
+	<row Clave="165" Estado="OAX" Descripcion="San José Ayuquila"/>
+	<row Clave="165" Estado="PUE" Descripcion="Tepemaxalco"/>
+	<row Clave="165" Estado="VER" Descripcion="Tepatlaxco"/>
+	<row Clave="166" Estado="OAX" Descripcion="San José Chiltepec"/>
+	<row Clave="166" Estado="PUE" Descripcion="Tepeojuma"/>
+	<row Clave="166" Estado="VER" Descripcion="Tepetlán"/>
+	<row Clave="167" Estado="OAX" Descripcion="San José del Peñasco"/>
+	<row Clave="167" Estado="PUE" Descripcion="Tepetzintla"/>
+	<row Clave="167" Estado="VER" Descripcion="Tepetzintla"/>
+	<row Clave="168" Estado="OAX" Descripcion="San José Estancia Grande"/>
+	<row Clave="168" Estado="PUE" Descripcion="Tepexco"/>
+	<row Clave="168" Estado="VER" Descripcion="Tequila"/>
+	<row Clave="169" Estado="OAX" Descripcion="San José Independencia"/>
+	<row Clave="169" Estado="PUE" Descripcion="Tepexi de Rodríguez"/>
+	<row Clave="169" Estado="VER" Descripcion="José Azueta"/>
+	<row Clave="170" Estado="OAX" Descripcion="San José Lachiguiri"/>
+	<row Clave="170" Estado="PUE" Descripcion="Tepeyahualco"/>
+	<row Clave="170" Estado="VER" Descripcion="Texcatepec"/>
+	<row Clave="171" Estado="OAX" Descripcion="San José Tenango"/>
+	<row Clave="171" Estado="PUE" Descripcion="Tepeyahualco de Cuauhtémoc"/>
+	<row Clave="171" Estado="VER" Descripcion="Texhuacán"/>
+	<row Clave="172" Estado="OAX" Descripcion="San Juan Achiutla"/>
+	<row Clave="172" Estado="PUE" Descripcion="Tetela de Ocampo"/>
+	<row Clave="172" Estado="VER" Descripcion="Texistepec"/>
+	<row Clave="173" Estado="OAX" Descripcion="San Juan Atepec"/>
+	<row Clave="173" Estado="PUE" Descripcion="Teteles de Avila Castillo"/>
+	<row Clave="173" Estado="VER" Descripcion="Tezonapa"/>
+	<row Clave="174" Estado="OAX" Descripcion="Ánimas Trujano"/>
+	<row Clave="174" Estado="PUE" Descripcion="Teziutlán"/>
+	<row Clave="174" Estado="VER" Descripcion="Tierra Blanca"/>
+	<row Clave="175" Estado="OAX" Descripcion="San Juan Bautista Atatlahuca"/>
+	<row Clave="175" Estado="PUE" Descripcion="Tianguismanalco"/>
+	<row Clave="175" Estado="VER" Descripcion="Tihuatlán"/>
+	<row Clave="176" Estado="OAX" Descripcion="San Juan Bautista Coixtlahuaca"/>
+	<row Clave="176" Estado="PUE" Descripcion="Tilapa"/>
+	<row Clave="176" Estado="VER" Descripcion="Tlacojalpan"/>
+	<row Clave="177" Estado="OAX" Descripcion="San Juan Bautista Cuicatlán"/>
+	<row Clave="177" Estado="PUE" Descripcion="Tlacotepec de Benito Juárez"/>
+	<row Clave="177" Estado="VER" Descripcion="Tlacolulan"/>
+	<row Clave="178" Estado="OAX" Descripcion="San Juan Bautista Guelache"/>
+	<row Clave="178" Estado="PUE" Descripcion="Tlacuilotepec"/>
+	<row Clave="178" Estado="VER" Descripcion="Tlacotalpan"/>
+	<row Clave="179" Estado="OAX" Descripcion="San Juan Bautista Jayacatlán"/>
+	<row Clave="179" Estado="PUE" Descripcion="Tlachichuca"/>
+	<row Clave="179" Estado="VER" Descripcion="Tlacotepec de Mejía"/>
+	<row Clave="180" Estado="OAX" Descripcion="San Juan Bautista Lo de Soto"/>
+	<row Clave="180" Estado="PUE" Descripcion="Tlahuapan"/>
+	<row Clave="180" Estado="VER" Descripcion="Tlachichilco"/>
+	<row Clave="181" Estado="OAX" Descripcion="San Juan Bautista Suchitepec"/>
+	<row Clave="181" Estado="PUE" Descripcion="Tlaltenango"/>
+	<row Clave="181" Estado="VER" Descripcion="Tlalixcoyan"/>
+	<row Clave="182" Estado="OAX" Descripcion="San Juan Bautista Tlacoatzintepec"/>
+	<row Clave="182" Estado="PUE" Descripcion="Tlanepantla"/>
+	<row Clave="182" Estado="VER" Descripcion="Tlalnelhuayocan"/>
+	<row Clave="183" Estado="OAX" Descripcion="San Juan Bautista Tlachichilco"/>
+	<row Clave="183" Estado="PUE" Descripcion="Tlaola"/>
+	<row Clave="183" Estado="VER" Descripcion="Tlapacoyan"/>
+	<row Clave="184" Estado="OAX" Descripcion="San Juan Bautista Tuxtepec"/>
+	<row Clave="184" Estado="PUE" Descripcion="Tlapacoya"/>
+	<row Clave="184" Estado="VER" Descripcion="Tlaquilpa"/>
+	<row Clave="185" Estado="OAX" Descripcion="San Juan Cacahuatepec"/>
+	<row Clave="185" Estado="PUE" Descripcion="Tlapanalá"/>
+	<row Clave="185" Estado="VER" Descripcion="Tlilapan"/>
+	<row Clave="186" Estado="OAX" Descripcion="San Juan Cieneguilla"/>
+	<row Clave="186" Estado="PUE" Descripcion="Tlatlauquitepec"/>
+	<row Clave="186" Estado="VER" Descripcion="Tomatlán"/>
+	<row Clave="187" Estado="OAX" Descripcion="San Juan Coatzóspam"/>
+	<row Clave="187" Estado="PUE" Descripcion="Tlaxco"/>
+	<row Clave="187" Estado="VER" Descripcion="Tonayán"/>
+	<row Clave="188" Estado="OAX" Descripcion="San Juan Colorado"/>
+	<row Clave="188" Estado="PUE" Descripcion="Tochimilco"/>
+	<row Clave="188" Estado="VER" Descripcion="Totutla"/>
+	<row Clave="189" Estado="OAX" Descripcion="San Juan Comaltepec"/>
+	<row Clave="189" Estado="PUE" Descripcion="Tochtepec"/>
+	<row Clave="189" Estado="VER" Descripcion="Tuxpan"/>
+	<row Clave="190" Estado="OAX" Descripcion="San Juan Cotzocón"/>
+	<row Clave="190" Estado="PUE" Descripcion="Totoltepec de Guerrero"/>
+	<row Clave="190" Estado="VER" Descripcion="Tuxtilla"/>
+	<row Clave="191" Estado="OAX" Descripcion="San Juan Chicomezúchil"/>
+	<row Clave="191" Estado="PUE" Descripcion="Tulcingo"/>
+	<row Clave="191" Estado="VER" Descripcion="Ursulo Galván"/>
+	<row Clave="192" Estado="OAX" Descripcion="San Juan Chilateca"/>
+	<row Clave="192" Estado="PUE" Descripcion="Tuzamapan de Galeana"/>
+	<row Clave="192" Estado="VER" Descripcion="Vega de Alatorre"/>
+	<row Clave="193" Estado="OAX" Descripcion="San Juan del Estado"/>
+	<row Clave="193" Estado="PUE" Descripcion="Tzicatlacoyan"/>
+	<row Clave="193" Estado="VER" Descripcion="Veracruz"/>
+	<row Clave="194" Estado="OAX" Descripcion="San Juan del Río"/>
+	<row Clave="194" Estado="PUE" Descripcion="Venustiano Carranza"/>
+	<row Clave="194" Estado="VER" Descripcion="Villa Aldama"/>
+	<row Clave="195" Estado="OAX" Descripcion="San Juan Diuxi"/>
+	<row Clave="195" Estado="PUE" Descripcion="Vicente Guerrero"/>
+	<row Clave="195" Estado="VER" Descripcion="Xoxocotla"/>
+	<row Clave="196" Estado="OAX" Descripcion="San Juan Evangelista Analco"/>
+	<row Clave="196" Estado="PUE" Descripcion="Xayacatlán de Bravo"/>
+	<row Clave="196" Estado="VER" Descripcion="Yanga"/>
+	<row Clave="197" Estado="OAX" Descripcion="San Juan Guelavía"/>
+	<row Clave="197" Estado="PUE" Descripcion="Xicotepec"/>
+	<row Clave="197" Estado="VER" Descripcion="Yecuatla"/>
+	<row Clave="198" Estado="OAX" Descripcion="San Juan Guichicovi"/>
+	<row Clave="198" Estado="PUE" Descripcion="Xicotlán"/>
+	<row Clave="198" Estado="VER" Descripcion="Zacualpan"/>
+	<row Clave="199" Estado="OAX" Descripcion="San Juan Ihualtepec"/>
+	<row Clave="199" Estado="PUE" Descripcion="Xiutetelco"/>
+	<row Clave="199" Estado="VER" Descripcion="Zaragoza"/>
+	<row Clave="200" Estado="OAX" Descripcion="San Juan Juquila Mixes"/>
+	<row Clave="200" Estado="PUE" Descripcion="Xochiapulco"/>
+	<row Clave="200" Estado="VER" Descripcion="Zentla"/>
+	<row Clave="201" Estado="OAX" Descripcion="San Juan Juquila Vijanos"/>
+	<row Clave="201" Estado="PUE" Descripcion="Xochiltepec"/>
+	<row Clave="201" Estado="VER" Descripcion="Zongolica"/>
+	<row Clave="202" Estado="OAX" Descripcion="San Juan Lachao"/>
+	<row Clave="202" Estado="PUE" Descripcion="Xochitlán de Vicente Suárez"/>
+	<row Clave="202" Estado="VER" Descripcion="Zontecomatlán de López y Fuentes"/>
+	<row Clave="203" Estado="OAX" Descripcion="San Juan Lachigalla"/>
+	<row Clave="203" Estado="PUE" Descripcion="Xochitlán Todos Santos"/>
+	<row Clave="203" Estado="VER" Descripcion="Zozocolco de Hidalgo"/>
+	<row Clave="204" Estado="OAX" Descripcion="San Juan Lajarcia"/>
+	<row Clave="204" Estado="PUE" Descripcion="Yaonáhuac"/>
+	<row Clave="204" Estado="VER" Descripcion="Agua Dulce"/>
+	<row Clave="205" Estado="OAX" Descripcion="San Juan Lalana"/>
+	<row Clave="205" Estado="PUE" Descripcion="Yehualtepec"/>
+	<row Clave="205" Estado="VER" Descripcion="El Higo"/>
+	<row Clave="206" Estado="OAX" Descripcion="San Juan de los Cués"/>
+	<row Clave="206" Estado="PUE" Descripcion="Zacapala"/>
+	<row Clave="206" Estado="VER" Descripcion="Nanchital de Lázaro Cárdenas del Río"/>
+	<row Clave="207" Estado="OAX" Descripcion="San Juan Mazatlán"/>
+	<row Clave="207" Estado="PUE" Descripcion="Zacapoaxtla"/>
+	<row Clave="207" Estado="VER" Descripcion="Tres Valles"/>
+	<row Clave="208" Estado="OAX" Descripcion="San Juan Mixtepec -Dto. 08 -"/>
+	<row Clave="208" Estado="PUE" Descripcion="Zacatlán"/>
+	<row Clave="208" Estado="VER" Descripcion="Carlos A. Carrillo"/>
+	<row Clave="209" Estado="OAX" Descripcion="San Juan Mixtepec -Dto. 26 -"/>
+	<row Clave="209" Estado="PUE" Descripcion="Zapotitlán"/>
+	<row Clave="209" Estado="VER" Descripcion="Tatahuicapan de Juárez"/>
+	<row Clave="210" Estado="OAX" Descripcion="San Juan Ñumí"/>
+	<row Clave="210" Estado="PUE" Descripcion="Zapotitlán de Méndez"/>
+	<row Clave="210" Estado="VER" Descripcion="Uxpanapa"/>
+	<row Clave="211" Estado="OAX" Descripcion="San Juan Ozolotepec"/>
+	<row Clave="211" Estado="PUE" Descripcion="Zaragoza"/>
+	<row Clave="211" Estado="VER" Descripcion="San Rafael"/>
+	<row Clave="212" Estado="OAX" Descripcion="San Juan Petlapa"/>
+	<row Clave="212" Estado="PUE" Descripcion="Zautla"/>
+	<row Clave="212" Estado="VER" Descripcion="Santiago Sochiapan"/>
+	<row Clave="213" Estado="OAX" Descripcion="San Juan Quiahije"/>
+	<row Clave="213" Estado="PUE" Descripcion="Zihuateutla"/>
+	<row Clave="214" Estado="OAX" Descripcion="San Juan Quiotepec"/>
+	<row Clave="214" Estado="PUE" Descripcion="Zinacatepec"/>
+	<row Clave="215" Estado="OAX" Descripcion="San Juan Sayultepec"/>
+	<row Clave="215" Estado="PUE" Descripcion="Zongozotla"/>
+	<row Clave="216" Estado="OAX" Descripcion="San Juan Tabaá"/>
+	<row Clave="216" Estado="PUE" Descripcion="Zoquiapan"/>
+	<row Clave="217" Estado="OAX" Descripcion="San Juan Tamazola"/>
+	<row Clave="217" Estado="PUE" Descripcion="Zoquitlán"/>
+	<row Clave="218" Estado="OAX" Descripcion="San Juan Teita"/>
+	<row Clave="219" Estado="OAX" Descripcion="San Juan Teitipac"/>
+	<row Clave="220" Estado="OAX" Descripcion="San Juan Tepeuxila"/>
+	<row Clave="221" Estado="OAX" Descripcion="San Juan Teposcolula"/>
+	<row Clave="222" Estado="OAX" Descripcion="San Juan Yaeé"/>
+	<row Clave="223" Estado="OAX" Descripcion="San Juan Yatzona"/>
+	<row Clave="224" Estado="OAX" Descripcion="San Juan Yucuita"/>
+	<row Clave="225" Estado="OAX" Descripcion="San Lorenzo"/>
+	<row Clave="226" Estado="OAX" Descripcion="San Lorenzo Albarradas"/>
+	<row Clave="227" Estado="OAX" Descripcion="San Lorenzo Cacaotepec"/>
+	<row Clave="228" Estado="OAX" Descripcion="San Lorenzo Cuaunecuiltitla"/>
+	<row Clave="229" Estado="OAX" Descripcion="San Lorenzo Texmelúcan"/>
+	<row Clave="230" Estado="OAX" Descripcion="San Lorenzo Victoria"/>
+	<row Clave="231" Estado="OAX" Descripcion="San Lucas Camotlán"/>
+	<row Clave="232" Estado="OAX" Descripcion="San Lucas Ojitlán"/>
+	<row Clave="233" Estado="OAX" Descripcion="San Lucas Quiaviní"/>
+	<row Clave="234" Estado="OAX" Descripcion="San Lucas Zoquiápam"/>
+	<row Clave="235" Estado="OAX" Descripcion="San Luis Amatlán"/>
+	<row Clave="236" Estado="OAX" Descripcion="San Marcial Ozolotepec"/>
+	<row Clave="237" Estado="OAX" Descripcion="San Marcos Arteaga"/>
+	<row Clave="238" Estado="OAX" Descripcion="San Martín de los Cansecos"/>
+	<row Clave="239" Estado="OAX" Descripcion="San Martín Huamelúlpam"/>
+	<row Clave="240" Estado="OAX" Descripcion="San Martín Itunyoso"/>
+	<row Clave="241" Estado="OAX" Descripcion="San Martín Lachilá"/>
+	<row Clave="242" Estado="OAX" Descripcion="San Martín Peras"/>
+	<row Clave="243" Estado="OAX" Descripcion="San Martín Tilcajete"/>
+	<row Clave="244" Estado="OAX" Descripcion="San Martín Toxpalan"/>
+	<row Clave="245" Estado="OAX" Descripcion="San Martín Zacatepec"/>
+	<row Clave="246" Estado="OAX" Descripcion="San Mateo Cajonos"/>
+	<row Clave="247" Estado="OAX" Descripcion="Capulálpam de Méndez"/>
+	<row Clave="248" Estado="OAX" Descripcion="San Mateo del Mar"/>
+	<row Clave="249" Estado="OAX" Descripcion="San Mateo Yoloxochitlán"/>
+	<row Clave="250" Estado="OAX" Descripcion="San Mateo Etlatongo"/>
+	<row Clave="251" Estado="OAX" Descripcion="San Mateo Nejápam"/>
+	<row Clave="252" Estado="OAX" Descripcion="San Mateo Peñasco"/>
+	<row Clave="253" Estado="OAX" Descripcion="San Mateo Piñas"/>
+	<row Clave="254" Estado="OAX" Descripcion="San Mateo Río Hondo"/>
+	<row Clave="255" Estado="OAX" Descripcion="San Mateo Sindihui"/>
+	<row Clave="256" Estado="OAX" Descripcion="San Mateo Tlapiltepec"/>
+	<row Clave="257" Estado="OAX" Descripcion="San Melchor Betaza"/>
+	<row Clave="258" Estado="OAX" Descripcion="San Miguel Achiutla"/>
+	<row Clave="259" Estado="OAX" Descripcion="San Miguel Ahuehuetitlán"/>
+	<row Clave="260" Estado="OAX" Descripcion="San Miguel Aloápam"/>
+	<row Clave="261" Estado="OAX" Descripcion="San Miguel Amatitlán"/>
+	<row Clave="262" Estado="OAX" Descripcion="San Miguel Amatlán"/>
+	<row Clave="263" Estado="OAX" Descripcion="San Miguel Coatlán"/>
+	<row Clave="264" Estado="OAX" Descripcion="San Miguel Chicahua"/>
+	<row Clave="265" Estado="OAX" Descripcion="San Miguel Chimalapa"/>
+	<row Clave="266" Estado="OAX" Descripcion="San Miguel del Puerto"/>
+	<row Clave="267" Estado="OAX" Descripcion="San Miguel del Río"/>
+	<row Clave="268" Estado="OAX" Descripcion="San Miguel Ejutla"/>
+	<row Clave="269" Estado="OAX" Descripcion="San Miguel el Grande"/>
+	<row Clave="270" Estado="OAX" Descripcion="San Miguel Huautla"/>
+	<row Clave="271" Estado="OAX" Descripcion="San Miguel Mixtepec"/>
+	<row Clave="272" Estado="OAX" Descripcion="San Miguel Panixtlahuaca"/>
+	<row Clave="273" Estado="OAX" Descripcion="San Miguel Peras"/>
+	<row Clave="274" Estado="OAX" Descripcion="San Miguel Piedras"/>
+	<row Clave="275" Estado="OAX" Descripcion="San Miguel Quetzaltepec"/>
+	<row Clave="276" Estado="OAX" Descripcion="San Miguel Santa Flor"/>
+	<row Clave="277" Estado="OAX" Descripcion="Villa Sola de Vega"/>
+	<row Clave="278" Estado="OAX" Descripcion="San Miguel Soyaltepec"/>
+	<row Clave="279" Estado="OAX" Descripcion="San Miguel Suchixtepec"/>
+	<row Clave="280" Estado="OAX" Descripcion="Villa Talea de Castro"/>
+	<row Clave="281" Estado="OAX" Descripcion="San Miguel Tecomatlán"/>
+	<row Clave="282" Estado="OAX" Descripcion="San Miguel Tenango"/>
+	<row Clave="283" Estado="OAX" Descripcion="San Miguel Tequixtepec"/>
+	<row Clave="284" Estado="OAX" Descripcion="San Miguel Tilquiápam"/>
+	<row Clave="285" Estado="OAX" Descripcion="San Miguel Tlacamama"/>
+	<row Clave="286" Estado="OAX" Descripcion="San Miguel Tlacotepec"/>
+	<row Clave="287" Estado="OAX" Descripcion="San Miguel Tulancingo"/>
+	<row Clave="288" Estado="OAX" Descripcion="San Miguel Yotao"/>
+	<row Clave="289" Estado="OAX" Descripcion="San Nicolás"/>
+	<row Clave="290" Estado="OAX" Descripcion="San Nicolás Hidalgo"/>
+	<row Clave="291" Estado="OAX" Descripcion="San Pablo Coatlán"/>
+	<row Clave="292" Estado="OAX" Descripcion="San Pablo Cuatro Venados"/>
+	<row Clave="293" Estado="OAX" Descripcion="San Pablo Etla"/>
+	<row Clave="294" Estado="OAX" Descripcion="San Pablo Huitzo"/>
+	<row Clave="295" Estado="OAX" Descripcion="San Pablo Huixtepec"/>
+	<row Clave="296" Estado="OAX" Descripcion="San Pablo Macuiltianguis"/>
+	<row Clave="297" Estado="OAX" Descripcion="San Pablo Tijaltepec"/>
+	<row Clave="298" Estado="OAX" Descripcion="San Pablo Villa de Mitla"/>
+	<row Clave="299" Estado="OAX" Descripcion="San Pablo Yaganiza"/>
+	<row Clave="300" Estado="OAX" Descripcion="San Pedro Amuzgos"/>
+	<row Clave="301" Estado="OAX" Descripcion="San Pedro Apóstol"/>
+	<row Clave="302" Estado="OAX" Descripcion="San Pedro Atoyac"/>
+	<row Clave="303" Estado="OAX" Descripcion="San Pedro Cajonos"/>
+	<row Clave="304" Estado="OAX" Descripcion="San Pedro Coxcaltepec Cántaros"/>
+	<row Clave="305" Estado="OAX" Descripcion="San Pedro Comitancillo"/>
+	<row Clave="306" Estado="OAX" Descripcion="San Pedro el Alto"/>
+	<row Clave="307" Estado="OAX" Descripcion="San Pedro Huamelula"/>
+	<row Clave="308" Estado="OAX" Descripcion="San Pedro Huilotepec"/>
+	<row Clave="309" Estado="OAX" Descripcion="San Pedro Ixcatlán"/>
+	<row Clave="310" Estado="OAX" Descripcion="San Pedro Ixtlahuaca"/>
+	<row Clave="311" Estado="OAX" Descripcion="San Pedro Jaltepetongo"/>
+	<row Clave="312" Estado="OAX" Descripcion="San Pedro Jicayán"/>
+	<row Clave="313" Estado="OAX" Descripcion="San Pedro Jocotipac"/>
+	<row Clave="314" Estado="OAX" Descripcion="San Pedro Juchatengo"/>
+	<row Clave="315" Estado="OAX" Descripcion="San Pedro Mártir"/>
+	<row Clave="316" Estado="OAX" Descripcion="San Pedro Mártir Quiechapa"/>
+	<row Clave="317" Estado="OAX" Descripcion="San Pedro Mártir Yucuxaco"/>
+	<row Clave="318" Estado="OAX" Descripcion="San Pedro Mixtepec -Dto. 22 -"/>
+	<row Clave="319" Estado="OAX" Descripcion="San Pedro Mixtepec -Dto. 26 -"/>
+	<row Clave="320" Estado="OAX" Descripcion="San Pedro Molinos"/>
+	<row Clave="321" Estado="OAX" Descripcion="San Pedro Nopala"/>
+	<row Clave="322" Estado="OAX" Descripcion="San Pedro Ocopetatillo"/>
+	<row Clave="323" Estado="OAX" Descripcion="San Pedro Ocotepec"/>
+	<row Clave="324" Estado="OAX" Descripcion="San Pedro Pochutla"/>
+	<row Clave="325" Estado="OAX" Descripcion="San Pedro Quiatoni"/>
+	<row Clave="326" Estado="OAX" Descripcion="San Pedro Sochiápam"/>
+	<row Clave="327" Estado="OAX" Descripcion="San Pedro Tapanatepec"/>
+	<row Clave="328" Estado="OAX" Descripcion="San Pedro Taviche"/>
+	<row Clave="329" Estado="OAX" Descripcion="San Pedro Teozacoalco"/>
+	<row Clave="330" Estado="OAX" Descripcion="San Pedro Teutila"/>
+	<row Clave="331" Estado="OAX" Descripcion="San Pedro Tidaá"/>
+	<row Clave="332" Estado="OAX" Descripcion="San Pedro Topiltepec"/>
+	<row Clave="333" Estado="OAX" Descripcion="San Pedro Totolápam"/>
+	<row Clave="334" Estado="OAX" Descripcion="Villa de Tututepec de Melchor Ocampo"/>
+	<row Clave="335" Estado="OAX" Descripcion="San Pedro Yaneri"/>
+	<row Clave="336" Estado="OAX" Descripcion="San Pedro Yólox"/>
+	<row Clave="337" Estado="OAX" Descripcion="San Pedro y San Pablo Ayutla"/>
+	<row Clave="338" Estado="OAX" Descripcion="Villa de Etla"/>
+	<row Clave="339" Estado="OAX" Descripcion="San Pedro y San Pablo Teposcolula"/>
+	<row Clave="340" Estado="OAX" Descripcion="San Pedro y San Pablo Tequixtepec"/>
+	<row Clave="341" Estado="OAX" Descripcion="San Pedro Yucunama"/>
+	<row Clave="342" Estado="OAX" Descripcion="San Raymundo Jalpan"/>
+	<row Clave="343" Estado="OAX" Descripcion="San Sebastián Abasolo"/>
+	<row Clave="344" Estado="OAX" Descripcion="San Sebastián Coatlán"/>
+	<row Clave="345" Estado="OAX" Descripcion="San Sebastián Ixcapa"/>
+	<row Clave="346" Estado="OAX" Descripcion="San Sebastián Nicananduta"/>
+	<row Clave="347" Estado="OAX" Descripcion="San Sebastián Río Hondo"/>
+	<row Clave="348" Estado="OAX" Descripcion="San Sebastián Tecomaxtlahuaca"/>
+	<row Clave="349" Estado="OAX" Descripcion="San Sebastián Teitipac"/>
+	<row Clave="350" Estado="OAX" Descripcion="San Sebastián Tutla"/>
+	<row Clave="351" Estado="OAX" Descripcion="San Simón Almolongas"/>
+	<row Clave="352" Estado="OAX" Descripcion="San Simón Zahuatlán"/>
+	<row Clave="353" Estado="OAX" Descripcion="Santa Ana"/>
+	<row Clave="354" Estado="OAX" Descripcion="Santa Ana Ateixtlahuaca"/>
+	<row Clave="355" Estado="OAX" Descripcion="Santa Ana Cuauhtémoc"/>
+	<row Clave="356" Estado="OAX" Descripcion="Santa Ana del Valle"/>
+	<row Clave="357" Estado="OAX" Descripcion="Santa Ana Tavela"/>
+	<row Clave="358" Estado="OAX" Descripcion="Santa Ana Tlapacoyan"/>
+	<row Clave="359" Estado="OAX" Descripcion="Santa Ana Yareni"/>
+	<row Clave="360" Estado="OAX" Descripcion="Santa Ana Zegache"/>
+	<row Clave="361" Estado="OAX" Descripcion="Santa Catalina Quierí"/>
+	<row Clave="362" Estado="OAX" Descripcion="Santa Catarina Cuixtla"/>
+	<row Clave="363" Estado="OAX" Descripcion="Santa Catarina Ixtepeji"/>
+	<row Clave="364" Estado="OAX" Descripcion="Santa Catarina Juquila"/>
+	<row Clave="365" Estado="OAX" Descripcion="Santa Catarina Lachatao"/>
+	<row Clave="366" Estado="OAX" Descripcion="Santa Catarina Loxicha"/>
+	<row Clave="367" Estado="OAX" Descripcion="Santa Catarina Mechoacán"/>
+	<row Clave="368" Estado="OAX" Descripcion="Santa Catarina Minas"/>
+	<row Clave="369" Estado="OAX" Descripcion="Santa Catarina Quiané"/>
+	<row Clave="370" Estado="OAX" Descripcion="Santa Catarina Tayata"/>
+	<row Clave="371" Estado="OAX" Descripcion="Santa Catarina Ticuá"/>
+	<row Clave="372" Estado="OAX" Descripcion="Santa Catarina Yosonotú"/>
+	<row Clave="373" Estado="OAX" Descripcion="Santa Catarina Zapoquila"/>
+	<row Clave="374" Estado="OAX" Descripcion="Santa Cruz Acatepec"/>
+	<row Clave="375" Estado="OAX" Descripcion="Santa Cruz Amilpas"/>
+	<row Clave="376" Estado="OAX" Descripcion="Santa Cruz de Bravo"/>
+	<row Clave="377" Estado="OAX" Descripcion="Santa Cruz Itundujia"/>
+	<row Clave="378" Estado="OAX" Descripcion="Santa Cruz Mixtepec"/>
+	<row Clave="379" Estado="OAX" Descripcion="Santa Cruz Nundaco"/>
+	<row Clave="380" Estado="OAX" Descripcion="Santa Cruz Papalutla"/>
+	<row Clave="381" Estado="OAX" Descripcion="Santa Cruz Tacache de Mina"/>
+	<row Clave="382" Estado="OAX" Descripcion="Santa Cruz Tacahua"/>
+	<row Clave="383" Estado="OAX" Descripcion="Santa Cruz Tayata"/>
+	<row Clave="384" Estado="OAX" Descripcion="Santa Cruz Xitla"/>
+	<row Clave="385" Estado="OAX" Descripcion="Santa Cruz Xoxocotlán"/>
+	<row Clave="386" Estado="OAX" Descripcion="Santa Cruz Zenzontepec"/>
+	<row Clave="387" Estado="OAX" Descripcion="Santa Gertrudis"/>
+	<row Clave="388" Estado="OAX" Descripcion="Santa Inés del Monte"/>
+	<row Clave="389" Estado="OAX" Descripcion="Santa Inés Yatzeche"/>
+	<row Clave="390" Estado="OAX" Descripcion="Santa Lucía del Camino"/>
+	<row Clave="391" Estado="OAX" Descripcion="Santa Lucía Miahuatlán"/>
+	<row Clave="392" Estado="OAX" Descripcion="Santa Lucía Monteverde"/>
+	<row Clave="393" Estado="OAX" Descripcion="Santa Lucía Ocotlán"/>
+	<row Clave="394" Estado="OAX" Descripcion="Santa María Alotepec"/>
+	<row Clave="395" Estado="OAX" Descripcion="Santa María Apazco"/>
+	<row Clave="396" Estado="OAX" Descripcion="Santa María la Asunción"/>
+	<row Clave="397" Estado="OAX" Descripcion="Heroica Ciudad de Tlaxiaco"/>
+	<row Clave="398" Estado="OAX" Descripcion="Ayoquezco de Aldama"/>
+	<row Clave="399" Estado="OAX" Descripcion="Santa María Atzompa"/>
+	<row Clave="400" Estado="OAX" Descripcion="Santa María Camotlán"/>
+	<row Clave="401" Estado="OAX" Descripcion="Santa María Colotepec"/>
+	<row Clave="402" Estado="OAX" Descripcion="Santa María Cortijo"/>
+	<row Clave="403" Estado="OAX" Descripcion="Santa María Coyotepec"/>
+	<row Clave="404" Estado="OAX" Descripcion="Santa María Chachoápam"/>
+	<row Clave="405" Estado="OAX" Descripcion="Villa de Chilapa de Díaz"/>
+	<row Clave="406" Estado="OAX" Descripcion="Santa María Chilchotla"/>
+	<row Clave="407" Estado="OAX" Descripcion="Santa María Chimalapa"/>
+	<row Clave="408" Estado="OAX" Descripcion="Santa María del Rosario"/>
+	<row Clave="409" Estado="OAX" Descripcion="Santa María del Tule"/>
+	<row Clave="410" Estado="OAX" Descripcion="Santa María Ecatepec"/>
+	<row Clave="411" Estado="OAX" Descripcion="Santa María Guelacé"/>
+	<row Clave="412" Estado="OAX" Descripcion="Santa María Guienagati"/>
+	<row Clave="413" Estado="OAX" Descripcion="Santa María Huatulco"/>
+	<row Clave="414" Estado="OAX" Descripcion="Santa María Huazolotitlán"/>
+	<row Clave="415" Estado="OAX" Descripcion="Santa María Ipalapa"/>
+	<row Clave="416" Estado="OAX" Descripcion="Santa María Ixcatlán"/>
+	<row Clave="417" Estado="OAX" Descripcion="Santa María Jacatepec"/>
+	<row Clave="418" Estado="OAX" Descripcion="Santa María Jalapa del Marqués"/>
+	<row Clave="419" Estado="OAX" Descripcion="Santa María Jaltianguis"/>
+	<row Clave="420" Estado="OAX" Descripcion="Santa María Lachixío"/>
+	<row Clave="421" Estado="OAX" Descripcion="Santa María Mixtequilla"/>
+	<row Clave="422" Estado="OAX" Descripcion="Santa María Nativitas"/>
+	<row Clave="423" Estado="OAX" Descripcion="Santa María Nduayaco"/>
+	<row Clave="424" Estado="OAX" Descripcion="Santa María Ozolotepec"/>
+	<row Clave="425" Estado="OAX" Descripcion="Santa María Pápalo"/>
+	<row Clave="426" Estado="OAX" Descripcion="Santa María Peñoles"/>
+	<row Clave="427" Estado="OAX" Descripcion="Santa María Petapa"/>
+	<row Clave="428" Estado="OAX" Descripcion="Santa María Quiegolani"/>
+	<row Clave="429" Estado="OAX" Descripcion="Santa María Sola"/>
+	<row Clave="430" Estado="OAX" Descripcion="Santa María Tataltepec"/>
+	<row Clave="431" Estado="OAX" Descripcion="Santa María Tecomavaca"/>
+	<row Clave="432" Estado="OAX" Descripcion="Santa María Temaxcalapa"/>
+	<row Clave="433" Estado="OAX" Descripcion="Santa María Temaxcaltepec"/>
+	<row Clave="434" Estado="OAX" Descripcion="Santa María Teopoxco"/>
+	<row Clave="435" Estado="OAX" Descripcion="Santa María Tepantlali"/>
+	<row Clave="436" Estado="OAX" Descripcion="Santa María Texcatitlán"/>
+	<row Clave="437" Estado="OAX" Descripcion="Santa María Tlahuitoltepec"/>
+	<row Clave="438" Estado="OAX" Descripcion="Santa María Tlalixtac"/>
+	<row Clave="439" Estado="OAX" Descripcion="Santa María Tonameca"/>
+	<row Clave="440" Estado="OAX" Descripcion="Santa María Totolapilla"/>
+	<row Clave="441" Estado="OAX" Descripcion="Santa María Xadani"/>
+	<row Clave="442" Estado="OAX" Descripcion="Santa María Yalina"/>
+	<row Clave="443" Estado="OAX" Descripcion="Santa María Yavesía"/>
+	<row Clave="444" Estado="OAX" Descripcion="Santa María Yolotepec"/>
+	<row Clave="445" Estado="OAX" Descripcion="Santa María Yosoyúa"/>
+	<row Clave="446" Estado="OAX" Descripcion="Santa María Yucuhiti"/>
+	<row Clave="447" Estado="OAX" Descripcion="Santa María Zacatepec"/>
+	<row Clave="448" Estado="OAX" Descripcion="Santa María Zaniza"/>
+	<row Clave="449" Estado="OAX" Descripcion="Santa María Zoquitlán"/>
+	<row Clave="450" Estado="OAX" Descripcion="Santiago Amoltepec"/>
+	<row Clave="451" Estado="OAX" Descripcion="Santiago Apoala"/>
+	<row Clave="452" Estado="OAX" Descripcion="Santiago Apóstol"/>
+	<row Clave="453" Estado="OAX" Descripcion="Santiago Astata"/>
+	<row Clave="454" Estado="OAX" Descripcion="Santiago Atitlán"/>
+	<row Clave="455" Estado="OAX" Descripcion="Santiago Ayuquililla"/>
+	<row Clave="456" Estado="OAX" Descripcion="Santiago Cacaloxtepec"/>
+	<row Clave="457" Estado="OAX" Descripcion="Santiago Camotlán"/>
+	<row Clave="458" Estado="OAX" Descripcion="Santiago Comaltepec"/>
+	<row Clave="459" Estado="OAX" Descripcion="Santiago Chazumba"/>
+	<row Clave="460" Estado="OAX" Descripcion="Santiago Choápam"/>
+	<row Clave="461" Estado="OAX" Descripcion="Santiago del Río"/>
+	<row Clave="462" Estado="OAX" Descripcion="Santiago Huajolotitlán"/>
+	<row Clave="463" Estado="OAX" Descripcion="Santiago Huauclilla"/>
+	<row Clave="464" Estado="OAX" Descripcion="Santiago Ihuitlán Plumas"/>
+	<row Clave="465" Estado="OAX" Descripcion="Santiago Ixcuintepec"/>
+	<row Clave="466" Estado="OAX" Descripcion="Santiago Ixtayutla"/>
+	<row Clave="467" Estado="OAX" Descripcion="Santiago Jamiltepec"/>
+	<row Clave="468" Estado="OAX" Descripcion="Santiago Jocotepec"/>
+	<row Clave="469" Estado="OAX" Descripcion="Santiago Juxtlahuaca"/>
+	<row Clave="470" Estado="OAX" Descripcion="Santiago Lachiguiri"/>
+	<row Clave="471" Estado="OAX" Descripcion="Santiago Lalopa"/>
+	<row Clave="472" Estado="OAX" Descripcion="Santiago Laollaga"/>
+	<row Clave="473" Estado="OAX" Descripcion="Santiago Laxopa"/>
+	<row Clave="474" Estado="OAX" Descripcion="Santiago Llano Grande"/>
+	<row Clave="475" Estado="OAX" Descripcion="Santiago Matatlán"/>
+	<row Clave="476" Estado="OAX" Descripcion="Santiago Miltepec"/>
+	<row Clave="477" Estado="OAX" Descripcion="Santiago Minas"/>
+	<row Clave="478" Estado="OAX" Descripcion="Santiago Nacaltepec"/>
+	<row Clave="479" Estado="OAX" Descripcion="Santiago Nejapilla"/>
+	<row Clave="480" Estado="OAX" Descripcion="Santiago Nundiche"/>
+	<row Clave="481" Estado="OAX" Descripcion="Santiago Nuyoó"/>
+	<row Clave="482" Estado="OAX" Descripcion="Santiago Pinotepa Nacional"/>
+	<row Clave="483" Estado="OAX" Descripcion="Santiago Suchilquitongo"/>
+	<row Clave="484" Estado="OAX" Descripcion="Santiago Tamazola"/>
+	<row Clave="485" Estado="OAX" Descripcion="Santiago Tapextla"/>
+	<row Clave="486" Estado="OAX" Descripcion="Villa Tejúpam de la Unión"/>
+	<row Clave="487" Estado="OAX" Descripcion="Santiago Tenango"/>
+	<row Clave="488" Estado="OAX" Descripcion="Santiago Tepetlapa"/>
+	<row Clave="489" Estado="OAX" Descripcion="Santiago Tetepec"/>
+	<row Clave="490" Estado="OAX" Descripcion="Santiago Texcalcingo"/>
+	<row Clave="491" Estado="OAX" Descripcion="Santiago Textitlán"/>
+	<row Clave="492" Estado="OAX" Descripcion="Santiago Tilantongo"/>
+	<row Clave="493" Estado="OAX" Descripcion="Santiago Tillo"/>
+	<row Clave="494" Estado="OAX" Descripcion="Santiago Tlazoyaltepec"/>
+	<row Clave="495" Estado="OAX" Descripcion="Santiago Xanica"/>
+	<row Clave="496" Estado="OAX" Descripcion="Santiago Xiacuí"/>
+	<row Clave="497" Estado="OAX" Descripcion="Santiago Yaitepec"/>
+	<row Clave="498" Estado="OAX" Descripcion="Santiago Yaveo"/>
+	<row Clave="499" Estado="OAX" Descripcion="Santiago Yolomécatl"/>
+	<row Clave="500" Estado="OAX" Descripcion="Santiago Yosondúa"/>
+	<row Clave="501" Estado="OAX" Descripcion="Santiago Yucuyachi"/>
+	<row Clave="502" Estado="OAX" Descripcion="Santiago Zacatepec"/>
+	<row Clave="503" Estado="OAX" Descripcion="Santiago Zoochila"/>
+	<row Clave="504" Estado="OAX" Descripcion="Nuevo Zoquiápam"/>
+	<row Clave="505" Estado="OAX" Descripcion="Santo Domingo Ingenio"/>
+	<row Clave="506" Estado="OAX" Descripcion="Santo Domingo Albarradas"/>
+	<row Clave="507" Estado="OAX" Descripcion="Santo Domingo Armenta"/>
+	<row Clave="508" Estado="OAX" Descripcion="Santo Domingo Chihuitán"/>
+	<row Clave="509" Estado="OAX" Descripcion="Santo Domingo de Morelos"/>
+	<row Clave="510" Estado="OAX" Descripcion="Santo Domingo Ixcatlán"/>
+	<row Clave="511" Estado="OAX" Descripcion="Santo Domingo Nuxaá"/>
+	<row Clave="512" Estado="OAX" Descripcion="Santo Domingo Ozolotepec"/>
+	<row Clave="513" Estado="OAX" Descripcion="Santo Domingo Petapa"/>
+	<row Clave="514" Estado="OAX" Descripcion="Santo Domingo Roayaga"/>
+	<row Clave="515" Estado="OAX" Descripcion="Santo Domingo Tehuantepec"/>
+	<row Clave="516" Estado="OAX" Descripcion="Santo Domingo Teojomulco"/>
+	<row Clave="517" Estado="OAX" Descripcion="Santo Domingo Tepuxtepec"/>
+	<row Clave="518" Estado="OAX" Descripcion="Santo Domingo Tlatayápam"/>
+	<row Clave="519" Estado="OAX" Descripcion="Santo Domingo Tomaltepec"/>
+	<row Clave="520" Estado="OAX" Descripcion="Santo Domingo Tonalá"/>
+	<row Clave="521" Estado="OAX" Descripcion="Santo Domingo Tonaltepec"/>
+	<row Clave="522" Estado="OAX" Descripcion="Santo Domingo Xagacía"/>
+	<row Clave="523" Estado="OAX" Descripcion="Santo Domingo Yanhuitlán"/>
+	<row Clave="524" Estado="OAX" Descripcion="Santo Domingo Yodohino"/>
+	<row Clave="525" Estado="OAX" Descripcion="Santo Domingo Zanatepec"/>
+	<row Clave="526" Estado="OAX" Descripcion="Santos Reyes Nopala"/>
+	<row Clave="527" Estado="OAX" Descripcion="Santos Reyes Pápalo"/>
+	<row Clave="528" Estado="OAX" Descripcion="Santos Reyes Tepejillo"/>
+	<row Clave="529" Estado="OAX" Descripcion="Santos Reyes Yucuná"/>
+	<row Clave="530" Estado="OAX" Descripcion="Santo Tomás Jalieza"/>
+	<row Clave="531" Estado="OAX" Descripcion="Santo Tomás Mazaltepec"/>
+	<row Clave="532" Estado="OAX" Descripcion="Santo Tomás Ocotepec"/>
+	<row Clave="533" Estado="OAX" Descripcion="Santo Tomás Tamazulapan"/>
+	<row Clave="534" Estado="OAX" Descripcion="San Vicente Coatlán"/>
+	<row Clave="535" Estado="OAX" Descripcion="San Vicente Lachixío"/>
+	<row Clave="536" Estado="OAX" Descripcion="San Vicente Nuñú"/>
+	<row Clave="537" Estado="OAX" Descripcion="Silacayoápam"/>
+	<row Clave="538" Estado="OAX" Descripcion="Sitio de Xitlapehua"/>
+	<row Clave="539" Estado="OAX" Descripcion="Soledad Etla"/>
+	<row Clave="540" Estado="OAX" Descripcion="Villa de Tamazulápam del Progreso"/>
+	<row Clave="541" Estado="OAX" Descripcion="Tanetze de Zaragoza"/>
+	<row Clave="542" Estado="OAX" Descripcion="Taniche"/>
+	<row Clave="543" Estado="OAX" Descripcion="Tataltepec de Valdés"/>
+	<row Clave="544" Estado="OAX" Descripcion="Teococuilco de Marcos Pérez"/>
+	<row Clave="545" Estado="OAX" Descripcion="Teotitlán de Flores Magón"/>
+	<row Clave="546" Estado="OAX" Descripcion="Teotitlán del Valle"/>
+	<row Clave="547" Estado="OAX" Descripcion="Teotongo"/>
+	<row Clave="548" Estado="OAX" Descripcion="Tepelmeme Villa de Morelos"/>
+	<row Clave="549" Estado="OAX" Descripcion="Tezoatlán de Segura y Luna"/>
+	<row Clave="550" Estado="OAX" Descripcion="San Jerónimo Tlacochahuaya"/>
+	<row Clave="551" Estado="OAX" Descripcion="Tlacolula de Matamoros"/>
+	<row Clave="552" Estado="OAX" Descripcion="Tlacotepec Plumas"/>
+	<row Clave="553" Estado="OAX" Descripcion="Tlalixtac de Cabrera"/>
+	<row Clave="554" Estado="OAX" Descripcion="Totontepec Villa de Morelos"/>
+	<row Clave="555" Estado="OAX" Descripcion="Trinidad Zaachila"/>
+	<row Clave="556" Estado="OAX" Descripcion="La Trinidad Vista Hermosa"/>
+	<row Clave="557" Estado="OAX" Descripcion="Unión Hidalgo"/>
+	<row Clave="558" Estado="OAX" Descripcion="Valerio Trujano"/>
+	<row Clave="559" Estado="OAX" Descripcion="San Juan Bautista Valle Nacional"/>
+	<row Clave="560" Estado="OAX" Descripcion="Villa Díaz Ordaz"/>
+	<row Clave="561" Estado="OAX" Descripcion="Yaxe"/>
+	<row Clave="562" Estado="OAX" Descripcion="Magdalena Yodocono de Porfirio Díaz"/>
+	<row Clave="563" Estado="OAX" Descripcion="Yogana"/>
+	<row Clave="564" Estado="OAX" Descripcion="Yutanduchi de Guerrero"/>
+	<row Clave="565" Estado="OAX" Descripcion="Villa de Zaachila"/>
+	<row Clave="566" Estado="OAX" Descripcion="San Mateo Yucutindoo"/>
+	<row Clave="567" Estado="OAX" Descripcion="Zapotitlán Lagunas"/>
+	<row Clave="568" Estado="OAX" Descripcion="Zapotitlán Palmas"/>
+	<row Clave="569" Estado="OAX" Descripcion="Santa Inés de Zaragoza"/>
+	<row Clave="570" Estado="OAX" Descripcion="Zimatlán de Álvarez"/>
+</Catalogo>

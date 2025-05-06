@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Catalogo>
+	<row Clave="AGU" Pais="MEX" Descripcion="Aguascalientes"/>
+	<row Clave="BCN" Pais="MEX" Descripcion="Baja California"/>
+	<row Clave="BCS" Pais="MEX" Descripcion="Baja California Sur"/>
+	<row Clave="CAM" Pais="MEX" Descripcion="Campeche"/>
+	<row Clave="CHP" Pais="MEX" Descripcion="Chiapas"/>
+	<row Clave="CHH" Pais="MEX" Descripcion="Chihuahua"/>
+	<row Clave="COA" Pais="MEX" Descripcion="Coahuila"/>
+	<row Clave="COL" Pais="MEX" Descripcion="Colima"/>
+	<row Clave="CMX" Pais="MEX" Descripcion="Ciudad de México"/>
+	<row Clave="DIF" Pais="MEX" Descripcion="Ciudad de México"/>
+	<row Clave="DUR" Pais="MEX" Descripcion="Durango"/>
+	<row Clave="GUA" Pais="MEX" Descripcion="Guanajuato"/>
+	<row Clave="GRO" Pais="MEX" Descripcion="Guerrero"/>
+	<row Clave="HID" Pais="MEX" Descripcion="Hidalgo"/>
+	<row Clave="JAL" Pais="MEX" Descripcion="Jalisco"/>
+	<row Clave="MEX" Pais="MEX" Descripcion="Estado de México"/>
+	<row Clave="MIC" Pais="MEX" Descripcion="Michoacán"/>
+	<row Clave="MOR" Pais="MEX" Descripcion="Morelos"/>
+	<row Clave="NAY" Pais="MEX" Descripcion="Nayarit"/>
+	<row Clave="NLE" Pais="MEX" Descripcion="Nuevo León"/>
+	<row Clave="OAX" Pais="MEX" Descripcion="Oaxaca"/>
+	<row Clave="PUE" Pais="MEX" Descripcion="Puebla"/>
+	<row Clave="QUE" Pais="MEX" Descripcion="Querétaro"/>
+	<row Clave="ROO" Pais="MEX" Descripcion="Quintana Roo"/>
+	<row Clave="SLP" Pais="MEX" Descripcion="San Luis Potosí"/>
+	<row Clave="SIN" Pais="MEX" Descripcion="Sinaloa"/>
+	<row Clave="SON" Pais="MEX" Descripcion="Sonora"/>
+	<row Clave="TAB" Pais="MEX" Descripcion="Tabasco"/>
+	<row Clave="TAM" Pais="MEX" Descripcion="Tamaulipas"/>
+	<row Clave="TLA" Pais="MEX" Descripcion="Tlaxcala"/>
+	<row Clave="VER" Pais="MEX" Descripcion="Veracruz"/>
+	<row Clave="YUC" Pais="MEX" Descripcion="Yucatán"/>
+	<row Clave="ZAC" Pais="MEX" Descripcion="Zacatecas"/>
+	<row Clave="AL" Pais="USA" Descripcion="Alabama"/>
+	<row Clave="AK" Pais="USA" Descripcion="Alaska"/>
+	<row Clave="AZ" Pais="USA" Descripcion="Arizona"/>
+	<row Clave="AR" Pais="USA" Descripcion="Arkansas"/>
+	<row Clave="CA" Pais="USA" Descripcion="California"/>
+	<row Clave="NC" Pais="USA" Descripcion="Carolina del Norte"/>
+	<row Clave="SC" Pais="USA" Descripcion="Carolina del Sur"/>
+	<row Clave="CO" Pais="USA" Descripcion="Colorado"/>
+	<row Clave="CT" Pais="USA" Descripcion="Connecticut"/>
+	<row Clave="ND" Pais="USA" Descripcion="Dakota del Norte"/>
+	<row Clave="SD" Pais="USA" Descripcion="Dakota del Sur"/>
+	<row Clave="DE" Pais="USA" Descripcion="Delaware"/>
+	<row Clave="FL" Pais="USA" Descripcion="Florida"/>
+	<row Clave="GA" Pais="USA" Descripcion="Georgia"/>
+	<row Clave="HI" Pais="USA" Descripcion="Hawái"/>
+	<row Clave="ID" Pais="USA" Descripcion="Idaho"/>
+	<row Clave="IL" Pais="USA" Descripcion="Illinois"/>
+	<row Clave="IN" Pais="USA" Descripcion="Indiana"/>
+	<row Clave="IA" Pais="USA" Descripcion="Iowa"/>
+	<row Clave="KS" Pais="USA" Descripcion="Kansas"/>
+	<row Clave="KY" Pais="USA" Descripcion="Kentucky"/>
+	<row Clave="LA" Pais="USA" Descripcion="Luisiana"/>
+	<row Clave="ME" Pais="USA" Descripcion="Maine"/>
+	<row Clave="MD" Pais="USA" Descripcion="Maryland"/>
+	<row Clave="MA" Pais="USA" Descripcion="Massachusetts"/>
+	<row Clave="MI" Pais="USA" Descripcion="Míchigan"/>
+	<row Clave="MN" Pais="USA" Descripcion="Minnesota"/>
+	<row Clave="MS" Pais="USA" Descripcion="Misisipi"/>
+	<row Clave="MO" Pais="USA" Descripcion="Misuri"/>
+	<row Clave="MT" Pais="USA" Descripcion="Montana"/>
+	<row Clave="NE" Pais="USA" Descripcion="Nebraska"/>
+	<row Clave="NV" Pais="USA" Descripcion="Nevada"/>
+	<row Clave="NJ" Pais="USA" Descripcion="Nueva Jersey"/>
+	<row Clave="NY" Pais="USA" Descripcion="Nueva York"/>
+	<row Clave="NH" Pais="USA" Descripcion="Nuevo Hampshire"/>
+	<row Clave="NM" Pais="USA" Descripcion="Nuevo México"/>
+	<row Clave="OH" Pais="USA" Descripcion="Ohio"/>
+	<row Clave="OK" Pais="USA" Descripcion="Oklahoma"/>
+	<row Clave="OR" Pais="USA" Descripcion="Oregón"/>
+	<row Clave="PA" Pais="USA" Descripcion="Pensilvania"/>
+	<row Clave="RI" Pais="USA" Descripcion="Rhode Island"/>
+	<row Clave="TN" Pais="USA" Descripcion="Tennessee"/>
+	<row Clave="TX" Pais="USA" Descripcion="Texas"/>
+	<row Clave="UT" Pais="USA" Descripcion="Utah"/>
+	<row Clave="VT" Pais="USA" Descripcion="Vermont"/>
+	<row Clave="VA" Pais="USA" Descripcion="Virginia"/>
+	<row Clave="WV" Pais="USA" Descripcion="Virginia Occidental"/>
+	<row Clave="WA" Pais="USA" Descripcion="Washington"/>
+	<row Clave="WI" Pais="USA" Descripcion="Wisconsin"/>
+	<row Clave="WY" Pais="USA" Descripcion="Wyoming"/>
+	<row Clave="ON" Pais="CAN" Descripcion="Ontario "/>
+	<row Clave="QC" Pais="CAN" Descripcion=" Quebec "/>
+	<row Clave="NS" Pais="CAN" Descripcion=" Nueva Escocia"/>
+	<row Clave="NB" Pais="CAN" Descripcion="Nuevo Brunswick "/>
+	<row Clave="MB" Pais="CAN" Descripcion=" Manitoba"/>
+	<row Clave="BC" Pais="CAN" Descripcion=" Columbia Británica"/>
+	<row Clave="PE" Pais="CAN" Descripcion=" Isla del Príncipe Eduardo"/>
+	<row Clave="SK" Pais="CAN" Descripcion=" Saskatchewan"/>
+	<row Clave="AB" Pais="CAN" Descripcion=" Alberta"/>
+	<row Clave="NL" Pais="CAN" Descripcion=" Terranova y Labrador"/>
+	<row Clave="NT" Pais="CAN" Descripcion=" Territorios del Noroeste"/>
+	<row Clave="YT" Pais="CAN" Descripcion=" Yukón"/>
+	<row Clave="UN" Pais="CAN" Descripcion=" Nunavut"/>
+</Catalogo>

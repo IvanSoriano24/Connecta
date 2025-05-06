@@ -243,7 +243,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido)
             LEFT JOIN $nombreTabla  c ON c.CLAVE   = f.CVE_CLPV
             LEFT JOIN $nombreTabla3 v ON v.CVE_VEND= f.CVE_VEND
             ";
-        if($estadoPedido == "Activos" || $estadoPedido == "Vendidos"){
+        if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
             $sql .= "WHERE f.STATUS IN ('E','O')";
         } else {
             $sql .= "WHERE f.STATUS IN ('C')";
@@ -321,9 +321,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function filtrarPedidosVendidos($clientes){
-
-}
+function filtrarPedidosVendidos($clientes) {}
 function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
 {
     // Establecer la conexión con SQL Server con UTF-8
@@ -5972,8 +5970,9 @@ function obtenerDescripcionComanda($producto, $conexionData, $claveSae)
     sqlsrv_close($conn);
 }
 
-function obtenerMunicipios(){
-    $filePath = "../../Complementos/estados.xml";
+function obtenerEstados()
+{
+    $filePath = "../../Complementos/CAT_ESTADOS.xml";
     if (!file_exists($filePath)) {
         echo "El archivo no existe en la ruta: $filePath";
         return;
@@ -5994,23 +5993,80 @@ function obtenerMunicipios(){
 
     $estado = [];
     // Iterar sobre cada <row>
-    foreach ($estados->estado as $item) {
-        //echo "Clave: " . $banco['claveCB'] . " - " . $banco['tipoConcepto'] . "<br/>";
+    foreach ($estados->row as $row) {
+        $pais = (string)$row['Pais'];
+        // Sólo procesamos si País es 'MEX'
+        if ($pais !== 'MEX') {
+            continue;
+        }
         $estado[] = [
-            'clave' => (string)$item->clave,
-            'estado' => (string)$item->estado,
-            'abreviatura' => (string)$item->abreviatura
+            'Clave'       => (string)$row['Clave'],
+            'Pais'        => $pais,
+            'Descripcion' => (string)$row['Descripcion']
         ];
     }
-    if (!empty($estado)) {
 
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'estados' => $estado]);
+    if (!empty($estado)) {
+        // Opcional: ordenar por Descripción alfabéticamente
+        usort($estado, function ($a, $b) {
+            return strcmp($a['Descripcion'] ?? '', $b['Descripcion'] ?? '');
+        });
+
+        echo json_encode(['success' => true, 'data' => $estado]);
         exit();
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron ninguna clave.']);
+        echo json_encode(['success' => false, 'message' => 'No se encontraron registros para País MEX.']);
     }
 }
+function obtenerMunicipios($estadoSeleccionado)
+{
+    $filePath = "../../Complementos/CAT_MUNICIPIO.xml";
+    if (!file_exists($filePath)) {
+        echo "El archivo no existe en la ruta: $filePath";
+        return;
+    }
+
+    $xmlContent = file_get_contents($filePath);
+    if ($xmlContent === false) {
+        echo "Error al leer el archivo XML en $filePath";
+        return;
+    }
+
+    try {
+        $municipios = new SimpleXMLElement($xmlContent);
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        return;
+    }
+
+    $municipio = [];
+    // Iterar sobre cada <row>
+    foreach ($municipios->row as $row) {
+        $Estado = (string)$row['Estado'];
+        // Sólo procesamos si País es 'MEX'
+        if ($Estado !== $estadoSeleccionado) {
+            continue;
+        }
+        $municipio[] = [
+            'Clave' => (string)$row['Clave'],
+            'Estado' => (string)$row['Estado'],
+            'Descripcion' => (string)$row['Descripcion']
+        ];
+    }
+    if (!empty($municipio)) {
+        // Ordenar los vendedores por nombre alfabéticamente
+        usort($municipio, function ($a, $b) {
+            return strcmp($a['Clave'] ?? '', $b['Clave'] ?? '');
+        });
+
+
+        echo json_encode(['success' => true, 'data' => $municipio]);
+        exit();
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron ningun regimen.']);
+    }
+}
+
 
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -6762,7 +6818,11 @@ switch ($funcion) {
         }
         break;
     case 22:
-        obtenerMunicipios();
+        obtenerEstados();
+        break;
+    case 23:
+        $estadoSeleccionado = $_POST['estado'];
+        obtenerMunicipios($estadoSeleccionado);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
