@@ -1256,6 +1256,9 @@ function obtenerDatosEnvio(){
         $("#codigoContacto").val(envios.data['0'].CODIGO_ENVIO || "");
         $("#direccion1Contacto").val(envios.data['0'].CALLE_ENVIO || "");
         $("#direccion2Contacto").val(envios.data['0'].COLONIA_ENVIO || "");
+        $("#compañiaContacto").val(envios.data['0'].NOMBRECOMERCIAL || "");
+        $("#telefonoContacto").val(envios.data['0'].TELEFONO || "");
+        $("#correoContacto").val(envios.data['0'].EMAILPRED || "");
         //$("#codigoContacto").val(envios.data.CALLE || "");
       } else {
         Swal.fire({

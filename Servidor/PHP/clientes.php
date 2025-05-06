@@ -330,7 +330,10 @@ function obtenerDatosClienteAutoriza($conexionData, $claveSae, $claveUsuario){
         LOCALIDAD_ENVIO,
         MUNICIPIO_ENVIO,
         ESTADO_ENVIO,
-        CODIGO_ENVIO
+        CODIGO_ENVIO,
+        NOMBRECOMERCIAL,
+        TELEFONO,
+        EMAILPRED
     FROM 
         $nombreTabla
     WHERE 

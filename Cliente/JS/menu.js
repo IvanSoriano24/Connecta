@@ -440,8 +440,13 @@ function probarConexionSAE() {
       }
     })
     .catch((error) => {
+      Swal.fire({
+        title: "Error",
+        text: "Error en los solicitud, compruebe sus datos",
+        icon: "error",
+      });
       console.error("Error de la solicitud:", error);
-      alert("Error en la solicitud: " + error.message);
+      //alert("Error en la solicitud: " + error.message);
     });
 }
 function guardarConexionSAE() {
