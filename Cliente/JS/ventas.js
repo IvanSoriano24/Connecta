@@ -222,6 +222,7 @@ const registrosPorPagina = 50; // Ajusta según convenga
 function datosPedidos(limpiarTabla = true) {
   // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
   let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
+  let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
   console.log(
     "Cargando datosPedidos con filtro:",
     filtroFecha,
@@ -262,6 +263,7 @@ function datosPedidos(limpiarTabla = true) {
       numFuncion: "1",
       noEmpresa: noEmpresa,
       filtroFecha: filtroFecha,
+      estadoPedido: estadoPedido,
       //filtroVendedor: filtroVendedor,
       pagina: paginaActual,
       porPagina: registrosPorPagina,

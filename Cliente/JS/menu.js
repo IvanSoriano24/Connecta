@@ -379,7 +379,7 @@ function probarConexionSAE() {
   if (!validateForm2()) {
     return; // Si la validación falla, no se envía el formulario
   }
-  const nombreBanco = $("#nombreBanco").val();
+  //const nombreBanco = $("#nombreBanco").val();
   const data = {
     action: "probar",
     host: $("#host").val(),

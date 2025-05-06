@@ -560,7 +560,8 @@ function obtenerDatosFormulario() {
   //const entrega = campoEntrega ? campoEntrega : fechaActual;
   //const diaAlta = document.getElementById("diaAlta").value; // Fecha y hora
   const formularioData = {
-    claveVendedor: document.getElementById("vendedor").value,
+    //claveVendedor: document.getElementById("vendedor").value,
+    claveVendedor: "1",
     factura: document.getElementById("factura").value,
     numero: document.getElementById("numero").value,
     diaAlta: diaAlta, // Fecha y hora

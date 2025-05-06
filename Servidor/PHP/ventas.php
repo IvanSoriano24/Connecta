@@ -6042,7 +6042,7 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $filtroFecha = $_POST['filtroFecha'];
-        $estadoPedido =$_POST['estadoPedido'];
+        $estadoPedido = $_POST['estadoPedido'];
         //$filtroVendedor = $_POST['filtroVendedor']; , $filtroVendedor
         mostrarPedidos($conexionData, $filtroFecha, $estadoPedido);
         break;

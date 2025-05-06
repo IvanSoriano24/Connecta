@@ -81,6 +81,7 @@ function probarConexionBanco($host, $usuario, $password, $nombreBase)
             return [
                 'success' => false,
                 'stp' => true,
+                'NUM_REG'    => "0",
                 'message' => "No se encontró la cuenta 'stp' en la tabla CTAS."
             ];
         }
@@ -517,10 +518,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ];*/
                     //var_dump($noCuenta);
                     echo json_encode(['success' => true, 'numeroTabla' => $noTabla, 'noCuenta' => $noCuenta, 'message' => $message]);
-                    //return;
+                    return;
                     //echo json_encode($resultado);
                 } else {
-                    echo json_encode(['success' => false, 'stp' => $resultadoBanco['stp'],'numeroTabla' => $noTabla, 'noCuenta' => $noCuenta, 'message' => $resultadoBanco['message']]);
+                    $noCuenta = $resultadoBanco['NUM_REG'] || 0;
+                    $message = $resultadoBanco['message'];
+                    echo json_encode(['success' => false, 'stp' => $resultadoBanco['stp'], 'numeroTabla' => $noTabla, 'noCuenta' => $noCuenta, 'message' => $resultadoBanco['message']]);
+                    //echo json_encode(['success' => false, 'stp' => $resultadoBanco['stp'], 'numeroTabla' => $noTabla, 'message' => $resultadoBanco['message']]);
                     return;
                 }
             } else {
@@ -547,13 +551,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
                 if ($resultadoConexion['success']) {
                     $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
-                    if ($resultadoBanco['success']) {
+                    if ($resultadoConexion['success']) {
                         ob_clean();
                         $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento, $resultadoConexion, $resultadoBanco);
                         //echo json_encode($resultadoGuardar);
                         return;
                     } else {
-                        echo json_encode(['success' => false, 'message' => $resultadoBanco['message']]);
+                        echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
                         return;
                     }
                 } else {
