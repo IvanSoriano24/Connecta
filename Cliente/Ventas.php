@@ -197,6 +197,15 @@ session_destroy(); */
                             </li>
                         </ul>
                     </div>
+                    <!-- Secciones de Pedido-->
+                    <div class="order">
+                        <div style="align-items: center; display: flex; justify-content: center;" class="btn-group" role="group" aria-label="Filtros de Usuarios">
+                            <button type="button" class="btn btn-primary filtro-rol" data-rol="Activos">Activos</button>
+                            <button type="button" class="btn btn-secondary filtro-rol" data-rol="Vendidos">Vendidos</button>
+                            <button type="button" class="btn btn-secondary filtro-rol" data-rol="Cancelados">Cancelados</button>
+                        </div>
+                    </div>
+                    <!-- Secciones de Pedido-->
                     <div class="button-container">
                         <a href="#" class="btn-crear" id="altaPedido">
                             <i class='bx bxs-file-plus'></i>
@@ -313,10 +322,10 @@ session_destroy(); */
     </script>-->
     <script>
         // Asignar el evento "change" al select del filtro (asegúrate que el id sea correcto)
-        document.getElementById("filtroFecha").addEventListener("change", function() {
+        /*document.getElementById("filtroFecha").addEventListener("change", function() {
             const filtroSeleccionado = this.value;
             cargarPedidos(filtroSeleccionado);
-        });
+        });*/
         // Evento para el botón "Mostrar más"
         document.getElementById("btnMostrarMas").addEventListener("click", function() {
             paginaActual++; // Incrementa la página para cargar más registros
@@ -340,7 +349,8 @@ session_destroy(); */
         });
         // Al cargar la página, se lee el filtro guardado y se carga la información
         document.addEventListener("DOMContentLoaded", function() {
-            let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Todos";
+            let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Activos";
+            let estadoPedido = localStorage.getItem("estadoPedido") || "Todos";
             // Actualiza el select con el filtro guardado (asegúrate que el elemento exista)
             const filtroSelect = document.getElementById("filtroFecha");
             if (filtroSelect) {
@@ -348,7 +358,9 @@ session_destroy(); */
             } else {
                 console.error("No se encontró el elemento select con id 'filtroFecha'");
             }
-            cargarPedidos(filtroGuardado);
+            //let estadoPedido = "Activos";
+            cargarPedidos(filtroGuardado, estadoPedido);
+            inicializarEventosBotones();
         });
         // Función para cargar los pedidos (la tienes definida) y que recibe el filtro seleccionado
         // Función para renderizar los pedidos en la tabla

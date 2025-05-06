@@ -178,10 +178,11 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
         echo json_encode(['success'=>false,'message'=>$e->getMessage()]);
     }
 }*/
-function mostrarPedidos($conexionData, $filtroFecha)
+function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido)
 {
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
+    $estadoPedido = $_POST['estadoPedido'] ?? 'Activos';
 
     // Parámetros de paginación
     $pagina = isset($_POST['pagina']) ? (int)$_POST['pagina'] : 1;
@@ -236,12 +237,17 @@ function mostrarPedidos($conexionData, $filtroFecha)
                 f.CAN_TOT              AS Subtotal,
                 f.COM_TOT              AS TotalComisiones,
                 f.IMPORTE              AS ImporteTotal,
+                f.DOC_SIG              AS DOC_SIG,
                 v.NOMBRE               AS NombreVendedor
             FROM $nombreTabla2 f
             LEFT JOIN $nombreTabla  c ON c.CLAVE   = f.CVE_CLPV
             LEFT JOIN $nombreTabla3 v ON v.CVE_VEND= f.CVE_VEND
-            WHERE f.STATUS IN ('E','O')
             ";
+        if($estadoPedido == "Activos" || $estadoPedido == "Vendidos"){
+            $sql .= "WHERE f.STATUS IN ('E','O')";
+        } else {
+            $sql .= "WHERE f.STATUS IN ('C')";
+        }
 
         // Agregar filtros de fecha
         if ($filtroFecha == 'Hoy') {
@@ -298,6 +304,9 @@ function mostrarPedidos($conexionData, $filtroFecha)
                 $clientes[] = $row;
             }
         }
+        /*if($estadoPedido == "Vendidos"){
+            $clientes = filtrarPedidosVendidos($clientes);
+        }*/
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
 
@@ -311,6 +320,9 @@ function mostrarPedidos($conexionData, $filtroFecha)
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
+}
+function filtrarPedidosVendidos($clientes){
+
 }
 function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
 {
@@ -6030,8 +6042,9 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $filtroFecha = $_POST['filtroFecha'];
+        $estadoPedido =$_POST['estadoPedido'];
         //$filtroVendedor = $_POST['filtroVendedor']; , $filtroVendedor
-        mostrarPedidos($conexionData, $filtroFecha);
+        mostrarPedidos($conexionData, $filtroFecha, $estadoPedido);
         break;
     case 2:
 

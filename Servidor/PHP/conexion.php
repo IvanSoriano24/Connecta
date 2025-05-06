@@ -2,7 +2,7 @@
 
 require 'firebase.php';
 
-function obtenerConexion($firebaseProjectId, $firebaseApiKey, $noEmpresa)
+function obtenerConexion($firebaseProjectId, $firebaseApiKey)
 {
     $noEmpresa = "02";
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";

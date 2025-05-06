@@ -159,10 +159,10 @@ function mostrarSinDatos() {
 }
 
 // Función para cargar los pedidos con el filtro seleccionado y guardar el filtro en localStorage
-function cargarPedidos(filtroFecha) {
+function cargarPedidos(filtroFecha, estadoPedido) {
   // Guarda el filtro seleccionado
   localStorage.setItem("filtroSeleccionado", filtroFecha);
-  console.log("Cargando pedidos con filtro:", filtroFecha);
+  //console.log("Cargando pedidos con filtro:", filtroFecha);
 
   // Asegúrate de que la variable noEmpresa esté definida
   if (typeof noEmpresa === "undefined") {
@@ -176,6 +176,7 @@ function cargarPedidos(filtroFecha) {
       numFuncion: "1",
       noEmpresa: noEmpresa,
       filtroFecha: filtroFecha,
+      estadoPedido: estadoPedido,
       //filtroVendedor: filtroVendedor,
     },
     function (response) {
@@ -772,9 +773,22 @@ $(document).on("change", "#filtroVendedor", function () {
   paginaActual = 1;
   datosPedidos(true);
 });*/
+function inicializarEventosBotones() {
+  $(".filtro-rol")
+    .off("click")
+    .on("click", function () {
+      let estadoPedido = $(this).data("rol"); // Obtener el rol del botón
+      $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary"); // Resetear colores de botones
+      $(this).removeClass("btn-secondary").addClass("btn-primary"); // Resaltar botón seleccionado
+      var filtroSeleccionado = document.getElementById("filtroFecha").value;
+      //localStorage.setItem("estadoPedido", this.value);
+      cargarPedidos(filtroSeleccionado, estadoPedido); // Filtrar la tabla
+    });
+}
 $("#filtroFecha").change(function () {
+  let estadoPedido = $(".filtro-rol.btn-primary").data("rol");
   var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
-  cargarPedidos(filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
+  cargarPedidos(filtroSeleccionado, estadoPedido); // Llamar la función para cargar los pedidos con el filtro
 });
 $("#cancelarPedido").click(function () {
   window.location.href = "Ventas.php";

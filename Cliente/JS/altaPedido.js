@@ -1075,7 +1075,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
 
 function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
-  $("#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar").prop(
+  $("#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio").prop(
     "disabled",
     false
   );
@@ -1273,6 +1273,14 @@ function obtenerDatosEnvio(){
     },
   });
 }
+function cerrarModalEnvio() {
+  //limpiarFormulario();
+  $("#modalEnvio").modal("hide"); // Cierra el modal usando Bootstrap
+  // Restaurar el aria-hidden al cerrar el modal
+  $("#modalEnvio").attr("aria-hidden", "true");
+  // Eliminar el atributo inert del fondo al cerrar
+  $(".modal-backdrop").removeAttr("inert");
+}
 function mostrarMoldal() {
   //limpiarFormulario();
   obtenerMunicipios();
@@ -1384,7 +1392,12 @@ $(document).ready(function () {
     }
   });
 });
-
+$("#cerrarModalHeader").on("click", function () {
+  cerrarModalEnvio();
+});
+$("#cerrarModalFooter").on("click", function () {
+  cerrarModalEnvio();
+});
 $("#AyudaCondicion").click(function () {
   event.preventDefault();
   Swal.fire({

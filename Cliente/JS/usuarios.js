@@ -1530,6 +1530,7 @@ $(document).ready(function () {
   if (btnAgregar) {
     // Verificar que el botón existe
     btnAgregar.addEventListener("click", () => {
+      $("#divVendedor").hide();
       limpiarFormulario();
       // Usar las funciones de Bootstrap para abrir el modal
       $("#usuarioModal").modal("show");
