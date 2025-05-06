@@ -253,7 +253,7 @@ async function completarPrecioProducto(cveArt, filaTabla) {
     if (!precio) {
       Swal.fire({
         title: "Aviso",
-        text: "El pedido se procesó correctamente.",
+        text: "No se pudo obtener el precio del producto.",
         icon: "warning",
         confirmButtonText: "Aceptar",
       });
@@ -586,7 +586,8 @@ function obtenerDatosFormulario() {
     enviar: document.getElementById("enviar").value,
     almacen: document.getElementById("almacen").value,
     destinatario: document.getElementById("destinatario").value,
-    conCredito: document.getElementById("conCredito").value,
+    //conCredito: document.getElementById("conCredito").value,
+    conCredito: "S",
     token: document.getElementById("csrf_token").value,
     ordenCompra: document.getElementById("supedido").value,
   };
