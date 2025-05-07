@@ -1077,10 +1077,9 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
 
 function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
-  $("#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio").prop(
-    "disabled",
-    false
-  );
+  $(
+    "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio"
+  ).prop("disabled", false);
 }
 function llenarDatosCliente(cliente) {
   $("#rfc").val(cliente.RFC || "");
@@ -1131,30 +1130,27 @@ function toggleClearButton() {
   }
 }
 function obtenerEstados() {
-
   // Habilitamos el select
-  $("#estadoContacto").prop("disabled", false);
+  //$("#estadoContacto").prop("disabled", false);
 
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
     method: "POST",
     data: { numFuncion: "22" },
     dataType: "json",
-    success: function (resRegimen) {
-      if (resRegimen.success && Array.isArray(resRegimen.estados)) {
-        const $regimenFiscalNew = $("#estadoContacto");
-        $regimenFiscalNew.empty();
-        $regimenFiscalNew.append(
+    success: function (resEstado) {
+      if (resEstado.success && Array.isArray(resEstado.data)) {
+        const $estadoNuevoContacto = $("#estadoContacto");
+        $estadoNuevoContacto.empty();
+        $estadoNuevoContacto.append(
           "<option selected disabled>Selecciona un Estado</option>"
         );
         // Filtrar según el largo del RFC
-        resRegimen.estados.forEach((regimen) => {
-          $regimenFiscalNew.append(
-            `<option value="${regimen.clave}" 
-                data-estado="${regimen.estado}" 
-                data-abreviatura="${regimen.abreviatura || ""}" 
-                data-fisica="${regimen.Fisica || ""}">
-                ${regimen.estado} || ${regimen.abreviatura}
+        resEstado.data.forEach((estado) => {
+          $estadoNuevoContacto.append(
+            `<option value="${estado.Clave}" 
+                data-Pais="${estado.Pais}">
+                ${estado.Descripcion}
               </option>`
           );
         });
@@ -1162,9 +1158,9 @@ function obtenerEstados() {
         Swal.fire({
           icon: "warning",
           title: "Aviso",
-          text: resRegimen.message || "No se encontraron estados.",
+          text: resEstado.message || "No se encontraron estados.",
         });
-        $("#estadoContacto").prop("disabled", true);
+        //$("#estadoNuevoContacto").prop("disabled", true);
       }
     },
     error: function () {
@@ -1176,51 +1172,39 @@ function obtenerEstados() {
     },
   });
 }
-function obtenerMunicipios() {
-  // Obtener el valor del RFC y quitar espacios en blanco
-  const pais = $("#paisContacto").val().trim();
-  // Si el RFC es muy corto, deshabilitamos el select y reiniciamos sus opciones
-  if (!pais) {
-    $("#estadoContacto")
-      .prop("disabled", true)
-      .empty()
-      .append("<option selected disabled>Selecciona un Estado</option>");
-    return;
-  }
-
+function obtenerMunicipios(edo, municipio) {
   // Habilitamos el select
-  $("#estadoContacto").prop("disabled", false);
-
+  //$("#estadoContacto").prop("disabled", false);
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
     method: "POST",
-    data: { numFuncion: "22" },
+    data: { numFuncion: "23", estado: edo },
     dataType: "json",
-    success: function (resRegimen) {
-      if (resRegimen.success && Array.isArray(resRegimen.estados)) {
-        const $regimenFiscalNew = $("#estadoContacto");
-        $regimenFiscalNew.empty();
-        $regimenFiscalNew.append(
+    success: function (resMunicipio) {
+      if (resMunicipio.success && Array.isArray(resMunicipio.data)) {
+        const $municipioNuevoContacto = $("#municipioContacto");
+        $municipioNuevoContacto.empty();
+        $municipioNuevoContacto.append(
           "<option selected disabled>Selecciona un Estado</option>"
         );
         // Filtrar según el largo del RFC
-        resRegimen.estados.forEach((regimen) => {
-          $regimenFiscalNew.append(
-            `<option value="${regimen.clave}" 
-                data-estado="${regimen.estado}" 
-                data-abreviatura="${regimen.abreviatura || ""}" 
-                data-fisica="${regimen.Fisica || ""}">
-                ${regimen.estado} || ${regimen.abreviatura}
+        resMunicipio.data.forEach((municipio) => {
+          $municipioNuevoContacto.append(
+            `<option value="${municipio.Clave}" 
+                data-estado="${municipio.Estado}"
+                data-descripcion="${municipio.Descripcion || ""}">
+                ${municipio.Descripcion}
               </option>`
           );
         });
+        $("#municipioContacto").val(municipio);
       } else {
         Swal.fire({
           icon: "warning",
           title: "Aviso",
-          text: resRegimen.message || "No se encontraron estados.",
+          text: resMunicipio.message || "No se encontraron municipios.",
         });
-        $("#estadoContacto").prop("disabled", true);
+        //$("#municipioNuevoContacto").prop("disabled", true);
       }
     },
     error: function () {
@@ -1233,7 +1217,6 @@ function obtenerMunicipios() {
   });
 }
 function obtenerEstadosNuevos() {
-
   // Habilitamos el select
   $("#estadoNuevoContacto").prop("disabled", false);
 
@@ -1279,7 +1262,7 @@ function obtenerEstadosNuevos() {
 function obtenerMunicipiosNuevos() {
   // Habilitamos el select
   $("#municipioNuevoContacto").prop("disabled", false);
-const estado = document.getElementById("estadoNuevoContacto").value;
+  const estado = document.getElementById("estadoNuevoContacto").value;
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
     method: "POST",
@@ -1290,7 +1273,7 @@ const estado = document.getElementById("estadoNuevoContacto").value;
         const $municipioNuevoContacto = $("#municipioNuevoContacto");
         $municipioNuevoContacto.empty();
         $municipioNuevoContacto.append(
-          "<option selected disabled>Selecciona un Estado</option>"
+          "<option selected disabled>Selecciona un Municipio</option>"
         );
         // Filtrar según el largo del RFC
         resMunicipio.data.forEach((municipio) => {
@@ -1376,31 +1359,90 @@ function cerrarModalClientes() {
   const modal = bootstrap.Modal.getInstance(modalElement);
   modal.hide();
 }
-function obtenerDatosEnvio(){
+function obtenerDatosEnvio() {
   const clienteId = document.getElementById("cliente").value;
-  
+
+  $.ajax({
+    url: "../Servidor/PHP/clientes.php",
+    method: "GET",
+    data: { numFuncion: "5", clave: clienteId }, // Llamar la función para obtener vendedores
+    success: function (response) {
+      try {
+        const res =
+          typeof response === "string" ? JSON.parse(response) : response;
+
+        if (res.success && Array.isArray(res.data)) {
+          const selectDatosEnvio = $("#selectDatosEnvio");
+          selectDatosEnvio.empty();
+          selectDatosEnvio.append(
+            "<option selected disabled>Seleccione un Dato de Envio</option>"
+          );
+
+          res.data.forEach((dato) => {
+            selectDatosEnvio.append(
+            `<option value="${dato.id}" data-id="${dato.idDocumento}" data-titulo="${dato.tituloEnvio}">
+                ${dato.tituloEnvio}
+              </option>`
+            );
+          });
+
+          // Habilitar el select si hay vendedores disponibles
+          //selectDatosEnvio.prop("disabled", res.data.length === 0);
+        } else {
+          Swal.fire({
+            icon: "warning",
+            title: "Aviso",
+            text: res.message || "No se Encontraron Datos de Envio.",
+          });
+          //$("#selectDatosEnvio").prop("disabled", true);
+        }
+      } catch (error) {
+        console.error("Error al Procesar la Respuesta:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Error al Cargar Datos de Envio.",
+        });
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al Obtener la Lista de Datos.",
+      });
+    },
+  });
+}
+
+function actualizarDatos() {
+  const idDocumento = document.getElementById("idDatos").value;
+  const nombreContacto = document.getElementById("nombreContacto").value;
   $.ajax({
     url: "../Servidor/PHP/clientes.php",
     method: "POST",
-    data: { numFuncion: "5", client: clienteId },
+    data: {
+      numFuncion: "8",
+      idDocumento: idDocumento,
+      nombreContacto: nombreContacto,
+    },
     dataType: "json",
     success: function (envios) {
-      if (envios.success && Array.isArray(envios.data)) {
-        
-        $("#codigoContacto").val(envios.data['0'].CODIGO_ENVIO || "");
-        $("#direccion1Contacto").val(envios.data['0'].CALLE_ENVIO || "");
-        $("#direccion2Contacto").val(envios.data['0'].COLONIA_ENVIO || "");
-        $("#compañiaContacto").val(envios.data['0'].NOMBRECOMERCIAL || "");
-        $("#telefonoContacto").val(envios.data['0'].TELEFONO || "");
-        $("#correoContacto").val(envios.data['0'].EMAILPRED || "");
-        //$("#codigoContacto").val(envios.data.CALLE || "");
+      if (envios.success) {
+        Swal.fire({
+          icon: "succes",
+          title: "Exito",
+          text: "Se Establecieron los Datos de Envio.",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          $("#modalEnvio").modal("hide");
+        });
       } else {
         Swal.fire({
           icon: "warning",
           title: "Aviso",
           text: envios.message || "No se encontraron datos de Envio.",
         });
-        $("#estadoContacto").prop("disabled", true);
       }
     },
     error: function () {
@@ -1412,23 +1454,32 @@ function obtenerDatosEnvio(){
     },
   });
 }
-function guardarDatosEnvio(){
+function guardarDatosEnvio() {
   const clienteId = document.getElementById("cliente").value;
 
   const tituloEnvio = document.getElementById("titutoContacto").value;
   const nombreContacto = document.getElementById("nombreNuevoContacto").value;
   const compañia = document.getElementById("compañiaNuevoContacto").value;
-  const telefonoContacto = document.getElementById("telefonoNuevoContacto").value;
+  const telefonoContacto = document.getElementById(
+    "telefonoNuevoContacto"
+  ).value;
   const correoContacto = document.getElementById("correoNuevoContacto").value;
-  const linea1Contacto = document.getElementById("direccion1NuevoContacto").value;
-  const linea2Contacto = document.getElementById("direccion2NuevoContacto").value;
+  const linea1Contacto = document.getElementById(
+    "direccion1NuevoContacto"
+  ).value;
+  const linea2Contacto = document.getElementById(
+    "direccion2NuevoContacto"
+  ).value;
   const codigoContacto = document.getElementById("codigoNuevoContacto").value;
   const estadoContacto = document.getElementById("estadoNuevoContacto").value;
-  const municipioContacto = document.getElementById("municipioNuevoContacto").value;
+  const municipioContacto = document.getElementById(
+    "municipioNuevoContacto"
+  ).value;
   $.ajax({
     url: "../Servidor/PHP/clientes.php",
     method: "POST",
-    data: { numFuncion: "6",
+    data: {
+      numFuncion: "6",
       clienteId: clienteId,
       tituloEnvio: tituloEnvio,
       nombreContacto: nombreContacto,
@@ -1440,14 +1491,18 @@ function guardarDatosEnvio(){
       codigoContacto: codigoContacto,
       estadoContacto: estadoContacto,
       municipioContacto: municipioContacto,
-     },
+    },
     dataType: "json",
     success: function (envios) {
-      if (envios.success && Array.isArray(envios.data)) {
+      if (envios.success) {
         Swal.fire({
           icon: "succes",
           title: "Exito",
           text: "Se Guardaron los Nuevos Datos de Envio.",
+        }).then(() => {
+          $("#modalNuevoEnvio").modal("hide");
+          mostrarMoldal();
+          //$("#modalEnvio").modal("show");
         });
       } else {
         Swal.fire({
@@ -1475,7 +1530,7 @@ function cerrarModalEnvio() {
   $(".modal-backdrop").removeAttr("inert");
 }
 function cerrarModalNuevoEnvio() {
-  //limpiarFormulario();
+  //limpiarFormularioNuevo();
   $("#modalNuevoEnvio").modal("hide"); // Cierra el modal usando Bootstrap
   // Restaurar el aria-hidden al cerrar el modal
   $("#modalNuevoEnvio").attr("aria-hidden", "true");
@@ -1483,14 +1538,75 @@ function cerrarModalNuevoEnvio() {
   $(".modal-backdrop").removeAttr("inert");
 }
 function mostrarMoldal() {
-  //limpiarFormulario();
-  //obtenerMunicipios();
-  //obtenerDatosEnvio();
+  limpiarFormulario();
+  obtenerEstados();
+  obtenerDatosEnvio();
   $("#modalEnvio").modal("show");
-  /*obtenerEstados();
-  obtenerMunicipios();*/
-  //obtenerEstadosNuevos();
-  //$("#modalNuevoEnvio").modal("show");
+}
+function limpiarFormulario() {
+  $("#idDatos").val("");
+  $("#folioDatos").val("");
+  $("#nombreContacto").val("");
+  $("#compañiaContacto").val("");
+  $("#telefonoContacto").val("");
+  $("#correoContacto").val("");
+  $("#direccion1Contacto").val("");
+  $("#direccion2Contacto").val("");
+  $("#codigoContacto").val(""); // Si es un select, también se debe resetear
+  $("#estadoContacto").val("");
+  $("#municipioContacto").val("");
+}
+function limpiarFormularioNuevo() {
+  $("#titutoContacto").val("");
+  $("#nombreNuevoContacto").val("");
+  $("#compañiaNuevoContacto").val("");
+  $("#telefonoNuevoContacto").val("");
+  $("#correoNuevoContacto").val("");
+  $("#direccion1NuevoContacto").val("");
+  $("#direccion2NuevoContacto").val("");
+  $("#codigoNuevoContacto").val(""); // Si es un select, también se debe resetear
+  $("#estadoNuevoContacto").val("");
+  $("#municipioNuevoContacto").val("");
+}
+function llenarDatosEnvio(idDocumento){
+  //alert(idDocumento);
+  $.post(
+    "../Servidor/PHP/clientes.php",
+    {
+      numFuncion: "7",
+      idDocumento: idDocumento,
+    },
+    function (response) {
+      if (response.success && response.data) {
+        const data = response.data.fields;
+
+        // Verifica la estructura de los datos en el console.log
+        console.log(data);  // Esto te mostrará el objeto completo
+        $("#idDatos").val(idDocumento);
+        $("#folioDatos").val(data.id.integerValue);
+        $("#nombreContacto").val(data.nombreContacto.stringValue);
+        $("#compañiaContacto").val(data.compania.stringValue);
+        $("#telefonoContacto").val(data.telefonoContacto.stringValue);
+        $("#correoContacto").val(data.correoContacto.stringValue);
+        $("#direccion1Contacto").val(data.linea1.stringValue);
+        $("#direccion2Contacto").val(data.linea2.stringValue);
+        $("#codigoContacto").val(data.codigoPostal.stringValue);
+        $("#estadoContacto").val(data.estado.stringValue);
+        const municipio = data.municipio.stringValue;
+        const edo = document.getElementById("estadoContacto"). value
+        obtenerMunicipios(edo, municipio);        
+      } else {
+        console.warn(
+          "Error:",
+          response.message || "Error al Obtener los Datos."
+        );
+        alert(response.message || "Error al Obtener los Datos.");
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Error en la Petición:", textStatus, errorThrown);
+  });
 }
 // // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 // document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
@@ -1657,10 +1773,33 @@ $("#datosEnvio").click(function () {
 });
 $("#nuevosDatosEnvio").click(function () {
   $("#modalEnvio").modal("hide");
+  limpiarFormularioNuevo();
   obtenerEstadosNuevos();
-  //obtenerMunicipiosNuevos();
   $("#modalNuevoEnvio").modal("show");
 });
 $("#estadoNuevoContacto").on("change", function () {
   obtenerMunicipiosNuevos();
+});
+$("#guardarDatosEnvio").click(function () {
+  guardarDatosEnvio();
+});
+$("#actualizarDatos").click(function () {
+  actualizarDatos();
+});
+$("#selectDatosEnvio").on("change", function () {
+  const datosSeleccionado = $(this).find(":selected");
+
+  if (datosSeleccionado.val()) {
+        const idDocumento = datosSeleccionado.data("id");
+        const id = datosSeleccionado.val();
+        const titulo = datosSeleccionado.data("titulo");
+        const claveCliente = datosSeleccionado.val();
+        llenarDatosEnvio(idDocumento);
+  } else{
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Error al Cargar los Datos de Envio.",
+    });
+  }
 });

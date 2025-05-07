@@ -417,12 +417,12 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="form-element">
                                 <label for="numero">Folio:</label>
-                                <input type="text" name="numero" id="numero" readonly>
+                                <input type="text" name="numero" id="numero" readonly tabindex="-1">
                             </div>
                             <div class="form-element">
                                 <label for="fecha">Fecha </label>
                                 <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;"
-                                    readonly1>
+                                    readonly1 tabindex="-1">
                             </div>
 
                             <div class="form-element">
@@ -431,7 +431,7 @@ if (isset($_SESSION['usuario'])) {
                                 <div class="input-container" style="position: relative;">
                                     <div style="display: flex; align-items: center; gap: 5px;">
                                         <input name="cliente" id="cliente" autocomplete="off"
-                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 170px;" tabindex="-1" />
+                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 170px;"  />
                                         <button id="clearInput" type="button" class="btn" onclick="clearAllFields()" tabindex="-1"
                                             style="display: none; padding: 5px 10px;">
                                             <i class="bx bx-x"></i>
@@ -493,7 +493,7 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element">
                                 <label for="entrega">Entrega </label>
                                 <input type="date" name="entrega" id="entrega"
-                                    style="width:180px; align-items: center;" disabled>
+                                    style="width:180px; align-items: center;" disabled tabindex="-1">
 
                             </div>
                             <!--<div class="form-element">
@@ -707,7 +707,15 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <form id="formularioEnvio">
                                 <div class="form-row">
+                                    <label for="">Escoge Tus Datos de Envio: </label>
+                                    <select name="selectDatosEnvio" id="selectDatosEnvio">
+                                        <option selected disabled>Selecciona un Dato</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
                                     <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
+                                    <input type="hidden" name="idDatos" id="idDatos" value="">
+                                    <input type="hidden" name="folioDatos" id="folioDatos" value="">
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
@@ -715,20 +723,20 @@ if (isset($_SESSION['usuario'])) {
                                         <label for="razonSocial">Nombre del Contacto: <a class='bx'> *</a></label>
                                         <input class="input-m" type="text" name="nombreContacto" id="nombreContacto" values="">
                                         <label for="razonSocial">Compañia: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="compañiaContacto" id="compañiaContacto" values="">
+                                        <input class="input-m" type="text" name="compañiaContacto" id="compañiaContacto" values="" disabled>
                                         <label for="razonSocial">Número de Teléfono: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="telefonoContacto" id="telefonoContacto" values="">
+                                        <input class="input-m" type="text" name="telefonoContacto" id="telefonoContacto" values="" disabled>
                                         <label for="razonSocial">Correo Electrónico: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="correoContacto" id="correoContacto" values="">
+                                        <input class="input-m" type="text" name="correoContacto" id="correoContacto" values="" disabled>
                                     </div>
                                     <div class="form-group col-md-6">
                                         <h5>Detalles del Contacto</h5>
                                         <label for="rfc">Línea 1 de la Direccion:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="direccion1Contacto" id="direccion1Contacto" value="">
+                                        <input class="input-m" type="text" name="direccion1Contacto" id="direccion1Contacto" value="" disabled>
                                         <label for="rfc">Línea 2 de la Direccion:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="direccion2Contacto" id="direccion2Contacto" value="">
+                                        <input class="input-m" type="text" name="direccion2Contacto" id="direccion2Contacto" value="" disabled>
                                         <label for="rfc">Codigo Postal:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="codigoContacto" id="codigoContacto" value="">
+                                        <input class="input-m" type="text" name="codigoContacto" id="codigoContacto" value="" disabled>
                                         <label for="regimenFiscal">Estado: <a class='bx'>*</a></label>
                                         <select name="estadoContacto" id="estadoContacto" placeholder="Selecciona opcion" value="" disabled>
                                             <option selected disabled>Selecciona un Estado</option>
@@ -760,8 +768,8 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <form id="formularioNuevoEnvio">
                                 <div class="form-row">
-                                <label for="razonSocial">Titulo de Envio: <a class='bx'> *</a></label>
-                                <input class="input-m" type="text" name="titutoContacto" id="titutoContacto" values="">
+                                    <label for="razonSocial">Titulo de Envio: <a class='bx'> *</a></label>
+                                    <input class="input-m" type="text" name="titutoContacto" id="titutoContacto" values="">
                                     <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
                                 </div>
                                 <div class="form-row">
@@ -792,11 +800,11 @@ if (isset($_SESSION['usuario'])) {
                                         <select name="municipioNuevoContacto" id="municipioNuevoContacto" placeholder="Selecciona opcion" value="" disabled>
                                             <option selected disabled>Selecciona un Municipio</option>
                                         </select>
-                                       
+
                                     </div>
                                 </div>
                                 <div class="form-buttons">
-                                    <button type="submit" class="btn-save" id="guardarDatosEnvio">Guardar</button>
+                                    <button type="button" class="btn-save" id="guardarDatosEnvio">Guardar</button>
                                     <button type="button" class="btn-cancel" id="cerrarModalFooterNuevo">Cancelar</button>
                                 </div>
                             </form>

@@ -6040,6 +6040,7 @@ function obtenerMunicipios($estadoSeleccionado)
     }
 
     $municipio = [];
+
     // Iterar sobre cada <row>
     foreach ($municipios->row as $row) {
         $Estado = (string)$row['Estado'];
