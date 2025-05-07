@@ -1425,7 +1425,6 @@ function guardarDatosEnvio(){
   const codigoContacto = document.getElementById("codigoNuevoContacto").value;
   const estadoContacto = document.getElementById("estadoNuevoContacto").value;
   const municipioContacto = document.getElementById("municipioNuevoContacto").value;
-  
   $.ajax({
     url: "../Servidor/PHP/clientes.php",
     method: "POST",
@@ -1445,16 +1444,17 @@ function guardarDatosEnvio(){
     dataType: "json",
     success: function (envios) {
       if (envios.success && Array.isArray(envios.data)) {
-        
-
-
+        Swal.fire({
+          icon: "succes",
+          title: "Exito",
+          text: "Se Guardaron los Nuevos Datos de Envio.",
+        });
       } else {
         Swal.fire({
           icon: "warning",
           title: "Aviso",
           text: envios.message || "No se encontraron datos de Envio.",
         });
-        $("#estadoContacto").prop("disabled", true);
       }
     },
     error: function () {
@@ -1486,11 +1486,11 @@ function mostrarMoldal() {
   //limpiarFormulario();
   //obtenerMunicipios();
   //obtenerDatosEnvio();
-  //$("#modalEnvio").modal("show");
+  $("#modalEnvio").modal("show");
   /*obtenerEstados();
   obtenerMunicipios();*/
-  obtenerEstadosNuevos();
-  $("#modalNuevoEnvio").modal("show");
+  //obtenerEstadosNuevos();
+  //$("#modalNuevoEnvio").modal("show");
 }
 // // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 // document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
@@ -1654,6 +1654,12 @@ $("#cancelarPedido").click(function () {
 });
 $("#datosEnvio").click(function () {
   mostrarMoldal();
+});
+$("#nuevosDatosEnvio").click(function () {
+  $("#modalEnvio").modal("hide");
+  obtenerEstadosNuevos();
+  //obtenerMunicipiosNuevos();
+  $("#modalNuevoEnvio").modal("show");
 });
 $("#estadoNuevoContacto").on("change", function () {
   obtenerMunicipiosNuevos();

@@ -740,7 +740,8 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                 </div>
                                 <div class="form-buttons">
-                                    <button type="submit" class="btn-save" id="actualizarDatos">Guardar</button>
+                                    <button type="button" class="btn-save" id="actualizarDatos">Guardar</button>
+                                    <button type="button" class="btn-save" id="nuevosDatosEnvio">Crear nuevos Datos de Envio</button>
                                     <button type="button" class="btn-cancel" id="cerrarModalFooter">Cancelar</button>
                                 </div>
                             </form>

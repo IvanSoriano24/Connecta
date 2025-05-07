@@ -309,7 +309,8 @@ function formatearClaveCliente($clave)
     // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
     return str_pad($clave, 10, ' ', STR_PAD_LEFT);
 }
-function obtenerDatosClienteAutoriza($conexionData, $claveSae, $claveUsuario){
+function obtenerDatosClienteAutoriza($conexionData, $claveSae, $claveUsuario)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -451,6 +452,48 @@ function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae)
     //return $clientes;
     echo json_encode(['success' => true, 'data' => $clientes]);
 }
+function guardarDatosEnvio($datosEnvio, $firebaseProjectId, $firebaseApiKey){
+    $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
+
+    $fieldsToSave = [
+        'claveCliente' => ['stringValue' => $datosEnvio['clienteId']],
+        'id' => ['integerValue' => 1],
+        'tituloEnvio' => ['stringValue' => $datosEnvio['tituloEnvio']],
+        'nombreContacto' => ['stringValue' => $datosEnvio['nombreContacto']],
+        'compania' => ['stringValue' => $datosEnvio['compania']],
+        'telefonoContacto' => ['stringValue' => $datosEnvio['telefonoContacto']],
+        'correoContacto' => ['stringValue' => $datosEnvio['correoContacto']],
+        'linea1' => ['stringValue' => $datosEnvio['linea1']],
+        'linea2' => ['stringValue' => $datosEnvio['linea2']],
+        'codigoPostal' => ['stringValue' => $datosEnvio['codigoPostal']],
+        'estado' => ['stringValue' => $datosEnvio['estado']],
+        'municipio' => ['stringValue' => $datosEnvio['municipio']]
+    ];
+    // Construir el payload en formato JSON
+    $payload = json_encode(['fields' => $fieldsToSave]);
+
+    // Configurar las opciones de la solicitud HTTP
+    $options = [
+        'http' => [
+            'header'  => "Content-type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload
+        ]
+    ];
+
+    // Crear el contexto de la solicitud
+    $context  = stream_context_create($options);
+
+    try {
+        $response = file_get_contents($urlBase, false, $context);
+        if ($response === false) {
+            throw new Exception('Error al conectar con Firestore para guardar el documento.');
+        }
+        echo json_encode(['success' => true, 'message' => 'Documento guardado correctamente.']);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -568,6 +611,25 @@ switch ($funcion) {
         $clave = $_POST["client"];
         $claveUsuario = formatearClaveCliente($clave);
         obtenerDatosClienteAutoriza($conexionData, $claveSae, $claveUsuario);
+        break;
+    case 6:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $datosEnvio = [
+            'clienteId'        => $_POST['clienteId']         ?? '',
+            'tituloEnvio'      => $_POST['tituloEnvio']       ?? '',
+            'nombreContacto'   => $_POST['nombreContacto']    ?? '',
+            'compania'         => $_POST['compañia']          ?? '',
+            'telefonoContacto' => $_POST['telefonoContacto']  ?? '',
+            'correoContacto'   => $_POST['correoContacto']    ?? '',
+            'linea1'           => $_POST['linea1Contacto']    ?? '',
+            'linea2'           => $_POST['linea2Contacto']    ?? '',
+            'codigoPostal'     => $_POST['codigoContacto']    ?? '',
+            'estado'           => $_POST['estadoContacto']    ?? '',
+            'municipio'        => $_POST['municipioContacto'] ?? '',
+        ];
+        
+        guardarDatosEnvio($datosEnvio, $firebaseProjectId, $firebaseApiKey);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
