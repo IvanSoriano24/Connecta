@@ -1073,9 +1073,10 @@ if (isset($_SESSION['usuario'])) {
                                     actualizarDestacadoProducto(allItems, highlightedIndex);
 
                                 } else {
-                                    suggestionsListProductos.empty()
+                                    suggestionsListProductos.empty();
+                                    /*suggestionsListProductos.empty()
                                         .append("<li>No se encontraron coincidencias</li>")
-                                        .show();
+                                        .show();*/
                                 }
                             },
 
@@ -1093,15 +1094,15 @@ if (isset($_SESSION['usuario'])) {
                         .closest("tr")
                         .find(".suggestions-list-productos");
                     const items = suggestionsListProductos.find("li");
-
                     // Si presionaron Tab o Enter y NO hay sugerencias, 
                     // evitamos ejecutar la selección
+                    
                     if ((e.key === "Tab" || e.key === "Enter") && items.length === 0) {
                         // Si quieres que NO tabule al siguiente campo:
                         //e.preventDefault();
 
                         // Si quieres que sí tabule, pero sin hacer nada especial, sólo sales:
-                        return;
+                        //return;
                     }
                     //Validacion TAB
                     if (e.key === "ArrowDown") {

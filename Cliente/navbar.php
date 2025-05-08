@@ -102,7 +102,7 @@
         </h6>
     </div>
     <div class="right-section">
-        <a href="Usuarios.php" class="btn btn-secondary">
+        <a href="Usuarios.php" class="btn btn-secondary" tabindex="-1">
             <i class='bx bxs-user'></i> Usuario
         </a>
     </div>
