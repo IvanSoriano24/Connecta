@@ -1414,7 +1414,7 @@ function obtenerDatosEnvio() {
           const selectDatosEnvio = $("#selectDatosEnvio");
           selectDatosEnvio.empty();
           selectDatosEnvio.append(
-            "<option selected disabled>Seleccione un Dato de Envio</option>"
+            "<option selected disabled>Selecciona un Dato</option>"
           );
 
           res.data.forEach((dato) => {

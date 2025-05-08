@@ -2538,18 +2538,18 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
 {
     global $firebaseProjectId, $firebaseApiKey;
 
-    /*actualizarControl($conexionData, $claveSae);
+    actualizarControl($conexionData, $claveSae);
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
     actualizarFolios($conexionData, $claveSae);
     actualizarControl4($conexionData, $claveSae);
     actualizarControl2($conexionData, $claveSae);
     actualizarControl5($conexionData, $claveSae);
-    actualizarInve($conexionData, $pedidoId, $claveSae);*/
+    actualizarInve($conexionData, $pedidoId, $claveSae);
 
     $enlace = validarLotes($conexionData, $pedidoId, $claveSae);
 
-    /*actualizarInve2($conexionData, $pedidoId, $claveSae);
+    actualizarInve2($conexionData, $pedidoId, $claveSae);
     actualizarInve3($conexionData, $pedidoId, $claveSae);
     actualizarInveClaro($conexionData, $pedidoId, $claveSae);
     actualizarInveAmazon($conexionData, $pedidoId, $claveSae);
@@ -2570,9 +2570,9 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae);
     insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
-    actualizarAlerta($conexionData, $claveSae);*/
+    actualizarAlerta($conexionData, $claveSae);
 
-    var_dump($enlace);
+    //var_dump($enlace);
 
     actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace);
 

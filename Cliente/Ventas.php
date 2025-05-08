@@ -172,6 +172,56 @@ session_destroy(); */
             box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
         }
     </style>
+    <style>
+        .pagination {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .pagination button {
+            margin: 0 .25rem;
+            padding: 0.4rem .8rem;
+            border: 1px solid #007bff;
+            background: none;
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background: #007bff;
+            color: #fff;
+        }
+
+        /*******************/
+        .pagination-controls {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-family: Lato, sans-serif;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .cantidad-label {
+            margin: 0;
+        }
+
+        .cantidad-select {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.9rem;
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            background-color: #fff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .cantidad-select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+    </style>
 </head>
 
 <body>
@@ -217,6 +267,24 @@ session_destroy(); */
                     <div class="table-data" id="pedidosActivos">
                         <div class="order">
                             <div class="head">
+                                <tr>
+                                    <td>
+                                        <select id="filtroFecha">
+                                            <option value="Hoy">Hoy</option>
+                                            <option value="Mes">Mes</option>
+                                            <option value="Mes Anterior">Mes Anterior</option>
+                                            <option value="Todos">Todos</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
+                                    <tr>
+                                        <td>
+                                            <select id="filtroVendedor">
+                                            </select>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
                                 <h3></h3>
                                 <div class="input-group">
                                     <i class='bx bx-search search-icon'></i>
@@ -229,24 +297,6 @@ session_destroy(); */
                                 </div>
                                 <!-- <i class='bx bx-filter'></i> -->
                             </div>
-                            <tr>
-                                <td>
-                                    <select id="filtroFecha">
-                                        <option value="Hoy">Hoy</option>
-                                        <option value="Mes">Mes</option>
-                                        <option value="Mes Anterior">Mes Anterior</option>
-                                        <option value="Todos">Todos</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
-                                <!--<tr>
-                                    <td>
-                                        <select id="filtroVendedor">
-                                        </select>
-                                    </td>
-                                </tr> -->
-                            <?php } ?>
                             <table id="pedidos">
                                 <thead>
                                     <tr>
@@ -272,8 +322,18 @@ session_destroy(); */
                                 </tbody>
                             </table>
                             <!-- Botón Mostrar Más -->
-                            <div style="text-align: center; margin-top: 1rem;">
-                                <button id="btnMostrarMas">
+                            <div id="pagination" class="pagination">
+                            </div>
+                            <div class="pagination-controls">
+                                <label for="selectCantidad" class="cantidad-label">Mostrar</label>
+                                <select id="selectCantidad" class="cantidad-select">
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="30">30</option>
+                                </select>
+                                <span class="cantidad-label">por página</span>
+                            </div>
+                            <!--<button id="btnMostrarMas">
                                     <span>
                                         <svg height="24" width="24" viewBox="0 0 24 24"
                                             xmlns="http://www.w3.org/2000/svg">
@@ -282,9 +342,7 @@ session_destroy(); */
                                         </svg>
                                         Mostrar
                                     </span>
-                                </button>
-
-                            </div>
+                                </button>-->
                         </div>
                     </div>
                 </div>
@@ -303,7 +361,7 @@ session_destroy(); */
     <script>
         var tipoUsuario = "<?php echo $tipoUsuario; ?>";
         if (tipoUsuario === "ADMINISTRADOR") {
-            //llenarFiltroVendedor();
+            llenarFiltroVendedor();
         }
     </script>
     <!--<script>
@@ -327,44 +385,47 @@ session_destroy(); */
             cargarPedidos(filtroSeleccionado);
         });*/
         // Evento para el botón "Mostrar más"
-        document.getElementById("btnMostrarMas").addEventListener("click", function() {
-            paginaActual++; // Incrementa la página para cargar más registros
-            datosPedidos(false); // Carga sin limpiar la tabla (se agregan nuevos registros)
+        $("#selectCantidad").on("change", function() {
+            const seleccion = parseInt($(this).val(), 10);
+            registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
+            paginaActual = 1; // volvemos a la primera página
+            datosPedidos(true); // limpia la tabla y carga sólo registrosPorPagina filas
         });
-
-
         // Evento para el cambio del filtro
         document.getElementById("filtroFecha").addEventListener("change", function() {
             localStorage.setItem("filtroSeleccionado", this.value);
             paginaActual = 1; // Reinicia la paginación
-            document.getElementById("btnMostrarMas").style.display = "block"; // Asegura que el botón se muestre
+            //document.getElementById("btnMostrarMas").style.display = "block"; // Asegura que el botón se muestre
             datosPedidos(true); // Carga inicial con nuevo filtro (limpia la tabla)
         });
-
         // Carga inicial cuando el DOM esté listo
         document.addEventListener("DOMContentLoaded", function() {
             paginaActual = 1;
-            document.getElementById("btnMostrarMas").style.display = "block";
+            registrosPorPagina = 10;
+            //document.getElementById("btnMostrarMas").style.display = "block";
             datosPedidos(true);
         });
         // Al cargar la página, se lee el filtro guardado y se carga la información
         document.addEventListener("DOMContentLoaded", function() {
-            let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Activos";
-            let estadoPedido = localStorage.getItem("estadoPedido") || "Todos";
+            let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Hoy";
+            /*filtroGuardado = "Hoy"
+            localStorage.getItem("filtroSeleccionado") = filtroGuardado;*/
+            let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
             // Actualiza el select con el filtro guardado (asegúrate que el elemento exista)
             const filtroSelect = document.getElementById("filtroFecha");
-            if (filtroSelect) {
+            /*if (filtroSelect) {
                 filtroSelect.value = filtroGuardado;
             } else {
                 console.error("No se encontró el elemento select con id 'filtroFecha'");
-            }
+            }*/
+            //console.log("Filtro:  ", filtroSelect.value);
             //let estadoPedido = "Activos";
-            cargarPedidos(filtroGuardado, estadoPedido);
+            cargarPedidos(estadoPedido, filtroGuardado);
             inicializarEventosBotones();
         });
         // Función para cargar los pedidos (la tienes definida) y que recibe el filtro seleccionado
         // Función para renderizar los pedidos en la tabla
-        function mostrarPedidosEnTabla(pedidos) {
+        function mostrarPedidosEnTabla(pedidos, total) {
             const pedidosTable = document.getElementById("datosPedidos");
             if (!pedidosTable) {
                 console.error("No se encontró el elemento con id 'datosPedidos'");
@@ -432,6 +493,7 @@ session_destroy(); */
             });
             // Si tienes función para asignar eventos a los botones, llámala aquí:
             agregarEventosBotones && agregarEventosBotones();
+            buildPagination(total);
         }
     </script>
 </body>

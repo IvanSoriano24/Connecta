@@ -157,9 +157,54 @@ function mostrarSinDatos() {
   row.innerHTML = `<td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td>`;
   pedidosTable.appendChild(row);
 }
+/***********************************************************************/
+function buildPagination(total) {
+  const totalPages = Math.ceil(total / registrosPorPagina);
+  const maxButtons = 5;
+  const $cont = $("#pagination").empty();
 
+  if (totalPages <= 1) return; // nada que paginar
+
+  // Calcula rango de páginas a mostrar
+  let startPage = Math.max(1, paginaActual - Math.floor(maxButtons / 2));
+  let endPage = startPage + maxButtons - 1;
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(1, endPage - maxButtons + 1);
+  }
+
+  // Helper para crear botón
+  function makeBtn(text, page, disabled, active) {
+    return $("<button>")
+      .text(text)
+      .prop("disabled", disabled)
+      .addClass(active ? "active" : "")
+      .on("click", () => {
+        paginaActual = page;
+        datosPedidos(true);
+      });
+  }
+
+  // «Primera»
+  $cont.append(makeBtn("«", 1, paginaActual === 1, false));
+  // «Anterior»
+  $cont.append(makeBtn("‹", paginaActual - 1, paginaActual === 1, false));
+
+  // Botones numéricos
+  for (let i = startPage; i <= endPage; i++) {
+    $cont.append(makeBtn(i, i, false, i === paginaActual));
+  }
+
+  // «Siguiente»
+  $cont.append(
+    makeBtn("›", paginaActual + 1, paginaActual === totalPages, false)
+  );
+  // «Última»
+  $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
+}
+/***********************************************************************/
 // Función para cargar los pedidos con el filtro seleccionado y guardar el filtro en localStorage
-function cargarPedidos(filtroFecha, estadoPedido) {
+function cargarPedidos(estadoPedido, filtroFecha) {
   // Guarda el filtro seleccionado
   localStorage.setItem("filtroSeleccionado", filtroFecha);
   //console.log("Cargando pedidos con filtro:", filtroFecha);
@@ -177,7 +222,9 @@ function cargarPedidos(filtroFecha, estadoPedido) {
       noEmpresa: noEmpresa,
       filtroFecha: filtroFecha,
       estadoPedido: estadoPedido,
-      //filtroVendedor: filtroVendedor,
+      filtroVendedor: filtroVendedor,
+      pagina: paginaActual,
+      porPagina: registrosPorPagina,
     },
     function (response) {
       console.log("Respuesta del servidor:", response);
@@ -186,15 +233,16 @@ function cargarPedidos(filtroFecha, estadoPedido) {
           response = JSON.parse(response);
         }
         if (response && response.success && response.data) {
+          console.log("Datos: ", response);
           let pedidos = response.data;
-          console.log("Pedidos recibidos:", pedidos);
+          //console.log("Pedidos recibidos:", pedidos);
           // Ordenamos los pedidos (de mayor a menor clave)
           pedidos = pedidos.sort((a, b) => {
             const claveA = parseInt(a.Clave, 10) || 0;
             const claveB = parseInt(b.Clave, 10) || 0;
             return claveB - claveA;
           });
-          mostrarPedidosEnTabla(pedidos);
+          mostrarPedidosEnTabla(pedidos, response.total);
         } else {
           console.warn(
             "No se recibieron datos o se devolvió un error:",
@@ -214,7 +262,8 @@ function cargarPedidos(filtroFecha, estadoPedido) {
 
 // Variables globales de paginación
 let paginaActual = 1;
-const registrosPorPagina = 50; // Ajusta según convenga
+//const registrosPorPagina = 5; // Ajusta según convenga
+let registrosPorPagina = 10; // Ajusta según convenga
 
 // Función para cargar los pedidos con paginación.
 // El parámetro "limpiarTabla" indica si se reinicia la tabla (true en carga inicial o al cambiar filtro)
@@ -264,7 +313,7 @@ function datosPedidos(limpiarTabla = true) {
       noEmpresa: noEmpresa,
       filtroFecha: filtroFecha,
       estadoPedido: estadoPedido,
-      //filtroVendedor: filtroVendedor,
+      filtroVendedor: filtroVendedor,
       pagina: paginaActual,
       porPagina: registrosPorPagina,
     },
@@ -377,12 +426,13 @@ function datosPedidos(limpiarTabla = true) {
 
             // Agregar todas las filas de una sola vez
             pedidosTable.appendChild(fragment);
+            buildPagination(response.total);
 
             // Si se retornaron menos registros que el límite, ocultamos el botón "Mostrar más"
             if (pedidos.length < registrosPorPagina) {
-              document.getElementById("btnMostrarMas").style.display = "none";
+              //document.getElementById("btnMostrarMas").style.display = "none";
             } else {
-              document.getElementById("btnMostrarMas").style.display = "block";
+              //document.getElementById("btnMostrarMas").style.display = "block";
             }
 
             // Llama a la función que asigna eventos a los botones, si está definida
@@ -392,7 +442,7 @@ function datosPedidos(limpiarTabla = true) {
           } else {
             // Si no hay datos, limpiar la tabla y mostrar un mensaje
             pedidosTable.innerHTML = `<tr><td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td></tr>`;
-            document.getElementById("btnMostrarMas").style.display = "none";
+            //document.getElementById("btnMostrarMas").style.display = "none";
             console.warn(
               "No se recibieron datos o se devolvió un error:",
               response.message
@@ -734,7 +784,7 @@ function llenarFiltroVendedor() {
           const selectVendedor = $("#filtroVendedor");
           selectVendedor.empty();
           selectVendedor.append(
-            "<option selected disabled>Seleccione un vendedor</option>"
+            "<option value='' selected>Todos</option>"
           );
 
           res.data.forEach((vendedor) => {
@@ -742,18 +792,14 @@ function llenarFiltroVendedor() {
               `<option value="${vendedor.clave}">${vendedor.nombre} || ${vendedor.clave}</option>`
             );
           });
-          console.log(data.data.claveUsuario);
-          // ✅ Ahora obtenemos la clave del vendedor y la seleccionamos correctamente
-          //obtenerClaveVendedor(data.data.claveUsuario);
+          //console.log(data.data.claveUsuario);
         } else {
           Swal.fire({
             icon: "warning",
             title: "Aviso",
             text: res.message || "No se encontraron vendedores.",
           });
-          $("#selectVendedor").prop("disabled", true);
         }
-        //("#selectVendedor").prop("disabled", true);
       } catch (error) {
         console.error("Error al procesar los vendedores:", error);
       }
@@ -768,13 +814,13 @@ function llenarFiltroVendedor() {
   });
 }
 
-/*let filtroVendedor = "";
+let filtroVendedor = "";
 $(document).on("change", "#filtroVendedor", function () {
   filtroVendedor = $(this).val();
   // vuelve a cargar desde página 1
   paginaActual = 1;
   datosPedidos(true);
-});*/
+});
 function inicializarEventosBotones() {
   $(".filtro-rol")
     .off("click")
@@ -783,62 +829,60 @@ function inicializarEventosBotones() {
       $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary"); // Resetear colores de botones
       $(this).removeClass("btn-secondary").addClass("btn-primary"); // Resaltar botón seleccionado
       var filtroSeleccionado = document.getElementById("filtroFecha").value;
-      //localStorage.setItem("estadoPedido", this.value);
-      cargarPedidos(filtroSeleccionado, estadoPedido); // Filtrar la tabla
+      localStorage.setItem("estadoPedido", this.value);
+      cargarPedidos(estadoPedido, filtroSeleccionado); // Filtrar la tabla
     });
 }
 $("#filtroFecha").change(function () {
   let estadoPedido = $(".filtro-rol.btn-primary").data("rol");
   var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
-  cargarPedidos(filtroSeleccionado, estadoPedido); // Llamar la función para cargar los pedidos con el filtro
+  cargarPedidos(estadoPedido, filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
 });
 $("#cancelarPedido").click(function () {
   window.location.href = "Ventas.php";
 });
-function doSearch(){
-  const tableReg = document.getElementById('pedidos');
-  const searchText = document.getElementById('searchTerm').value.toLowerCase();
+function doSearch() {
+  const tableReg = document.getElementById("pedidos");
+  const searchText = document.getElementById("searchTerm").value.toLowerCase();
   let total = 0;
   // Recorremos todas las filas con contenido de la tabla
   for (let i = 1; i < tableReg.rows.length; i++) {
-      // Si el td tiene la clase "noSearch" no se busca en su cntenido
-      if (tableReg.rows[i].classList.contains("noSearch")) {
-          continue;
+    // Si el td tiene la clase "noSearch" no se busca en su cntenido
+    if (tableReg.rows[i].classList.contains("noSearch")) {
+      continue;
+    }
+    let found = false;
+    const cellsOfRow = tableReg.rows[i].getElementsByTagName("td");
+
+    // Recorremos todas las celdas
+    for (let j = 0; j < cellsOfRow.length && !found; j++) {
+      const compareWith = cellsOfRow[j].innerHTML.toLowerCase();
+      // Buscamos el texto en el contenido de la celda
+
+      if (searchText.length == 0 || compareWith.indexOf(searchText) > -1) {
+        found = true;
+        total++;
       }
-      let found = false;
-      const cellsOfRow = tableReg.rows[i].getElementsByTagName('td');
-
-      // Recorremos todas las celdas
-      for (let j = 0; j < cellsOfRow.length && !found; j++) {
-          const compareWith = cellsOfRow[j].innerHTML.toLowerCase();
-          // Buscamos el texto en el contenido de la celda
-
-          if (searchText.length == 0 || compareWith.indexOf(searchText) > -1) {
-              found = true;
-              total++;
-          }
-      }
-      if (found) {
-          tableReg.rows[i].style.display = '';
-
-      } else {
-          // si no ha encontrado ninguna coincidencia, esconde la
-          // fila de la tabla
-          tableReg.rows[i].style.display = 'none';
-
-      }
+    }
+    if (found) {
+      tableReg.rows[i].style.display = "";
+    } else {
+      // si no ha encontrado ninguna coincidencia, esconde la
+      // fila de la tabla
+      tableReg.rows[i].style.display = "none";
+    }
   }
   // mostramos las coincidencias
-  const lastTR=tableReg.rows[tableReg.rows.length-1];
-  const td=lastTR.querySelector("td");
+  const lastTR = tableReg.rows[tableReg.rows.length - 1];
+  const td = lastTR.querySelector("td");
   lastTR.classList.remove("hide", "red");
   if (searchText == "") {
-      lastTR.classList.add("hide");
+    lastTR.classList.add("hide");
   } else if (total) {
-      //td.innerHTML="Se ha encontrado "+total+" coincidencia"+((total>1)?"s":"");
+    //td.innerHTML="Se ha encontrado "+total+" coincidencia"+((total>1)?"s":"");
   } else {
-      lastTR.classList.add("red");
-      //td.innerHTML="No se han encontrado coincidencias";
+    lastTR.classList.add("red");
+    //td.innerHTML="No se han encontrado coincidencias";
   }
 }
 document.addEventListener("DOMContentLoaded", function () {

@@ -695,124 +695,254 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
-                <div id="modalEnvio" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div id="modalEnvio" class="modal fade" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Datos de Envio</h5>
-                                <button type="button" class="btn-close custom-close" data-dismiss="modal" aria-label="Close"
-                                    id="cerrarModalHeader">
-                                    <span aria-hidden="true"></span><!-- &times; -->
-                                </button>
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title">Datos de Envío</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
-                            <form id="formularioEnvio">
-                                <div class="form-row">
-                                    <label for="">Escoge Tus Datos de Envio: </label>
-                                    <select name="selectDatosEnvio" id="selectDatosEnvio">
-                                        <option selected disabled>Selecciona un Dato</option>
-                                    </select>
-                                    &nbsp; &nbsp;
-                                    <i class='bx bxs-add-to-queue'><input type="button" id="nuevosDatosEnvio" value="Nuevos Datos"></i>
-                                    <!--<button type="button" class="btn-save" id="nuevosDatosEnvio">Crear nuevos Datos de Envio</button>-->
-                                </div>
-                                <div class="form-row">
-                                    <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
-                                    <input type="hidden" name="idDatos" id="idDatos" value="">
-                                    <input type="hidden" name="folioDatos" id="folioDatos" value="">
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <h5>Direccion</h5>
-                                        <label for="razonSocial">Nombre del Contacto: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="nombreContacto" id="nombreContacto" values="">
-                                        <label for="razonSocial">Compañia: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="compañiaContacto" id="compañiaContacto" values="" disabled>
-                                        <label for="razonSocial">Número de Teléfono: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="telefonoContacto" id="telefonoContacto" values="" disabled>
-                                        <label for="razonSocial">Correo Electrónico: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="correoContacto" id="correoContacto" values="" disabled>
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <h5>Detalles del Contacto</h5>
-                                        <label for="rfc">Línea 1 de la Direccion:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="direccion1Contacto" id="direccion1Contacto" value="" disabled>
-                                        <label for="rfc">Línea 2 de la Direccion:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="direccion2Contacto" id="direccion2Contacto" value="" disabled>
-                                        <label for="rfc">Codigo Postal:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="codigoContacto" id="codigoContacto" value="" disabled>
-                                        <label for="regimenFiscal">Estado: <a class='bx'>*</a></label>
-                                        <select name="estadoContacto" id="estadoContacto" placeholder="Selecciona opcion" value="" disabled>
-                                            <option selected disabled>Selecciona un Estado</option>
-                                        </select>
-                                        <label for="regimenFiscal">Municipio: <a class='bx'>*</a></label>
-                                        <select name="municipioContacto" id="municipioContacto" placeholder="Selecciona opcion" value="" disabled>
-                                            <option selected disabled>Selecciona un Municipio</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="form-buttons">
-                                    <button type="button" class="btn-save" id="actualizarDatos">Guardar</button>
-                                    <button type="button" class="btn-cancel" id="cerrarModalFooter">Cancelar</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <div id="modalNuevoEnvio" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Crear Datos de Envio</h5>
-                                <button type="button" class="btn-close custom-close" data-dismiss="modal" aria-label="Close"
-                                    id="cerrarModalHeaderNuevo">
-                                    <span aria-hidden="true"></span><!-- &times; -->
-                                </button>
-                            </div>
-                            <form id="formularioNuevoEnvio">
-                                <div class="form-row">
-                                    <label for="razonSocial">Titulo de Envio: <a class='bx'> *</a></label>
-                                    <input class="input-m" type="text" name="titutoContacto" id="titutoContacto" values="">
-                                    <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <h5>Direccion</h5>
-                                        <label for="razonSocial">Nombre del Contacto: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="nombreNuevoContacto" id="nombreNuevoContacto" values="">
-                                        <label for="razonSocial">Compañia: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="compañiaNuevoContacto" id="compañiaNuevoContacto" values="">
-                                        <label for="razonSocial">Número de Teléfono: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="telefonoNuevoContacto" id="telefonoNuevoContacto" values="">
-                                        <label for="razonSocial">Correo Electrónico: <a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="correoNuevoContacto" id="correoNuevoContacto" values="">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <h5>Detalles del Contacto</h5>
-                                        <label for="rfc">Línea 1 de la Direccion:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="direccion1NuevoContacto" id="direccion1NuevoContacto" value="">
-                                        <label for="rfc">Línea 2 de la Direccion:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="direccion2NuevoContacto" id="direccion2NuevoContacto" value="">
-                                        <label for="rfc">Codigo Postal:<a class='bx'> *</a></label>
-                                        <input class="input-m" type="text" name="codigoNuevoContacto" id="codigoNuevoContacto" value="">
-                                        <label for="regimenFiscal">Estado: <a class='bx'>*</a></label>
-                                        <select name="estadoNuevoContacto" id="estadoNuevoContacto" placeholder="Selecciona opcion" value="">
-                                            <option selected disabled>Selecciona un Estado</option>
-                                        </select>
-                                        <label for="regimenFiscal">Municipio: <a class='bx'>*</a></label>
-                                        <select name="municipioNuevoContacto" id="municipioNuevoContacto" placeholder="Selecciona opcion" value="" disabled>
-                                            <option selected disabled>Selecciona un Municipio</option>
-                                        </select>
 
+                            <form id="formularioEnvio" class="px-4 pb-4">
+                                <!-- selector y botón de nuevo dato -->
+                                <div class="row align-items-center mb-3">
+                                    <div class="col-md-8 d-flex align-items-center">
+                                        <label for="selectDatosEnvio" class="me-2 mb-0">Escoge tus datos:</label>
+                                        <select id="selectDatosEnvio" class="form-select w-auto">
+                                            <option selected disabled>Selecciona un Dato</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <button type="button" id="nuevosDatosEnvio" class="btn btn-outline-primary">
+                                            <i class="bx bxs-add-to-queue me-1"></i>Nuevo Dato
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="form-buttons">
-                                    <button type="button" class="btn-save" id="guardarDatosEnvio">Guardar</button>
-                                    <button type="button" class="btn-cancel" id="cerrarModalFooterNuevo">Cancelar</button>
+
+                                <!-- campos ocultos -->
+                                <input type="hidden" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
+                                <input type="hidden" id="idDatos" value="">
+                                <input type="hidden" id="folioDatos" value="">
+
+                                <!-- Sección: Datos de contacto y dirección -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold">Dirección</h6>
+                                        <div class="mb-3">
+                                            <label for="nombreContacto" class="form-label">Nombre del contacto <span class="text-danger">*</span></label>
+                                            <input type="text" id="nombreContacto" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="compañiaContacto" class="form-label">Compañía <span class="text-danger">*</span></label>
+                                            <input type="text" id="compañiaContacto" class="form-control" disabled>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="telefonoContacto" class="form-label">Teléfono <span class="text-danger">*</span></label>
+                                            <input type="tel" id="telefonoContacto" class="form-control" disabled>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="correoContacto" class="form-label">Correo electrónico <span class="text-danger">*</span></label>
+                                            <input type="email" id="correoContacto" class="form-control" disabled>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold">Detalles de la dirección</h6>
+                                        <div class="mb-3">
+                                            <label for="direccion1Contacto" class="form-label">Línea 1 <span class="text-danger">*</span></label>
+                                            <input type="text" id="direccion1Contacto" class="form-control" disabled>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="direccion2Contacto" class="form-label">Línea 2</label>
+                                            <input type="text" id="direccion2Contacto" class="form-control" disabled>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="codigoContacto" class="form-label">Código Postal <span class="text-danger">*</span></label>
+                                            <input type="text" id="codigoContacto" class="form-control" disabled>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>
+                                            <select id="estadoContacto" class="form-select" disabled>
+                                                <option selected disabled>Selecciona un estado</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="municipioContacto" class="form-label">Municipio <span class="text-danger">*</span></label>
+                                            <select id="municipioContacto" class="form-select" disabled>
+                                                <option selected disabled>Selecciona un municipio</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- botones al pie -->
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-primary" id="actualizarDatos">Guardar</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cerrarModalFooter">Cancelar</button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
+
+                <div id="modalNuevoEnvio" class="modal fade" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title">Crear Datos de Envío</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <form id="formularioNuevoEnvio" class="px-4 pb-4">
+
+                                <!-- Título del envío -->
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label for="titutoContacto" class="form-label">
+                                            Título de envío <span class="text-danger">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="titutoContacto"
+                                            class="form-control"
+                                            required>
+                                    </div>
+                                </div>
+
+                                <!-- Datos ocultos -->
+                                <input type="hidden" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
+
+                                <!-- Dirección y datos del contacto -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold">Dirección</h6>
+
+                                        <div class="mb-3">
+                                            <label for="nombreNuevoContacto" class="form-label">
+                                                Nombre del contacto <span class="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="nombreNuevoContacto"
+                                                class="form-control"
+                                                required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="compañiaNuevoContacto" class="form-label">
+                                                Compañía <span class="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="compañiaNuevoContacto"
+                                                class="form-control"
+                                                required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="telefonoNuevoContacto" class="form-label">
+                                                Teléfono <span class="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                id="telefonoNuevoContacto"
+                                                class="form-control"
+                                                required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="correoNuevoContacto" class="form-label">
+                                                Correo electrónico <span class="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="email"
+                                                id="correoNuevoContacto"
+                                                class="form-control"
+                                                required>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold">Detalles de la dirección</h6>
+
+                                        <div class="mb-3">
+                                            <label for="direccion1NuevoContacto" class="form-label">
+                                                Línea 1 <span class="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="direccion1NuevoContacto"
+                                                class="form-control"
+                                                required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="direccion2NuevoContacto" class="form-label">
+                                                Línea 2
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="direccion2NuevoContacto"
+                                                class="form-control">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="codigoNuevoContacto" class="form-label">
+                                                Código Postal <span class="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="codigoNuevoContacto"
+                                                class="form-control"
+                                                required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="estadoNuevoContacto" class="form-label">
+                                                Estado <span class="text-danger">*</span>
+                                            </label>
+                                            <select
+                                                id="estadoNuevoContacto"
+                                                class="form-select"
+                                                required>
+                                                <option selected disabled>Selecciona un estado</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="municipioNuevoContacto" class="form-label">
+                                                Municipio <span class="text-danger">*</span>
+                                            </label>
+                                            <select
+                                                id="municipioNuevoContacto"
+                                                class="form-select"
+                                                required>
+                                                <option selected disabled>Selecciona un municipio</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" id="guardarDatosEnvio" class="btn btn-primary">
+                                        Guardar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                        id="cerrarModalFooterNuevo">
+                                        Cancelar
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- </div> -->
             </main>
             <!-- MAIN -->
