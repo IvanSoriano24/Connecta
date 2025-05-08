@@ -1846,6 +1846,12 @@ $("#cliente").on("keydown", function (e) {
   const clienteSeleccionado =
     sessionStorage.getItem("clienteSeleccionado") === "true";
   if (e.key === "Tab" && !clienteSeleccionado) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Aviso',
+      text: 'No se Puede Avanzar sin Tener un Cliente.',
+  });
+  return;
     e.preventDefault();
   }
 });

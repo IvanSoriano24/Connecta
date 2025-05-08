@@ -278,7 +278,7 @@ function datosPedidos(limpiarTabla = true) {
     "Página:",
     paginaActual
   );
-
+  document.getElementById("filtroFecha").value = filtroFecha;
   const pedidosTable = document.getElementById("datosPedidos");
   if (!pedidosTable) {
     console.error("No se encontró el elemento con id 'datosPedidos'");

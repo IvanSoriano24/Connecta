@@ -1107,8 +1107,7 @@ if (isset($_SESSION['usuario'])) {
                                 'data-cliente'));
                             seleccionarClienteDesdeSugerencia(clienteSeleccionado);
                             suggestionsList.empty().hide();
-                            e
-                                .preventDefault(); // Evitar el comportamiento predeterminado del tabulador
+                            e.preventDefault(); // Evitar el comportamiento predeterminado del tabulador
                         }
                     }
                 });
@@ -1197,7 +1196,7 @@ if (isset($_SESSION['usuario'])) {
                         e.preventDefault();
                         Swal.fire({
                             icon: 'warning',
-                            title: '¡Ups!',
+                            title: 'Aviso',
                             text: 'No se encontraron coincidencias para ese producto.',
                         });
                         return;
