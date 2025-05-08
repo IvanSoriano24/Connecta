@@ -682,8 +682,8 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
 
     $mail = new clsMail();
     //$correoVendedor = "amartinez@grupointerzenda.com"; //Interzenda
-    //$correoVendedor = 'marcos.luna@mdcloud.mx';
-    $correoVendedor = "desarrollo01@mdcloud.mx";
+    $correoVendedor = 'marcos.luna@mdcloud.mx';
+    //$correoVendedor = "desarrollo01@mdcloud.mx";
     $clienteData = obtenerCliente($CVE_CLPV, $conexionData, $claveSae);
     $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".xml";
     $titulo = "MDConnecta";
