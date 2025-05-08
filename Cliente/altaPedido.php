@@ -431,7 +431,7 @@ if (isset($_SESSION['usuario'])) {
                                 <div class="input-container" style="position: relative;">
                                     <div style="display: flex; align-items: center; gap: 5px;">
                                         <input name="cliente" id="cliente" autocomplete="off"
-                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 170px;"  />
+                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 170px;" />
                                         <button id="clearInput" type="button" class="btn" onclick="clearAllFields()" tabindex="-1"
                                             style="display: none; padding: 5px 10px;">
                                             <i class="bx bx-x"></i>
@@ -1005,40 +1005,6 @@ if (isset($_SESSION['usuario'])) {
                                 numFuncion: "16",
                                 clave: claveUsuario,
                             },
-                            /*success: function(response) {
-
-                                try {
-                                    if (typeof response === "string") {
-                                        response = JSON.parse(response);
-                                    }
-                                } catch (e) {
-                                    console.error("Error al parsear la respuesta JSON", e);
-                                    return;
-                                }
-
-                                if (response.success && Array.isArray(response.productos) && response.productos.length > 0) {
-                                    suggestionsListProductos.empty().show();
-                                    suggestionsListProductos.removeClass("d-none"); // 🚨 Asegurar que la lista se muestre
-
-                                    highlightedIndex = -1; // Reiniciar el índice destacado
-
-                                    response.productos.forEach((producto, index) => {
-                                        const listItem = $("<li></li>")
-                                            .text(`${producto.CVE_ART.trim()} - ${producto.DESCR}`)
-                                            .attr("data-index", index)
-                                            .attr("data-producto", JSON.stringify(producto))
-                                            .addClass("suggestion-item")
-                                            .on("click", function() {
-                                                seleccionarProductoDesdeSugerencia($productoInput, producto);
-                                            });
-
-                                        suggestionsListProductos.append(listItem);
-                                    });
-
-                                } else {
-                                    suggestionsListProductos.empty().append("<li>No se encontraron coincidencias</li>").show();
-                                }
-                            },*/
                             success: function(response) {
                                 try {
                                     if (typeof response === "string") {
@@ -1073,10 +1039,10 @@ if (isset($_SESSION['usuario'])) {
                                     actualizarDestacadoProducto(allItems, highlightedIndex);
 
                                 } else {
-                                    suggestionsListProductos.empty();
-                                    /*suggestionsListProductos.empty()
-                                        .append("<li>No se encontraron coincidencias</li>")
-                                        .show();*/
+                                    //suggestionsListProductos.empty();
+                                    suggestionsListProductos.empty()
+                                        .append("<li class='no-match'>No se encontraron coincidencias</li>")
+                                        .show();
                                 }
                             },
 
@@ -1090,37 +1056,50 @@ if (isset($_SESSION['usuario'])) {
                     }
                 });
                 $(document).on("keydown", ".producto", function(e) {
-                    const suggestionsListProductos = $(this)
-                        .closest("tr")
-                        .find(".suggestions-list-productos");
-                    const items = suggestionsListProductos.find("li");
-                    // Si presionaron Tab o Enter y NO hay sugerencias, 
-                    // evitamos ejecutar la selección
-                    
-                    if ((e.key === "Tab" || e.key === "Enter") && items.length === 0) {
-                        // Si quieres que NO tabule al siguiente campo:
-                        //e.preventDefault();
+                    const $input = $(this);
+                    const $suggestions = $input.closest("tr").find(".suggestions-list-productos");
 
-                        // Si quieres que sí tabule, pero sin hacer nada especial, sólo sales:
-                        //return;
+                    // Sólo tomamos los <li> que realmente tienen datos-producto
+                    const items = $suggestions.find("li.suggestion-item");
+
+                    // 1) Si Tab/Enter y NO hay sugerencias reales ⇒ bloquear + alerta
+                    if ((e.key === "Tab" || e.key === "Enter") && items.length === 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '¡Ups!',
+                            text: 'No se encontraron coincidencias para ese producto.',
+                        });
+                        return;
                     }
-                    //Validacion TAB
-                    if (e.key === "ArrowDown") {
+
+                    // 2) Navegar con flechas sólo si hay sugerencias
+                    if (e.key === "ArrowDown" && items.length > 0) {
                         highlightedIndex = (highlightedIndex + 1) % items.length;
                         actualizarDestacadoProducto(items, highlightedIndex);
                         e.preventDefault();
-                    } else if (e.key === "ArrowUp") {
+                    } else if (e.key === "ArrowUp" && items.length > 0) {
                         highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
                         actualizarDestacadoProducto(items, highlightedIndex);
                         e.preventDefault();
-                    } else if (e.key === "Tab" || e.key === "Enter") {
-                        // Aquí entras sólo si sí hay items
+                    }
+
+                    // 3) Si Tab/Enter y SÍ hay sugerencias ⇒ seleccionamos
+                    if ((e.key === "Tab" || e.key === "Enter") && items.length > 0) {
+                        e.preventDefault();
                         const productoSeleccionado = JSON.parse(
                             $(items[highlightedIndex]).attr("data-producto")
                         );
-                        seleccionarProductoDesdeSugerencia($(this), productoSeleccionado);
-                        suggestionsListProductos.empty().hide();
-                        e.preventDefault();
+                        seleccionarProductoDesdeSugerencia($input, productoSeleccionado);
+                        $suggestions.empty().hide();
+
+                        // **Nueva línea**: pasar el foco al input de cantidad de la misma fila
+                        const $cantidadInput = $input.closest("tr").find(".cantidad");
+                        if ($cantidadInput.length) {
+                            $cantidadInput.focus();
+                            // opcional: seleccionar todo el texto existente
+                            $cantidadInput.select();
+                        }
                     }
                 });
 
@@ -1141,7 +1120,6 @@ if (isset($_SESSION['usuario'])) {
                         $('#clientesSugeridos').empty().hide();
                     }
                 });
-
 
                 // Al hacer clic en la X, borrar el valor del input y los demás campos
                 $('#clearInput').on('click', function() {

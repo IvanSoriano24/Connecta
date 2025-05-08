@@ -2538,18 +2538,18 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
 {
     global $firebaseProjectId, $firebaseApiKey;
 
-    actualizarControl($conexionData, $claveSae);
+    /*actualizarControl($conexionData, $claveSae);
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
     actualizarFolios($conexionData, $claveSae);
     actualizarControl4($conexionData, $claveSae);
     actualizarControl2($conexionData, $claveSae);
     actualizarControl5($conexionData, $claveSae);
-    actualizarInve($conexionData, $pedidoId, $claveSae);
+    actualizarInve($conexionData, $pedidoId, $claveSae);*/
 
     $enlace = validarLotes($conexionData, $pedidoId, $claveSae);
 
-    actualizarInve2($conexionData, $pedidoId, $claveSae);
+    /*actualizarInve2($conexionData, $pedidoId, $claveSae);
     actualizarInve3($conexionData, $pedidoId, $claveSae);
     actualizarInveClaro($conexionData, $pedidoId, $claveSae);
     actualizarInveAmazon($conexionData, $pedidoId, $claveSae);
@@ -2570,13 +2570,15 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae);
     insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
-    actualizarAlerta($conexionData, $claveSae);
+    actualizarAlerta($conexionData, $claveSae);*/
+
+    var_dump($enlace);
 
     actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace);
 
     //$cveDoc = '          0000013314';
     //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor); 
-    echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
+    //echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
     //return $cveDoc;
 }
 function conectarDB($conexionData)
@@ -2758,7 +2760,7 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
 
         actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto, $claveSae);
         $enlaceLTPDResultados = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto);
-        //var_dump($enlaceLTPDResultados);
+        var_dump($enlaceLTPDResultados);
     }
 
     sqlsrv_commit($conn);
@@ -2797,7 +2799,7 @@ switch ($funcion) {
         $pedidoId = $_POST['pedidoId'];
 
         $cveDoc = crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor);
-        echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
+        //echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
