@@ -222,6 +222,17 @@ session_destroy(); */
             box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
         }
     </style>
+    <style>
+        #filtroFecha, #filtroVendedor {
+            /* espacio a la izquierda para el icono */
+            padding-left: 2.5rem;
+            /*font-size: 1rem;*/
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            color: #888;
+        }
+    </style>
 </head>
 
 <body>
@@ -267,24 +278,28 @@ session_destroy(); */
                     <div class="table-data" id="pedidosActivos">
                         <div class="order">
                             <div class="head">
-                                <tr>
-                                    <td>
-                                        <select id="filtroFecha">
-                                            <option value="Hoy">Hoy</option>
-                                            <option value="Mes">Mes</option>
-                                            <option value="Mes Anterior">Mes Anterior</option>
-                                            <option value="Todos">Todos</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
+                                <div class="input-group">
                                     <tr>
                                         <td>
-                                            <select id="filtroVendedor">
+                                            <select id="filtroFecha">
+                                                <option value="Hoy">Hoy</option>
+                                                <option value="Mes">Mes</option>
+                                                <option value="Mes Anterior">Mes Anterior</option>
+                                                <option value="Todos">Todos</option>
                                             </select>
                                         </td>
                                     </tr>
-                                <?php } ?>
+                                </div>
+                                <div class="input-group">
+                                    <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
+                                        <tr>
+                                            <td>
+                                                <select id="filtroVendedor">
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                </div>
                                 <h3></h3>
                                 <div class="input-group">
                                     <i class='bx bx-search search-icon'></i>

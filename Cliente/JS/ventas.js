@@ -789,7 +789,7 @@ function llenarFiltroVendedor() {
 
           res.data.forEach((vendedor) => {
             selectVendedor.append(
-              `<option value="${vendedor.clave}">${vendedor.nombre} || ${vendedor.clave}</option>`
+              `<option value="${vendedor.clave}">${vendedor.nombre}</option>`
             );
           });
           //console.log(data.data.claveUsuario);

@@ -208,6 +208,8 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
         }
 
+        $claveVendedor = formatearClaveVendedor($claveVendedor);
+
         $serverName = $conexionData['host'];
         $connectionInfo = [
             "Database" => $conexionData['nombreBase'],
@@ -318,13 +320,6 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
         /*if($estadoPedido == "Vendidos"){
             $clientes = filtrarPedidosVendidos($clientes);
         }*/
-        
-
-        if (empty($clientes)) {
-            echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
-            exit;
-        }
-
         $countSql  = "
             SELECT COUNT(DISTINCT f.CVE_DOC) AS total
             FROM $nombreTabla2 f
@@ -339,6 +334,10 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
         header('Content-Type: application/json; charset=UTF-8');
+        if (empty($clientes)) {
+            echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
+            exit;
+        }
         echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
