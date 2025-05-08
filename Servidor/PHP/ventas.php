@@ -930,7 +930,146 @@ function obtenerDatosCliente($conexionData, $claveCliente, $claveSae)
 
     return $datosCliente;
 }
-function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus)
+function obtenerUltimoDato($conexionData, $claveSae){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    
+    $sql = "
+        SELECT TOP 1 [CVE_INFO] 
+        FROM $nombreTabla
+        ORDER BY [CVE_INFO] DESC
+    ";
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $CVE_INFO = $row ? $row['CVE_INFO'] : null;
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    
+    return $CVE_INFO;
+}
+function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae){
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $claveCliente = $formularioData['cliente'];
+    $datosCliente = obtenerDatosCliente($conexionData, $claveCliente, $claveSae);
+    if (!$datosCliente) {
+        die(json_encode(['success' => false, 'message' => 'No se encontraron datos del cliente']));
+    }
+    // Obtener el número de empresa
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    
+
+    
+    // Extraer los datos del formulario
+    $CVE_INFO = obtenerUltimoDato($conexionData, $claveSae);
+    $CVE_INFO = $CVE_INFO + 1;
+    $CVE_CONS = "";
+    $NOMBRE = $envioData['nombreContacto'];
+    $CALLE = $envioData['direccion1Contacto'];
+    $NUMINT = "";
+    $NUMEXT = "";
+    $CRUZAMIENTOS = "";
+    $CRUZAMIENTOS2 = "";
+    $POB = "";
+    $CURP = "";
+    $REFERDIR = "";
+    $CVE_ZONA = "";
+    $CVE_OBS = "";
+    $STRNOGUIA = "";
+    $STRMODOENV = "";
+    $FECHA_ENV = $envioData['diaAlta'];
+    $NOMBRE_RECEP = "";
+    $NO_RECEP = "";
+    $FECHA_RECEP = "";
+    $COLONIA = "";
+    $CODIGO = $envioData['codigoContacto'];
+    $ESTADO = $envioData['estadoContacto'];
+    $PAIS = "MEXICO";
+    $MUNICIPIO = $envioData['municipioContacto'];
+    $PAQUETERIA = "";
+    $CVE_PED_TIEND = "";
+    $F_ENTREGA = "";
+    $R_FACTURA = "";
+    $R_EVIDENCIA = "";
+    $ID_GUIA = "";
+    $FAC_ENV = "";
+    $GUIA_ENV = "";
+    $REG_FISC = "";
+    $CVE_PAIS_SAT = "";
+    $FEEDDOCUMENT_GUIA = "";
+    // Crear la consulta SQL para insertar los datos en la base de datos
+    $sql = "INSERT INTO $nombreTabla
+    (CVE_INFO, CVE_CONS, NOMBRE, CALLE, NUMINT, NUMEXT,
+    CRUZAMIENTOS, CRUZAMIENTOS2, POB, CURP, REFERDIR, CVE_ZONA, CVE_OBS,
+    STRNOGUIA, STRMODOENV, FECHA_ENV, NOMBRE_RECEP, NO_RECEP,
+    FECHA_RECEP, COLONIA, CODIGO, ESTADO, PAIS, MUNICIPIO,
+    PAQUETERIA, CVE_PED_TIEND, F_ENTREGA, R_FACTURA, R_EVIDENCIA,
+    ID_GUIA, FAC_ENV, GUIA_ENV, REG_FISC,
+    CVE_PAIS_SAT, FEEDDOCUMENT_GUIA)
+    VALUES 
+    (?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?, ?,
+    ?, ?)";
+    // Preparar los parámetros para la consulta
+    $params = [
+    $CVE_INFO, $CVE_CONS, $NOMBRE, $CALLE, $NUMINT, $NUMEXT,
+    $CRUZAMIENTOS, $CRUZAMIENTOS2, $POB, $CURP, $REFERDIR, $CVE_ZONA, $CVE_OBS,
+    $STRNOGUIA, $STRMODOENV, $FECHA_ENV, $NOMBRE_RECEP, $NO_RECEP,
+    $FECHA_RECEP, $COLONIA, $CODIGO, $ESTADO, $PAIS, $MUNICIPIO,
+    $PAQUETERIA, $CVE_PED_TIEND, $F_ENTREGA, $R_FACTURA, $R_EVIDENCIA,
+    $ID_GUIA, $FAC_ENV, $GUIA_ENV, $REG_FISC,
+    $CVE_PAIS_SAT, $FEEDDOCUMENT_GUIA
+    ];
+    // Ejecutar la consulta
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar los datos de envio',
+            'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
+        ]));
+    } 
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    return $CVE_INFO;
+}
+function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
 {
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
@@ -1017,8 +1156,6 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $NUM_ALMA = $formularioData['almacen'];
     $FORMAENVIO = 'C';
     $COM_TOT = $formularioData['comision'];
-    //$DAT_ENVIO = $formularioData['enviar']; 
-    $DAT_ENVIO = 1;
     $CVE_OBS = $datosCliente['CVE_OBS'];
     $CVE_BITA = $datosCliente['CVE_BITA'];
     //$COM_TOT_PORC = $datosCliente['COM_TOT_PORC']; //VENDEDOR
@@ -3227,7 +3364,6 @@ function guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $cl
     $NUM_ALMA = $formularioData['almacen'];
     $FORMAENVIO = 'C';
     $COM_TOT = $formularioData['comision'];
-    //$DAT_ENVIO = $formularioData['enviar']; 
     $DAT_ENVIO = 1;
     $CVE_OBS = $datosCliente['CVE_OBS'];
     $CVE_BITA = $datosCliente['CVE_BITA'];
@@ -6273,7 +6409,7 @@ switch ($funcion) {
                 echo json_encode($conexionResult);
                 break;
             }
-
+            $envioData = json_decode($_POST['envio'], true);
             $partidasData = json_decode($_POST['partidas'], true); // Datos de las partidas desde JS
             $conexionData = $conexionResult['data'];
             $tipoOperacion = $formularioData['tipoOperacion']; // 'alta' o 'editar'
@@ -6291,6 +6427,8 @@ switch ($funcion) {
                     $totalPedido = calcularTotalPedido($partidasData);
                     $clienteId = $formularioData['cliente'];
                     $clave = formatearClaveCliente($clienteId);
+
+                    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae);
 
                     if ($conCredito === 'S') {
                         // Validar crédito del cliente
@@ -6312,7 +6450,7 @@ switch ($funcion) {
                         $estatus = "E";
                         $validarSaldo = 0;
                         $credito = 0;
-                        guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                        guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
@@ -6353,7 +6491,7 @@ switch ($funcion) {
                         if ($anticipo['success']) {
                             //Funcion para eliminar anticipo
                             $estatus = 'E';
-                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             actualizarFolio($conexionData, $claveSae);
@@ -6375,7 +6513,7 @@ switch ($funcion) {
                         } elseif ($anticipo['sinFondo']) {
                             //No tiene fondos
                             $estatus = 'C';
-                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus);
+                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);

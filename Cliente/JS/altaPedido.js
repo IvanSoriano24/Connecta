@@ -496,6 +496,9 @@ function guardarPedido(id) {
     const formularioData = obtenerDatosFormulario();
     console.log("Datos del formulario obtenidos:", formularioData);
 
+    const envioData = extraerDatosEnvio();
+    console.log("Datos de envio obtenidos:", envioData);
+
     const partidasData = obtenerDatosPartidas();
     console.log("Datos de partidas obtenidos:", partidasData);
 
@@ -504,7 +507,7 @@ function guardarPedido(id) {
     console.log("Datos preparados para enviar:", formularioData, partidasData);
 
     // Enviar los datos al backend
-    enviarDatosBackend(formularioData, partidasData);
+    enviarDatosBackend(formularioData, partidasData, envioData);
   } catch (error) {
     console.error("Error en guardarPedido:", error);
   }
@@ -593,6 +596,40 @@ function obtenerDatosFormulario() {
   };
   return formularioData;
 }
+function extraerDatosEnvio(){
+  const now = new Date(); // Obtiene la fecha y hora actual
+  const fechaActual = `${now.getFullYear()}-${String(
+    now.getMonth() + 1
+  ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
+    now.getHours()
+  ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
+    now.getSeconds()
+  ).padStart(2, "0")}`;
+  const diaAlta =
+    new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";
+  //const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DD
+  //alert(fechaActual);
+  // Si el usuario ha ingresado una fecha, se usa esa, de lo contrario, se usa la fecha actual
+  //const entrega = campoEntrega ? campoEntrega : fechaActual;
+  //const diaAlta = document.getElementById("diaAlta").value; // Fecha y hora
+  const envioData = {
+    //claveVendedor: document.getElementById("vendedor").value,
+    claveVendedor: "1",
+    nombreContacto: document.getElementById("nombreContacto").value,
+    compañiaContacto: document.getElementById("compañiaContacto").value,
+    diaAlta: diaAlta, // Fecha y hora
+    fechaAlta: fechaActual, // Fecha y hora
+    telefonoContacto: document.getElementById("telefonoContacto").value,
+    correoContacto: document.getElementById("correoContacto").value,
+    direccion1Contacto: document.getElementById("direccion1Contacto").value,
+    direccion2Contacto: document.getElementById("direccion2Contacto").value,
+    codigoContacto: document.getElementById("codigoContacto").value,
+
+    estadoContacto: $("#estadoContacto option:selected").data("descripcion"),
+    municipioContacto: $("#municipioContacto option:selected").data("descripcion"),
+  };
+  return envioData;
+}
 function obtenerDatosPartidas() {
   // Aquí obtienes las partidas de la tabla
   const partidasData = [];
@@ -617,11 +654,12 @@ function obtenerDatosPartidas() {
   });
   return partidasData;
 }
-function enviarDatosBackend(formularioData, partidasData) {
+function enviarDatosBackend(formularioData, partidasData, envioData) {
   const formData = new FormData();
   formData.append("numFuncion", "8");
   formData.append("formulario", JSON.stringify(formularioData));
   formData.append("partidas", JSON.stringify(partidasData));
+  formData.append("envio", JSON.stringify(envioData));
 
   fetch("../Servidor/PHP/ventas.php", {
     method: "POST",
@@ -1149,7 +1187,8 @@ function obtenerEstados() {
         resEstado.data.forEach((estado) => {
           $estadoNuevoContacto.append(
             `<option value="${estado.Clave}" 
-                data-Pais="${estado.Pais}">
+                data-Pais="${estado.Pais}"
+                data-Descripcion="${estado.Descripcion}">
                 ${estado.Descripcion}
               </option>`
           );
@@ -1192,7 +1231,7 @@ function obtenerMunicipios(edo, municipio) {
           $municipioNuevoContacto.append(
             `<option value="${municipio.Clave}" 
                 data-estado="${municipio.Estado}"
-                data-descripcion="${municipio.Descripcion || ""}">
+                data-Descripcion="${municipio.Descripcion || ""}">
                 ${municipio.Descripcion}
               </option>`
           );
@@ -1380,7 +1419,7 @@ function obtenerDatosEnvio() {
 
           res.data.forEach((dato) => {
             selectDatosEnvio.append(
-            `<option value="${dato.id}" data-id="${dato.idDocumento}" data-titulo="${dato.tituloEnvio}">
+              `<option value="${dato.id}" data-id="${dato.idDocumento}" data-titulo="${dato.tituloEnvio}">
                 ${dato.tituloEnvio}
               </option>`
             );
@@ -1568,7 +1607,7 @@ function limpiarFormularioNuevo() {
   $("#estadoNuevoContacto").val("");
   $("#municipioNuevoContacto").val("");
 }
-function llenarDatosEnvio(idDocumento){
+function llenarDatosEnvio(idDocumento) {
   //alert(idDocumento);
   $.post(
     "../Servidor/PHP/clientes.php",
@@ -1581,7 +1620,7 @@ function llenarDatosEnvio(idDocumento){
         const data = response.data.fields;
 
         // Verifica la estructura de los datos en el console.log
-        console.log(data);  // Esto te mostrará el objeto completo
+        console.log(data); // Esto te mostrará el objeto completo
         $("#idDatos").val(idDocumento);
         $("#folioDatos").val(data.id.integerValue);
         $("#nombreContacto").val(data.nombreContacto.stringValue);
@@ -1593,8 +1632,8 @@ function llenarDatosEnvio(idDocumento){
         $("#codigoContacto").val(data.codigoPostal.stringValue);
         $("#estadoContacto").val(data.estado.stringValue);
         const municipio = data.municipio.stringValue;
-        const edo = document.getElementById("estadoContacto"). value
-        obtenerMunicipios(edo, municipio);        
+        const edo = document.getElementById("estadoContacto").value;
+        obtenerMunicipios(edo, municipio);
       } else {
         console.warn(
           "Error:",
@@ -1790,16 +1829,23 @@ $("#selectDatosEnvio").on("change", function () {
   const datosSeleccionado = $(this).find(":selected");
 
   if (datosSeleccionado.val()) {
-        const idDocumento = datosSeleccionado.data("id");
-        const id = datosSeleccionado.val();
-        const titulo = datosSeleccionado.data("titulo");
-        const claveCliente = datosSeleccionado.val();
-        llenarDatosEnvio(idDocumento);
-  } else{
+    const idDocumento = datosSeleccionado.data("id");
+    const id = datosSeleccionado.val();
+    const titulo = datosSeleccionado.data("titulo");
+    const claveCliente = datosSeleccionado.val();
+    llenarDatosEnvio(idDocumento);
+  } else {
     Swal.fire({
       icon: "error",
       title: "Error",
       text: "Error al Cargar los Datos de Envio.",
     });
+  }
+});
+$("#cliente").on("keydown", function (e) {
+  const clienteSeleccionado =
+    sessionStorage.getItem("clienteSeleccionado") === "true";
+  if (e.key === "Tab" && !clienteSeleccionado) {
+    e.preventDefault();
   }
 });

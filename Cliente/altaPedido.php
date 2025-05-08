@@ -711,6 +711,9 @@ if (isset($_SESSION['usuario'])) {
                                     <select name="selectDatosEnvio" id="selectDatosEnvio">
                                         <option selected disabled>Selecciona un Dato</option>
                                     </select>
+                                    &nbsp; &nbsp;
+                                    <i class='bx bxs-add-to-queue'><input type="button" id="nuevosDatosEnvio" value="Nuevos Datos"></i>
+                                    <!--<button type="button" class="btn-save" id="nuevosDatosEnvio">Crear nuevos Datos de Envio</button>-->
                                 </div>
                                 <div class="form-row">
                                     <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
@@ -749,7 +752,6 @@ if (isset($_SESSION['usuario'])) {
                                 </div>
                                 <div class="form-buttons">
                                     <button type="button" class="btn-save" id="actualizarDatos">Guardar</button>
-                                    <button type="button" class="btn-save" id="nuevosDatosEnvio">Crear nuevos Datos de Envio</button>
                                     <button type="button" class="btn-cancel" id="cerrarModalFooter">Cancelar</button>
                                 </div>
                             </form>

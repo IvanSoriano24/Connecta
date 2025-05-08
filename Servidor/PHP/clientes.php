@@ -357,7 +357,7 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
         echo json_encode(['success' => true, 'data' => $datos]);
         exit();
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron vendedores activos.']);
+        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes activos.']);
     }
 }
 function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae)

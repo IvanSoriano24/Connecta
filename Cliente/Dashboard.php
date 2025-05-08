@@ -101,9 +101,6 @@ if (isset($_SESSION['usuario'])) {
 					<button type="button" class="btn btn-danger" id="cerrarSesionModal">Cerrar Sesion</button>
 					
 					<button type="button" class="btn btn-secondary" id="confirmarEmpresa">Confirmar</button>
-					<?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
-					<button type="button" class="btn btn-primary txt" id="guardarNuevaEmpresa">Crear Empresa</button>
-					<?php } ?>
 				</div>
 			</div>
 		</div>
