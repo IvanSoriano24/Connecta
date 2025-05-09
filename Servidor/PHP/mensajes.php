@@ -726,12 +726,14 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
 
     /*$emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773750925';*/
-    $emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';
+    /*$emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
     //$emailPred = "";
     //$numeroWhatsApp = "";
+$emailPred = $_SESSION['usuario']['correo'];
+    $numeroWhatsApp = $_SESSION['usuario']['telefono'];
 
     if ($emailPred === "") {
         $correoBandera = 1;
@@ -1048,7 +1050,7 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
     $numero = $telefonoVendedor ?? 'No disponible';
     //$numero = '+527772127123'; // Interzenda
     //$numero = '+527773750925';
-    $numero = '+527775681612';
+    //$numero = '+527775681612';
 
     $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";
 

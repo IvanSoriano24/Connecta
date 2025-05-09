@@ -451,6 +451,52 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $numeroWhatsApp = '+527775681612';
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123'; // Interzenda*/
+
+    /******************************************/
+    $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+    // Consultar Firebase para obtener los datos del vendedor
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+
+    $response = @file_get_contents($firebaseUrl, false, $context);
+    if ($response === false) {
+        echo "<div class='container'>
+                        <div class='title'>Error al Obtener Información</div>
+                        <div class='message'>No se pudo obtener la información del vendedor.</div>
+                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
+                      </div>";
+        exit;
+    }
+
+    $usuariosData = json_decode($response, true);
+
+    //var_dump($usuariosData);
+    $telefonoVendedor = "";
+    // Buscar al vendedor por clave
+    if (isset($usuariosData['documents'])) {
+        foreach ($usuariosData['documents'] as $document) {
+            $fields = $document['fields'];
+            //var_dump($document['fields']);
+            if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $CVE_VEND) {
+                    if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                        $telefonoVendedor = $fields['telefono']['stringValue'];
+                        $correoVendedor = $fields['correo']['stringValue'];
+                        $nombreVendedor = $fields['nombre']['stringValue'];
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    /******************************************/
+    $emailPred = $correoVendedor;
+    $numeroWhatsApp = $telefonoVendedor;
     if ($correo === 'S' && !empty($emailPred)) {
         $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . urldecode($folioFactura) . ".pdf";
@@ -682,7 +728,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
 
     $mail = new clsMail();
     //$correoVendedor = "amartinez@grupointerzenda.com"; //Interzenda
-    $correoVendedor = 'marcos.luna@mdcloud.mx';
+    //$correoVendedor = 'marcos.luna@mdcloud.mx';
     //$correoVendedor = "desarrollo01@mdcloud.mx";
     $clienteData = obtenerCliente($CVE_CLPV, $conexionData, $claveSae);
     $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".xml";

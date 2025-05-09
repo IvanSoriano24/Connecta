@@ -25,7 +25,13 @@ function cargarProductosDash(limpiarTabla = true) {
       if (response.success) {
         mostrarProductosEnTabla(response.productos, response.total, limpiarTabla);
       } else {
-        alert("Error desde el servidor: " + response.message);
+        Swal.fire({
+            title: "Aviso",
+            text: "Error desde el servidor: " + response.message,
+            icon: "warning",
+            confirmButtonText: "Entendido",
+          });
+        //alert("Error desde el servidor: " + response.message);
       }
     } else {
       alert("Error HTTP: " + xhr.status);

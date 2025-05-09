@@ -355,7 +355,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             }
             //$telefonoVendedor = '+527772127123'; // Interzenda
             //$telefonoVendedor = '+527773750925';
-            $telefonoVendedor = '+527775681612';
+            //$telefonoVendedor = '+527775681612';
             if (!$telefonoVendedor) {
                 /*echo "<div class='container'>
                         <div class='title'>Error al Encontrar Vendedor</div>
