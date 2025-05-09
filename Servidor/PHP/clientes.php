@@ -177,7 +177,7 @@ function mostrarClientes($conexionData, $claveSae)
         }
         $countSql  = "
             SELECT COUNT(DISTINCT CLAVE) AS total
-            FROM $nombreTabla
+            FROM $nombreTabla WHERE STATUS = 'A'
         ";
         $countStmt = sqlsrv_query($conn, $countSql);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);

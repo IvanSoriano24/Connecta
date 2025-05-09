@@ -376,9 +376,12 @@ function makeBtn(text, page, disabled, active) {
 }
 // 2) Ahora buildPagination puede usar makeBtn sin problema
 function buildPagination(total) {
+    console.log("total : ", total);
+    console.log("registrosPorPagina : ", registrosPorPagina);
   const totalPages = Math.ceil(total / registrosPorPagina);
   const maxButtons = 5;
-  const $cont       = $("#pagination").empty();
+  const $cont = $("#pagination").empty();
+  console.log("totalPages: ", totalPages);
 
   if (totalPages <= 1) return;
 
@@ -401,6 +404,8 @@ function buildPagination(total) {
   // Flechas «Siguiente» y «Última»
   $cont.append(makeBtn("›", paginaActual + 1, paginaActual === totalPages, false));
   $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
+
+  console.log("paginaActual: ", paginaActual);
 }
 
 $(document).ready(function () {

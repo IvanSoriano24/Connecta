@@ -326,6 +326,11 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             LEFT JOIN $nombreTabla c ON c.CLAVE    = f.CVE_CLPV
             LEFT JOIN $nombreTabla3 v ON v.CVE_VEND = f.CVE_VEND
         ";
+         if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
+            $countSql .= "WHERE f.STATUS IN ('E','O')";
+        } else {
+            $countSql .= "WHERE f.STATUS IN ('C')";
+        }
         $countStmt = sqlsrv_query($conn, $countSql, $params);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
@@ -2906,6 +2911,7 @@ function extraerProductos($conexionData, $claveSae)
     $countSql  = "
             SELECT COUNT(DISTINCT f.CVE_ART) AS total
             FROM $nombreTabla f
+            WHERE f.[EXIST] > 0
         ";
         $countStmt = sqlsrv_query($conn, $countSql);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
