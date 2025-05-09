@@ -1,116 +1,166 @@
 const token = document.getElementById("csrf_token").value;
-function cargarProductosDash() {
-  const numFuncion = 11; // Identificador del caso en PHP
+let paginaActual = 1;
+//const registrosPorPagina = 5; // Ajusta según convenga
+let registrosPorPagina = 10;
+
+function cargarProductosDash(limpiarTabla = true) {
   const xhr = new XMLHttpRequest();
   xhr.open(
     "GET",
-    "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion + "&token=" + token,
+    "../Servidor/PHP/ventas.php"
+    + "?numFuncion=11"
+    + "&token="     + encodeURIComponent(token)
+    + "&pagina="    + paginaActual
+    + "&porPagina=" + registrosPorPagina,
     true
   );
-  xhr.setRequestHeader("Content-Type", "application/json");
   xhr.onload = function () {
     if (xhr.status === 200) {
+      let response;
       try {
-        const response = JSON.parse(xhr.responseText);
-        if (response.success) {
-          mostrarProductosEnTabla(response.productos);
-        } else {
-          alert("Error desde el servidor: " + response.message);
-        }
-      } catch (error) {
-        alert("Error al analizar JSON: " + error.message);
+        response = JSON.parse(xhr.responseText);
+      } catch (e) {
+        return alert("JSON inválido: " + e.message);
+      }
+      if (response.success) {
+        mostrarProductosEnTabla(response.productos, response.total, limpiarTabla);
+      } else {
+        alert("Error desde el servidor: " + response.message);
       }
     } else {
-      alert("Error en la respuesta HTTP: " + xhr.status);
+      alert("Error HTTP: " + xhr.status);
     }
   };
-
-  xhr.onerror = function () {
-    alert("Hubo un problema con la conexión.");
-  };
-
+  xhr.onerror = () => alert("Error de conexión");
   xhr.send();
 }
-function mostrarProductosEnTabla(productos) {
-  const tbody = document.querySelector("#datosProductos");
+function mostrarProductosEnTabla(productos, total, limpiarTabla) {
+  const $tbody = $("#datosProductos");
+  if (limpiarTabla) {
+    $tbody.empty();
+  }
 
-  if (!tbody) {
-    console.error("Error: No se encontró la tabla para los productos.");
+  if (!productos || productos.length === 0) {
+    $tbody.html(
+      `<tr>
+         <td colspan="3" class="text-center text-muted">
+           No hay productos disponibles.
+         </td>
+       </tr>`
+    );
+    $("#pagination").empty();
     return;
   }
 
-  tbody.innerHTML = ""; // Limpiar la tabla antes de agregar productos
-
-  if (!Array.isArray(productos) || productos.length === 0) {
-    tbody.innerHTML =
-      "<tr><td colspan='4' class='text-center text-muted'>No hay productos disponibles.</td></tr>";
-    return;
-  }
-
-  productos.forEach((producto) => {
-    let existenciaReal = producto.EXIST - producto.APART; // Se usa `let` en lugar de `const`
-
-    const fila = document.createElement("tr");
-    if (existenciaReal > 0) {
-      //console.log(Intl.NumberFormat().format(existenciaReal));
-      fila.innerHTML = `
-            <td>${producto.CVE_ART}</td>
-            <td>${producto.DESCR}</td>
-            <td class="text-end">${Intl.NumberFormat().format(
-              existenciaReal
-            )}</td>
-        `;
-      tbody.appendChild(fila);
-    } //<td class="text-end">${new Intl.NumberFormat().format(existenciaReal)}</td>
+  // Rellenar filas
+  productos.forEach(prod => {
+    const existencia = prod.EXIST - prod.APART;
+    const fila = `
+      <tr>
+        <td>${prod.CVE_ART}</td>
+        <td>${prod.DESCR}</td>
+        <td class="text-end">${Intl.NumberFormat().format(existencia)}</td>
+      </tr>
+    `;
+    $tbody.append(fila);
   });
+
+  // Construir la paginación UNA SOLA VEZ
+  buildPagination(total);
 }
-function doSearch(){
-    const tableReg = document.getElementById('producto');
-    const searchText = document.getElementById('searchTerm').value.toLowerCase();
-    let total = 0;
-    // Recorremos todas las filas con contenido de la tabla
-    for (let i = 1; i < tableReg.rows.length; i++) {
-        // Si el td tiene la clase "noSearch" no se busca en su cntenido
-        if (tableReg.rows[i].classList.contains("noSearch")) {
-            continue;
-        }
-        let found = false;
-        const cellsOfRow = tableReg.rows[i].getElementsByTagName('td');
+function buildPagination(total) {
+  const totalPages = Math.ceil(total / registrosPorPagina);
+  const maxButtons = 5;
+  const $cont = $("#pagination").empty();
 
-        // Recorremos todas las celdas
-        for (let j = 0; j < cellsOfRow.length && !found; j++) {
-            const compareWith = cellsOfRow[j].innerHTML.toLowerCase();
-            // Buscamos el texto en el contenido de la celda
+  if (totalPages <= 1) return;
 
-            if (searchText.length == 0 || compareWith.indexOf(searchText) > -1) {
-                found = true;
-                total++;
-            }
-        }
-        if (found) {
-            tableReg.rows[i].style.display = '';
+  let start = Math.max(1, paginaActual - Math.floor(maxButtons / 2));
+  let end   = start + maxButtons - 1;
+  if (end > totalPages) {
+    end   = totalPages;
+    start = Math.max(1, end - maxButtons + 1);
+  }
 
-        } else {
-            // si no ha encontrado ninguna coincidencia, esconde la
-            // fila de la tabla
-            tableReg.rows[i].style.display = 'none';
+  const makeBtn = (txt, page, disabled, active) =>
+    $("<button>")
+      .text(txt)
+      .prop("disabled", disabled)
+      .toggleClass("active", active)
+      .on("click", () => {
+        paginaActual = page;
+        cargarProductosDash(true);
+      });
 
-        }
+  // Flechas First / Prev
+  $cont.append(makeBtn("«", 1, paginaActual === 1, false));
+  $cont.append(makeBtn("‹", paginaActual - 1, paginaActual === 1, false));
+
+  // Botones de página
+  for (let i = start; i <= end; i++) {
+    $cont.append(makeBtn(i, i, false, i === paginaActual));
+  }
+
+  // Flechas Next / Last
+  $cont.append(makeBtn("›", paginaActual + 1, paginaActual === totalPages, false));
+  $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
+}
+function doSearch() {
+  const tableReg = document.getElementById("producto");
+  const searchText = document.getElementById("searchTerm").value.toLowerCase();
+  let total = 0;
+  // Recorremos todas las filas con contenido de la tabla
+  for (let i = 1; i < tableReg.rows.length; i++) {
+    // Si el td tiene la clase "noSearch" no se busca en su cntenido
+    if (tableReg.rows[i].classList.contains("noSearch")) {
+      continue;
     }
-    // mostramos las coincidencias
-    const lastTR=tableReg.rows[tableReg.rows.length-1];
-    const td=lastTR.querySelector("td");
-    lastTR.classList.remove("hide", "red");
-    if (searchText == "") {
-        lastTR.classList.add("hide");
-    } else if (total) {
-        //td.innerHTML="Se ha encontrado "+total+" coincidencia"+((total>1)?"s":"");
+    let found = false;
+    const cellsOfRow = tableReg.rows[i].getElementsByTagName("td");
+
+    // Recorremos todas las celdas
+    for (let j = 0; j < cellsOfRow.length && !found; j++) {
+      const compareWith = cellsOfRow[j].innerHTML.toLowerCase();
+      // Buscamos el texto en el contenido de la celda
+
+      if (searchText.length == 0 || compareWith.indexOf(searchText) > -1) {
+        found = true;
+        total++;
+      }
+    }
+    if (found) {
+      tableReg.rows[i].style.display = "";
     } else {
-        lastTR.classList.add("red");
-        //td.innerHTML="No se han encontrado coincidencias";
+      // si no ha encontrado ninguna coincidencia, esconde la
+      // fila de la tabla
+      tableReg.rows[i].style.display = "none";
     }
+  }
+  // mostramos las coincidencias
+  const lastTR = tableReg.rows[tableReg.rows.length - 1];
+  const td = lastTR.querySelector("td");
+  lastTR.classList.remove("hide", "red");
+  if (searchText == "") {
+    lastTR.classList.add("hide");
+  } else if (total) {
+    //td.innerHTML="Se ha encontrado "+total+" coincidencia"+((total>1)?"s":"");
+  } else {
+    lastTR.classList.add("red");
+    //td.innerHTML="No se han encontrado coincidencias";
+  }
 }
+
+$("#selectCantidad").on("change", function () {
+  const seleccion = parseInt($(this).val(), 10);
+  registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
+  paginaActual = 1; // volvemos a la primera página
+  cargarProductosDash(true); // limpia la tabla y carga sólo registrosPorPagina filas
+});
 // Llamar a la función cuando cargue la página
 document.addEventListener("DOMContentLoaded", () => {
-  cargarProductosDash();
+  // Variables globales de paginación
+  paginaActual = 1;
+  //const registrosPorPagina = 5; // Ajusta según convenga
+  registrosPorPagina = 10; // Ajusta según convenga
+  cargarProductosDash(true);
 });

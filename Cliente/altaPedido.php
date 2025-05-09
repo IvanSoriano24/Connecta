@@ -723,6 +723,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="hidden" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
                                 <input type="hidden" id="idDatos" value="">
                                 <input type="hidden" id="folioDatos" value="">
+                                <input type="hidden" id="titutoDatos" value="" >
 
                                 <!-- Sección: Datos de contacto y dirección -->
                                 <div class="row">

@@ -3,6 +3,9 @@ const btnDatosGenerales = document.getElementById('btnDatosGenerales');
 const btnDatosVentas = document.getElementById('btnDatosVentas');
 const formDatosGenerales = document.getElementById('formDatosGenerales');
 const formDatosVentas = document.getElementById('formDatosVentas');
+let paginaActual = 1;
+//const registrosPorPagina = 5; // Ajusta según convenga
+let registrosPorPagina = 10;
 
 // Mostrar Datos Generales
 btnDatosGenerales.addEventListener('click', () => {
@@ -164,8 +167,8 @@ function cerrarModal() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('usuarioModal'));
     modal.hide();
 }
-function obtenerClientes(){
-    $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa, token: token }, function (response) {
+function obtenerClientes(limpiarTabla = true){
+    $.post('../Servidor/PHP/clientes.php', { numFuncion: '1', noEmpresa: noEmpresa, token: token, pagina: paginaActual, porPagina: registrosPorPagina }, function (response) {
         try {
             // Verifica si response es una cadena (string) que necesita ser parseada
             if (typeof response === 'string') {
@@ -175,7 +178,6 @@ function obtenerClientes(){
             if (typeof response === 'object' && response !== null) {
                 if (response.success && response.data) {
                     let clientes = response.data;
-
                     // Eliminar duplicados basados en la 'CLAVE' (suponiendo que 'CLAVE' es única)
                     clientes = clientes.filter((value, index, self) =>
                         index === self.findIndex((t) => (
@@ -228,6 +230,7 @@ function obtenerClientes(){
                         `;
                         clientesTable.appendChild(row);
                     });
+                    buildPagination(response.total);
                     agregarEventosBotones();
                 } else {
                     console.error('Error en la respuesta del servidor:', response);
@@ -243,6 +246,43 @@ function obtenerClientes(){
         console.error('Error en la solicitud:', textStatus, errorThrown, jqXHR);
     });
 }
+function buildPagination(total) {
+  const totalPages = Math.ceil(total / registrosPorPagina);
+  const maxButtons = 5;
+  const $cont = $("#pagination").empty();
+
+  if (totalPages <= 1) return;
+
+  let start = Math.max(1, paginaActual - Math.floor(maxButtons / 2));
+  let end   = start + maxButtons - 1;
+  if (end > totalPages) {
+    end   = totalPages;
+    start = Math.max(1, end - maxButtons + 1);
+  }
+
+  const makeBtn = (txt, page, disabled, active) =>
+    $("<button>")
+      .text(txt)
+      .prop("disabled", disabled)
+      .toggleClass("active", active)
+      .on("click", () => {
+        paginaActual = page;
+        obtenerClientes(true);
+      });
+
+  // Flechas First / Prev
+  $cont.append(makeBtn("«", 1, paginaActual === 1, false));
+  $cont.append(makeBtn("‹", paginaActual - 1, paginaActual === 1, false));
+
+  // Botones de página
+  for (let i = start; i <= end; i++) {
+    $cont.append(makeBtn(i, i, false, i === paginaActual));
+  }
+
+  // Flechas Next / Last
+  $cont.append(makeBtn("›", paginaActual + 1, paginaActual === totalPages, false));
+  $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
+}
 $(document).ready(function () {
     obtenerClientes();
     $('.cerrar-modal').click(function () {
@@ -253,3 +293,9 @@ $(document).ready(function () {
 function cerrarModal() {
     $('#usuarioModal').modal('hide');
 }
+$("#selectCantidad").on("change", function () {
+  const seleccion = parseInt($(this).val(), 10);
+  registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
+  paginaActual = 1; // volvemos a la primera página
+  obtenerClientes(true); // limpia la tabla y carga sólo registrosPorPagina filas
+});

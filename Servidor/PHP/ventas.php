@@ -2850,6 +2850,11 @@ function listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket)
 }
 function extraerProductos($conexionData, $claveSae)
 {
+    // Parámetros de paginación
+    $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+    $porPagina = isset($_GET['porPagina']) ? (int)$_GET['porPagina'] : 10;
+    $offset = ($pagina - 1) * $porPagina;
+
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2868,22 +2873,20 @@ function extraerProductos($conexionData, $claveSae)
     // Consulta directa a la tabla fija INVE02
     $sql = "
         SELECT 
-            [CVE_ART], 
-            [DESCR], 
-            [EXIST], 
-            [LIN_PROD], 
-            [UNI_MED],
-            [APART]
-        FROM $nombreTabla WHERE [EXIST] > 0
+            f.[CVE_ART], f.[DESCR], f.[EXIST], f.[LIN_PROD], f.[UNI_MED], f.[APART]
+        FROM {$nombreTabla} AS f        -- <-- alias aquí
+        WHERE f.[EXIST] > 0
+        ORDER BY f.CVE_ART ASC
+        OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
     ";
+    $params = [$offset, $porPagina];
 
-    $stmt = sqlsrv_query($conn, $sql);
+    $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
         echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
         exit;
     }
-
     // Obtener todas las imágenes de Firebase en un solo lote
     $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app";
     $imagenesPorArticulo = listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket);
@@ -2896,16 +2899,24 @@ function extraerProductos($conexionData, $claveSae)
 
         $productos[] = $row;
     }
-
-    if (count($productos) > 0) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'productos' => $productos]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
-    }
+    $countSql  = "
+            SELECT COUNT(DISTINCT f.CVE_ART) AS total
+            FROM $nombreTabla f
+        ";
+        $countStmt = sqlsrv_query($conn, $countSql);
+        $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
+        $total     = (int)$totalRow['total'];
+        sqlsrv_free_stmt($countStmt);
 
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
+
+    if (count($productos) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'total' => $total, 'productos' => $productos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+    }
 }
 function extraerProductosE($conexionData, $claveSae, $listaPrecioCliente)
 {
@@ -6499,9 +6510,9 @@ switch ($funcion) {
                         } else if ($validarSaldo == 1 || $credito == 1) {
                             $estatus = "C";
                         }
-                        $estatus = "E";
+                        /*$estatus = "E";
                         $validarSaldo = 0;
-                        $credito = 0;
+                        $credito = 0;*/
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);

@@ -117,7 +117,56 @@ if (isset($_SESSION['usuario'])) {
 			box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 		}
 	</style>
+<style>
+		.pagination {
+			text-align: center;
+			margin-top: 1rem;
+		}
 
+		.pagination button {
+			margin: 0 .25rem;
+			padding: 0.4rem .8rem;
+			border: 1px solid #007bff;
+			background: none;
+			cursor: pointer;
+		}
+
+		.pagination button.active {
+			background: #007bff;
+			color: #fff;
+		}
+
+		/*******************/
+		.pagination-controls {
+			display: inline-flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 0.5rem;
+			margin-top: 1rem;
+			font-family: Lato, sans-serif;
+			font-size: 0.9rem;
+			color: #333;
+		}
+
+		.cantidad-label {
+			margin: 0;
+		}
+
+		.cantidad-select {
+			padding: 0.4rem 0.6rem;
+			font-size: 0.9rem;
+			border: 1px solid #ccc;
+			border-radius: 0.25rem;
+			background-color: #fff;
+			transition: border-color 0.2s ease, box-shadow 0.2s ease;
+		}
+
+		.cantidad-select:focus {
+			outline: none;
+			border-color: #007bff;
+			box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+		}
+	</style>
 </head>
 <body>
 	<div class="hero_area">
@@ -173,6 +222,17 @@ if (isset($_SESSION['usuario'])) {
 								<tbody id="datosClientes">
 								</tbody>
 							</table>
+							<div id="pagination" class="pagination">
+							</div>
+							<div class="pagination-controls">
+								<label for="selectCantidad" class="cantidad-label">Mostrar</label>
+								<select id="selectCantidad" class="cantidad-select">
+									<option value="10">10</option>
+									<option value="20">20</option>
+									<option value="30">30</option>
+								</select>
+								<span class="cantidad-label">por página</span>
+							</div>
 						</div>
 					</div>
 			</main>
@@ -180,7 +240,6 @@ if (isset($_SESSION['usuario'])) {
 		</section>
 		<!-- CONTENT -->
 	</div>
-
 
 	</section>
 	<!-- CONTENT -->

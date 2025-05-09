@@ -80,43 +80,68 @@ function mostrarClientes($conexionData, $claveSae)
             $claveUsuario = mb_convert_encoding(trim($claveUsuario), 'UTF-8');
         }
 
+        $pagina = isset($_POST['pagina']) ? (int)$_POST['pagina'] : 1;
+        $porPagina = isset($_POST['porPagina']) ? (int)$_POST['porPagina'] : 10;
+        $offset = ($pagina - 1) * $porPagina;
+
         // Construir el nombre de la tabla dinámicamente usando el número de empresa
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         // Construir la consulta SQL
         if ($tipoUsuario === 'ADMINISTRADOR') {
-            // Si el usuario es administrador, mostrar todos los clientes
-            $sql = "SELECT 
-                        CLAVE,  
-                        NOMBRE, 
-                        RFC,
-                        CALLE_ENVIO AS CALLE, 
-                        TELEFONO, 
-                        SALDO, 
-                        VAL_RFC AS EstadoDatosTimbrado, 
-                        NOMBRECOMERCIAL,
-                        DESCUENTO 
-                    FROM 
-                        $nombreTabla
-                    WHERE 
-                        STATUS = 'A';";
-            $stmt = sqlsrv_query($conn, $sql);
+            // ADMIN: no hay filtro de vendedor
+            // Inicializamos el array de params
+            $params = [];
+
+            // Montamos el SQL SIN punto y coma al final
+            $sql = "
+            SELECT
+                CLAVE,
+                NOMBRE,
+                RFC,
+                CALLE_ENVIO AS CALLE,
+                TELEFONO,
+                SALDO,
+                VAL_RFC AS EstadoDatosTimbrado,
+                NOMBRECOMERCIAL,
+                DESCUENTO
+            FROM $nombreTabla
+            WHERE STATUS = 'A'
+            ORDER BY CLAVE ASC
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+            ";
+
+            // Ahora sí agregamos offset y limit a $params
+            $params[] = $offset;
+            $params[] = $porPagina;
+
+            // Ejecutamos pasando $params
+            $stmt = sqlsrv_query($conn, $sql, $params);
         } else {
-            // Si el usuario no es administrador, filtrar por el número de vendedor
-            $sql = "SELECT 
-                        CLAVE,  
-                        NOMBRE, 
-                        RFC,
-                        CALLE_ENVIO AS CALLE, 
-                        TELEFONO, 
-                        SALDO, 
-                        VAL_RFC AS EstadoDatosTimbrado, 
-                        NOMBRECOMERCIAL,
-                        DESCUENTO
-                    FROM 
-                        $nombreTabla
-                    WHERE 
-                        STATUS = 'A' AND CVE_VEND = ?;";
-            $params = [intval($claveUsuario)]; // Si CVE_VEND es un número
+            // USUARIO normal: filtramos por vendedor
+            $params = [intval($claveUsuario)];
+
+            $sql = "
+            SELECT
+                CLAVE,
+                NOMBRE,
+                RFC,
+                CALLE_ENVIO AS CALLE,
+                TELEFONO,
+                SALDO,
+                VAL_RFC AS EstadoDatosTimbrado,
+                NOMBRECOMERCIAL,
+                DESCUENTO
+            FROM $nombreTabla
+            WHERE STATUS = 'A'
+                AND CVE_VEND = ?
+            ORDER BY CLAVE ASC
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+            ";
+
+            // Agregamos offset y limit
+            $params[] = $offset;
+            $params[] = $porPagina;
+
             $stmt = sqlsrv_query($conn, $sql, $params);
         }
         if ($stmt === false) {
@@ -150,6 +175,14 @@ function mostrarClientes($conexionData, $claveSae)
             }
             $clientes[] = $row;
         }
+        $countSql  = "
+            SELECT COUNT(DISTINCT CLAVE) AS total
+            FROM $nombreTabla
+        ";
+        $countStmt = sqlsrv_query($conn, $countSql);
+        $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
+        $total     = (int)$totalRow['total'];
+        sqlsrv_free_stmt($countStmt);
         // Liberar recursos y cerrar la conexión
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
@@ -159,7 +192,7 @@ function mostrarClientes($conexionData, $claveSae)
             exit;
         }
         header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode(['success' => true, 'data' => $clientes]);
+        echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
     } catch (Exception $e) {
         // Si hay algún error, devuelves un error en formato JSON
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -584,8 +617,9 @@ function llenarDatosEnvio($id, $firebaseProjectId, $firebaseApiKey)
     }*/
     //var_dump($envioData);
 }
-function actualizarDatosEnvio($id, $contacto, $firebaseProjectId, $firebaseApiKey){
-$url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS/$id?updateMask.fieldPaths=nombreContacto&key=$firebaseApiKey";
+function actualizarDatosEnvio($id, $contacto, $firebaseProjectId, $firebaseApiKey)
+{
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS/$id?updateMask.fieldPaths=nombreContacto&key=$firebaseApiKey";
 
     $data = [
         'fields' => [

@@ -498,6 +498,17 @@ function guardarPedido(id) {
 
     const envioData = extraerDatosEnvio();
     console.log("Datos de envio obtenidos:", envioData);
+    
+    const validacion = validarDatosEnvio();
+
+    if(!validacion){
+      Swal.fire({
+          title: "Error al guardar el pedido",
+          text: "No se escogieron los datos de envio.",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
+    }
 
     const partidasData = obtenerDatosPartidas();
     console.log("Datos de partidas obtenidos:", partidasData);
@@ -512,38 +523,27 @@ function guardarPedido(id) {
     console.error("Error en guardarPedido:", error);
   }
 }
-function validarFormulario() {
-  // Validar los campos obligatorios
-  const cliente = document.getElementById("cliente").value.trim();
-  const nombre = document.getElementById("nombre").value.trim();
-  const rfc = document.getElementById("rfc").value.trim();
-  const codigoPostal = document.getElementById("codigoPostal").value.trim();
-  const calle = document.getElementById("calle").value.trim();
-  const colonia = document.getElementById("colonia").value.trim();
+function validarDatosEnvio() {
+   const  nombreContacto = document.getElementById("nombreContacto").value;
+   const compañiaContacto = document.getElementById("compañiaContacto").value;
+   
+   const telefonoContacto = document.getElementById("telefonoContacto").value;
+  const  correoContacto = document.getElementById("correoContacto").value;
+  const  direccion1Contacto = document.getElementById("direccion1Contacto").value;
+ const   direccion2Contacto = document.getElementById("direccion2Contacto").value;
+  const  codigoContacto = document.getElementById("codigoContacto").value;
+
+  const  estadoContacto = $("#estadoContacto option:selected").data("descripcion");
+  const  municipioContacto = $("#municipioContacto option:selected").data("descripcion");
+
 
   // Validación de los campos obligatorios
-  if (!cliente || !nombre || !rfc || !codigoPostal || !calle || !colonia) {
-    return false; // Si algún campo obligatorio está vacío, el formulario no es válido
-  }
+  if (!nombreContacto || !compañiaContacto || !correoContacto || !telefonoContacto || !direccion1Contacto || !direccion2Contacto
+    || !codigoContacto || !estadoContacto || !municipioContacto) 
 
   return true; // Todos los campos obligatorios están completos
 }
-function validarPartidas() {
-  // Aquí validas las partidas
-  // Asegúrate de que cada fila en la tabla de productos esté completa y válida
-  let valido = true;
-  const filas = document.querySelectorAll("#tablaProductos tbody tr");
-  filas.forEach((fila) => {
-    const cantidad = fila.querySelector(".cantidad").value.trim();
-    const producto = fila.querySelector(".producto").value.trim();
-    const unidad = fila.querySelector(".unidad").value.trim();
 
-    if (!cantidad || !producto || !unidad) {
-      valido = false; // Si algún campo de la partida está vacío, no es válida
-    }
-  });
-  return valido;
-}
 function obtenerDatosFormulario() {
   const now = new Date(); // Obtiene la fecha y hora actual
   const fechaActual = `${now.getFullYear()}-${String(
@@ -1026,7 +1026,7 @@ function llenarDatosClienteSugerencia(cliente) {
   $("#rfc").val(cliente.RFC || "");
   $("#nombre").val(cliente.NOMBRE || "");
   $("#calle").val(cliente.CALLE || "");
-  $("#enviar").val(cliente.CALLE || "");
+  //$("#enviar").val(cliente.CALLE || "");
   $("#numE").val(cliente.NUMEXT || "");
   $("#numI").val(cliente.NUMINT || "");
   $("#colonia").val(cliente.COLONIA || "");
@@ -1469,11 +1469,15 @@ function actualizarDatos() {
     success: function (envios) {
       if (envios.success) {
         Swal.fire({
-          icon: "succes",
+          icon: "success",
           title: "Exito",
           text: "Se Establecieron los Datos de Envio.",
           confirmButtonText: "Aceptar",
         }).then(() => {
+          
+          const titulo = document.getElementById("titutoDatos").value;
+          $("#enviar").val(titulo);
+          //alert(titulo);
           $("#modalEnvio").modal("hide");
         });
       } else {
@@ -1624,6 +1628,7 @@ function llenarDatosEnvio(idDocumento) {
         $("#idDatos").val(idDocumento);
         $("#folioDatos").val(data.id.integerValue);
         $("#nombreContacto").val(data.nombreContacto.stringValue);
+        $("#titutoDatos").val(data.tituloEnvio.stringValue);
         $("#compañiaContacto").val(data.compania.stringValue);
         $("#telefonoContacto").val(data.telefonoContacto.stringValue);
         $("#correoContacto").val(data.correoContacto.stringValue);
