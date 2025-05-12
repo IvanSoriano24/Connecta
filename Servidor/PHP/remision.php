@@ -2767,16 +2767,17 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
         }
 
         $lotesUtilizados = [];
+        $lotesUsados = "";
         foreach ($lotes as $lote) {
             if ($cantidadRequerida <= 0) break;
 
             $usarCantidad = min((float)$lote['CANTIDAD'], $cantidadRequerida);
             $cantidadRequerida -= $usarCantidad;
-
+            $lotesUsados .= $lote['LOTE'] . "/";
             $lotesUtilizados[] = [
                 'REG_LTPD' => $lote['REG_LTPD'],
                 'CANTIDAD' => $usarCantidad,
-                'LOTE' => $lote['LOTE'],
+                'LOTE' => $lotesUsados,
                 'CVE_ART' => $claveProducto
             ];
         }
