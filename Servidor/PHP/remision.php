@@ -2468,8 +2468,10 @@ function generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor)
     generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
 }
 
-function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace) {
-    $urlComanda = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace)
+{
+    $urlComanda = "https://firestore.googleapis.com/v1/projects/"
+        . "$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 
     $response = @file_get_contents($urlComanda);
     if ($response === FALSE) {
@@ -2478,61 +2480,79 @@ function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, 
     }
 
     $data = json_decode($response, true);
-    if (!isset($data['documents'])) {
+    if (empty($data['documents'])) {
         echo json_encode(['success' => false, 'message' => 'No se encontraron comandas.']);
         return;
     }
 
-    // Buscar la comanda con el folio igual al pedidoId
     foreach ($data['documents'] as $document) {
-        $fields = $document['fields'];
-        if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
-            $id = str_replace("projects/$firebaseProjectId/databases/(default)/documents/COMANDA/", '', $document['name']);
-
-            // Obtener los productos
-            $productos = $fields['productos']['arrayValue']['values'] ?? [];
-
-            // Actualizar el producto que coincide con CVE_ART
-            foreach ($productos as &$producto) {
-                $productoFields = &$producto['mapValue']['fields'];
-                if (isset($productoFields['clave']['stringValue']) && $productoFields['clave']['stringValue'] === $enlace['CVE_ART']) {
-                    $productoFields['lote'] = ["stringValue" => $enlace['LOTE']];
-                }
-            }
-
-            // Preparar el payload para actualizar
-            $fieldsToSave = [
-                "productos" => [
-                    "arrayValue" => [
-                        "values" => $productos
-                    ]
-                ]
-            ];
-
-            $payload = json_encode(['fields' => $fieldsToSave]);
-
-            $urlUpdate = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$id?updateMask.fieldPaths=productos&key=$firebaseApiKey";
-
-            $options = [
-                'http' => [
-                    'header'  => "Content-type: application/json\r\n",
-                    'method'  => 'PATCH',
-                    'content' => $payload
-                ]
-            ];
-
-            $result = @file_get_contents($urlUpdate, false, $options);
-            if ($result === FALSE) {
-                echo json_encode(['success' => false, 'message' => 'Error al actualizar la comanda.']);
-            } else {
-                echo json_encode(['success' => true, 'message' => 'Comanda actualizada correctamente.']);
-            }
-            return;
+        $fields = $document['fields'] ?? [];
+        if (($fields['folio']['stringValue'] ?? '') !== $pedidoId) {
+            continue;
         }
+
+        // Extraer el ID del doc (la parte después de /COMANDA/)
+        $pathParts = explode('/', $document['name']);
+        $docId = end($pathParts);
+
+        // Traer y modificar el array de productos
+        $productos = $fields['productos']['arrayValue']['values'] ?? [];
+        foreach ($productos as &$producto) {
+            $pf = &$producto['mapValue']['fields'];
+            if (($pf['clave']['stringValue'] ?? '') === $enlace['CVE_ART']) {
+                // CREA el campo 'lote' (si no existía) o lo SOBREESCRIBE
+                $pf['lote'] = ['stringValue' => $enlace['LOTE']];
+            }
+        }
+        unset($producto);
+
+        // Preparamos payload sólo con 'productos' reescrito
+        $fieldsToSave = [
+            'productos' => [
+                'arrayValue' => [
+                    'values' => $productos
+                ]
+            ]
+        ];
+        $payload = json_encode(['fields' => $fieldsToSave]);
+
+        // URL de PATCH con mask para sólo ese array
+        $urlUpdate = "https://firestore.googleapis.com/v1/projects/"
+            . "$firebaseProjectId/databases/(default)/documents/COMANDA/"
+            . "$docId?updateMask.fieldPaths=productos&key=$firebaseApiKey";
+
+        // Creamos el contexto HTTP
+        $ctx = stream_context_create([
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'PATCH',
+                'content' => $payload,
+            ]
+        ]);
+
+        // Un solo file_get_contents
+        $result = @file_get_contents($urlUpdate, false, $ctx);
+        if ($result === FALSE) {
+            echo json_encode([
+                'success' => false,
+                'message' => "Error al actualizar la comanda $docId."
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true,
+                'message' => "Comanda $docId actualizada correctamente."
+            ]);
+        }
+        return;
     }
 
-    echo json_encode(['success' => false, 'message' => 'Comanda con el pedidoId no encontrada.']);
+    // Si nunca encontramos ningún folio coincidente:
+    echo json_encode([
+        'success' => false,
+        'message' => "Comanda con folio $pedidoId no encontrada."
+    ]);
 }
+
 
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor)
 {
@@ -2547,7 +2567,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarControl5($conexionData, $claveSae);
     actualizarInve($conexionData, $pedidoId, $claveSae);
 
-    $enlace = validarLotes($conexionData, $pedidoId, $claveSae);
+    $enlaceLote = validarLotes($conexionData, $pedidoId, $claveSae);
+    //var_dump($enlace);
 
     actualizarInve2($conexionData, $pedidoId, $claveSae);
     actualizarInve3($conexionData, $pedidoId, $claveSae);
@@ -2562,7 +2583,7 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     insertarFactr_Clib($conexionData, $cveDoc, $claveSae);
     actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarInve4($conexionData, $pedidoId, $claveSae);
-    insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace);
+    insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlaceLote);
     actualizarFactp($conexionData, $pedidoId, $claveSae);
     actualizarFactp2($conexionData, $pedidoId, $cveDoc, $claveSae);
     actualizarFactp3($conexionData, $pedidoId, $claveSae);
@@ -2572,9 +2593,16 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarAlerta_Usuario($conexionData, $claveSae);
     actualizarAlerta($conexionData, $claveSae);
 
-    //var_dump($enlace);
 
-    actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace);
+
+    foreach ($enlaceLote as $enlace) {
+        actualizarDatosComanda(
+            $firebaseProjectId,
+            $firebaseApiKey,
+            $pedidoId,
+            $enlace
+        );
+    }
 
     //$cveDoc = '          0000013314';
     //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor); 
@@ -2759,10 +2787,17 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
         }
 
         actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto, $claveSae);
-        $enlaceLTPDResultados = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto);
-        var_dump($enlaceLTPDResultados);
+        //$enlaceLTPDResultados = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto);
+        /*******************/
+        $resultadoPorProducto = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto);
+        // Si esa función te devuelve un array de 1 o varios elementos,
+        // mézclalos todos en tu array maestro:
+        $enlaceLTPDResultados = array_merge(
+            $enlaceLTPDResultados,
+            (array)$resultadoPorProducto
+        );
+        //var_dump($enlaceLTPDResultados);
     }
-
     sqlsrv_commit($conn);
     sqlsrv_close($conn);
 

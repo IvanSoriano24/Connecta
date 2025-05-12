@@ -192,7 +192,8 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
             $productos[] = [
                 'cantidad' => $producto['mapValue']['fields']['cantidad']['integerValue'],
                 'clave' => $producto['mapValue']['fields']['clave']['stringValue'],
-                'descripcion' => $producto['mapValue']['fields']['descripcion']['stringValue']
+                'descripcion' => $producto['mapValue']['fields']['descripcion']['stringValue'],
+                'lote' => $producto['mapValue']['fields']['lote']['stringValue'] ?? "N/A"
             ];
         }
 
@@ -814,8 +815,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);

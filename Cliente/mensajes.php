@@ -282,6 +282,7 @@ if (isset($_SESSION['usuario'])) {
                                                                 <th scope="col">Clave</th>
                                                                 <th scope="col">Descripción</th>
                                                                 <th scope="col">Cantidad</th>
+                                                                <th scope="col">Lote</th>
                                                                 <th scope="col">Acciones</th>
                                                             </tr>
                                                         </thead>

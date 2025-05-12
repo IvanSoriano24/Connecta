@@ -119,7 +119,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $claveSae = $_GET['claveSae'];
     $noEmpresa = $_GET['noEmpresa'];
     $clave = $_GET['clave'] ?? "";
-    $conCredito = $_GET['credito'] ?? "";
+    $conCredito = $_GET['conCredito'] ?? "";
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     // Obtener fecha y hora actual si no está incluida en los parámetros
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
@@ -202,8 +202,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 } else {
                     $result = json_decode($response, true);
                     if (isset($result['name'])) {
-                        $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-                        //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+                        //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                        $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
                         $data = [
                             'numFuncion' => 1,
@@ -230,7 +230,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 
                         curl_close($ch);
 
-                        //echo "Respuesta de remision.php: " . $remisionResponse;
+                        echo "Respuesta de remision.php: " . $remisionResponse;
                         $remisionData = json_decode($remisionResponse, true);
                         //echo "Respuesta de decodificada.php: " . $remisionData;
                         //$cveDoc = trim($remisionData['cveDoc']);

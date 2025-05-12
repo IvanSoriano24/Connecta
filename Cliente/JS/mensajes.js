@@ -155,6 +155,7 @@ function mostrarModal(comandaId) {
                         <td>${producto.clave}</td>
                         <td>${producto.descripcion}</td>
                         <td style="text-align: right;">${producto.cantidad}</td>
+                        <td style="text-align: right;">${producto.lote}</td>
                         <td>
                             <label class="container">
                                 <input type="checkbox" class="producto-check" data-index="${index}">

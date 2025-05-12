@@ -198,6 +198,137 @@ function mostrarClientes($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+function mostrarClientesPedidos($conexionData, $claveSae)
+{
+    try {
+        //session_start();
+        // Validar si el número de empresa está definido en la sesión
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        // Obtener el número de empresa de la sesión
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        // Validar el formato del número de empresa (asegurarse de que sea numérico)
+        if (!is_numeric($noEmpresa)) {
+            echo json_encode(['success' => false, 'message' => 'El número de empresa no es válido']);
+            exit;
+        }
+        // Obtener tipo de usuario y clave de vendedor desde la sesión
+        $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
+        $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
+
+        // Configuración de conexión
+        $serverName = $conexionData['host'];
+        $connectionInfo = [
+            "Database" => $conexionData['nombreBase'], // Nombre de la base de datos
+            "UID" => $conexionData['usuario'],
+            "PWD" => $conexionData['password'],
+            "TrustServerCertificate" => true
+        ];
+        $conn = sqlsrv_connect($serverName, $connectionInfo);
+        if ($conn === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        }
+        if ($claveUsuario != null) {
+            $claveUsuario = mb_convert_encoding(trim($claveUsuario), 'UTF-8');
+        }
+
+        // Construir el nombre de la tabla dinámicamente usando el número de empresa
+        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        // Construir la consulta SQL
+        if ($tipoUsuario === 'ADMINISTRADOR') {
+            // ADMIN: no hay filtro de vendedor
+            // Inicializamos el array de params
+            $params = [];
+
+            // Montamos el SQL SIN punto y coma al final
+            $sql = "
+            SELECT
+                CLAVE,
+                NOMBRE,
+                RFC,
+                CALLE_ENVIO AS CALLE,
+                TELEFONO,
+                SALDO,
+                VAL_RFC AS EstadoDatosTimbrado,
+                NOMBRECOMERCIAL,
+                DESCUENTO
+            FROM $nombreTabla
+            WHERE STATUS = 'A'
+            ORDER BY CLAVE ASC
+            ";
+
+            // Ejecutamos pasando $params
+            $stmt = sqlsrv_query($conn, $sql);
+        } else {
+            // USUARIO normal: filtramos por vendedor
+            $params = [intval($claveUsuario)];
+
+            $sql = "
+            SELECT
+                CLAVE,
+                NOMBRE,
+                RFC,
+                CALLE_ENVIO AS CALLE,
+                TELEFONO,
+                SALDO,
+                VAL_RFC AS EstadoDatosTimbrado,
+                NOMBRECOMERCIAL,
+                DESCUENTO
+            FROM $nombreTabla
+            WHERE STATUS = 'A'
+                AND CVE_VEND = ?
+            ORDER BY CLAVE ASC
+            ";
+            $stmt = sqlsrv_query($conn, $sql, $params);
+        }
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        }
+        // Arreglo para almacenar los datos de clientes
+        $clientes = [];
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            foreach ($row as $key => $value) {
+                // Limpiar espacios en blanco solo si el valor no es null
+                if ($value !== null && is_string($value)) {
+                    $value = trim($value); // Eliminar espacios en blanco al principio y al final
+
+                    // Verificar si el valor no está vacío antes de intentar convertirlo
+                    if (!empty($value)) {
+                        // Detectar la codificación del valor
+                        $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
+
+                        // Si la codificación no se puede detectar o no es UTF-8, convertir la codificación
+                        if ($encoding && $encoding !== 'UTF-8') {
+                            $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                        }
+                    }
+                } elseif ($value === null) {
+                    // Si el valor es null, asignar un valor predeterminado
+                    $value = '';
+                }
+
+                // Asignar el valor limpio al campo correspondiente
+                $row[$key] = $value;
+            }
+            $clientes[] = $row;
+        }
+        // Liberar recursos y cerrar la conexión
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+        // Retornar los datos en formato JSON
+        if (empty($clientes)) {
+            echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
+            exit;
+        }
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(['success' => true, 'data' => $clientes]);
+    } catch (Exception $e) {
+        // Si hay algún error, devuelves un error en formato JSON
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
 
 function mostrarClienteEspecifico($clave, $conexionData)
 {
@@ -390,7 +521,7 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
         echo json_encode(['success' => true, 'data' => $datos]);
         exit();
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes activos.']);
+        echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
     }
 }
 function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae)
@@ -788,6 +919,31 @@ switch ($funcion) {
         $id = $_POST["idDocumento"];
         $contacto = $_POST["nombreContacto"];
         actualizarDatosEnvio($id, $contacto, $firebaseProjectId, $firebaseApiKey);
+        break;
+    case 9:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $csrf_token_form = $_POST['token'];
+        $csrf_token  = $_SESSION['csrf_token'];
+        if ($csrf_token === $csrf_token_form) {
+            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+            $claveSae = $_SESSION['empresa']['claveSae'];
+            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+            if (!$conexionResult['success']) {
+                echo json_encode($conexionResult);
+                break;
+            }
+            // Mostrar los clientes usando los datos de conexión obtenidos
+            $conexionData = $conexionResult['data'];
+            mostrarClientesPedidos($conexionData, $claveSae);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error en la sesion.',
+            ]);
+        }
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

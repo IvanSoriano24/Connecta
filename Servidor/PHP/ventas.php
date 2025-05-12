@@ -1993,7 +1993,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido
 
 
@@ -2127,10 +2127,10 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
     $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa);
 
@@ -3717,8 +3717,8 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -3896,8 +3896,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -4997,7 +4997,7 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido
 
 
@@ -5134,11 +5134,11 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     $productosJson = urlencode(json_encode($partidasData));
     $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
     $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae);
 
@@ -5495,7 +5495,7 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido
 
 
@@ -5628,10 +5628,10 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&credito=" . urlencode($conCredito);
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
     $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa);
 
@@ -5965,8 +5965,8 @@ function facturar($folio, $claveSae, $noEmpresa)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     $data = [

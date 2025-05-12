@@ -500,7 +500,6 @@ function guardarPedido(id) {
     console.log("Datos de envio obtenidos:", envioData);
     
     const validacion = validarDatosEnvio();
-
     if(!validacion){
       Swal.fire({
           title: "Error al guardar el pedido",
@@ -509,7 +508,6 @@ function guardarPedido(id) {
           confirmButtonText: "Aceptar",
         });
     }
-
     const partidasData = obtenerDatosPartidas();
     console.log("Datos de partidas obtenidos:", partidasData);
 
@@ -539,11 +537,12 @@ function validarDatosEnvio() {
 
   // Validación de los campos obligatorios
   if (!nombreContacto || !compañiaContacto || !correoContacto || !telefonoContacto || !direccion1Contacto || !direccion2Contacto
-    || !codigoContacto || !estadoContacto || !municipioContacto) 
+    || !codigoContacto || !estadoContacto || !municipioContacto) {
+      return false;
+    }
 
   return true; // Todos los campos obligatorios están completos
 }
-
 function obtenerDatosFormulario() {
   const now = new Date(); // Obtiene la fecha y hora actual
   const fechaActual = `${now.getFullYear()}-${String(
@@ -563,8 +562,8 @@ function obtenerDatosFormulario() {
   //const entrega = campoEntrega ? campoEntrega : fechaActual;
   //const diaAlta = document.getElementById("diaAlta").value; // Fecha y hora
   const formularioData = {
-    //claveVendedor: document.getElementById("vendedor").value,
-    claveVendedor: "1",
+    claveVendedor: document.getElementById("vendedor").value,
+    //claveVendedor: "1",
     factura: document.getElementById("factura").value,
     numero: document.getElementById("numero").value,
     diaAlta: diaAlta, // Fecha y hora
@@ -589,8 +588,8 @@ function obtenerDatosFormulario() {
     enviar: document.getElementById("enviar").value,
     almacen: document.getElementById("almacen").value,
     destinatario: document.getElementById("destinatario").value,
-    //conCredito: document.getElementById("conCredito").value,
-    conCredito: "S",
+    conCredito: document.getElementById("conCredito").value,
+    //conCredito: "S",
     token: document.getElementById("csrf_token").value,
     ordenCompra: document.getElementById("supedido").value,
   };
@@ -876,7 +875,7 @@ function abrirModalClientes() {
   // Solicitar datos al servidor
   $.post(
     "../Servidor/PHP/clientes.php",
-    { numFuncion: "1", token: token },
+    { numFuncion: "9", token: token },
     function (response) {
       try {
         if (response.success && response.data) {
@@ -941,18 +940,18 @@ function validarCreditoCliente(clienteId) {
       if (data.success) {
         const { conCredito, limiteCredito, saldo } = data;
         if (conCredito === "S") {
-          /*Swal.fire({
+          Swal.fire({
             title: "Cliente válido",
             text: "El cliente tiene crédito disponible.",
             icon: "success",
-          });*/
+          });
           $("#conCredito").val("S");
         } else {
-          /*Swal.fire({
+          Swal.fire({
             title: "Sin crédito",
             text: "El cliente no maneja crédito.",
             icon: "info",
-          });*/
+          });
           $("#conCredito").val("N");
         }
       } else {
@@ -1123,7 +1122,7 @@ function llenarDatosCliente(cliente) {
   $("#rfc").val(cliente.RFC || "");
   $("#nombre").val(cliente.NOMBRE || "");
   $("#calle").val(cliente.CALLE || "");
-  $("#enviar").val(cliente.CALLE || "");
+  //$("#enviar").val(cliente.CALLE || "");
   $("#numE").val(cliente.NUMEXT || "");
   $("#numI").val(cliente.NUMINT || "");
   $("#colonia").val(cliente.COLONIA || "");
@@ -1453,7 +1452,6 @@ function obtenerDatosEnvio() {
     },
   });
 }
-
 function actualizarDatos() {
   const idDocumento = document.getElementById("idDatos").value;
   const nombreContacto = document.getElementById("nombreContacto").value;
