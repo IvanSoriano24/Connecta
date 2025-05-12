@@ -331,6 +331,25 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
         } else {
             $countSql .= "WHERE f.STATUS IN ('C')";
         }
+        // Agregar filtros de fecha
+        if ($filtroFecha == 'Hoy') {
+            $countSql .= " AND CAST(f.FECHAELAB AS DATE) = CAST(GETDATE() AS DATE) ";
+        } elseif ($filtroFecha == 'Mes') {
+            $countSql .= " AND MONTH(f.FECHAELAB) = MONTH(GETDATE()) AND YEAR(f.FECHAELAB) = YEAR(GETDATE()) ";
+        } elseif ($filtroFecha == 'Mes Anterior') {
+            $countSql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
+        }
+        if ($tipoUsuario === 'ADMINISTRADOR') {
+            if ($filtroVendedor !== '') {
+                $countSql      .= " AND f.CVE_VEND = ?";
+                $params[]  = $filtroVendedor;
+            }
+        } else {
+            // Usuarios no ADMIN sólo ven sus pedidos
+            $countSql      .= " AND f.CVE_VEND = ?";
+            $params[]  = $claveVendedor;
+        }
+        
         $countStmt = sqlsrv_query($conn, $countSql, $params);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
@@ -1694,15 +1713,15 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
-    $emailPred = $_SESSION['usuario']['correo'];
-    $numeroWhatsApp = $_SESSION['usuario']['telefono'];
+    /*$emailPred = $_SESSION['usuario']['correo'];
+    $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
 
     if ($emailPred === "") {
         $correoBandera = 1;
@@ -1811,9 +1830,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$numero = "7775681612";
     //$numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
-    $_SESSION['usuario']['telefono'];
+    //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -3829,14 +3848,14 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
 
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
-$emailPred = $_SESSION['usuario']['correo'];
-    $numeroWhatsApp = $_SESSION['usuario']['telefono'];
+    /*$emailPred = $_SESSION['usuario']['correo'];
+    $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
 
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conexionData); // Enviar correo
@@ -4914,14 +4933,14 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
-$emailPred = $_SESSION['usuario']['correo'];
-    $numeroWhatsApp = $_SESSION['usuario']['telefono'];
+    /*$emailPred = $_SESSION['usuario']['correo'];
+    $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
 
     if ($emailPred === "") {
         $correoBandera = 1;
@@ -5412,15 +5431,15 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
 
-$emailPred = $_SESSION['usuario']['correo'];
-    $numeroWhatsApp = $_SESSION['usuario']['telefono'];
+    /*$emailPred = $_SESSION['usuario']['correo'];
+    $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
 
     if ($emailPred === "") {
         $correoBandera = 1;
@@ -5835,9 +5854,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$numero = "7775681612";
     //$numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
-    $numero = $_SESSION['usuario']['telefono'];
+    //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {

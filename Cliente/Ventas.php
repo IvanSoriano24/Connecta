@@ -223,7 +223,8 @@ session_destroy(); */
         }
     </style>
     <style>
-        #filtroFecha, #filtroVendedor {
+        #filtroFecha,
+        #filtroVendedor {
             /* espacio a la izquierda para el icono */
             padding-left: 2.5rem;
             /*font-size: 1rem;*/
@@ -404,12 +405,14 @@ session_destroy(); */
             const seleccion = parseInt($(this).val(), 10);
             registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
             paginaActual = 1; // volvemos a la primera página
+            estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
             datosPedidos(true); // limpia la tabla y carga sólo registrosPorPagina filas
         });
         // Evento para el cambio del filtro
         document.getElementById("filtroFecha").addEventListener("change", function() {
             localStorage.setItem("filtroSeleccionado", this.value);
             paginaActual = 1; // Reinicia la paginación
+
             //document.getElementById("btnMostrarMas").style.display = "block"; // Asegura que el botón se muestre
             datosPedidos(true); // Carga inicial con nuevo filtro (limpia la tabla)
         });
@@ -417,24 +420,27 @@ session_destroy(); */
         document.addEventListener("DOMContentLoaded", function() {
             paginaActual = 1;
             registrosPorPagina = 10;
+
             //document.getElementById("btnMostrarMas").style.display = "block";
             datosPedidos(true);
         });
         // Al cargar la página, se lee el filtro guardado y se carga la información
         document.addEventListener("DOMContentLoaded", function() {
             let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Hoy";
-            /*filtroGuardado = "Hoy"
-            localStorage.getItem("filtroSeleccionado") = filtroGuardado;*/
             let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
-            // Actualiza el select con el filtro guardado (asegúrate que el elemento exista)
+
+            // 🔹 Resaltar el botón correspondiente al estado guardado
+            $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary");
+            $(`.filtro-rol[data-rol="${estadoPedido}"]`)
+                .removeClass("btn-secondary")
+                .addClass("btn-primary");
+
+            // 🔹 Actualizar select del filtro, si aplica
             const filtroSelect = document.getElementById("filtroFecha");
-            /*if (filtroSelect) {
+            if (filtroSelect) {
                 filtroSelect.value = filtroGuardado;
-            } else {
-                console.error("No se encontró el elemento select con id 'filtroFecha'");
-            }*/
-            //console.log("Filtro:  ", filtroSelect.value);
-            //let estadoPedido = "Activos";
+            }
+
             cargarPedidos(estadoPedido, filtroGuardado);
             inicializarEventosBotones();
         });

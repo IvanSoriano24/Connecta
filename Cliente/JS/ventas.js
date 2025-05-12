@@ -158,55 +158,62 @@ function mostrarSinDatos() {
   pedidosTable.appendChild(row);
 }
 /***********************************************************************/
+function makeBtn(text, page, disabled, active) {
+  const $btn = $("<button>")
+    .text(text)
+    .prop("disabled", disabled)
+    .toggleClass("active", active);
+
+  if (!disabled) {
+    $btn.on("click", () => {
+      paginaActual = page;
+      datosPedidos(true);   // o datosPedidos(true) si así la llamas
+    });
+  }
+
+  return $btn;
+}
+// 2) Ahora buildPagination puede usar makeBtn sin problema
 function buildPagination(total) {
+    console.log("total : ", total);
+    console.log("registrosPorPagina : ", registrosPorPagina);
   const totalPages = Math.ceil(total / registrosPorPagina);
   const maxButtons = 5;
   const $cont = $("#pagination").empty();
+  console.log("totalPages: ", totalPages);
 
-  if (totalPages <= 1) return; // nada que paginar
+  if (totalPages <= 1) return;
 
-  // Calcula rango de páginas a mostrar
-  let startPage = Math.max(1, paginaActual - Math.floor(maxButtons / 2));
-  let endPage = startPage + maxButtons - 1;
-  if (endPage > totalPages) {
-    endPage = totalPages;
-    startPage = Math.max(1, endPage - maxButtons + 1);
+  let start = Math.max(1, paginaActual - Math.floor(maxButtons / 2));
+  let end   = start + maxButtons - 1;
+  if (end > totalPages) {
+    end   = totalPages;
+    start = Math.max(1, end - maxButtons + 1);
   }
 
-  // Helper para crear botón
-  function makeBtn(text, page, disabled, active) {
-    return $("<button>")
-      .text(text)
-      .prop("disabled", disabled)
-      .addClass(active ? "active" : "")
-      .on("click", () => {
-        paginaActual = page;
-        datosPedidos(true);
-      });
-  }
-
-  // «Primera»
+  // Flechas «Primera» y «Anterior»
   $cont.append(makeBtn("«", 1, paginaActual === 1, false));
-  // «Anterior»
   $cont.append(makeBtn("‹", paginaActual - 1, paginaActual === 1, false));
 
   // Botones numéricos
-  for (let i = startPage; i <= endPage; i++) {
+  for (let i = start; i <= end; i++) {
     $cont.append(makeBtn(i, i, false, i === paginaActual));
   }
 
-  // «Siguiente»
-  $cont.append(
-    makeBtn("›", paginaActual + 1, paginaActual === totalPages, false)
-  );
-  // «Última»
+  // Flechas «Siguiente» y «Última»
+  $cont.append(makeBtn("›", paginaActual + 1, paginaActual === totalPages, false));
   $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
+
+  console.log("paginaActual: ", paginaActual);
 }
 /***********************************************************************/
 // Función para cargar los pedidos con el filtro seleccionado y guardar el filtro en localStorage
 function cargarPedidos(estadoPedido, filtroFecha) {
   // Guarda el filtro seleccionado
   localStorage.setItem("filtroSeleccionado", filtroFecha);
+  localStorage.setItem("estadoPedido", estadoPedido);
+  /*let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
+  let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";*/
   //console.log("Cargando pedidos con filtro:", filtroFecha);
 
   // Asegúrate de que la variable noEmpresa esté definida

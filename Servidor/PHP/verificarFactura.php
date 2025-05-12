@@ -445,10 +445,10 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
     $clave = trim($clienteData['CLAVE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
-    $emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123'; // Interzenda*/
 
@@ -729,7 +729,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     $mail = new clsMail();
     //$correoVendedor = "amartinez@grupointerzenda.com"; //Interzenda
     //$correoVendedor = 'marcos.luna@mdcloud.mx';
-    //$correoVendedor = "desarrollo01@mdcloud.mx";
+    $correoVendedor = "desarrollo01@mdcloud.mx";
     $clienteData = obtenerCliente($CVE_CLPV, $conexionData, $claveSae);
     $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".xml";
     $titulo = "MDConnecta";

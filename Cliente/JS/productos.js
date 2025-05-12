@@ -74,10 +74,29 @@ function mostrarProductosEnTabla(productos, total, limpiarTabla) {
   // Construir la paginación UNA SOLA VEZ
   buildPagination(total);
 }
+function makeBtn(text, page, disabled, active) {
+  const $btn = $("<button>")
+    .text(text)
+    .prop("disabled", disabled)
+    .toggleClass("active", active);
+
+  if (!disabled) {
+    $btn.on("click", () => {
+      paginaActual = page;
+      cargarProductosDash(true);   // o datosPedidos(true) si así la llamas
+    });
+  }
+
+  return $btn;
+}
+// 2) Ahora buildPagination puede usar makeBtn sin problema
 function buildPagination(total) {
+    console.log("total : ", total);
+    console.log("registrosPorPagina : ", registrosPorPagina);
   const totalPages = Math.ceil(total / registrosPorPagina);
   const maxButtons = 5;
   const $cont = $("#pagination").empty();
+  console.log("totalPages: ", totalPages);
 
   if (totalPages <= 1) return;
 
@@ -88,28 +107,20 @@ function buildPagination(total) {
     start = Math.max(1, end - maxButtons + 1);
   }
 
-  const makeBtn = (txt, page, disabled, active) =>
-    $("<button>")
-      .text(txt)
-      .prop("disabled", disabled)
-      .toggleClass("active", active)
-      .on("click", () => {
-        paginaActual = page;
-        cargarProductosDash(true);
-      });
-
-  // Flechas First / Prev
+  // Flechas «Primera» y «Anterior»
   $cont.append(makeBtn("«", 1, paginaActual === 1, false));
   $cont.append(makeBtn("‹", paginaActual - 1, paginaActual === 1, false));
 
-  // Botones de página
+  // Botones numéricos
   for (let i = start; i <= end; i++) {
     $cont.append(makeBtn(i, i, false, i === paginaActual));
   }
 
-  // Flechas Next / Last
+  // Flechas «Siguiente» y «Última»
   $cont.append(makeBtn("›", paginaActual + 1, paginaActual === totalPages, false));
   $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
+
+  console.log("paginaActual: ", paginaActual);
 }
 function doSearch() {
   const tableReg = document.getElementById("producto");
