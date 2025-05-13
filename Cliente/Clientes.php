@@ -204,7 +204,7 @@ if (isset($_SESSION['usuario'])) {
 										class="search-input"
 										type="text"
 										placeholder="Buscar clientes..."
-										onkeyup="doSearch()" />
+										onkeyup="debouncedSearch()" />
 								</div>
 							</div>
 							<table id="clientes">

@@ -664,7 +664,7 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
         echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
     }
 }
-function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae)
+function obtenerDatosCliente($claveVendedor,$conexionData, $filtroBusqueda, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -678,28 +678,56 @@ function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
+
+    $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
+    $claveVendedor = str_pad($claveVendedor, 5, " ", STR_PAD_LEFT);
+
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $sql = "SELECT 
-        CLAVE,  
-        NOMBRE, 
-        RFC,
-        CALLE, 
-        TELEFONO, 
-        NUMEXT, 
-        NUMINT,
-        COLONIA,
-        CODIGO,
-        LOCALIDAD,
-        PAIS,
-        NOMBRECOMERCIAL,
-        LISTA_PREC 
-    FROM 
-        $nombreTabla
-    WHERE 
-        CLAVE = ?;";  // ✅ Eliminé el 'AND' incorrecto
-
-    $params = [$claveUsuario]; // ✅ No conviertas a entero si CLAVE puede ser alfanumérica
-
+    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+    if ($tipoUsuario === "ADMINISTRADOR") {
+        if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+                FROM $nombreTabla
+                WHERE 
+                LOWER(LTRIM(RTRIM(CLAVE))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(NOMBRE))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(NOMBRECOMERCIAL))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(CALLE))) LIKE ? AND [STATUS] = 'A'
+                ORDER BY CLAVE ASC;";
+        } else {
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+                FROM $nombreTabla
+                WHERE 
+                CLAVE LIKE ? OR
+                NOMBRE LIKE ? OR
+                NOMBRECOMERCIAL LIKE ? OR
+                CALLE LIKE ? AND [STATUS] = 'A'
+                ORDER BY CLAVE ASC;";
+        }
+    } else {
+        if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+                FROM $nombreTabla
+                WHERE 
+                LOWER(LTRIM(RTRIM(CLAVE))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(NOMBRE))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(NOMBRECOMERCIAL))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(CALLE))) LIKE ? AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'
+                ORDER BY CLAVE ASC;";
+        } else {
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+                FROM $nombreTabla
+                WHERE 
+                CLAVE LIKE ? OR
+                NOMBRE LIKE ? OR
+                NOMBRECOMERCIAL LIKE ? OR
+                CALLE LIKE ? AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'
+                ORDER BY CLAVE ASC;";
+        }
+    }
+    
+    $likeFilter = '%' . $filtroBusqueda . '%';
+    $params = [$likeFilter, $likeFilter, $likeFilter, $likeFilter];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
@@ -724,6 +752,13 @@ function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae)
         }
         $clientes[] = $row;
     }
+    $countSql  = "
+            SELECT COUNT(DISTINCT CLAVE) AS total
+            FROM $nombreTabla WHERE STATUS = 'A'
+        ";
+    $countStmt = sqlsrv_query($conn, $countSql);
+    $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
+    $total     = (int)$totalRow['total'];
 
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -735,7 +770,7 @@ function obtenerDatosCliente($conexionData, $claveUsuario, $claveSae)
 
     header('Content-Type: application/json; charset=UTF-8');
     //return $clientes;
-    echo json_encode(['success' => true, 'data' => $clientes]);
+    echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
 }
 function obtenerFolio($firebaseProjectId, $firebaseApiKey)
 {
@@ -999,9 +1034,9 @@ switch ($funcion) {
         validarCreditos($conexionData, $clave);
         break;
     case 4:
-        $noEmpresa = "";
-        //$claveSae = "02";
-        $claveSae = "01";
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $claveVendedor = $_SESSION['usuario']['claveUsuario'];
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
 
         if (!$conexionResult['success']) {
@@ -1010,9 +1045,8 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        $clave = $_SESSION['usuario']['claveUsuario'];
-        $claveUsuario = formatearClaveCliente($clave);
-        obtenerDatosCliente($conexionData, $claveUsuario, $claveSae);
+        $filtroBusqueda = $_POST['searchText'];
+        obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $claveSae);
         break;
     case 5:
         //$noEmpresa = "01";

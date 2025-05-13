@@ -27,48 +27,118 @@ btnDatosVentas.addEventListener("click", () => {
   btnDatosGenerales.classList.remove("btn-primary");
 });
 
+let debounceTimeout;
+function debouncedSearch() {
+  clearTimeout(debounceTimeout);
+
+  // Espera 3 segundos antes de ejecutar doSearch
+  debounceTimeout = setTimeout(() => {
+    doSearch();
+  }, 500);
+}
+
 function doSearch() {
-  const tableReg = document.getElementById("clientes");
   const searchText = document.getElementById("searchTerm").value.toLowerCase();
-  let total = 0;
-  // Recorremos todas las filas con contenido de la tabla
-  for (let i = 1; i < tableReg.rows.length; i++) {
-    // Si el td tiene la clase "noSearch" no se busca en su cntenido
-    if (tableReg.rows[i].classList.contains("noSearch")) {
-      continue;
-    }
-    let found = false;
-    const cellsOfRow = tableReg.rows[i].getElementsByTagName("td");
-
-    // Recorremos todas las celdas
-    for (let j = 0; j < cellsOfRow.length && !found; j++) {
-      const compareWith = cellsOfRow[j].innerHTML.toLowerCase();
-      // Buscamos el texto en el contenido de la celda
-
-      if (searchText.length == 0 || compareWith.indexOf(searchText) > -1) {
-        found = true;
-        total++;
-      }
-    }
-    if (found) {
-      tableReg.rows[i].style.display = "";
-    } else {
-      // si no ha encontrado ninguna coincidencia, esconde la
-      // fila de la tabla
-      tableReg.rows[i].style.display = "none";
-    }
-  }
-  // mostramos las coincidencias
-  const lastTR = tableReg.rows[tableReg.rows.length - 1];
-  const td = lastTR.querySelector("td");
-  lastTR.classList.remove("hide", "red");
-  if (searchText == "") {
-    lastTR.classList.add("hide");
-  } else if (total) {
-    //td.innerHTML="Se ha encontrado "+total+" coincidencia"+((total>1)?"s":"");
+  
+  if (searchText.length >= 2) {
+    $.post(
+      "../Servidor/PHP/clientes.php",
+      {
+        numFuncion: "4",
+        noEmpresa: noEmpresa,
+        token: token,
+        pagina: paginaActual,
+        porPagina: registrosPorPagina,
+        searchText: searchText
+      },
+      function (response) {
+        try {
+          // Verifica si response es una cadena (string) que necesita ser parseada
+          if (typeof response === "string") {
+            response = JSON.parse(response);
+          }
+          // Verifica si response es un objeto antes de intentar procesarlo
+          if (typeof response === "object" && response !== null) {
+            if (response.success && response.data) {
+              let clientes = response.data;
+              // Eliminar duplicados basados en la 'CLAVE' (suponiendo que 'CLAVE' es única)
+              clientes = clientes.filter(
+                (value, index, self) =>
+                  index === self.findIndex((t) => t.CLAVE === value.CLAVE)
+              );
+  
+              // Ordenar los clientes por la clave (cliente.CLAVE)
+              clientes.sort((a, b) => {
+                const claveA = a.CLAVE ? parseInt(a.CLAVE) : 0;
+                const claveB = b.CLAVE ? parseInt(b.CLAVE) : 0;
+                return claveA - claveB; // Orden ascendente
+              });
+  
+              const clientesTable = document.getElementById("datosClientes");
+              clientesTable.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos datos
+  
+              // Recorrer los clientes ordenados y agregar las filas a la tabla
+              clientes.forEach((cliente) => {
+                const saldo = parseFloat(cliente.SALDO || 0);
+                const saldoFormateado = `$${saldo.toLocaleString("es-MX", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`;
+                const estadoTimbrado = cliente.EstadoDatosTimbrado
+                  ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
+                  : ""; // Centrado de la palomita con display: block y margin: 0 auto
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                              <td>${cliente.CLAVE || "Sin clave"}</td>
+                              <td>${cliente.NOMBRE || "Sin nombre"}</td>
+                              <td>${cliente.CALLE || "Sin calle"}</td>
+                              <td style="text-align: right;">${saldoFormateado}</td>
+                              <td style="text-align: center;">${estadoTimbrado}</td> <!-- Centrar la palomita -->
+                              <td>${
+                                cliente.NOMBRECOMERCIAL || "Sin nombre comercial"
+                              }</td>
+                              <td>
+                                  <button class="btnVisualizarCliente" name="btnVisualizarCliente" data-id="${
+                                    cliente.CLAVE
+                                  }" style="
+                                      display: inline-flex;
+                                      align-items: center;
+                                      padding: 0.5rem 1rem;
+                                      font-size: 1rem;
+                                      font-family: Lato;
+                                      color: #fff;
+                                      background-color: #007bff;
+                                      border: none;
+                                      border-radius: 0.25rem;
+                                      cursor: pointer;
+                                      transition: background-color 0.3s ease;
+                                  ">
+                                      <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar
+                                  </button>
+                              </td>
+                          `;
+                clientesTable.appendChild(row);
+              });
+              buildPagination(response.total);
+              agregarEventosBotones();
+            } else {
+              const clientesTable = document.getElementById("datosClientes");
+              clientesTable.innerHTML = `<tr><td style="text-align: center;">No hay datos disponibles</td></tr>`;
+            }
+          } else {
+            console.error("La respuesta no es un objeto válido:", response);
+          }
+        } catch (error) {
+          console.error("Error al procesar la respuesta JSON:", error);
+          console.error("Detalles de la respuesta:", response); // Mostrar respuesta completa
+        }
+      },
+      "json"
+    ).fail(function (jqXHR, textStatus, errorThrown) {
+      console.error("Error en la solicitud:", textStatus, errorThrown, jqXHR);
+    });
   } else {
-    lastTR.classList.add("red");
-    //td.innerHTML="No se han encontrado coincidencias";
+    obtenerClientes(true);
   }
 }
 
