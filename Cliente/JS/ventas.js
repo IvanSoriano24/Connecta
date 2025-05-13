@@ -167,7 +167,7 @@ function makeBtn(text, page, disabled, active) {
   if (!disabled) {
     $btn.on("click", () => {
       paginaActual = page;
-      datosPedidos(true);   // o datosPedidos(true) si así la llamas
+      datosPedidos(true); // o datosPedidos(true) si así la llamas
     });
   }
 
@@ -175,8 +175,8 @@ function makeBtn(text, page, disabled, active) {
 }
 // 2) Ahora buildPagination puede usar makeBtn sin problema
 function buildPagination(total) {
-    console.log("total : ", total);
-    console.log("registrosPorPagina : ", registrosPorPagina);
+  console.log("total : ", total);
+  console.log("registrosPorPagina : ", registrosPorPagina);
   const totalPages = Math.ceil(total / registrosPorPagina);
   const maxButtons = 5;
   const $cont = $("#pagination").empty();
@@ -185,9 +185,9 @@ function buildPagination(total) {
   if (totalPages <= 1) return;
 
   let start = Math.max(1, paginaActual - Math.floor(maxButtons / 2));
-  let end   = start + maxButtons - 1;
+  let end = start + maxButtons - 1;
   if (end > totalPages) {
-    end   = totalPages;
+    end = totalPages;
     start = Math.max(1, end - maxButtons + 1);
   }
 
@@ -201,7 +201,9 @@ function buildPagination(total) {
   }
 
   // Flechas «Siguiente» y «Última»
-  $cont.append(makeBtn("›", paginaActual + 1, paginaActual === totalPages, false));
+  $cont.append(
+    makeBtn("›", paginaActual + 1, paginaActual === totalPages, false)
+  );
   $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
 
   console.log("paginaActual: ", paginaActual);
@@ -790,9 +792,7 @@ function llenarFiltroVendedor() {
         if (res.success && Array.isArray(res.data)) {
           const selectVendedor = $("#filtroVendedor");
           selectVendedor.empty();
-          selectVendedor.append(
-            "<option value='' selected>Todos</option>"
-          );
+          selectVendedor.append("<option value='' selected>Todos</option>");
 
           res.data.forEach((vendedor) => {
             selectVendedor.append(
@@ -929,5 +929,78 @@ document.addEventListener("DOMContentLoaded", function () {
       limpiarTablaPartidas(); // Limpiar la tabla de partidas para el nuevo pedido
       obtenerFolioSiguiente(); // Generar el siguiente folio para el pedido
     }
+  }
+});
+$(document).on("input", ".producto", function () {
+  const productoInput = $(this).val().trim();
+  const claveUsuario = "<?php echo $claveUsuario ?>";
+  const $productoInput = $(this);
+
+  // 🚨 Corregir selección de la lista de sugerencias (debe estar en la misma fila)
+  const suggestionsListProductos = $productoInput
+    .closest("td")
+    .find(".suggestions-list-productos");
+
+  if (productoInput.length >= 2) {
+    $.ajax({
+      url: "../Servidor/PHP/ventas.php",
+      type: "POST",
+      data: {
+        producto: productoInput,
+        numFuncion: "16",
+        clave: claveUsuario,
+      },
+      success: function (response) {
+        try {
+          if (typeof response === "string") {
+            response = JSON.parse(response);
+          }
+        } catch (e) {
+          console.error("Error al parsear la respuesta JSON", e);
+          return;
+        }
+
+        const items = suggestionsListProductos.empty().show().find("li"); // lo vaciamos y ya dejamos items en vacío
+
+        if (
+          response.success &&
+          Array.isArray(response.productos) &&
+          response.productos.length > 0
+        ) {
+          suggestionsListProductos.removeClass("d-none");
+
+          // 1) Poblar lista
+          response.productos.forEach((producto, index) => {
+            const listItem = $("<li></li>")
+              .text(`${producto.CVE_ART.trim()} - ${producto.DESCR}`)
+              .attr("data-index", index)
+              .attr("data-producto", JSON.stringify(producto))
+              .addClass("suggestion-item")
+              .on("click", function () {
+                seleccionarProductoDesdeSugerencia($productoInput, producto);
+              });
+            suggestionsListProductos.append(listItem);
+          });
+
+          // 2) Preseleccionar la primera opción
+          highlightedIndex = 0;
+          const allItems = suggestionsListProductos.find("li");
+          actualizarDestacadoProducto(allItems, highlightedIndex);
+        } else {
+          //suggestionsListProductos.empty();
+          suggestionsListProductos
+            .empty()
+            .append("<li class='no-match'>No se encontraron coincidencias</li>")
+            .show();
+        }
+      },
+
+      error: function () {
+        console.error("Error en la solicitud AJAX para sugerencias");
+        suggestionsListProductos.empty().hide();
+      },
+    });
+  } else {
+    suggestionsListProductos.empty().hide();
   }
 });
