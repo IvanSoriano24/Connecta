@@ -2700,7 +2700,7 @@ function actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto,
     }
 }
 // ✅ 4. Insertar en ENLACE_LTPD
-function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto)
+/*function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto)
 {
     $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $enlaceLTPDResultados = [];
@@ -2736,6 +2736,59 @@ function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $
             'PXRS' => $lote['CANTIDAD'],
             'LOTE' => $lote['LOTE'],
             'CVE_ART' => $claveProducto
+        ];
+    }
+
+    return $enlaceLTPDResultados;
+}*/
+function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto)
+{
+    $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" 
+                  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // 1) Solo una vez: obtener el próximo E_LTPD
+    $sqlUltimoELTPD = "SELECT ISNULL(MAX(E_LTPD), 0) + 1 AS NUEVO_E_LTPD FROM $tablaEnlace";
+    $stmtUlt = sqlsrv_query($conn, $sqlUltimoELTPD);
+    if ($stmtUlt === false) {
+        die(json_encode([
+          'success' => false,
+          'message' => "Error al obtener el último E_LTPD",
+          'errors'  => sqlsrv_errors()
+        ]));
+    }
+    $rowUlt = sqlsrv_fetch_array($stmtUlt, SQLSRV_FETCH_ASSOC);
+    $nuevoELTPD = $rowUlt['NUEVO_E_LTPD'];
+
+    $enlaceLTPDResultados = [];
+
+    // 2) Inserto cada lote usando el mismo $nuevoELTPD
+    foreach ($lotesUtilizados as $lote) {
+        $sql = "INSERT INTO $tablaEnlace 
+                  (E_LTPD, REG_LTPD, CANTIDAD, PXRS) 
+                VALUES (?, ?, ?, ?)";
+        $params = [
+          $nuevoELTPD,
+          $lote['REG_LTPD'],
+          $lote['CANTIDAD'],
+          $lote['CANTIDAD']
+        ];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            die(json_encode([
+              'success' => false,
+              'message' => "Error al insertar en ENLACE_LTPD",
+              'errors'  => sqlsrv_errors()
+            ]));
+        }
+
+        // Guardamos para devolver
+        $enlaceLTPDResultados[] = [
+            'E_LTPD'   => $nuevoELTPD,
+            'REG_LTPD' => $lote['REG_LTPD'],
+            'CANTIDAD' => $lote['CANTIDAD'],
+            'PXRS'     => $lote['CANTIDAD'],
+            'LOTE'     => $lote['LOTE'],
+            'CVE_ART'  => $claveProducto
         ];
     }
 
@@ -2788,7 +2841,6 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
         }
 
         actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto, $claveSae);
-        //$enlaceLTPDResultados = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto);
         /*******************/
         $resultadoPorProducto = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto);
         // Si esa función te devuelve un array de 1 o varios elementos,
