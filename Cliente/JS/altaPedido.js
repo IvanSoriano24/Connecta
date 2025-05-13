@@ -482,6 +482,19 @@ function consolidarPartidasEnTabla() {
 
 function guardarPedido(id) {
   try {
+    const envioData = extraerDatosEnvio();
+    console.log("Datos de envio obtenidos:", envioData);
+
+    const validacion = validarDatosEnvio();
+    if (!validacion) {
+      Swal.fire({
+        title: "Error al guardar el pedido",
+        text: "No se escogieron los datos de envio.",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
+      return;
+    }
     Swal.fire({
       title: "Procesando pedido...",
       text: "Por favor, espera mientras se completa el pedido.",
@@ -496,18 +509,6 @@ function guardarPedido(id) {
     const formularioData = obtenerDatosFormulario();
     console.log("Datos del formulario obtenidos:", formularioData);
 
-    const envioData = extraerDatosEnvio();
-    console.log("Datos de envio obtenidos:", envioData);
-    
-    const validacion = validarDatosEnvio();
-    if(!validacion){
-      Swal.fire({
-          title: "Error al guardar el pedido",
-          text: "No se escogieron los datos de envio.",
-          icon: "warning",
-          confirmButtonText: "Aceptar",
-        });
-    }
     const partidasData = obtenerDatosPartidas();
     console.log("Datos de partidas obtenidos:", partidasData);
 
@@ -522,24 +523,38 @@ function guardarPedido(id) {
   }
 }
 function validarDatosEnvio() {
-   const  nombreContacto = document.getElementById("nombreContacto").value;
-   const compañiaContacto = document.getElementById("compañiaContacto").value;
-   
-   const telefonoContacto = document.getElementById("telefonoContacto").value;
-  const  correoContacto = document.getElementById("correoContacto").value;
-  const  direccion1Contacto = document.getElementById("direccion1Contacto").value;
- const   direccion2Contacto = document.getElementById("direccion2Contacto").value;
-  const  codigoContacto = document.getElementById("codigoContacto").value;
+  const nombreContacto = document.getElementById("nombreContacto").value;
+  const compañiaContacto = document.getElementById("compañiaContacto").value;
 
-  const  estadoContacto = $("#estadoContacto option:selected").data("descripcion");
-  const  municipioContacto = $("#municipioContacto option:selected").data("descripcion");
+  const telefonoContacto = document.getElementById("telefonoContacto").value;
+  const correoContacto = document.getElementById("correoContacto").value;
+  const direccion1Contacto =
+    document.getElementById("direccion1Contacto").value;
+  const direccion2Contacto =
+    document.getElementById("direccion2Contacto").value;
+  const codigoContacto = document.getElementById("codigoContacto").value;
 
+  const estadoContacto = $("#estadoContacto option:selected").data(
+    "descripcion"
+  );
+  const municipioContacto = $("#municipioContacto option:selected").data(
+    "descripcion"
+  );
 
   // Validación de los campos obligatorios
-  if (!nombreContacto || !compañiaContacto || !correoContacto || !telefonoContacto || !direccion1Contacto || !direccion2Contacto
-    || !codigoContacto || !estadoContacto || !municipioContacto) {
-      return false;
-    }
+  if (
+    !nombreContacto ||
+    !compañiaContacto ||
+    !correoContacto ||
+    !telefonoContacto ||
+    !direccion1Contacto ||
+    !direccion2Contacto ||
+    !codigoContacto ||
+    !estadoContacto ||
+    !municipioContacto
+  ) {
+    return false;
+  }
 
   return true; // Todos los campos obligatorios están completos
 }
@@ -595,7 +610,7 @@ function obtenerDatosFormulario() {
   };
   return formularioData;
 }
-function extraerDatosEnvio(){
+function extraerDatosEnvio() {
   const now = new Date(); // Obtiene la fecha y hora actual
   const fechaActual = `${now.getFullYear()}-${String(
     now.getMonth() + 1
@@ -625,7 +640,9 @@ function extraerDatosEnvio(){
     codigoContacto: document.getElementById("codigoContacto").value,
 
     estadoContacto: $("#estadoContacto option:selected").data("descripcion"),
-    municipioContacto: $("#municipioContacto option:selected").data("descripcion"),
+    municipioContacto: $("#municipioContacto option:selected").data(
+      "descripcion"
+    ),
   };
   return envioData;
 }
@@ -680,7 +697,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           "Texto recibido:",
           text
         );
-        throw new Error("El servidor no devolvió una respuesta JSON válida.");
+        throw new Error("El servidor no devolvió una respuesta inválida.");
       }
     })
     .then((data) => {
@@ -1472,7 +1489,6 @@ function actualizarDatos() {
           text: "Se Establecieron los Datos de Envio.",
           confirmButtonText: "Aceptar",
         }).then(() => {
-          
           const titulo = document.getElementById("titutoDatos").value;
           $("#enviar").val(titulo);
           //alert(titulo);
@@ -1850,11 +1866,11 @@ $("#cliente").on("keydown", function (e) {
     sessionStorage.getItem("clienteSeleccionado") === "true";
   if (e.key === "Tab" && !clienteSeleccionado) {
     Swal.fire({
-      icon: 'warning',
-      title: 'Aviso',
-      text: 'No se Puede Avanzar sin Tener un Cliente.',
-  });
-  return;
+      icon: "warning",
+      title: "Aviso",
+      text: "No se Puede Avanzar sin Tener un Cliente.",
+    });
+    return;
     e.preventDefault();
   }
 });

@@ -198,6 +198,146 @@ function mostrarClientes($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+function mostrarClienteBusqueda($claveVendedor, $conexionData, $clienteInput, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $clienteInput = mb_convert_encoding(trim($clienteInput), 'UTF-8');
+    $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
+
+    // Manejo de espacios para la clave
+    $clienteClave = str_pad($clienteInput, 10, " ", STR_PAD_LEFT);
+    $clienteNombre = '%' . $clienteInput . '%';
+    $claveVendedor = str_pad($claveVendedor, 5, " ", STR_PAD_LEFT);
+
+    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+
+    // Construir la consulta SQL
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    if ($tipoUsuario === "ADMINISTRADOR") {
+        if (preg_match('/[a-zA-Z]/', $clienteInput)) {
+            // Búsqueda por nombre
+            $sql = "SELECT DISTINCT
+                CLAVE,
+                NOMBRE,
+                RFC,
+                CALLE_ENVIO AS CALLE,
+                TELEFONO,
+                SALDO,
+                VAL_RFC AS EstadoDatosTimbrado,
+                NOMBRECOMERCIAL,
+                DESCUENTO
+            FROM $nombreTabla
+                WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') AND [STATUS] = 'A'";
+        } else {
+            // Búsqueda por clave
+            $sql = "SELECT DISTINCT
+                CLAVE,
+                NOMBRE,
+                RFC,
+                CALLE_ENVIO AS CALLE,
+                TELEFONO,
+                SALDO,
+                VAL_RFC AS EstadoDatosTimbrado,
+                NOMBRECOMERCIAL,
+                DESCUENTO
+            FROM $nombreTabla
+            WHERE [CLAVE] = '$clienteClave' AND [STATUS] = 'A'";
+        }
+    } else {
+        if (preg_match('/[a-zA-Z]/', $clienteInput)) {
+            // Búsqueda por nombre
+            $sql = "SELECT DISTINCT
+                    CLAVE,
+                NOMBRE,
+                RFC,
+                CALLE_ENVIO AS CALLE,
+                TELEFONO,
+                SALDO,
+                VAL_RFC AS EstadoDatosTimbrado,
+                NOMBRECOMERCIAL,
+                DESCUENTO
+                FROM $nombreTabla
+                WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'";
+        } else {
+            // Búsqueda por clave
+            $sql = "SELECT DISTINCT
+                    CLAVE,
+                NOMBRE,
+                RFC,
+                CALLE_ENVIO AS CALLE,
+                TELEFONO,
+                SALDO,
+                VAL_RFC AS EstadoDatosTimbrado,
+                NOMBRECOMERCIAL,
+                DESCUENTO
+                FROM $nombreTabla
+                WHERE [CLAVE] = '$clienteClave' AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'";
+        }
+    }
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Arreglo para almacenar los datos de clientes
+    $clientes = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        foreach ($row as $key => $value) {
+            // Limpiar espacios en blanco solo si el valor no es null
+            if ($value !== null && is_string($value)) {
+                $value = trim($value); // Eliminar espacios en blanco al principio y al final
+
+                // Verificar si el valor no está vacío antes de intentar convertirlo
+                if (!empty($value)) {
+                    // Detectar la codificación del valor
+                    $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
+
+                    // Si la codificación no se puede detectar o no es UTF-8, convertir la codificación
+                    if ($encoding && $encoding !== 'UTF-8') {
+                        $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                    }
+                }
+            } elseif ($value === null) {
+                // Si el valor es null, asignar un valor predeterminado
+                $value = '';
+            }
+
+            // Asignar el valor limpio al campo correspondiente
+            $row[$key] = $value;
+        }
+        $clientes[] = $row;
+    }
+    /*$countSql  = "
+            SELECT COUNT(DISTINCT CLAVE) AS total
+            FROM $nombreTabla WHERE STATUS = 'A'
+        ";
+    $countStmt = sqlsrv_query($conn, $countSql);
+    $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
+    $total     = (int)$totalRow['total'];
+    sqlsrv_free_stmt($countStmt);*/
+    // Liberar recursos y cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    // Retornar los datos en formato JSON
+    if (empty($clientes)) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
+        exit;
+    }
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode(['success' => true,  'data' => $clientes]); //'total' => $total,
+}
 function mostrarClientesPedidos($conexionData, $claveSae)
 {
     try {
