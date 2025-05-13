@@ -1707,7 +1707,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
 
     $fechaElaboracion = $formularioData['fechaAlta'];
     $correo = trim($clienteData['MAIL']);
-    $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+
     // Si hay múltiples correos separados por `;`, tomar solo el primero
     //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
@@ -3840,7 +3841,8 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
 
     $fechaElaboracion = $formularioData['diaAlta'];
     $correo = trim($clienteData['MAIL']);
-    $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+
     // Si hay múltiples correos separados por `;`, tomar solo el primero
     //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
@@ -4926,7 +4928,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
 
     $fechaElaboracion = $formularioData['fechaAlta'];
     $correo = trim($clienteData['MAIL']);
-    $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
     //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
@@ -4973,7 +4975,12 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
             echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado y notificado por Correo.']);
             die();
         } else {
-            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, pero no se Pudo Notificar al Cliente.']);
+            $correoVendedor = $_SESSION['usuario']['correo'];
+            $telefonoVendedor = $_SESSION['usuario']['telefono'];
+            enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, no se le pudo notificar al cliente pero si al vendedor.']);
             die();
         }
     } else {
@@ -5425,7 +5432,8 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
 
     $fechaElaboracion = $formularioData['fechaAlta'];
     $correo = trim($clienteData['MAIL']);
-    //$emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+
     // Si hay múltiples correos separados por `;`, tomar solo el primero
     //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
@@ -6618,15 +6626,14 @@ switch ($funcion) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                             guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
-                            $fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
+                            //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
                             actualizarFolio($conexionData, $claveSae);
-                            actualizarFolioF($conexionData, $claveSae);
+                            //actualizarFolioF($conexionData, $claveSae);
                             // Respuesta de éxito
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([
                                 'success' => false,
                                 'cxc' => true,
-                                'Factura' => $fac,
                                 'message' => 'El pedido tiene 24 Horas para liquidarse.',
                             ]);
                             exit();
