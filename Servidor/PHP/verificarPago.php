@@ -435,8 +435,10 @@ function crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracio
             "vendedor" => ["stringValue" => $nombreVendedor],
             "status" => ["stringValue" => $estadoComanda], // Establecer estado según la hora
             "claveSae" => ["stringValue" => $claveSae],
-            "noEmpresa" => ["stringValue" => $noEmpresa],
-            "pagada" => ["booleanValue" => true]
+            "noEmpresa" => ["integerValue" => $noEmpresa],
+            "pagada" => ["booleanValue" => true],
+            "credito" => ["booleanValue" => false],
+            "facturado" => ["booleanValue" => false]
         ]
     ];
 

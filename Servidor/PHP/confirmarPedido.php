@@ -173,8 +173,10 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         "vendedor" => ["stringValue" => $vendedor],
                         "status" => ["stringValue" => $estadoComanda], // Establecer estado según la hora
                         "claveSae" => ["stringValue" => $claveSae],
-                        "noEmpresa" => ["stringValue" => $noEmpresa],
-                        "pagada" => ["booleanValue" => false]
+                        "noEmpresa" => ["integerValue" => $noEmpresa],
+                        "pagada" => ["booleanValue" => true],
+                        "credito" => ["booleanValue" => true],
+                        "facturado" => ["booleanValue" => false]
                     ]
                 ];
 

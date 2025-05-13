@@ -1020,8 +1020,8 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
     }
 
     $folioData = sqlsrv_fetch_array($stmtFolio, SQLSRV_FETCH_ASSOC);
-    $cveDoc = $folioData['CVE_DOC'];
-    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $folio = $folioData['CVE_DOC'];
+    $cveDoc = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
     // ✅ 2. Obtener datos del pedido
     $sqlPedido = "SELECT * FROM $tablaPedidos WHERE CVE_DOC = ?";
@@ -1101,7 +1101,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
         $pedido['ESCFD'],
         $pedido['AUTORIZA'],
         $pedido['SERIE'],
-        $cveDoc,
+        $folio,
         $pedido['AUTOANIO'],
         $pedido['DAT_ENVIO'],
         $pedido['CONTADO'],
@@ -1150,7 +1150,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
 
     sqlsrv_close($conn);
 
-    return $cveDoc;
+    return $folio;
     /*echo json_encode([
         'success' => true,
         'message' => "FACTRXX insertado correctamente con CVE_DOC $cveDoc"
@@ -2538,10 +2538,10 @@ function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, 
                 'message' => "Error al actualizar la comanda $docId."
             ]);
         } else {
-            echo json_encode([
+            /*echo json_encode([
                 'success' => true,
                 'message' => "Comanda $docId actualizada correctamente."
-            ]);
+            ]);*/
         }
         return;
     }
@@ -2551,6 +2551,80 @@ function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, 
         'success' => false,
         'message' => "Comanda con folio $pedidoId no encontrada."
     ]);
+}
+function remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio)
+{
+    $urlComanda = "https://firestore.googleapis.com/v1/projects/"
+        . "$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+
+    $response = @file_get_contents($urlComanda);
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener las comandas.']);
+        return;
+    }
+
+    $data = json_decode($response, true);
+    if (empty($data['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron comandas.']);
+        return;
+    }
+    $docId = "";
+
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'] ?? [];
+        if (($fields['folio']['stringValue'] ?? '') === $pedidoId) {
+            $parts = explode('/', $document['name']);
+            $docId = end($parts);
+            break;  // ¡rompemos el bucle apenas lo encontremos!
+        }
+    }
+    if (!$docId) {
+        echo json_encode([
+            'success' => false,
+            'message' => "No se encontró comanda con folio $pedidoId."
+        ]);
+        return;
+    }
+
+    /*$fieldsToSave = [
+        'fields' => [
+            'remision' => ['stringValue' => $folio]
+        ]
+    ];*/
+    $data = [
+        'fields' => [
+            'remision' => ['stringValue' => $folio]
+        ]
+    ];
+    
+    //$payload = json_encode(['fields' => $fieldsToSave]);
+
+    $urlUpd = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$docId?updateMask.fieldPaths=remision&key=$firebaseApiKey";
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'PATCH',
+            'header' => "Content-Type: application/json\r\n",
+            'content' => json_encode($data)
+            //'content' => $data
+        ]
+    ]);
+    var_dump($context);
+    
+    $response = @file_get_contents($urlUpd, false, $context);
+
+    if ($response === false) {
+        $error = error_get_last();
+        echo json_encode([
+            'success' => false,
+            'error' => $error['message']
+        ]);
+    } else {
+        echo json_encode([
+            'success' => true,
+            'message' => "Comanda $docId actualizada con remisión $folio."
+        ]);
+    }
 }
 
 
@@ -2578,18 +2652,20 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarAfac($conexionData, $pedidoId, $claveSae);
     actualizarControl3($conexionData, $claveSae);
     $CVE_BITA = insertarBita($conexionData, $pedidoId, $claveSae);
-    $cveDoc = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA);
-    insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc);
-    insertarFactr_Clib($conexionData, $cveDoc, $claveSae);
-    actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae);
+    
+    $folio = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA);
+    
+    insertarMimve($conexionData, $pedidoId, $claveSae, $folio);
+    insertarFactr_Clib($conexionData, $folio, $claveSae);
+    actualizarPar_Factp($conexionData, $pedidoId, $folio, $claveSae);
     actualizarInve4($conexionData, $pedidoId, $claveSae);
-    insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlaceLote);
+    insertarPar_Factr($conexionData, $pedidoId, $folio, $claveSae, $enlaceLote);
     actualizarFactp($conexionData, $pedidoId, $claveSae);
-    actualizarFactp2($conexionData, $pedidoId, $cveDoc, $claveSae);
+    actualizarFactp2($conexionData, $pedidoId, $folio, $claveSae);
     actualizarFactp3($conexionData, $pedidoId, $claveSae);
-    insertarDoctoSig($conexionData, $pedidoId, $cveDoc, $claveSae);
-    insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae);
-    insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae);
+    insertarDoctoSig($conexionData, $pedidoId, $folio, $claveSae);
+    insertarPar_Factr_Clib($conexionData, $pedidoId, $folio, $claveSae);
+    insertarInfenvio($conexionData, $pedidoId, $folio, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
     actualizarAlerta($conexionData, $claveSae);
 
@@ -2603,6 +2679,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
             $enlace
         );
     }
+
+    //remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio);
 
     //$cveDoc = '          0000013314';
     //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor); 
@@ -2700,60 +2778,19 @@ function actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto,
     }
 }
 // ✅ 4. Insertar en ENLACE_LTPD
-/*function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto)
-{
-    $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $enlaceLTPDResultados = [];
-
-    foreach ($lotesUtilizados as $lote) {
-        // 🔹 Obtener el último E_LTPD y sumarle 1
-        $sqlUltimoELTPD = "SELECT ISNULL(MAX(E_LTPD), 0) + 1 AS NUEVO_E_LTPD FROM $tablaEnlace";
-        $stmtUltimoELTPD = sqlsrv_query($conn, $sqlUltimoELTPD);
-
-        if ($stmtUltimoELTPD === false) {
-            die(json_encode(['success' => false, 'message' => "Error al obtener el último E_LTPD", 'errors' => sqlsrv_errors()]));
-        }
-
-        $rowUltimoELTPD = sqlsrv_fetch_array($stmtUltimoELTPD, SQLSRV_FETCH_ASSOC);
-        $nuevoELTPD = $rowUltimoELTPD['NUEVO_E_LTPD'];
-
-        // 🔹 Insertar en ENLACE_LTPD
-        $sql = "INSERT INTO $tablaEnlace (E_LTPD, REG_LTPD, CANTIDAD, PXRS) VALUES (?, ?, ?, ?)";
-        $params = [$nuevoELTPD, $lote['REG_LTPD'], $lote['CANTIDAD'], $lote['CANTIDAD']];
-
-        $stmt = sqlsrv_query($conn, $sql, $params);
-
-        // 🚀 Verifica si la inserción falló
-        if ($stmt === false) {
-            die(json_encode(['success' => false, 'message' => "Error al insertar en ENLACE_LTPD", 'errors' => sqlsrv_errors()]));
-        }
-
-        // 🔹 Guardar el resultado para debugging
-        $enlaceLTPDResultados[] = [
-            'E_LTPD' => $nuevoELTPD,
-            'REG_LTPD' => $lote['REG_LTPD'],
-            'CANTIDAD' => $lote['CANTIDAD'],
-            'PXRS' => $lote['CANTIDAD'],
-            'LOTE' => $lote['LOTE'],
-            'CVE_ART' => $claveProducto
-        ];
-    }
-
-    return $enlaceLTPDResultados;
-}*/
 function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto)
 {
-    $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" 
-                  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD"
+        . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // 1) Solo una vez: obtener el próximo E_LTPD
     $sqlUltimoELTPD = "SELECT ISNULL(MAX(E_LTPD), 0) + 1 AS NUEVO_E_LTPD FROM $tablaEnlace";
     $stmtUlt = sqlsrv_query($conn, $sqlUltimoELTPD);
     if ($stmtUlt === false) {
         die(json_encode([
-          'success' => false,
-          'message' => "Error al obtener el último E_LTPD",
-          'errors'  => sqlsrv_errors()
+            'success' => false,
+            'message' => "Error al obtener el último E_LTPD",
+            'errors'  => sqlsrv_errors()
         ]));
     }
     $rowUlt = sqlsrv_fetch_array($stmtUlt, SQLSRV_FETCH_ASSOC);
@@ -2767,17 +2804,17 @@ function insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $
                   (E_LTPD, REG_LTPD, CANTIDAD, PXRS) 
                 VALUES (?, ?, ?, ?)";
         $params = [
-          $nuevoELTPD,
-          $lote['REG_LTPD'],
-          $lote['CANTIDAD'],
-          $lote['CANTIDAD']
+            $nuevoELTPD,
+            $lote['REG_LTPD'],
+            $lote['CANTIDAD'],
+            $lote['CANTIDAD']
         ];
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
             die(json_encode([
-              'success' => false,
-              'message' => "Error al insertar en ENLACE_LTPD",
-              'errors'  => sqlsrv_errors()
+                'success' => false,
+                'message' => "Error al insertar en ENLACE_LTPD",
+                'errors'  => sqlsrv_errors()
             ]));
         }
 

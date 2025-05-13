@@ -6122,8 +6122,10 @@ function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexio
             "vendedor" => ["stringValue" => $vendedor],
             "status" => ["stringValue" => $estadoComanda], // Establecer estado según la hora
             "claveSae" => ["stringValue" => $claveSae],
-            "noEmpresa" => ["stringValue" => $noEmpresa],
-            "pagada" => ["booleanValue" => true]
+            "noEmpresa" => ["integerValue" => $noEmpresa],
+            "pagada" => ["booleanValue" => true],
+            "credito" => ["booleanValue" => false],
+            "facturado" => ["booleanValue" => false]
         ]
     ];
 
@@ -6605,10 +6607,10 @@ switch ($funcion) {
                             eliminarCxc($conexionData, $anticipo, $claveSae);
                             remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                             comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey);
+                            //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
                             /*$datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
                             pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
                             restarSaldo($conexionData, $claveSae, $datosCxC, $clave);*/
-                            eliminarCxCBanco($anticipo, $claveSae, $formularioData);
                             //actualizarFolioF($conexionData, $claveSae);
                             // Respuesta de éxito
                             header('Content-Type: application/json; charset=UTF-8');

@@ -809,25 +809,165 @@ function facturar($folio, $claveSae, $noEmpresa)
     // Obtener tipo de contenido antes de cerrar cURL
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     curl_close($ch);
-
+    //var_dump($facturaResponse);
     if ($facturaResponse) {
         // Intenta decodificar como JSON
-        //$facturaData = json_decode($facturaResponse, true);
+        $facturaData = json_decode($facturaResponse, true);
 
-        if (json_last_error() === JSON_ERROR_NONE && isset($facturaResponse)) {
-            return $facturaResponse;
+        if (json_last_error() === JSON_ERROR_NONE && isset($facturaData)) {
+            
+            return $facturaData;
             // ✅ La respuesta es un JSON con cveDoc (Pedido procesado correctamente)
         }
     } else {
         // ❌ No hubo respuesta
-        echo "<div class='container error'>
-                <div class='title'>Confirmación Fallida</div>
-                <div class='message'>El pedido falló. No se recibió respuesta del servidor.</div>
-                <a href='/Menu.php' class='button'>Regresar al inicio</a> 
-              </div>";
+      return false;
     }
 }
+/*
+function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
+{
+    date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
 
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    //FALTA FACTURA
+    $folio = nuevoFolio($conexionData, $claveSae);
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+
+    // Preparar los datos para el INSERT
+    $cve_clie   = $formularioData['cliente']; // Clave del cliente
+    $CVE_CLIE = formatearClaveCliente($cve_clie);
+    $refer      = $CVE_DOC; // Puede generarse o venir del formulario
+    $num_cpto   = '1';  // Concepto: ajustar según tu lógica de negocio
+    $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
+    $no_factura = $CVE_DOC; // Número de factura o pedido
+    $docto = $CVE_DOC;   // Puede ser un código de documento, si aplica
+    $IMPORTE = 0;
+    $STRCVEVEND = $formularioData['claveVendedor'];
+
+    $AFEC_COI = 'A';
+    $NUM_MONED = 1;
+    $TCAMBIO = 1;
+    $TIPO_MOV = 'A'; //Aqui
+
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
+    foreach ($partidasData as $partida) {
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+        $totalPartida = $precioUnitario * $cantidad;
+        // **Aplicar los descuentos en cascada**
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
+    }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
+    $fecha_apli = date("Y-m-d 00:00:00.000");         // Fecha de aplicación: ahora
+    $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
+    $status     = 'A';  // Estado inicial, por ejemplo
+    $USUARIO    = '0';
+    $IMPMON_EXT = $IMPORTE;
+    $SIGNO = 1;
+
+
+    // Preparar el query INSERT (ajusta los campos según la estructura real de tu tabla)
+    $query = "INSERT INTO $tablaCunetM (
+                    CVE_CLIE, 
+                    REFER, 
+                    NUM_CPTO, 
+                    NUM_CARGO, 
+                    NO_FACTURA, 
+                    DOCTO, 
+                    IMPORTE, 
+                    FECHA_APLI, 
+                    FECHA_VENC,
+                    STATUS,
+                    USUARIO,
+                    AFEC_COI,
+                    NUM_MONED,
+                    TCAMBIO,
+                    TIPO_MOV,
+                    FECHA_ENTREGA,
+                    IMPMON_EXT,
+                    UUID,
+                    VERSION_SINC,
+                    USUARIOGL,
+                    FECHAELAB,
+                    IMPMON_EXT,
+                    SIGNO,
+                    STRCVEVEND
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?, ?, ?)";
+
+    $params = [
+        $CVE_CLIE,
+        $refer,
+        $num_cpto,
+        $num_cargo,
+        $no_factura,
+        $docto,
+        $IMPORTE,
+        $fecha_apli,
+        $fecha_venc,
+        $status,
+        $USUARIO,
+        $AFEC_COI,
+        $NUM_MONED,
+        $TCAMBIO,
+        $TIPO_MOV,
+        $fecha_apli,
+        $IMPORTE,
+        $fecha_apli,
+        $fecha_apli,
+        $IMPMON_EXT,
+        $SIGNO,
+        $STRCVEVEND
+    ];
+
+    $stmt = sqlsrv_query($conn, $query, $params);
+    if ($stmt === false) {
+        $errors = sqlsrv_errors();
+        sqlsrv_close($conn);
+        return [
+            'success' => false,
+            'message' => 'Error al insertar la cuenta por cobrar',
+            'errors' => $errors
+        ];
+    }
+
+    sqlsrv_close($conn);
+    return [
+        'factura' => $no_factura,
+        'referencia' => $refer,
+        'importe' => $IMPORTE
+    ];
+}
+*/
 function verificarHora($firebaseProjectId, $firebaseApiKey)
 {
     $horaActual = (int) date('Hi'); // Formato "Hi" concatenado como un número entero
@@ -839,7 +979,6 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
             echo "Error al obtener las comandas.\n";
             return;
         }
-
         $data = json_decode($response, true);
         if (!isset($data['documents'])) {
             echo "No se encontraron comandas.\n";
@@ -849,12 +988,15 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
             $fields = $document['fields'];
             $status = $fields['status']['stringValue'];
             $folio = $fields['folio']['stringValue'];
+            $facturado = $fields['facturado']['booleanValue'];
+            $credito = $fields['credito']['booleanValue'];
             $claveSae = $fields['claveSae']['stringValue'];
             $noEmpresa = $fields['noEmpresa']['integerValue'];
             $pagada = $fields['pagada']['booleanValue'];
 
             // Si la comanda está pendiente y es de un día anterior
             if ($status === 'TERMINADA') {
+                
                 $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
                 if (!$conexionResult['success']) {
                     echo json_encode($conexionResult);
@@ -862,31 +1004,39 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                 }
                 $conexionData = $conexionResult['data'];
                 //Se verifica que el pedido este remitido
-                $remitido = verificarEstadoPedido($folio, $conexionData, $claveSae);
-                if ($remitido) {
+                //$estado = verificarEstadoPedido($folio, $conexionData, $claveSae);
+                if (!$facturado) {
                     
                     //Funcion para crear factura
                     if ($pagada) {
-                        /*$datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
-                        pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
-                        restarSaldo($conexionData, $claveSae, $datosCxC, $clave);*/
-                        //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
-                        //actualizarFolioF($conexionData, $claveSae);
-                        //factura
-                    } else {
-
+                        
                         $folioFactura = facturar($folio, $claveSae, $noEmpresa);
+                        
+                        //var_dump($folioFactura['folioFactura']);
                         //$folioFactura = "18456";
                         //Demas funciones
-                        $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
+                        if($credito){
+                            //var_dump("Entro2");
+                            //crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
+                            //actualizarFolioF($conexionData, $claveSae);
+
+                            /********************/
+                            /*$datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
+                            pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
+                            restarSaldo($conexionData, $claveSae, $datosCxC, $clave);
+                            eliminarCxCBanco($anticipo, $claveSae, $formularioData);
+                            actualizarFolioF($conexionData, $claveSae);*/
+                        }
+                        /*$respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
                         if ($respuestaFactura['Succes']) {
                             $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
                             die();
                             validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura);
                         } else {
                             enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
-                        }
-                    }
+                        }*/
+                        
+                    } 
                 }
             }
         }
