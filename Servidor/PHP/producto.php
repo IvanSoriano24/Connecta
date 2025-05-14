@@ -103,6 +103,83 @@ function obtenerDetalleProducto($conexionData, $cveArt) {
     ], JSON_PRETTY_PRINT);
 }
 
+function obtenerProductosFiltrados($conexionData, $filtroBusqueda, $claveSae) {
+    // Parámetros de paginación
+    $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+    $porPagina = isset($_GET['porPagina']) ? (int)$_GET['porPagina'] : 10;
+    $offset = ($pagina - 1) * $porPagina;
+
+    
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    // Consulta directa a la tabla fija INVE02
+
+    if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
+        $sql = "SELECT f.[CVE_ART], f.[DESCR], f.[EXIST], f.[LIN_PROD], f.[UNI_MED], f.[APART] 
+            FROM {$nombreTabla} AS f
+            WHERE 
+            f.[EXIST] > 0 AND
+            LOWER(LTRIM(RTRIM(CVE_ART))) LIKE ? OR
+            LOWER(LTRIM(RTRIM(DESCR))) LIKE ? OR
+            LOWER(LTRIM(RTRIM(EXIST))) LIKE ? AND [STATUS] = 'A'
+            ORDER BY f.CVE_ART ASC 
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;";
+    } else {
+        $sql = "SELECT f.[CVE_ART], f.[DESCR], f.[EXIST], f.[LIN_PROD], f.[UNI_MED], f.[APART] 
+            FROM {$nombreTabla} AS f
+            WHERE 
+            f.[EXIST] > 0 AND
+            CVE_ART LIKE ? OR
+            DESCR LIKE ? OR
+            EXIST LIKE ? AND [STATUS] = 'A'
+            ORDER BY f.CVE_ART ASC 
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;";
+    }
+
+    $likeFilter = '%' . $filtroBusqueda . '%';
+    $params = [$likeFilter, $likeFilter, $likeFilter, $offset, $porPagina];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta SQL', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+
+    $productos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $productos[] = $row;
+    }
+
+    $countSql  = "SELECT COUNT(f.CVE_ART) AS total
+        FROM $nombreTabla f
+        WHERE f.[EXIST] > 0";
+    $countStmt = sqlsrv_query($conn, $countSql);
+    $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
+    $total = (int)$totalRow['total'];
+
+    sqlsrv_free_stmt($countStmt);
+    sqlsrv_close($conn);
+    if (count($productos) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'total' => $total, 'productos' => $productos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron productos.']);
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -145,6 +222,20 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $cveArt = $_GET['cveArt'];
         obtenerDetalleProducto($conexionData, $cveArt);
+        break;
+    case 2:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        $filtroBusqueda = $_POST['searchText'];
+        obtenerProductosFiltrados($conexionData, $filtroBusqueda, $claveSae);
         break;
     default:
     echo json_encode(['success' => false, 'message' => 'Función no válida.']);

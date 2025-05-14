@@ -186,8 +186,8 @@ session_destroy(); */
 								id="searchTerm"
 								class="search-input"
 								type="text"
-								placeholder="Buscar prducto..."
-								onkeyup="doSearch()" />
+								placeholder="Buscar producto..."
+								onkeyup="debouncedSearch()"/>
 						</div>
 					</div>
 				</div>
