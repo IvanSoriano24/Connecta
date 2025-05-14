@@ -194,7 +194,7 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
         'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
     ]);*/
 }
-function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA){
+function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -213,7 +213,141 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA){
         ]));
     }
 
-    //
+    $remision = str_pad($remision, 10, '0', STR_PAD_LEFT);
+    $remision = str_pad($remision, 20, ' ', STR_PAD_LEFT);
+
+
+    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
+    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+
+    $tablaFacturas = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+     // ✅ 2. Obtener datos del pedido
+    $sqlPedido = "SELECT * FROM $tablaRemisiones WHERE CVE_DOC = ?";
+    $paramsPedido = [$remision];
+    $stmtPedido = sqlsrv_query($conn, $sqlPedido, $paramsPedido);
+    if ($stmtPedido === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al obtener los datos del pedido',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    $pedido = sqlsrv_fetch_array($stmtPedido, SQLSRV_FETCH_ASSOC);
+    if (!$pedido) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No se encontraron datos del pedido'
+        ]);
+        die();
+    }
+
+     $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
+    $tipDoc = 'R';
+    $status = 'E';
+    $datMostr = 0;
+    $cvePedi = '';  // Vacío según la traza
+    $tipDocE = 'F';
+    $docAnt = $remision;
+    $tipDocAnt = 'R';
+
+    // ✅ 4. Insertar en FACTRXX
+    $sqlInsert = "INSERT INTO $tablaFacturas 
+        (TIP_DOC, CVE_DOC, CVE_CLPV, STATUS, DAT_MOSTR, CVE_VEND, CVE_PEDI, FECHA_DOC, FECHA_ENT, FECHA_VEN,
+        CAN_TOT, IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4, DES_TOT, DES_FIN, COM_TOT, CVE_OBS, NUM_ALMA, ACT_CXC,
+        ACT_COI, ENLAZADO, NUM_MONED, TIPCAMB, NUM_PAGOS, FECHAELAB, PRIMERPAGO, RFC, CTLPOL, ESCFD, AUTORIZA,
+        SERIE, FOLIO, AUTOANIO, DAT_ENVIO, CONTADO, CVE_BITA, BLOQ, TIP_DOC_E, DES_FIN_PORC, DES_TOT_PORC,
+        COM_TOT_PORC, IMPORTE, METODODEPAGO, NUMCTAPAGO, DOC_ANT, TIP_DOC_ANT, VERSION_SINC, FORMADEPAGOSAT,
+        USO_CFDI, TIP_FAC, REG_FISC, IMP_TOT5, IMP_TOT6, IMP_TOT7, IMP_TOT8)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    $paramsInsert = [
+        $tipDoc,
+        $cveDoc,
+        $pedido['CVE_CLPV'],
+        $status,
+        $datMostr,
+        $pedido['CVE_VEND'],
+        $cvePedi,
+        $fechaDoc,
+        $fechaDoc,
+        $fechaDoc,
+        $pedido['CAN_TOT'],
+        $pedido['IMP_TOT1'],
+        $pedido['IMP_TOT2'],
+        $pedido['IMP_TOT3'],
+        $pedido['IMP_TOT4'],
+        $pedido['DES_TOT'],
+        $pedido['DES_FIN'],
+        $pedido['COM_TOT'],
+        $pedido['CVE_OBS'],
+        $pedido['NUM_ALMA'],
+        $pedido['ACT_CXC'],
+        $pedido['ACT_COI'],
+        $pedido['ENLAZADO'],
+        $pedido['NUM_MONED'],
+        $pedido['TIPCAMB'],
+        $pedido['NUM_PAGOS'],
+        $pedido['FECHAELAB'],
+        $pedido['PRIMERPAGO'],
+        $pedido['RFC'],
+        $pedido['CTLPOL'],
+        $pedido['ESCFD'],
+        $pedido['AUTORIZA'],
+        $pedido['SERIE'],
+        $folioFactura,
+        $pedido['AUTOANIO'],
+        $pedido['DAT_ENVIO'],
+        $pedido['CONTADO'],
+        $CVE_BITA,
+        $pedido['BLOQ'],
+        $tipDocE,
+        $pedido['DES_FIN_PORC'],
+        $pedido['DES_TOT_PORC'],
+        $pedido['COM_TOT_PORC'],
+        $pedido['IMPORTE'],
+        $pedido['METODODEPAGO'],
+        $pedido['NUMCTAPAGO'],
+        $docAnt,
+        $tipDocAnt,
+        $fechaDoc,
+        $pedido['FORMADEPAGOSAT'],
+        $pedido['USO_CFDI'],
+        $pedido['TIP_FAC'],
+        $pedido['REG_FISC'],
+        $pedido['IMP_TOT5'],
+        $pedido['IMP_TOT6'],
+        $pedido['IMP_TOT7'],
+        $pedido['IMP_TOT8']
+    ];
+
+    if (count($paramsInsert) !== 57) {
+        echo json_encode([
+            'success' => false,
+            'message' => "Error: La cantidad de valores en VALUES no coincide con las columnas en INSERT INTO",
+            'expected_columns' => 57,
+            'received_values' => count($paramsInsert),
+            'values' => $paramsInsert
+        ]);
+        die();
+    }
+
+    $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
+    if ($stmtInsert === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => "Error al insertar en FACTRXX",
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    sqlsrv_close($conn);
 }
 function insertarParFactf($conexionData)
 {
@@ -368,7 +502,7 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa)
     $remision = obtenerRemision($conexionData, $pedidoId, $claveSae);
     $CVE_BITA = insertarBita($conexionData, $pedidoId, $claveSae);
     //insertarAfacf($conexionData);
-    insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA);
+    insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $claveSae);
     /*insertarParFactf($conexionData);
     actualizarFolioF($conexionData);
     actualizarFactr($conexionData);*/
