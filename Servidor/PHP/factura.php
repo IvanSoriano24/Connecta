@@ -349,6 +349,57 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $clav
 
     sqlsrv_close($conn);
 }
+function insertarFactf_Clib($conexionData, $cveDoc, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Tablas dinámicas
+    $tablaFactrClib = "[{$conexionData['nombreBase']}].[dbo].[FACTF_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $claveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+
+
+    // ✅ 2. Insertar en `FACTR_CLIB01`
+    $sqlInsert = "INSERT INTO $tablaFactrClib (CLAVE_DOC) VALUES (?)";
+    $paramsInsert = [$claveDoc];
+
+    $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
+    if ($stmtInsert === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => "Error al insertar en FACTR_CLIBXX con CVE_DOC $claveDoc",
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Cerrar conexión
+    //sqlsrv_free_stmt($stmtUltimaRemision);
+    sqlsrv_free_stmt($stmtInsert);
+    sqlsrv_close($conn);
+
+    /*echo json_encode([
+        'success' => true,
+        'message' => "FACTR_CLIBXX insertado correctamente con CVE_DOC $claveDoc"
+    ]);*/
+}
 function insertarParFactf($conexionData)
 {
     $serverName = $conexionData['host'];
@@ -370,6 +421,156 @@ function insertarParFactf($conexionData)
     }
 
     //
+    $remision = str_pad($remision, 10, '0', STR_PAD_LEFT);
+    $remision = str_pad($remision, 20, ' ', STR_PAD_LEFT);
+
+
+    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
+    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+
+// Tablas dinámicas
+    $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidasFactura = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+
+    // ✅ 2. Obtener las partidas del pedido (`PAR_FACTPXX`)
+    $sqlPartidas = "SELECT NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
+                           IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, 
+                           DESC1, DESC2, DESC3, COMI, APAR, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
+                           TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, IMPRIMIR, MAN_IEPS, 
+                           MTO_PORC, MTO_CUOTA, CVE_ESQ, IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, 
+                           IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, TOTIMP6, TOTIMP7, TOTIMP8 
+                    FROM $tablaPartidasRemision WHERE CVE_DOC = ?";
+    $paramsPartidas = [$pedidoId];
+
+    $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $paramsPartidas);
+    if ($stmtPartidas === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al obtener las partidas del pedido',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // ✅ 3. Obtener el `NUM_MOV` de `MINVEXX`
+    $sqlNumMov = "SELECT ISNULL(MAX(NUM_MOV), 0) AS NUM_MOV FROM $tablaMovimientos";
+    $stmtNumMov = sqlsrv_query($conn, $sqlNumMov);
+
+    if ($stmtNumMov === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al obtener NUM_MOV desde MINVEXX',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    $numMovData = sqlsrv_fetch_array($stmtNumMov, SQLSRV_FETCH_ASSOC);
+    $numMov = $numMovData['NUM_MOV'];
+
+    // Fecha de sincronización
+    $fechaSinc = date('Y-m-d H:i:s');
+
+    // ✅ 4. Insertar cada partida en `PAR_FACTRXX`
+    while ($row = sqlsrv_fetch_array($stmtPartidas, SQLSRV_FETCH_ASSOC)) {
+        $TOT_PARTIDA = $row['CANT'] * $row['PREC'];
+
+        // **Buscar `E_LTPD` en `$enlaceMap`, si no existe, usar el valor original de `$row['E_LTPD']`**
+        $eLtpd = isset($enlaceMap[trim($row['CVE_ART'])]) ? $enlaceMap[trim($row['CVE_ART'])] : $row['E_LTPD'];
+
+        $sqlInsert = "INSERT INTO $tablaPartidasFactura 
+            (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
+            IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, DESC1, 
+            DESC2, DESC3, COMI, APAR, ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
+            TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, 
+            APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, UUID,
+            IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, 
+            TOTIMP6, TOTIMP7, TOTIMP8)
+        VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+        ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, '',
+        ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?)";
+
+        $paramsInsert = [
+            $cveDoc,
+            $row['NUM_PAR'],
+            $row['CVE_ART'],
+            $row['CANT'],
+            $row['PXS'],
+            $row['PREC'],
+            $row['COST'],
+            $row['IMPU1'],
+            $row['IMPU2'],
+            $row['IMPU3'],
+            $row['IMPU4'],
+            $row['IMP1APLA'],
+            $row['IMP2APLA'],
+            $row['IMP3APLA'],
+            $row['IMP4APLA'],
+            $row['TOTIMP1'],
+            $row['TOTIMP2'],
+            $row['TOTIMP3'],
+            $row['TOTIMP4'],
+            $row['DESC1'],
+            $row['DESC2'],
+            $row['DESC3'],
+            $row['COMI'],
+            $row['APAR'],
+            'S',
+            $row['NUM_ALM'],
+            $row['POLIT_APLI'],
+            $row['TIP_CAM'],
+            $row['UNI_VENTA'],
+            $row['TIPO_PROD'],
+            $row['TIPO_ELEM'],
+            $row['CVE_OBS'],
+            $row['REG_SERIE'],
+            $eLtpd,
+            $numMov,
+            $TOT_PARTIDA,
+            $row['IMPRIMIR'],
+            $row['MAN_IEPS'],
+            1,
+            0,
+            'C',
+            $row['MTO_PORC'],
+            $row['MTO_CUOTA'],
+            $row['CVE_ESQ'],
+            $fechaSinc,
+            $row['IMPU5'],
+            $row['IMPU6'],
+            $row['IMPU7'],
+            $row['IMPU8'],
+            $row['IMP5APLA'],
+            $row['IMP6APLA'],
+            $row['IMP7APLA'],
+            $row['IMP8APLA'],
+            $row['TOTIMP5'],
+            $row['TOTIMP6'],
+            $row['TOTIMP7'],
+            $row['TOTIMP8']
+        ];
+
+        $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
+        if ($stmtInsert === false) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al Insertar en Par_Factr',
+                'errors' => sqlsrv_errors()
+            ]);
+            die();
+        }
+        $numMov++;
+    }
+
+    sqlsrv_close($conn);
+
 }
 function actualizarFolioF($conexionData)
 {
