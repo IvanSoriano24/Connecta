@@ -284,6 +284,9 @@ function insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc)
     // Asegura que el ID del pedido tenga el formato correcto (10 caracteres con espacios a la izquierda)
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
+
+    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
     $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -1335,6 +1338,9 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
+    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT);
+    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    
     // Tablas dinámicas
     $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -2048,6 +2054,9 @@ function actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae)
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
+    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT);
+    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+
     // ✅ 1. Obtener las partidas de la remisión
     $sqlPartidas = "SELECT NUM_PAR, CVE_ART, CANT FROM $tablaPartidasRemision WHERE CVE_DOC = ?";
     $paramsPartidas = [$cveDoc];
@@ -2187,8 +2196,9 @@ function actualizarFactp2($conexionData, $pedidoId, $cveDocRemision, $claveSae)
     // Formatear los valores para SQL Server
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
-    /*$cveDocRemision = str_pad($cveDocRemision, 10, '0', STR_PAD_LEFT);
-    $cveDocRemision = str_pad($cveDocRemision, 10, ' ', STR_PAD_LEFT);*/
+    
+    $cveDocRemision = str_pad($cveDocRemision, 10, '0', STR_PAD_LEFT);
+    $cveDocRemision = str_pad($cveDocRemision, 10, ' ', STR_PAD_LEFT);
 
     // ✅ Actualizar DOC_SIG y TIP_DOC_SIG en FACTPXX
     $sqlUpdate = "UPDATE $tablaFactp 
@@ -2302,6 +2312,8 @@ function insertarDoctoSig($conexionData, $pedidoId, $cveDoc, $claveSae)
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
+    $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT);
+    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
     // Tabla dinámica
     $tablaDoctoSig = "[{$conexionData['nombreBase']}].[dbo].[DOCTOSIGF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 

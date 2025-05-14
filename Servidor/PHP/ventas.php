@@ -1708,6 +1708,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     $fechaElaboracion = $formularioData['fechaAlta'];
     $correo = trim($clienteData['MAIL']);
     $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    $claveCliente = $clave;
 
     // Si hay múltiples correos separados por `;`, tomar solo el primero
     //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
@@ -1741,7 +1742,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         }
 
         if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -1980,7 +1981,7 @@ function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
 
     return $result;
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito)
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
 
@@ -1994,7 +1995,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urldecode($claveCliente);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido
 
 
@@ -3842,6 +3843,7 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     $fechaElaboracion = $formularioData['diaAlta'];
     $correo = trim($clienteData['MAIL']);
     $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    $claveCliente = $clave;
 
     // Si hay múltiples correos separados por `;`, tomar solo el primero
     //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
@@ -3862,7 +3864,7 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     if ($correo === 'S' && !empty($emailPred)) {
         enviarCorreoEcomers($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conexionData); // Enviar correo
         $conCredito = "S";
-        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+        $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
     } else {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
         die();
@@ -4937,6 +4939,8 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     $clienteNombre = trim($clienteData['NOMBRE']);
     $emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773750925';
+
+    $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
@@ -4961,7 +4965,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
         }
 
         if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -4978,7 +4982,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
             $correoVendedor = $_SESSION['usuario']['correo'];
             $telefonoVendedor = $_SESSION['usuario']['telefono'];
             enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
 
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, no se le pudo notificar al cliente pero si al vendedor.']);
             die();
@@ -4990,7 +4994,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito)
+function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
 
@@ -5004,7 +5008,7 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urldecode($claveCliente);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido
 
 
@@ -5441,6 +5445,8 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     $clienteNombre = trim($clienteData['NOMBRE']);
     $emailPred = 'desarrollo01@mdcloud.mx';
     $numeroWhatsApp = '+527773750925';
+
+    $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
@@ -5466,7 +5472,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         }
 
         if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito);
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -5490,7 +5496,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito)
+function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
 
@@ -5503,7 +5509,7 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urldecode($claveCliente);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido
 
 
@@ -6101,6 +6107,7 @@ function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexio
             "idComanda" => ["stringValue" => uniqid()],
             "folio" => ["stringValue" => $formularioData['numero']],
             "nombreCliente" => ["stringValue" => $nombreCliente],
+            "claveCliente" => ["stringValue" => $formularioData['cliente']],
             "enviarA" => ["stringValue" => $formularioData['enviar']],
             "fechaHoraElaboracion" => ["stringValue" => $formularioData['diaAlta']],
             "productos" => [

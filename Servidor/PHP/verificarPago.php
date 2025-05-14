@@ -414,6 +414,7 @@ function crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracio
             "idComanda" => ["stringValue" => uniqid()],
             "folio" => ["stringValue" => $folio],
             "nombreCliente" => ["stringValue" => $clienteData['NOMBRE']],
+            "claveCliente" => ["stringValue" => $clienteData['CLAVE']],
             "enviarA" => ["stringValue" => $clienteData['CALLE']],
             "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
             "productos" => [
@@ -487,7 +488,7 @@ function datosCliente($clie, $claveSae, $conexionData)
         var_dump(sqlsrv_errors());
         exit;
     }
-    $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CLAVE = ?";
