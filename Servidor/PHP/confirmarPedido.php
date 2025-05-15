@@ -117,6 +117,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $enviarA = urldecode($_GET['enviarA'] ?? 'No especificado');
     $vendedor = urldecode($_GET['vendedor'] ?? 'Sin vendedor');
     $claveSae = $_GET['claveSae'];
+    $claveCliente = $_GET['claveCliente'];
     $noEmpresa = $_GET['noEmpresa'];
     $clave = $_GET['clave'] ?? "";
     $conCredito = $_GET['conCredito'] ?? "";
@@ -151,6 +152,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     "fields" => [
                         "idComanda" => ["stringValue" => uniqid()],
                         "folio" => ["stringValue" => $pedidoId],
+                        "claveCliente" => ["stringValue" => $claveCliente],
                         "nombreCliente" => ["stringValue" => $nombreCliente],
                         "enviarA" => ["stringValue" => $enviarA],
                         "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],

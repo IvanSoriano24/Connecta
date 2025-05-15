@@ -1,4 +1,5 @@
 <?php
+set_time_limit(0);
 require '../../../../PHP/firebase.php';
 //ejemplo factura cfdi 4.0
 // Se desactivan los mensajes de debug
@@ -98,7 +99,7 @@ function datosPedido($cve_doc, $claveSae, $conexionData)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -134,7 +135,7 @@ function datosPartida($cve_doc, $claveSae, $conexionData)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -248,11 +249,11 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
         die();
     }
     $conexionData = $conexionResult['data'];
-    $cve_doc = str_pad($cve_doc, 10, '0', STR_PAD_LEFT);
-    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+    $facturaID = str_pad($factura, 10, '0', STR_PAD_LEFT);
+    $facturaID = str_pad($facturaID, 20, ' ', STR_PAD_LEFT);
 
-    $pedidoData = datosPedido($cve_doc, $claveSae, $conexionData);
-    $productosData = datosPartida($cve_doc, $claveSae, $conexionData);
+    $pedidoData = datosPedido($facturaID, $claveSae, $conexionData);
+    $productosData = datosPartida($facturaID, $claveSae, $conexionData);
     $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
     $empresaData = datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey);
 
@@ -398,14 +399,16 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
         header('Content-Type: application/json');
         echo json_encode([
-            "Succes" => true
+            "Succes" => true,
+            "Factura" => $factura
         ]);
         return;
     } else {
         header('Content-Type: application/json');
         echo json_encode([
             "Succes" => false,
-            "Problema" => $res['mensaje_original_pac_json']
+            "Problema" => $res['mensaje_original_pac_json'],
+            "Factura" => $factura
             //"Problema" => $res['codigo_mf_texto']
         ]);
         return;

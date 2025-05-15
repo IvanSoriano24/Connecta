@@ -1,4 +1,5 @@
 <?php
+set_time_limit(0);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -79,6 +80,60 @@ function obtenerDatosCliente($claveCliente, $conexionData, $claveSae)
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
+}
+function datosRemision($conexionData, $claveSae, $remision)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $cve_doc = str_pad($remision, 10, '0', STR_PAD_LEFT);
+    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+
+
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTR"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CVE_DOC = ?";
+    $params = [$cve_doc];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Obtener los resultados
+    $remisionData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($remisionData) {
+        return $remisionData;
+    } else {
+        echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cve_doc"]);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function formatearClaveCliente($clave)
+{
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $clave = trim((string) $clave);
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($clave) === 10) {
+        return $clave;
+    }
+
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    return $clave;
 }
 function insertarBita($conexionData, $remision, $claveSae, $folioFactura)
 {
@@ -186,12 +241,12 @@ function insertarBita($conexionData, $remision, $claveSae, $folioFactura)
     sqlsrv_free_stmt($stmtInsert);
     sqlsrv_close($conn);
     return $cveBita;
-    echo json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
-    ]);
+    ]);*/
 }
-function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $claveSae)
+function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $claveSae, $DAT_MOSTR)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -246,7 +301,6 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $clav
     $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
     $tipDoc = 'F';
     $status = 'E';
-    $datMostr = 0;
     $cvePedi = '';  // Vacío según la traza
     $tipDocE = 'F';
     $docAnt = $remision;
@@ -269,7 +323,7 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $clav
         $cveDoc,
         $pedido['CVE_CLPV'],
         $status,
-        $datMostr,
+        $DAT_MOSTR,
         $pedido['CVE_VEND'],
         $cvePedi,
         $fechaDoc,
@@ -344,12 +398,12 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $clav
         ]);
         die();
     } else {
-        echo json_encode([
+        /*echo json_encode([
             'success' => true,
             'message' => "FACTF insertado correctamente con "
-        ]);
+        ]);*/
     }
-
+    //echo json_encode(['success' => true, 'folioFactura' => $folioFactura]);
     sqlsrv_close($conn);
 }
 function insertarFactf_Clib($conexionData, $folioFactura, $claveSae)
@@ -402,199 +456,6 @@ function insertarFactf_Clib($conexionData, $folioFactura, $claveSae)
         'success' => true,
         'message' => "FACTR_CLIBXX insertado correctamente con CVE_DOC $claveDoc"
     ]);*/
-}
-function insertarParFactf($conexionData)
-{
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
-    if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
-    }
-
-    //
-    $remision = str_pad($remision, 10, '0', STR_PAD_LEFT);
-    $remision = str_pad($remision, 20, ' ', STR_PAD_LEFT);
-
-
-    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
-
-    // Tablas dinámicas
-    $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPartidasFactura = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
-
-    // ✅ 2. Obtener las partidas del pedido (`PAR_FACTPXX`)
-    $sqlPartidas = "SELECT NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
-                           IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, 
-                           DESC1, DESC2, DESC3, COMI, APAR, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
-                           TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, IMPRIMIR, MAN_IEPS, 
-                           MTO_PORC, MTO_CUOTA, CVE_ESQ, IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, 
-                           IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, TOTIMP6, TOTIMP7, TOTIMP8 
-                    FROM $tablaPartidasRemision WHERE CVE_DOC = ?";
-    $paramsPartidas = [$pedidoId];
-
-    $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $paramsPartidas);
-    if ($stmtPartidas === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al obtener las partidas del pedido',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
-    }
-
-    // ✅ 3. Obtener el `NUM_MOV` de `MINVEXX`
-    $sqlNumMov = "SELECT ISNULL(MAX(NUM_MOV), 0) AS NUM_MOV FROM $tablaMovimientos";
-    $stmtNumMov = sqlsrv_query($conn, $sqlNumMov);
-
-    if ($stmtNumMov === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al obtener NUM_MOV desde MINVEXX',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
-    }
-
-    $numMovData = sqlsrv_fetch_array($stmtNumMov, SQLSRV_FETCH_ASSOC);
-    $numMov = $numMovData['NUM_MOV'];
-
-    // Fecha de sincronización
-    $fechaSinc = date('Y-m-d H:i:s');
-
-    // ✅ 4. Insertar cada partida en `PAR_FACTRXX`
-    while ($row = sqlsrv_fetch_array($stmtPartidas, SQLSRV_FETCH_ASSOC)) {
-        $TOT_PARTIDA = $row['CANT'] * $row['PREC'];
-
-        // **Buscar `E_LTPD` en `$enlaceMap`, si no existe, usar el valor original de `$row['E_LTPD']`**
-        $eLtpd = isset($enlaceMap[trim($row['CVE_ART'])]) ? $enlaceMap[trim($row['CVE_ART'])] : $row['E_LTPD'];
-
-        $sqlInsert = "INSERT INTO $tablaPartidasFactura 
-            (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
-            IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, DESC1, 
-            DESC2, DESC3, COMI, APAR, ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
-            TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, 
-            APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, UUID,
-            IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, 
-            TOTIMP6, TOTIMP7, TOTIMP8)
-        VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, 
-        ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?, '',
-        ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?)";
-
-        $paramsInsert = [
-            $cveDoc,
-            $row['NUM_PAR'],
-            $row['CVE_ART'],
-            $row['CANT'],
-            $row['PXS'],
-            $row['PREC'],
-            $row['COST'],
-            $row['IMPU1'],
-            $row['IMPU2'],
-            $row['IMPU3'],
-            $row['IMPU4'],
-            $row['IMP1APLA'],
-            $row['IMP2APLA'],
-            $row['IMP3APLA'],
-            $row['IMP4APLA'],
-            $row['TOTIMP1'],
-            $row['TOTIMP2'],
-            $row['TOTIMP3'],
-            $row['TOTIMP4'],
-            $row['DESC1'],
-            $row['DESC2'],
-            $row['DESC3'],
-            $row['COMI'],
-            $row['APAR'],
-            'S',
-            $row['NUM_ALM'],
-            $row['POLIT_APLI'],
-            $row['TIP_CAM'],
-            $row['UNI_VENTA'],
-            $row['TIPO_PROD'],
-            $row['TIPO_ELEM'],
-            $row['CVE_OBS'],
-            $row['REG_SERIE'],
-            $eLtpd,
-            $numMov,
-            $TOT_PARTIDA,
-            $row['IMPRIMIR'],
-            $row['MAN_IEPS'],
-            1,
-            0,
-            'C',
-            $row['MTO_PORC'],
-            $row['MTO_CUOTA'],
-            $row['CVE_ESQ'],
-            $fechaSinc,
-            $row['IMPU5'],
-            $row['IMPU6'],
-            $row['IMPU7'],
-            $row['IMPU8'],
-            $row['IMP5APLA'],
-            $row['IMP6APLA'],
-            $row['IMP7APLA'],
-            $row['IMP8APLA'],
-            $row['TOTIMP5'],
-            $row['TOTIMP6'],
-            $row['TOTIMP7'],
-            $row['TOTIMP8']
-        ];
-
-        $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
-        if ($stmtInsert === false) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Error al Insertar en Par_Factr',
-                'errors' => sqlsrv_errors()
-            ]);
-            die();
-        }
-        $numMov++;
-    }
-
-    sqlsrv_close($conn);
-}
-function actualizarFolioF($conexionData)
-{
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
-    if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
-    }
-
-    //
 }
 function obtenerFolio($conexionData, $claveSae)
 {
@@ -680,8 +541,7 @@ function actualizarFolio($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function obtenerRemision($conexionData, $pedidoId, $claveSae)
-{
+function obtenerRemision($conexionData, $pedidoId, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -702,10 +562,11 @@ function obtenerRemision($conexionData, $pedidoId, $claveSae)
 
     $folioAnterior = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $folioAnterior = str_pad($folioAnterior, 20, ' ', STR_PAD_LEFT);
+
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT FOLIO FROM $nombreTabla WHERE TIP_DOC = 'R' AND DOC_ANT = ?";
-    $params = [$pedidoId];
+    $params = [$folioAnterior];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         echo json_encode([
@@ -720,6 +581,7 @@ function obtenerRemision($conexionData, $pedidoId, $claveSae)
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
+    //echo json_encode(['success' => true, 'folio remision' => $folio]);
     // Retornar el folio siguiente
     return $folio;
 }
@@ -810,7 +672,53 @@ function actualizarAfac($conexionData, $remision, $claveSae)
         'message' => "AFACT02 actualizado correctamente para el período $perAcum"
     ]);*/
 }
-function actualizarAlerta_Usuario($conexionData, $claveSae)
+function insertarAlerta_Usuario($conexionData, $claveSae){
+     $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Tabla dinámica
+    $tablaAlertaUsuario = "[{$conexionData['nombreBase']}].[dbo].[ALERTA_USUARIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "INSERT INTO $tablaAlertaUsuario
+    (CVE_ALERTA,ID_USUARIO,ACTIVA) VALUES (?, ?, ?)";
+
+    $params = [5,0,"N"];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al Insertar ALERTA_USUARIOXX',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    /*echo json_encode([
+        'success' => true,
+        'message' => "ALERTA_USUARIOXX creada correctamente"
+    ]);*/
+}
+function actualizarAlerta_Usuario1($conexionData, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -844,7 +752,7 @@ function actualizarAlerta_Usuario($conexionData, $claveSae)
     if ($stmtUpdate === false) {
         echo json_encode([
             'success' => false,
-            'message' => 'Error al actualizar ALERTA_USUARIO01',
+            'message' => 'Error al actualizar ALERTA_USUARIOX1',
             'errors' => sqlsrv_errors()
         ]);
         die();
@@ -855,10 +763,58 @@ function actualizarAlerta_Usuario($conexionData, $claveSae)
 
     /*echo json_encode([
         'success' => true,
-        'message' => "ALERTA_USUARIO01 actualizada correctamente"
+        'message' => "ALERTA_USUARIOX1 actualizada correctamente"
     ]);*/
 }
-function actualizarAlerta($conexionData, $claveSae)
+function actualizarAlerta_Usuario2($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Tabla dinámica
+    $tablaAlertaUsuario = "[{$conexionData['nombreBase']}].[dbo].[ALERTA_USUARIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // ✅ Actualizar `ALERTA_USUARIO01`
+    $sqlUpdate = "UPDATE $tablaAlertaUsuario 
+                  SET ACTIVA = ? 
+                  WHERE ID_USUARIO = ? AND CVE_ALERTA = ?";
+    $paramsUpdate = ['N', 1, 1];
+
+    $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
+    if ($stmtUpdate === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar ALERTA_USUARIOX2',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    sqlsrv_free_stmt($stmtUpdate);
+    sqlsrv_close($conn);
+
+    /*echo json_encode([
+        'success' => true,
+        'message' => "ALERTA_USUARIOX2 actualizada correctamente"
+    ]);*/
+}
+function actualizarAlerta1($conexionData, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -892,7 +848,7 @@ function actualizarAlerta($conexionData, $claveSae)
     if ($stmtUpdate === false) {
         echo json_encode([
             'success' => false,
-            'message' => 'Error al actualizar ALERTA01',
+            'message' => 'Error al actualizar ALERTAXX1',
             'errors' => sqlsrv_errors()
         ]);
         die();
@@ -903,10 +859,10 @@ function actualizarAlerta($conexionData, $claveSae)
 
     /*echo json_encode([
         'success' => true,
-        'message' => "ALERTA01 actualizada correctamente"
+        'message' => "ALERTAXX1 actualizada correctamente"
     ]);*/
 }
-function datosRemision($conexionData, $claveSae, $remision)
+function actualizarAlerta2($conexionData, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -917,48 +873,42 @@ function datosRemision($conexionData, $claveSae, $remision)
         "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
+
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
     }
 
-    $cve_doc = str_pad($remision, 10, '0', STR_PAD_LEFT);
-    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+    // Tabla dinámica
+    $tablaAlerta = "[{$conexionData['nombreBase']}].[dbo].[ALERTA" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
+    // ✅ Actualizar `ALERTA01`
+    $sqlUpdate = "UPDATE $tablaAlerta 
+                  SET CANT_DOC = ? 
+                  WHERE CVE_ALERTA = ?";
+    $paramsUpdate = [0, 1];
 
-    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTR"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
-    $sql = "SELECT * FROM $nombreTabla WHERE
-        CVE_DOC = ?";
-    $params = [$cve_doc];
-
-    $stmt = sqlsrv_query($conn, $sql, $params);
-    if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
+    if ($stmtUpdate === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar ALERTAXX2',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
     }
 
-    // Obtener los resultados
-    $remisionData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-    if ($remisionData) {
-        return $remisionData;
-    } else {
-        echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cve_doc"]);
-    }
-    sqlsrv_free_stmt($stmt);
+    sqlsrv_free_stmt($stmtUpdate);
     sqlsrv_close($conn);
-}
-function formatearClaveCliente($clave)
-{
-    // Asegurar que la clave sea un string y eliminar espacios innecesarios
-    $clave = trim((string) $clave);
-    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
-    // Si la clave ya tiene 10 caracteres, devolverla tal cual
-    if (strlen($clave) === 10) {
-        return $clave;
-    }
 
-    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
-    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
-    return $clave;
+    /*echo json_encode([
+        'success' => true,
+        'message' => "ALERTAXX2 actualizada correctamente"
+    ]);*/
 }
 function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
 {
@@ -1032,7 +982,6 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
                     TCAMBIO,
                     TIPO_MOV,
                     FECHA_ENTREGA,
-                    IMPMON_EXT,
                     UUID,
                     VERSION_SINC,
                     USUARIOGL,
@@ -1040,7 +989,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
                     IMPMON_EXT,
                     SIGNO,
                     STRCVEVEND
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?, ?, ?)";
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?, ?, ?)";
 
     $params = [
         $CVE_CLIE,
@@ -1059,7 +1008,6 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
         $TCAMBIO,
         $TIPO_MOV,
         $fecha_apli,
-        $IMPORTE,
         $fecha_apli,
         $fecha_apli,
         $IMPMON_EXT,
@@ -1079,13 +1027,18 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
     }
 
     sqlsrv_close($conn);
+    
+    //echo json_encode(['success' => true, 'no_factura' => $no_factura]); 
+
     return [
         'factura' => $no_factura,
         'referencia' => $refer,
-        'importe' => $IMPORTE
+        'importe' => $IMPORTE,
+        'STRCVEVEND' => $STRCVEVEND,
+        'CVE_CLIE' => $CVE_CLIE
     ];
 }
-function pagarCxc($conexionData, $claveSae, $datosCxC, $remision)
+function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura)
 {
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
 
@@ -1107,46 +1060,28 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $remision)
     }
     $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $folio = nuevoFolio($conexionData, $claveSae);
-    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
 
     // Preparar los datos para el INSERT
-    $cve_clie   = $formularioData['cliente']; // Clave del cliente
+    $cve_clie   = $datosCxC['CVE_CLIE']; // Clave del cliente
     $CVE_CLIE = formatearClaveCliente($cve_clie);
     $refer      = $CVE_DOC; // Puede generarse o venir del formulario
     $num_cpto   = '22';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
     $no_factura = $CVE_DOC; // Número de factura o pedido
     $docto = $CVE_DOC;   // Puede ser un código de documento, si aplica
-    $IMPORTE = 0;
-    $STRCVEVEND = $formularioData['claveVendedor'];
+    
+    $STRCVEVEND = $datosCxC['STRCVEVEND'];
 
     $AFEC_COI = 'A';
     $NUM_MONED = 1;
     $TCAMBIO = 1;
     $TIPO_MOV = 'A'; //Aqui
 
-    $DES_TOT = 0; // Inicializar el total con descuento
-    $DES = 0;
-    $totalDescuentos = 0; // Inicializar acumulador de descuentos
-    $IMP_TOT4 = 0;
-    $IMP_T4 = 0;
-    foreach ($partidasData as $partida) {
-        $precioUnitario = $partida['precioUnitario'];
-        $cantidad = $partida['cantidad'];
-        $IMPU4 = $partida['iva'];
-        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
-        $totalPartida = $precioUnitario * $cantidad;
-        // **Aplicar los descuentos en cascada**
-        $desProcentaje = ($desc1 / 100);
-        $DES = $totalPartida * $desProcentaje;
-        $DES_TOT += $DES;
+    
 
-        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
-        $IMP_TOT4 += $IMP_T4;
-    }
-    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+    $IMPORTE = $datosCxC['IMPORTE'];
 
     $fecha_apli = date("Y-m-d 00:00:00.000");         // Fecha de aplicación: ahora
     $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
@@ -1219,7 +1154,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $remision)
         ];
     }
     sqlsrv_close($conn);
-    //echo json_encode(['success' => true, 'message' => 'CxC creada y pagada.']);
+    echo json_encode(['success' => true, 'message' => 'CxC creada y pagada.']);
     return;
 }
 function insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae)
@@ -1292,7 +1227,7 @@ function insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae)
 
     /*echo json_encode([
         'success' => true,
-        'message' => "DOCTOSIGFXX insertado correctamente para Pedido $pedidoId y Remisión $cveDoc"
+        'message' => "DOCTOSIGFXX insertado correctamente para Remisión $remision y Factura $folioFactura"
     ]);*/
 }
 function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
@@ -1329,7 +1264,7 @@ function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
         P.[E_LTPD]    AS E_LTPD_ANT,    -- el enlace viejo si lo hubiera
         E.[REG_LTPD]  AS REG_LTPD,
         E.[CANTIDAD]  AS CANTIDAD,
-        E.[PXR]       AS PXR
+        E.[PXRS]       AS PXR
       FROM $tablaPar P
       INNER JOIN $tablaEnl E
         ON P.[E_LTPD] = E.[E_LTPD]
@@ -1358,7 +1293,7 @@ function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
 
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
-
+    //echo json_encode(['success' => true, 'datos' => $datos]); 
     return $datos;
 }
 function insertarEnlaceLTPD($conexionData, $claveSae, $remision, array $lotesUtilizados)
@@ -1432,9 +1367,10 @@ function insertarEnlaceLTPD($conexionData, $claveSae, $remision, array $lotesUti
     }
 
     sqlsrv_close($conn);
+    //echo json_encode(['success' => true, 'resultados' => $resultados]);
     return $resultados;
 }
-function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae)
+function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pedidoId)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1487,10 +1423,10 @@ function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae)
 
     /*echo json_encode([
         'success' => true,
-        'message' => "FACTPXX actualizado correctamente para el pedido $pedidoId con remision $cveDocFactura"
+        'message' => "FACTPXX1 actualizado correctamente para el pedido $pedidoId con remision $cveDocFactura"
     ]);*/
 }
-function actualizarFactr2($conexionData, $remision, $claveSae)
+function actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1548,10 +1484,10 @@ function actualizarFactr2($conexionData, $remision, $claveSae)
 
     /*echo json_encode([
         'success' => true,
-        'message' => "FACTPXX actualizado correctamente para el pedido $pedidoId"
+        'message' => "FACTPXX2 actualizado correctamente para el pedido $pedidoId"
     ]);*/
 }
-function actualizarFactr3($conexionData, $remision, $claveSae)
+function actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1611,7 +1547,7 @@ function actualizarFactr3($conexionData, $remision, $claveSae)
 
     /*echo json_encode([
         'success' => true,
-        'message' => "FACTPXX actualizado correctamente para el pedido $remisionId"
+        'message' => "FACTPXX3 actualizado correctamente para el pedido $pedidoId"
     ]);*/
 }
 function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
@@ -1781,6 +1717,7 @@ function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
         $numMov++;
     }
     sqlsrv_close($conn);
+    //echo json_encode(['success' => true, 'folioFactura' => $folioFactura]);
 }
 function insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveSae)
 {
@@ -2147,10 +2084,10 @@ function actualizarInclie1($conexionData, $claveSae, $claveCliente)
     sqlsrv_close($conn);
 
     // 8) (Opcional) éxito
-    echo json_encode([
+    /*echo json_encode([
         'success' => true,
         'message' => 'CLIE actualizado correctamente'
-    ]);
+    ]);*/
 }
 function insertatInfoClie($conexionData, $claveSae, $claveCliente)
 {
@@ -2185,9 +2122,9 @@ function insertatInfoClie($conexionData, $claveSae, $claveCliente)
     $rowUlt = sqlsrv_fetch_array($stmtUlt, SQLSRV_FETCH_ASSOC);
     $nuevo = $rowUlt['NUEVO_CVE'];
 
-    $sql = "INSERT INTO $tablaClienteInfo CALLE, CODIGO, COLONIA, CRUZAMIENTOS, CRUZAMIENTOS2, CURP,
+    $sql = "INSERT INTO $tablaClienteInfo (CALLE, CODIGO, COLONIA, CRUZAMIENTOS, CRUZAMIENTOS2, CURP,
     CVE_INFO, CVE_PAIS_SAT, CVE_ZONA, ESTADO, MUNICIPIO, NOMBRE, NUMEXT,
-    NUMINT, PAIS, POB, REFERDIR, REG_FISC, RFC
+    NUMINT, PAIS, POB, REFERDIR, REG_FISC, RFC)
     VALUES(?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?, ?,
     ?, ?, ?, ?, ?, ?)";
@@ -2198,7 +2135,7 @@ function insertatInfoClie($conexionData, $claveSae, $claveCliente)
         $dataCliente['CRUZAMIENTOS'],
         $dataCliente['CRUZAMIENTOS2'],
         $dataCliente['CURP'],
-        $dataCliente['CVE_INFO'],
+        $nuevo,
         $dataCliente['CVE_PAIS_SAT'],
         $dataCliente['CVE_ZONA'],
         $dataCliente['ESTADO'],
@@ -2207,7 +2144,7 @@ function insertatInfoClie($conexionData, $claveSae, $claveCliente)
         $dataCliente['NUMEXT'],
         $dataCliente['NUMINT'],
         $dataCliente['PAIS'],
-        $dataCliente['POB'],
+        $dataCliente['LOCALIDAD'],
         $dataCliente['REFERDIR'],
         $dataCliente['REG_FISC'],
         $dataCliente['RFC']
@@ -2216,11 +2153,14 @@ function insertatInfoClie($conexionData, $claveSae, $claveCliente)
     if ($stmt === false) {
         die(json_encode([
             'success' => false,
-            'message' => "Error al insertar en ENLACE_LTPD",
+            'message' => "Error al insertar en INFCLI",
             'errors'  => sqlsrv_errors()
         ]));
     }
     sqlsrv_close($conn);
+    //echo json_encode(['success' => true, 'cliente' => $claveCliente]);
+    
+    return $nuevo;
 }
 function actualizarPar_Factr1($conexionData, $claveSae, $remision, array $enlaces)
 {
@@ -2283,7 +2223,7 @@ function actualizarPar_Factr1($conexionData, $claveSae, $remision, array $enlace
         'message' => "Se actualizaron " . count($enlaces) . " partidas con el nuevo E_LTPD.",
     ];
 }
-function actualizarCFDI($conexionData, $claveSae, $folioFactura)
+function insertarCFDI($conexionData, $claveSae, $folioFactura)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2342,7 +2282,7 @@ function actualizarCFDI($conexionData, $claveSae, $folioFactura)
         ]));
     }
     sqlsrv_free_stmt($stmt);
-    echo json_encode(['success' => true, 'facturaId' => $facturaId]);
+    //echo json_encode(['success' => true, 'facturaId' => $facturaId]);
 }
 /****************************************** Funcion Principal ******************************************/
 function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito)
@@ -2351,44 +2291,47 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
 
     $folioFactura = obtenerFolio($conexionData, $claveSae);
     $remision = obtenerRemision($conexionData, $pedidoId, $claveSae);
-
     $CVE_BITA = insertarBita($conexionData, $remision, $claveSae, $folioFactura);
 
     actualizarAfac($conexionData, $remision, $claveSae);
-    actualizarAlerta_Usuario($conexionData, $claveSae);
-    actualizarAlerta($conexionData, $claveSae);
+    //insertarAlerta_Usuario($conexionData, $claveSae); //Verifcar logica
+    actualizarAlerta_Usuario1($conexionData, $claveSae);
+    actualizarAlerta_Usuario2($conexionData, $claveSae);
+    actualizarAlerta1($conexionData, $claveSae);
+    actualizarAlerta2($conexionData, $claveSae);
 
     $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioFactura);
     //Pagar solo si elimino anticipo (clientes sin Credito)
     if (!$credito) {
-        pagarCxc($conexionData, $claveSae, $datosCxC, $remision);
+        pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura);
     }
 
     insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae);
 
-    insertatInfoClie($conexionData, $claveSae, $claveCliente); //Falta
-
-    insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $claveSae);
+    $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $claveCliente); //Error datos: CVE_INFO, POB, CALLE
+   
+    insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $claveSae, $DAT_MOSTR);
     insertarFactf_Clib($conexionData, $folioFactura, $claveSae);
-    actualizarFactr($conexionData, $remision, $folioFactura, $claveSae);
-    actualizarFactr2($conexionData, $remision, $claveSae);
-    actualizarFactr3($conexionData, $remision, $claveSae);
+    
+    actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pedidoId);
+    actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId);
+    actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId);
 
-    insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae);
+    insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae); //Volver a realizarlo con datos nuevos
     insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveSae);
 
-    $datos = obtenerDatosPreEnlace($conexionData, $claveSae, $remision);
-    $result = insertarEnlaceLTPD($conexionData, $claveSae, $remision, $datos); //Sin acabar
-    actualizarPar_Factr1($conexionData, $claveSae, $remision, $result);
+    /*$datos = obtenerDatosPreEnlace($conexionData, $claveSae, $remision);    //No se pudo por falta de datos
+    $result = insertarEnlaceLTPD($conexionData, $claveSae, $remision, $datos); 
+    actualizarPar_Factr1($conexionData, $claveSae, $remision, $result);*/
 
     actualizarControl1($conexionData, $claveSae);
     actualizarControl2($conexionData, $claveSae);
     actualizarControl3($conexionData, $claveSae);
     actualizarControl4($conexionData, $claveSae);
-    actualizarInclie1($conexionData, $claveSae, $claveCliente);
+    actualizarInclie1($conexionData, $claveSae, $claveCliente); //Verificar la logica
     actualizarInclie2($conexionData, $claveSae, $claveCliente);
-
-    actualizarCFDI($conexionData, $claveSae, $folioFactura);
+    
+    insertarCFDI($conexionData, $claveSae, $folioFactura);
 
     return $folioFactura;
 }
@@ -2411,7 +2354,9 @@ switch ($funcion) {
         $noEmpresa = $_POST['noEmpresa'];
         $pedidoId = $_POST['pedidoId'];
         $claveCliente = $_POST['claveCliente'];
-        $credito  = $_POST['credito'];
+        $credito = $_POST['credito'] ?? false;
+
+        //var_dump($credito);
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae, $noEmpresa);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -2421,8 +2366,8 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $folioFactura = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito);
 
-        //echo json_encode(['success' => true, 'folioFactura' => $folioFactura]);
-        //return $folioFactura;
+        echo json_encode(['success' => true, 'folioFactura1' => $folioFactura]);
+        return $folioFactura;
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

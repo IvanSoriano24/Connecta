@@ -1,9 +1,10 @@
 <?php
-set_time_limit(0);
 date_default_timezone_set('America/Mexico_City');
 require 'firebase.php';
 include 'reportes.php';
 require_once '../PHPMailer/clsMail.php';
+set_time_limit(0);
+
 
 function obtenerPedido($cveDoc, $conexionData, $claveSae)
 {
@@ -377,7 +378,6 @@ function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
         echo 'Error cURL: ' . curl_error($ch);
     }
     curl_close($ch);
-    var_dump($facturaResponse);
     return $facturaResponse;
 }
 
@@ -387,7 +387,7 @@ function crearPdf($folio, $noEmpresa, $claveSae, $conexionData)
     return $rutaPDF;
 }
 
-function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey)
+function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura)
 {
 
     // Establecer la conexión con SQL Server
@@ -710,7 +710,6 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
 
     //var_dump($usuariosData);
     $telefonoVendedor = "";
-    $nombreVendedor = "";
     // Buscar al vendedor por clave
     if (isset($usuariosData['documents'])) {
         foreach ($usuariosData['documents'] as $document) {
@@ -722,6 +721,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
                         $telefonoVendedor = $fields['telefono']['stringValue'];
                         $correoVendedor = $fields['correo']['stringValue'];
                         $nombreVendedor = $fields['nombre']['stringValue'];
+
                         break;
                     }
                 }
@@ -793,7 +793,6 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
 
 
     // Inicializa cURL
-    
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $facturanUrl);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -888,68 +887,117 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
     $res = @file_get_contents($url, false, $ctx);
     return $res !== false;
 }
+function obtenerComandasPorRunQuery(string $projectId, string $apiKey): array
+{
+    $url = "https://firestore.googleapis.com/v1/projects/{$projectId}"
+        . "/databases/(default)/documents:runQuery?key={$apiKey}";
+
+    // Estructuramos un "StructuredQuery" con un compositeFilter AND
+    $body = [
+        'structuredQuery' => [
+            'from' => [
+                ['collectionId' => 'COMANDA']
+            ],
+            'where' => [
+                'compositeFilter' => [
+                    'op'      => 'AND',
+                    'filters' => [
+                        // status == "TERMINADA"
+                        [
+                            'fieldFilter' => [
+                                'field' => ['fieldPath' => 'status'],
+                                'op'    => 'EQUAL',
+                                'value' => ['stringValue' => 'TERMINADA']
+                            ]
+                        ],
+                        // facturado == false
+                        [
+                            'fieldFilter' => [
+                                'field' => ['fieldPath' => 'facturado'],
+                                'op'    => 'EQUAL',
+                                'value' => ['booleanValue' => false]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+            // opcional: paginación con "limit", "offset", "orderBy"…
+        ]
+    ];
+
+    $ctx = stream_context_create([
+        'http' => [
+            'method'  => "POST",
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => json_encode($body),
+            'timeout' => 15  // ajusta según necesites
+        ]
+    ]);
+    $resp = @file_get_contents($url, false, $ctx);
+    if ($resp === false) {
+        throw new \Exception("Error al llamar a runQuery: " . print_r(error_get_last(), 1));
+    }
+    // Cada línea JSON tiene la forma { "document": { … } } o { "readTime": … }
+    $rows = explode("\n", trim($resp));
+    var_dump("Pre-Comandas: ", $rows);
+    $comandas = [];
+    foreach ($rows as $line) {
+        $o = json_decode($line, true);
+        if (isset($o['document'])) {
+            $comandas[] = $o['document'];
+        }
+    }
+    var_dump("Comandas: ", $comandas);
+    return $comandas;
+}
+
 function verificarHora($firebaseProjectId, $firebaseApiKey)
 {
     $horaActual = (int) date('Hi'); // Formato "Hi" concatenado como un número entero
     if ($horaActual <= 1855) { //1455
-        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
-        //Obtener todas las comandas
-        $response = @file_get_contents($url);
-        if ($response === false) {
-            echo "Error al obtener las comandas.\n";
+        try {
+            $docs = obtenerComandasPorRunQuery($firebaseProjectId, $firebaseApiKey);
+            var_dump($docs);
+        } catch (\Exception $e) {
+            echo "No fue posible filtrar comandas: ", $e->getMessage();
             return;
         }
-        $data = json_decode($response, true);
-        if (!isset($data['documents'])) {
-            echo "No se encontraron comandas.\n";
-            return;
-        }
-        foreach ($data['documents'] as $document) {
-            $fields    = $document['fields'];
-            $docName   = $document['name'];
-            $status = $fields['status']['stringValue'];
-            $folio = $fields['folio']['stringValue'];
+
+        foreach ($docs as $doc) {
+            var_dump("Si");
+            // $doc es exactamente el mismo array que obtenías en $document['fields']
+            $fields       = $doc['fields'];
+            $folio        = $fields['folio']['stringValue'];
             $claveCliente = $fields['claveCliente']['stringValue'];
-            $facturado = $fields['facturado']['booleanValue'];
-            $credito = $fields['credito']['booleanValue'];
-            $claveSae = $fields['claveSae']['stringValue'];
-            $noEmpresa = $fields['noEmpresa']['integerValue'];
-            $pagada = $fields['pagada']['booleanValue'];
+            $credito      = $fields['credito']['booleanValue'];
+            $claveSae     = $fields['claveSae']['stringValue'];
+            $noEmpresa    = $fields['noEmpresa']['integerValue'];
+            $pagada       = $fields['pagada']['booleanValue'];
 
             // Si la comanda está pendiente y es de un día anterior
-            if ($status === 'TERMINADA') {
-
+            if ($pagada === 'TERMINADA') {
                 $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
                 if (!$conexionResult['success']) {
                     echo json_encode($conexionResult);
                     break;
                 }
                 $conexionData = $conexionResult['data'];
-                if (!$facturado) {
+                //$folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
+                
+                actualizarStatus($firebaseProjectId, $firebaseApiKey, $fields);
+                /*$respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
 
-                    //Funcion para crear factura
-                    if ($pagada) {
-
-                        //$folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
-                        $folioFactura = 18904;
-                        //actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
-                        $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
-                        var_dump("Respuesta: ", $respuestaFactura);
-                        if ($respuestaFactura['Succes']) {
-                            $bandera = 1;
-                            actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                            $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
-                            validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
-                            die();
-                        } else {
-                            $bandera = 0;
-                            actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                            enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
-                            die();
-                        }
-                        die();
-                    }
-                }
+                if ($respuestaFactura['Succes']) {
+                    $bandera = 1;
+                    actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                    $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+                    die();
+                    validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura);
+                } else {
+                    $bandera = 0;
+                    actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                    enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
+                }*/
             }
         }
     }
