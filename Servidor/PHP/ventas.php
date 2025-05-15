@@ -449,6 +449,220 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda) {
+    // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
+    $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
+    $estadoPedido = $_POST['estadoPedido'] ?? 'Activos';
+    $filtroVendedor = $_POST['filtroVendedor'] ?? '';
+
+    // Parámetros de paginación
+    $pagina = isset($_POST['pagina']) ? (int)$_POST['pagina'] : 1;
+    $porPagina = isset($_POST['porPagina']) ? (int)$_POST['porPagina'] : 10;
+    $offset = ($pagina - 1) * $porPagina;
+
+    try {
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        if (!is_numeric($noEmpresa)) {
+            echo json_encode(['success' => false, 'message' => 'El número de empresa no es válido']);
+            exit;
+        }
+
+        $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
+        $claveVendedor = $_SESSION['empresa']['claveUsuario'] ?? null;
+        if ($claveVendedor != null) {
+            $claveVendedor = mb_convert_encoding(trim($claveVendedor), 'UTF-8');
+        }
+
+        $claveVendedor = formatearClaveVendedor($claveVendedor);
+
+        $serverName = $conexionData['host'];
+        $connectionInfo = [
+            "Database" => $conexionData['nombreBase'],
+            "UID" => $conexionData['usuario'],
+            "PWD" => $conexionData['password'],
+            "TrustServerCertificate" => true
+        ];
+        $conn = sqlsrv_connect($serverName, $connectionInfo);
+        if ($conn === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        }
+
+        // Construir nombres de tablas dinámicamente
+        $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTabla2  = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTabla3  = "[{$conexionData['nombreBase']}].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+        // Reescribir la consulta evitando duplicados con `DISTINCT`
+        $sql = "SELECT DISTINCT 
+                f.TIP_DOC              AS Tipo,
+                f.CVE_DOC              AS Clave,
+                f.CVE_CLPV             AS Cliente,
+                c.NOMBRE               AS Nombre,
+                f.STATUS               AS Estatus,
+                CONVERT(VARCHAR(10), f.FECHAELAB, 105) AS FechaElaboracion,
+                f.FECHAELAB            AS FechaOrden,    
+                f.CAN_TOT              AS Subtotal,
+                f.COM_TOT              AS TotalComisiones,
+                f.IMPORTE              AS ImporteTotal,
+                f.DOC_SIG              AS DOC_SIG,
+                v.NOMBRE               AS NombreVendedor
+            FROM $nombreTabla2 f
+            LEFT JOIN $nombreTabla  c ON c.CLAVE   = f.CVE_CLPV
+            LEFT JOIN $nombreTabla3 v ON v.CVE_VEND= f.CVE_VEND
+            ";
+        if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
+            $sql .= "WHERE f.STATUS IN ('E','O')";
+        } else {
+            $sql .= "WHERE f.STATUS IN ('C')";
+        }
+
+        $sql .= " AND (";
+        if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
+            $sql .= "LOWER(LTRIM(RTRIM(f.TIP_DOC))) LIKE ? 
+                OR LOWER(LTRIM(RTRIM(f.CVE_DOC))) LIKE ? 
+                OR LOWER(LTRIM(RTRIM(f.CVE_CLPV))) LIKE ? 
+                OR LOWER(LTRIM(RTRIM(c.NOMBRE))) LIKE ? 
+                OR LOWER(LTRIM(RTRIM(f.STATUS))) LIKE ? 
+                OR LOWER(LTRIM(RTRIM(CONVERT(VARCHAR(10), f.FECHAELAB, 105)))) LIKE ? 
+                OR LOWER(LTRIM(RTRIM(f.CAN_TOT))) LIKE ? 
+                OR LOWER(LTRIM(RTRIM(f.IMPORTE))) LIKE ? 
+                OR LOWER(LTRIM(RTRIM(v.NOMBRE))) LIKE ? ";
+        } else {
+            $sql .= "f.TIP_DOC LIKE ? 
+                OR f.CVE_DOC LIKE ? 
+                OR f.CVE_CLPV LIKE ? 
+                OR c.NOMBRE LIKE ? 
+                OR f.STATUS LIKE ? 
+                OR CONVERT(VARCHAR(10), f.FECHAELAB, 105) LIKE ? 
+                OR f.CAN_TOT LIKE ? 
+                OR f.IMPORTE LIKE ? 
+                OR v.NOMBRE LIKE ? ";
+        }
+        $sql .= ")";
+        $likeFilter = '%' . $filtroBusqueda . '%';
+        $params[] = $likeFilter;
+        $params[] = $likeFilter;
+        $params[] = $likeFilter;
+        $params[] = $likeFilter;
+        $params[] = $likeFilter;
+        $params[] = $likeFilter;
+        $params[] = $likeFilter;
+        $params[] = $likeFilter;
+        $params[] = $likeFilter;
+
+        // Agregar filtros de fecha
+        if ($filtroFecha == 'Hoy') {
+            $sql .= " AND CAST(f.FECHAELAB AS DATE) = CAST(GETDATE() AS DATE) ";
+        } elseif ($filtroFecha == 'Mes') {
+            $sql .= " AND MONTH(f.FECHAELAB) = MONTH(GETDATE()) AND YEAR(f.FECHAELAB) = YEAR(GETDATE()) ";
+        } elseif ($filtroFecha == 'Mes Anterior') {
+            $sql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
+        }
+
+        
+        if ($tipoUsuario === 'ADMINISTRADOR') {
+            if ($filtroVendedor !== '') {
+                $sql      .= " AND f.CVE_VEND = ?";
+                $params[]  = $filtroVendedor;
+            }
+        } else {
+            // Usuarios no ADMIN sólo ven sus pedidos
+            $sql      .= " AND f.CVE_VEND = ?";
+            $params[]  = $claveVendedor;
+        }
+
+        // Agregar orden y paginación
+        $sql .= " ORDER BY f.FECHAELAB DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
+        $params[] = $offset;
+        $params[] = $porPagina;
+
+        // Ejecutar la consulta
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        }
+
+        $clientes = [];
+        $clavesRegistradas = [];
+
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            // Validar codificación y manejar nulos
+            foreach ($row as $key => $value) {
+                if ($value !== null && is_string($value)) {
+                    $value = trim($value);
+                    if (!empty($value)) {
+                        $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
+                        if ($encoding && $encoding !== 'UTF-8') {
+                            $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                        }
+                    }
+                } elseif ($value === null) {
+                    $value = '';
+                }
+                $row[$key] = $value;
+            }
+
+            // 🚨 Evitar pedidos duplicados usando CVE_DOC como clave única
+            if (!in_array($row['Clave'], $clavesRegistradas)) {
+                $clavesRegistradas[] = $row['Clave']; // Registrar la clave para evitar repetición
+                $clientes[] = $row;
+            }
+        }
+        /*if($estadoPedido == "Vendidos"){
+            $clientes = filtrarPedidosVendidos($clientes);
+        }*/
+        $countSql  = "
+            SELECT COUNT(DISTINCT f.CVE_DOC) AS total
+            FROM $nombreTabla2 f
+            LEFT JOIN $nombreTabla c ON c.CLAVE    = f.CVE_CLPV
+            LEFT JOIN $nombreTabla3 v ON v.CVE_VEND = f.CVE_VEND
+        ";
+         if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
+            $countSql .= "WHERE f.STATUS IN ('E','O')";
+        } else {
+            $countSql .= "WHERE f.STATUS IN ('C')";
+        }
+        // Agregar filtros de fecha
+        if ($filtroFecha == 'Hoy') {
+            $countSql .= " AND CAST(f.FECHAELAB AS DATE) = CAST(GETDATE() AS DATE) ";
+        } elseif ($filtroFecha == 'Mes') {
+            $countSql .= " AND MONTH(f.FECHAELAB) = MONTH(GETDATE()) AND YEAR(f.FECHAELAB) = YEAR(GETDATE()) ";
+        } elseif ($filtroFecha == 'Mes Anterior') {
+            $countSql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
+        }
+        if ($tipoUsuario === 'ADMINISTRADOR') {
+            if ($filtroVendedor !== '') {
+                $countSql      .= " AND f.CVE_VEND = ?";
+                $params[]  = $filtroVendedor;
+            }
+        } else {
+            // Usuarios no ADMIN sólo ven sus pedidos
+            $countSql      .= " AND f.CVE_VEND = ?";
+            $params[]  = $claveVendedor;
+        }
+        
+        $countStmt = sqlsrv_query($conn, $countSql, $params);
+        $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
+        $total     = (int)$totalRow['total'];
+        sqlsrv_free_stmt($countStmt);
+
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+        header('Content-Type: application/json; charset=UTF-8');
+        if (empty($clientes)) {
+            echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
+            exit;
+        }
+        echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
 function obtenerPartidasPedido($conexionData, $clavePedido)
 {
     $serverName = $conexionData['host'];
@@ -7077,6 +7291,25 @@ switch ($funcion) {
     case 23:
         $estadoSeleccionado = $_POST['estado'];
         obtenerMunicipios($estadoSeleccionado);
+        break;
+    case 24: //Función para mostrar clientes filtrados por barra de busqueda.
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        $filtroFecha = $_POST['filtroFecha'];
+        $estadoPedido = $_POST['estadoPedido'];
+        $filtroVendedor = $_POST['filtroVendedor'];
+        $filtroBusqueda = $_POST['filtroBusqueda'];
+        mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

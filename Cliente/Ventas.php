@@ -309,7 +309,7 @@ session_destroy(); */
                                         class="search-input"
                                         type="text"
                                         placeholder="Buscar pedido..."
-                                        onkeyup="doSearch()" />
+                                        onkeyup="debouncedSearch()" />
                                 </div>
                                 <!-- <i class='bx bx-filter'></i> -->
                             </div>
@@ -424,98 +424,6 @@ session_destroy(); */
             //document.getElementById("btnMostrarMas").style.display = "block";
             datosPedidos(true);
         });
-        // Al cargar la página, se lee el filtro guardado y se carga la información
-        document.addEventListener("DOMContentLoaded", function() {
-            let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Hoy";
-            let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
-
-            // 🔹 Resaltar el botón correspondiente al estado guardado
-            $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary");
-            $(`.filtro-rol[data-rol="${estadoPedido}"]`)
-                .removeClass("btn-secondary")
-                .addClass("btn-primary");
-
-            // 🔹 Actualizar select del filtro, si aplica
-            const filtroSelect = document.getElementById("filtroFecha");
-            if (filtroSelect) {
-                filtroSelect.value = filtroGuardado;
-            }
-
-            cargarPedidos(estadoPedido, filtroGuardado);
-            inicializarEventosBotones();
-        });
-        // Función para cargar los pedidos (la tienes definida) y que recibe el filtro seleccionado
-        // Función para renderizar los pedidos en la tabla
-        function mostrarPedidosEnTabla(pedidos, total) {
-            const pedidosTable = document.getElementById("datosPedidos");
-            if (!pedidosTable) {
-                console.error("No se encontró el elemento con id 'datosPedidos'");
-                return;
-            }
-            pedidosTable.innerHTML = ""; // Limpiar la tabla
-            pedidos.forEach((pedido) => {
-                const row = document.createElement("tr");
-                const subtotalText = pedido.Subtotal ?
-                    `$${Number(pedido.Subtotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` :
-                    'Sin subtotal';
-                const importeText = pedido.ImporteTotal ?
-                    `$${Number(pedido.ImporteTotal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` :
-                    'Sin importe';
-                row.innerHTML = `
-            <td>${pedido.Tipo || "Sin tipo"}</td>
-            <td>${pedido.Clave || "Sin clave"}</td>
-            <td>${pedido.Cliente || "Sin cliente"}</td>
-            <td>${pedido.Nombre || "Sin nombre"}</td>
-            <td>${pedido.Estatus || "0"}</td>
-            <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
-            <td style="text-align: right;">${subtotalText}</td>
-            <!-- <td style="text-align: right;">${pedido.TotalComisiones
-                ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
-                : "Sin comisiones"
-            }</td> -->
-            <td style="text-align: right;">${importeText}</td>
-            <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"}</td>
-            <td>
-                <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
-            }" style="
-                    display: inline-flex;
-                    align-items: center;
-                    padding: 0.5rem 1rem;
-                    font-size: 1rem;
-                    font-family: Lato;
-                    color: #fff;
-                    background-color: #007bff;
-                    border: none;
-                    border-radius: 0.25rem;
-                    cursor: pointer;
-                    transition: background-color 0.3s ease;">
-                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
-                </button>
-            </td>
-            <td>
-                <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
-            }" style="
-                    display: inline-flex;
-                    align-items: center;
-                    padding: 0.5rem 1rem;
-                    font-size: 1rem;
-                    font-family: Lato;
-                    color: #fff;
-                    background-color: #dc3545;
-                    border: none;
-                    border-radius: 0.25rem;
-                    cursor: pointer;
-                    transition: background-color 0.3s ease;">
-                    <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
-                </button>
-            </td>
-        `;
-                pedidosTable.appendChild(row);
-            });
-            // Si tienes función para asignar eventos a los botones, llámala aquí:
-            agregarEventosBotones && agregarEventosBotones();
-            buildPagination(total);
-        }
     </script>
 </body>
 

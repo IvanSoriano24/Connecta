@@ -211,6 +211,7 @@ function buildPagination(total) {
 /***********************************************************************/
 // Función para cargar los pedidos con el filtro seleccionado y guardar el filtro en localStorage
 function cargarPedidos(estadoPedido, filtroFecha) {
+  document.getElementById("searchTerm").value = "";
   // Guarda el filtro seleccionado
   localStorage.setItem("filtroSeleccionado", filtroFecha);
   localStorage.setItem("estadoPedido", estadoPedido);
@@ -251,7 +252,7 @@ function cargarPedidos(estadoPedido, filtroFecha) {
             const claveB = parseInt(b.Clave, 10) || 0;
             return claveB - claveA;
           });
-          mostrarPedidosEnTabla(pedidos, response.total);
+          datosPedidos(true);
         } else {
           console.warn(
             "No se recibieron datos o se devolvió un error:",
@@ -278,15 +279,10 @@ let registrosPorPagina = 10; // Ajusta según convenga
 // El parámetro "limpiarTabla" indica si se reinicia la tabla (true en carga inicial o al cambiar filtro)
 // o se agregan filas al final (false al hacer "Mostrar más").
 function datosPedidos(limpiarTabla = true) {
+  document.getElementById("searchTerm").value = "";
   // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
   let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
   let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
-  console.log(
-    "Cargando datosPedidos con filtro:",
-    filtroFecha,
-    "Página:",
-    paginaActual
-  );
   document.getElementById("filtroFecha").value = filtroFecha;
   const pedidosTable = document.getElementById("datosPedidos");
   if (!pedidosTable) {
@@ -828,6 +824,26 @@ $(document).on("change", "#filtroVendedor", function () {
   paginaActual = 1;
   datosPedidos(true);
 });
+// Al cargar la página, se lee el filtro guardado y se carga la información
+document.addEventListener("DOMContentLoaded", function() {
+  let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Hoy";
+  let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
+
+  // 🔹 Resaltar el botón correspondiente al estado guardado
+  $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary");
+  $(`.filtro-rol[data-rol="${estadoPedido}"]`)
+    .removeClass("btn-secondary")
+    .addClass("btn-primary");
+
+  // 🔹 Actualizar select del filtro, si aplica
+  const filtroSelect = document.getElementById("filtroFecha");
+  if (filtroSelect) {
+    filtroSelect.value = filtroGuardado;
+  }
+
+  datosPedidos(true);
+  inicializarEventosBotones();
+});
 function inicializarEventosBotones() {
   $(".filtro-rol")
     .off("click")
@@ -848,53 +864,202 @@ $("#filtroFecha").change(function () {
 $("#cancelarPedido").click(function () {
   window.location.href = "Ventas.php";
 });
-function doSearch() {
-  const tableReg = document.getElementById("pedidos");
+
+let debounceTimeout;
+function debouncedSearch() {
+  clearTimeout(debounceTimeout);
+
+  // Espera 3 segundos antes de ejecutar doSearch
+  debounceTimeout = setTimeout(() => {
+    doSearch(true);
+  }, 500);
+}
+
+function doSearch(limpiarTabla = true) {
   const searchText = document.getElementById("searchTerm").value.toLowerCase();
-  let total = 0;
-  // Recorremos todas las filas con contenido de la tabla
-  for (let i = 1; i < tableReg.rows.length; i++) {
-    // Si el td tiene la clase "noSearch" no se busca en su cntenido
-    if (tableReg.rows[i].classList.contains("noSearch")) {
-      continue;
-    }
-    let found = false;
-    const cellsOfRow = tableReg.rows[i].getElementsByTagName("td");
+  if (searchText.length >= 2) {
+    // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
+    let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
+    let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
+    document.getElementById("filtroFecha").value = filtroFecha;
+    const pedidosTable = document.getElementById("datosPedidos");
+    const numColumns = 12; // Número de columnas de tu tabla
 
-    // Recorremos todas las celdas
-    for (let j = 0; j < cellsOfRow.length && !found; j++) {
-      const compareWith = cellsOfRow[j].innerHTML.toLowerCase();
-      // Buscamos el texto en el contenido de la celda
-
-      if (searchText.length == 0 || compareWith.indexOf(searchText) > -1) {
-        found = true;
-        total++;
-      }
+    // Código del spinner (puedes reemplazarlo por el que prefieras)
+    const spinnerHTML = `
+      <svg viewBox="25 25 50 50" style="width:40px;height:40px;">
+          <circle r="20" cy="50" cx="50"></circle>
+      </svg>
+    `;
+    // Construir una fila con un spinner en cada celda
+    let spinnerRow = "<tr>";
+    for (let i = 0; i < numColumns; i++) {
+      spinnerRow += `<td style="text-align: center;">${spinnerHTML}</td>`;
     }
-    if (found) {
-      tableReg.rows[i].style.display = "";
+    spinnerRow += "</tr>";
+
+    // Si se debe limpiar la tabla, se reemplaza el contenido; si no, se agrega al final.
+    if (limpiarTabla) {
+      pedidosTable.innerHTML = spinnerRow;
     } else {
-      // si no ha encontrado ninguna coincidencia, esconde la
-      // fila de la tabla
-      tableReg.rows[i].style.display = "none";
+      pedidosTable.insertAdjacentHTML("beforeend", spinnerRow);
     }
-  }
-  // mostramos las coincidencias
-  const lastTR = tableReg.rows[tableReg.rows.length - 1];
-  const td = lastTR.querySelector("td");
-  lastTR.classList.remove("hide", "red");
-  if (searchText == "") {
-    lastTR.classList.add("hide");
-  } else if (total) {
-    //td.innerHTML="Se ha encontrado "+total+" coincidencia"+((total>1)?"s":"");
+
+    $.post(
+      "../Servidor/PHP/ventas.php",
+      {
+        numFuncion: "24",
+        noEmpresa: noEmpresa,
+        filtroFecha: filtroFecha,
+        estadoPedido: estadoPedido,
+        filtroVendedor: filtroVendedor,
+        pagina: paginaActual,
+        porPagina: registrosPorPagina,
+        filtroBusqueda: searchText
+      },
+      function (response) {
+        try {
+          // Si la respuesta es una cadena, la parseamos
+          if (typeof response === "string") {
+            response = JSON.parse(response);
+          }
+          // Verificamos que la respuesta sea un objeto válido
+          if (typeof response === "object" && response !== null) {
+            // Limpiar la fila de spinner
+            if (limpiarTabla) {
+              pedidosTable.innerHTML = "";
+            } else {
+              // Remover la última fila (spinner) si se agregó al final
+              const lastRow = pedidosTable.lastElementChild;
+              if (lastRow) {
+                pedidosTable.removeChild(lastRow);
+              }
+            }
+
+            if (response.success && response.data) {
+              let pedidos = response.data;
+              // Ordenar pedidos por clave en orden descendente
+              pedidos = pedidos.sort((a, b) => {
+                const claveA = parseInt(a.Clave, 10) || 0;
+                const claveB = parseInt(b.Clave, 10) || 0;
+                return claveB - claveA;
+              });
+
+              // Crear un DocumentFragment para acumular las filas
+              const fragment = document.createDocumentFragment();
+
+              pedidos.forEach((pedido) => {
+                const row = document.createElement("tr");
+                const subtotalText = pedido.Subtotal
+                  ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
+                  : "Sin subtotal";
+                const importeText = pedido.ImporteTotal
+                  ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
+                  : "Sin importe";
+
+                row.innerHTML = `
+                  <td>${pedido.Tipo || "Sin tipo"}</td>
+                  <td>${pedido.Clave || "Sin nombre"}</td>
+                  <td >${pedido.Cliente || "Sin cliente"}</td>
+                  <td>${pedido.Nombre || "Sin nombre"}</td>
+                  <td>${pedido.Estatus || "0"}</td>
+                  <td>${
+                    pedido.FechaElaboracion || "Sin fecha"
+                  }</td>
+                  <td style="text-align: right;">${subtotalText}</td>
+                  <!--<td style="text-align: right;">${
+                    pedido.TotalComisiones
+                      ? `$${parseFloat(
+                          pedido.TotalComisiones
+                        ).toFixed(2)}`
+                      : "Sin Comisiones"
+                  }</td>-->
+                  <td style="text-align: right;">${importeText}</td>
+                <td class="nombreVendedor">${
+                  pedido.NombreVendedor || "Sin vendedor"
+                }</td>
+                  <td>
+                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
+                        pedido.Clave
+                      }" style="
+                          display: inline-flex;
+                          align-items: center;
+                          padding: 0.5rem 1rem;
+                          font-size: 1rem;
+                          font-family: Lato;
+                          color: #fff;
+                          background-color: #007bff;
+                          border: none;
+                          border-radius: 0.25rem;
+                          cursor: pointer;
+                          transition: background-color 0.3s ease;">
+                          <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
+                      </button>
+                  </td>
+                  <td>
+                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${
+                        pedido.Clave
+                      }" style="
+                          display: inline-flex;
+                          align-items: center;
+                          padding: 0.5rem 1rem;
+                          font-size: 1rem;
+                          font-family: Lato;
+                          color: #fff;
+                          background-color: #dc3545;
+                          border: none;
+                          border-radius: 0.25rem;
+                          cursor: pointer;
+                          transition: background-color 0.3s ease;">
+                          <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
+                      </button>
+                  </td>
+                `;
+                fragment.appendChild(row);
+              });
+
+              // Agregar todas las filas de una sola vez
+              pedidosTable.appendChild(fragment);
+              buildPagination(response.total);
+
+              // Llama a la función que asigna eventos a los botones, si está definida
+              if (typeof agregarEventosBotones === "function") {
+                agregarEventosBotones();
+              }
+            } else {
+              // Si no hay datos, limpiar la tabla y mostrar un mensaje
+              pedidosTable.innerHTML = `<tr><td colspan="${numColumns}" style="text-align: center;">No hay datos disponibles</td></tr>`;
+              //document.getElementById("btnMostrarMas").style.display = "none";
+              console.warn(
+                "No se recibieron datos o se devolvió un error:",
+                response.message
+              );
+            }
+          } else {
+            console.error("La respuesta no es un objeto válido:", response);
+          }
+        } catch (error) {
+          console.error("Error al procesar la respuesta JSON:", error);
+          console.error("Detalles de la respuesta:", response);
+        }
+      },
+      "json"
+    ).fail(function (jqXHR, textStatus, errorThrown) {
+      console.error("Error en la solicitud:", textStatus, errorThrown);
+      console.log("Detalles de la respuesta JSON:", jqXHR.responseText);
+    });
   } else {
-    lastTR.classList.add("red");
-    //td.innerHTML="No se han encontrado coincidencias";
+    datosPedidos(true);
   }
 }
 document.addEventListener("DOMContentLoaded", function () {
-  let clienteSeleccionado =
-    sessionStorage.getItem("clienteSeleccionado") === "true";
+  let clienteSeleccionado = sessionStorage.getItem("clienteSeleccionado") === "true";
   // Detectar el clic en el enlace para "Crear Pedido"
   var altaPedidoBtn = document.getElementById("altaPedido");
   if (altaPedidoBtn) {
