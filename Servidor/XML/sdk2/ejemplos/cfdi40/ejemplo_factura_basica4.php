@@ -215,9 +215,9 @@ function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     // Busca los datos de la empresa por noEmpresa
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];
-        if (isset($fields['noEmpresa']['stringValue']) && $fields['noEmpresa']['stringValue'] === $noEmpresa) {
+        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
-                'noEmpresa' => $fields['noEmpresa']['stringValue'] ?? null,
+                'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? null,
                 'id' => $fields['id']['stringValue'] ?? null,
                 'razonSocial' => $fields['razonSocial']['stringValue'] ?? null,
                 'rfc' => $fields['rfc']['stringValue'] ?? null,
@@ -399,16 +399,14 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
         header('Content-Type: application/json');
         echo json_encode([
-            "Succes" => true,
-            "Factura" => $factura
+            "Succes" => true
         ]);
         return;
     } else {
         header('Content-Type: application/json');
         echo json_encode([
             "Succes" => false,
-            "Problema" => $res['mensaje_original_pac_json'],
-            "Factura" => $factura
+            "Problema" => $res['mensaje_original_pac_json']
             //"Problema" => $res['codigo_mf_texto']
         ]);
         return;

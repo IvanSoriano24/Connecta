@@ -541,7 +541,8 @@ function actualizarFolio($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function obtenerRemision($conexionData, $pedidoId, $claveSae){
+function obtenerRemision($conexionData, $pedidoId, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -672,8 +673,9 @@ function actualizarAfac($conexionData, $remision, $claveSae)
         'message' => "AFACT02 actualizado correctamente para el período $perAcum"
     ]);*/
 }
-function insertarAlerta_Usuario($conexionData, $claveSae){
-     $serverName = $conexionData['host'];
+function insertarAlerta_Usuario($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
@@ -698,7 +700,7 @@ function insertarAlerta_Usuario($conexionData, $claveSae){
     $sql = "INSERT INTO $tablaAlertaUsuario
     (CVE_ALERTA,ID_USUARIO,ACTIVA) VALUES (?, ?, ?)";
 
-    $params = [5,0,"N"];
+    $params = [5, 0, "N"];
 
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
@@ -1027,7 +1029,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
     }
 
     sqlsrv_close($conn);
-    
+
     //echo json_encode(['success' => true, 'no_factura' => $no_factura]); 
 
     return [
@@ -1071,7 +1073,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura)
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
     $no_factura = $CVE_DOC; // Número de factura o pedido
     $docto = $CVE_DOC;   // Puede ser un código de documento, si aplica
-    
+
     $STRCVEVEND = $datosCxC['STRCVEVEND'];
 
     $AFEC_COI = 'A';
@@ -1079,7 +1081,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura)
     $TCAMBIO = 1;
     $TIPO_MOV = 'A'; //Aqui
 
-    
+
 
     $IMPORTE = $datosCxC['IMPORTE'];
 
@@ -1248,8 +1250,8 @@ function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
     }
 
     // Formatear remisión (20 chars, ceros y espacios a la izquierda)
-    $rem = str_pad($remision, 10, '0', STR_PAD_LEFT);
-    $rem = str_pad($rem,      20, ' ', STR_PAD_LEFT);
+    $remision = str_pad($remision, 10, '0', STR_PAD_LEFT);
+    $rem = str_pad($remision, 20, ' ', STR_PAD_LEFT);
 
     $tablaPar = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR"
         . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -1264,7 +1266,7 @@ function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
         P.[E_LTPD]    AS E_LTPD_ANT,    -- el enlace viejo si lo hubiera
         E.[REG_LTPD]  AS REG_LTPD,
         E.[CANTIDAD]  AS CANTIDAD,
-        E.[PXRS]       AS PXR
+        E.[PXRS]       AS PXRS
       FROM $tablaPar P
       INNER JOIN $tablaEnl E
         ON P.[E_LTPD] = E.[E_LTPD]
@@ -1285,9 +1287,10 @@ function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
         $datos[] = [
             'CVE_DOC'   => trim($row['CVE_DOC']),
             'CVE_ART'   => trim($row['CVE_ART']),
+            'E_LTPD_ANT'  => (int) $row['E_LTPD_ANT'],
             'REG_LTPD'  => (int) $row['REG_LTPD'],
             'CANTIDAD'  => (float)$row['CANTIDAD'],
-            'PXR'       => (float)$row['PXR']
+            'PXRS'       => (float)$row['PXRS']
         ];
     }
 
@@ -1296,7 +1299,7 @@ function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
     //echo json_encode(['success' => true, 'datos' => $datos]); 
     return $datos;
 }
-function insertarEnlaceLTPD($conexionData, $claveSae, $remision, array $lotesUtilizados)
+/*function insertarEnlaceLTPD($conexionData, $claveSae, $remision, array $lotesUtilizados)
 {
     $conn = sqlsrv_connect($conexionData['host'], [
         "Database" => $conexionData['nombreBase'],
@@ -1317,7 +1320,7 @@ function insertarEnlaceLTPD($conexionData, $claveSae, $remision, array $lotesUti
         . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // 1) calcular el nuevo E_LTPD (se repite para todos los lotes)
-    $sqlMax = "SELECT ISNULL(MAX(E_LTPD),0)+1 AS NUEVO_E_LTPD FROM $tablaEnl";
+    /*$sqlMax = "SELECT ISNULL(MAX(E_LTPD),0)+1 AS NUEVO_E_LTPD FROM $tablaEnl";
     $stm = sqlsrv_query($conn, $sqlMax);
     if ($stm === false) {
         die(json_encode([
@@ -1336,10 +1339,34 @@ function insertarEnlaceLTPD($conexionData, $claveSae, $remision, array $lotesUti
         (E_LTPD, REG_LTPD, CANTIDAD, PXRS)
       VALUES
         (?,      ?,         ?,        ?)
-    ";
+    ";*/
+/*
 
     $resultados = [];
     foreach ($lotesUtilizados as $lote) {
+
+        $sqlMax = "SELECT ISNULL(MAX(E_LTPD),0)+1 AS NUEVO_E_LTPD FROM $tablaEnl";
+        $stm = sqlsrv_query($conn, $sqlMax);
+        if ($stm === false) {
+            die(json_encode([
+                'success' => false,
+                'message' => 'Error al obtener nuevo E_LTPD',
+                'errors'  => sqlsrv_errors()
+            ]));
+        }
+        $row = sqlsrv_fetch_array($stm, SQLSRV_FETCH_ASSOC);
+        $nuevoELTPD = (int)$row['NUEVO_E_LTPD'];
+        sqlsrv_free_stmt($stm);
+
+        // 2) Insertar cada lote con EL MISMO E_LTPD
+        $insertSql = "
+      INSERT INTO $tablaEnl
+        (E_LTPD, REG_LTPD, CANTIDAD, PXRS)
+      VALUES
+        (?,      ?,         ?,        ?)
+    ";
+
+
         $params = [
             $nuevoELTPD,
             $lote['REG_LTPD'],
@@ -1368,6 +1395,45 @@ function insertarEnlaceLTPD($conexionData, $claveSae, $remision, array $lotesUti
 
     sqlsrv_close($conn);
     //echo json_encode(['success' => true, 'resultados' => $resultados]);
+    return $resultados;
+}*/
+function insertarEnlaceLTPD($conn, $conexionData, array $lotesUtilizados, string $claveSae, string $claveProducto)
+{
+    $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // 1) Sólo una vez: obtener el próximo E_LTPD
+    $sql = "SELECT ISNULL(MAX(E_LTPD),0)+1 AS NUEVO_E_LTPD FROM $tablaEnlace";
+    $st  = sqlsrv_query($conn, $sql);
+    $row = sqlsrv_fetch_array($st, SQLSRV_FETCH_ASSOC);
+    $nuevoELTPD = (int)$row['NUEVO_E_LTPD'];
+    sqlsrv_free_stmt($st);
+
+    // 2) Insertar cada lote con ese mismo E_LTPD
+    $insert = "
+    INSERT INTO $tablaEnlace (E_LTPD, REG_LTPD, CANTIDAD, PXRS)
+    VALUES (?, ?, ?, ?)
+  ";
+    $resultados = [];
+    foreach ($lotesUtilizados as $lote) {
+        $params = [
+            $nuevoELTPD,
+            $lote['REG_LTPD'],
+            $lote['CANTIDAD'],
+            $lote['PXRS']
+        ];
+        $ok = sqlsrv_query($conn, $insert, $params);
+        if (!$ok) {
+            throw new Exception("Error al insertar lote {$lote['nuevoELTPD']}: " . print_r(sqlsrv_errors(), 1));
+        }
+        $resultados[] = [
+            'E_LTPD'   => $nuevoELTPD,
+            'REG_LTPD' => $lote['REG_LTPD'],
+            'CANTIDAD' => $lote['CANTIDAD'],
+            'PXRS'     => $lote['PXRS'],
+            'CVE_ART'  => $claveProducto
+        ];
+    }
+
     return $resultados;
 }
 function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pedidoId)
@@ -2159,10 +2225,10 @@ function insertatInfoClie($conexionData, $claveSae, $claveCliente)
     }
     sqlsrv_close($conn);
     //echo json_encode(['success' => true, 'cliente' => $claveCliente]);
-    
+
     return $nuevo;
 }
-function actualizarPar_Factr1($conexionData, $claveSae, $remision, array $enlaces)
+function actualizarPar_Factf1($conexionData, $claveSae, $remision, array $enlaces)
 {
     // 1) Conectar
     $conn = sqlsrv_connect($conexionData['host'], [
@@ -2185,7 +2251,7 @@ function actualizarPar_Factr1($conexionData, $claveSae, $remision, array $enlace
     $rem  = str_pad($rem,      20, ' ', STR_PAD_LEFT);
 
     // 3) Nombre de la tabla PAR_FACTRxx
-    $tablaPar = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR"
+    $tablaPar = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF"
         . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // 4) Preparamos el UPDATE parametrizado
@@ -2284,6 +2350,48 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura)
     sqlsrv_free_stmt($stmt);
     //echo json_encode(['success' => true, 'facturaId' => $facturaId]);
 }
+/*******************************************************************************************************/
+function validarLotesFactura($conexionData, $claveSae, $remision)
+{
+    // 1) Conectar
+    $conn = sqlsrv_connect($conexionData['host'], [
+        "Database" => $conexionData['nombreBase'],
+        "UID"      => $conexionData['usuario'],
+        "PWD"      => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ]);
+
+    // 2) Obtengo todos los lotes de la remisión
+    $rows = obtenerDatosPreEnlace($conexionData, $claveSae, $remision);
+
+    // 3) Agrupo y desduplico por producto y por REG_LTPD
+    $porProducto = [];
+    foreach ($rows as $r) {
+        $art = trim($r['CVE_ART']);
+        $reg = $r['REG_LTPD'];
+        // usamos REG_LTPD como clave para evitar duplicados
+        $porProducto[$art][$reg] = [
+            'REG_LTPD' => $r['REG_LTPD'],
+            'CANTIDAD' => $r['CANTIDAD'],
+            'PXRS'     => $r['PXRS']
+        ];
+    }
+
+    // 4) Por cada producto, insertamos sus lotes (ahora sin duplicados)
+    $todos = [];
+    sqlsrv_begin_transaction($conn);
+    foreach ($porProducto as $claveArt => $lotesByReg) {
+        // reindexamos el array
+        $lotes = array_values($lotesByReg);
+        $res = insertarEnlaceLTPD($conn, $conexionData, $lotes, $claveSae, $claveArt);
+        $todos = array_merge($todos, $res);
+    }
+    sqlsrv_commit($conn);
+    sqlsrv_close($conn);
+
+    return $todos;
+}
 /****************************************** Funcion Principal ******************************************/
 function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito)
 {
@@ -2300,7 +2408,7 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     actualizarAlerta1($conexionData, $claveSae);
     actualizarAlerta2($conexionData, $claveSae);
 
-    $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioFactura);
+    $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioFactura); //No manipula saldo
     //Pagar solo si elimino anticipo (clientes sin Credito)
     if (!$credito) {
         pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura);
@@ -2309,10 +2417,10 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae);
 
     $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $claveCliente); //Error datos: CVE_INFO, POB, CALLE
-   
+
     insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $claveSae, $DAT_MOSTR);
     insertarFactf_Clib($conexionData, $folioFactura, $claveSae);
-    
+
     actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pedidoId);
     actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId);
     actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId);
@@ -2320,9 +2428,16 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae); //Volver a realizarlo con datos nuevos
     insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveSae);
 
+    $result = validarLotesFactura($conexionData, $claveSae, $remision);
+
     /*$datos = obtenerDatosPreEnlace($conexionData, $claveSae, $remision);    //No se pudo por falta de datos
-    $result = insertarEnlaceLTPD($conexionData, $claveSae, $remision, $datos); 
-    actualizarPar_Factr1($conexionData, $claveSae, $remision, $result);*/
+    
+    foreach ($datos['CVE_ART'] as $producto) {
+        $result = insertarEnlaceLTPD($conexionData, $claveSae, $remision, $datos['CVE_ART'], $producto);
+    }*/
+    //var_dump($result);
+
+    actualizarPar_Factf1($conexionData, $claveSae, $remision, $result);
 
     actualizarControl1($conexionData, $claveSae);
     actualizarControl2($conexionData, $claveSae);
@@ -2330,7 +2445,7 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     actualizarControl4($conexionData, $claveSae);
     actualizarInclie1($conexionData, $claveSae, $claveCliente); //Verificar la logica
     actualizarInclie2($conexionData, $claveSae, $claveCliente);
-    
+
     insertarCFDI($conexionData, $claveSae, $folioFactura);
 
     return $folioFactura;
@@ -2366,8 +2481,10 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $folioFactura = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito);
 
+        header('Content-Type: application/json');
         echo json_encode(['success' => true, 'folioFactura1' => $folioFactura]);
         return $folioFactura;
+        //return;
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

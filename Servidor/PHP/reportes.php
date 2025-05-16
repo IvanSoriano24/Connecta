@@ -421,6 +421,125 @@ function obtenerDescripcionProductoPedidoAutoriza($CVE_ART, $conexionData, $clav
     ];
 }
 /****************************************************************************************************************/
+function obtenerDatosFactura($cveDoc, $conexionData, $claveSae)
+{
+    // Configuración de conexión a SQL Server
+    $conn = sqlsrv_connect($conexionData['host'], [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ]);
+
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar a la base de datos',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+
+    // Construcción del nombre de la tabla con clave SAE
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTF"
+        . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta: convertimos FECHA_DOC a dd-mm-yyyy (estilo 105)
+    $sql = "
+        SELECT 
+          CVE_CLPV,
+          CVE_VEND,
+          CONVERT(VARCHAR(10), FECHA_DOC, 105) AS FECHA_DOC,
+          FOLIO,
+          DES_TOT
+        FROM $nombreTabla
+        WHERE CVE_DOC = ?
+    ";
+
+    $params = [$cveDoc];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al consultar la remisión',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+
+    $datosPedidoAuto = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    sqlsrv_close($conn);
+
+    if (!$datosPedidoAuto) {
+        return null; // Si no encuentra la remisión
+    }
+
+    return [
+        'CVE_CLPV'  => trim($datosPedidoAuto['CVE_CLPV']),
+        'CVE_VEND'  => trim($datosPedidoAuto['CVE_VEND']),
+        // FECHA_DOC ya viene en formato "dd-mm-yyyy"
+        'FECHA_DOC' => $datosPedidoAuto['FECHA_DOC'],  
+        'FOLIO'     => (float) $datosPedidoAuto['FOLIO'],
+        'DES_TOT'   => (float) $datosPedidoAuto['DES_TOT']
+    ];
+}
+function obtenerDatosPartidasFactura($cveDoc, $conexionData, $claveSae)
+{
+    // Configuración de conexión a SQL Server
+    $conn = sqlsrv_connect($conexionData['host'], [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ]);
+
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Construcción del nombre de la tabla con clave SAE
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta SQL para obtener las partidas de la remisión
+    $sql = "SELECT CVE_ART, CANT, PREC, TOT_PARTIDA, IMPU1, IMPU2, IMPU3, IMPU4, IMPU5, IMPU6, IMPU7, IMPU8, DESC1, DESC2, UNI_VENTA, CVE_UNIDAD
+            FROM $nombreTabla 
+            WHERE CVE_DOC = ?";
+
+    $params = [$cveDoc];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al consultar las partidas de la remisión', 'errors' => sqlsrv_errors()]));
+    }
+
+    $partidas = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $partidas[] = [
+            'CVE_ART' => trim($row['CVE_ART']),
+            'CANT' => (float) $row['CANT'],
+            'PREC' => (float) $row['PREC'],
+            'TOT_PARTIDA' => (float) $row['TOT_PARTIDA'],
+            'IMPU1' => (float) $row['IMPU1'],
+            'IMPU2' => (float) $row['IMPU2'],
+            'IMPU3' => (float) $row['IMPU3'],
+            'IMPU4' => (float) $row['IMPU4'],
+            'IMPU5' => (float) $row['IMPU5'],
+            'IMPU6' => (float) $row['IMPU6'],
+            'IMPU7' => (float) $row['IMPU7'],
+            'IMPU8' => (float) $row['IMPU8'],
+            'DESC1' => (float) $row['DESC1'],
+            'DESC2' => (float) $row['DESC2'],
+            'UNI_VENTA' => $row['UNI_VENTA'],
+            'CVE_UNIDAD' => $row['CVE_UNIDAD']
+        ];
+    }
+
+    sqlsrv_close($conn);
+
+    return $partidas;
+}
+/****************************************************************************************************************/
 
 class PDFPedido extends FPDF
 {
@@ -1443,15 +1562,15 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
     // **Generar el PDF**
     $pdf->Output("I");
 }
-function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
+function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura)
 {
-    $cveDoc = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     // Obtener los datos de la empresa
     $datosEmpresaPedidoAutoriza = obtenerDatosEmpresaFire($noEmpresa);
-    $datosPedidoAutoriza = obtenerDatosPedido($CVE_DOC, $conexionData, $claveSae);
-    $datosPartidasPedido = obtenerDatosPartidasPedido($CVE_DOC, $conexionData, $claveSae);
+    $datosPedidoAutoriza = obtenerDatosFactura($CVE_DOC, $conexionData, $claveSae);
+    $datosPartidasPedido = obtenerDatosPartidasFactura($CVE_DOC, $conexionData, $claveSae);
 
     // Obtener datos del cliente
     $clienteId = str_pad(trim($datosPedidoAutoriza['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
@@ -1477,7 +1596,7 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
     }
 
     // Ruta de los archivos (ajusta la ruta según corresponda)
-    $nombreArchivoBase = "cfdi_" . urlencode($datosClientePedidoAutoriza['nombre']) . "_" . urlencode($folio);
+    $nombreArchivoBase = "cfdi_" . urlencode($datosClientePedidoAutoriza['nombre']) . "_" . urlencode($folioFactura);
     $xmlFile = "../XML/sdk2/timbrados/" . $nombreArchivoBase . ".xml";
     $qrFile = "../XML/sdk2/timbrados/" . $nombreArchivoBase . ".png";
 
@@ -1641,7 +1760,7 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData)
     /********************************************************************************************************************/
 
     // **Generar el nombre del archivo correctamente**
-    $nombreArchivo = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folio) . ".pdf";
+    $nombreArchivo = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
     $rutaArchivo = __DIR__ . "/pdfs/" . $nombreArchivo;
 
     // **Asegurar que la carpeta `pdfs/` exista**

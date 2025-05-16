@@ -2743,13 +2743,12 @@ function obtenerProductosPedido($conn, $conexionData, $pedidoId, $claveSae)
     return $productos;
 }
 // ✅ 2. Obtener los lotes disponibles para un producto
-function obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $claveSae)
-{
+function obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $claveSae){
     $tablaLotes = "[{$conexionData['nombreBase']}].[dbo].[LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT REG_LTPD, CANTIDAD, LOTE
             FROM $tablaLotes
-            WHERE CVE_ART = ? AND STATUS = 'A'
+            WHERE CVE_ART = ? AND STATUS = 'A' AND CANTIDAD > 0
             ORDER BY FCHCADUC ASC, REG_LTPD ASC";
 
     $params = [$claveProducto];
@@ -2936,7 +2935,7 @@ switch ($funcion) {
         $pedidoId = $_POST['pedidoId'];
 
         $cveDoc = crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor);
-        //echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
+        echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
