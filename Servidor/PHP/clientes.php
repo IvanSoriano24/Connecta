@@ -650,7 +650,7 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
             ];
         }
     }
-
+    
     if (!empty($datos)) {
         // Ordenar los vendedores por nombre alfabéticamente
         usort($datos, function ($a, $b) {
@@ -812,9 +812,9 @@ function guardarDatosEnvio($datosEnvio, $firebaseProjectId, $firebaseApiKey, $fo
 
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $claveSae = $_SESSION['empresa']['claveSae'];
-
+    $cliente = formatearClaveCliente($datosEnvio['clienteId']);
     $fieldsToSave = [
-        'claveCliente' => ['stringValue' => $datosEnvio['clienteId']],
+        'claveCliente' => ['stringValue' => $cliente],
         'id' => ['integerValue' => $folio['folioSiguiente']],
         'tituloEnvio' => ['stringValue' => $datosEnvio['tituloEnvio']],
         'nombreContacto' => ['stringValue' => $datosEnvio['nombreContacto']],

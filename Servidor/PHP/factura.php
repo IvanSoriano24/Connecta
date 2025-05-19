@@ -1035,7 +1035,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
     return [
         'factura' => $no_factura,
         'referencia' => $refer,
-        'importe' => $IMPORTE,
+        'IMPORTE' => $IMPORTE,
         'STRCVEVEND' => $STRCVEVEND,
         'CVE_CLIE' => $CVE_CLIE
     ];
@@ -1299,104 +1299,6 @@ function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
     //echo json_encode(['success' => true, 'datos' => $datos]); 
     return $datos;
 }
-/*function insertarEnlaceLTPD($conexionData, $claveSae, $remision, array $lotesUtilizados)
-{
-    $conn = sqlsrv_connect($conexionData['host'], [
-        "Database" => $conexionData['nombreBase'],
-        "UID"      => $conexionData['usuario'],
-        "PWD"      => $conexionData['password'],
-        "CharacterSet"         => "UTF-8",
-        "TrustServerCertificate" => true
-    ]);
-    if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors'  => sqlsrv_errors()
-        ]));
-    }
-
-    $tablaEnl = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD"
-        . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
-    // 1) calcular el nuevo E_LTPD (se repite para todos los lotes)
-    /*$sqlMax = "SELECT ISNULL(MAX(E_LTPD),0)+1 AS NUEVO_E_LTPD FROM $tablaEnl";
-    $stm = sqlsrv_query($conn, $sqlMax);
-    if ($stm === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al obtener nuevo E_LTPD',
-            'errors'  => sqlsrv_errors()
-        ]));
-    }
-    $row = sqlsrv_fetch_array($stm, SQLSRV_FETCH_ASSOC);
-    $nuevoELTPD = (int)$row['NUEVO_E_LTPD'];
-    sqlsrv_free_stmt($stm);
-
-    // 2) Insertar cada lote con EL MISMO E_LTPD
-    $insertSql = "
-      INSERT INTO $tablaEnl
-        (E_LTPD, REG_LTPD, CANTIDAD, PXRS)
-      VALUES
-        (?,      ?,         ?,        ?)
-    ";*/
-/*
-
-    $resultados = [];
-    foreach ($lotesUtilizados as $lote) {
-
-        $sqlMax = "SELECT ISNULL(MAX(E_LTPD),0)+1 AS NUEVO_E_LTPD FROM $tablaEnl";
-        $stm = sqlsrv_query($conn, $sqlMax);
-        if ($stm === false) {
-            die(json_encode([
-                'success' => false,
-                'message' => 'Error al obtener nuevo E_LTPD',
-                'errors'  => sqlsrv_errors()
-            ]));
-        }
-        $row = sqlsrv_fetch_array($stm, SQLSRV_FETCH_ASSOC);
-        $nuevoELTPD = (int)$row['NUEVO_E_LTPD'];
-        sqlsrv_free_stmt($stm);
-
-        // 2) Insertar cada lote con EL MISMO E_LTPD
-        $insertSql = "
-      INSERT INTO $tablaEnl
-        (E_LTPD, REG_LTPD, CANTIDAD, PXRS)
-      VALUES
-        (?,      ?,         ?,        ?)
-    ";
-
-
-        $params = [
-            $nuevoELTPD,
-            $lote['REG_LTPD'],
-            $lote['CANTIDAD'],
-            $lote['PXR']
-        ];
-        $r = sqlsrv_query($conn, $insertSql, $params);
-        if ($r === false) {
-            die(json_encode([
-                'success' => false,
-                'message' => 'Error al insertar lote ' . $lote['LOTE'],
-                'errors'  => sqlsrv_errors()
-            ]));
-        }
-        sqlsrv_free_stmt($r);
-
-        // Guardamos el output para debugging
-        $resultados[] = [
-            'E_LTPD'   => $nuevoELTPD,
-            'REG_LTPD' => $lote['REG_LTPD'],
-            'CANTIDAD' => $lote['CANTIDAD'],
-            'PXRS'     => $lote['PXR'],
-            'CVE_ART'  => $lote['CVE_ART']
-        ];
-    }
-
-    sqlsrv_close($conn);
-    //echo json_encode(['success' => true, 'resultados' => $resultados]);
-    return $resultados;
-}*/
 function insertarEnlaceLTPD($conn, $conexionData, array $lotesUtilizados, string $claveSae, string $claveProducto)
 {
     $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -2350,6 +2252,100 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura)
     sqlsrv_free_stmt($stmt);
     //echo json_encode(['success' => true, 'facturaId' => $facturaId]);
 }
+function sumarSaldo($conexionData, $claveSae, $pagado){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    //$importe = '1250.75';
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "UPDATE $nombreTabla SET
+        [SALDO] = [SALDO] + (? * -1)
+        WHERE CLAVE = ?";
+
+    $params = [$pagado['importe'], $pagado['CLIENTE']];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar el saldo',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+
+    // ✅ Confirmar la transacción si es necesario (solo si se usa `BEGIN TRANSACTION`)
+    // sqlsrv_commit($conn);
+
+    // ✅ Liberar memoria y cerrar conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    return json_encode([
+        'success' => true,
+        'message' => "Saldo actualizado correctamente para el cliente: $cliente"
+    ]);
+}
+function restarSaldo($conexionData, $claveSae, $pagado){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    //$importe = '1250.75';
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "UPDATE $nombreTabla SET
+        [SALDO] = [SALDO] - (? * -1)
+        WHERE CLAVE = ?";
+
+    $params = [$pagado['importe'], $pagado['CLIENTE']];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar el saldo',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+
+    // ✅ Confirmar la transacción si es necesario (solo si se usa `BEGIN TRANSACTION`)
+    // sqlsrv_commit($conn);
+
+    // ✅ Liberar memoria y cerrar conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    return json_encode([
+        'success' => true,
+        'message' => "Saldo actualizado correctamente"
+    ]);
+}
 /*******************************************************************************************************/
 function validarLotesFactura($conexionData, $claveSae, $remision)
 {
@@ -2409,9 +2405,11 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     actualizarAlerta2($conexionData, $claveSae);
 
     $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioFactura); //No manipula saldo
+    sumarSaldo($conexionData, $claveSae, $datosCxC);
     //Pagar solo si elimino anticipo (clientes sin Credito)
     if (!$credito) {
         pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura);
+        restarSaldo($conexionData, $claveSae, $datosCxC);
     }
 
     insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae);

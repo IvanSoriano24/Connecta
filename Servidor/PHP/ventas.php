@@ -326,7 +326,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             LEFT JOIN $nombreTabla c ON c.CLAVE    = f.CVE_CLPV
             LEFT JOIN $nombreTabla3 v ON v.CVE_VEND = f.CVE_VEND
         ";
-         if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
+        if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
             $countSql .= "WHERE f.STATUS IN ('E','O')";
         } else {
             $countSql .= "WHERE f.STATUS IN ('C')";
@@ -349,7 +349,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             $countSql      .= " AND f.CVE_VEND = ?";
             $params[]  = $claveVendedor;
         }
-        
+
         $countStmt = sqlsrv_query($conn, $countSql, $params);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
@@ -449,7 +449,8 @@ function mostrarPedidoEspecifico($clave, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda) {
+function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda)
+{
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     $estadoPedido = $_POST['estadoPedido'] ?? 'Activos';
@@ -564,7 +565,7 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
             $sql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
         }
 
-        
+
         if ($tipoUsuario === 'ADMINISTRADOR') {
             if ($filtroVendedor !== '') {
                 $sql      .= " AND f.CVE_VEND = ?";
@@ -622,7 +623,7 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
             LEFT JOIN $nombreTabla c ON c.CLAVE    = f.CVE_CLPV
             LEFT JOIN $nombreTabla3 v ON v.CVE_VEND = f.CVE_VEND
         ";
-         if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
+        if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
             $countSql .= "WHERE f.STATUS IN ('E','O')";
         } else {
             $countSql .= "WHERE f.STATUS IN ('C')";
@@ -645,7 +646,7 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
             $countSql      .= " AND f.CVE_VEND = ?";
             $params[]  = $claveVendedor;
         }
-        
+
         $countStmt = sqlsrv_query($conn, $countSql, $params);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
@@ -1456,6 +1457,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
     $TIP_DOC_E = 'O'; ////
+    $estatus = "E";
     $DES_TOT_PORC = $formularioData['descuentoCliente'];; ////
     $COM_TOT_PORC = 0; ////
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
@@ -1520,6 +1522,61 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
         $FORMADEPAGOSAT,
         $USO_CFDI,
         $REG_FISC
+    ];
+    // Ejecutar la consulta
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar el pedido',
+            'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
+        ]));
+    } else {
+        // echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
+    }
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $claveCliente = $formularioData['cliente'];
+    $datosCliente = obtenerDatosCliente($conexionData, $claveCliente, $claveSae);
+    if (!$datosCliente) {
+        die(json_encode(['success' => false, 'message' => 'No se encontraron datos del cliente']));
+    }
+    // Obtener el número de empresa
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    // Extraer los datos del formulario
+    $FOLIO = $formularioData['numero'];
+    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    $estatus = "A";
+    // Crear la consulta SQL para insertar los datos en la base de datos
+    $sql = "INSERT INTO $nombreTabla
+    (CVE_DOC, CAMPLIB7) 
+    VALUES 
+    (?, ?)";
+    // Preparar los parámetros para la consulta
+    $params = [
+        $CVE_DOC,
+        $estatus
     ];
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -2343,8 +2400,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
@@ -3148,10 +3205,10 @@ function extraerProductos($conexionData, $claveSae)
             FROM $nombreTabla f
             WHERE f.[EXIST] > 0
         ";
-        $countStmt = sqlsrv_query($conn, $countSql);
-        $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
-        $total     = (int)$totalRow['total'];
-        sqlsrv_free_stmt($countStmt);
+    $countStmt = sqlsrv_query($conn, $countSql);
+    $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
+    $total     = (int)$totalRow['total'];
+    sqlsrv_free_stmt($countStmt);
 
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -3933,8 +3990,8 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
-    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -4114,8 +4171,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -5359,8 +5416,8 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     $productosJson = urlencode(json_encode($partidasData));
     $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
@@ -5856,8 +5913,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
@@ -6193,8 +6250,8 @@ function facturar($folio, $claveSae, $noEmpresa)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -6533,8 +6590,158 @@ function obtenerMunicipios($estadoSeleccionado)
         echo json_encode(['success' => false, 'message' => 'No se encontraron ningun regimen.']);
     }
 }
+function actualizarControl1($conexionData, $claveSae)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
 
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
 
+    //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[TBLCONTROL" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "UPDATE $nombreTabla SET ULT_CVE = ULT_CVE + 1 WHERE ID_TABLA = 62";
+
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar TBLCONTROL01',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    // Cerrar conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
+}
+function insertarBita($conexionData, $claveSae, $formularioData, $partidasData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Tablas dinámicas
+    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaBita = "[{$conexionData['nombreBase']}].[dbo].[BITA" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // ✅ 1. Obtener el `CVE_BITA` incrementado en 1
+    $sqlUltimaBita = "SELECT ISNULL(MAX(CVE_BITA), 0) + 1 AS CVE_BITA FROM $tablaBita";
+    $stmtUltimaBita = sqlsrv_query($conn, $sqlUltimaBita);
+
+    if ($stmtUltimaBita === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al obtener el último CVE_BITA',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    $bitaData = sqlsrv_fetch_array($stmtUltimaBita, SQLSRV_FETCH_ASSOC);
+    $cveBita = $bitaData['CVE_BITA'];
+
+    $remisionId = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $remisionId = str_pad($remisionId, 20, ' ', STR_PAD_LEFT);
+    // ✅ 3. Obtener datos del pedido (`FACTPXX`) para calcular el total
+    $sqlRemision = "SELECT CVE_CLPV, CAN_TOT, IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4 
+                  FROM $tablaPedidos WHERE CVE_DOC = ?";
+    $paramsPedido = [$remisionId];
+
+    $stmtRemision = sqlsrv_query($conn, $sqlRemision, $paramsPedido);
+    if ($stmtRemision === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al obtener los datos del pedido',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    $remisionn = sqlsrv_fetch_array($stmtRemision, SQLSRV_FETCH_ASSOC);
+    if (!$remisionn) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No se encontraron datos del remision'
+        ]);
+        die();
+    }
+
+    $cveClie = $remisionn['CVE_CLPV'];
+    $totalPedido = $remisionn['CAN_TOT'] + $remisionn['IMP_TOT1'] + $remisionn['IMP_TOT2'] + $remisionn['IMP_TOT3'] + $remisionn['IMP_TOT4'];
+
+    // ✅ 4. Formatear las observaciones
+    $observaciones = "No.[$folioFactura] $" . number_format($totalPedido, 2);
+
+    // ✅ 5. Insertar en `BITA01`
+    $sqlInsert = "INSERT INTO $tablaBita 
+        (CVE_BITA, CVE_CAMPANIA, STATUS, CVE_CLIE, CVE_USUARIO, NOM_USUARIO, OBSERVACIONES, FECHAHORA, CVE_ACTIVIDAD) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    $paramsInsert = [
+        $cveBita,
+        '_SAE_',
+        'F',
+        $cveClie,
+        1,
+        'ADMINISTRADOR',
+        $observaciones,
+        date('Y-m-d H:i:s'),
+        4
+    ];
+
+    $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
+    if ($stmtInsert === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => "Error al insertar en BITA01 con CVE_BITA $cveBita",
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Cerrar conexión
+    sqlsrv_free_stmt($stmtUltimaBita);
+    sqlsrv_free_stmt($stmtRemision);
+    sqlsrv_free_stmt($stmtInsert);
+    sqlsrv_close($conn);
+    return $cveBita;
+    /*echo json_encode([
+        'success' => true,
+        'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
+    ]);*/
+}
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -6759,6 +6966,9 @@ switch ($funcion) {
                     $clave = formatearClaveCliente($clienteId);
 
                     $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae);
+                    
+                    //$CVE_BITA = insertarBita($conexionData, $claveSae, $formularioData, $partidasData);
+                    //actualizarControl1($conexionData, $claveSae);
 
                     if ($conCredito === 'S') {
                         // Validar crédito del cliente
@@ -6772,18 +6982,15 @@ switch ($funcion) {
 
                         $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
 
-                        if ($validarSaldo == 0 && $credito == 0) {
-                            $estatus = "E";
-                        } else if ($validarSaldo == 1 || $credito == 1) {
-                            $estatus = "C";
-                        }
                         /*$estatus = "E";
                         $validarSaldo = 0;
                         $credito = 0;*/
                         guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                        guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
+                        
                         if ($validarSaldo == 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
@@ -6822,6 +7029,7 @@ switch ($funcion) {
                             //Funcion para eliminar anticipo
                             $estatus = 'E';
                             guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                            guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             actualizarFolio($conexionData, $claveSae);
@@ -6844,6 +7052,7 @@ switch ($funcion) {
                             //No tiene fondos
                             $estatus = 'C';
                             guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                            guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);

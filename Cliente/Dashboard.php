@@ -141,7 +141,6 @@ if (isset($_SESSION['usuario'])) {
 				});
 				return;
 			}
-
 			const noEmpresa = empresaOption.getAttribute('data-no-empresa');
 			const razonSocial = empresaOption.getAttribute('data-razon-social');
 			const claveUsuario = empresaOption.getAttribute('data-clave-vendedor');
@@ -162,13 +161,15 @@ if (isset($_SESSION['usuario'])) {
 				.then(response => response.json())
 				.then(response => {
 					if (response.success && response.tieneConexion) {
+						const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+						$("#empresaSelect").prop("disabled",true);
 						Swal.fire({
 							title: 'Has seleccionado:',
 							text: `${noEmpresa} - ${razonSocial}`,
 							icon: 'success'
 						}).then(() => {
 							seleccionarEmpresa(noEmpresa);
-							const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+							//const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
 							modal.hide();
 							// Guardar los datos en la variable global
 							idEmpresarial = {
