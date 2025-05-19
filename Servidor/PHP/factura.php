@@ -2405,11 +2405,11 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     actualizarAlerta2($conexionData, $claveSae);
 
     $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioFactura); //No manipula saldo
-    sumarSaldo($conexionData, $claveSae, $datosCxC);
+    //sumarSaldo($conexionData, $claveSae, $datosCxC);
     //Pagar solo si elimino anticipo (clientes sin Credito)
     if (!$credito) {
         pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura);
-        restarSaldo($conexionData, $claveSae, $datosCxC);
+        //restarSaldo($conexionData, $claveSae, $datosCxC);
     }
 
     insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae);

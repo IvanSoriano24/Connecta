@@ -649,6 +649,20 @@ function vendedorNom($conexionData, $vendedor, $claveSae)
 
     return $nombreVendedor;
 }
+function formatearClaveCliente($clave)
+{
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $clave = trim((string) $clave);
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($clave) === 10) {
+        return $clave;
+    }
+
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    return $clave;
+}
 function datoEnvio($idEnvio, $claveSae, $conexionData)
 {
     $serverName = $conexionData['host'];
@@ -698,12 +712,17 @@ function restarSaldo($conexionData, $claveSae, $pagado, $cliente){
             'errors' => sqlsrv_errors()
         ]));
     }
+    $imp = -6380.0;
+    $cliente = formatearClaveCliente($cliente);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "UPDATE $nombreTabla SET
         [SALDO] = [SALDO] + (? * -1)
         WHERE CLAVE = ?";
 
-    $params = [$pagado['importePagado'], $cliente];
+    //$params = [$pagado['importePagado'], $cliente];
+    $params = [$imp, $cliente];
+    var_dump($sql);
+    var_dump($params);
 
     $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -722,7 +741,11 @@ function restarSaldo($conexionData, $claveSae, $pagado, $cliente){
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 
-    return json_encode([
+    /*return json_encode([
+        'success' => true,
+        'message' => "Saldo actualizado correctamente para el cliente: $cliente"
+    ]);*/
+    echo json_encode([
         'success' => true,
         'message' => "Saldo actualizado correctamente para el cliente: $cliente"
     ]);
@@ -754,7 +777,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
         $buscar = $fields['buscar']['booleanValue'];
         $vendedor = $fields['vendedor']['stringValue'];
         if ($status === 'Sin Pagar') {
-
+            //$cliente = "878";
             if ($buscar) {
                 $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
                 if ($conexionResult['success']) {
@@ -763,18 +786,19 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                     $fechaLimiteObj = new DateTime($fechaLimite);
                     if ($fechaPago <= $fechaLimiteObj) {
                         $pagado = verificarPago($conexionData, $cliente, $claveSae, $folio);
-                        //$pagado['pagada'] = true;
+                        $pagado['pagada'] = true;
                         if ($pagado['pagada']) {
                             /*var_dump($pagado);
                             die();*/
                             $pagoId = basename($document['name']);
                             //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
-                            cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
+                            //cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                             //var_dump($pagado);
-                            eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
+                            //eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
                             restarSaldo($conexionData, $claveSae, $pagado, $cliente);
-                            crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
-                            crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
+                            var_dump($cliente);
+                            //crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
+                            //crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
                             //Remision y Demas
                         }
                     } else if ($fechaPago > $fechaLimiteObj) {
