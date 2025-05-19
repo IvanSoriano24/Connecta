@@ -277,12 +277,12 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     $datos['PAC']['produccion'] = 'NO';
 
     // Rutas y clave de los CSD
-    $datos['conf']['cer'] = '../../certificados/EKU9003173C9.cer';
+    /*$datos['conf']['cer'] = '../../certificados/EKU9003173C9.cer';
     $datos['conf']['key'] = '../../certificados/EKU9003173C9.key';
-    $datos['conf']['pass'] = '12345678a';
-    /*$datos['conf']['cer'] = '../../certificadosM/00001000000513872236.cer';
+    $datos['conf']['pass'] = '12345678a';*/
+    $datos['conf']['cer'] = '../../certificadosM/00001000000513872236.cer';
     $datos['conf']['key'] = '../../certificadosM/CSD_unidad_LUHM920412GU2_20220708_132000.key';
-    $datos['conf']['pass'] = 'CUSAr279';*/
+    $datos['conf']['pass'] = 'CUSAr279';
 
     // Datos de la Factura || $pedidoData['']
     $datos['factura']['condicionesDePago'] = $pedidoData['CONDICION'];
@@ -310,12 +310,12 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     $datos['factura']['Exportacion'] = '01';
 
     // Datos del Emisor
-    $datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
+    /*$datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'ESCUELA KEMPER URGATE';  // EMPRESA DE PRUEBA
-    $datos['emisor']['RegimenFiscal'] = '626';
-    /*$datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
+    $datos['emisor']['RegimenFiscal'] = '626';*/
+    $datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'MARCOS LUNA HERNANDEZ';  // EMPRESA DE PRUEBA
-    $datos['emisor']['RegimenFiscal'] = '612';*/
+    $datos['emisor']['RegimenFiscal'] = '612';
     /*$regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
         $datos['emisor']['RegimenFiscal'] = $matches[1];
