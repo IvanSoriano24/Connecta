@@ -725,8 +725,8 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $numeroWhatsApp = trim($clienteData['TELEFONO'] ?? "");
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
@@ -756,8 +756,6 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         } else {
             $conCredito = "N";
         }
-    } else {
-        //
     }
 
     //var_dump($dataCredito['success']);
@@ -769,7 +767,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         }
 
         if ($numeroBandera === 0) {
-            enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+           $result = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -896,6 +894,9 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 }
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
+    //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -1049,9 +1050,9 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
     }
 
     // Si no se encuentra el vendedor, asignar un valor por defecto
-    $numero = $telefonoVendedor ?? 'No disponible';
+    $numero = $telefonoVendedor ?? '';
     //$numero = '+527772127123'; // Interzenda
-    $numero = '+527773750925';
+    //$numero = '+527773750925';
     //$numero = '+527775681612';
 
     $urlUsuario = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";

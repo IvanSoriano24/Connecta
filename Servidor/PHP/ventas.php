@@ -1533,6 +1533,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
             'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
         ]));
     } else {
+        return true;
         // echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
     }
     // Cerrar la conexión
@@ -1982,12 +1983,13 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     $claveCliente = $clave;
 
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
+    $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
@@ -2099,11 +2101,11 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     $vendedor = trim(($vendedorData['NOMBRE']));
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
-    //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
+    //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda
+    $numero = "+527772127123"; //InterZenda
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     //$numero = '+527775681612';
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -4117,14 +4119,15 @@ function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionDa
     $claveCliente = $clave;
 
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
+    $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
 
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
@@ -5203,13 +5206,14 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     $correo = trim($clienteData['MAIL']);
     $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
+    $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']); // Obtener el string completo de correos
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
 
     $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
@@ -5241,13 +5245,13 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
 
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
-            /*echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
+            /*echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp. Se tiene 24 horas para saldar el pedido.']);
             die();*/
         } elseif ($correoBandera === 1 && $numeroBandera === 0) {
-            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado y Notificado por WhatsApp.']);
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado y Notificado por WhatsApp. Se tiene 24 horas para saldar el pedido.']);
             die();
         } elseif ($correoBandera === 0 && $numeroBandera === 1) {
-            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado y notificado por Correo.']);
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado y notificado por Correo. Se tiene 24 horas para saldar el pedido.']);
             die();
         } else {
             $correoVendedor = $_SESSION['usuario']['correo'];
@@ -5255,11 +5259,11 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
             enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
             $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
 
-            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, no se le pudo notificar al cliente pero si al vendedor.']);
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, no se le pudo notificar al cliente pero si al vendedor. Se tiene 24 horas para saldar el pedido.']);
             die();
         }
     } else {
-        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado.']);
+        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado. Se tiene 24 horas para saldar el pedido.']);
         die();
     }
     sqlsrv_free_stmt($stmt);
@@ -5710,12 +5714,13 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
 
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
+    $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
 
     $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
@@ -6137,9 +6142,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda
+    $numero = "+527772127123"; //InterZenda Au
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     //$numero = '+527775681612';
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -6966,7 +6971,7 @@ switch ($funcion) {
                     $clave = formatearClaveCliente($clienteId);
 
                     $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae);
-                    
+
                     //$CVE_BITA = insertarBita($conexionData, $claveSae, $formularioData, $partidasData);
                     //actualizarControl1($conexionData, $claveSae);
 
@@ -6985,12 +6990,20 @@ switch ($funcion) {
                         /*$estatus = "E";
                         $validarSaldo = 0;
                         $credito = 0;*/
-                        guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                        guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                        $verif = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                        if (!$verif) {
+                            header('Content-Type: application/json; charset=UTF-8');
+                            echo json_encode([
+                                'success' => false,
+                                'message' => 'Hubo un error al gaurdar el pedido.',
+                            ]);
+                            exit();
+                        }
+                        //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
-                        
+
                         if ($validarSaldo == 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
@@ -7013,7 +7026,7 @@ switch ($funcion) {
                             ]);
                         }
                     } else {
-                        $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido);
+                        $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
 
                         /*$anticipo = [
                             'success' => $true,
@@ -7028,8 +7041,16 @@ switch ($funcion) {
                         if ($anticipo['success']) {
                             //Funcion para eliminar anticipo
                             $estatus = 'E';
-                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                            $verif = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                            if (!$verif) {
+                                header('Content-Type: application/json; charset=UTF-8');
+                                echo json_encode([
+                                    'success' => false,
+                                    'message' => 'Hubo un error al gaurdar el pedido.',
+                                ]);
+                                exit();
+                            }
+                            //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             actualizarFolio($conexionData, $claveSae);
@@ -7051,15 +7072,23 @@ switch ($funcion) {
                         } elseif ($anticipo['sinFondo']) {
                             //No tiene fondos
                             $estatus = 'C';
-                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                            $verif = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                            if (!$verif) {
+                                header('Content-Type: application/json; charset=UTF-8');
+                                echo json_encode([
+                                    'success' => false,
+                                    'message' => 'Hubo un error al gaurdar el pedido.',
+                                ]);
+                                exit();
+                            }
+                            //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
+                            actualizarFolio($conexionData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                             guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                             //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
-                            actualizarFolio($conexionData, $claveSae);
                             //actualizarFolioF($conexionData, $claveSae);
                             // Respuesta de éxito
                             header('Content-Type: application/json; charset=UTF-8');

@@ -1532,6 +1532,24 @@ function guardarDatosEnvio() {
   const municipioContacto = document.getElementById(
     "municipioNuevoContacto"
   ).value;
+
+  if (!nombreContacto ||
+    !tituloEnvio ||
+    !compañia ||
+    !correoContacto ||
+    !telefonoContacto ||
+    !linea1Contacto ||
+    !linea2Contacto ||
+    !codigoContacto ||
+    !estadoContacto ||
+    !municipioContacto){
+    Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: "Faltan datos.",
+        });
+        return;
+  }
   $.ajax({
     url: "../Servidor/PHP/clientes.php",
     method: "POST",

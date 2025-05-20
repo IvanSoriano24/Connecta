@@ -442,13 +442,13 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
-    //$numeroWhatsApp = trim($clienteData['TELEFONO']);
+    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    $numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
     $clave = trim($clienteData['CLAVE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
