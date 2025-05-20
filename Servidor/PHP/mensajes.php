@@ -604,7 +604,7 @@ function validarCreditos($conexionData, $clienteId)
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
         // Construir la consulta SQL
-        $sql = "SELECT CAMPLIB7 FROM $nombreTabla WHERE CVE_CLIE = ?";
+        $sql = "SELECT CAMPLIB9 FROM $nombreTabla WHERE CVE_CLIE = ?";
 
         //$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
         $params = [$clienteId];
@@ -624,7 +624,7 @@ function validarCreditos($conexionData, $clienteId)
         }
         //var_dump($clienteData);
         // Limpiar y preparar los datos para la respuesta
-        $conCredito = trim($clienteData['CAMPLIB7'] ?? "");
+        $conCredito = trim($clienteData['CAMPLIB9'] ?? "");
         //$conCredito = trim($clienteData['CAMPLIB8'] ?? "");
 
         // Enviar respuesta con los datos del cliente
@@ -765,11 +765,9 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         if ($correoBandera === 0) {
             enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
         }
-
         if ($numeroBandera === 0) {
            $result = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         }
-
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
             echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);

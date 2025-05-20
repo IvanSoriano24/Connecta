@@ -1457,7 +1457,6 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
     $TIP_DOC_E = 'O'; ////
-    $estatus = "E";
     $DES_TOT_PORC = $formularioData['descuentoCliente'];; ////
     $COM_TOT_PORC = 0; ////
     $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
@@ -1571,7 +1570,7 @@ function guardarPedidoClib($conexionData, $formularioData, $partidasData, $clave
     $estatus = "A";
     // Crear la consulta SQL para insertar los datos en la base de datos
     $sql = "INSERT INTO $nombreTabla
-    (CVE_DOC, CAMPLIB7) 
+    (CVE_DOC, CAMPLIB9) 
     VALUES 
     (?, ?)";
     // Preparar los parámetros para la consulta
@@ -2103,9 +2102,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda
+    //$numero = "+527772127123"; //InterZenda Au
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -3648,7 +3647,6 @@ function eliminarImagen($conexionData)
         ]);
     }
 }
-
 function generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa)
 {
     $rutaPDF = generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
@@ -4482,6 +4480,115 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
         'DOCTO' => $DOCTO
     ];
 }
+function NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData)
+{
+    // 1) Conectar
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID"      => $conexionData['usuario'],
+        "PWD"      => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+
+    // 2) Normalizar cliente y folio
+    $cliente = str_pad($formularioData['cliente'], 10, ' ', STR_PAD_LEFT);
+    $folio10 = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT);
+    $cveDoc  = str_pad($folio10, 20, ' ', STR_PAD_LEFT);
+
+    // 3) Tablas dinámicas
+    $tablaCuen = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M"
+        . str_pad($claveSae, 2, '0', STR_PAD_LEFT) . "]";
+
+    // 4) Calcular subtotal e importe del pedido
+    $subTotal = 0;
+    $impTotal = 0;
+    $ivaTotal = 0;
+    $descTotal = 0;
+
+    foreach ($partidasData as $p) {
+        $cant = $p['cantidad'];
+        $pu   = $p['precioUnitario'];
+        $sub  = $cant * $pu;
+        $subTotal += $sub;
+
+        // descuentos en cascada
+        $d1 = ($p['descuento'] ?? 0) / 100;
+        $desc = $sub * $d1;
+        $descTotal += $desc;
+
+        // IVA
+        $iva = ($sub - $desc) * (($p['iva'] ?? 0) / 100);
+        $ivaTotal += $iva;
+    }
+
+    $impTotal = $subTotal - $descTotal + $ivaTotal;
+
+    // 5) Consultar el único anticipo (NUM_CPTO='9' y no filtramos REFER aquí)
+    $sql = "
+      SELECT TOP 1
+        M.REFER,
+        M.NO_FACTURA,
+        M.DOCTO,
+        M.IMPORTE
+      FROM $tablaCuen M
+      WHERE M.CVE_CLIE = ?
+        AND M.NUM_CPTO = '9'
+      ORDER BY M.REFER DESC
+    ";
+    $stmt = sqlsrv_query($conn, $sql, [$cliente]);
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al consultar el anticipo',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+    $anticipo = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    // si no hay anticipo
+    if (!$anticipo) {
+        return [
+            'success'     => false,
+            'sinFondo'    => true,        // no hay fondo
+            'IMPORTE'     => $subTotal,   // subtotal del pedido
+            'subTotal'    => $subTotal,
+            'Vencimiento' => null,
+            'Referencia'  => null,
+            'NO_FACTURA'  => null,
+            'DOCTO'       => null
+        ];
+    }
+
+    // preparar salida
+    $importeAnticipo = (float)$anticipo['IMPORTE'];
+    $puedeContinuar  = $impTotal <= $importeAnticipo;
+    $fondo = ! $puedeContinuar; // true si falta dinero
+
+    return [
+        'success'     => $puedeContinuar,
+        'sinFondo'    => $fondo,
+        'IMPORTE'     => $importeAnticipo,
+        'subTotal'    => $subTotal,
+        'Vencimiento' => null,                      // aquí no traes fecha venc.
+        'Referencia'  => trim($anticipo['REFER']),
+        'NO_FACTURA'  => trim($anticipo['NO_FACTURA']),
+        'DOCTO'       => trim($anticipo['DOCTO'])
+    ];
+}
+
 function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -5603,7 +5710,7 @@ function validarCreditos($conexionData, $clienteId)
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
         // Construir la consulta SQL
-        $sql = "SELECT CAMPLIB7 FROM $nombreTabla WHERE CVE_CLIE = ?";
+        $sql = "SELECT CAMPLIB9 FROM $nombreTabla WHERE CVE_CLIE = ?";
         //$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
         $params = [$clienteId];
         $stmt = sqlsrv_query($conn, $sql, $params);
@@ -5622,7 +5729,7 @@ function validarCreditos($conexionData, $clienteId)
         }
         //var_dump($clienteData);
         // Limpiar y preparar los datos para la respuesta
-        $conCredito = trim($clienteData['CAMPLIB7'] ?? "");
+        $conCredito = trim($clienteData['CAMPLIB9'] ?? "");
         //$conCredito = trim($clienteData['CAMPLIB8'] ?? "");
 
         // Enviar respuesta con los datos del cliente
@@ -6987,9 +7094,15 @@ switch ($funcion) {
 
                         $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
 
+                        if ($validarSaldo == 0 && $credito == 0) {
+                            $estatus = "E";
+                        } else if ($validarSaldo == 1 || $credito == 1) {
+                            $estatus = "C";
+                        }
                         /*$estatus = "E";
                         $validarSaldo = 0;
                         $credito = 0;*/
+
                         $verif = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                         if (!$verif) {
                             header('Content-Type: application/json; charset=UTF-8');
@@ -7026,7 +7139,8 @@ switch ($funcion) {
                             ]);
                         }
                     } else {
-                        $anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
+                        //$anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
+                        $anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
 
                         /*$anticipo = [
                             'success' => $true,
@@ -7066,7 +7180,7 @@ switch ($funcion) {
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([
                                 'success' => true,
-                                'message' => 'El pedido se completó correctamente.',
+                                'message' => 'El pedido se completó correctamente. CXC eliminado.',
                             ]);
                             exit();
                         } elseif ($anticipo['sinFondo']) {
