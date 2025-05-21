@@ -7113,8 +7113,8 @@ switch ($funcion) {
                             exit();
                         }
                         //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                        guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarFolio($conexionData, $claveSae);
+                        guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
 
                         if ($validarSaldo == 0 && $credito == 0) {
@@ -7165,9 +7165,9 @@ switch ($funcion) {
                                 exit();
                             }
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                            actualizarFolio($conexionData, $claveSae);
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
-                            actualizarFolio($conexionData, $claveSae);
                             eliminarCxc($conexionData, $anticipo, $claveSae);
                             remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                             comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey);
@@ -7196,8 +7196,8 @@ switch ($funcion) {
                                 exit();
                             }
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarFolio($conexionData, $claveSae);
+                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                             actualizarInventario($conexionData, $partidasData);
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
