@@ -175,6 +175,14 @@ function mostrarModal(comandaId) {
           $("#btnTerminar").hide();
           $("#numGuia").prop("disabled", true);
         }
+        if (status == "Pendiente") {
+          $(".producto-check").prop("checked", true);
+          $(".producto-check").prop("disabled", false);
+          $("#divFechaEnvio").show();
+          $("#fechaEnvio").val(comanda.fechaEnvio);
+          $("#btnTerminar").hide();
+          $("#numGuia").prop("disabled", true);
+        }
         if (status == "Cancelada") {
           $(".producto-check").prop("checked", true);
           $(".producto-check").prop("disabled", false);

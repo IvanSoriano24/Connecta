@@ -1987,8 +1987,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
@@ -7116,7 +7116,6 @@ switch ($funcion) {
                         actualizarFolio($conexionData, $claveSae);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
-
                         if ($validarSaldo == 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);

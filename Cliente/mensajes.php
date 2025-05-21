@@ -181,9 +181,10 @@ if (isset($_SESSION['usuario'])) {
                         <div class="mb-3">
                             <label for="filtroStatus" class="form-label">Filtrar por Status:</label>
                             <select id="filtroStatus" class="form-select form-select-sm" style="width: 150px;">
-                                <option value="">Todos</option>
                                 <option value="Abierta">Abiertas</option>
+                                <option value="Pendiente">Pendientes</option>
                                 <option value="TERMINADA">Terminadas</option>
+                                <option value="">Todos</option>
                             </select>
                         </div>
                         <!-- Tabla de comandas -->

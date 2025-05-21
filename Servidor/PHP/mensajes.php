@@ -151,23 +151,20 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
             foreach ($data['documents'] as $document) {
                 $fields = $document['fields'];
                 $status = $fields['status']['stringValue'];
+                // Aplicar el filtro de estado si está definido
+                if ($filtroStatus === '' || $status === $filtroStatus) {
+                    $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
+                    $fecha = $fechaHora[0];
+                    $hora = $fechaHora[1];
 
-                if ($status != "Pendiente") {
-                    // Aplicar el filtro de estado si está definido
-                    if ($filtroStatus === '' || $status === $filtroStatus) {
-                        $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
-                        $fecha = $fechaHora[0];
-                        $hora = $fechaHora[1];
-
-                        $comandas[] = [
-                            'id' => basename($document['name']),
-                            'noPedido' => $fields['folio']['stringValue'],
-                            'nombreCliente' => $fields['nombreCliente']['stringValue'],
-                            'status' => $status,
-                            'fecha' => $fecha,
-                            'hora' => $hora
-                        ];
-                    }
+                    $comandas[] = [
+                        'id' => basename($document['name']),
+                        'noPedido' => $fields['folio']['stringValue'],
+                        'nombreCliente' => $fields['nombreCliente']['stringValue'],
+                        'status' => $status,
+                        'fecha' => $fecha,
+                        'hora' => $hora
+                    ];
                 }
             }
         }
@@ -251,7 +248,8 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
     }
 }
 
-function notificaciones($firebaseProjectId, $firebaseApiKey){
+function notificaciones($firebaseProjectId, $firebaseApiKey)
+{
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     $nuevosPedidos = 0;
     $nuevasComandas = 0;
@@ -279,12 +277,12 @@ function notificaciones($firebaseProjectId, $firebaseApiKey){
             }
         }
     }
-    
-    if($tipoUsuario === "ADMINISTRADOR"){
+
+    if ($tipoUsuario === "ADMINISTRADOR") {
         $nuevasComandas = 0;
-    }else if($tipoUsuario === "ALMACENISTA"){
+    } else if ($tipoUsuario === "ALMACENISTA") {
         $nuevosPedidos = 0;
-    }else{
+    } else {
         $nuevasComandas = 0;
         $nuevosPedidos = 0;
     }
@@ -718,15 +716,15 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
 
     $fechaElaboracion = $pedidoInfo['diaAlta'];
     $correo = trim($clienteData['MAIL']);
-    $emailPred = trim($clienteData['EMAILPRED'] ?? ""); // Obtener el string completo de correos
+    $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
     $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
     $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
-    $numeroWhatsApp = trim($clienteData['TELEFONO'] ?? "");
+    $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
@@ -766,7 +764,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
             enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
         }
         if ($numeroBandera === 0) {
-           $result = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            $result = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         }
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
@@ -1230,8 +1228,8 @@ switch ($funcion) {
         }
         break;
     case 4:
-            notificaciones($firebaseProjectId, $firebaseApiKey);
-            break;
+        notificaciones($firebaseProjectId, $firebaseApiKey);
+        break;
     case 5:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
