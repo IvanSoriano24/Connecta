@@ -1533,7 +1533,8 @@ function guardarDatosEnvio() {
     "municipioNuevoContacto"
   ).value;
 
-  if (!nombreContacto ||
+  if (
+    !nombreContacto ||
     !tituloEnvio ||
     !compañia ||
     !correoContacto ||
@@ -1542,13 +1543,14 @@ function guardarDatosEnvio() {
     !linea2Contacto ||
     !codigoContacto ||
     !estadoContacto ||
-    !municipioContacto){
+    !municipioContacto
+  ) {
     Swal.fire({
-          icon: "warning",
-          title: "Aviso",
-          text: "Faltan datos.",
-        });
-        return;
+      icon: "warning",
+      title: "Aviso",
+      text: "Faltan datos.",
+    });
+    return;
   }
   $.ajax({
     url: "../Servidor/PHP/clientes.php",
@@ -1613,8 +1615,11 @@ function cerrarModalNuevoEnvio() {
   $(".modal-backdrop").removeAttr("inert");
 }
 function mostrarMoldal() {
-  limpiarFormulario();
-  obtenerEstados();
+  //limpiarFormulario();
+  let estadoSelect = document.getElementById("estadoContacto").value;
+  if (estadoSelect === "Selecciona un estado") {
+    obtenerEstados();
+  }
   obtenerDatosEnvio();
   $("#modalEnvio").modal("show");
 }

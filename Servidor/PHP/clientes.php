@@ -552,7 +552,7 @@ function validarCreditos($conexionData, $clienteId)
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
         // Construir la consulta SQL
-        $sql = "SELECT CAMPLIB7 FROM $nombreTabla WHERE CVE_CLIE = ?";
+        $sql = "SELECT CAMPLIB9 FROM $nombreTabla WHERE CVE_CLIE = ?";
         //$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
         $params = [$clienteId];
         $stmt = sqlsrv_query($conn, $sql, $params);
@@ -571,7 +571,7 @@ function validarCreditos($conexionData, $clienteId)
         }
         //var_dump($clienteData);
         // Limpiar y preparar los datos para la respuesta
-        $conCredito = trim($clienteData['CAMPLIB7'] ?? "");
+        $conCredito = trim($clienteData['CAMPLIB9'] ?? "");
         //$conCredito = trim($clienteData['CAMPLIB8'] ?? "");
 
         // Enviar respuesta con los datos del cliente

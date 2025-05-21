@@ -29,6 +29,7 @@ if (isset($_SESSION['usuario'])) {
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -91,7 +92,7 @@ if (isset($_SESSION['usuario'])) {
         position: sticky;
         /* Encabezado fijo */
         /*top: 0;*/
-       /* background-color: #f4f4f4;*/
+        /* background-color: #f4f4f4;*/
         /* Fondo para destacar */
         z-index: 1;
         /* Mantener el encabezado sobre las filas */
@@ -114,12 +115,13 @@ if (isset($_SESSION['usuario'])) {
         position: sticky;
         /* Encabezado fijo */
         /*top: 0;*/
-       /* background-color: #f4f4f4;*/
+        /* background-color: #f4f4f4;*/
         /* Fondo para destacar */
         z-index: 1;
         /* Mantener el encabezado sobre las filas */
     }
 </style>
+
 <body>
     <div class="hero_area">
         <!-- SIDEBAR -->
@@ -151,24 +153,24 @@ if (isset($_SESSION['usuario'])) {
                         <div class="table-data">
                             <div class="order">
                                 <div class="head">
-                                <div class="tabla-scroll-pedidos">
-                                    <table id="tablaPedidos" class="tabla-pedidos">
-                                        <thead>
-                                            <tr>
-                                                <th>No. Pedido</th>
-                                                <th>Cliente</th>
-                                                <th class="col-fecha">Fecha</th>
-                                                <th>Vendedor</th>
-                                                <th>Status</th>
-                                                <th>Total</th>
-                                                <th>Detalles</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Los productos se generarán aquí dinámicamente -->
-                                        </tbody>
-                                    </table>
-                                </div>
+                                    <div class="tabla-scroll-pedidos">
+                                        <table id="tablaPedidos" class="tabla-pedidos">
+                                            <thead>
+                                                <tr>
+                                                    <th>No. Pedido</th>
+                                                    <th>Cliente</th>
+                                                    <th class="col-fecha">Fecha</th>
+                                                    <th>Vendedor</th>
+                                                    <th>Status</th>
+                                                    <th>Total</th>
+                                                    <th>Detalles</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Los productos se generarán aquí dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -191,23 +193,26 @@ if (isset($_SESSION['usuario'])) {
                         <div class="table-data">
                             <div class="order">
                                 <div class="head">
-                                <div class="tabla-scroll">
-                                    <table id="tablaComandas" class="tabla-comandas">
-                                        <thead>
-                                            <tr>
-                                                <th>No. Pedido</th>
-                                                <th>Nombre Cliente</th>
-                                                <th>Status</th>
-                                                <th class="col-fecha">Fecha</th>
-                                                <th>Hora</th>
-                                                <th>Detalles</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Los productos se generarán aquí dinámicamente -->
-                                        </tbody>
-                                    </table>
-                                </div>
+                                    <div class="tabla-scroll">
+                                        <table id="tablaComandas" class="tabla-comandas">
+                                            <thead>
+                                                <tr>
+                                                    <th>No. Pedido</th>
+                                                    <th>Nombre Cliente</th>
+                                                    <th>Status</th>
+                                                    <th class="col-fecha">Fecha</th>
+                                                    <th>Hora</th>
+                                                    <th>Detalles</th>
+                                                    <?php if ($tipoUsuario === 'ADMINISTRADOR'): ?>
+                                                        <th>Aurotizar Comanda</th>
+                                                    <?php endif; ?>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Los productos se generarán aquí dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -328,30 +333,32 @@ if (isset($_SESSION['usuario'])) {
                                         <div class="col-md-6 mb-2">
                                             <label for="folio" class="form-label">No. Pedido:</label>
                                             <input type="text" id="folio" class="form-control form-control-sm"
-                                            style="text-align: center; vertical-align: middle;"    readonly>
+                                                style="text-align: center; vertical-align: middle;" readonly>
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label for="nombreCliente" class="form-label">Nombre
                                                 Cliente:</label>
                                             <input type="text" id="nombreCliente"
-                                            style="text-align: center; vertical-align: middle;"    class="form-control form-control-sm" readonly>
+                                                style="text-align: center; vertical-align: middle;" class="form-control form-control-sm" readonly>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
                                             <label for="status" class="form-label">Status:</label>
                                             <input type="text" id="status" class="form-control form-control-sm"
-                                            style="text-align: center; vertical-align: middle;"    readonly>
+                                                style="text-align: center; vertical-align: middle;" readonly>
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label for="diaAlta" class="form-label">Dia Alta:</label>
                                             <input type="text" id="diaAlta" class="form-control form-control-sm"
-                                            style="text-align: center; vertical-align: middle;"    readonly>
+                                                style="text-align: center; vertical-align: middle;" readonly>
                                         </div>
                                     </div>
                                     <br>
                                     <div class="mb-4">
-                                        <label class="form-label"><h5>Partidas:</h5></label>
+                                        <label class="form-label">
+                                            <h5>Partidas:</h5>
+                                        </label>
                                         <div class="table-data">
                                             <div class="order">
                                                 <div class="head">
@@ -392,6 +399,86 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
     <script src="JS/mensajes.js"></script>
+    <script>
+        $(document).ready(function() {
+            const tipoUsuario = '<?php echo $tipoUsuario; ?>';
+            cargarComandas(tipoUsuario);
+            cargarPedidos();
+            // Escuchar el cambio en el filtro
+            $("#filtroStatus").change(function() {
+                cargarComandas(tipoUsuario); // Recargar las comandas con el filtro aplicado
+            });
+            /****/
+            $("#btnTerminar").click(function() {
+                const comandaId = $("#detalleIdComanda").val();
+                const numGuia = $("#numGuia").val().trim(); // Obtener y limpiar espacios en la guía
+                const token = $("#csrf_token_C").val().trim();
+                // Validar que el Número de Guía no esté vacío y tenga exactamente 9 dígitos
+                if (numGuia === "" || !/^\d{9}$/.test(numGuia)) {
+                    Swal.fire({
+                        text: "El Número de Guía debe contener exactamente 9 dígitos.",
+                        icon: "warning",
+                    });
+                    return; // Detener el proceso si la validación falla
+                }
+                const horaActual = new Date().getHours(); // Obtener la hora actual en formato 24h
+                const enviarHoy = horaActual < 15; // Antes de las 3 PM
+                $.post(
+                    "../Servidor/PHP/mensajes.php", {
+                        numFuncion: "3",
+                        comandaId: comandaId,
+                        numGuia: numGuia,
+                        enviarHoy: enviarHoy,
+                        token: token,
+                    },
+                    function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                text: enviarHoy ?
+                                    "La comanda se ha marcado como TERMINADA y se enviará hoy." : "La comanda se ha marcado como TERMINADA y se enviará mañana.",
+                                icon: "success",
+                            });
+                            $("#modalDetalles").modal("hide");
+                            cargarComandas(tipoUsuario); // Recargar la tabla
+                        } else {
+                            Swal.fire({
+                                text: "Error al marcar la comanda como TERMINADA.",
+                                icon: "error",
+                            });
+                        }
+                    },
+                    "json"
+                );
+            });
+        });
+        function activarComanda(id) {
+            $.get(
+                "../Servidor/PHP/mensajes.php", {
+                    numFuncion: "9",
+                    comandaId: id
+                },
+                function(response) {
+                    if (!response.success) {
+                        console.error("Error en la solicitud:", response.message);
+                        return;
+                    } else {
+                        Swal.fire({
+                            text: "El pedido fue autorizado",
+                            icon: "success",
+                        }).then(() => {
+                            $("#modalPedido").modal("hide");
+                            //cargarComandas(tipoUsuario); // Recargar la tabla
+                            //window.location.reload();
+                        });
+                    }
+                },
+                "json"
+            ).fail((jqXHR, textStatus, errorThrown) => {
+                console.error("Error en la solicitud:", textStatus, errorThrown);
+                console.log("Detalles:", jqXHR.responseText);
+            });
+        }
+    </script>
 </body>
 
 </html>

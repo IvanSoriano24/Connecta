@@ -1957,7 +1957,7 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
     // ✅ 1. Obtener los productos y almacenes del pedido
-    $sqlProductos = "SELECT DISTINCT CVE_ART, NUM_ALM FROM $tablaPartidas WHERE CVE_DOC = ?";
+    $sqlProductos = "SELECT DISTINCT CVE_ART, CANT, NUM_ALM FROM $tablaPartidas WHERE CVE_DOC = ?";
     $paramsProductos = [$pedidoId];
 
     $stmtProductos = sqlsrv_query($conn, $sqlProductos, $paramsProductos);
@@ -1984,6 +1984,7 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
     while ($row = sqlsrv_fetch_array($stmtProductos, SQLSRV_FETCH_ASSOC)) {
         $cveArt = $row['CVE_ART'];
         $cveAlm = $row['NUM_ALM'];
+        $cveCan = $row['CANT'];
 
         // Obtener la existencia actual
         $paramsExist = [$cveArt, $cveAlm];
@@ -2003,7 +2004,7 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
 
         // Solo actualizar si EXIST <= 0
         if ($existencia && $existencia['EXIST'] <= 0) {
-            $paramsUpdate = [0, $fechaSinc, $cveArt, $cveAlm];
+            $paramsUpdate = [$cveCan, $fechaSinc, $cveArt, $cveAlm];
 
             $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
             if ($stmtUpdate === false) {
@@ -2621,11 +2622,11 @@ function remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $foli
             //'content' => $data
         ]
     ]);
-    var_dump($context);
+    //var_dump($context);
     
     $response = @file_get_contents($urlUpd, false, $context);
 
-    if ($response === false) {
+    if ($response === FALSE) {
         $error = error_get_last();
         echo json_encode([
             'success' => false,

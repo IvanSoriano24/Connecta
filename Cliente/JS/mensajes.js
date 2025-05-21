@@ -1,42 +1,55 @@
-function cargarComandas() {
-  const filtroStatus = $("#filtroStatus").val(); // Obtener el filtro seleccionado
+function cargarComandas(tipoUsuario) {
+  const filtroStatus = $("#filtroStatus").val();
 
   $.get(
     "../Servidor/PHP/mensajes.php",
     { numFuncion: "1", status: filtroStatus },
     function (response) {
-      if (response.success) {
-        const comandas = response.data;
-        const tbody = $("#tablaComandas tbody");
-        tbody.empty();
-
-        comandas.forEach((comanda) => {
-          const row = `
-                    <tr>
-                        <td>${comanda.noPedido || "-"}</td>
-                        <td class="text-truncate" title="${
-                          comanda.nombreCliente
-                        }">${comanda.nombreCliente || "-"}</td>
-                        <td>${comanda.status || "-"}</td>
-                        <td>${comanda.fecha || "-"}</td>
-                        <td>${comanda.hora || "-"}</td>
-                        <td>
-                            <button class="btn btn-secondary btn-sm" onclick="mostrarModal('${
-                              comanda.id
-                            }')">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-          tbody.append(row);
-        });
-      } else {
+      if (!response.success) {
         console.error("Error en la solicitud:", response.message);
+        return;
       }
+
+      const tbody = $("#tablaComandas tbody").empty();
+      response.data.forEach((comanda) => {
+        // 1) Crear la fila como objeto jQuery
+        const $row = $(`
+        <tr>
+          <td>${comanda.noPedido || "-"}</td>
+          <td class="text-truncate" title="${comanda.nombreCliente || ""}">
+            ${comanda.nombreCliente || "-"}
+          </td>
+          <td>${comanda.status || "-"}</td>
+          <td>${comanda.fecha || "-"}</td>
+          <td>${comanda.hora || "-"}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" 
+                    onclick="mostrarModal('${comanda.id}')">
+              <i class="bi bi-eye"></i>
+            </button>
+          </td>
+        </tr>
+      `);
+
+        // 2) Añadir la celda “Activar” si status es “Pendiente”
+        if (tipoUsuario === "ADMINISTRADOR") {
+          if (comanda.status === "Pendiente") {
+            const $btn = $("<button>")
+              .addClass("btn btn-success btn-sm")
+              .text("Activar")
+              .attr("onclick", `activarComanda("${comanda.id}")`);
+            $row.append($("<td>").append($btn));
+          } else {
+            $row.append($("<td>").text("-"));
+          }
+        }
+
+        // 3) Finalmente la fila al tbody
+        tbody.append($row);
+      });
     },
     "json"
-  ).fail(function (jqXHR, textStatus, errorThrown) {
+  ).fail((jqXHR, textStatus, errorThrown) => {
     console.error("Error en la solicitud:", textStatus, errorThrown);
     console.log("Detalles:", jqXHR.responseText);
   });
@@ -114,11 +127,6 @@ function cargarPedidos() {
     `);
   });
 }
-
-// Escuchar el cambio en el filtro
-$("#filtroStatus").change(function () {
-  cargarComandas(); // Recargar las comandas con el filtro aplicado
-});
 // Escuchar el cambio en el filtro
 $("#filtroPedido").change(function () {
   cargarPedidos(); // Recargar las comandas con el filtro aplicado
@@ -169,17 +177,17 @@ function mostrarModal(comandaId) {
         const status = comanda.status;
         if (status == "TERMINADA") {
           $(".producto-check").prop("checked", true);
-          $(".producto-check").prop("disabled", false);
+          $(".producto-check").prop("disabled", true);
           $("#divFechaEnvio").show();
           $("#fechaEnvio").val(comanda.fechaEnvio);
           $("#btnTerminar").hide();
           $("#numGuia").prop("disabled", true);
         }
         if (status == "Pendiente") {
-          $(".producto-check").prop("checked", true);
-          $(".producto-check").prop("disabled", false);
+          $(".producto-check").prop("checked", false);
+          $(".producto-check").prop("disabled", true);
           $("#divFechaEnvio").show();
-          $("#fechaEnvio").val(comanda.fechaEnvio);
+          $("#fechaEnvio").prop("disabled", true);
           $("#btnTerminar").hide();
           $("#numGuia").prop("disabled", true);
         }
@@ -264,52 +272,6 @@ function mostrarModalPedido(pedidoId) {
   );
 }
 
-$("#btnTerminar").click(function () {
-  const comandaId = $("#detalleIdComanda").val();
-  const numGuia = $("#numGuia").val().trim(); // Obtener y limpiar espacios en la guía
-  const token = $("#csrf_token_C").val().trim();
-
-  // Validar que el Número de Guía no esté vacío y tenga exactamente 9 dígitos
-  if (numGuia === "" || !/^\d{9}$/.test(numGuia)) {
-    Swal.fire({
-      text: "El Número de Guía debe contener exactamente 9 dígitos.",
-      icon: "warning",
-    });
-    return; // Detener el proceso si la validación falla
-  }
-
-  const horaActual = new Date().getHours(); // Obtener la hora actual en formato 24h
-  const enviarHoy = horaActual < 15; // Antes de las 3 PM
-
-  $.post(
-    "../Servidor/PHP/mensajes.php",
-    {
-      numFuncion: "3",
-      comandaId: comandaId,
-      numGuia: numGuia,
-      enviarHoy: enviarHoy,
-      token: token,
-    },
-    function (response) {
-      if (response.success) {
-        Swal.fire({
-          text: enviarHoy
-            ? "La comanda se ha marcado como TERMINADA y se enviará hoy."
-            : "La comanda se ha marcado como TERMINADA y se enviará mañana.",
-          icon: "success",
-        });
-        $("#modalDetalles").modal("hide");
-        cargarComandas(); // Recargar la tabla
-      } else {
-        Swal.fire({
-          text: "Error al marcar la comanda como TERMINADA.",
-          icon: "error",
-        });
-      }
-    },
-    "json"
-  );
-});
 $("#btnAutorizar").click(function () {
   Swal.fire({
     title: "Procesando pedido...",
@@ -419,9 +381,4 @@ $("#btnRechazar").click(function () {
     },
     "json"
   );
-});
-
-$(document).ready(function () {
-  cargarComandas();
-  cargarPedidos();
 });

@@ -247,7 +247,35 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
         echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.', 'response' => $result, 'data' => $data]);
     }
 }
+function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId){
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
 
+    // Datos de actualización en Firebase
+    $data = [
+        'fields' => [
+            'status' => ['stringValue' => 'Abierta']
+        ]
+    ];
+
+    // Agregar `updateMask` para actualizar solo los campos indicados
+    $url .= '&updateMask.fieldPaths=status';
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'PATCH',
+            'header' => "Content-Type: application/json\r\n",
+            'content' => json_encode($data)
+        ]
+    ]);
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        $error = error_get_last();
+        echo json_encode(['success' => false, 'message' => 'Error al activar la comanda.', 'error' => $error['message']]);
+    } else {
+        $result = json_decode($response, true);
+        echo json_encode(['success' => true, 'message' => 'Comanda activada.', 'response' => $result, 'data' => $data]);
+    }
+}
 function notificaciones($firebaseProjectId, $firebaseApiKey)
 {
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
@@ -360,10 +388,11 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
                         'claveSae' => $fields['claveSae']['stringValue'] ?? 'N/A',
                         'noEmpresa' => $noEmpresa,
                         'status' => $status,
-                        'totalPedido' => number_format($totalPedido, 2, '.', ''), // 🔹 Total formateado con 2 decimales
+                        'totalPedido' => number_format(floatval($fields['importe']['doubleValue']), 2, '.', '') ?? "0.0", // 🔹 Total formateado con 2 decimales
                     ];
                 }
             } else {
+
             }
         }
         // Ordenar los pedidos por totalPedido de manera descendente
@@ -723,8 +752,8 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
@@ -1032,7 +1061,7 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
     }
 
     $telefonoVendedor = null; // Inicializar como null en caso de que no se encuentre
-
+    $vendedor = formatearClaveVendedor($vendedor);
     foreach ($dataUsuarios['documents'] as $document) {
         $fields = $document['fields'];
         if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
@@ -1120,7 +1149,7 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
         // Ejecutar la solicitud y cerrar cURL
         $result = curl_exec($curl);
         curl_close($curl);
-        //return $result;
+        return $result;
     }
 }
 function liberarExistencias($conexionData, $folio, $claveSae)
@@ -1283,9 +1312,13 @@ switch ($funcion) {
         $nombreCliente = $_GET['cliente'];
         $folio = $_GET['folio'];
         $pedidoId = $_GET['pedidoId'];
-        pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $claveSae, $conexionData, $noEmpresa);
-        liberarExistencias($conexionData, $folio, $claveSae);
+        $result = pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $claveSae, $conexionData, $noEmpresa);
+        //liberarExistencias($conexionData, $folio, $claveSae);
         echo json_encode(['success' => true, 'message' => 'Pedido Rechazado.']);
+        break;
+    case 9:
+        $comandaId = $_GET['comandaId'];
+        activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

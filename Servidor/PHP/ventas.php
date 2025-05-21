@@ -1987,8 +1987,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
@@ -2103,8 +2103,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
     //$numero = "+527772127123"; //InterZenda Au
-    //$numero = "+527773340218";
-    $numero = "+527773750925";
+    $numero = "+527773340218";
+    //$numero = "+527773750925";
     //$numero = '+527775681612';
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -4307,6 +4307,34 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
         return;
     }
     // Agregar la descripción del producto a cada partida
+    $SUBTOTAL = 0;
+    $IMPORTE = 0;
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    foreach ($partidasData as $partida) {
+        $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
+    }
+    $IMPORTT = $IMPORTE;
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
+    foreach ($partidasData as $partida) {
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+        $totalPartida = $precioUnitario * $cantidad;
+        // **Aplicar los descuentos en cascada**
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
+    }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     foreach ($partidasData as &$partida) {  // 🔹 Pasar por referencia para modificar el array
         $CVE_ART = $partida['producto'];
         $partida['descripcion'] = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
@@ -4343,6 +4371,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
                 }, $partidasData)
             ]
         ],
+        'importe'   => ['doubleValue' => $IMPORTE],
         'claveSae'   => ['stringValue' => $claveSae],
         'noEmpresa'  => ['integerValue' => $noEmpresa],
         'status' => ['stringValue' => 'Sin Autorizar']
@@ -4368,10 +4397,10 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
     $response = @file_get_contents($url, false, $context);
 
     if ($response === FALSE) {
-        echo json_encode(['success' => false, 'message' => 'Error al guardar el pedido autorizado en Firebase.']);
-        return;
+         $error = error_get_last();
+        echo json_encode(['success' => false, 'message' => $error]);
+        die();
     }
-
     //echo json_encode(['success' => true, 'message' => 'Pedido guardado y en espera de ser autorizado.']);
 }
 function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
@@ -6249,8 +6278,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda Au
-    //$numero = "+527773340218";
+    //$numero = "+527772127123"; //InterZenda AU
+    $numero = "+527773340218";
     //$numero = "+527773750925";
     //$numero = '+527775681612';
     //$numero = $_SESSION['usuario']['telefono'];
@@ -6699,7 +6728,7 @@ function obtenerMunicipios($estadoSeleccionado)
         echo json_encode(['success' => true, 'data' => $municipio]);
         exit();
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron ningun regimen.']);
+        echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
     }
 }
 function actualizarControl1($conexionData, $claveSae)

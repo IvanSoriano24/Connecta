@@ -109,9 +109,22 @@ function obtenerDescripcion($producto, $conexionData, $claveSae){
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+function formatearClaveVendedor($clave)
+{
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $clave = trim((string) $clave);
+    $clave = str_pad($clave, 5, ' ', STR_PAD_LEFT);
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($clave) === 5) {
+        return $clave;
+    }
 
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    $clave = str_pad($clave, 5, ' ', STR_PAD_LEFT);
+    return $clave;
+}
 if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
-    $pedidoId = $_GET['pedidoId'];
+    $pedidoId = $_GET['pedidoId'] ;
     $accion = $_GET['accion'];
     $nombreCliente = urldecode($_GET['nombreCliente'] ?? 'Desconocido');
     $enviarA = urldecode($_GET['enviarA'] ?? 'No especificado');
@@ -342,7 +355,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 
             $usuariosData = json_decode($response, true);
             $telefonoVendedor = null;
-
+            $vendedor = formatearClaveVendedor($vendedor);
             // Buscar al vendedor por clave
             if (isset($usuariosData['documents'])) {
                 foreach ($usuariosData['documents'] as $document) {

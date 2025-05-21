@@ -754,7 +754,7 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="text" id="direccion1Contacto" class="form-control" disabled>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="direccion2Contacto" class="form-label">Línea 2</label>
+                                            <label for="direccion2Contacto" class="form-label">Línea 2 <span class="text-danger">*</span></label>
                                             <input type="text" id="direccion2Contacto" class="form-control" disabled>
                                         </div>
                                         <div class="mb-3">
@@ -880,7 +880,7 @@ if (isset($_SESSION['usuario'])) {
 
                                         <div class="mb-3">
                                             <label for="direccion2NuevoContacto" class="form-label">
-                                                Línea 2
+                                                Línea 2 <span class="text-danger">*</span>
                                             </label>
                                             <input
                                                 type="text"
