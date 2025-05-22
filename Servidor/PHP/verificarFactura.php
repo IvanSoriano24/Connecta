@@ -833,8 +833,78 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
         return false;
     }
 }
-function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera)
+function datosCliente($clie, $claveSae, $conexionData)
 {
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CLAVE = ?";
+    $params = [$clie];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener los resultados
+    $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($clienteData) {
+        return $clienteData;
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function datosPedido($cve_doc, $claveSae, $conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CVE_DOC = ?";
+    $params = [$cve_doc];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Obtener los resultados
+    $pedidoData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($pedidoData) {
+        return $pedidoData;
+    } else {
+        echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cve_doc"]);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera) {
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -854,9 +924,51 @@ function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera)
         ]));
     }
     if ($bandera == 1){
-        $file = "../XML/";
-    }
 
+        $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
+        $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+
+        $pedidoData = datosPedido($cveDoc, $claveSae, $conexionData);
+        $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
+
+        $file = '../XML/sdk2/timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($folioFactura) . '.xml';
+
+        if (file_exists($file)) {
+            $xml = simplexml_load_file($file);
+            if ($xml !== false) {
+                $timbre = $xml->children('cfdi', true)->Complemento->children('tfd', true)->TimbreFiscalDigital;
+                $version = (string) $xml['Version'];
+                $uuid = (string) $timbre['UUID'];
+                $noSerie = (string) $timbre['NoCertificadoSAT'];
+                $fechaCert = (string) $timbre['FechaTimbrado'];
+
+                $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CFDI" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+                $sql = "UPDATE $nombreTabla SET 
+                    VERSION = ?,
+                    UUID = ?,
+                    NO_SERIE = ?,
+                    FECHA_CERT = ?,
+                    FECHA_CANCELA = '',
+                    XML_DOC = ?,
+                    PENDIENTE = 'N',
+                    CVE_USUARIO = 0,
+                    WHERE CVE_DOC = ?";
+
+                $params = [
+                    $version,
+                    $uuid,
+                    $noSerie,
+                    $fechaCert,
+                    file_get_contents($file),
+                    $cveDoc
+                ];
+                $stmt = sqlsrv_query($conn, $sql, $params);
+                if ($stmt === false) {
+                    die(json_encode(['success' => false, 'message' => 'Error al actualizar el CFDI', 'errors' => sqlsrv_errors()]));
+                }
+            }
+        }
+    }
 }
 function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $value = true)
 {
