@@ -1260,7 +1260,7 @@ function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $
     $NOMBRE = $envioData['nombreContacto'];
     $CALLE = $envioData['direccion1Contacto'];
     $NUMINT = "";
-    $NUMEXT = "";
+    $NUMEXT = "S/N";
     $CRUZAMIENTOS = "";
     $CRUZAMIENTOS2 = "";
     $POB = "";
@@ -1274,7 +1274,8 @@ function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $
     $NOMBRE_RECEP = "";
     $NO_RECEP = "";
     $FECHA_RECEP = "";
-    $COLONIA = "";
+    //$COLONIA = "";
+    $COLONIA = $envioData['direccion2Contacto'];
     $CODIGO = $envioData['codigoContacto'];
     $ESTADO = $envioData['estadoContacto'];
     $PAIS = "MEXICO";

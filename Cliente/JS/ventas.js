@@ -538,7 +538,77 @@ function obtenerDatosPedido(pedidoID) {
     console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
   });
 }
+function obtenerDatosEnvioEditar(pedidoID){
+  //
+  $("#datosEnvio").prop("disabled", false);
+  $.post(
+    "../Servidor/PHP/ventas.php",
+    {
+      numFuncion: 2, // Función para obtener el pedido por ID
+      pedidoID: pedidoID,
+    },
+    function (response) {
+      console.log("Respuesta cruda:", response); // 👈 Imprime lo que llega
+      if (response.success) {
+        const pedido = response.pedido;
+        console.log("Datos del pedido:", pedido);
 
+        // Cargar datos del cliente
+
+        document.getElementById("nombre").value = pedido.NOMBRE_CLIENTE || "";
+        document.getElementById("rfc").value = pedido.RFC || "";
+        document.getElementById("calle").value = pedido.CALLE || "";
+        document.getElementById("numE").value = pedido.NUMEXT || "";
+        document.getElementById("colonia").value = pedido.COLONIA || "";
+        document.getElementById("codigoPostal").value = pedido.CODIGO || "";
+        document.getElementById("pais").value = pedido.PAIS || "";
+        document.getElementById("condicion").value = pedido.CONDICION || "";
+        document.getElementById("almacen").value = pedido.NUM_ALMA || "";
+        document.getElementById("comision").value = pedido.COM_TOT || "";
+        document.getElementById("diaAlta").value = pedido.FECHA_DOC || "";
+        document.getElementById("entrega").value = pedido.FECHA_ENT || "";
+        document.getElementById("numero").value = pedido.FOLIO || "";
+
+        document.getElementById("enviar").value = pedido.CALLE_ENVIO || "";
+        document.getElementById("descuentoCliente").value =
+          pedido.DESCUENTO || "";
+        document.getElementById("cliente").value = pedido.CLAVE || "";
+        //document.getElementById("descuentofin").value = pedido.DES_FIN || "";
+        document.getElementById("cliente").value = pedido.CVE_CLPV || "";
+        document.getElementById("supedido").value = pedido.CONDICION || "";
+        //document.getElementById("esquema").value = pedido.CONDICION || "";
+
+        // Actualizar estado de cliente seleccionado en sessionStorage
+        sessionStorage.setItem("clienteSeleccionado", true);
+
+        // Cargar las partidas existentes
+        //cargarPartidas(pedido.partidas);
+        //alert("Datos del pedido cargados con éxito");
+
+        console.log("Datos del pedido cargados correctamente.");
+      } else {
+        Swal.fire({
+          title: "Aviso",
+          text: "No se pudo cargar el pedido.",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
+        //alert("No se pudo cargar el pedido: " + response.message);
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    //console.log(errorThrown);
+    Swal.fire({
+      title: "Aviso",
+      text: "Error al cargar el pedido.",
+      icon: "error",
+      confirmButtonText: "Aceptar",
+    });
+    //alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+    console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+  });
+}
 function cargarPartidasPedido(pedidoID) {
   $.post(
     "../Servidor/PHP/ventas.php",
@@ -1085,6 +1155,8 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("Cargando datos del pedido existente...");
       obtenerDatosPedido(pedidoID); // Función para cargar datos del pedido
       cargarPartidasPedido(pedidoID); // Función para cargar partidas del pedido
+      $("#datosEnvio").prop("disabled", false);
+      //obtenerDatosEnvioEditar(pedidoID); // Función para cargar partidas del pedido
     } else {
       sessionStorage.setItem("clienteSeleccionado", false);
       clienteSeleccionado = false;

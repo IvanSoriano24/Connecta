@@ -650,7 +650,7 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
             ];
         }
     }
-    
+
     if (!empty($datos)) {
         // Ordenar los vendedores por nombre alfabéticamente
         usort($datos, function ($a, $b) {
@@ -664,7 +664,7 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
         echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
     }
 }
-function obtenerDatosCliente($claveVendedor,$conexionData, $filtroBusqueda, $claveSae)
+function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -725,7 +725,7 @@ function obtenerDatosCliente($claveVendedor,$conexionData, $filtroBusqueda, $cla
                 ORDER BY CLAVE ASC;";
         }
     }
-    
+
     $likeFilter = '%' . $filtroBusqueda . '%';
     $params = [$likeFilter, $likeFilter, $likeFilter, $likeFilter];
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -949,6 +949,9 @@ function actualizarDatosEnvio($id, $contacto, $firebaseProjectId, $firebaseApiKe
         echo json_encode(['success' => true, 'message' => 'Datos de Envio Guardados']);
     }
 }
+function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID){
+    
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -1118,6 +1121,20 @@ switch ($funcion) {
                 'message' => 'Error en la sesion.',
             ]);
         }
+        break;
+    case 10:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        $pedidoID = $_GET["pedidoID"];
+        obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
