@@ -40,7 +40,8 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function obtenerProductos($pedidoId, $conexionData, $claveSae){
+function obtenerProductos($pedidoId, $conexionData, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -74,7 +75,8 @@ function obtenerProductos($pedidoId, $conexionData, $claveSae){
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerDescripcion($producto, $conexionData, $claveSae){
+function obtenerDescripcion($producto, $conexionData, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -124,14 +126,14 @@ function formatearClaveVendedor($clave)
     return $clave;
 }
 if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
-    $pedidoId = $_GET['pedidoId'] ;
+    $pedidoId = $_GET['pedidoId'] ?? "";
     $accion = $_GET['accion'];
     $nombreCliente = urldecode($_GET['nombreCliente'] ?? 'Desconocido');
     $enviarA = urldecode($_GET['enviarA'] ?? 'No especificado');
     $vendedor = urldecode($_GET['vendedor'] ?? 'Sin vendedor');
-    $claveSae = $_GET['claveSae'];
-    $claveCliente = $_GET['claveCliente'];
-    $noEmpresa = $_GET['noEmpresa'];
+    $claveSae = $_GET['claveSae'] ?? "";
+    $claveCliente = $_GET['claveCliente'] ?? "";
+    $noEmpresa = $_GET['noEmpresa'] ?? "";
     $clave = $_GET['clave'] ?? "";
     $conCredito = $_GET['conCredito'] ?? "";
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
@@ -355,7 +357,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
 
             $usuariosData = json_decode($response, true);
             $telefonoVendedor = null;
-            $vendedor = formatearClaveVendedor($vendedor);
+            $vendedor = formatearClaveVendedor($clave);
+            var_dump($vendedor);
             // Buscar al vendedor por clave
             if (isset($usuariosData['documents'])) {
                 foreach ($usuariosData['documents'] as $document) {
@@ -375,11 +378,11 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             //$telefonoVendedor = '+527773340218';
             //$telefonoVendedor = '+527775681612';
             if (!$telefonoVendedor) {
-                /*echo "<div class='container'>
+                echo "<div class='container'>
                         <div class='title'>Error al Encontrar Vendedor</div>
                         <div class='message'>No se encontró el número de teléfono del vendedor.</div>
                         <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
-                      </div>";*/
+                      </div>";
                 exit;
             }
             // Enviar mensaje de WhatsApp
