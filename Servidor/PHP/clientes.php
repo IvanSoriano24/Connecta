@@ -949,8 +949,101 @@ function actualizarDatosEnvio($id, $contacto, $firebaseProjectId, $firebaseApiKe
         echo json_encode(['success' => true, 'message' => 'Datos de Envio Guardados']);
     }
 }
-function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID){
-    
+function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $CVE_DOC = str_pad($pedidoID, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    // Construir la consulta SQL
+    $sql = "SELECT DAT_ENVIO FROM $nombreTabla WHERE CVE_DOC = ?";
+    //$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
+    $params = [$CVE_DOC];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    // Verificar si hubo errores al ejecutar la consulta
+    if ($stmt === false) {
+        throw new Exception('Error al ejecutar la consulta.');
+    }
+
+    // Obtener los datos del cliente
+    $envioData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+    if (!$envioData) {
+        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado.']);
+        exit;
+    }
+    //var_dump($clienteData);
+    // Limpiar y preparar los datos para la respuesta
+    $DAT_ENVIO = trim($envioData['DAT_ENVIO'] ?? "");
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
+
+    // Configura el contexto de la solicitud para manejar errores y tiempo de espera
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 10 // Tiempo máximo de espera en segundos
+        ]
+    ]);
+
+    // Realizar la consulta a Firebase
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        return false; // Error en la petición
+    }
+
+    // Decodifica la respuesta JSON
+    $data = json_decode($response, true);
+    if (!isset($data['documents'])) {
+        return false; // No se encontraron documentos
+    }
+
+    $datos = [];
+    // Busca los datos de la empresa por noEmpresa
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        $documentName = $document['name']; // Aquí obtienes el nombre completo del documento
+        $documentId = basename($documentName);
+        if (isset($fields['id']['integerValue']) && $fields['id']['integerValue'] === $DAT_ENVIO) {
+            $datos[] = [
+                'idDocumento' => $documentId,
+                'claveCliente' => $fields['claveCliente']['stringValue'] ?? null,
+                'claveSae' => $fields['claveSae']['stringValue'] ?? null,
+                'codigoPostal' => $fields['codigoPostal']['stringValue'] ?? null,
+                'compania' => $fields['compania']['stringValue'] ?? null,
+                'correoContacto' => $fields['correoContacto']['stringValue'] ?? null,
+                'estado' => $fields['estado']['stringValue'] ?? null,
+                'linea1' => $fields['linea1']['stringValue'] ?? null,
+                'linea2' => $fields['linea2']['stringValue'] ?? null,
+                'municipio' => $fields['municipio']['stringValue'] ?? null,
+                'nombreContacto' => $fields['nombreContacto']['stringValue'] ?? null,
+                'telefonoContacto' => $fields['telefonoContacto']['stringValue'] ?? null,
+                'id' => $fields['id']['integerValue'] ?? null,
+                'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? null,
+                'tituloEnvio' => $fields['tituloEnvio']['stringValue'] ?? null,
+            ];
+        }
+    }
+
+    if (!empty($datos)) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => $datos]);
+        exit();
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -1133,8 +1226,8 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        $pedidoID = $_GET["pedidoID"];
-        obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID);
+        $pedidoID = $_POST["pedidoID"];
+        obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

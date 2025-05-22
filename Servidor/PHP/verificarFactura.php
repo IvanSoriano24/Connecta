@@ -153,6 +153,20 @@ function obtenerVendedor($clave, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+function formatearClaveVendedor($vendedor)
+{
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $vendedor = trim((string) $vendedor);
+    $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($vendedor) === 5) {
+        return $vendedor;
+    }
+
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
+    return $vendedor;
+}
 function obtenerEmpresa($noEmpresa)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -351,8 +365,8 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
 
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -412,6 +426,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $clienteData = obtenerCliente($formularioData['CVE_CLPV'], $conexionData, $claveSae);
     $vendedorData = obtenerVendedor($formularioData['CVE_VEND'], $conexionData, $claveSae);
     $CVE_VEND = $formularioData['CVE_VEND'];
+    $CVE_VEND = formatearClaveVendedor($CVE_VEND);
     $empresaData = obtenerEmpresa($noEmpresa);
     $titulo = $empresaData['razonSocial'];
     $enviarA = $clienteData['CALLE']; // Dirección de envío
@@ -472,6 +487,9 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
 
     //var_dump($usuariosData);
     $telefonoVendedor = "";
+    $correoVendedor = "";
+    $nombreVendedor = "";
+    var_dump($CVE_VEND);
     // Buscar al vendedor por clave
     if (isset($usuariosData['documents'])) {
         foreach ($usuariosData['documents'] as $document) {
@@ -481,9 +499,8 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
                 if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $CVE_VEND) {
                     if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
                         $telefonoVendedor = $fields['telefono']['stringValue'];
-                        $correoVendedor = $fields['correo']['stringValue'];
+                        $correoVendedor = $fields['correo']['stringValue'] ?? "";
                         $nombreVendedor = $fields['nombre']['stringValue'];
-
                         break;
                     }
                 }
@@ -491,24 +508,24 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
         }
     }
     /******************************************/
-    $emailPred = $correoVendedor;
+    $emailPred = $correoVendedor ?? "";
     $numeroWhatsApp = $telefonoVendedor;
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
     $numeroWhatsApp = '+527772127123'; // Interzenda*/
 
     if ($correo === 'S' && !empty($emailPred)) {
-        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
-        //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        $rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . urldecode($folioFactura) . ".pdf";
         $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename);
         var_dump($resultadoWhatsApp);
         enviarCorreo($emailPred, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
     } else {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
+        echo json_encode(['success' => false, 'message' => 'El vendedor no tiene un correo electrónico válido registrado.']);
         die();
     }
     sqlsrv_close($conn);
@@ -778,8 +795,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -821,14 +838,14 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     if ($facturaResponse) {
         // Intenta decodificar como JSON
         $facturaData = json_decode($facturaResponse, true);
-
+         //var_dump("Factura1: ", $facturaResponse);
         if (json_last_error() === JSON_ERROR_NONE && isset($facturaData)) {
-            //var_dump($facturaData['folioFactura1']);
+            //var_dump("Factura2: ", $facturaData);
             return $facturaData['folioFactura1'];
             // ✅ La respuesta es un JSON con cveDoc (Pedido procesado correctamente)
         }
     } else {
-        //var_dump("No");
+        var_dump("No");
         // ❌ No hubo respuesta
         return false;
     }
@@ -1040,15 +1057,16 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                 }
                 $conexionData = $conexionResult['data'];
                 if (!$facturado) {
-
                     //Funcion para crear factura
                     if ($pagada) {
-                        //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
-                        $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
                         //$folioFactura = $folioFactura['folioFactura1'];
                         //$folioFactura = 18904;
+                        //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
+                        $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
+                        //var_dump($folioFactura);
                         actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
                         $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
+                        //var_dump("Respuesta: ", $respuestaFactura);
                         if ($respuestaFactura['Succes']) { 
                             $bandera = 1;
                             //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);

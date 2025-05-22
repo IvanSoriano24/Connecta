@@ -1357,7 +1357,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
     $datosEmpresaPedidoAutoriza = obtenerDatosEmpresaFire($noEmpresa);
     $datosPedidoAutoriza = obtenerDatosPedido($CVE_DOC, $conexionData, $claveSae);
     $datosPartidasPedido = obtenerDatosPartidasPedido($CVE_DOC, $conexionData, $claveSae);
-
+    
     // Obtener datos del cliente
     $clienteId = str_pad(trim($datosPedidoAutoriza['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
     //var_dump($clienteId);

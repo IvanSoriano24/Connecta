@@ -402,7 +402,8 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $clav
             'success' => true,
             'message' => "FACTF insertado correctamente con "
         ]);*/
-    }
+        }
+    
     //echo json_encode(['success' => true, 'folioFactura' => $folioFactura]);
     sqlsrv_close($conn);
 }
@@ -811,7 +812,7 @@ function actualizarAlerta_Usuario2($conexionData, $claveSae)
     sqlsrv_free_stmt($stmtUpdate);
     sqlsrv_close($conn);
 
-    /*echo json_encode([
+   /*echo json_encode([
         'success' => true,
         'message' => "ALERTA_USUARIOX2 actualizada correctamente"
     ]);*/
@@ -1030,7 +1031,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
 
     sqlsrv_close($conn);
 
-    //echo json_encode(['success' => true, 'no_factura' => $no_factura]); 
+    //echo json_encode(['success' => true, 'no_facturaCuenM' => $no_factura]);
 
     return [
         'factura' => $no_factura,
@@ -1092,59 +1093,57 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura)
     $IMPMON_EXT = $IMPORTE;
     $SIGNO = 1;
 
-    // Preparar el query INSERT (ajusta los campos según la estructura real de tu tabla)
-    $query = "INSERT INTO $tablaCunetDet (
-                    CVE_CLIE, 
-                    REFER, 
-                    NUM_CPTO, 
-                    NUM_CARGO, 
-                    NO_FACTURA, 
-                    DOCTO, 
-                    IMPORTE, 
-                    FECHA_APLI, 
-                    FECHA_VENC,
-                    STATUS,
-                    USUARIO,
-                    AFEC_COI,
-                    NUM_MONED,
-                    TCAMBIO,
-                    TIPO_MOV,
-                    FECHA_ENTREGA,
-                    IMPMON_EXT,
-                    UUID,
-                    VERSION_SINC,
-                    USUARIOGL,
-                    FECHAELAB,
-                    IMPMON_EXT,
-                    SIGNO,
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?, ?, ?)";
-
-    $params = [
-        $CVE_CLIE,
-        $refer,
-        $num_cpto,
-        $num_cargo,
-        $no_factura,
-        $docto,
-        $IMPORTE,
-        $fecha_apli,
-        $fecha_venc,
-        $status,
-        $USUARIO,
-        $AFEC_COI,
-        $NUM_MONED,
-        $TCAMBIO,
-        $TIPO_MOV,
-        $fecha_apli,
-        $IMPORTE,
-        $fecha_apli,
-        $fecha_apli,
-        $IMPMON_EXT,
-        $SIGNO,
-        $STRCVEVEND
+    // 1) Lista exacta de columnas
+    $cols = [
+        'CVE_CLIE',
+        'REFER',
+        'NUM_CPTO',
+        'NUM_CARGO',
+        'NO_FACTURA',
+        'DOCTO',
+        'IMPORTE',
+        'FECHA_APLI',
+        'FECHA_VENC',
+        'USUARIO',
+        'AFEC_COI',
+        'NUM_MONED',
+        'TCAMBIO',
+        'TIPO_MOV',
+        'IMPMON_EXT',
+        'SIGNO',
+        'ID_MOV',
+        'NO_PARTIDA'
     ];
-    //var_dump("de salida");
-    $stmt = sqlsrv_query($conn, $query, $params);
+
+    // 2) Armamos el SQL con tanto "?" como columnas
+    $columnList    = implode(", ", $cols);
+    $placeholders  = implode(", ", array_fill(0, count($cols), "?"));
+    $sql = "INSERT INTO $tablaCunetDet ($columnList) VALUES ($placeholders)";
+
+    // 3) Preparamos los parámetros EN EL MISMO ORDEN
+    $params = [
+        $CVE_CLIE,        // CVE_CLIE
+        $CVE_DOC,         // REFER
+        '22',             // NUM_CPTO
+        1,                // NUM_CARGO
+        $CVE_DOC,         // NO_FACTURA
+        $CVE_DOC,         // DOCTO
+        $datosCxC['IMPORTE'], // IMPORTE
+        $fecha_apli,      // FECHA_APLI
+        $fecha_venc,      // FECHA_VENC
+        '0',              // USUARIO
+        'A',              // AFEC_COI
+        1,                // NUM_MONED
+        1,                // TCAMBIO
+        'A',              // TIPO_MOV
+        $datosCxC['IMPORTE'], // IMPMON_EXT
+        -1,                 // SIGNO
+        1,
+        1
+    ];
+
+    // 4) Ejecutar
+    $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         $errors = sqlsrv_errors();
         var_dump($errors);
@@ -1156,7 +1155,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura)
         ];
     }
     sqlsrv_close($conn);
-    echo json_encode(['success' => true, 'message' => 'CxC creada y pagada.']);
+    /*echo json_encode(['success' => true, 'message' => 'CxC creada y pagada.']);*/
     return;
 }
 function insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae)
@@ -2252,7 +2251,8 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura)
     sqlsrv_free_stmt($stmt);
     //echo json_encode(['success' => true, 'facturaId' => $facturaId]);
 }
-function sumarSaldo($conexionData, $claveSae, $pagado){
+function sumarSaldo($conexionData, $claveSae, $pagado)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2299,7 +2299,8 @@ function sumarSaldo($conexionData, $claveSae, $pagado){
         'message' => "Saldo actualizado correctamente para el cliente: $cliente"
     ]);
 }
-function restarSaldo($conexionData, $claveSae, $pagado){
+function restarSaldo($conexionData, $claveSae, $pagado)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2469,7 +2470,6 @@ switch ($funcion) {
         $claveCliente = $_POST['claveCliente'];
         $credito = $_POST['credito'] ?? false;
 
-        //var_dump($credito);
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae, $noEmpresa);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -2478,11 +2478,11 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         $folioFactura = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito);
-
         header('Content-Type: application/json');
+        //die( json_encode(['success' => true, 'folioFactura1' => $folioFactura]));
         echo json_encode(['success' => true, 'folioFactura1' => $folioFactura]);
-        return $folioFactura;
-        //return;
+        //return $folioFactura;
+        return;
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

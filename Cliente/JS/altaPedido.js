@@ -629,8 +629,9 @@ function extraerDatosEnvio() {
   //const entrega = campoEntrega ? campoEntrega : fechaActual;
   //const diaAlta = document.getElementById("diaAlta").value; // Fecha y hora
   const envioData = {
-    //claveVendedor: document.getElementById("vendedor").value,
-    claveVendedor: "1",
+    claveVendedor: document.getElementById("vendedor").value,
+    //claveVendedor: "1",
+    idDocumento: document.getElementById("idDatos").value,
     nombreContacto: document.getElementById("nombreContacto").value,
     compañiaContacto: document.getElementById("compañiaContacto").value,
     diaAlta: diaAlta, // Fecha y hora

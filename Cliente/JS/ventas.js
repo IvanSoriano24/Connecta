@@ -498,7 +498,7 @@ function obtenerDatosPedido(pedidoID) {
         document.getElementById("entrega").value = pedido.FECHA_ENT || "";
         document.getElementById("numero").value = pedido.FOLIO || "";
 
-        document.getElementById("enviar").value = pedido.CALLE_ENVIO || "";
+        //document.getElementById("enviar").value = pedido.CALLE_ENVIO || "";
         document.getElementById("descuentoCliente").value =
           pedido.DESCUENTO || "";
         document.getElementById("cliente").value = pedido.CLAVE || "";
@@ -538,54 +538,40 @@ function obtenerDatosPedido(pedidoID) {
     console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
   });
 }
-function obtenerDatosEnvioEditar(pedidoID){
+function obtenerDatosEnvioEditar(pedidoID) {
   //
   $("#datosEnvio").prop("disabled", false);
   $.post(
-    "../Servidor/PHP/ventas.php",
+    "../Servidor/PHP/clientes.php",
     {
-      numFuncion: 2, // Función para obtener el pedido por ID
+      numFuncion: 10, // Función para obtener el pedido por ID
       pedidoID: pedidoID,
     },
     function (response) {
       console.log("Respuesta cruda:", response); // 👈 Imprime lo que llega
       if (response.success) {
-        const pedido = response.pedido;
-        console.log("Datos del pedido:", pedido);
-
-        // Cargar datos del cliente
-
-        document.getElementById("nombre").value = pedido.NOMBRE_CLIENTE || "";
-        document.getElementById("rfc").value = pedido.RFC || "";
-        document.getElementById("calle").value = pedido.CALLE || "";
-        document.getElementById("numE").value = pedido.NUMEXT || "";
-        document.getElementById("colonia").value = pedido.COLONIA || "";
-        document.getElementById("codigoPostal").value = pedido.CODIGO || "";
-        document.getElementById("pais").value = pedido.PAIS || "";
-        document.getElementById("condicion").value = pedido.CONDICION || "";
-        document.getElementById("almacen").value = pedido.NUM_ALMA || "";
-        document.getElementById("comision").value = pedido.COM_TOT || "";
-        document.getElementById("diaAlta").value = pedido.FECHA_DOC || "";
-        document.getElementById("entrega").value = pedido.FECHA_ENT || "";
-        document.getElementById("numero").value = pedido.FOLIO || "";
-
-        document.getElementById("enviar").value = pedido.CALLE_ENVIO || "";
-        document.getElementById("descuentoCliente").value =
-          pedido.DESCUENTO || "";
-        document.getElementById("cliente").value = pedido.CLAVE || "";
-        //document.getElementById("descuentofin").value = pedido.DES_FIN || "";
-        document.getElementById("cliente").value = pedido.CVE_CLPV || "";
-        document.getElementById("supedido").value = pedido.CONDICION || "";
-        //document.getElementById("esquema").value = pedido.CONDICION || "";
-
-        // Actualizar estado de cliente seleccionado en sessionStorage
-        sessionStorage.setItem("clienteSeleccionado", true);
-
-        // Cargar las partidas existentes
-        //cargarPartidas(pedido.partidas);
-        //alert("Datos del pedido cargados con éxito");
-
-        console.log("Datos del pedido cargados correctamente.");
+        const pedido = response.data;
+        console.log("Datos de Envio:", pedido);
+        
+        document.getElementById("enviar").value = pedido[0].tituloEnvio || "";
+        document.getElementById("idDatos").value = pedido[0].idDocumento || "";
+        document.getElementById("folioDatos").value = pedido[0].id || "";
+        document.getElementById("nombreContacto").value = pedido[0].nombreContacto || "";
+        document.getElementById("titutoDatos").value = pedido[0].tituloEnvio || "";
+        document.getElementById("compañiaContacto").value = pedido[0].compania || "";
+        document.getElementById("telefonoContacto").value = pedido[0].telefonoContacto || "";
+        document.getElementById("correoContacto").value = pedido[0].correoContacto || "";
+        document.getElementById("direccion1Contacto").value = pedido[0].linea1 || "";
+        document.getElementById("direccion2Contacto").value = pedido[0].linea2 || "";
+        document.getElementById("codigoContacto").value = pedido[0].codigoPostal || "";
+       
+        $("#estadoContacto").val(pedido[0].estado);
+        
+        const edo = pedido[0].estado;
+        const municipio = pedido[0].municipio;
+        
+        obtenerMunicipios(edo, municipio);
+        console.log("Datos de envio cargados correctamente.");
       } else {
         Swal.fire({
           title: "Aviso",
@@ -607,6 +593,94 @@ function obtenerDatosEnvioEditar(pedidoID){
     });
     //alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
     console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+  });
+}
+function obtenerEstados() {
+  // Habilitamos el select
+  //$("#estadoContacto").prop("disabled", false);
+
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "22" },
+    dataType: "json",
+    success: function (resEstado) {
+      if (resEstado.success && Array.isArray(resEstado.data)) {
+        const $estadoNuevoContacto = $("#estadoContacto");
+        $estadoNuevoContacto.empty();
+        $estadoNuevoContacto.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resEstado.data.forEach((estado) => {
+          $estadoNuevoContacto.append(
+            `<option value="${estado.Clave}" 
+                data-Pais="${estado.Pais}"
+                data-Descripcion="${estado.Descripcion}">
+                ${estado.Descripcion}
+              </option>`
+          );
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resEstado.message || "No se encontraron estados.",
+        });
+        //$("#estadoNuevoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
+function obtenerMunicipios(edo, municipio) {
+  // Habilitamos el select
+  //$("#estadoContacto").prop("disabled", false);
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "23", estado: edo },
+    dataType: "json",
+    success: function (resMunicipio) {
+      if (resMunicipio.success && Array.isArray(resMunicipio.data)) {
+        const $municipioNuevoContacto = $("#municipioContacto");
+        $municipioNuevoContacto.empty();
+        $municipioNuevoContacto.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resMunicipio.data.forEach((municipio) => {
+          $municipioNuevoContacto.append(
+            `<option value="${municipio.Clave}" 
+                data-estado="${municipio.Estado}"
+                data-Descripcion="${municipio.Descripcion || ""}">
+                ${municipio.Descripcion}
+              </option>`
+          );
+        });
+        $("#municipioContacto").val(municipio);
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resMunicipio.message || "No se encontraron municipios.",
+        });
+        //$("#municipioNuevoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
   });
 }
 function cargarPartidasPedido(pedidoID) {
@@ -895,7 +969,7 @@ $(document).on("change", "#filtroVendedor", function () {
   datosPedidos(true);
 });
 // Al cargar la página, se lee el filtro guardado y se carga la información
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
   let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Hoy";
   let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
 
@@ -985,7 +1059,7 @@ function doSearch(limpiarTabla = true) {
         filtroVendedor: filtroVendedor,
         pagina: paginaActual,
         porPagina: registrosPorPagina,
-        filtroBusqueda: searchText
+        filtroBusqueda: searchText,
       },
       function (response) {
         try {
@@ -1039,15 +1113,11 @@ function doSearch(limpiarTabla = true) {
                   <td >${pedido.Cliente || "Sin cliente"}</td>
                   <td>${pedido.Nombre || "Sin nombre"}</td>
                   <td>${pedido.Estatus || "0"}</td>
-                  <td>${
-                    pedido.FechaElaboracion || "Sin fecha"
-                  }</td>
+                  <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
                   <td style="text-align: right;">${subtotalText}</td>
                   <!--<td style="text-align: right;">${
                     pedido.TotalComisiones
-                      ? `$${parseFloat(
-                          pedido.TotalComisiones
-                        ).toFixed(2)}`
+                      ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
                       : "Sin Comisiones"
                   }</td>-->
                   <td style="text-align: right;">${importeText}</td>
@@ -1129,7 +1199,8 @@ function doSearch(limpiarTabla = true) {
   }
 }
 document.addEventListener("DOMContentLoaded", function () {
-  let clienteSeleccionado = sessionStorage.getItem("clienteSeleccionado") === "true";
+  let clienteSeleccionado =
+    sessionStorage.getItem("clienteSeleccionado") === "true";
   // Detectar el clic en el enlace para "Crear Pedido"
   var altaPedidoBtn = document.getElementById("altaPedido");
   if (altaPedidoBtn) {
@@ -1156,7 +1227,8 @@ document.addEventListener("DOMContentLoaded", function () {
       obtenerDatosPedido(pedidoID); // Función para cargar datos del pedido
       cargarPartidasPedido(pedidoID); // Función para cargar partidas del pedido
       $("#datosEnvio").prop("disabled", false);
-      //obtenerDatosEnvioEditar(pedidoID); // Función para cargar partidas del pedido
+      obtenerEstados();
+      obtenerDatosEnvioEditar(pedidoID); // Función para cargar partidas del pedido
     } else {
       sessionStorage.setItem("clienteSeleccionado", false);
       clienteSeleccionado = false;

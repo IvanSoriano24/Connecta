@@ -511,7 +511,7 @@ if (isset($_SESSION['usuario'])) {
                             <div class="form-element">
                                 <label for="condicion">Condicion </label>
                                 <div style="display: flex; align-items: center;">
-                                    <input type="text" name="condicion" style="width: 410px;" id="condicion" disabled>
+                                    <input type="text" name="condicion" style="width: 410px;" id="condicion" maxlength="25" disabled>
                                     <button type="button" class="btn ms-2" id="AyudaCondicion" tabindex="-1">
                                         <i class="bx bx-help-circle"></i>
                                     </button>

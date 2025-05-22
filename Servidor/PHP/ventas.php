@@ -721,7 +721,7 @@ function obtenerPartidasPedido($conexionData, $clavePedido)
     // Responder con las partidas
     echo json_encode(['success' => true, 'partidas' => $partidas]);
 }
-function actualizarPedido($conexionData, $formularioData, $partidasData, $estatus)
+function actualizarPedido($conexionData, $formularioData, $partidasData, $estatus, $DAT_ENVIO)
 {
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
@@ -796,9 +796,9 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
         DES_TOT = ?, 
         CONDICION = ?, 
         CVE_VEND = ?,
+        DAT_ENVIO = ?
         STATUS = ? 
         WHERE CVE_DOC = ?";
-
     $params = [
         $FECHA_DOC,
         $FECHA_ENT,
@@ -808,6 +808,7 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
         $DES_TOT,
         $CONDICION,
         $CVE_VEND,
+        $DAT_ENVIO,
         $estatus,
         $CVE_DOC
     ];
@@ -1225,8 +1226,7 @@ function obtenerUltimoDato($conexionData, $claveSae)
 
     return $CVE_INFO;
 }
-function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae)
-{
+function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae){
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1250,8 +1250,6 @@ function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
-
 
     // Extraer los datos del formulario
     $CVE_INFO = obtenerUltimoDato($conexionData, $claveSae);
@@ -4340,10 +4338,11 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
         $CVE_ART = $partida['producto'];
         $partida['descripcion'] = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
     }
-    // Preparar los campos que se guardarán en Firebase
+    // Preparar los campos que se guardarán en Firebase 
     $fields = [
         'folio'     => ['stringValue' => $formularioData['numero']],
         'cliente'    => ['stringValue' => $formularioData['cliente']],
+        'ordenCompra'    => ['stringValue' => $formularioData['ordenCompra']],
         'enviar'     => ['stringValue' => isset($formularioData['enviar']) ? $formularioData['enviar'] : ''],
         'vendedor'   => ['stringValue' => isset($formularioData['vendedor']) ? $formularioData['vendedor'] : ''],
         'diaAlta'    => ['stringValue' => isset($formularioData['fechaAlta']) ? $formularioData['fechaAlta'] : ''],
@@ -6927,6 +6926,32 @@ function actualizarControl2($conexionData, $claveSae)
 
     //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
 }
+function actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData){
+    $id = $envioData['idDocumento'];
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS/$id?updateMask.fieldPaths=id&key=$firebaseApiKey";
+
+    $data = [
+        'fields' => [
+            'id' => ['integerValue' => $DAT_ENVIO]
+        ]
+    ];
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'PATCH',
+            'header' => "Content-Type: application/json\r\n",
+            'content' => json_encode($data)
+        ]
+    ]);
+
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        $error = error_get_last();
+        echo json_encode(['success' => false, 'message' => 'No se Actualizo el Nombre del Contacto']);
+    } else {
+        //echo json_encode(['success' => true, 'message' => 'Datos de Envio Guardados']);
+    }
+}
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -7188,6 +7213,7 @@ switch ($funcion) {
                         }
                         //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                         actualizarFolio($conexionData, $claveSae);
+                        actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                         guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
                         actualizarInventario($conexionData, $partidasData);
                         if ($validarSaldo == 0 && $credito == 0) {
@@ -7351,7 +7377,9 @@ switch ($funcion) {
                     $credito = 0;*/
 
                     // Lógica para edición de pedido
-                    $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus);
+                    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae);
+                    actualizarControl2($conexionData, $claveSae);
+                    $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus, $DAT_ENVIO);
 
                     if ($resultadoActualizacion['success']) {
                         if ($validarSaldo === 0 && $credito == 0) {

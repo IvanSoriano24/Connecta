@@ -1,10 +1,9 @@
 <?php
+set_time_limit(0);
 date_default_timezone_set('America/Mexico_City');
 require 'firebase.php';
 include 'reportes.php';
 require_once '../PHPMailer/clsMail.php';
-set_time_limit(0);
-
 
 function obtenerPedido($cveDoc, $conexionData, $claveSae)
 {
@@ -23,7 +22,7 @@ function obtenerPedido($cveDoc, $conexionData, $claveSae)
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -39,7 +38,7 @@ function obtenerPedido($cveDoc, $conexionData, $claveSae)
     if ($pedidoData) {
         return $pedidoData;
     } else {
-        echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cve_doc"]);
+        echo json_encode(['success' => false, 'message' => "Pedido/Factura no encontrado $cveDoc"]);
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -112,7 +111,7 @@ function obtenerCliente($clave, $conexionData, $claveSae)
     if ($clienteData) {
         return $clienteData;
     } else {
-        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
+        echo json_encode(['success' => false, 'message' => "Cliente no encontrado $clave"]);
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -352,8 +351,8 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
 
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -378,16 +377,29 @@ function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
         echo 'Error cURL: ' . curl_error($ch);
     }
     curl_close($ch);
+    var_dump($facturaResponse);
     return $facturaResponse;
 }
-
-function crearPdf($folio, $noEmpresa, $claveSae, $conexionData)
+function formatearClaveVendedor($vendedor)
 {
-    $rutaPDF = generarFactura($folio, $noEmpresa, $claveSae, $conexionData);
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $vendedor = trim((string) $vendedor);
+    $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($vendedor) === 5) {
+        return $vendedor;
+    }
+
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
+    return $vendedor;
+}
+function crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura)
+{
+    $rutaPDF = generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
     return $rutaPDF;
 }
-
-function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura)
+function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey)
 {
 
     // Establecer la conexión con SQL Server
@@ -405,13 +417,15 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $cveDoc = str_pad($folio, 10, '0', STR_PAD_LEFT);
+    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     $formularioData = obtenerPedido($cveDoc, $conexionData, $claveSae);
     $partidasData = obtenerProductos($cveDoc, $conexionData, $claveSae);
     $clienteData = obtenerCliente($formularioData['CVE_CLPV'], $conexionData, $claveSae);
     $vendedorData = obtenerVendedor($formularioData['CVE_VEND'], $conexionData, $claveSae);
+    $CVE_VEND = $formularioData['CVE_VEND'];
+    $CVE_VEND = formatearClaveVendedor($CVE_VEND);
     $empresaData = obtenerEmpresa($noEmpresa);
     $titulo = $empresaData['razonSocial'];
     $enviarA = $clienteData['CALLE']; // Dirección de envío
@@ -442,17 +456,11 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $correo = trim($clienteData['MAIL']);
     $emailPred = trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
-    $numeroWhatsApp = trim($clienteData['TELEFONO']);
+    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    //$numeroWhatsApp = trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
     $clave = trim($clienteData['CLAVE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
-    /*$emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';*/
-    /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123'; // Interzenda*/
 
     /******************************************/
     $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
@@ -478,6 +486,9 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
 
     //var_dump($usuariosData);
     $telefonoVendedor = "";
+    $correoVendedor = "";
+    $nombreVendedor = "";
+    var_dump($CVE_VEND);
     // Buscar al vendedor por clave
     if (isset($usuariosData['documents'])) {
         foreach ($usuariosData['documents'] as $document) {
@@ -487,9 +498,8 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
                 if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $CVE_VEND) {
                     if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
                         $telefonoVendedor = $fields['telefono']['stringValue'];
-                        $correoVendedor = $fields['correo']['stringValue'];
+                        $correoVendedor = $fields['correo']['stringValue'] ?? "";
                         $nombreVendedor = $fields['nombre']['stringValue'];
-
                         break;
                     }
                 }
@@ -497,17 +507,24 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
         }
     }
     /******************************************/
-    $emailPred = $correoVendedor;
+    $emailPred = $correoVendedor ?? "";
     $numeroWhatsApp = $telefonoVendedor;
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527775681612';*/
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123'; // Interzenda*/
+
     if ($correo === 'S' && !empty($emailPred)) {
-        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
-        //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        $rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . urldecode($folioFactura) . ".pdf";
         $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename);
-
+        var_dump($resultadoWhatsApp);
         enviarCorreo($emailPred, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
     } else {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido registrado.']);
+        echo json_encode(['success' => false, 'message' => 'El vendedor no tiene un correo electrónico válido registrado.']);
         die();
     }
     sqlsrv_close($conn);
@@ -651,7 +668,6 @@ function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $cla
     error_log("HTTP Status Code: " . $http_code);
     return $result;
 }
-
 function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema, $folioFactura)
 {
     $serverName = $conexionData['host'];
@@ -710,6 +726,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
 
     //var_dump($usuariosData);
     $telefonoVendedor = "";
+    $nombreVendedor = "";
     // Buscar al vendedor por clave
     if (isset($usuariosData['documents'])) {
         foreach ($usuariosData['documents'] as $document) {
@@ -721,7 +738,6 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
                         $telefonoVendedor = $fields['telefono']['stringValue'];
                         $correoVendedor = $fields['correo']['stringValue'];
                         $nombreVendedor = $fields['nombre']['stringValue'];
-
                         break;
                     }
                 }
@@ -777,8 +793,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -793,6 +809,7 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
 
 
     // Inicializa cURL
+    
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $facturanUrl);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -815,18 +832,18 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     // Obtener tipo de contenido antes de cerrar cURL
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     curl_close($ch);
-    var_dump($facturaResponse);
+    //var_dump($facturaResponse);
     if ($facturaResponse) {
         // Intenta decodificar como JSON
         $facturaData = json_decode($facturaResponse, true);
-
+         //var_dump("Factura1: ", $facturaResponse);
         if (json_last_error() === JSON_ERROR_NONE && isset($facturaData)) {
-            var_dump($facturaData);
-            return $facturaData;
+            //var_dump("Factura2: ", $facturaData);
+            return $facturaData['folioFactura1'];
             // ✅ La respuesta es un JSON con cveDoc (Pedido procesado correctamente)
         }
     } else {
-        //var_dump("No");
+        var_dump("No");
         // ❌ No hubo respuesta
         return false;
     }
@@ -851,7 +868,9 @@ function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera)
             'errors' => sqlsrv_errors()
         ]));
     }
-    //Obtener CFDI dependiendo de bandera
+    if ($bandera == 1){
+        $file = "../XML/";
+    }
 
 }
 function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $value = true)
@@ -887,117 +906,65 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
     $res = @file_get_contents($url, false, $ctx);
     return $res !== false;
 }
-function obtenerComandasPorRunQuery(string $projectId, string $apiKey): array
-{
-    $url = "https://firestore.googleapis.com/v1/projects/{$projectId}"
-        . "/databases/(default)/documents:runQuery?key={$apiKey}";
-
-    // Estructuramos un "StructuredQuery" con un compositeFilter AND
-    $body = [
-        'structuredQuery' => [
-            'from' => [
-                ['collectionId' => 'COMANDA']
-            ],
-            'where' => [
-                'compositeFilter' => [
-                    'op'      => 'AND',
-                    'filters' => [
-                        // status == "TERMINADA"
-                        [
-                            'fieldFilter' => [
-                                'field' => ['fieldPath' => 'status'],
-                                'op'    => 'EQUAL',
-                                'value' => ['stringValue' => 'TERMINADA']
-                            ]
-                        ],
-                        // facturado == false
-                        [
-                            'fieldFilter' => [
-                                'field' => ['fieldPath' => 'facturado'],
-                                'op'    => 'EQUAL',
-                                'value' => ['booleanValue' => false]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-            // opcional: paginación con "limit", "offset", "orderBy"…
-        ]
-    ];
-
-    $ctx = stream_context_create([
-        'http' => [
-            'method'  => "POST",
-            'header'  => "Content-Type: application/json\r\n",
-            'content' => json_encode($body),
-            'timeout' => 15  // ajusta según necesites
-        ]
-    ]);
-    $resp = @file_get_contents($url, false, $ctx);
-    if ($resp === false) {
-        throw new \Exception("Error al llamar a runQuery: " . print_r(error_get_last(), 1));
-    }
-    // Cada línea JSON tiene la forma { "document": { … } } o { "readTime": … }
-    $rows = explode("\n", trim($resp));
-    var_dump("Pre-Comandas: ", $rows);
-    $comandas = [];
-    foreach ($rows as $line) {
-        $o = json_decode($line, true);
-        if (isset($o['document'])) {
-            $comandas[] = $o['document'];
-        }
-    }
-    var_dump("Comandas: ", $comandas);
-    return $comandas;
-}
-
 function verificarHora($firebaseProjectId, $firebaseApiKey)
 {
     $horaActual = (int) date('Hi'); // Formato "Hi" concatenado como un número entero
     if ($horaActual <= 1855) { //1455
-        try {
-            $docs = obtenerComandasPorRunQuery($firebaseProjectId, $firebaseApiKey);
-            var_dump($docs);
-        } catch (\Exception $e) {
-            echo "No fue posible filtrar comandas: ", $e->getMessage();
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+        //Obtener todas las comandas
+        $response = @file_get_contents($url);
+        if ($response === false) {
+            echo "Error al obtener las comandas.\n";
             return;
         }
-
-        foreach ($docs as $doc) {
-            var_dump("Si");
-            // $doc es exactamente el mismo array que obtenías en $document['fields']
-            $fields       = $doc['fields'];
-            $folio        = $fields['folio']['stringValue'];
+        $data = json_decode($response, true);
+        if (!isset($data['documents'])) {
+            echo "No se encontraron comandas.\n";
+            return;
+        }
+        foreach ($data['documents'] as $document) {
+            $fields    = $document['fields'];
+            $docName   = $document['name'];
+            $status = $fields['status']['stringValue'];
+            $folio = $fields['folio']['stringValue'];
             $claveCliente = $fields['claveCliente']['stringValue'];
-            $credito      = $fields['credito']['booleanValue'];
-            $claveSae     = $fields['claveSae']['stringValue'];
-            $noEmpresa    = $fields['noEmpresa']['integerValue'];
-            $pagada       = $fields['pagada']['booleanValue'];
+            $facturado = $fields['facturado']['booleanValue'];
+            $credito = $fields['credito']['booleanValue'];
+            $claveSae = $fields['claveSae']['stringValue'];
+            $noEmpresa = $fields['noEmpresa']['integerValue'];
+            $pagada = $fields['pagada']['booleanValue'];
 
             // Si la comanda está pendiente y es de un día anterior
-            if ($pagada === 'TERMINADA') {
+            if ($status === 'TERMINADA') {
                 $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
                 if (!$conexionResult['success']) {
                     echo json_encode($conexionResult);
                     break;
                 }
                 $conexionData = $conexionResult['data'];
-                //$folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
-                
-                actualizarStatus($firebaseProjectId, $firebaseApiKey, $fields);
-                /*$respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
-
-                if ($respuestaFactura['Succes']) {
-                    $bandera = 1;
-                    actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                    $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
-                    die();
-                    validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura);
-                } else {
-                    $bandera = 0;
-                    actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                    enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
-                }*/
+                if (!$facturado) {
+                    //Funcion para crear factura
+                    if ($pagada) {
+                        //$folioFactura = $folioFactura['folioFactura1'];
+                        //$folioFactura = 18904;
+                        //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
+                        $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
+                        //var_dump($folioFactura);
+                        actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
+                        $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
+                        //var_dump("Respuesta: ", $respuestaFactura);
+                        if ($respuestaFactura['Succes']) { 
+                            $bandera = 1;
+                            //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                            $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+                            validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
+                        } else {
+                            $bandera = 0;
+                            //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                            enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
+                        }
+                    }
+                }
             }
         }
     }

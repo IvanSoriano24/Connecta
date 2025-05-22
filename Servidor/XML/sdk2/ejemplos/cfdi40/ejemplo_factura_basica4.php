@@ -11,7 +11,7 @@ date_default_timezone_set('America/Mexico_City');
 
 // Se incluye el SDK
 require_once '../../sdk2.php';
-function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
+function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
@@ -33,7 +33,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey)
     // Busca el documento donde coincida el campo `claveSae`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
-        if ($fields['claveSae']['stringValue'] === $claveSae) {
+        if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
                 'success' => true,
                 'data' => [
@@ -79,7 +79,7 @@ function datosCliente($clie, $claveSae, $conexionData)
     if ($clienteData) {
         return $clienteData;
     } else {
-        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
+        echo json_encode(['success' => false, 'message' => "Cliente no encontrado $clie"]);
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -115,7 +115,7 @@ function datosPedido($cve_doc, $claveSae, $conexionData)
     if ($pedidoData) {
         return $pedidoData;
     } else {
-        echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cve_doc"]);
+        echo json_encode(['success' => false, 'message' => "Pedido/Factura no encontrado $cve_doc"]);
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -243,7 +243,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
-    $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey);
+    $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
     if (!$conexionResult['success']) {
         echo json_encode($conexionResult);
         die();
@@ -280,8 +280,8 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     /*$datos['conf']['cer'] = '../../certificados/EKU9003173C9.cer';
     $datos['conf']['key'] = '../../certificados/EKU9003173C9.key';
     $datos['conf']['pass'] = '12345678a';*/
-    $datos['conf']['cer'] = '../../certificadosM/00001000000513872236.cer';
-    $datos['conf']['key'] = '../../certificadosM/CSD_unidad_LUHM920412GU2_20220708_132000.key';
+    $datos['conf']['cer'] = '../../certificados/00001000000513872236.cer';
+    $datos['conf']['key'] = '../../certificados/CSD_unidad_LUHM920412GU2_20220708_132000.key';
     $datos['conf']['pass'] = 'CUSAr279';
 
     // Datos de la Factura || $pedidoData['']
@@ -427,9 +427,10 @@ $cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
 $claveSae = $_POST['claveSae'];
 $factura = $_POST['factura'];
-/*$cve_doc = '18633';
-$noEmpresa = '02';
-$claveSae = '02';*/
+/*$cve_doc = 19076;
+$noEmpresa = 2;
+$claveSae = 02;
+$factura = 18947;*/
 cfdi($cve_doc, $noEmpresa, $claveSae, $factura);
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));
