@@ -131,7 +131,150 @@ function cargarPedidos() {
 $("#filtroPedido").change(function () {
   cargarPedidos(); // Recargar las comandas con el filtro aplicado
 });
+function obtenerEstados() {
+  // Habilitamos el select
+  //$("#estadoContacto").prop("disabled", false);
 
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "22" },
+    dataType: "json",
+    success: function (resEstado) {
+      if (resEstado.success && Array.isArray(resEstado.data)) {
+        const $estadoNuevoContacto = $("#estadoContacto");
+        $estadoNuevoContacto.empty();
+        $estadoNuevoContacto.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resEstado.data.forEach((estado) => {
+          $estadoNuevoContacto.append(
+            `<option value="${estado.Clave}" 
+                data-Pais="${estado.Pais}"
+                data-Descripcion="${estado.Descripcion}">
+                ${estado.Descripcion}
+              </option>`
+          );
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resEstado.message || "No se encontraron estados.",
+        });
+        //$("#estadoNuevoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
+function obtenerMunicipios(edo, municipio) {
+  // Habilitamos el select
+  //$("#estadoContacto").prop("disabled", false);
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "23", estado: edo },
+    dataType: "json",
+    success: function (resMunicipio) {
+      if (resMunicipio.success && Array.isArray(resMunicipio.data)) {
+        const $municipioNuevoContacto = $("#municipioContacto");
+        $municipioNuevoContacto.empty();
+        $municipioNuevoContacto.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resMunicipio.data.forEach((municipio) => {
+          $municipioNuevoContacto.append(
+            `<option value="${municipio.Clave}" 
+                data-estado="${municipio.Estado}"
+                data-Descripcion="${municipio.Descripcion || ""}">
+                ${municipio.Descripcion}
+              </option>`
+          );
+        });
+        $("#municipioContacto").val(municipio);
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resMunicipio.message || "No se encontraron municipios.",
+        });
+        //$("#municipioNuevoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
+function obtenerDatosEnvioEditar(pedidoID) {
+  //
+  $("#datosEnvio").prop("disabled", false);
+  $.post(
+    "../Servidor/PHP/clientes.php",
+    {
+      numFuncion: 10, // Función para obtener el pedido por ID
+      pedidoID: pedidoID,
+    },
+    function (response) {
+      console.log("Respuesta cruda:", response); // 👈 Imprime lo que llega
+      if (response.success) {
+        const pedido = response.data;
+        console.log("Datos de Envio:", pedido);
+        
+        
+        /*document.getElementById("idDatos").value = pedido[0].idDocumento || "";
+        document.getElementById("folioDatos").value = pedido[0].id || "";*/
+        document.getElementById("nombreContacto").value = pedido[0].nombreContacto || "";
+        //document.getElementById("titutoDatos").value = pedido[0].tituloEnvio || "";
+        document.getElementById("compañiaContacto").value = pedido[0].compania || "";
+        document.getElementById("telefonoContacto").value = pedido[0].telefonoContacto || "";
+        document.getElementById("correoContacto").value = pedido[0].correoContacto || "";
+        document.getElementById("direccion1Contacto").value = pedido[0].linea1 || "";
+        document.getElementById("direccion2Contacto").value = pedido[0].linea2 || "";
+        document.getElementById("codigoContacto").value = pedido[0].codigoPostal || "";
+       
+        //$("#estadoContacto").val(pedido[0].estado);
+        
+        const edo = pedido[0].estado;
+        const municipio = pedido[0].municipio;
+        obtenerMunicipios(edo, municipio);
+        console.log("Datos de envio cargados correctamente.");
+      } else {
+        Swal.fire({
+          title: "Aviso",
+          text: "No se pudo cargar el pedido.",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
+        //alert("No se pudo cargar el pedido: " + response.message);
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    //console.log(errorThrown);
+    Swal.fire({
+      title: "Aviso",
+      text: "Error al cargar el pedido.",
+      icon: "error",
+      confirmButtonText: "Aceptar",
+    });
+    //alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+    console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+  });
+}
 function mostrarModal(comandaId) {
   $("#btnTerminar").show();
   $("#btnTerminar").prop("disabled", true);
@@ -153,6 +296,9 @@ function mostrarModal(comandaId) {
         $("#detalleFecha").val(comanda.fecha);
         $("#detalleHora").val(comanda.hora);
         $("#numGuia").val(comanda.numGuia);
+
+      obtenerEstados();
+      obtenerDatosEnvioEditar(comanda.noPedido);
 
         // Cargar los productos en la tabla
         const productosList = $("#detalleProductos");
@@ -381,4 +527,8 @@ $("#btnRechazar").click(function () {
     },
     "json"
   );
+});
+
+$("#datEnvio").on("click", () => {
+  $("#datosEnvio").toggleClass("d-none");
 });

@@ -275,6 +275,63 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="text" class="form-control form-control-sm" id="fechaEnvio" readonly1>
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <label for="datEnvio" class="form-label">Datos de Envio</label>
+                                            <input type="button" class="form-control form-control-sm" id="datEnvio">
+                                        </div>
+                                    </div>
+
+                                    <div class="row d-none" id="datosEnvio"> <!-- style="display: none;" -->
+                                        <div class="col-md-6">
+                                            <h6 class="fw-bold">Dirección</h6>
+                                            <div class="mb-3">
+                                                <label for="nombreContacto" class="form-label">Nombre del contacto <span class="text-danger">*</span></label>
+                                                <input type="text" id="nombreContacto" class="form-control" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="compañiaContacto" class="form-label">Compañía <span class="text-danger">*</span></label>
+                                                <input type="text" id="compañiaContacto" class="form-control" disabled>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="telefonoContacto" class="form-label">Teléfono <span class="text-danger">*</span></label>
+                                                <input type="tel" id="telefonoContacto" class="form-control" disabled>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="correoContacto" class="form-label">Correo electrónico <span class="text-danger">*</span></label>
+                                                <input type="email" id="correoContacto" class="form-control" disabled>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <h6 class="fw-bold">Detalles de la dirección</h6>
+                                            <div class="mb-3">
+                                                <label for="direccion1Contacto" class="form-label">Línea 1 <span class="text-danger">*</span></label>
+                                                <input type="text" id="direccion1Contacto" class="form-control" disabled>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="direccion2Contacto" class="form-label">Línea 2 <span class="text-danger">*</span></label>
+                                                <input type="text" id="direccion2Contacto" class="form-control" disabled>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="codigoContacto" class="form-label">Código Postal <span class="text-danger">*</span></label>
+                                                <input type="text" id="codigoContacto" class="form-control" disabled>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>
+                                                <select id="estadoContacto" class="form-select" disabled>
+                                                    <option selected disabled>Selecciona un estado</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="municipioContacto" class="form-label">Municipio <span class="text-danger">*</span></label>
+                                                <select id="municipioContacto" class="form-select" disabled>
+                                                    <option selected disabled>Selecciona un municipio</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <br>
                                     <div class="mb-4">
                                         <label class="form-label">Productos:</label>
@@ -451,6 +508,7 @@ if (isset($_SESSION['usuario'])) {
                 );
             });
         });
+
         function activarComanda(id) {
             $.get(
                 "../Servidor/PHP/mensajes.php", {
