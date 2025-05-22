@@ -548,30 +548,32 @@ function obtenerDatosEnvioEditar(pedidoID) {
       pedidoID: pedidoID,
     },
     function (response) {
-      console.log("Respuesta cruda:", response); // 👈 Imprime lo que llega
       if (response.success) {
         const pedido = response.data;
-        console.log("Datos de Envio:", pedido);
-        
+
+        const edo = pedido[0].estado;
+        const municipio = pedido[0].municipio;
+        obtenerMunicipios(edo, municipio);
+        obtenerEstados(edo);
+
+        console.log("Datos de Envio:", pedido[0]);
         document.getElementById("enviar").value = pedido[0].tituloEnvio || "";
         document.getElementById("idDatos").value = pedido[0].idDocumento || "";
         document.getElementById("folioDatos").value = pedido[0].id || "";
         document.getElementById("nombreContacto").value = pedido[0].nombreContacto || "";
-        document.getElementById("titutoDatos").value = pedido[0].tituloEnvio || "";
+        document.getElementById("selectDatosEnvio").value = pedido[0].tituloEnvio || "";
         document.getElementById("compañiaContacto").value = pedido[0].compania || "";
         document.getElementById("telefonoContacto").value = pedido[0].telefonoContacto || "";
         document.getElementById("correoContacto").value = pedido[0].correoContacto || "";
         document.getElementById("direccion1Contacto").value = pedido[0].linea1 || "";
         document.getElementById("direccion2Contacto").value = pedido[0].linea2 || "";
         document.getElementById("codigoContacto").value = pedido[0].codigoPostal || "";
-       
-        $("#estadoContacto").val(pedido[0].estado);
-        
-        const edo = pedido[0].estado;
-        const municipio = pedido[0].municipio;
-        
-        obtenerMunicipios(edo, municipio);
-        console.log("Datos de envio cargados correctamente.");
+        document.getElementById("estadoContacto").value = pedido[0].estado;
+        document.getElementById("municipioContacto").value = pedido[0].municipio;
+
+        console.log("Estado: " + document.getElementById("estadoContacto").value + "waos: " + pedido[0].estado)
+        console.log("Municipio: " + document.getElementById("municipioContacto").value  + "waos: " + pedido[0].municipio)
+
       } else {
         Swal.fire({
           title: "Aviso",
@@ -595,7 +597,7 @@ function obtenerDatosEnvioEditar(pedidoID) {
     console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
   });
 }
-function obtenerEstados() {
+function obtenerEstados(estado) {
   // Habilitamos el select
   //$("#estadoContacto").prop("disabled", false);
 
@@ -621,6 +623,7 @@ function obtenerEstados() {
               </option>`
           );
         });
+        $("#estadoContacto").val = estado;
       } else {
         Swal.fire({
           icon: "warning",
@@ -664,7 +667,6 @@ function obtenerMunicipios(edo, municipio) {
               </option>`
           );
         });
-        $("#municipioContacto").val(municipio);
       } else {
         Swal.fire({
           icon: "warning",
@@ -1227,7 +1229,7 @@ document.addEventListener("DOMContentLoaded", function () {
       obtenerDatosPedido(pedidoID); // Función para cargar datos del pedido
       cargarPartidasPedido(pedidoID); // Función para cargar partidas del pedido
       $("#datosEnvio").prop("disabled", false);
-      obtenerEstados();
+      obtenerEstados("");
       obtenerDatosEnvioEditar(pedidoID); // Función para cargar partidas del pedido
     } else {
       sessionStorage.setItem("clienteSeleccionado", false);
