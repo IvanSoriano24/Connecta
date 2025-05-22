@@ -131,7 +131,7 @@ function cargarPedidos() {
 $("#filtroPedido").change(function () {
   cargarPedidos(); // Recargar las comandas con el filtro aplicado
 });
-function obtenerEstados() {
+/*function obtenerEstados() {
   // Habilitamos el select
   //$("#estadoContacto").prop("disabled", false);
 
@@ -174,7 +174,32 @@ function obtenerEstados() {
       });
     },
   });
+}*/
+function obtenerEstados() {
+  return $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "22" },
+    dataType: "json"
+  }).done(function(resEstado) {
+    const $sel = $("#estadoContacto")
+      .prop("disabled", false)
+      .empty()
+      .append('<option selected disabled>Selecciona un Estado</option>');
+    if (resEstado.success && Array.isArray(resEstado.data)) {
+      resEstado.data.forEach(e => {
+        $sel.append(
+          `<option value="${e.Clave}">${e.Descripcion}</option>`
+        );
+      });
+    } else {
+      Swal.fire("Aviso", resEstado.message || "No se encontraron estados.", "warning");
+    }
+  }).fail(function() {
+    Swal.fire("Error", "No pude cargar la lista de estados.", "error");
+  });
 }
+
 function obtenerMunicipios(edo, municipio) {
   // Habilitamos el select
   //$("#estadoContacto").prop("disabled", false);
@@ -255,8 +280,10 @@ function obtenerDatosEnvioEditar(pedidoID) {
         const edo = pedido[0].estado;
         const municipio = pedido[0].municipio;
         console.log("Estado Crudo: ", edo);
+
+        //$("#estadoContacto").val(edo);
         $("#estadoContacto").val(edo);
-        
+
         obtenerMunicipios(edo, municipio);
         console.log("Datos de envio cargados correctamente.");
       } else {
