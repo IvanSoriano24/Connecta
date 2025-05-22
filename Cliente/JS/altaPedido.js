@@ -339,6 +339,8 @@ function mostrarProductos(input) {
   );
   modalProductos.show();
 
+  document.getElementById('campoBusqueda').value = ''
+
   // Llamar a la función AJAX para obtener los productos desde el servidor
   obtenerProductos(input);
 }

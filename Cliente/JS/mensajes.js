@@ -160,7 +160,7 @@ function mostrarModal(comandaId) {
         comanda.productos.forEach((producto, index) => {
           const fila = `
                  <tr>
-                        <td>${producto.clave}</td>
+                        <td style="display: table-cell !important;">${producto.clave}</td>
                         <td>${producto.descripcion}</td>
                         <td style="text-align: right;">${producto.cantidad}</td>
                         <td style="text-align: right;">${producto.lote}</td>
@@ -246,7 +246,7 @@ function mostrarModalPedido(pedidoId) {
         pedido.productos.forEach((producto, index) => {
           const fila = `
                  <tr>
-                        <td>${producto.producto}</td>
+                        <td style="display: table-cell !important;">${producto.producto}</td>
                         <td>${producto.descripcion}</td>
                         <td>${producto.cantidad}</td>
                         <td style="text-align: right;">$${producto.subtotal}</td>
