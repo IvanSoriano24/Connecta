@@ -6886,6 +6886,47 @@ function insertarBita($conexionData, $claveSae, $formularioData, $partidasData)
         'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
     ]);*/
 }
+function actualizarControl2($conexionData, $claveSae)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+
+    //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[TBLCONTROL" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "UPDATE $nombreTabla SET ULT_CVE = ULT_CVE + 1 WHERE ID_TABLA = 70";
+
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar TBLCONTROL01',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    // Cerrar conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
+}
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -7110,6 +7151,7 @@ switch ($funcion) {
                     $clave = formatearClaveCliente($clienteId);
 
                     $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae);
+                    actualizarControl2($conexionData, $claveSae);
 
                     //$CVE_BITA = insertarBita($conexionData, $claveSae, $formularioData, $partidasData);
                     //actualizarControl1($conexionData, $claveSae);
