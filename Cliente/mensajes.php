@@ -277,8 +277,13 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
-                                            <label for="datEnvio" class="form-label">Datos de Envio</label>
-                                            <input type="button" class="form-control form-control-sm" id="datEnvio">
+                                            <label for="datEnvio" class="form-label">Datos de Envío</label>
+                                            <!-- Ponemos un value inicial y la clase d-none para ocultar -->
+                                            <input
+                                                type="button"
+                                                class="form-control form-control-sm"
+                                                id="datEnvio"
+                                                value="Mostrar datos de envío">
                                         </div>
                                     </div>
 

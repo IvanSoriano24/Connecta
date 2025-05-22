@@ -233,23 +233,30 @@ function obtenerDatosEnvioEditar(pedidoID) {
       if (response.success) {
         const pedido = response.data;
         console.log("Datos de Envio:", pedido);
-        
-        
+
         /*document.getElementById("idDatos").value = pedido[0].idDocumento || "";
         document.getElementById("folioDatos").value = pedido[0].id || "";*/
-        document.getElementById("nombreContacto").value = pedido[0].nombreContacto || "";
+        document.getElementById("nombreContacto").value =
+          pedido[0].nombreContacto || "";
         //document.getElementById("titutoDatos").value = pedido[0].tituloEnvio || "";
-        document.getElementById("compañiaContacto").value = pedido[0].compania || "";
-        document.getElementById("telefonoContacto").value = pedido[0].telefonoContacto || "";
-        document.getElementById("correoContacto").value = pedido[0].correoContacto || "";
-        document.getElementById("direccion1Contacto").value = pedido[0].linea1 || "";
-        document.getElementById("direccion2Contacto").value = pedido[0].linea2 || "";
-        document.getElementById("codigoContacto").value = pedido[0].codigoPostal || "";
-       
-        //$("#estadoContacto").val(pedido[0].estado);
-        
+        document.getElementById("compañiaContacto").value =
+          pedido[0].compania || "";
+        document.getElementById("telefonoContacto").value =
+          pedido[0].telefonoContacto || "";
+        document.getElementById("correoContacto").value =
+          pedido[0].correoContacto || "";
+        document.getElementById("direccion1Contacto").value =
+          pedido[0].linea1 || "";
+        document.getElementById("direccion2Contacto").value =
+          pedido[0].linea2 || "";
+        document.getElementById("codigoContacto").value =
+          pedido[0].codigoPostal || "";
+
         const edo = pedido[0].estado;
         const municipio = pedido[0].municipio;
+        console.log("Estado Crudo: ", edo);
+        $("#estadoContacto").val(edo);
+        
         obtenerMunicipios(edo, municipio);
         console.log("Datos de envio cargados correctamente.");
       } else {
@@ -297,8 +304,8 @@ function mostrarModal(comandaId) {
         $("#detalleHora").val(comanda.hora);
         $("#numGuia").val(comanda.numGuia);
 
-      obtenerEstados();
-      obtenerDatosEnvioEditar(comanda.noPedido);
+        obtenerEstados();
+        obtenerDatosEnvioEditar(comanda.noPedido);
 
         // Cargar los productos en la tabla
         const productosList = $("#detalleProductos");
@@ -529,6 +536,17 @@ $("#btnRechazar").click(function () {
   );
 });
 
-$("#datEnvio").on("click", () => {
-  $("#datosEnvio").toggleClass("d-none");
-});
+  $("#datEnvio").on("click", function () {
+    const $btn = $(this);
+    const $datos = $("#datosEnvio");
+
+    // alternamos la clase d-none
+    $datos.toggleClass("d-none");
+
+    // según esté oculto o no, cambiamos el texto
+    if ($datos.hasClass("d-none")) {
+      $btn.val("Mostrar datos de envío");
+    } else {
+      $btn.val("Ocultar datos de envío");
+    }
+  });
