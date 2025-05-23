@@ -614,7 +614,11 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
         console.log("Estado: ", estados)
         estados.forEach((e) => {
           $sel.append(
-            `<option value="${e.Clave}">${e.Descripcion}</option>`
+            `<option value="${e.Clave}" 
+                data-Pais="${e.Pais}"
+                data-Descripcion="${e.Descripcion}">
+                ${e.Descripcion}
+              </option>`
           );
         });
         if (estadoSeleccionado) {

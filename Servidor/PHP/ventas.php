@@ -796,7 +796,7 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
         DES_TOT = ?, 
         CONDICION = ?, 
         CVE_VEND = ?,
-        DAT_ENVIO = ?
+        DAT_ENVIO = ?,
         STATUS = ? 
         WHERE CVE_DOC = ?";
     $params = [
@@ -3081,7 +3081,7 @@ function liberarExistencias($conexionData, $folio, $claveSae)
     //$params = [$CVE_DOC];
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
-        echo "DEBUG: Error al actualizar el pedido:\n";
+        echo "DEBUG: Error al actualizar el inventario del pedido:\n";
         var_dump(sqlsrv_errors());
         exit;
     }
@@ -6132,7 +6132,7 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa)
+function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -6141,20 +6141,44 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
         echo json_encode(['success' => false, 'message' => 'Faltan datos del pedido.']);
         return;
     }
-
-    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-    $partidasData = obtenerPartidasActualizadas($CVE_DOC, $conexionData, $claveSae);
-
     // Agregar la descripción del producto a cada partida
+    $SUBTOTAL = 0;
+    $IMPORTE = 0;
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+    foreach ($partidasData as $partida) {
+        $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
+    }
+    $IMPORTT = $IMPORTE;
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
+    foreach ($partidasData as $partida) {
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+        $totalPartida = $precioUnitario * $cantidad;
+        // **Aplicar los descuentos en cascada**
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
+    }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     foreach ($partidasData as &$partida) {  // 🔹 Pasar por referencia para modificar el array
-        $CVE_ART = $partida['CVE_ART'];
+        $CVE_ART = $partida['producto'];
         $partida['descripcion'] = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
     }
-    // Preparar los campos que se guardarán en Firebase
+    // Preparar los campos que se guardarán en Firebase 
     $fields = [
         'folio'     => ['stringValue' => $formularioData['numero']],
         'cliente'    => ['stringValue' => $formularioData['cliente']],
+        'ordenCompra'    => ['stringValue' => $formularioData['ordenCompra']],
         'enviar'     => ['stringValue' => isset($formularioData['enviar']) ? $formularioData['enviar'] : ''],
         'vendedor'   => ['stringValue' => isset($formularioData['vendedor']) ? $formularioData['vendedor'] : ''],
         'diaAlta'    => ['stringValue' => isset($formularioData['fechaAlta']) ? $formularioData['fechaAlta'] : ''],
@@ -6165,17 +6189,17 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
                     return [
                         "mapValue" => [
                             "fields" => [
-                                "cantidad" => ["stringValue" => $partidasData["CANT"]],
-                                "producto" => ["stringValue" => $partidasData["CVE_ART"]],
-                                "unidad" => ["stringValue" => $partidasData["UNI_VENTA"]],
-                                "descuento" => ["stringValue" => $partidasData["DESC1"]],
-                                "ieps" => ["stringValue" => $partidasData["IMPU1"]],
-                                "impuesto2" => ["stringValue" => $partidasData["IMPU2"]],
-                                "isr" => ["stringValue" => $partidasData["IMPU3"]],
-                                "iva" => ["stringValue" => $partidasData["IMPU4"]],
-                                "comision" => ["stringValue" => $partidasData["COMI"]],
-                                "precioUnitario" => ["stringValue" => $partidasData["PREC"]],
-                                "subtotal" => ["stringValue" => $partidasData["TOT_PARTIDA"]],
+                                "cantidad" => ["stringValue" => $partidasData["cantidad"]],
+                                "producto" => ["stringValue" => $partidasData["producto"]],
+                                "unidad" => ["stringValue" => $partidasData["unidad"]],
+                                "descuento" => ["stringValue" => $partidasData["descuento"]],
+                                "ieps" => ["stringValue" => $partidasData["ieps"]],
+                                "impuesto2" => ["stringValue" => $partidasData["impuesto2"]],
+                                "isr" => ["stringValue" => $partidasData["isr"]],
+                                "iva" => ["stringValue" => $partidasData["iva"]],
+                                "comision" => ["stringValue" => $partidasData["comision"]],
+                                "precioUnitario" => ["stringValue" => $partidasData["precioUnitario"]],
+                                "subtotal" => ["stringValue" => $partidasData["subtotal"]],
                                 "descripcion" => ["stringValue" => $partidasData["descripcion"]],
                             ]
                         ]
@@ -6183,6 +6207,7 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
                 }, $partidasData)
             ]
         ],
+        'importe'   => ['doubleValue' => $IMPORTE],
         'claveSae'   => ['stringValue' => $claveSae],
         'noEmpresa'  => ['integerValue' => $noEmpresa],
         'status' => ['stringValue' => 'Sin Autorizar']
@@ -7420,9 +7445,11 @@ switch ($funcion) {
                     // Lógica para edición de pedido
                     $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae);
                     actualizarControl2($conexionData, $claveSae);
+                    
                     $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus, $DAT_ENVIO);
 
                     if ($resultadoActualizacion['success']) {
+                        actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                         if ($validarSaldo === 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito);
@@ -7432,7 +7459,7 @@ switch ($funcion) {
                             ]);
                             exit();
                         } else {
-                            guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa);
+                            guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData);
                             $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito);
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([

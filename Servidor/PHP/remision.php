@@ -1957,7 +1957,7 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
     // ✅ 1. Obtener los productos y almacenes del pedido
-    $sqlProductos = "SELECT DISTINCT CVE_ART, CANT, NUM_ALM FROM $tablaPartidas WHERE CVE_DOC = ?";
+    $sqlProductos = "SELECT CVE_ART, CANT, NUM_ALM FROM $tablaPartidas WHERE CVE_DOC = ?";
     $paramsProductos = [$pedidoId];
 
     $stmtProductos = sqlsrv_query($conn, $sqlProductos, $paramsProductos);
@@ -1974,7 +1974,7 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
     // ✅ 2. Verificar existencia en MULTXX antes de actualizar
     $sqlExistencia = "SELECT EXIST FROM $tablaMulti WHERE CVE_ART = ? AND CVE_ALM = ?";
     $sqlUpdate = "UPDATE $tablaMulti 
-                  SET EXIST = ?, 
+                  SET EXIST = EXIST - ?, 
                       VERSION_SINC = ? 
                   WHERE CVE_ART = ? 
                     AND CVE_ALM = ?";
@@ -1985,7 +1985,6 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
         $cveArt = $row['CVE_ART'];
         $cveAlm = $row['NUM_ALM'];
         $cveCan = $row['CANT'];
-
         // Obtener la existencia actual
         $paramsExist = [$cveArt, $cveAlm];
         $stmtExist = sqlsrv_query($conn, $sqlExistencia, $paramsExist);
@@ -2003,7 +2002,9 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
         sqlsrv_free_stmt($stmtExist);
 
         // Solo actualizar si EXIST <= 0
-        if ($existencia && $existencia['EXIST'] <= 0) {
+        
+        if ($existencia && $existencia['EXIST'] >= 0) {
+            
             $paramsUpdate = [$cveCan, $fechaSinc, $cveArt, $cveAlm];
 
             $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
