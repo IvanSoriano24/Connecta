@@ -180,24 +180,28 @@ function obtenerEstados() {
     url: "../Servidor/PHP/ventas.php",
     method: "POST",
     data: { numFuncion: "22" },
-    dataType: "json"
-  }).done(function(resEstado) {
-    const $sel = $("#estadoContacto")
-      .prop("disabled", false)
-      .empty()
-      .append('<option selected disabled>Selecciona un Estado</option>');
-    if (resEstado.success && Array.isArray(resEstado.data)) {
-      resEstado.data.forEach(e => {
-        $sel.append(
-          `<option value="${e.Clave}">${e.Descripcion}</option>`
+    dataType: "json",
+  })
+    .done(function (resEstado) {
+      const $sel = $("#estadoContacto")
+        .prop("disabled", false)
+        .empty()
+        .append("<option selected disabled>Selecciona un Estado</option>");
+      if (resEstado.success && Array.isArray(resEstado.data)) {
+        resEstado.data.forEach((e) => {
+          $sel.append(`<option value="${e.Clave}">${e.Descripcion}</option>`);
+        });
+      } else {
+        Swal.fire(
+          "Aviso",
+          resEstado.message || "No se encontraron estados.",
+          "warning"
         );
-      });
-    } else {
-      Swal.fire("Aviso", resEstado.message || "No se encontraron estados.", "warning");
-    }
-  }).fail(function() {
-    Swal.fire("Error", "No pude cargar la lista de estados.", "error");
-  });
+      }
+    })
+    .fail(function () {
+      Swal.fire("Error", "No pude cargar la lista de estados.", "error");
+    });
 }
 
 function obtenerMunicipios(edo, municipio) {
@@ -319,21 +323,18 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
       const $sel = $("#estadoContacto")
         .prop("disabled", true)
         .empty()
-        .append('<option selected disabled>Selecciona un Estado</option>');
+        .append("<option selected disabled>Selecciona un Estado</option>");
 
       if (resEstado.success) {
         // Normaliza a array aunque venga un solo objeto
         const estados = Array.isArray(resEstado.data)
           ? resEstado.data
           : [resEstado.data];
-        console.log("Estado: ", estados)
+        console.log("Estado: ", estados);
         estados.forEach((e) => {
-          $sel.append(
-            `<option value="${e.Clave}">${e.Descripcion}</option>`
-          );
+          $sel.append(`<option value="${e.Clave}">${e.Descripcion}</option>`);
         });
         if (estadoSeleccionado) {
-          
           $sel.val(estadoSeleccionado);
           // Si además hay municipio, lo pasamos para poblar ese select
           if (municipioSeleccionado) {
@@ -610,18 +611,17 @@ $("#btnRechazar").click(function () {
     "json"
   );
 });
+$("#datEnvio").on("click", function () {
+  const $btn = $(this);
+  const $datos = $("#datosEnvio");
 
-  $("#datEnvio").on("click", function () {
-    const $btn = $(this);
-    const $datos = $("#datosEnvio");
+  // alternamos la clase d-none
+  $datos.toggleClass("d-none");
 
-    // alternamos la clase d-none
-    $datos.toggleClass("d-none");
-
-    // según esté oculto o no, cambiamos el texto
-    if ($datos.hasClass("d-none")) {
-      $btn.val("Mostrar datos de envío");
-    } else {
-      $btn.val("Ocultar datos de envío");
-    }
-  });
+  // según esté oculto o no, cambiamos el texto
+  if ($datos.hasClass("d-none")) {
+    $btn.val("Mostrar datos de envío");
+  } else {
+    $btn.val("Ocultar datos de envío");
+  }
+});

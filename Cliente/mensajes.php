@@ -513,6 +513,7 @@ if (isset($_SESSION['usuario'])) {
         });
 
         function activarComanda(id) {
+            const tipoUsuario = '<?php echo $tipoUsuario; ?>';
             $.get(
                 "../Servidor/PHP/mensajes.php", {
                     numFuncion: "9",
@@ -528,7 +529,7 @@ if (isset($_SESSION['usuario'])) {
                             icon: "success",
                         }).then(() => {
                             $("#modalPedido").modal("hide");
-                            //cargarComandas(tipoUsuario); // Recargar la tabla
+                            cargarComandas(tipoUsuario); // Recargar la tabla
                             //window.location.reload();
                         });
                     }
