@@ -357,15 +357,15 @@ function datosPedidos(limpiarTabla = true) {
               const row = document.createElement("tr");
               const subtotalText = pedido.Subtotal
                 ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`
                 : "Sin subtotal";
               const importeText = pedido.ImporteTotal
                 ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`
                 : "Sin importe";
 
               row.innerHTML = `
@@ -374,25 +374,21 @@ function datosPedidos(limpiarTabla = true) {
                                 <td >${pedido.Cliente || "Sin cliente"}</td>
                                 <td>${pedido.Nombre || "Sin nombre"}</td>
                                 <td>${pedido.Estatus || "0"}</td>
-                                <td>${
-                                  pedido.FechaElaboracion || "Sin fecha"
-                                }</td>
+                                <td>${pedido.FechaElaboracion || "Sin fecha"
+                }</td>
                                 <td style="text-align: right;">${subtotalText}</td>
-                                <!--<td style="text-align: right;">${
-                                  pedido.TotalComisiones
-                                    ? `$${parseFloat(
-                                        pedido.TotalComisiones
-                                      ).toFixed(2)}`
-                                    : "Sin Comisiones"
-                                }</td>-->
+                                <!--<td style="text-align: right;">${pedido.TotalComisiones
+                  ? `$${parseFloat(
+                    pedido.TotalComisiones
+                  ).toFixed(2)}`
+                  : "Sin Comisiones"
+                }</td>-->
                                 <td style="text-align: right;">${importeText}</td>
-                               <td class="nombreVendedor">${
-                                 pedido.NombreVendedor || "Sin vendedor"
-                               }</td>
+                               <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
+                }</td>
                                 <td>
-                                    <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
-                                      pedido.Clave
-                                    }" style="
+                                    <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
+                }" style="
                                         display: inline-flex;
                                         align-items: center;
                                         padding: 0.5rem 1rem;
@@ -408,9 +404,8 @@ function datosPedidos(limpiarTabla = true) {
                                     </button>
                                 </td>
                                 <td>
-                                    <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${
-                                      pedido.Clave
-                                    }" style="
+                                    <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
+                }" style="
                                         display: inline-flex;
                                         align-items: center;
                                         padding: 0.5rem 1rem;
@@ -541,6 +536,8 @@ function obtenerDatosPedido(pedidoID) {
 function obtenerDatosEnvioEditar(pedidoID) {
   //
   $("#datosEnvio").prop("disabled", false);
+  $("#selectDatosEnvio").prop("disabled", true);
+  
   $.post(
     "../Servidor/PHP/clientes.php",
     {
@@ -549,30 +546,30 @@ function obtenerDatosEnvioEditar(pedidoID) {
     },
     function (response) {
       if (response.success) {
-        const pedido = response.data;
+        const pedido = response.data[0];
 
-        const edo = pedido[0].estado;
-        const municipio = pedido[0].municipio;
+        console.log("Datos de Envio:", pedido);
+        document.getElementById("enviar").value = pedido.tituloEnvio || "";
+        document.getElementById("idDatos").value = pedido.idDocumento || "";
+        document.getElementById("folioDatos").value = pedido.id || "";
+        document.getElementById("nombreContacto").value = pedido.nombreContacto || "";
+        //document.getElementById("selectDatosEnvio").value = pedido.tituloEnvio || "";
+        $("#selectDatosEnvio").val(pedido.tituloEnvio);
+        document.getElementById("compañiaContacto").value = pedido.compania || "";
+        document.getElementById("telefonoContacto").value = pedido.telefonoContacto || "";
+        document.getElementById("correoContacto").value = pedido.correoContacto || "";
+        document.getElementById("direccion1Contacto").value = pedido.linea1 || "";
+        document.getElementById("direccion2Contacto").value = pedido.linea2 || "";
+        document.getElementById("codigoContacto").value = pedido.codigoPostal || "";
+        document.getElementById("estadoContacto").value = pedido.estado;
+        //document.getElementById("municipioContacto").value = pedido[0].municipio;
+
+        const edo = pedido.estado.trim();
+        const municipio = pedido.municipio;
+        //console.log("Estado Crudo: ", edo);
+
+        obtenerEstadosEdit(edo, municipio);
         obtenerMunicipios(edo, municipio);
-        obtenerEstados(edo);
-
-        console.log("Datos de Envio:", pedido[0]);
-        document.getElementById("enviar").value = pedido[0].tituloEnvio || "";
-        document.getElementById("idDatos").value = pedido[0].idDocumento || "";
-        document.getElementById("folioDatos").value = pedido[0].id || "";
-        document.getElementById("nombreContacto").value = pedido[0].nombreContacto || "";
-        document.getElementById("selectDatosEnvio").value = pedido[0].tituloEnvio || "";
-        document.getElementById("compañiaContacto").value = pedido[0].compania || "";
-        document.getElementById("telefonoContacto").value = pedido[0].telefonoContacto || "";
-        document.getElementById("correoContacto").value = pedido[0].correoContacto || "";
-        document.getElementById("direccion1Contacto").value = pedido[0].linea1 || "";
-        document.getElementById("direccion2Contacto").value = pedido[0].linea2 || "";
-        document.getElementById("codigoContacto").value = pedido[0].codigoPostal || "";
-        document.getElementById("estadoContacto").value = pedido[0].estado;
-        document.getElementById("municipioContacto").value = pedido[0].municipio;
-
-        console.log("Estado: " + document.getElementById("estadoContacto").value + "waos: " + pedido[0].estado)
-        console.log("Municipio: " + document.getElementById("municipioContacto").value  + "waos: " + pedido[0].municipio)
 
       } else {
         Swal.fire({
@@ -597,7 +594,55 @@ function obtenerDatosEnvioEditar(pedidoID) {
     console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
   });
 }
-function obtenerEstados(estado) {
+function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "25", estadoSeleccionado: estadoSeleccionado },
+    dataType: "json",
+    success: function (resEstado) {
+      const $sel = $("#estadoContacto")
+        .prop("disabled", true)
+        .empty()
+        .append('<option selected disabled>Selecciona un Estado</option>');
+
+      if (resEstado.success) {
+        // Normaliza a array aunque venga un solo objeto
+        const estados = Array.isArray(resEstado.data)
+          ? resEstado.data
+          : [resEstado.data];
+        console.log("Estado: ", estados)
+        estados.forEach((e) => {
+          $sel.append(
+            `<option value="${e.Clave}">${e.Descripcion}</option>`
+          );
+        });
+        if (estadoSeleccionado) {
+          
+          $sel.val(estadoSeleccionado);
+          // Si además hay municipio, lo pasamos para poblar ese select
+          if (municipioSeleccionado) {
+            //obtenerMunicipios(estadoSeleccionado, municipioSeleccionado);
+          }
+        }
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resEstado.message || "No se encontraron estados.",
+        });
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No pude cargar la lista de estados.",
+      });
+    },
+  });
+}
+/*function obtenerEstados(estado) {
   // Habilitamos el select
   //$("#estadoContacto").prop("disabled", false);
 
@@ -641,7 +686,7 @@ function obtenerEstados(estado) {
       });
     },
   });
-}
+}*/
 function obtenerMunicipios(edo, municipio) {
   // Habilitamos el select
   //$("#estadoContacto").prop("disabled", false);
@@ -1098,15 +1143,15 @@ function doSearch(limpiarTabla = true) {
                 const row = document.createElement("tr");
                 const subtotalText = pedido.Subtotal
                   ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}`
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
                   : "Sin subtotal";
                 const importeText = pedido.ImporteTotal
                   ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}`
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
                   : "Sin importe";
 
                 row.innerHTML = `
@@ -1117,19 +1162,16 @@ function doSearch(limpiarTabla = true) {
                   <td>${pedido.Estatus || "0"}</td>
                   <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
                   <td style="text-align: right;">${subtotalText}</td>
-                  <!--<td style="text-align: right;">${
-                    pedido.TotalComisiones
-                      ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
-                      : "Sin Comisiones"
+                  <!--<td style="text-align: right;">${pedido.TotalComisiones
+                    ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
+                    : "Sin Comisiones"
                   }</td>-->
                   <td style="text-align: right;">${importeText}</td>
-                <td class="nombreVendedor">${
-                  pedido.NombreVendedor || "Sin vendedor"
-                }</td>
+                <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
+                  }</td>
                   <td>
-                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
-                        pedido.Clave
-                      }" style="
+                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
+                  }" style="
                           display: inline-flex;
                           align-items: center;
                           padding: 0.5rem 1rem;
@@ -1145,9 +1187,8 @@ function doSearch(limpiarTabla = true) {
                       </button>
                   </td>
                   <td>
-                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${
-                        pedido.Clave
-                      }" style="
+                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
+                  }" style="
                           display: inline-flex;
                           align-items: center;
                           padding: 0.5rem 1rem;
@@ -1229,7 +1270,6 @@ document.addEventListener("DOMContentLoaded", function () {
       obtenerDatosPedido(pedidoID); // Función para cargar datos del pedido
       cargarPartidasPedido(pedidoID); // Función para cargar partidas del pedido
       $("#datosEnvio").prop("disabled", false);
-      obtenerEstados("");
       obtenerDatosEnvioEditar(pedidoID); // Función para cargar partidas del pedido
     } else {
       sessionStorage.setItem("clienteSeleccionado", false);

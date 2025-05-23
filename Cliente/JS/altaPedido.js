@@ -1447,11 +1447,11 @@ function obtenerDatosEnvio() {
           // Habilitar el select si hay vendedores disponibles
           //selectDatosEnvio.prop("disabled", res.data.length === 0);
         } else {
-          Swal.fire({
+          /*Swal.fire({
             icon: "warning",
             title: "Aviso",
             text: res.message || "No se Encontraron Datos de Envio.",
-          });
+          });*/
           //$("#selectDatosEnvio").prop("disabled", true);
         }
       } catch (error) {

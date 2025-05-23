@@ -282,8 +282,8 @@ function obtenerDatosEnvioEditar(pedidoID) {
         console.log("Estado Crudo: ", edo);
 
         //$("#estadoContacto").val(edo);
-        $("#estadoContacto").val(edo);
-
+        //$("#estadoContacto").val(edo);
+        obtenerEstadosEdit(edo, municipio);
         obtenerMunicipios(edo, municipio);
         console.log("Datos de envio cargados correctamente.");
       } else {
@@ -307,6 +307,54 @@ function obtenerDatosEnvioEditar(pedidoID) {
     });
     //alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
     console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+  });
+}
+function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "25", estadoSeleccionado: estadoSeleccionado },
+    dataType: "json",
+    success: function (resEstado) {
+      const $sel = $("#estadoContacto")
+        .prop("disabled", true)
+        .empty()
+        .append('<option selected disabled>Selecciona un Estado</option>');
+
+      if (resEstado.success) {
+        // Normaliza a array aunque venga un solo objeto
+        const estados = Array.isArray(resEstado.data)
+          ? resEstado.data
+          : [resEstado.data];
+        console.log("Estado: ", estados)
+        estados.forEach((e) => {
+          $sel.append(
+            `<option value="${e.Clave}">${e.Descripcion}</option>`
+          );
+        });
+        if (estadoSeleccionado) {
+          
+          $sel.val(estadoSeleccionado);
+          // Si además hay municipio, lo pasamos para poblar ese select
+          if (municipioSeleccionado) {
+            //obtenerMunicipios(estadoSeleccionado, municipioSeleccionado);
+          }
+        }
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resEstado.message || "No se encontraron estados.",
+        });
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No pude cargar la lista de estados.",
+      });
+    },
   });
 }
 function mostrarModal(comandaId) {

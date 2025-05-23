@@ -1226,7 +1226,8 @@ function obtenerUltimoDato($conexionData, $claveSae)
 
     return $CVE_INFO;
 }
-function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae){
+function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2267,7 +2268,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
     $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urldecode($claveCliente);
-   /*$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido*/
+    /*$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido*/
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 
     // ✅ Construir la lista de productos
@@ -4397,7 +4398,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
     $response = @file_get_contents($url, false, $context);
 
     if ($response === FALSE) {
-         $error = error_get_last();
+        $error = error_get_last();
         echo json_encode(['success' => false, 'message' => $error]);
         die();
     }
@@ -6705,7 +6706,7 @@ function obtenerMunicipios($estadoSeleccionado)
         return;
     }
 
-    $municipio = [];
+    $estado = [];
 
     // Iterar sobre cada <row>
     foreach ($municipios->row as $row) {
@@ -6714,25 +6715,64 @@ function obtenerMunicipios($estadoSeleccionado)
         if ($Estado !== $estadoSeleccionado) {
             continue;
         }
-        $municipio[] = [
+        $estado[] = [
             'Clave' => (string)$row['Clave'],
             'Estado' => (string)$row['Estado'],
             'Descripcion' => (string)$row['Descripcion']
         ];
     }
-    if (!empty($municipio)) {
+    if (!empty($estado)) {
         // Ordenar los vendedores por nombre alfabéticamente
-        usort($municipio, function ($a, $b) {
+        usort($estado, function ($a, $b) {
             return strcmp($a['Clave'] ?? '', $b['Clave'] ?? '');
         });
-
-
-        echo json_encode(['success' => true, 'data' => $municipio]);
+        echo json_encode(['success' => true, 'data' => $estado]);
         exit();
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
     }
 }
+function obtenerEstadoPorClave($claveSeleccionada)
+{
+    $filePath = "../../Complementos/CAT_ESTADOS.xml";
+
+    if (!file_exists($filePath)) {
+        echo json_encode(['success' => false, 'message' => "El archivo no existe en la ruta: $filePath"]);
+        return;
+    }
+
+    $xmlContent = file_get_contents($filePath);
+    if ($xmlContent === false) {
+        echo json_encode(['success' => false, 'message' => "Error al leer el archivo XML en $filePath"]);
+        return;
+    }
+
+    try {
+        $estados = new SimpleXMLElement($xmlContent);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        return;
+    }
+
+    $encontrado = null;
+    foreach ($estados->row as $row) {
+        if ((string)$row['Clave'] === $claveSeleccionada && (string)$row['Pais'] === 'MEX') {
+            $encontrado = [
+                'Clave'       => (string)$row['Clave'],
+                'Pais'        => (string)$row['Pais'],
+                'Descripcion' => (string)$row['Descripcion']
+            ];
+            break;
+        }
+    }
+
+    if ($encontrado !== null) {
+        echo json_encode(['success' => true, 'data' => $encontrado]);
+    } else {
+        echo json_encode(['success' => false, 'message' => "No se encontró el estado con clave $claveSeleccionada"]);
+    }
+}
+
 function actualizarControl1($conexionData, $claveSae)
 {
     // Establecer la conexión con SQL Server con UTF-8
@@ -6926,7 +6966,8 @@ function actualizarControl2($conexionData, $claveSae)
 
     //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
 }
-function actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData){
+function actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData)
+{
     $id = $envioData['idDocumento'];
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS/$id?updateMask.fieldPaths=id&key=$firebaseApiKey";
 
@@ -7763,6 +7804,10 @@ switch ($funcion) {
         $filtroVendedor = $_POST['filtroVendedor'];
         $filtroBusqueda = $_POST['filtroBusqueda'];
         mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda);
+        break;
+    case 25:
+        $estadoSeleccionado = $_POST['estadoSeleccionado'];
+        obtenerEstadoPorClave($estadoSeleccionado);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
