@@ -918,7 +918,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
             $sql = "UPDATE $nombreTabla SET 
                 CANT = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
                 TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ? 
-                WHERE NUM_PAR = ? AND CVE_ART = ?";
+                WHERE NUM_PAR = ? AND CVE_ART = ? AND CVE_DOC = ?";
             $params = [
                 $CANT,
                 $PREC,
@@ -930,7 +930,8 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 $TOTIMP4,
                 $TOT_PARTIDA,
                 $NUM_PAR_EXISTENTE,
-                $CVE_ART
+                $CVE_ART,
+                $CVE_DOC
             ];
         } else {
             // Si la partida no existe, realizar un INSERT
@@ -2844,14 +2845,115 @@ function validarExistencias($conexionData, $partidasData, $claveSae)
             'message' => 'No hay suficientes existencias para algunos productos',
             'productosSinExistencia' => $productosSinExistencia
         ];
+    } else {
+        return [
+            'success' => true,
+            'message' => 'Existencias verificadas correctamente',
+            'productosConExistencia' => $productosConExistencia
+        ];
+    }
+}
+function validarExistenciasEdicionPedido($pedidoId, $conexionData, $claveSae, $partidasNuevas)
+{
+    // 1) Conectar
+    $conn = sqlsrv_connect(
+        $conexionData['host'],
+        [
+            "Database" => $conexionData['nombreBase'],
+            "UID"      => $conexionData['usuario'],
+            "PWD"      => $conexionData['password'],
+            "CharacterSet" => "UTF-8",
+            "TrustServerCertificate" => true
+        ]
+    );
+    if ($conn === false) {
+        return ['success' => false, 'message' => 'No se pudo conectar', 'errors' => sqlsrv_errors()];
     }
 
-    return [
-        'success' => true,
-        'message' => 'Existencias verificadas correctamente',
-        'productosConExistencia' => $productosConExistencia
-    ];
+    // 2) Mapa de cantidades nuevas por CVE_ART
+    $nuevasMap = [];
+    foreach ($partidasNuevas as $np) {
+        $nuevasMap[$np['producto']] = (float)$np['cantidad'];
+    }
+
+    // 3) Leer partidas VIEJAS
+    $tablaPart = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"
+        . str_pad($claveSae, 2, '0', STR_PAD_LEFT) . "]";
+    $cveDoc20 = str_pad(str_pad($pedidoId, 10, '0', STR_PAD_LEFT), 20, ' ', STR_PAD_LEFT);
+
+    $sqlPart = "SELECT CVE_ART, CANT FROM $tablaPart WHERE CVE_DOC = ?";
+    $stmtPart = sqlsrv_query($conn, $sqlPart, [$cveDoc20]);
+    if ($stmtPart === false) {
+        sqlsrv_close($conn);
+        return ['success' => false, 'message' => 'Error al leer partidas', 'errors' => sqlsrv_errors()];
+    }
+    $viejasMap = [];
+    while ($r = sqlsrv_fetch_array($stmtPart, SQLSRV_FETCH_ASSOC)) {
+        $viejasMap[$r['CVE_ART']] = (float)$r['CANT'];
+    }
+    sqlsrv_free_stmt($stmtPart);
+
+    // 4) Preparar consulta de inventario
+    $tablaInv = "[{$conexionData['nombreBase']}].[dbo].[INVE"
+        . str_pad($claveSae, 2, '0', STR_PAD_LEFT) . "]";
+    $sqlInv = "SELECT COALESCE([EXIST],0) AS EXIST, COALESCE([APART],0) AS APART
+               FROM $tablaInv WHERE CVE_ART = ?";
+
+    $sinStock = [];
+    $conStock = [];
+
+    // 5) Para cada artículo viejo, calcular delta y disponibilidad
+    foreach ($viejasMap as $cveArt => $cantVieja) {
+        $cantNueva = $nuevasMap[$cveArt] ?? 0.0;
+        // leer inventario
+        $stmtInv = sqlsrv_query($conn, $sqlInv, [$cveArt]);
+        if ($stmtInv === false) {
+            sqlsrv_close($conn);
+            return ['success' => false, 'message' => 'Error al verificar inventario', 'errors' => sqlsrv_errors()];
+        }
+        $row = sqlsrv_fetch_array($stmtInv, SQLSRV_FETCH_ASSOC);
+        sqlsrv_free_stmt($stmtInv);
+
+        $existencias = (float)$row['EXIST'];
+        $ap = (float)$row['APART'];
+
+        // delta>0: liberamos; delta<0: apartamos adicional
+        $delta   = $cantVieja - $cantNueva;
+        $apNuevo = max(0, $ap - $delta);
+        $disponible = $existencias - $apNuevo;
+
+        $info = [
+            'producto'    => $cveArt,
+            'existencias' => $existencias,
+            'apartados'   => $apNuevo,
+            'disponible'  => $disponible
+        ];
+        if ($disponible >= 0) {
+            $productosConExistencia[] = $info;
+        } else {
+            $productosSinExistencia[] = $info;
+        }
+    }
+
+    sqlsrv_close($conn);
+
+    if (!empty($productosSinExistencia)) {
+        return [
+            'success'               => false,
+            'exist'                 => true,
+            'message'               => 'No hay suficientes existencias para algunos productos',
+            'productosSinExistencia' => $productosSinExistencia
+        ];
+    } else {
+        return [
+            'success'                => true,
+            'message'                => 'Existencias verificadas correctamente',
+            'productosConExistencia' => $productosConExistencia
+        ];
+    }
 }
+
+
 function calcularTotalPedido($partidasData)
 {
     $total = 0;
@@ -7415,9 +7517,13 @@ switch ($funcion) {
                 } else {
                     $conCredito = "N";
                 }
-                $resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
-
+                $pedidoId = $formularioData['numero'];
+                $resultadoValidacion = validarExistenciasEdicionPedido($pedidoId, $conexionData, $claveSae, $partidasData);
+                /*var_dump($resultadoValidacion);
+                die();*/
+                //$resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
                 if ($resultadoValidacion['success']) {
+
                     // Calcular el total del pedido
                     $totalPedido = calcularTotalPedido($partidasData);
 
@@ -7445,7 +7551,7 @@ switch ($funcion) {
                     // Lógica para edición de pedido
                     $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae);
                     actualizarControl2($conexionData, $claveSae);
-                    
+
                     $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus, $DAT_ENVIO);
 
                     if ($resultadoActualizacion['success']) {

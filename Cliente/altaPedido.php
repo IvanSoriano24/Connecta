@@ -1032,7 +1032,7 @@ if (isset($_SESSION['usuario'])) {
                     const claveUsuario = '<?php echo $claveUsuario ?>';
                     const $clienteInput = $(this);
 
-                    if (clienteInput.length >= 2) {
+                    if (clienteInput.length >= 1) {
                         $.ajax({
                             url: '../Servidor/PHP/ventas.php',
                             type: 'POST',
