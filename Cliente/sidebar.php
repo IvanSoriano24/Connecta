@@ -18,7 +18,7 @@
 
 
     <ul class="side-menu top">
-        
+
         <br>
         <a href="Dashboard.php" class="brand" tabindex="-1">
             <!--<img src="SRC/logomd.png" alt="" style="width: 170px; height: auto;" id="logonav">-->
@@ -32,11 +32,16 @@
             </a>
         </li>
         <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR") { ?>
-            <li>
-                <a href="Ventas.php" tabindex="-1">
+            <li class="dropdown-manual">
+                <a href="#" class="dropdown-toggle-manual" tabindex="-1">
                     <i class='bx bxs-shopping-bag-alt'></i>
                     <span class="text">Ventas</span>
                 </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="Ventas.php" tabindex="-1">Pedidos</a></li>
+                    <li><a class="dropdown-item" href="Remisiones.php" tabindex="-1">Remisiones</a></li>
+                    <li><a class="dropdown-item" href="Facturas.php" tabindex="-1">Facturas</a></li>
+                </ul>
             </li>
         <?php } ?>
 

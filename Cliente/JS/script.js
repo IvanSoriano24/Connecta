@@ -60,6 +60,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".dropdown-toggle-manual").forEach(toggle => {
+        const menu = toggle.nextElementSibling;
+
+        toggle.addEventListener("click", (e) => {
+            e.preventDefault();
+            menu.classList.toggle("show");
+        });
+
+        // Cierra el menú si se hace clic fuera
+        document.addEventListener("click", (e) => {
+            if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.remove("show");
+            }
+        });
+    });
+});
 
 
 
