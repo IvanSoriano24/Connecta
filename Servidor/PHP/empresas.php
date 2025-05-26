@@ -2,6 +2,8 @@
 require 'firebase.php';
 require __DIR__ . '/funciones.php';      // carga el autoloader
 use PhpCfdi\Credentials\Credential;      // importa la clase
+/*use DateTimeImmutable;
+use DateTimeZone;*/
 
 session_start(); // Iniciar sesión al inicio del archivo
 /*var_dump($_SESSION);
@@ -368,36 +370,82 @@ function obtenerEmpresa($noEmpresa)
         return responderJson(false, 'El número de empresa no fue proporcionado.');
     }
 }
-function obtenerCsd(int $noEmpresa)
+
+function obtenerCsd($noEmpresa)
 {
     $rutaPrincipal = __DIR__ . "/../XML/sdk2/certificados/$noEmpresa/";
     // Buscar .cer y .key en esa carpeta o subcarpetas
     $archivoCer = glob($rutaPrincipal . "{*.cer,*/*.cer}", GLOB_BRACE);
     $archivoKey = glob($rutaPrincipal . "{*.key,*/*.key}", GLOB_BRACE);
 
-    // Si no hay ambos archivos, salimos
     if (empty($archivoCer) || empty($archivoKey)) {
-        echo json_encode(['success' => false, 'message' => "No se encontro los archivos"]);
-        return false;
-    }
-    // Obtener solo los nombres de los archivos usando basename
-    $archivoCerNames = array_map('basename', $archivoCer);
-    $archivoKeyNames = array_map('basename', $archivoKey);
-    // Recuperar la contraseña cifrada desde Firestore
-    $csd = obtenerContrasenaCSD($noEmpresa);
-    if (!$csd || !isset($csd['keyEncValue'], $csd['keyEncIv'])) {
-        echo json_encode(['success' => false, 'message' => "No se encontro la contrasena"]);
-        return false;
+        echo json_encode([
+            'success' => false,
+            'message' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
+        ]);
+        return;
     }
 
-    // Descifrarla
+    // Solo tomamos el primero
+    $cerPath = $archivoCer[0];
+    $keyPath = $archivoKey[0];
+
+    // Recuperar y descifrar la contraseña
+    $csd = obtenerContrasenaCSD($noEmpresa);
+    if (!$csd || !isset($csd['keyEncValue'], $csd['keyEncIv'])) {
+        echo json_encode([
+            'success' => false,
+            'message' => "No se encontró la contraseña cifrada en Firestore"
+        ]);
+        return;
+    }
     $password = decryptValue($csd['keyEncValue'], $csd['keyEncIv']);
-    $data = [
-        'cer' => $archivoCerNames,
-        'key' => $archivoKeyNames,
-        'pass' => $password
-    ];
-    echo json_encode(['success' => true, 'data' => $data]);
+
+    // Obtener fechas de vigencia y estado
+    $status = obtenerStatusCsd($cerPath, $keyPath, $password);
+    if ($status === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => "Error al abrir o procesar el CSD (¿contraseña incorrecta o archivo dañado?)."
+        ]);
+        return;
+    }
+
+    // Respuesta exitosa
+    echo json_encode([
+        'success'    => true,
+        'data'       => [
+            'cer'       => basename($cerPath),
+            'key'       => basename($keyPath),
+            'pass'      => $password,
+            'notBefore' => $status['notBefore'],
+            'notAfter'  => $status['notAfter'],
+            'valid'     => $status['valid']  // booleano: si está vigente
+        ]
+    ]);
+}
+
+function obtenerStatusCsd($cerPath, $keyPath, $password)
+{
+    try {
+        // Abrimos .cer y .key con su contraseña
+        $credential  = Credential::openFiles($cerPath, $keyPath, $password);
+        $certificate = $credential->certificate();
+
+        // Extraemos fechas como DateTimeImmutable
+        $notBefore = $certificate->validFromDateTime();
+        $notAfter  = $certificate->validToDateTime();
+        $now       = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
+        return [
+            'notBefore' => $notBefore->format('Y-m-d H:i:s'),
+            'notAfter'  => $notAfter->format('Y-m-d H:i:s'),
+            'valid'     => ($notBefore <= $now && $now <= $notAfter),
+        ];
+    } catch (\Throwable $e) {
+        // Registras opcionalmente: error_log($e->getMessage());
+        return false;
+    }
 }
 
 function obtenerContrasenaCSD($noEmpresa)
@@ -619,16 +667,14 @@ function probarCsd($keyPass, $baseDir)
         // Abrimos los archivos .cer y .key
         $credential  = Credential::openFiles($cerFile, $keyFile, $passPhrase);
         $certificate = $credential->certificate();
-
+        //var_dump(get_class($certificate), get_class_methods($certificate));
         // Obtenemos fechas de vigencia como DateTimeImmutable
-        /*$notBefore = $certificate->notBefore(); // inicio de vigencia
-        $notAfter  = $certificate->notAfter();  // fin de vigencia
-        $now       = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $notBefore = $certificate->validFromDateTime();  // inicio de vigencia
+        $notAfter  = $certificate->validToDateTime(); 
+        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        return ($notBefore <= $now && $now <= $notAfter);
 
-        // ¿Está actualmente vigente?
-        $isValid = ($notBefore <= $now && $notAfter >= $now);*/
-
-        return true;
+        //return true;
     } catch (\Exception $e) {
         // Cualquier error (contraseña, archivos mal formados, etc.)
         return false;
@@ -774,7 +820,6 @@ function encryptValue(string $plaintext): array
         'value' => base64_encode($ciphertext)
     ];
 }
-
 function decryptValue(string $b64Cipher, string $b64Iv): string
 {
     $key = FIREBASE_CRYPT_KEY;

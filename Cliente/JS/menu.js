@@ -70,10 +70,14 @@ function infoFacturacion() {
       if (response.success && response.data) {
         const data = response.data;
         // Verifica la estructura de los datos en el console.log
-        //console.log(data);  // Esto te mostrará el objeto completo
+        console.log("data: ", data);  // Esto te mostrará el objeto completo
         $("#keyPassword").val(data.pass);
-        $("#cerFileName").text(data.cer[0] || "");
-        $("#permFileName").text(data.key[0] || "");
+        $("#cerFileName").text(data.cer);
+        $("#permFileName").text(data.key);
+
+        $("#estadoCsd").val(data.valid ? "Activo" : "Caducado");
+        $("#fechaInicioCsd").val(data.notBefore);
+        $("#fechaVencimientoCsd").val(data.notAfter);
       } else {
         console.warn(
           "Error:",
@@ -1183,6 +1187,9 @@ $(document).ready(function () {
     });*/
   $("#probarConexion").click(function () {
     probarConexionSAE();
+  });
+  $("#probarCsd").click(function () {
+    probarDatosFacturacion();
   });
   $("#confirmarConexion").click(function () {
     guardarConexionSAE();

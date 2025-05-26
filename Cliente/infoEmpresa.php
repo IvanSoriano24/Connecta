@@ -214,13 +214,16 @@ if (isset($_SESSION['usuario'])) {
 
                 <div class="row g-3">
                   <div class="col-md-4">
-                    <label for="cerFile" class="form-label">Estado<input type="text" class="form-control form-control-sm" readonly tabindex="-1"></label>
+                    <label for="estadoCsd" class="form-label">Estado</label>
+                    <input type="text" class="form-control form-control-sm" id="estadoCsd" name="estadoCsd" readonly1 tabindex="-1">
                   </div>
                   <div class="col-md-4">
-                    <label for="permFile" class="form-label">Fecha de Inicio del CSD<input type="text" class="form-control form-control-sm" readonly tabindex="-1"></label>
+                    <label for="fechaInicioCsd" class="form-label">Fecha de Inicio del CSD</label>
+                    <input type="text" class="form-control form-control-sm" id="fechaInicioCsd" name="fechaInicioCsd" readonly1 tabindex="-1">
                   </div>
                   <div class="col-md-4">
-                    <label for="keyPassword" class="form-label">Vencimiento del CSD<input type="text" class="form-control form-control-sm" readonly tabindex="-1"></label>
+                    <label for="fechaVencimientoCsd" class="form-label">Vencimiento del CSD</label>
+                    <input type="text" class="form-control form-control-sm" id="fechaVencimientoCsd" name="fechaVencimientoCsd" readonly1 tabindex="-1">
                   </div>
                 </div>
 
@@ -243,6 +246,7 @@ if (isset($_SESSION['usuario'])) {
                 </div>
 
                 <div class="mt-4 d-flex justify-content-end">
+                  <button type="button" class="btn-probarco" id="probarCsd">Probar Conexion</button>
                   <button type="button" class="btn btn-success me-2" id="BtnguardarFac">Guardar</button>
                   <button type="button" class="btn btn-secondary">Cancelar</button>
                 </div>
