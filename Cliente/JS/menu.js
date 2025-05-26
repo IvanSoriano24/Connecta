@@ -28,6 +28,7 @@ function informaEmpresa() {
         // Verifica la estructura de los datos en el console.log
         //console.log(data);  // Esto te mostrará el objeto completo
         $("#idDocumento").val(data.idDocumento);
+        $("#idDocumentoFac").val(data.idDocumento);
         $("#noEmpresa").val(data.noEmpresa);
         $("#razonSocial").val(data.razonSocial);
         $("#rfc").val(data.rfc);
@@ -68,18 +69,17 @@ function infoFacturacion() {
     function (response) {
       if (response.success && response.data) {
         const data = response.data;
-
         // Verifica la estructura de los datos en el console.log
         //console.log(data);  // Esto te mostrará el objeto completo
-        $("#cerFile").val(data.cerFile);
-        $("#permFile").val(data.permFile);
-        $("#keyPassword").val(data.keyPassword);
+        $("#keyPassword").val(data.pass);
+        $("#cerFileName").text(data.cer[0] || "");
+        $("#permFileName").text(data.key[0] || "");
       } else {
         console.warn(
           "Error:",
-          response.message || "Error al obtener las empresas."
+          response.message || "Error al obtener los datos."
         );
-        alert(response.message || "Error al obtener las empresas.");
+        alert(response.message || "Error al obtener los datos.");
       }
     },
     "json"
@@ -311,6 +311,7 @@ function guardarDatosFacturacion() {
   $("#noEmpresa").val(noEmpresa);
   const form = document.getElementById("formFacturacion");
   const formData = new FormData(form);
+  formData.append("action", "saveFac");
   $.ajax({
     url: "../Servidor/PHP/empresas.php",
     type: "POST",
@@ -321,6 +322,33 @@ function guardarDatosFacturacion() {
     success(response) {
       if (response.success) {
         Swal.fire("¡Éxito!", "Documento guardado correctamente.", "success");
+        infoFacturacion();
+      } else {
+        Swal.fire("Error", response.message, "error");
+      }
+    },
+    error(xhr, status, error) {
+      console.error("Error al enviar la solicitud", error);
+      Swal.fire("Error", "Ocurrió un error al guardar los archivos.", "error");
+    }
+  });
+}
+function probarDatosFacturacion() {
+  const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
+  $("#noEmpresa").val(noEmpresa);
+  const form = document.getElementById("formFacturacion");
+  const formData = new FormData(form);
+  formData.append("action", "pruebaFac");
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    type: "POST",
+    data: formData,
+    processData: false,  
+    contentType: false,
+    dataType: "json",
+    success(response) {
+      if (response.success) {
+        Swal.fire("¡Éxito!", "Los CSD son correctos.", "success");
       } else {
         Swal.fire("Error", response.message, "error");
       }
@@ -1146,7 +1174,7 @@ $(document).ready(function () {
   $("#eliminarEmpresa").click(function () {
     eliminarEmpresa();
   });
-  $("#guardarEmpresa").click(function () {
+  $("#BtnguardarFac").click(function () {
     event.preventDefault();
     guardarDatosFacturacion();
   });

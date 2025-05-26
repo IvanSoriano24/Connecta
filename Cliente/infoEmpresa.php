@@ -45,6 +45,16 @@ if (isset($_SESSION['usuario'])) {
       color: white;
     }
   </style>
+  <style>
+    #cerFileName,
+    #permFileName {
+      display: block;
+      margin-top: .25rem;
+      font-style: italic;
+      color: #6c757d;
+    }
+  </style>
+
 
   <title>MDConnecta</title>
 </head>
@@ -198,28 +208,42 @@ if (isset($_SESSION['usuario'])) {
                 <a>Campos Obligatorios *</a>
               </div>
               <form id="formFacturacion" enctype="multipart/form-data">
-                <input type="hidden" name="action" value="saveFac">
-                <input type="hidden" name="noEmpresa" id="noEmpresa" value="">
-                <input type="hidden" name="idDocumento" id="idDocumento">
+                <!--<input type="hidden" name="action" value="saveFac">-->
+                <input type="hidden" name="idDocumentoFac" id="idDocumentoFac">
                 <input type="hidden" name="idFat" id="idFat" value="0">
+
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label for="cerFile" class="form-label">Estado<input type="text" class="form-control form-control-sm" readonly tabindex="-1"></label>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="permFile" class="form-label">Fecha de Inicio del CSD<input type="text" class="form-control form-control-sm" readonly tabindex="-1"></label>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="keyPassword" class="form-label">Vencimiento del CSD<input type="text" class="form-control form-control-sm" readonly tabindex="-1"></label>
+                  </div>
+                </div>
 
                 <div class="row g-3">
                   <div class="col-md-4">
                     <label for="cerFile" class="form-label">Archivo CER *</label>
                     <input type="file" class="form-control form-control-sm" id="cerFile" name="cerFile" accept=".cer">
+                    <small id="cerFileName" class="form-text text-muted"></small>
                   </div>
                   <div class="col-md-4">
                     <label for="permFile" class="form-label">Archivo KEY *</label>
                     <input type="file" class="form-control form-control-sm" id="permFile" name="permFile" accept=".key">
+                    <small id="permFileName" class="form-text text-muted"></small>
                   </div>
+
                   <div class="col-md-4">
-                    <label for="keyPassword" class="form-label">Contraseña KEY *</label>
+                    <label for="keyPassword" class="form-label">Contraseña CSD *</label>
                     <input type="password" class="form-control form-control-sm" id="keyPassword" name="keyPassword">
                   </div>
                 </div>
 
                 <div class="mt-4 d-flex justify-content-end">
-                  <button type="submit" class="btn btn-success me-2" id="BtnguardarFac">Guardar</button>
+                  <button type="button" class="btn btn-success me-2" id="BtnguardarFac">Guardar</button>
                   <button type="button" class="btn btn-secondary">Cancelar</button>
                 </div>
               </form>
@@ -350,7 +374,7 @@ if (isset($_SESSION['usuario'])) {
   <script>
     $(document).ready(function() {
       informaEmpresa(); // Llamada a la función cuando la página de la empresa se ha cargado.
-      //infoFacturacion();
+      infoFacturacion();
     });
   </script>
   <script src="JS/menu.js"></script>

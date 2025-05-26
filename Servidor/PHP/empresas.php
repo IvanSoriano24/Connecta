@@ -1,5 +1,7 @@
 <?php
 require 'firebase.php';
+require __DIR__ . '/funciones.php';      // carga el autoloader
+use PhpCfdi\Credentials\Credential;      // importa la clase
 
 session_start(); // Iniciar sesión al inicio del archivo
 /*var_dump($_SESSION);
@@ -68,6 +70,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
+    } elseif ($action === 'factura') {
+        try {
+            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+            obtenerCsd($noEmpresa);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
     } elseif ($action === 'save') {
         try {
             $noEmpresa = obtenerNoEmpresa();
@@ -100,8 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'saveFac') {
         try {
-            $idDocumento = $_POST['idDocumento'];
-            $noEmpresa = $_POST['noEmpresa'];
+            $idDocumento = $_POST['idDocumentoFac'];
+            $noEmpresa = $_SESSION['empresa']['noEmpresa'];;
             $idFat     = $_POST['idFat'];
             $keyPass   = $_POST['keyPassword'];
             $baseDir = "../XML/sdk2/certificados/{$noEmpresa}/";
@@ -109,6 +118,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mkdir($baseDir, 0755, true);
             }
             $response = ['success' => true];
+            $result = probarCsd($keyPass, $baseDir);
+            if(!$result){
+                echo json_encode(['success' => false, 'message' => "No se pudo abrir los CSD"]);
+            }
             // procesar .cer
             if (isset($_FILES['cerFile']) && $_FILES['cerFile']['error'] === UPLOAD_ERR_OK) {
                 $dest = $baseDir . basename($_FILES['cerFile']['name']);
@@ -178,6 +191,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             //$noEmpresa = str_pad($_POST['noEmpresa'], 2, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
             $noEmpresa = $_POST['noEmpresa'];
             verificarNoEmpresa($noEmpresa);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    } elseif ($action === 'pruebaFac') {
+        try {
+            $idDocumento = $_POST['idDocumentoFac'];
+            $noEmpresa = $_SESSION['empresa']['noEmpresa'];;
+            $idFat     = $_POST['idFat'];
+            $keyPass   = $_POST['keyPassword'];
+            $baseDir = "../XML/sdk2/certificados/{$noEmpresa}/";
+            $result = probarCsd($keyPass, $baseDir);
+            if(!$result){
+                echo json_encode(['success' => false, 'message' => "No se pudo abrir los CSD"]);
+            } else{
+                echo json_encode(['success' => true, 'message' => "CSD correctos"]);
+            }
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
@@ -339,7 +368,60 @@ function obtenerEmpresa($noEmpresa)
         return responderJson(false, 'El número de empresa no fue proporcionado.');
     }
 }
+function obtenerCsd(int $noEmpresa)
+{
+    $rutaPrincipal = __DIR__ . "/../XML/sdk2/certificados/$noEmpresa/";
+    // Buscar .cer y .key en esa carpeta o subcarpetas
+    $archivoCer = glob($rutaPrincipal . "{*.cer,*/*.cer}", GLOB_BRACE);
+    $archivoKey = glob($rutaPrincipal . "{*.key,*/*.key}", GLOB_BRACE);
 
+    // Si no hay ambos archivos, salimos
+    if (empty($archivoCer) || empty($archivoKey)) {
+        echo json_encode(['success' => false, 'message' => "No se encontro los archivos"]);
+        return false;
+    }
+    // Obtener solo los nombres de los archivos usando basename
+    $archivoCerNames = array_map('basename', $archivoCer);
+    $archivoKeyNames = array_map('basename', $archivoKey);
+    // Recuperar la contraseña cifrada desde Firestore
+    $csd = obtenerContrasenaCSD($noEmpresa);
+    if (!$csd || !isset($csd['keyEncValue'], $csd['keyEncIv'])) {
+        echo json_encode(['success' => false, 'message' => "No se encontro la contrasena"]);
+        return false;
+    }
+
+    // Descifrarla
+    $password = decryptValue($csd['keyEncValue'], $csd['keyEncIv']);
+    $data = [
+        'cer' => $archivoCerNames,
+        'key' => $archivoKeyNames,
+        'pass' => $password
+    ];
+    echo json_encode(['success' => true, 'data' => $data]);
+}
+
+function obtenerContrasenaCSD($noEmpresa)
+{
+    global $firebaseProjectId, $firebaseApiKey;
+    $url = "https://firestore.googleapis.com/v1/projects/"
+        . "$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
+
+    $resp = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 10]]));
+    if ($resp === false) return false;
+
+    $data = json_decode($resp, true);
+    foreach ($data['documents'] ?? [] as $doc) {
+        $f = $doc['fields'] ?? [];
+        if (($f['noEmpresa']['integerValue'] ?? null) == $noEmpresa) {
+            return [
+                'idDocumento' => basename($doc['name']),
+                'keyEncValue' => $f['keyEncValue']['stringValue'] ?? null,
+                'keyEncIv'    => $f['keyEncIv']['stringValue']    ?? null,
+            ];
+        }
+    }
+    return false;
+}
 // Función para obtener los datos desde Firebase
 function obtenerDatosEmpresa($noEmpresa)
 {
@@ -526,39 +608,72 @@ function guardarEmpresa($data)
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
-function guardarDatosFactura(array $data)
+function probarCsd($keyPass, $baseDir)
+{
+    //$fechaActual = date();
+    $cerFile    = $baseDir . basename($_FILES['cerFile']['name']);
+    $keyFile    = $baseDir . basename($_FILES['permFile']['name']);
+    $passPhrase = $keyPass;
+
+    try {
+        // Abrimos los archivos .cer y .key
+        $credential  = Credential::openFiles($cerFile, $keyFile, $passPhrase);
+        $certificate = $credential->certificate();
+
+        // Obtenemos fechas de vigencia como DateTimeImmutable
+        /*$notBefore = $certificate->notBefore(); // inicio de vigencia
+        $notAfter  = $certificate->notAfter();  // fin de vigencia
+        $now       = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+
+        // ¿Está actualmente vigente?
+        $isValid = ($notBefore <= $now && $notAfter >= $now);*/
+
+        return true;
+    } catch (\Exception $e) {
+        // Cualquier error (contraseña, archivos mal formados, etc.)
+        return false;
+    }
+}
+function guardarDatosFactura($data)
 {
     global $firebaseProjectId, $firebaseApiKey;
-    $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
-
-    $documentoId = $data['idDocumento'];
-
-    // Construir la URL del documento encontrado para actualizarlo
-    $urlActualizar = "$urlBase/EMPRESAS/$documentoId?key=$firebaseApiKey";
-    // Ciframos la contraseña
+    $idDocumento = $data['idDocumento'];
+    // 1) Cifrar la contraseña
     $enc = encryptValue($data['keyPassword']);
-    // Preparamos los campos para Firestore
+    // $enc = ['value' => '<base64-ciphertext>', 'iv' => '<base64-iv>']
+
+    // 2) Construir payload solo con los dos campos que queremos crear/actualizar
     $fields = [
-        'keyEncValue'  => ['stringValue' => $enc['value']],
-        'keyEncIv'     => ['stringValue' => $enc['iv']],
+        'keyEncValue' => ['stringValue' => $enc['value']],
+        'keyEncIv'    => ['stringValue' => $enc['iv']]
     ];
     $payload = json_encode(['fields' => $fields], JSON_UNESCAPED_SLASHES);
+
+    // 3) PATCH con updateMask para que Firestore solo toque esos dos campos
+    $docPath = "projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS/$idDocumento";
+    $url = "https://firestore.googleapis.com/v1/$docPath"
+        . "?updateMask.fieldPaths=keyEncValue"
+        . "&updateMask.fieldPaths=keyEncIv"
+        . "&key=$firebaseApiKey";
+
     $ctx = stream_context_create([
         'http' => [
-            'method'  => "PATCH",
+            'method'  => 'PATCH',
             'header'  => "Content-Type: application/json\r\n",
-            'content' => $payload
+            'content' => $payload,
+            'timeout' => 10
         ]
     ]);
-    $resp = @file_get_contents($urlActualizar, false, $ctx);
+
+    $resp = @file_get_contents($url, false, $ctx);
     if ($resp === false) {
         $err = error_get_last();
-        throw new Exception("Firebase API error: " . $err['message']);
+        throw new \RuntimeException("Firebase API error: " . ($err['message'] ?? 'unknown'));
     }
-    // Devuelves al cliente el ID de documento nuevo o actualizado
+
     $obj = json_decode($resp, true);
     return [
-        'success' => true,
+        'success'      => true,
         'documentName' => $obj['name'] ?? null
     ];
 }
@@ -647,4 +762,23 @@ function listaEmpresas($nombreUsuario)
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al obtener las relaciones de empresas del usuario.']);
     }
+}
+function encryptValue(string $plaintext): array
+{
+    $key = FIREBASE_CRYPT_KEY;
+    $ivLen = openssl_cipher_iv_length('AES-256-CBC');
+    $iv = openssl_random_pseudo_bytes($ivLen);
+    $ciphertext = openssl_encrypt($plaintext, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+    return [
+        'iv' => base64_encode($iv),
+        'value' => base64_encode($ciphertext)
+    ];
+}
+
+function decryptValue(string $b64Cipher, string $b64Iv): string
+{
+    $key = FIREBASE_CRYPT_KEY;
+    $iv = base64_decode($b64Iv);
+    $cipher = base64_decode($b64Cipher);
+    return openssl_decrypt($cipher, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
 }
