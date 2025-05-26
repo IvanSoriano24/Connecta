@@ -232,12 +232,21 @@ function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
                 'estado' => $fields['estado']['stringValue'] ?? null,
                 'municipio' => $fields['municipio']['stringValue'] ?? null,
                 'codigoPostal' => $fields['codigoPostal']['stringValue'] ?? null,
-                'poblacion' => $fields['poblacion']['stringValue'] ?? null
+                'poblacion' => $fields['poblacion']['stringValue'] ?? null,
+                'keyEncValue' => $fields['keyEncValue']['stringValue'] ?? null,
+                'keyEncIv' => $fields['keyEncIv']['stringValue'] ?? null
             ];
         }
     }
 
     return false; // No se encontró la empresa
+}
+function decryptValue(string $b64Cipher, string $b64Iv): string
+{
+    $key = FIREBASE_CRYPT_KEY;
+    $iv = base64_decode($b64Iv);
+    $cipher = base64_decode($b64Cipher);
+    return openssl_decrypt($cipher, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
 }
 function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
 {
@@ -256,7 +265,10 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     $productosData = datosPartida($facturaID, $claveSae, $conexionData);
     $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
     $empresaData = datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey);
-
+    $password = decryptValue($empresaData['keyEncValue'], $empresaData['keyEncIv']);
+    $locacionArchivos = "../../certificados/$noEmpresa/";
+    $archivoCer = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
+    $archivoKey = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
     // Ruta del XML Timbrado
@@ -283,10 +295,9 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     /*$datos['conf']['cer'] = '../../certificados/00001000000513872236.cer';
     $datos['conf']['key'] = '../../certificados/CSD_unidad_LUHM920412GU2_20220708_132000.key';
     $datos['conf']['pass'] = 'CUSAr279';*/
-    $locacionArchivos = "../../certificados/$noEmpresa";
-    $datos['conf']['cer'] = '../../certificados/00001000000513872236.cer';
-    $datos['conf']['key'] = '../../certificados/CSD_unidad_LUHM920412GU2_20220708_132000.key';
-    $datos['conf']['pass'] = 'CUSAr279';
+    $datos['conf']['cer'] = $archivoCer;
+    $datos['conf']['key'] = $archivoKey;
+    $datos['conf']['pass'] = $password;
 
     // Datos de la Factura || $pedidoData['']
     $datos['factura']['condicionesDePago'] = $pedidoData['CONDICION'];
@@ -317,16 +328,16 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     /*$datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'ESCUELA KEMPER URGATE';  // EMPRESA DE PRUEBA
     $datos['emisor']['RegimenFiscal'] = '626';*/
-    $datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
+    /*$datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'MARCOS LUNA HERNANDEZ';  // EMPRESA DE PRUEBA
-    $datos['emisor']['RegimenFiscal'] = '612';
+    $datos['emisor']['RegimenFiscal'] = '612';*/
     /*$regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
         $datos['emisor']['RegimenFiscal'] = $matches[1];
     } else {
         $datos['emisor']['RegimenFiscal'] = $regimenStr;
     }*/
-    /*
+    
     // Datos del Emisor
     $datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = $empresaData['razonSocial'];  // EMPRESA DE PRUEBA
@@ -336,7 +347,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     } else {
         $datos['emisor']['RegimenFiscal'] = $regimenStr;
     }
-    */
+    
     // Datos del Receptor $clienteData['']
     $datos['receptor']['rfc'] = $clienteData['RFC'];
     $datos['receptor']['nombre'] = $clienteData['NOMBRE'];
