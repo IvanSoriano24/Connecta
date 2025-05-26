@@ -502,30 +502,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'usuarioSae' => $input['usuarioSae'],
                 'password' => $input['password'],
                 'nombreBase' => $input['nombreBase'],
-                'nombreBanco' => $input['nombreBanco'],
+                'nombreBanco' => $input['nombreBanco'] ?? "",
                 'claveSae' => $input['claveSae']
             ];
             $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
             if ($resultadoConexion['success']) {
                 $noTabla = $resultadoConexion['numeroTabla'];
-                $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
-                if ($resultadoBanco['success']) {
-                    $noCuenta = $resultadoBanco['NUM_REG'];
-                    $message = $resultadoBanco['message'];
-                    /*$resultado = [
+                if (isset($data['nombreBanco'])) {
+                    $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
+                    if ($resultadoBanco['success']) {
+                        $noCuenta = $resultadoBanco['NUM_REG'];
+                        $message = $resultadoBanco['message'];
+                        /*$resultado = [
                         'success' => true,
                         'numeroTabla' => $noTabla
                     ];*/
-                    //var_dump($noCuenta);
-                    echo json_encode(['success' => true, 'numeroTabla' => $noTabla, 'noCuenta' => $noCuenta, 'message' => $message]);
-                    return;
-                    //echo json_encode($resultado);
+                        //var_dump($noCuenta);
+                        echo json_encode(['success' => true, 'numeroTabla' => $noTabla, 'noCuenta' => $noCuenta, 'message' => $message]);
+                        return;
+                        //echo json_encode($resultado);
+                    } else {
+                        $noCuenta = $resultadoBanco['NUM_REG'] || 0;
+                        $message = $resultadoBanco['message'];
+                        echo json_encode(['success' => false, 'stp' => $resultadoBanco['stp'], 'numeroTabla' => $noTabla, 'noCuenta' => $noCuenta, 'message' => $resultadoBanco['message']]);
+                        //echo json_encode(['success' => false, 'stp' => $resultadoBanco['stp'], 'numeroTabla' => $noTabla, 'message' => $resultadoBanco['message']]);
+                        return;
+                    }
                 } else {
-                    $noCuenta = $resultadoBanco['NUM_REG'] || 0;
-                    $message = $resultadoBanco['message'];
-                    echo json_encode(['success' => false, 'stp' => $resultadoBanco['stp'], 'numeroTabla' => $noTabla, 'noCuenta' => $noCuenta, 'message' => $resultadoBanco['message']]);
-                    //echo json_encode(['success' => false, 'stp' => $resultadoBanco['stp'], 'numeroTabla' => $noTabla, 'message' => $resultadoBanco['message']]);
-                    return;
+                    $message = "Conexion realizada sin Banco";
+                    echo json_encode(['success' => true, 'numeroTabla' => $noTabla, 'noCuenta' => 0, 'message' => $message]);
                 }
             } else {
                 echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
@@ -576,29 +581,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'usuarioSae' => $input['usuarioSae'],
                 'password' => $input['password'],
                 'nombreBase' => $input['nombreBase'],
-                'nombreBanco' => $input['nombreBanco'],
+                'nombreBanco' => $input['nombreBanco'] ?? "",
                 'noEmpresa' => $input['noEmpresa'],
                 'claveSae' => $input['claveSae']
             ];
-            $csrf_token_form = $input['token'];
+            /*$csrf_token_form = $input['token'];
             $csrf_token  = $_SESSION['csrf_token'];
-            if ($csrf_token === $csrf_token_form) {
+            if ($csrf_token === $csrf_token_form) {*/
                 $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase'], $data['claveSae']);
                 if ($resultadoConexion['success']) {
-                    $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
-                    if ($resultadoBanco['success']) {
-                        $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion, $resultadoBanco);
-                        echo json_encode($resultadoGuardar);
+                    if (isset($data['nombreBanco'])) {
+                        $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
+                        if ($resultadoBanco['success']) {
+                            $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion, $resultadoBanco);
+                            echo json_encode($resultadoGuardar);
+                        } else {
+                            echo json_encode(['success' => false, 'message' => $resultadoBanco['message']]);
+                        }
                     } else {
-                        echo json_encode(['success' => false, 'message' => $resultadoBanco['message']]);
+                        $message = "Conexion realizada sin Banco";
+                    echo json_encode(['success' => true, 'numeroTabla' => $noTabla, 'noCuenta' => 0, 'message' => $message]);
+                    return;
                     }
                 } else {
                     echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
                 }
-            } else {
+            /*} else {
                 echo json_encode(['success' => false, 'message' => 'Error en la sesion']);
                 return;
-            }
+            }*/
             break;
 
         case 'mostrar':
