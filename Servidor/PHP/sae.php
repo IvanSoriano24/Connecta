@@ -392,7 +392,8 @@ function guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocument
         'idDocumento' => $documentIdNuevo
     ];
 }*/
-function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion){
+function guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion)
+{
     $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
 
     // URL para buscar en la colección EMP_USS
@@ -597,13 +598,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase']);
             if ($resultadoConexion['success']) {
-                
                 $noTabla = $resultadoConexion['numeroTabla'];
                 $noCuenta = 0;
                 $message = "Conexecion Exitosa";
-                echo json_encode(['success' => true, 'numeroTabla' => $noTabla, 'noCuenta' => $noCuenta, 'message' => $message]);
-                        return;
-                if (isset($data['nombreBanco'])) {
+                if (!empty($data['nombreBanco'])) {
                     $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
                     if ($resultadoBanco['success']) {
                         $noCuenta = $resultadoBanco['NUM_REG'];
@@ -611,7 +609,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         /*$resultado = [
                         'success' => true,
                         'numeroTabla' => $noTabla
-                    ];*/
+                        ];*/
                         //var_dump($noCuenta);
                         echo json_encode(['success' => true, 'numeroTabla' => $noTabla, 'noCuenta' => $noCuenta, 'message' => $message]);
                         return;
@@ -685,23 +683,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($csrf_token === $csrf_token_form) {*/
             $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase']);
             if ($resultadoConexion['success']) {
-                //$resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion, $resultadoBanco);
-                $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion);
-                echo json_encode($resultadoGuardar);
-                return;
-                /*if (isset($data['nombreBanco'])) {
-                        $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
-                        if ($resultadoBanco['success']) {
-                            $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion, $resultadoBanco);
-                            echo json_encode($resultadoGuardar);
-                        } else {
-                            echo json_encode(['success' => false, 'message' => $resultadoBanco['message']]);
-                        }
+                if (!empty($data['nombreBanco'])) {
+                    $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
+                    if ($resultadoBanco['success']) {
+                        $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion, $resultadoBanco);
+                        echo json_encode($resultadoGuardar);
                     } else {
-                        $message = "Conexion realizada sin Banco";
-                    echo json_encode(['success' => true, 'numeroTabla' => $noTabla, 'noCuenta' => 0, 'message' => $message]);
+                        echo json_encode(['success' => false, 'message' => $resultadoBanco['message']]);
+                    }
+                } else {
+                    $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion);
+                    echo json_encode($resultadoGuardar);
                     return;
-                    }*/
+                }
             } else {
                 echo json_encode(['success' => false, 'message' => $resultadoConexion['message']]);
             }
