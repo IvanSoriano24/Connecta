@@ -57,6 +57,36 @@ function informaEmpresa() {
     console.error("Error en la petición:", textStatus, errorThrown);
   });
 }
+function infoFacturacion() {
+  const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
+  $.post(
+    "../Servidor/PHP/empresas.php",
+    {
+      action: "factura",
+      noEmpresa: noEmpresa,
+    },
+    function (response) {
+      if (response.success && response.data) {
+        const data = response.data;
+
+        // Verifica la estructura de los datos en el console.log
+        //console.log(data);  // Esto te mostrará el objeto completo
+        $("#cerFile").val(data.cerFile);
+        $("#permFile").val(data.permFile);
+        $("#keyPassword").val(data.keyPassword);
+      } else {
+        console.warn(
+          "Error:",
+          response.message || "Error al obtener las empresas."
+        );
+        alert(response.message || "Error al obtener las empresas.");
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Error en la petición:", textStatus, errorThrown);
+  });
+}
 function mostrarRegimen(clave, rfc) {
   $.ajax({
     url: "../Servidor/PHP/empresas.php",
@@ -274,6 +304,31 @@ function guardarEmpresaNew() {
         icon: "error",
       });
     },
+  });
+}
+function guardarDatosFacturacion() {
+  const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
+  $("#noEmpresa").val(noEmpresa);
+  const form = document.getElementById("formFacturacion");
+  const formData = new FormData(form);
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    type: "POST",
+    data: formData,
+    processData: false,  
+    contentType: false,
+    dataType: "json",
+    success(response) {
+      if (response.success) {
+        Swal.fire("¡Éxito!", "Documento guardado correctamente.", "success");
+      } else {
+        Swal.fire("Error", response.message, "error");
+      }
+    },
+    error(xhr, status, error) {
+      console.error("Error al enviar la solicitud", error);
+      Swal.fire("Error", "Ocurrió un error al guardar los archivos.", "error");
+    }
   });
 }
 // Función para guardar o actualizar la empresa
@@ -1090,6 +1145,10 @@ $(document).ready(function () {
   // Eliminar empresa
   $("#eliminarEmpresa").click(function () {
     eliminarEmpresa();
+  });
+  $("#guardarEmpresa").click(function () {
+    event.preventDefault();
+    guardarDatosFacturacion();
   });
   /*$('#infoSae').click(function () {
         infoSae();

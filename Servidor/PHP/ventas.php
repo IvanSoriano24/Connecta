@@ -2668,8 +2668,7 @@ function obtenerProductos($conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $claveSae)
-{
+/*function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2709,6 +2708,83 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
     // Liberar recursos y cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
+}*/
+function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioCliente, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+
+    // Determinar la lista a usar
+    $listaOriginal = $listaPrecioCliente ? intval($listaPrecioCliente) : 1;
+    $listaUsada    = $listaOriginal; 
+    $tablaPrecio   = "[{$conexionData['nombreBase']}].[dbo].[PRECIO_X_PROD" 
+                    . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // 1) Consultar el precio en la lista solicitada
+    $sql = "SELECT [PRECIO] FROM $tablaPrecio
+            WHERE [CVE_ART] = ? AND [CVE_PRECIO] = ?";
+    $params = [ trim($claveProducto), $listaOriginal ];
+    $stmt   = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error en la consulta inicial',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+
+    $precio = null;
+    if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $precio = (float)$row['PRECIO'];
+    }
+    sqlsrv_free_stmt($stmt);
+
+    // 2) Si salió cero y no es la lista 1, volver a consultar con lista 1
+    if ($precio === 0.0 && $listaOriginal !== 1) {
+        $listaUsada = 1;
+        $stmt = sqlsrv_query($conn, $sql, [ trim($claveProducto), 1 ]);
+        if ($stmt === false) {
+            die(json_encode([
+                'success' => false,
+                'message' => 'Error al reconsultar lista 1',
+                'errors'  => sqlsrv_errors()
+            ]));
+        }
+        if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            $precio = (float)$row['PRECIO'];
+        }
+        sqlsrv_free_stmt($stmt);
+    }
+
+    sqlsrv_close($conn);
+    header('Content-Type: application/json');
+
+    if ($precio !== null) {
+        echo json_encode([
+            'success'   => true,
+            'precio'    => $precio,
+            'listaUsada'=> $listaUsada
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No se encontró el precio del producto en ninguna lista.'
+        ]);
+    }
 }
 function obtenerImpuesto($conexionData, $cveEsqImpu, $claveSae)
 {
@@ -7294,8 +7370,8 @@ switch ($funcion) {
         if (isset($_SESSION['empresa']['noEmpresa'])) {
             $claveSae = $_SESSION['empresa']['claveSae'];
         } else {
-            //$claveSae = "02";
-            $claveSae = "01";
+            $claveSae = "02";
+            //$claveSae = "01";
         }
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {

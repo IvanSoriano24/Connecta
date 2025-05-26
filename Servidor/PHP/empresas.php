@@ -74,8 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             /*var_dump($noEmpresa['id']+1);
             die;*/
             //noEmpresa = str_pad($_POST['noEmpresa'], 2, '0', STR_PAD_LEFT);
-            $id = $noEmpresa['id']+1;
-            $empre = $noEmpresa['noEmpresa']+1;
+            $id = $noEmpresa['id'] + 1;
+            $empre = $noEmpresa['noEmpresa'] + 1;
             $data = [
                 'id' => $id,
                 'noEmpresa' => $empre,
@@ -95,6 +95,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'poblacion' => $_POST['poblacion']
             ];
             guardarEmpresa($data);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    } elseif ($action === 'saveFac') {
+        try {
+            $idDocumento = $_POST['idDocumento'];
+            $noEmpresa = $_POST['noEmpresa'];
+            $idFat     = $_POST['idFat'];
+            $keyPass   = $_POST['keyPassword'];
+            $baseDir = "../XML/sdk2/certificados/{$noEmpresa}/";
+            if (!is_dir($baseDir)) {
+                mkdir($baseDir, 0755, true);
+            }
+            $response = ['success' => true];
+            // procesar .cer
+            if (isset($_FILES['cerFile']) && $_FILES['cerFile']['error'] === UPLOAD_ERR_OK) {
+                $dest = $baseDir . basename($_FILES['cerFile']['name']);
+                if (!move_uploaded_file($_FILES['cerFile']['tmp_name'], $dest)) {
+                    $response = ['success' => false, 'message' => "No pude mover el .cer"];
+                }
+            } else {
+                $response = ['success' => false, 'message' => "Error al subir el .cer"];
+            }
+            // procesar .key
+            if ($response['success'] && isset($_FILES['permFile']) && $_FILES['permFile']['error'] === UPLOAD_ERR_OK) {
+                $dest = $baseDir . basename($_FILES['permFile']['name']);
+                if (!move_uploaded_file($_FILES['permFile']['tmp_name'], $dest)) {
+                    $response = ['success' => false, 'message' => "No pude mover el .key"];
+                }
+            } else {
+                if ($response['success'])
+                    $response = ['success' => false, 'message' => "Error al subir el .key"];
+            }
+
+            if ($response['success']) {
+                // aquí guardas en Firebase o BD la ruta y la contraseña
+                guardarDatosFactura([
+                    'idFat'      => $idFat,
+                    'noEmpresa'  => $noEmpresa,
+                    'cerPath'    => $baseDir . $_FILES['cerFile']['name'],
+                    'keyPath'    => $baseDir . $_FILES['permFile']['name'],
+                    'keyPassword' => $keyPass,
+                    'idDocumento' => $idDocumento
+                ]);
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode($response);
+            }
+            exit;
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
@@ -177,12 +226,11 @@ function obtenerNoEmpresa()
             usort($empresas, function ($a, $b) {
                 return strcmp($a['noEmpresa'], $b['noEmpresa']);
             });
-        
+
             $ultimoDato = end($empresas); // Obtiene el último dato del arreglo ordenado
-        
+
             return $ultimoDato; // Retorna solo el último dato
-        }
-         else {
+        } else {
             return json_encode(['success' => false, 'message' => 'El usuario no tiene empresas asociadas.']);
         }
     } else {
@@ -478,7 +526,42 @@ function guardarEmpresa($data)
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
+function guardarDatosFactura(array $data)
+{
+    global $firebaseProjectId, $firebaseApiKey;
+    $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
 
+    $documentoId = $data['idDocumento'];
+
+    // Construir la URL del documento encontrado para actualizarlo
+    $urlActualizar = "$urlBase/EMPRESAS/$documentoId?key=$firebaseApiKey";
+    // Ciframos la contraseña
+    $enc = encryptValue($data['keyPassword']);
+    // Preparamos los campos para Firestore
+    $fields = [
+        'keyEncValue'  => ['stringValue' => $enc['value']],
+        'keyEncIv'     => ['stringValue' => $enc['iv']],
+    ];
+    $payload = json_encode(['fields' => $fields], JSON_UNESCAPED_SLASHES);
+    $ctx = stream_context_create([
+        'http' => [
+            'method'  => "PATCH",
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => $payload
+        ]
+    ]);
+    $resp = @file_get_contents($urlActualizar, false, $ctx);
+    if ($resp === false) {
+        $err = error_get_last();
+        throw new Exception("Firebase API error: " . $err['message']);
+    }
+    // Devuelves al cliente el ID de documento nuevo o actualizado
+    $obj = json_decode($resp, true);
+    return [
+        'success' => true,
+        'documentName' => $obj['name'] ?? null
+    ];
+}
 function sesionEmpresa($data)
 {
     // Guardar la empresa en la sesión
@@ -544,7 +627,7 @@ function listaEmpresas($nombreUsuario)
                     ];
                 }
             }
-            
+
             if (count($empresas) > 0) {
                 // Ordenar por razón social si es necesario
                 usort($empresas, function ($a, $b) {

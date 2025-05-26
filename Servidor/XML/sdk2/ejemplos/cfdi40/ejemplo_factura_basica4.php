@@ -280,6 +280,10 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     /*$datos['conf']['cer'] = '../../certificados/EKU9003173C9.cer';
     $datos['conf']['key'] = '../../certificados/EKU9003173C9.key';
     $datos['conf']['pass'] = '12345678a';*/
+    /*$datos['conf']['cer'] = '../../certificados/00001000000513872236.cer';
+    $datos['conf']['key'] = '../../certificados/CSD_unidad_LUHM920412GU2_20220708_132000.key';
+    $datos['conf']['pass'] = 'CUSAr279';*/
+    $locacionArchivos = "../../certificados/$noEmpresa";
     $datos['conf']['cer'] = '../../certificados/00001000000513872236.cer';
     $datos['conf']['key'] = '../../certificados/CSD_unidad_LUHM920412GU2_20220708_132000.key';
     $datos['conf']['pass'] = 'CUSAr279';

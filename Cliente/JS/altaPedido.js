@@ -242,14 +242,19 @@ async function obtenerImpuesto(cveEsqImpu) {
 async function completarPrecioProducto(cveArt, filaTabla) {
   try {
     // Obtener la lista de precios correctamente
-    const listaPrecioElement = filaTabla.querySelector(".listaPrecios");
+    const listaPrecioElement = document.getElementById("listaPrecios");
+    console.log(listaPrecioElement.value);
     let descuento = filaTabla.querySelector(".descuento");
     const descuentoCliente = document.getElementById("descuentoCliente").value;
     descuento.value = descuentoCliente;
-    descuento.readOnly = false;
+    //descuento.readOnly = false;
     const cvePrecio = listaPrecioElement ? listaPrecioElement.value : "1";
     // Obtener el precio del producto
-    const precio = await obtenerPrecioProducto(cveArt, cvePrecio);
+    const resultado = await obtenerPrecioProducto(cveArt, cvePrecio);
+    if (!resultado) return;
+
+    const { precio, listaUsada } = resultado;
+
     if (!precio) {
       Swal.fire({
         title: "Aviso",
@@ -259,6 +264,9 @@ async function completarPrecioProducto(cveArt, filaTabla) {
       });
       //alert("No se pudo obtener el precio del producto.");
       return;
+    }
+    if(listaUsada != 1){
+      descuento.value = 0;
     }
     // Seleccionar el input correspondiente dentro de la fila
     const precioInput = filaTabla.querySelector(".precioUnidad");
@@ -314,7 +322,12 @@ async function obtenerPrecioProducto(claveProducto, listaPrecioCliente) {
       listaPrecioCliente: listaPrecioCliente,
     });
     if (response.success) {
-      return response.precio; // Retorna el precio
+      //console.log(response);
+      return {
+      precio: parseFloat(response.precio),
+      listaUsada: response.listaUsada
+    };
+
     } else {
       Swal.fire({
         title: "Aviso",
