@@ -38,7 +38,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
                     'usuario' => $fields['usuario']['stringValue'],
                     'password' => $fields['password']['stringValue'],
                     'nombreBase' => $fields['nombreBase']['stringValue'],
-                    'nombreBanco' => $fields['nombreBanco']['stringValue'],
+                    'nombreBanco' => $fields['nombreBanco']['stringValue'] ?? "",
                     'claveSae' => $fields['claveSae']['stringValue'],
                 ]
             ];
