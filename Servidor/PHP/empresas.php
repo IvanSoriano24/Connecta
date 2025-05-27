@@ -105,7 +105,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'codigoPostal' => $_POST['codigoPostal'],
                 'poblacion' => $_POST['poblacion']
             ];
+            mkdir("../XML/sdk2/certificados/$id/", 0700);
             guardarEmpresa($data);
+
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
@@ -371,8 +373,7 @@ function obtenerEmpresa($noEmpresa)
     }
 }
 
-function obtenerCsd($noEmpresa)
-{
+function obtenerCsd($noEmpresa){
     $rutaPrincipal = __DIR__ . "/../XML/sdk2/certificados/$noEmpresa/";
     // Buscar .cer y .key en esa carpeta o subcarpetas
     $archivoCer = glob($rutaPrincipal . "{*.cer,*/*.cer}", GLOB_BRACE);
@@ -606,8 +607,7 @@ function actualizarEmpresa($data)
 }
 
 // Función para guardar o actualizar empresa
-function guardarEmpresa($data)
-{
+function guardarEmpresa($data){
     global $firebaseProjectId, $firebaseApiKey;
 
     $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";

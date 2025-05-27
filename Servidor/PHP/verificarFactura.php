@@ -365,8 +365,8 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
 
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -391,7 +391,7 @@ function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
         echo 'Error cURL: ' . curl_error($ch);
     }
     curl_close($ch);
-    var_dump($facturaResponse);
+    var_dump("respuestaCfdi: ", $facturaResponse);
     return $facturaResponse;
 }
 
@@ -1060,13 +1060,12 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                     //Funcion para crear factura
                     if ($pagada) {
                         //$folioFactura = $folioFactura['folioFactura1'];
-                        //$folioFactura = 18904;
                         //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
                         $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
-                        //var_dump($folioFactura);
+                        //var_dump("folioFactura: ", $folioFactura);
                         actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
                         $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
-                        //var_dump("Respuesta: ", $respuestaFactura);
+                        var_dump("Respuesta: ", $respuestaFactura);
                         if ($respuestaFactura['Succes']) { 
                             $bandera = 1;
                             actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
@@ -1075,7 +1074,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                         } else {
                             $bandera = 0;
                             //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                            enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
+                            //enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
                         }
                     }
                 }

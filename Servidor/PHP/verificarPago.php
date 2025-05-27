@@ -795,7 +795,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                             //cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                             //var_dump($pagado);
                             //eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
-                            restarSaldo($conexionData, $claveSae, $pagado, $cliente);
+                            //restarSaldo($conexionData, $claveSae, $pagado, $cliente);
                             var_dump($cliente);
                             //crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
                             //crearRemision($folio, $claveSae, $noEmpresa, $vendedor);

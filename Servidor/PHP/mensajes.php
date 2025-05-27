@@ -155,19 +155,19 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                 // Aplicar el filtro de estado si está definido
                 if ($filtroStatus === '' || $status === $filtroStatus) {
                     if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
-                    $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
-                    $fecha = $fechaHora[0];
-                    $hora = $fechaHora[1];
+                        $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
+                        $fecha = $fechaHora[0];
+                        $hora = $fechaHora[1];
 
-                    $comandas[] = [
-                        'id' => basename($document['name']),
-                        'noPedido' => $fields['folio']['stringValue'],
-                        'nombreCliente' => $fields['nombreCliente']['stringValue'],
-                        'status' => $status,
-                        'fecha' => $fecha,
-                        'hora' => $hora
-                    ];
-                }
+                        $comandas[] = [
+                            'id' => basename($document['name']),
+                            'noPedido' => $fields['folio']['stringValue'],
+                            'nombreCliente' => $fields['nombreCliente']['stringValue'],
+                            'status' => $status,
+                            'fecha' => $fecha,
+                            'hora' => $hora
+                        ];
+                    }
                 }
             }
         }
@@ -250,7 +250,8 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
         echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.', 'response' => $result, 'data' => $data]);
     }
 }
-function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId){
+function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
 
     // Datos de actualización en Firebase
@@ -395,7 +396,6 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
                     ];
                 }
             } else {
-
             }
         }
         // Ordenar los pedidos por totalPedido de manera descendente
@@ -705,7 +705,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     $enviarA = $pedidoInfo['enviar']; // Dirección de envío
     $vendedor = $pedidoInfo['vendedor']; // Número de vendedor
     $claveCliente = $pedidoInfo['claveCliente'];
-    
+
     $clave = formatearClaveCliente($claveCliente);
     $noPedido = $folio; // Número de pedido
     /*$claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
