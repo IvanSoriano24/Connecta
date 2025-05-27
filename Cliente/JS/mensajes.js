@@ -372,7 +372,8 @@ function mostrarModal(comandaId) {
         // Cargar el ID en el campo oculto
         $("#detalleIdComanda").val(comanda.id);
 
-        // Cargar los datos en los inputs
+        // Cargar los datos en los inputs 
+        $("#activada").val(comanda.activada);
         $("#detalleNoPedido").val(comanda.noPedido);
         $("#detalleNombreCliente").val(comanda.nombreCliente);
         $("#detalleStatus").val(comanda.status);

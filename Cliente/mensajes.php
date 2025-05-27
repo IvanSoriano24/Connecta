@@ -241,6 +241,8 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="text" id="detalleNoPedido" class="form-control form-control-sm"
                                                 readonly>
                                         </div>
+                                        <input type="hidden" id="activada"
+                                                class="form-control form-control-sm" readonly>
                                         <div class="col-md-6 mb-2">
                                             <label for="detalleNombreCliente" class="form-label">Nombre
                                                 Cliente:</label>
@@ -471,6 +473,7 @@ if (isset($_SESSION['usuario'])) {
             /****/
             $("#btnTerminar").click(function() {
                 const comandaId = $("#detalleIdComanda").val();
+                const activada = $("#activada").val();
                 const numGuia = $("#numGuia").val().trim(); // Obtener y limpiar espacios en la guía
                 const token = $("#csrf_token_C").val().trim();
                 // Validar que el Número de Guía no esté vacío y tenga exactamente 9 dígitos
@@ -482,7 +485,11 @@ if (isset($_SESSION['usuario'])) {
                     return; // Detener el proceso si la validación falla
                 }
                 const horaActual = new Date().getHours(); // Obtener la hora actual en formato 24h
-                const enviarHoy = horaActual < 15; // Antes de las 3 PM
+                if(activada){
+                    const enviarHoy = true;
+                }else{
+                    const enviarHoy = horaActual < 15; // Antes de las 3 PM
+                }
                 $.post(
                     "../Servidor/PHP/mensajes.php", {
                         numFuncion: "3",

@@ -208,7 +208,8 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
                 'fecha' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[0],
                 'hora' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[1],
                 'numGuia' => $fields['numGuia']['stringValue'] ?? "",
-                'productos' => $productos
+                'productos' => $productos,
+                'activada' => $fields['activada']['booleanValue'] ?? false
             ]
         ]);
     }
@@ -217,7 +218,6 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
 
-    // Obtener la fecha de envío
     $fechaEnvio = $enviarHoy ? date('Y-m-d') : date('Y-m-d', strtotime('+1 day')); // Hoy o mañana
 
     // Datos de actualización en Firebase
@@ -250,19 +250,19 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
         echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.', 'response' => $result, 'data' => $data]);
     }
 }
-function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
-{
+function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
 
     // Datos de actualización en Firebase
     $data = [
         'fields' => [
-            'status' => ['stringValue' => 'Abierta']
+            'status' => ['stringValue' => 'Abierta'],
+            'activada' => ['booleanValue' => true]
         ]
     ];
 
     // Agregar `updateMask` para actualizar solo los campos indicados
-    $url .= '&updateMask.fieldPaths=status';
+    $url .= '&updateMask.fieldPaths=status&updateMask.fieldPaths=activada';
 
     $context = stream_context_create([
         'http' => [
