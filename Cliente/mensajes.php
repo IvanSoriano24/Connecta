@@ -242,7 +242,7 @@ if (isset($_SESSION['usuario'])) {
                                                 readonly>
                                         </div>
                                         <input type="hidden" id="activada"
-                                                class="form-control form-control-sm" readonly>
+                                            class="form-control form-control-sm" readonly>
                                         <div class="col-md-6 mb-2">
                                             <label for="detalleNombreCliente" class="form-label">Nombre
                                                 Cliente:</label>
@@ -278,14 +278,13 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                     </div>
                                     <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Datos de Envío</label>
-                                        <button 
-                                        type="button"
-                                        id="datEnvio"
-                                        class="btn btn-outline-primary btn-sm w-100"
-                                        >Mostrar datos de envío</button>
-                                    </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Datos de Envío</label>
+                                            <button
+                                                type="button"
+                                                id="datEnvio"
+                                                class="btn btn-outline-primary btn-sm w-100">Mostrar datos de envío</button>
+                                        </div>
                                     </div>
                                     <div class="row d-none" id="datosEnvio"> <!-- style="display: none;" -->
                                         <div class="col-md-6">
@@ -485,10 +484,11 @@ if (isset($_SESSION['usuario'])) {
                     return; // Detener el proceso si la validación falla
                 }
                 const horaActual = new Date().getHours(); // Obtener la hora actual en formato 24h
-                if(activada){
-                    const enviarHoy = true;
-                }else{
-                    const enviarHoy = horaActual < 15; // Antes de las 3 PM
+                let enviarHoy;
+                if (activada) {
+                    enviarHoy = true;
+                } else {
+                    enviarHoy = horaActual < 15;
                 }
                 $.post(
                     "../Servidor/PHP/mensajes.php", {

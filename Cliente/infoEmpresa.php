@@ -111,7 +111,7 @@ if (isset($_SESSION['usuario'])) {
                 <div class="form-row">
                   <!-- <a class='bx bx-message-rounded-error'></a> -->
                   <label for="razonSocial">Razón Social: <a class='bx'> *</a></label>
-                  <input class="input-m" type="text" name="razonSocial" id="razonSocial" values="" readonly>
+                  <input class="input-m" type="text" name="razonSocial" id="razonSocial" values="">
                 </div>
 
                 <div class="form-row">
@@ -226,7 +226,7 @@ if (isset($_SESSION['usuario'])) {
                     <input type="text" class="form-control form-control-sm" id="fechaVencimientoCsd" name="fechaVencimientoCsd" readonly1 tabindex="-1">
                   </div>
                 </div>
-
+                <br>
                 <div class="row g-3">
                   <div class="col-md-4">
                     <label for="cerFile" class="form-label">Archivo CER *</label>
@@ -241,12 +241,16 @@ if (isset($_SESSION['usuario'])) {
 
                   <div class="col-md-4">
                     <label for="keyPassword" class="form-label">Contraseña CSD *</label>
-                    <input type="password" class="form-control form-control-sm" id="keyPassword" name="keyPassword">
+                    <input type="password" class="form-control form-control-sm " id="keyPassword" name="keyPassword">
+                    <br>
+                    <div class="password-container">
+                      <button type="button" class="show-password" id="togglePassword">Mostrar</button>
+                    </div>
                   </div>
                 </div>
 
                 <div class="form-buttons">
-                  <button type="button" class="btn-probarco" id="probarCsd">Probar Conexion</button>
+                  <button type="button" class="btn-probarco" id="probarCsd">Probar CSD</button>
                   <button type="button" class="btn btn-success me-2" id="BtnguardarFac">Guardar</button>
                   <button type="button" class="btn btn-secondary">Cancelar</button>
                 </div>
@@ -379,6 +383,17 @@ if (isset($_SESSION['usuario'])) {
     $(document).ready(function() {
       informaEmpresa(); // Llamada a la función cuando la página de la empresa se ha cargado.
       infoFacturacion();
+    });
+  </script>
+  <script>
+    document.getElementById("togglePassword").addEventListener("click", function() {
+      let passwordInput = document.getElementById("keyPassword");
+
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+      } else {
+        passwordInput.type = "password";
+      }
     });
   </script>
   <script src="JS/menu.js"></script>

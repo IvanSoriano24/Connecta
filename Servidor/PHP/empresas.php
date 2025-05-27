@@ -538,8 +538,7 @@ function responderJson($success, $message, $data = null)
     exit;
 }
 
-function actualizarEmpresa($data)
-{
+function actualizarEmpresa($data){
     global $firebaseProjectId, $firebaseApiKey;
 
     $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
@@ -595,9 +594,9 @@ function actualizarEmpresa($data)
             'id' => $data['id'],
             'noEmpresa' => $data['noEmpresa'],
             'razonSocial' => $data['razonSocial'],
-            'claveUsuario' => $_SESSION['empresa']['claveUsuario'],
-            'claveSae' => $_SESSION['empresa']['claveSae'],
-            'contrasena' => $_SESSION['empresa']['contrasena'],
+            'claveUsuario' => $_SESSION['empresa']['claveUsuario'] ?? 0,
+            'claveSae' => $_SESSION['empresa']['claveSae'] ?? 0,
+            'contrasena' => $_SESSION['empresa']['contrasena'] ?? 0,
         ];
 
         echo json_encode(['success' => true, 'message' => 'Documento actualizado correctamente y sesión de empresa actualizada.']);
