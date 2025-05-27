@@ -187,17 +187,17 @@ if (isset($_SESSION['usuario'])) {
         <main class="text-center">
           <div class="btn-group mb-4" role="group">
             <button type="button" class="btn btn-primary" id="btnInfoFac">Información General</button>
-            <button type="button" class="btn btn-primary" id="btnFactFac">Datos de Facturación</button>
+            <button type="button" class="btn btn-primary" id="btnFactFac">Información Fiscal</button>
           </div>
           <div class="head-title">
             <div class="left">
-              <h1>Datos de Facturación</h1>
+              <h1>Datos Fiscales</h1>
               <ul class="breadcrumb">
                 <li><a href="Dashboard.php">Inicio</a></li>
                 <li><i class='bx bx-chevron-right'></i></li>
                 <li><a href="#">Información Empresa</a></li>
                 <li><i class='bx bx-chevron-right'></i></li>
-                <li><a href="#">Datos Facturación</a></li>
+                <li><a href="#">Datos Fiscales</a></li>
               </ul>
             </div>
           </div>
@@ -245,7 +245,7 @@ if (isset($_SESSION['usuario'])) {
                   </div>
                 </div>
 
-                <div class="mt-4 d-flex justify-content-end">
+                <div class="form-buttons">
                   <button type="button" class="btn-probarco" id="probarCsd">Probar Conexion</button>
                   <button type="button" class="btn btn-success me-2" id="BtnguardarFac">Guardar</button>
                   <button type="button" class="btn btn-secondary">Cancelar</button>

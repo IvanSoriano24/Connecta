@@ -474,13 +474,13 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
         header('Content-Type: application/json');
         echo json_encode([
-            "Succes" => true
+            "success" => true
         ]);
         return;
     } else {
         header('Content-Type: application/json');
         echo json_encode([
-            "Succes" => false,
+            "success" => false,
             "Problema" => $res['mensaje_original_pac_json']
             //"Problema" => $res['codigo_mf_texto']
         ]);
@@ -498,10 +498,10 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
 }
 //http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
 //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
-/*$cve_doc = $_POST['cve_doc'];
+$cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
 $claveSae = $_POST['claveSae'];
-$factura = $_POST['factura'];*/
+$factura = $_POST['factura'];
 /*$cve_doc = 19098;
 $noEmpresa = 2;
 $claveSae = 02;

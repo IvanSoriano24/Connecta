@@ -811,4 +811,4 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
     }
 }
 
-verificarPedidos($firebaseProjectId, $firebaseApiKey);
+//verificarPedidos($firebaseProjectId, $firebaseApiKey);

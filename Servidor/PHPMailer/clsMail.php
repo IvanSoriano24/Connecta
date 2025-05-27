@@ -11,8 +11,11 @@ class clsMail
 {
     private $mail;
 
-    private $defaultUser = 'betovargas584@gmail.com'; // Correo por defecto
-    private $defaultPass = 'tbkn bjyu segx vcgm'; // Contraseña por defecto
+    /*private $defaultUser = 'betovargas584@gmail.com'; // Correo por defecto
+    private $defaultPass = 'tbkn bjyu segx vcgm'; // Contraseña por defecto*/
+
+    private $defaultUser = 'mdc2401042j9@gmail.com'; // Correo por defecto
+    private $defaultPass = 'byxj qfob tdvj vbbw'; // Contraseña por defecto
 
     //private $defaultUser = 'servicioalcliente@grupointerzenda.com'; // Correo por defecto
     //private $defaultPass = 'aB159263#1#'; // Contraseña por defecto
