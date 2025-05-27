@@ -891,6 +891,77 @@ function obtenerRegimen() {
     },
   });
 }
+function obtenerRegimenAc() {
+  // Obtener el valor del RFC y quitar espacios en blanco
+  const rfc = $("#rfc").val().trim();
+
+  // Si el RFC es muy corto, deshabilitamos el select y reiniciamos sus opciones
+  if (rfc.length <= 11) {
+    $("#regimenFiscal")
+      .prop("disabled", true)
+      .empty()
+      .append("<option selected disabled>Selecciona un régimen</option>");
+    return;
+  }
+
+  // Habilitamos el select
+  $("#regimenFiscal").prop("disabled", false);
+
+  $.ajax({
+    url: "../Servidor/PHP/empresas.php",
+    method: "POST",
+    data: { action: "regimen" },
+    dataType: "json",
+    success: function (resRegimen) {
+      if (resRegimen.success && Array.isArray(resRegimen.data)) {
+        const $regimenFiscalModal = $("#regimenFiscal");
+        $regimenFiscalModal.empty();
+        $regimenFiscalModal.append(
+          "<option selected disabled>Selecciona un régimen</option>"
+        );
+
+        // Filtrar según el largo del RFC
+        resRegimen.data.forEach((regimen) => {
+          if (rfc.length === 12 && regimen.Moral === "Sí") {
+            $regimenFiscalModal.append(
+              `<option value="${regimen.c_RegimenFiscal}" 
+                data-descripcion="${regimen.Descripcion}" 
+                data-correo="${regimen.correo || ""}" 
+                data-fisica="${regimen.Fisica || ""}" 
+                data-moral="${regimen.Moral || ""}">
+                ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
+              </option>`
+            );
+          } else if (rfc.length === 13 && regimen.Fisica === "Sí") {
+            $regimenFiscalModal.append(
+              `<option value="${regimen.c_RegimenFiscal}" 
+                data-descripcion="${regimen.Descripcion}" 
+                data-correo="${regimen.correo || ""}" 
+                data-fisica="${regimen.Fisica || ""}" 
+                data-moral="${regimen.Moral || ""}">
+                ${regimen.c_RegimenFiscal} || ${regimen.Descripcion}
+              </option>`
+            );
+          }
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resRegimen.message || "No se encontraron regímenes.",
+        });
+        $("#regimenFiscal").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de regímenes.",
+      });
+    },
+  });
+}
 function obtenerRegimenNew() {
   // Obtener el valor del RFC y quitar espacios en blanco
   const rfc = $("#rfcNew").val().trim();
@@ -1103,6 +1174,12 @@ $(document).ready(function () {
     "input",
     debounce(function () {
       obtenerRegimen();
+    }, 300)
+  );
+  $("#rfc").on(
+    "input",
+    debounce(function () {
+      obtenerRegimenAc();
     }, 300)
   );
   $("#cancelarModal").click(function () {
