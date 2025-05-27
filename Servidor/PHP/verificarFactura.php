@@ -1064,6 +1064,10 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                     if ($pagada) {
                         //$folioFactura = $folioFactura['folioFactura1'];
                         //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
+                        /*
+                        
+                        Realizar Validaciones
+                        */
                         $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
                         var_dump("folioFactura: ", $folioFactura);
                         actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
