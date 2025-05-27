@@ -1069,7 +1069,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                         //var_dump("Respuesta: ", $respuestaFactura);
                         if ($respuestaFactura['Succes']) { 
                             $bandera = 1;
-                            //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                            actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
                             $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
                             validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
                         } else {

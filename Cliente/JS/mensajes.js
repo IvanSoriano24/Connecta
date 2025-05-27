@@ -379,7 +379,7 @@ function mostrarModal(comandaId) {
         $("#detalleFecha").val(comanda.fecha);
         $("#detalleHora").val(comanda.hora);
         $("#numGuia").val(comanda.numGuia);
-
+        $("#numGuia").prop("disabled", false);
         obtenerEstados();
         obtenerDatosEnvioEditar(comanda.noPedido);
 

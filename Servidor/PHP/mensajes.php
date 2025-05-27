@@ -130,6 +130,7 @@ function formatearClaveVendedor($clave)
 }
 function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
 {
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 
     $context = stream_context_create([
@@ -153,6 +154,7 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                 $status = $fields['status']['stringValue'];
                 // Aplicar el filtro de estado si está definido
                 if ($filtroStatus === '' || $status === $filtroStatus) {
+                    if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
                     $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
                     $fecha = $fechaHora[0];
                     $hora = $fechaHora[1];
@@ -165,6 +167,7 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                         'fecha' => $fecha,
                         'hora' => $hora
                     ];
+                }
                 }
             }
         }

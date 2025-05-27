@@ -144,6 +144,8 @@ function mostrarUsuarios($usuarioLogueado, $usuario)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+
     // Validamos si el usuario logueado es administrador
     $esAdministrador = ($usuarioLogueado === 'ADMINISTRADOR'); // Comparar el tipo de usuario
 
@@ -204,15 +206,17 @@ function mostrarUsuarios($usuarioLogueado, $usuario)
         $usuarios = [];
         foreach ($data['documents'] as $document) {
             $fields = $document['fields'];
-            $usuarios[] = [
-                'id' => str_replace('projects/' . $firebaseProjectId . '/databases/(default)/documents/USUARIOS/', '', $document['name']),
-                'nombreCompleto' => $fields['nombre']['stringValue'] . ' ' . $fields['apellido']['stringValue'],
-                'correo' => $fields['correo']['stringValue'] ?? '',
-                'estatus' => $fields['estatus']['stringValue'] ?? '',
-                'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
-                'usuario' => $fields['usuario']['stringValue'] ?? '',
-                'status' => $fields['status']['stringValue'] ?? '',
-            ];
+            if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
+                $usuarios[] = [
+                    'id' => str_replace('projects/' . $firebaseProjectId . '/databases/(default)/documents/USUARIOS/', '', $document['name']),
+                    'nombreCompleto' => $fields['nombre']['stringValue'] . ' ' . $fields['apellido']['stringValue'],
+                    'correo' => $fields['correo']['stringValue'] ?? '',
+                    'estatus' => $fields['estatus']['stringValue'] ?? '',
+                    'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
+                    'usuario' => $fields['usuario']['stringValue'] ?? '',
+                    'status' => $fields['status']['stringValue'] ?? '',
+                ];
+            }
         }
 
         // Ordenar usuarios alfabéticamente por `nombreCompleto`
@@ -331,7 +335,7 @@ function obtenerEmpresasNoAsociadas()
 function obtenerUsuarios()
 {
     global $firebaseProjectId, $firebaseApiKey;
-
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     // URL para obtener usuarios desde Firebase
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
 
@@ -359,18 +363,19 @@ function obtenerUsuarios()
         if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === 'CLIENTE') {
             continue;
         }
-
-        $usuarios[] = [
-            'id' => str_replace("projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/", '', $document['name']),
-            'nombre' => isset($fields['nombre']['stringValue'], $fields['apellido']['stringValue'])
-                ? $fields['nombre']['stringValue'] . ' ' . $fields['apellido']['stringValue']
-                : 'Nombre desconocido',
-            'correo' => $fields['correo']['stringValue'] ?? '',
-            'estatus' => $fields['estatus']['stringValue'] ?? '',
-            'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
-            'usuario' => $fields['usuario']['stringValue'] ?? '',
-            'claveUsuario' => $fields['claveUsuario']['stringValue'] ?? '',
-        ];
+        if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
+            $usuarios[] = [
+                'id' => str_replace("projects/$firebaseProjectId/databases/(default)/documents/USUARIOS/", '', $document['name']),
+                'nombre' => isset($fields['nombre']['stringValue'], $fields['apellido']['stringValue'])
+                    ? $fields['nombre']['stringValue'] . ' ' . $fields['apellido']['stringValue']
+                    : 'Nombre desconocido',
+                'correo' => $fields['correo']['stringValue'] ?? '',
+                'estatus' => $fields['estatus']['stringValue'] ?? '',
+                'rol' => $fields['tipoUsuario']['stringValue'] ?? '',
+                'usuario' => $fields['usuario']['stringValue'] ?? '',
+                'claveUsuario' => $fields['claveUsuario']['stringValue'] ?? '',
+            ];
+        }
     }
 
     // Ordenamos alfabéticamente por nombre
@@ -1374,19 +1379,19 @@ switch ($funcion) {
         /*$csrf_token = $_SESSION['csrf_token'];
         $csrf_token_form = $_GET['token'];
         if ($csrf_token === $csrf_token_form) {*/
-            if (!isset($_SESSION['empresa']['noEmpresa'])) {
-                echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
-                exit;
-            }
-            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-            $claveSae = $_SESSION['empresa']['claveSae'];
-            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
-            if (!$conexionResult['success']) {
-                echo json_encode($conexionResult);
-                break;
-            }
-            $conexionData = $conexionResult['data'];
-            obtenerClientes($conexionData, $claveSae);
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        obtenerClientes($conexionData, $claveSae);
         /*} else {
             echo json_encode([
                 'success' => false,
