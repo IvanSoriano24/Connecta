@@ -7,9 +7,9 @@ function agregarEventosBotones() {
         boton.addEventListener("click", async function () {
             /*const pedidoID = this.dataset.id; // Obtener el ID del pedido
             console.log("Redirigiendo con pedidoID:", pedidoID);
-            window.location.href = "verFactura.php?pedidoID=" + pedidoID;*/
+            window.location.href = "verfactura.php?pedidoID=" + pedidoID;*/
             const pedidoID = this.dataset.id; // Obtener el ID del pedido
-            window.location.href = "verFactura.php?pedidoID=" + pedidoID;
+            window.location.href = "verfactura.php?pedidoID=" + pedidoID;
         });
     });
 }
@@ -99,9 +99,9 @@ function cargarPedidos(estadoPedido, filtroFecha) {
     }
 
     $.post(
-        "../Servidor/PHP/ventas.php",
+        "../Servidor/PHP/factura.php",
         {
-            numFuncion: "1",
+            numFuncion: "2",
             noEmpresa: noEmpresa,
             filtroFecha: filtroFecha,
             estadoPedido: estadoPedido,
@@ -152,16 +152,10 @@ let registrosPorPagina = 10; // Ajusta según convenga
 // El parámetro "limpiarTabla" indica si se reinicia la tabla (true en carga inicial o al cambiar filtro)
 // o se agregan filas al final (false al hacer "Mostrar más").
 function datosPedidos(limpiarTabla = true) {
-    document.getElementById("searchTerm").value = "";
     // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
     let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
     let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
-    document.getElementById("filtroFecha").value = filtroFecha;
     const pedidosTable = document.getElementById("datosPedidos");
-    if (!pedidosTable) {
-        console.error("No se encontró el elemento con id 'datosPedidos'");
-        return;
-    }
     const numColumns = 12; // Número de columnas de tu tabla
 
     // Código del spinner (puedes reemplazarlo por el que prefieras)
@@ -185,9 +179,9 @@ function datosPedidos(limpiarTabla = true) {
     }
 
     $.post(
-        "../Servidor/PHP/ventas.php",
+        "../Servidor/PHP/factura.php",
         {
-            numFuncion: "1",
+            numFuncion: "2",
             noEmpresa: noEmpresa,
             filtroFecha: filtroFecha,
             estadoPedido: estadoPedido,
@@ -322,9 +316,9 @@ function datosPedidos(limpiarTabla = true) {
 // Función para obtener el siguiente folio
 function obtenerDatosPedido(pedidoID) {
     $.post(
-        "../Servidor/PHP/ventas.php",
+        "../Servidor/PHP/factura.php",
         {
-            numFuncion: 2, // Función para obtener el pedido por ID
+            numFuncion: 3, // Función para obtener el pedido por ID
             pedidoID: pedidoID,
         },
         function (response) {
@@ -452,9 +446,9 @@ function obtenerDatosEnvioEditar(pedidoID) {
 }
 function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
     $.ajax({
-        url: "../Servidor/PHP/ventas.php",
+        url: "../Servidor/PHP/factura.php",
         method: "POST",
-        data: { numFuncion: "25", estadoSeleccionado: estadoSeleccionado },
+        data: { numFuncion: "7", estadoSeleccionado: estadoSeleccionado },
         dataType: "json",
         success: function (resEstado) {
             const $sel = $("#estadoContacto")
@@ -506,9 +500,9 @@ function obtenerMunicipios(edo, municipio) {
     // Habilitamos el select
     //$("#estadoContacto").prop("disabled", false);
     $.ajax({
-        url: "../Servidor/PHP/ventas.php",
+        url: "../Servidor/PHP/factura.php",
         method: "POST",
-        data: { numFuncion: "23", estado: edo },
+        data: { numFuncion: "5", estado: edo },
         dataType: "json",
         success: function (resMunicipio) {
             if (resMunicipio.success && Array.isArray(resMunicipio.data)) {
@@ -547,9 +541,9 @@ function obtenerMunicipios(edo, municipio) {
 }
 function cargarPartidasPedido(pedidoID) {
     $.post(
-        "../Servidor/PHP/ventas.php",
+        "../Servidor/PHP/factura.php",
         {
-            numFuncion: "3",
+            numFuncion: "4",
             accion: "obtenerPartidas",
             clavePedido: pedidoID,
         },
@@ -644,9 +638,9 @@ function limpiarTablaPartidas() {
 function obtenerFolioSiguiente() {
     return new Promise((resolve, reject) => {
         $.post(
-            "../Servidor/PHP/ventas.php",
+            "../Servidor/PHP/factura.php",
             {
-                numFuncion: "3", // Caso 3: Obtener siguiente folio
+                numFuncion: "4", // Caso 3: Obtener siguiente folio
                 accion: "obtenerFolioSiguiente",
             },
             function (response) {
@@ -666,34 +660,6 @@ function obtenerFolioSiguiente() {
             }
         ).fail(function (xhr, status, error) {
             reject("Error de AJAX: " + error);
-        });
-    });
-}
-function obtenerFecha() {
-    const today = new Date();
-    const formattedDate = today.toISOString().split("T")[0];
-    document.getElementById("diaAlta").value = formattedDate;
-}
-// Función que retorna una promesa para verificar el estado del pedido
-function verificarPedido(pedidoID) {
-    return new Promise((resolve, reject) => {
-        $.post(
-            "../Servidor/PHP/ventas.php",
-            { numFuncion: "21", pedidoID: pedidoID },
-            function (response) {
-                try {
-                    // Si se configuró dataType "json" en $.post, response ya es un objeto.
-                    // Si no, se puede verificar:
-                    if (typeof response === "string") {
-                        response = JSON.parse(response);
-                    }
-                    resolve(response);
-                } catch (error) {
-                    reject("Error al parsear la respuesta: " + error);
-                }
-            }
-        ).fail(function (jqXHR, textStatus, errorThrown) {
-            reject("Error en la solicitud AJAX: " + errorThrown);
         });
     });
 }
@@ -829,9 +795,9 @@ function doSearch(limpiarTabla = true) {
         }
 
         $.post(
-            "../Servidor/PHP/ventas.php",
+            "../Servidor/PHP/factura.php",
             {
-                numFuncion: "24",
+                numFuncion: "6",
                 noEmpresa: noEmpresa,
                 filtroFecha: filtroFecha,
                 estadoPedido: estadoPedido,
@@ -957,22 +923,8 @@ function doSearch(limpiarTabla = true) {
     }
 }
 document.addEventListener("DOMContentLoaded", function () {
-    let clienteSeleccionado =
-        sessionStorage.getItem("clienteSeleccionado") === "true";
-    // Detectar el clic en el enlace para "Crear Pedido"
-    var verPedidoBtn = document.getElementById("verPedido");
-    if (verPedidoBtn) {
-        verPedidoBtn.addEventListener("click", function (e) {
-            // Prevenir el comportamiento por defecto (redirigir)
-            e.preventDefault();
-            console.log("Redirigiendo a verFactura.php...");
-            // Redirigir a la página 'verFactura.php' sin parámetro
-            window.location.href = "verFactura.php";
-        });
-    }
-
     // Verificar si estamos en la página de creación o edición de pedidos
-    if (window.location.pathname.includes("verFactura.php")) {
+    if (window.location.pathname.includes("verfactura.php")) {
         // Obtener parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
         const pedidoID = urlParams.get("pedidoID"); // Puede ser null si no está definido
@@ -986,14 +938,6 @@ document.addEventListener("DOMContentLoaded", function () {
             cargarPartidasPedido(pedidoID); // Función para cargar partidas del pedido
             $("#datosEnvio").prop("disabled", false);
             obtenerDatosEnvioEditar(pedidoID); // Función para cargar partidas del pedido
-        } else {
-            sessionStorage.setItem("clienteSeleccionado", false);
-            clienteSeleccionado = false;
-            // Si es un nuevo pedido (pedidoID es null)
-            console.log("Preparando formulario para un nuevo pedido...");
-            obtenerFecha(); // Establecer la fecha inicial del pedido
-            limpiarTablaPartidas(); // Limpiar la tabla de partidas para el nuevo pedido
-            obtenerFolioSiguiente(); // Generar el siguiente folio para el pedido
         }
     }
 });
