@@ -365,8 +365,8 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
 
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -518,8 +518,8 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $numeroWhatsApp = '+527772127123'; // Interzenda*/
 
     if ($correo === 'S' && !empty($emailPred)) {
-        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
-        //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        $rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . urldecode($folioFactura) . ".pdf";
         $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename);
         var_dump($resultadoWhatsApp);
@@ -910,8 +910,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -949,7 +949,7 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     // Obtener tipo de contenido antes de cerrar cURL
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     curl_close($ch);
-    //var_dump($facturaResponse);
+    var_dump($facturaResponse);
     if ($facturaResponse) {
         // Intenta decodificar como JSON
         $facturaData = json_decode($facturaResponse, true);
@@ -1262,7 +1262,8 @@ function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 
     return false; // No se encontró la empresa
 }
-function validaciones($folio, $noEmpresa, $claveSae){
+function validaciones($folio, $noEmpresa, $claveSae)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
@@ -1276,15 +1277,15 @@ function validaciones($folio, $noEmpresa, $claveSae){
     $pedidoData = datosPedidoValidacion($folio, $claveSae, $conexionData);
     $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
     $empresaData = datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey);
-    $locacionArchivos = "../../certificados/$noEmpresa/";
+    $locacionArchivos = "../XML/sdk2/certificados/$noEmpresa/";
     $archivoCer = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
     $archivoKey = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
 
     if (empty($archivoCer) || empty($archivoKey)) {
-        return json_encode([
+        return [
             'success'  => false,
             'Problema' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
-        ]);
+        ];
         /*echo json_encode([
             'success'  => false,
             'Problema' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
@@ -1300,10 +1301,10 @@ function validaciones($folio, $noEmpresa, $claveSae){
     }
     if (!empty($faltanPedido)) {
         header('Content-Type: application/json');
-        return json_encode([
+        return [
             'success'  => false,
             'Problema' => 'Faltan datos del pedido: ' . implode(', ', $faltanPedido)
-        ]);
+        ];
     }
     $requeridos = ['RFC', 'NOMBRE', 'USO_CFDI', 'CODIGO', 'REG_FISC'];
     $faltan = [];
@@ -1314,10 +1315,10 @@ function validaciones($folio, $noEmpresa, $claveSae){
     }
     if (!empty($faltan)) {
         header('Content-Type: application/json');
-        return json_encode([
+        return [
             'success'  => false,
             'Problema' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
-        ]);
+        ];
         /*echo json_encode([
             'success'  => false,
             'Problema' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
@@ -1331,10 +1332,10 @@ function validaciones($folio, $noEmpresa, $claveSae){
             "Problema' => 'Cliente no puede timbrar: $problem"
         ]);
         return;*/
-        return json_encode([
+        return [
             'success'  => false,
             "Problema' => 'Cliente no puede timbrar: $problem"
-        ]);
+        ];
     }
     $requeridosEmpre = ['rfc', 'razonSocial', 'regimenFiscal', 'codigoPostal', 'keyEncValue', 'keyEncIv'];
     $faltanEmpre = [];
@@ -1350,14 +1351,12 @@ function validaciones($folio, $noEmpresa, $claveSae){
             'Problema' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ]);
         return;*/
-        return json_encode([
+        return [
             'success'  => false,
             'Problema' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
-        ]);
+        ];
     }
-    return json_encode([
-            'success'  => true
-        ]);
+    return ['success' => true];
 }
 function verificarHora($firebaseProjectId, $firebaseApiKey)
 {
@@ -1399,29 +1398,28 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                     //Funcion para crear factura
                     if ($pagada) {
                         $respuestaValidaciones = validaciones($folio, $noEmpresa, $claveSae);
-                        if(!$respuestaValidaciones['success']){
+                        //var_dump($respuestaValidaciones);
+                        if ($respuestaValidaciones['success']) {
+                            //$folioFactura = $folioFactura['folioFactura1'];
+                            //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
+                            $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
+                            var_dump("folioFactura: ", $folioFactura);
+                            //actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
+                            $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
+                            var_dump("Respuesta: ", $respuestaFactura);
+                            if ($respuestaFactura['success']) {
+                                $bandera = 1;
+                                actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                                $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+                                validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
+                            } else {
+                                $bandera = 0;
+                                //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                                enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
+                            }
+                        } else{
+                            var_dump("No");
                             enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['Problema']);
-                        }
-                        //$folioFactura = $folioFactura['folioFactura1'];
-                        //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
-                        /*
-                        
-                        Realizar Validaciones
-                        */
-                        $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
-                        var_dump("folioFactura: ", $folioFactura);
-                        actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
-                        $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
-                        var_dump("Respuesta: ", $respuestaFactura);
-                        if ($respuestaFactura['success']) {
-                            $bandera = 1;
-                            actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                            $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
-                            validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
-                        } else {
-                            $bandera = 0;
-                            //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                            enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
                         }
                     }
                 }

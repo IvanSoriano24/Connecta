@@ -2396,6 +2396,7 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
 
     $folioFactura = obtenerFolio($conexionData, $claveSae);
     $remision = obtenerRemision($conexionData, $pedidoId, $claveSae);
+    var_dump($remision);
     $CVE_BITA = insertarBita($conexionData, $remision, $claveSae, $folioFactura);
 
     actualizarAfac($conexionData, $remision, $claveSae);

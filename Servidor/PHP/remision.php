@@ -741,7 +741,7 @@ function actualizarAfac($conexionData, $pedidoId, $claveSae)
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     // Obtener el total de la venta, impuestos y descuentos del pedido
-    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sqlPedido = "SELECT CAN_TOT, IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4, IMP_TOT5, IMP_TOT6, IMP_TOT7, IMP_TOT8, DES_TOT, DES_FIN, COM_TOT, FECHA_DOC 
                   FROM $tablaPedidos 
                   WHERE CVE_DOC = ?";
@@ -879,7 +879,7 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
 
     // Tablas dinámicas
     $tablaFolios = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaBita = "[{$conexionData['nombreBase']}].[dbo].[BITA" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // ✅ 1. Obtener el `CVE_BITA` incrementado en 1
@@ -934,7 +934,7 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
     if (!$pedido) {
         echo json_encode([
             'success' => false,
-            'message' => 'No se encontraron datos del pedido'
+            'message' => 'No se encontraron datos del pedido Bita'
         ]);
         die();
     }
@@ -1009,7 +1009,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
 
     // Tablas dinámicas
     $tablaFolios = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // ✅ 1. Obtener el nuevo `CVE_DOC`
@@ -1045,7 +1045,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
     if (!$pedido) {
         echo json_encode([
             'success' => false,
-            'message' => 'No se encontraron datos del pedido'
+            'message' => 'No se encontraron datos del pedido Factr'
         ]);
         die();
     }
@@ -2195,7 +2195,7 @@ function actualizarFACTR2($conexionData, $pedidoId, $cveDocRemision, $claveSae)
     }
 
     // Tablas dinámicas
-    $tablaFACTR = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaFACTR = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Formatear los valores para SQL Server
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
@@ -2384,7 +2384,7 @@ function insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae)
     }
 
     // Tablas dinámicas
-    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInfenvio = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
@@ -2430,7 +2430,7 @@ function insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae)
     if (!$pedido) {
         die(json_encode([
             'success' => false,
-            'message' => 'No se encontraron datos del pedido'
+            'message' => 'No se encontraron datos del pedido Infenvio'
         ]));
     }
 
