@@ -883,6 +883,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
     // **3. Actualizar o insertar las partidas**
     foreach ($partidasData as $partida) {
         $CVE_UNIDAD = $partida['CVE_UNIDAD'];
+        $CVE_PRODSERV = $partida['CVE_PRODSERV'];
         // Extraer los datos de la partida
         $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
         $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
@@ -950,7 +951,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
                 0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
                 0, '', '',
-                0, ?, '', 0, 0, 0, 0,
+                ?, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
             $params = [
                 $CVE_DOC,
@@ -973,6 +974,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 $UNI_VENTA,
                 $TIPO_PORD,
                 $TOT_PARTIDA,
+                $CVE_PRODSERV,
                 $CVE_UNIDAD
             ];
         }
@@ -1451,9 +1453,9 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $CVE_OBS = $datosCliente['CVE_OBS'];
     $CVE_BITA = $datosCliente['CVE_BITA'];
     //$COM_TOT_PORC = $datosCliente['COM_TOT_PORC']; //VENDEDOR
-    $METODODEPAGO = $datosCliente['METODODEPAGO'];
-    $NUMCTAPAGO = $datosCliente['NUMCTAPAGO'];
-    $FORMADEPAGOSAT = $datosCliente['FORMADEPAGOSAT'];
+    $METODODEPAGO = $datosCliente['METODODEPAGO'] ?? "";
+    $NUMCTAPAGO = $datosCliente['NUMCTAPAGO'] ?? "";
+    $FORMADEPAGOSAT = $datosCliente['FORMADEPAGOSAT'] ?? "";
     $USO_CFDI = $datosCliente['USO_CFDI'];
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
@@ -1639,6 +1641,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
             $DESC2 = 0;
             $COMI = $partida['comision'];
             $CVE_UNIDAD = $partida['CVE_UNIDAD'];
+            $CVE_PRODSERV = $partida['CVE_PRODSERV'];
             $NUM_ALMA = $formularioData['almacen'];
             $COSTO_PROM = $partida['COSTO_PROM'];
             $UNI_VENTA = $partida['unidad'];
@@ -1674,7 +1677,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
                 0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
                 0, '', '',
-                0, ?, '', 0, 0, 0, 0,
+                ?, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
             $params = [
                 $CVE_DOC,
@@ -1698,6 +1701,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
                 $UNI_VENTA,
                 $TIPO_PORD,
                 $TOT_PARTIDA,
+                $CVE_PRODSERV,
                 $CVE_UNIDAD
             ];
             // Ejecutar la consulta
@@ -2589,7 +2593,7 @@ function obtenerProductoPedido($claveVendedor, $conexionData, $clienteInput)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Definir la consulta SQL asegurando la búsqueda insensible a mayúsculas y manejando el guion `-`
-    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [COSTO_PROM], [UUID]
+    $sql = "SELECT DISTINCT [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_PRODSERV], [CVE_UNIDAD], [COSTO_PROM], [UUID]
         FROM $nombreTabla
         WHERE [EXIST] > 0 
         AND (LOWER(LTRIM(RTRIM([DESCR]))) LIKE LOWER(?) 
@@ -2643,7 +2647,7 @@ function obtenerProductos($conexionData)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL
-    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [COSTO_PROM], [UUID]
+    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [CVE_PRODSERV], [COSTO_PROM], [UUID]
         FROM $nombreTabla WHERE [EXIST] > 0";
 
     $stmt = sqlsrv_query($conn, $sql);

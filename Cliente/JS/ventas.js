@@ -805,7 +805,8 @@ function actualizarTablaPartidas(pedidoID) {
     <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
     <td><input type="number" class="ieps" value="${partida.IMPU1}" readonly hidden /></td>
     <td><input type="number" class="comision" value="${partida.COMI}" readonly hidden /></td>
-    <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td>
+    <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td> 
+    <td><input type="text" class="CVE_PRODSERV" value="0" readonly hidden /></td>
       <td><input type="text" class="COSTO_PROM" value="0" readonly hidden /></td>
 `;
 

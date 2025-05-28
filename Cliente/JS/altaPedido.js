@@ -82,6 +82,7 @@ function agregarFilaPartidas() {
       <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
       <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
       <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td>
+      <td><input type="text" class="CVE_PRODSERV" value="0" readonly hidden /></td>
       <td><input type="text" class="COSTO_PROM" value="0" readonly hidden /></td>
       <td><input type="number" class="ieps" value="0" readonly hidden /></td>
       <td><input type="number" class="comision" value="0" readonly hidden/></td>
@@ -401,11 +402,13 @@ function mostrarListaProductos(productos, input) {
           const campoUnidad = filaTabla.querySelector(".unidad");
           if (campoUnidad) {
             campoUnidad.value = producto.UNI_MED;
-          }
+          } 
           const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
+          const CVE_PRODSERV = filaTabla.querySelector(".CVE_PRODSERV");
           const COSTO_PROM = filaTabla.querySelector(".COSTO_PROM");
 
           CVE_UNIDAD.value = producto.CVE_UNIDAD;
+          CVE_PRODSERV.value = producto.CVE_PRODSERV;
           COSTO_PROM.value = producto.COSTO_PROM;
           // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
           const campoCantidad = filaTabla.querySelector("input.cantidad");
@@ -678,8 +681,9 @@ function obtenerDatosPartidas() {
       iva: fila.querySelector(".iva").value,
       comision: fila.querySelector(".comision").value,
       precioUnitario: fila.querySelector(".precioUnidad").value,
-      subtotal: fila.querySelector(".subtotalPartida").value,
+      subtotal: fila.querySelector(".subtotalPartida").value, 
       CVE_UNIDAD: fila.querySelector(".CVE_UNIDAD").value,
+      CVE_PRODSERV: fila.querySelector(".CVE_PRODSERV").value,
       COSTO_PROM: fila.querySelector(".COSTO_PROM").value,
     };
     partidasData.push(partida);
@@ -1109,9 +1113,11 @@ function showCustomerSuggestionsProductos() {
 async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   inputProducto.val(`${producto.CVE_ART}`); // Mostrar el producto seleccionado
   const filaProd = inputProducto.closest("tr")[0]; // Asegurar que obtenemos el elemento DOM
-  const CVE_UNIDAD = filaProd.querySelector(".CVE_UNIDAD");
+  const CVE_UNIDAD = filaProd.querySelector(".CVE_UNIDAD"); 
+  const CVE_PRODSERV = filaProd.querySelector(".CVE_PRODSERV");
   const COSTO_PROM = filaProd.querySelector(".COSTO_PROM");
   CVE_UNIDAD.value = `${producto.CVE_UNIDAD}`;
+  CVE_PRODSERV.value = `${producto.CVE_PRODSERV}`;
   COSTO_PROM.value = `${producto.COSTO_PROM}`;
   console.log(producto.COSTO_PROM);
   console.log(COSTO_PROM.value);

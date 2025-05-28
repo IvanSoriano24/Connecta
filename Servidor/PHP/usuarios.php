@@ -394,7 +394,8 @@ function guardarAsociacion()
 
     $empresa = $_POST['empresa'] ?? null;
     $id = $_POST['id'] ?? null;
-    $noEmpresa = $_POST['noEmpresa'] ?? null;
+    //$noEmpresa = $_POST['noEmpresa'] ?? null;
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $usuario = $_POST['usuario'] ?? null;
     $claveUsuario = $_POST['claveUsuario'] ?? null;
 
@@ -535,11 +536,12 @@ function obtenerClaveSae($noEmpresa)
     // Recorrer los documentos para encontrar la coincidencia con `noEmpresa`
     foreach ($data['documents'] as $document) {
         $fields = $document['fields'];
-
-        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
+        $empFirebase = (int) $fields['noEmpresa']['integerValue'];
+        $empBuscada  = (int) $noEmpresa;
+        var_dump($fields['noEmpresa']['integerValue']);
+        if ($empFirebase === $empBuscada) {
+        //if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return $fields['claveSae']['stringValue'] ?? null; // Retornar `claveSae` si existe
-        } else {
-            return false;
         }
     }
 

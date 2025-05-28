@@ -149,4 +149,43 @@ class clsMail
             return "Error al enviar el correo: {$this->mail->ErrorInfo}";
         }
     }
+
+    public function metEnviarErrorDatos(
+        string $titulo,
+        string $nombre,
+        string $correo,
+        string $asunto,
+        string $bodyHTML,
+        string $correoRemitente = null,
+        string $passwordRemitente = null
+    ) {
+        try {
+            if ($correoRemitente === "" || $passwordRemitente === "") {
+                $remitente = $this->defaultUser;
+                $password = $this->defaultPass;
+            } else {
+                // Usar remitente y contraseña por defecto si no se proporciona
+                $remitente = $correoRemitente;
+                $password = $passwordRemitente;
+            }
+
+            $this->mail->Username = $remitente;
+            $this->mail->Password = $password;
+            $this->mail->setFrom($remitente, $titulo); // Remitente dinámico o por defecto
+            $this->mail->addAddress($correo, $nombre); // Destinatario
+            $this->mail->Subject = $asunto; // Asunto del correo
+            $this->mail->Body = $bodyHTML; // Cuerpo del correo
+            $this->mail->isHTML(true); // Indicar que el correo tiene contenido HTML
+
+
+            // Enviar el correo y manejar errores
+            if (!$this->mail->send()) {
+                return "Error al enviar el correo: " . $this->mail->ErrorInfo;
+            }
+            
+            return "Correo enviado exitosamente.";
+        } catch (Exception $e) {
+            return "Error al enviar el correo: {$this->mail->ErrorInfo}";
+        }
+    }
 }
