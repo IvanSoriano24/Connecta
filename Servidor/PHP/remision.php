@@ -2202,9 +2202,9 @@ function actualizarFACTR2($conexionData, $pedidoId, $cveDocRemision, $claveSae)
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     
     $cveDocRemision = str_pad($cveDocRemision, 10, '0', STR_PAD_LEFT);
-    $cveDocRemision = str_pad($cveDocRemision, 10, ' ', STR_PAD_LEFT);
+    $cveDocRemision = str_pad($cveDocRemision, 20, ' ', STR_PAD_LEFT);
 
-    // ✅ Actualizar DOC_SIG y TIP_DOC_SIG en FACTRXX
+    // ✅ Actualizar DOC_SIG y TIP_DOC_SIG en FACTPXX
     $sqlUpdate = "UPDATE $tablaFACTR 
                   SET DOC_SIG = ?, 
                       TIP_DOC_SIG = ? 
@@ -2251,8 +2251,8 @@ function actualizarFACTR3($conexionData, $pedidoId, $claveSae)
     }
 
     // Tablas dinámicas
-    $tablaFACTR = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaParFACTR = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaFACTR = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaParFACTR = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Formatear el pedidoId para SQL Server
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
