@@ -303,14 +303,20 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     /*$datos['conf']['cer'] = '../../certificados/EKU9003173C9.cer';
     $datos['conf']['key'] = '../../certificados/EKU9003173C9.key';
     $datos['conf']['pass'] = '12345678a';*/
-    /*$datos['conf']['cer'] = '../../certificados/00001000000513872236.cer';
-    $datos['conf']['key'] = '../../certificados/CSD_unidad_LUHM920412GU2_20220708_132000.key';
+    /*$datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
+    $datos['conf']['key'] = '../../certificados/2/CSD_unidad_LUHM920412GU2_20220708_132000.key';
     $datos['conf']['pass'] = 'CUSAr279';*/
-    $locacionArchivos = "../../certificados/$noEmpresa/";
-    $archivoCer = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
-    $archivoKey = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
-    $datos['conf']['cer'] = $archivoCer;
-    $datos['conf']['key'] = $archivoKey;
+    $locacionArchivos = __DIR__ . "/../../certificados/$noEmpresa/";
+
+    // glob devuelve un array, así que tomamos sólo el primer elemento
+    $archivoCerArray = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
+    $archivoKeyArray = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
+
+    $cerPath = $archivoCerArray[0] ?? null;
+    $keyPath = $archivoKeyArray[0] ?? null;
+
+    $datos['conf']['cer']  = $cerPath;
+    $datos['conf']['key']  = $keyPath;
     $datos['conf']['pass'] = $password;
 
     // Datos de la Factura || $pedidoData['']
@@ -420,7 +426,9 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     //$datos['impuestos']['TotalImpuestosTrasladados'] = round($IMPU, 2);   //Original
     $datos['impuestos']['TotalImpuestosTrasladados'] = sprintf('%.2f', $IMPU);
 
-    echo "<pre>";print_r($datos);echo "</pre>";
+    /*echo "<pre>";
+    print_r($datos);
+    echo "</pre>";*/
     $res = mf_genera_cfdi4($datos);
     //var_dump($res);
     /*$res = mf_default($datos);
@@ -457,10 +465,16 @@ $cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];
 $claveSae = $_POST['claveSae'];
 $factura = $_POST['factura'];
-/*$cve_doc = 7;
+
+/*$cve_doc = 15;
 $noEmpresa = 3;
 $claveSae = 03;
-$factura = 5;*/
+$factura = 15;*/
+
+/*$cve_doc = 19097;
+$noEmpresa = 2;
+$claveSae = 02;
+$factura = 18979;*/
 cfdi($cve_doc, $noEmpresa, $claveSae, $factura);
 /*
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));

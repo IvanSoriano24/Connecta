@@ -46,6 +46,7 @@ if (isset($_SESSION['usuario'])) {
     <link rel="stylesheet" href="CSS/carrito.css">
 
     <title>MDConnecta</title>
+    <link rel="icon" href="SRC/logoMDConecta.png" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>

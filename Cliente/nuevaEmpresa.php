@@ -22,6 +22,7 @@ $_SESSION['csrf_token'] = $csrf_token;
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <title>MDConnecta</title>
+    <link rel="icon" href="SRC/logoMDConecta.png" />
 </head>
 
 <body>

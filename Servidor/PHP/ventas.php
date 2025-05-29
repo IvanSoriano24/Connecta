@@ -2107,9 +2107,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda Au
-    $numero = "+527773340218";
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773340218";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -6488,9 +6488,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda AU
-    $numero = "+527773340218";
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773340218";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos

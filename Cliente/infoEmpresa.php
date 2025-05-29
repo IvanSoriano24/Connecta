@@ -57,6 +57,7 @@ if (isset($_SESSION['usuario'])) {
 
 
   <title>MDConnecta</title>
+  <link rel="icon" href="SRC/logoMDConecta.png" />
 </head>
 
 <body>

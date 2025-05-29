@@ -22,6 +22,7 @@ if (isset($_SESSION["usuario"])) {
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>MDConnecta</title>
+    <link rel="icon" href="SRC/logoMDConecta.png" />
 </head>
 
 <body>

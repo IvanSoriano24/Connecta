@@ -273,8 +273,8 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $clav
     $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
-    $tablaFacturas = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaFacturas = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // ✅ 2. Obtener datos del pedido
     $sqlPedido = "SELECT * FROM $tablaRemisiones WHERE CVE_DOC = ?";

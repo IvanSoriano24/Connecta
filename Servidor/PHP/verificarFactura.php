@@ -1032,27 +1032,37 @@ function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera)
 
         if (file_exists($file)) {
             $xml = simplexml_load_file($file);
+            $ns   = $xml->getDocNamespaces(true);
             if ($xml !== false) {
-                $timbre = $xml->children('cfdi', true)->Complemento->children('tfd', true)->TimbreFiscalDigital;
-                $version = (string) $xml['Version'];
-                $uuid = (string) $timbre['UUID'];
-                $noSerie = (string) $timbre['NoCertificadoSAT'];
-                $fechaCert = (string) $timbre['FechaTimbrado'];
+                // 1) Entra al nodo cfdi:Comprobante
+                $cfdi = $xml->children($ns['cfdi']);
+
+                // 2) Dentro de Comprobante, al Complemento
+                $complemento = $cfdi->Complemento;
+
+                // 3) Dentro de Complemento, al namespace tfd
+                $tfd = $complemento->children($ns['tfd'])->TimbreFiscalDigital;
+
+                // 4) Ahora sí sacas atributos
+                $version   = (string) $xml['Version'];
+                $uuid      = (string) $tfd->attributes()->UUID;
+                $noSerie   = (string) $tfd->attributes()->NoCertificadoSAT;
+                $fechaCert = (string) $tfd->attributes()->FechaTimbrado;
 
                 $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CFDI" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
                 $sql = "UPDATE $nombreTabla SET 
-                    VERSION = ?,
+                    
                     UUID = ?,
                     NO_SERIE = ?,
                     FECHA_CERT = ?,
                     FECHA_CANCELA = '',
                     XML_DOC = ?,
                     PENDIENTE = 'N',
-                    CVE_USUARIO = 0,
+                    CVE_USUARIO = 0
                     WHERE CVE_DOC = ?";
 
                 $params = [
-                    $version,
+                    //VERSION = ?, $version,
                     $uuid,
                     $noSerie,
                     $fechaCert,
@@ -1403,21 +1413,21 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                             //$folioFactura = $folioFactura['folioFactura1'];
                             //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
                             $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
-                            var_dump("folioFactura: ", $folioFactura);
-                            //actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
+                            //var_dump("folioFactura: ", $folioFactura);
+                            actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
                             $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
-                            var_dump("Respuesta: ", $respuestaFactura);
+                            //var_dump("Respuesta: ", $respuestaFactura);
                             if ($respuestaFactura['success']) {
-                                $bandera = 1;
-                                actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                                $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
-                                validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
+                            $bandera = 1;
+                            actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                            $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+                            validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
                             } else {
                                 $bandera = 0;
                                 //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
                                 enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
                             }
-                        } else{
+                        } else {
                             var_dump("No");
                             enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['Problema']);
                         }
