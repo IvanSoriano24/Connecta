@@ -216,7 +216,7 @@ function actualizarInve($conexionData, $pedidoId, $claveSae)
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
     // Construcción dinámica de las tablas PAR_FACTRXX e INVEXX
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sqlProductos = "SELECT DISTINCT CVE_ART FROM $tablaPartidas WHERE CVE_DOC = ?";
@@ -290,8 +290,8 @@ function insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc)
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
-    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
@@ -457,7 +457,7 @@ function actualizarInve2($conexionData, $pedidoId, $claveSae)
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // ✅ 1. Obtener las partidas del pedido con CVE_ART y CANT
@@ -532,7 +532,7 @@ function actualizarInve3($conexionData, $pedidoId, $claveSae)
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
     // Tablas dinámicas
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // ✅ 1. Obtener los productos del pedido
@@ -604,7 +604,7 @@ function actualizarInveClaro($conexionData, $pedidoId, $claveSae)
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
     // Tablas dinámicas
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventarioClaro = "[{$conexionData['nombreBase']}].[dbo].[INVEN_CLARO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Obtener los productos del pedido
@@ -671,7 +671,7 @@ function actualizarInveAmazon($conexionData, $pedidoId, $claveSae)
     }
 
     // Tablas dinámicas
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInventarioAmazon = "[{$conexionData['nombreBase']}].[dbo].[INVE_AMAZON" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
@@ -915,7 +915,7 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
     $folioSiguiente = $folioData['FolioSiguiente'];
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
-    // ✅ 3. Obtener datos del pedido (`FACTRXX`) para calcular el total
+    // ✅ 3. Obtener datos del pedido (`FACTPXX`) para calcular el total
     $sqlPedido = "SELECT CVE_CLPV, CAN_TOT, IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4 
                   FROM $tablaPedidos WHERE CVE_DOC = ?";
     $paramsPedido = [$pedidoId];
@@ -934,7 +934,7 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
     if (!$pedido) {
         echo json_encode([
             'success' => false,
-            'message' => 'No se encontraron datos del pedido Bita'
+            'message' => 'No se encontraron datos del pedido'
         ]);
         die();
     }
@@ -1045,7 +1045,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
     if (!$pedido) {
         echo json_encode([
             'success' => false,
-            'message' => 'No se encontraron datos del pedido Factr'
+            'message' => 'No se encontraron datos del pedido'
         ]);
         die();
     }
@@ -1237,8 +1237,8 @@ function actualizarInve4($conexionData, $pedidoId, $claveSae)
     // Tablas dinámicas
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // ✅ 1. Obtener las partidas del pedido
     $sqlPartidas = "SELECT P.CVE_ART, P.CANT, (P.PREC * P.CANT) AS TOTAL_PARTIDA, F.CVE_CLPV 
@@ -1286,11 +1286,11 @@ function actualizarInve4($conexionData, $pedidoId, $claveSae)
         }
 
         // 🔹 Actualizar `CLIEXX`
-        /* $sqlUpdateClie = "UPDATE $tablaClientes 
-                          SET VTAS_ANL_C = VTAS_ANL_C + ?, 
-                              VTAS_ANL_M = VTAS_ANL_M + ?, 
-                              FCH_ULTVTA = ?, 
-                              VERSION_SINC = ? 
+        /* $sqlUpdateClie = "UPDATE $tablaClientes
+                          SET VTAS_ANL_C = VTAS_ANL_C + ?,
+                              VTAS_ANL_M = VTAS_ANL_M + ?,
+                              FCH_ULTVTA = ?,
+                              VERSION_SINC = ?
                           WHERE CLAVE = ?";
         $paramsUpdateClie = [$cantidad, $totalPartida, $fechaActual, $fechaActual, $cveClpv];
 
@@ -1342,9 +1342,9 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
 
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT);
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
-    
+
     // Tablas dinámicas
-    $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
@@ -1354,7 +1354,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
         $enlaceMap[trim($lote['CVE_ART'])] = $lote['E_LTPD'];
     }
 
-    // ✅ 2. Obtener las partidas del pedido (`PAR_FACTRXX`)
+    // ✅ 2. Obtener las partidas del pedido (`PAR_FACTPXX`)
     $sqlPartidas = "SELECT NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
                            IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, 
                            DESC1, DESC2, DESC3, COMI, APAR, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
@@ -1514,13 +1514,13 @@ function insertarPar_Factr_Clib($conexionData, $pedidoId, $cveDoc, $claveSae)
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     // Tablas dinámicas
-    $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaParFactrClib = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
-    // ✅ 2. Contar el número de partidas del pedido en `PAR_FACTRXX`
+    // ✅ 2. Contar el número de partidas del pedido en `PAR_FACTPXX`
     $sqlContarPartidas = "SELECT COUNT(*) AS TOTAL_PARTIDAS FROM $tablaPartidasPedido WHERE CVE_DOC = ?";
     $paramsContar = [$pedidoId];
 
@@ -1688,7 +1688,7 @@ function actualizarMulti($conexionData, $pedidoId, $claveSae)
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     // Construcción dinámica de las tablas
     $tablaMulti = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // ✅ 1. Obtener los productos y almacenes del pedido
     $sqlProductos = "SELECT CVE_ART, NUM_ALM, SUM(CANT) AS TOTAL_CANT
@@ -1780,7 +1780,7 @@ function actualizarInve5($conexionData, $pedidoId, $claveSae)
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     // Construcción dinámica de las tablas
     $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // ✅ 1. Obtener los productos del pedido con CVE_ART y CANT
     $sqlProductos = "SELECT CVE_ART, SUM(CANT) AS TOTAL_CANT 
@@ -1953,7 +1953,7 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
 
     // Construcción dinámica de las tablas MULTXX y PAR_FACTRXX
     $tablaMulti = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
@@ -2004,9 +2004,9 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
         sqlsrv_free_stmt($stmtExist);
 
         // Solo actualizar si EXIST <= 0
-        
+
         if ($existencia && $existencia['EXIST'] >= 0) {
-            
+
             $paramsUpdate = [$cveCan, $fechaSinc, $cveArt, $cveAlm];
 
             $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
@@ -2031,7 +2031,7 @@ function actualizarMulti2($conexionData, $pedidoId, $claveSae)
         'message' => "MULTXX actualizado correctamente para los productos del pedido $pedidoId"
     ]);*/
 }
-function actualizarPar_FACTR($conexionData, $pedidoId, $cveDoc, $claveSae)
+function actualizarPar_Factp($conexionData, $pedidoId, $cveDoc, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2053,7 +2053,7 @@ function actualizarPar_FACTR($conexionData, $pedidoId, $cveDoc, $claveSae)
 
     // Tablas dinámicas
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidasPedido = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
@@ -2111,7 +2111,7 @@ function actualizarPar_FACTR($conexionData, $pedidoId, $cveDoc, $claveSae)
         'message' => "PAR_FACTRXX actualizado correctamente para el pedido $pedidoId y Remision $cveDoc"
     ]);*/
 }
-function actualizarFACTR($conexionData, $pedidoId, $claveSae)
+function actualizarFactp($conexionData, $pedidoId, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2132,8 +2132,8 @@ function actualizarFACTR($conexionData, $pedidoId, $claveSae)
     }
 
     // Tablas dinámicas
-    $tablaFACTR = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaParFACTR = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaFactp = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaParFactp = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Formatear el pedidoId (CVE_DOC)
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
@@ -2143,14 +2143,14 @@ function actualizarFACTR($conexionData, $pedidoId, $claveSae)
     $fechaSinc = date('Y-m-d H:i:s');
 
     // ✅ 1. Consulta para actualizar FACTRXX
-    $sqlUpdate = "UPDATE $tablaFACTR 
+    $sqlUpdate = "UPDATE $tablaFactp 
                   SET TIP_DOC_E = ?, 
                       VERSION_SINC = ?, 
                       ENLAZADO = (CASE 
-                                    WHEN (SELECT SUM(P.PXS) FROM $tablaParFACTR P 
-                                          WHERE P.CVE_DOC = ? AND $tablaFACTR.CVE_DOC = P.CVE_DOC) = 0 THEN 'T'
-                                    WHEN (SELECT SUM(P.PXS) FROM $tablaParFACTR P 
-                                          WHERE P.CVE_DOC = ? AND $tablaFACTR.CVE_DOC = P.CVE_DOC) > 0 THEN 'P' 
+                                    WHEN (SELECT SUM(P.PXS) FROM $tablaParFactp P 
+                                          WHERE P.CVE_DOC = ? AND $tablaFactp.CVE_DOC = P.CVE_DOC) = 0 THEN 'T'
+                                    WHEN (SELECT SUM(P.PXS) FROM $tablaParFactp P 
+                                          WHERE P.CVE_DOC = ? AND $tablaFactp.CVE_DOC = P.CVE_DOC) > 0 THEN 'P' 
                                     ELSE ENLAZADO END)
                   WHERE CVE_DOC = ?";
 
@@ -2160,7 +2160,7 @@ function actualizarFACTR($conexionData, $pedidoId, $claveSae)
     if ($stmtUpdate === false) {
         die(json_encode([
             'success' => false,
-            'message' => "Error al actualizar FACTRXX para el pedido $pedidoId",
+            'message' => "Error al actualizar FACTPXX para el pedido $pedidoId",
             'errors' => sqlsrv_errors()
         ]));
     }
@@ -2174,7 +2174,7 @@ function actualizarFACTR($conexionData, $pedidoId, $claveSae)
         'message' => "FACTRXX actualizado correctamente para el pedido $pedidoId"
     ]);*/
 }
-function actualizarFACTR2($conexionData, $pedidoId, $cveDocRemision, $claveSae)
+function actualizarFactp2($conexionData, $pedidoId, $cveDocRemision, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2195,17 +2195,17 @@ function actualizarFACTR2($conexionData, $pedidoId, $cveDocRemision, $claveSae)
     }
 
     // Tablas dinámicas
-    $tablaFACTR = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaFactp = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Formatear los valores para SQL Server
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
-    
+
     $cveDocRemision = str_pad($cveDocRemision, 10, '0', STR_PAD_LEFT);
     $cveDocRemision = str_pad($cveDocRemision, 20, ' ', STR_PAD_LEFT);
 
-    // ✅ Actualizar DOC_SIG y TIP_DOC_SIG en FACTPXX
-    $sqlUpdate = "UPDATE $tablaFACTR 
+    // ✅ Actualizar DOC_SIG y TIP_DOC_SIG en FACTRXX
+    $sqlUpdate = "UPDATE $tablaFactp 
                   SET DOC_SIG = ?, 
                       TIP_DOC_SIG = ? 
                   WHERE CVE_DOC = ?";
@@ -2216,7 +2216,7 @@ function actualizarFACTR2($conexionData, $pedidoId, $cveDocRemision, $claveSae)
     if ($stmtUpdate === false) {
         die(json_encode([
             'success' => false,
-            'message' => "Error al actualizar FACTRXX para el pedido $pedidoId",
+            'message' => "Error al actualizar FACTPXX para el pedido $pedidoId",
             'errors' => sqlsrv_errors()
         ]));
     }
@@ -2230,7 +2230,7 @@ function actualizarFACTR2($conexionData, $pedidoId, $cveDocRemision, $claveSae)
         'message' => "FACTRXX actualizado correctamente para el pedido $pedidoId con remision $cveDocRemision"
     ]);*/
 }
-function actualizarFACTR3($conexionData, $pedidoId, $claveSae)
+function actualizarFactp3($conexionData, $pedidoId, $claveSae)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2251,21 +2251,21 @@ function actualizarFACTR3($conexionData, $pedidoId, $claveSae)
     }
 
     // Tablas dinámicas
-    $tablaFACTR = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaParFACTR = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaFactp = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaParFactp = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Formatear el pedidoId para SQL Server
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
 
     // ✅ Ejecutar la actualización de `TIP_FAC`
-    $sqlUpdate = "UPDATE $tablaFACTR 
+    $sqlUpdate = "UPDATE $tablaFactp 
                   SET TIP_FAC = (
                       CASE 
                           WHEN (SELECT SUM(P.PXS) 
-                                FROM $tablaParFACTR P 
+                                FROM $tablaParFactp P 
                                 WHERE P.CVE_DOC = ? 
-                                AND $tablaFACTR.CVE_DOC = P.CVE_DOC) = 0 
+                                AND $tablaFactp.CVE_DOC = P.CVE_DOC) = 0 
                           THEN 'P' 
                           ELSE TIP_FAC 
                       END) 
@@ -2277,7 +2277,7 @@ function actualizarFACTR3($conexionData, $pedidoId, $claveSae)
     if ($stmtUpdate === false) {
         die(json_encode([
             'success' => false,
-            'message' => "Error al actualizar TIP_FAC en FACTRXX para el pedido $pedidoId",
+            'message' => "Error al actualizar TIP_FAC en FACTPXX para el pedido $pedidoId",
             'errors' => sqlsrv_errors()
         ]));
     }
@@ -2430,7 +2430,7 @@ function insertarInfenvio($conexionData, $pedidoId, $cveDoc, $claveSae)
     if (!$pedido) {
         die(json_encode([
             'success' => false,
-            'message' => 'No se encontraron datos del pedido Infenvio'
+            'message' => 'No se encontraron datos del pedido'
         ]));
     }
 
@@ -2612,7 +2612,7 @@ function remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $foli
             'remision' => ['stringValue' => $folio]
         ]
     ];
-    
+
     //$payload = json_encode(['fields' => $fieldsToSave]);
 
     $urlUpd = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$docId?updateMask.fieldPaths=remision&key=$firebaseApiKey";
@@ -2626,7 +2626,7 @@ function remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $foli
         ]
     ]);
     //var_dump($context);
-    
+
     $response = @file_get_contents($urlUpd, false, $context);
 
     if ($response === FALSE) {
@@ -2668,17 +2668,17 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarAfac($conexionData, $pedidoId, $claveSae);
     actualizarControl3($conexionData, $claveSae);
     $CVE_BITA = insertarBita($conexionData, $pedidoId, $claveSae);
-    
+
     $folio = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA);
-    
+
     insertarMimve($conexionData, $pedidoId, $claveSae, $folio);
     insertarFactr_Clib($conexionData, $folio, $claveSae);
-    actualizarPar_FACTR($conexionData, $pedidoId, $folio, $claveSae);
+    actualizarPar_Factp($conexionData, $pedidoId, $folio, $claveSae);
     actualizarInve4($conexionData, $pedidoId, $claveSae);
     insertarPar_Factr($conexionData, $pedidoId, $folio, $claveSae, $enlaceLote);
-    actualizarFACTR($conexionData, $pedidoId, $claveSae);
-    actualizarFACTR2($conexionData, $pedidoId, $folio, $claveSae);
-    actualizarFACTR3($conexionData, $pedidoId, $claveSae);
+    actualizarFactp($conexionData, $pedidoId, $claveSae);
+    actualizarFactp2($conexionData, $pedidoId, $folio, $claveSae);
+    actualizarFactp3($conexionData, $pedidoId, $claveSae);
     insertarDoctoSig($conexionData, $pedidoId, $folio, $claveSae);
     insertarPar_Factr_Clib($conexionData, $pedidoId, $folio, $claveSae);
     insertarInfenvio($conexionData, $pedidoId, $folio, $claveSae);
@@ -2699,7 +2699,7 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     //remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio);
 
     //$cveDoc = '          0000013314';
-    //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor); 
+    //generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor);
     //echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
     //return $cveDoc;
 }
@@ -2725,7 +2725,7 @@ function conectarDB($conexionData)
 function obtenerProductosPedido($conn, $conexionData, $pedidoId, $claveSae)
 {
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
-    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaProductos = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $params = [str_pad($pedidoId, 20, ' ', STR_PAD_LEFT)];
     $sql = "SELECT P.CVE_ART, P.CANT, I.CON_LOTE
