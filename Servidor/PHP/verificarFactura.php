@@ -365,8 +365,8 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
 
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -489,7 +489,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $telefonoVendedor = "";
     $correoVendedor = "";
     $nombreVendedor = "";
-    var_dump($CVE_VEND);
+    //var_dump($CVE_VEND);
     // Buscar al vendedor por clave
     if (isset($usuariosData['documents'])) {
         foreach ($usuariosData['documents'] as $document) {
@@ -511,7 +511,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $emailPred = $correoVendedor ?? "";
     $numeroWhatsApp = $telefonoVendedor;
     $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    $numeroWhatsApp = '7773750925';
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
     /*$emailPred = 'amartinez@grupointerzenda.com';
@@ -519,8 +519,12 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
 
     if ($correo === 'S' && !empty($emailPred)) {
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
-        $rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
-        $filename = "Factura_" . urldecode($folioFactura) . ".pdf";
+        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
+        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_18456.pdf";
+        //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        //$filename = "Factura_" . urldecode($folioFactura) . ".pdf";
+        //$filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
+        $filename = "Factura_18456.pdf";
         $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename);
         var_dump($resultadoWhatsApp);
         enviarCorreo($emailPred, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
@@ -910,8 +914,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -1418,10 +1422,10 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                             $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
                             //var_dump("Respuesta: ", $respuestaFactura);
                             if ($respuestaFactura['success']) {
-                            $bandera = 1;
-                            actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                            $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
-                            validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
+                                $bandera = 1;
+                                actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                                $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+                                validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
                             } else {
                                 $bandera = 0;
                                 //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);

@@ -2131,7 +2131,6 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     error_log("HTTP Status Code: " . $http_code);
 
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
     return $result;
 }
 function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
