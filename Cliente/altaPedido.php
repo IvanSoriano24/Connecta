@@ -346,7 +346,7 @@ if (isset($_SESSION['usuario'])) {
 </style>
 <style>
     .tabla-scroll {
-        height: 250px;
+        height: 300px;
         /* Altura fija para el área del scroll */
         overflow-y: auto;
         /* Activar scroll vertical */
@@ -600,13 +600,13 @@ if (isset($_SESSION['usuario'])) {
                             <input class="input-mt" type="text" name="conCredito" id="conCredito" readonly hidden>
                             <div class="form-element"></div>
                         </div>
-                        <div class="row">
+                        <!--<div class="row">
                             <div class="form-element"></div>
                             <button type="button" class="btn-save" id="guardarPedido" tabindex="-1"
                                 style="width: 150px;">Guardar</button>
                             <button type="button" class="btn-cancel" id="cancelarPedido" tabindex="-1"
                                 style="width: 150px;">Cancelar</button>
-                        </div>
+                        </div>-->
                     </form>
                     <!-- 5th row: 2 buttons -->
                     <div class="table-data">
@@ -641,6 +641,14 @@ if (isset($_SESSION['usuario'])) {
                                 <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
                             </div>
                         </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="form-element"></div>
+                        <button type="button" class="btn-save" id="guardarPedido" tabindex="-1"
+                            style="width: 150px;">Guardar</button>
+                        <button type="button" class="btn-cancel" id="cancelarPedido" tabindex="-1"
+                            style="width: 150px;">Cancelar</button>
                     </div>
                     <!-- Modal clientes -->
                     <div id="modalClientes" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -724,7 +732,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="hidden" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
                                 <input type="hidden" id="idDatos" value="">
                                 <input type="hidden" id="folioDatos" value="">
-                                <input type="hidden" id="titutoDatos" value="" >
+                                <input type="hidden" id="titutoDatos" value="">
 
                                 <!-- Sección: Datos de contacto y dirección -->
                                 <div class="row">

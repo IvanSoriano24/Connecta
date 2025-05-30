@@ -388,6 +388,7 @@ function actualizarEmpresa() {
     codigoPostal: $("#codigoPostal").val(),
     poblacion: $("#poblacion").val(),
     token: $("#csrf_token").val(),
+    password: $("#keyPassword").val(),
   };
   $.ajax({
     url: "../Servidor/PHP/empresas.php",

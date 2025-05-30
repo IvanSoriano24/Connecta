@@ -129,9 +129,9 @@ if (isset($_SESSION['usuario'])) {
                             <i class='bx bxs-building-house'></i> Asociar Empresa
                         </button>
 
-                        <button class="btn btn-success" id="btnAgregarCliente">
+                        <!--<button class="btn btn-success" id="btnAgregarCliente">
                             <i class='bx bxs-user-plus'></i> Agregar Cliente
-                        </button>
+                        </button>-->
                     <?php } ?>
                     <!--<button class="btn btn-secondary" id="btnExportar" disabled>
                         <i class='bx bxs-export'></i> Exportar

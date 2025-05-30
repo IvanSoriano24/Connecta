@@ -9,7 +9,7 @@ function agregarEventosBotones() {
             console.log("Redirigiendo con pedidoID:", pedidoID);
             window.location.href = "verfactura.php?pedidoID=" + pedidoID;*/
             const pedidoID = this.dataset.id; // Obtener el ID del pedido
-            window.location.href = "verfactura.php?pedidoID=" + pedidoID;
+            window.location.href = "verFactura.php?pedidoID=" + pedidoID;
         });
     });
 }
@@ -154,7 +154,7 @@ let registrosPorPagina = 10; // Ajusta según convenga
 function datosPedidos(limpiarTabla = true) {
     // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
     let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
+    let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
     const pedidosTable = document.getElementById("datosPedidos");
     const numColumns = 12; // Número de columnas de tu tabla
 
@@ -719,7 +719,7 @@ $(document).on("change", "#filtroVendedor", function () {
 // Al cargar la página, se lee el filtro guardado y se carga la información
 document.addEventListener("DOMContentLoaded", function () {
     let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
+    let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
 
     // 🔹 Resaltar el botón correspondiente al estado guardado
     $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary");
@@ -769,7 +769,7 @@ function doSearch(limpiarTabla = true) {
     if (searchText.length >= 2) {
         // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
         let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-        let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
+        let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
         document.getElementById("filtroFecha").value = filtroFecha;
         const pedidosTable = document.getElementById("datosPedidos");
         const numColumns = 12; // Número de columnas de tu tabla
@@ -924,7 +924,7 @@ function doSearch(limpiarTabla = true) {
 }
 document.addEventListener("DOMContentLoaded", function () {
     // Verificar si estamos en la página de creación o edición de pedidos
-    if (window.location.pathname.includes("verfactura.php")) {
+    if (window.location.pathname.includes("verFactura.php")) {
         // Obtener parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
         const pedidoID = urlParams.get("pedidoID"); // Puede ser null si no está definido

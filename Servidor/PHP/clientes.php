@@ -487,15 +487,17 @@ function mostrarClienteEspecifico($clave, $conexionData)
     }
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Crear la consulta SQL con un parámetro
     $sql = "SELECT TOP (1) C.[CLAVE], C.[STATUS], C.[NOMBRE], C.[RFC], C.[CALLE], C.[NUMINT], C.[NUMEXT], 
                     C.[CRUZAMIENTOS], C.[COLONIA], C.[CODIGO], C.[LOCALIDAD], C.[MUNICIPIO], C.[ESTADO], 
                     C.[PAIS], C.[NACIONALIDAD], C.[REFERDIR], C.[TELEFONO], C.[CLASIFIC], C.[FAX], C.[PAG_WEB], 
                     C.[CURP], C.[CVE_ZONA], C.[IMPRIR], C.[MAIL], C.[SALDO], C.[TELEFONO],
-                    C.[CON_CREDITO], C.[DIAREV], C.[DIAPAGO], C.[DIASCRED], C.[DIAREV], C.[METODODEPAGO], C.[LISTA_PREC], C.[DESCUENTO], C.[CVE_VEND],
+                    L.[CAMPLIB9] AS CON_CREDITO, C.[DIAREV], C.[DIAPAGO], C.[DIASCRED], C.[DIAREV], C.[METODODEPAGO], C.[LISTA_PREC], C.[DESCUENTO], C.[CVE_VEND],
                     V.[NOMBRE] AS NombreVendedor, C.[LIMCRED], C.[NUMCTAPAGO], C.[DIAREV], C.[DIAPAGO]
             FROM $nombreTabla C 
+            INNER JOIN $nombreTabla3 L ON C.CLAVE = L.CVE_CLIE
             INNER JOIN $nombreTabla2 V ON C.CVE_VEND = V.CVE_VEND
             WHERE [CLAVE] = ?";
 

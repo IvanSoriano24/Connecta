@@ -41,7 +41,7 @@ session_destroy(); */
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootsstrap  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <!-- My CSS -->
@@ -238,111 +238,117 @@ session_destroy(); */
 </head>
 
 <body>
-<div class="hero_area">
-    <!-- SIDEBAR -->
-    <?php include 'sidebar.php'; ?>
-    <!-- CONTENT -->
-    <section id="content">
-        <!-- NAVBAR -->
-        <?php include 'navbar.php'; ?>
-        <!-- MAIN -->
-        <main class="text-center ">
-            <div class="head-title">
-                <div class="left">
-                    <h1>Remisiones</h1>
-                    <ul class="breadcrumb">
-                        <li>
-                            <a href="#">Inicio</a>
-                        </li>
-                        <li><i class='bx bx-chevron-right'></i></li>
-                        <li>
-                            <a class="" href="Ventas.php">Ventas</a>
-                        </li>
-                    </ul>
-                </div>
-                <!-- Secciones de Pedido-->
-                <div class="order">
-                    <div style="align-items: center; display: flex; justify-content: center;" class="btn-group" role="group" aria-label="Filtros de Usuarios">
-                        <button type="button" class="btn btn-primary filtro-rol" data-rol="Activos">Activos</button>
-                        <button type="button" class="btn btn-secondary filtro-rol" data-rol="Vendidos">Vendidos</button>
-                        <button type="button" class="btn btn-secondary filtro-rol" data-rol="Cancelados">Cancelados</button>
+    <div class="hero_area">
+        <!-- SIDEBAR -->
+        <?php include 'sidebar.php'; ?>
+        <!-- CONTENT -->
+        <section id="content">
+            <!-- NAVBAR -->
+            <?php include 'navbar.php'; ?>
+            <!-- MAIN -->
+            <main class="text-center ">
+                <div class="head-title">
+                    <div class="left">
+                        <h1>Remisiones</h1>
+                        <ul class="breadcrumb">
+                            <li>
+                                <a href="#">Inicio</a>
+                            </li>
+                            <li><i class='bx bx-chevron-right'></i></li>
+                            <li>
+                                <a class="" href="Ventas.php">Ventas</a>
+                            </li>
+                        </ul>
                     </div>
-                </div>
-
-                <!-- TABLA PEDIDOS  -->
-                <div class="table-data" id="pedidosActivos">
+                    <!-- Secciones de Pedido-->
                     <div class="order">
-                        <div class="head">
-                            <div class="input-group">
-                                <tr>
-                                    <td>
-                                        <select id="filtroFecha">
-                                            <option value="Hoy">Hoy</option>
-                                            <option value="Mes">Mes</option>
-                                            <option value="Mes Anterior">Mes Anterior</option>
-                                            <option value="Todos">Todos</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            </div>
-                            <div class="input-group">
-                                <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
+                        <div style="align-items: center; display: flex; justify-content: center;" class="btn-group" role="group" aria-label="Filtros de Usuarios">
+                            <button type="button" class="btn btn-primary filtro-rol" data-rol="Vendidos">Vendidos</button>
+                            <button type="button" class="btn btn-secondary filtro-rol" data-rol="Cancelados">Cancelados</button>
+                        </div>
+                    </div>
+
+                    <!-- TABLA PEDIDOS  -->
+                    <div class="table-data" id="pedidosActivos">
+                        <div class="order">
+                            <label for="filtros" style="margin-right: 94%;">Filtrar Por:</label>
+                            <div class="head">
+                                <div class="input-group">
                                     <tr>
                                         <td>
-                                            <select id="filtroVendedor">
+                                            <label for="Periodo">Periodo: </label>
+                                            &nbsp; &nbsp;
+                                            <select id="filtroFecha">
+                                                <option value="Hoy">Hoy</option>
+                                                <option value="Mes">Este Mes</option>
+                                                <option value="Mes Anterior">Mes Anterior</option>
+                                                <option value="Todos">Todos</option>
                                             </select>
                                         </td>
                                     </tr>
-                                <?php } ?>
+                                </div>
+
+                                <div class="input-group">
+
+                                    <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
+                                        <tr>
+                                            <td>
+                                                <label for="Vendedor">Vendedor: </label>
+                                                &nbsp; &nbsp;
+                                                <select id="filtroVendedor">
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                </div>
+                                <h3></h3>
+                                <div class="input-group">
+                                    <i class='bx bx-search search-icon'></i>
+                                    <input
+                                        id="searchTerm"
+                                        class="search-input"
+                                        type="text"
+                                        placeholder="Buscar remisión..."
+                                        onkeyup="debouncedSearch()" />
+                                </div>
+                                <!-- <i class='bx bx-filter'></i> -->
                             </div>
-                            <h3></h3>
-                            <div class="input-group">
-                                <i class='bx bx-search search-icon'></i>
-                                <input
-                                    id="searchTerm"
-                                    class="search-input"
-                                    type="text"
-                                    placeholder="Buscar remisión..."
-                                    onkeyup="debouncedSearch()" />
+                            <table id="pedidos">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Clave</th>
+                                        <th>Cliente</th>
+                                        <th>Nombre</th>
+                                        <th>Estatus</th>
+                                        <th>Fecha Elaboracion</th>
+                                        <th>Subtotal</th>
+                                        <!--<th>Total de Comisiones</th>-->
+                                        <th>Importe total</th>
+                                        <?php //if ($tipoUsuario == "ADMINISTRADOR") {
+                                        ?>
+                                        <th>Nombre del vendedor</th>
+                                        <?php //}
+                                        ?>
+                                        <th>Visualizar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="datosPedidos">
+                                </tbody>
+                            </table>
+                            <!-- Botón Mostrar Más -->
+                            <div id="pagination" class="pagination">
                             </div>
-                            <!-- <i class='bx bx-filter'></i> -->
-                        </div>
-                        <table id="pedidos">
-                            <thead>
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Clave</th>
-                                <th>Cliente</th>
-                                <th>Nombre</th>
-                                <th>Estatus</th>
-                                <th>Fecha Elaboracion</th>
-                                <th>Subtotal</th>
-                                <!--<th>Total de Comisiones</th>-->
-                                <th>Importe total</th>
-                                <?php //if ($tipoUsuario == "ADMINISTRADOR") {
-                                ?>
-                                <th>Nombre del vendedor</th>
-                                <?php //}
-                                ?>
-                                <th>Visualizar</th>
-                            </tr>
-                            </thead>
-                            <tbody id="datosPedidos">
-                            </tbody>
-                        </table>
-                        <!-- Botón Mostrar Más -->
-                        <div id="pagination" class="pagination">
-                        </div>
-                        <div class="pagination-controls">
-                            <label for="selectCantidad" class="cantidad-label">Mostrar</label>
-                            <select id="selectCantidad" class="cantidad-select">
-                                <option value="10">10</option>
-                                <option value="20">20</option>
-                                <option value="30">30</option>
-                            </select>
-                            <span class="cantidad-label">por página</span>
-                        </div>
-                        <!--<button id="btnMostrarMas">
+                            <div class="pagination-controls">
+                                <label for="selectCantidad" class="cantidad-label">Mostrar</label>
+                                <select id="selectCantidad" class="cantidad-select">
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="30">30</option>
+                                </select>
+                                <span class="cantidad-label">por página</span>
+                            </div>
+                            <!--<button id="btnMostrarMas">
                                 <span>
                                     <svg height="24" width="24" viewBox="0 0 24 24"
                                         xmlns="http://www.w3.org/2000/svg">
@@ -352,57 +358,58 @@ session_destroy(); */
                                     Mostrar
                                 </span>
                             </button>-->
+                        </div>
                     </div>
                 </div>
-            </div>
-        </main>
-        <!-- MAIN -->
-    </section>
+            </main>
+            <!-- MAIN -->
+        </section>
+        <!-- CONTENT -->
+    </div>
     <!-- CONTENT -->
-</div>
-<!-- CONTENT -->
-<!-- JS Para la confirmacion empresa -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="JS/menu.js"></script>
-<script src="JS/app.js"></script>
-<script src="JS/script.js"></script>
-<script src="JS/remisiones.js"></script>
-<script>
-    var tipoUsuario = "<?php echo $tipoUsuario; ?>";
-    if (tipoUsuario === "ADMINISTRADOR") {
-        llenarFiltroVendedor();
-    }
-</script>
-<script>
-    // Asignar el evento "change" al select del filtro (asegúrate que el id sea correcto)
-    /*document.getElementById("filtroFecha").addEventListener("change", function() {
-        const filtroSeleccionado = this.value;
-        cargarPedidos(filtroSeleccionado);
-    });*/
-    // Evento para el botón "Mostrar más"
-    $("#selectCantidad").on("change", function() {
-        const seleccion = parseInt($(this).val(), 10);
-        registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
-        paginaActual = 1; // volvemos a la primera página
-        estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
-        datosPedidos(true); // limpia la tabla y carga sólo registrosPorPagina filas
-    });
-    // Evento para el cambio del filtro
-    document.getElementById("filtroFecha").addEventListener("change", function() {
-        localStorage.setItem("filtroSeleccionado", this.value);
-        paginaActual = 1; // Reinicia la paginación
+    <!-- JS Para la confirmacion empresa -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="JS/menu.js"></script>
+    <script src="JS/app.js"></script>
+    <script src="JS/script.js"></script>
+    <script src="JS/remisiones.js"></script>
+    <script>
+        var tipoUsuario = "<?php echo $tipoUsuario; ?>";
+        if (tipoUsuario === "ADMINISTRADOR") {
+            llenarFiltroVendedor();
+        }
+    </script>
+    <script>
+        // Asignar el evento "change" al select del filtro (asegúrate que el id sea correcto)
+        /*document.getElementById("filtroFecha").addEventListener("change", function() {
+            const filtroSeleccionado = this.value;
+            cargarPedidos(filtroSeleccionado);
+        });*/
+        // Evento para el botón "Mostrar más"
+        $("#selectCantidad").on("change", function() {
+            const seleccion = parseInt($(this).val(), 10);
+            registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
+            paginaActual = 1; // volvemos a la primera página
+            estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
+            datosPedidos(true); // limpia la tabla y carga sólo registrosPorPagina filas
+        });
+        // Evento para el cambio del filtro
+        document.getElementById("filtroFecha").addEventListener("change", function() {
+            localStorage.setItem("filtroSeleccionado", this.value);
+            paginaActual = 1; // Reinicia la paginación
 
-        //document.getElementById("btnMostrarMas").style.display = "block"; // Asegura que el botón se muestre
-        datosPedidos(true); // Carga inicial con nuevo filtro (limpia la tabla)
-    });
-    // Carga inicial cuando el DOM esté listo
-    document.addEventListener("DOMContentLoaded", function() {
-        paginaActual = 1;
-        registrosPorPagina = 10;
+            //document.getElementById("btnMostrarMas").style.display = "block"; // Asegura que el botón se muestre
+            datosPedidos(true); // Carga inicial con nuevo filtro (limpia la tabla)
+        });
+        // Carga inicial cuando el DOM esté listo
+        document.addEventListener("DOMContentLoaded", function() {
+            paginaActual = 1;
+            registrosPorPagina = 10;
 
-        //document.getElementById("btnMostrarMas").style.display = "block";
-        datosPedidos(true);
-    });
-</script>
+            //document.getElementById("btnMostrarMas").style.display = "block";
+            datosPedidos(true);
+        });
+    </script>
 </body>
+
 </html>

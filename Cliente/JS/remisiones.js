@@ -154,7 +154,7 @@ let registrosPorPagina = 10; // Ajusta según convenga
 function datosPedidos(limpiarTabla = true) {
     // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
     let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
+    let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
     const pedidosTable = document.getElementById("datosPedidos");
     const numColumns = 12; // Número de columnas de tu tabla
 
@@ -719,7 +719,7 @@ $(document).on("change", "#filtroVendedor", function () {
 // Al cargar la página, se lee el filtro guardado y se carga la información
 document.addEventListener("DOMContentLoaded", function () {
     let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
+    let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
 
     // 🔹 Resaltar el botón correspondiente al estado guardado
     $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary");
@@ -769,7 +769,7 @@ function doSearch(limpiarTabla = true) {
     if (searchText.length >= 2) {
         // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
         let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-        let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
+        let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
         document.getElementById("filtroFecha").value = filtroFecha;
         const pedidosTable = document.getElementById("datosPedidos");
         const numColumns = 12; // Número de columnas de tu tabla

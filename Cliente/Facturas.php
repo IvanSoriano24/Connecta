@@ -263,8 +263,7 @@ session_destroy(); */
                 <!-- Secciones de Pedido-->
                 <div class="order">
                     <div style="align-items: center; display: flex; justify-content: center;" class="btn-group" role="group" aria-label="Filtros de Usuarios">
-                        <button type="button" class="btn btn-primary filtro-rol" data-rol="Activos">Activos</button>
-                        <button type="button" class="btn btn-secondary filtro-rol" data-rol="Vendidos">Vendidos</button>
+                        <button type="button" class="btn btn-primary filtro-rol" data-rol="Vendidos">Vendidos</button>
                         <button type="button" class="btn btn-secondary filtro-rol" data-rol="Cancelados">Cancelados</button>
                     </div>
                 </div>
@@ -272,10 +271,13 @@ session_destroy(); */
                 <!-- TABLA PEDIDOS  -->
                 <div class="table-data" id="pedidosActivos">
                     <div class="order">
+                        <label for="filtros" style="margin-right: 94%;">Filtrar Por:</label>
                         <div class="head">
                             <div class="input-group">
                                 <tr>
                                     <td>
+                                        <label for="Periodo">Periodo: </label>
+                                            &nbsp; &nbsp;
                                         <select id="filtroFecha">
                                             <option value="Hoy">Hoy</option>
                                             <option value="Mes">Mes</option>
@@ -289,6 +291,8 @@ session_destroy(); */
                                 <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
                                     <tr>
                                         <td>
+                                            <label for="Vendedor">Vendedor: </label>
+                                                &nbsp; &nbsp;
                                             <select id="filtroVendedor">
                                             </select>
                                         </td>
@@ -384,7 +388,7 @@ session_destroy(); */
         const seleccion = parseInt($(this).val(), 10);
         registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
         paginaActual = 1; // volvemos a la primera página
-        estadoPedido = localStorage.getItem("estadoPedido") || "Activos";
+        estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
         datosPedidos(true); // limpia la tabla y carga sólo registrosPorPagina filas
     });
     // Evento para el cambio del filtro

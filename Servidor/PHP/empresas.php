@@ -107,7 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             mkdir("../XML/sdk2/certificados/$id/", 0700);
             guardarEmpresa($data);
-
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
@@ -123,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $response = ['success' => true];
             $result = probarCsd($keyPass, $baseDir);
-            if(!$result){
+            if (!$result) {
                 echo json_encode(['success' => false, 'message' => "No se pudo abrir los CSD"]);
             }
             // procesar .cer
@@ -183,7 +182,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'estado' => $_POST['estado'],
                 'municipio' => $_POST['municipio'],
                 'codigoPostal' => $_POST['codigoPostal'],
-                'poblacion' => $_POST['poblacion']
+                'poblacion' => $_POST['poblacion'],
+                'password' => $_POST['password']
             ];
             actualizarEmpresa($data);
         } catch (Exception $e) {
@@ -206,9 +206,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $keyPass   = $_POST['keyPassword'];
             $baseDir = "../XML/sdk2/certificados/{$noEmpresa}/";
             $result = probarCsd($keyPass, $baseDir);
-            if(!$result){
+            if (!$result) {
                 echo json_encode(['success' => false, 'message' => "No se pudo abrir los CSD"]);
-            } else{
+            } else {
                 echo json_encode(['success' => true, 'message' => "CSD correctos"]);
             }
         } catch (Exception $e) {
@@ -373,7 +373,8 @@ function obtenerEmpresa($noEmpresa)
     }
 }
 
-function obtenerCsd($noEmpresa){
+function obtenerCsd($noEmpresa)
+{
     $rutaPrincipal = __DIR__ . "/../XML/sdk2/certificados/$noEmpresa/";
     // Buscar .cer y .key en esa carpeta o subcarpetas
     $archivoCer = glob($rutaPrincipal . "{*.cer,*/*.cer}", GLOB_BRACE);
@@ -401,7 +402,8 @@ function obtenerCsd($noEmpresa){
         return;
     }
     $password = decryptValue($csd['keyEncValue'], $csd['keyEncIv']);
-
+    /*var_dump($csd);
+    var_dump($password);*/
     // Obtener fechas de vigencia y estado
     $status = obtenerStatusCsd($cerPath, $keyPath, $password);
     if ($status === false) {
@@ -538,7 +540,8 @@ function responderJson($success, $message, $data = null)
     exit;
 }
 
-function actualizarEmpresa($data){
+function actualizarEmpresa($data)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
@@ -548,25 +551,54 @@ function actualizarEmpresa($data){
     // Construir la URL del documento encontrado para actualizarlo
     $urlActualizar = "$urlBase/EMPRESAS/$documentoId?key=$firebaseApiKey";
 
+    if (!empty($data['password'])) {
+        $enc = encryptValue($data['password']);
+        // $enc = ['value' => '<base64-ciphertext>', 'iv' => '<base64-iv>']
 
-    $fieldsToSave = [
-        'id' => ['stringValue' => $data['id']],
-        'noEmpresa' => ['integerValue' => $data['noEmpresa']],
-        'razonSocial' => ['stringValue' => $data['razonSocial']],
-        'rfc' => ['stringValue' => $data['rfc']],
-        'regimenFiscal' => ['stringValue' => $data['regimenFiscal']],
-        'calle' => ['stringValue' => $data['calle']],
-        'numExterior' => ['stringValue' => $data['numExterior']],
-        'numInterior' => ['stringValue' => $data['numInterior']],
-        'entreCalle' => ['stringValue' => $data['entreCalle']],
-        'colonia' => ['stringValue' => $data['colonia']],
-        'referencia' => ['stringValue' => $data['referencia']],
-        'pais' => ['stringValue' => $data['pais']],
-        'estado' => ['stringValue' => $data['estado']],
-        'municipio' => ['stringValue' => $data['municipio']],
-        'codigoPostal' => ['stringValue' => $data['codigoPostal']],
-        'poblacion' => ['stringValue' => $data['poblacion']]
-    ];
+        // 2) Construir payload solo con los dos campos que queremos crear/actualizar
+        $keyEncValue = $enc['value'];
+        $keyEncIv = $enc['iv'];
+        $fieldsToSave = [
+            'id' => ['stringValue' => $data['id']],
+            'noEmpresa' => ['integerValue' => $data['noEmpresa']],
+            'razonSocial' => ['stringValue' => $data['razonSocial']],
+            'rfc' => ['stringValue' => $data['rfc']],
+            'regimenFiscal' => ['stringValue' => $data['regimenFiscal']],
+            'calle' => ['stringValue' => $data['calle']],
+            'numExterior' => ['stringValue' => $data['numExterior']],
+            'numInterior' => ['stringValue' => $data['numInterior']],
+            'entreCalle' => ['stringValue' => $data['entreCalle']],
+            'colonia' => ['stringValue' => $data['colonia']],
+            'referencia' => ['stringValue' => $data['referencia']],
+            'pais' => ['stringValue' => $data['pais']],
+            'estado' => ['stringValue' => $data['estado']],
+            'municipio' => ['stringValue' => $data['municipio']],
+            'codigoPostal' => ['stringValue' => $data['codigoPostal']],
+            'poblacion' => ['stringValue' => $data['poblacion']],
+            'keyEncValue' => ['stringValue' => $keyEncValue],
+            'keyEncIv' => ['stringValue' => $keyEncIv]
+        ];
+    } else {
+        $fieldsToSave = [
+            'id' => ['stringValue' => $data['id']],
+            'noEmpresa' => ['integerValue' => $data['noEmpresa']],
+            'razonSocial' => ['stringValue' => $data['razonSocial']],
+            'rfc' => ['stringValue' => $data['rfc']],
+            'regimenFiscal' => ['stringValue' => $data['regimenFiscal']],
+            'calle' => ['stringValue' => $data['calle']],
+            'numExterior' => ['stringValue' => $data['numExterior']],
+            'numInterior' => ['stringValue' => $data['numInterior']],
+            'entreCalle' => ['stringValue' => $data['entreCalle']],
+            'colonia' => ['stringValue' => $data['colonia']],
+            'referencia' => ['stringValue' => $data['referencia']],
+            'pais' => ['stringValue' => $data['pais']],
+            'estado' => ['stringValue' => $data['estado']],
+            'municipio' => ['stringValue' => $data['municipio']],
+            'codigoPostal' => ['stringValue' => $data['codigoPostal']],
+            'poblacion' => ['stringValue' => $data['poblacion']]
+        ];
+    }
+
 
     // Construir el payload en formato JSON
     $payload = json_encode(['fields' => $fieldsToSave]);
@@ -606,7 +638,8 @@ function actualizarEmpresa($data){
 }
 
 // Función para guardar o actualizar empresa
-function guardarEmpresa($data){
+function guardarEmpresa($data)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
@@ -669,7 +702,7 @@ function probarCsd($keyPass, $baseDir)
         //var_dump(get_class($certificate), get_class_methods($certificate));
         // Obtenemos fechas de vigencia como DateTimeImmutable
         $notBefore = $certificate->validFromDateTime();  // inicio de vigencia
-        $notAfter  = $certificate->validToDateTime(); 
+        $notAfter  = $certificate->validToDateTime();
         $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
         return ($notBefore <= $now && $now <= $notAfter);
 

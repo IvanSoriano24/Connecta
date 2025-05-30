@@ -215,21 +215,6 @@ if (isset($_SESSION['usuario'])) {
 
                 <div class="row g-3">
                   <div class="col-md-4">
-                    <label for="estadoCsd" class="form-label">Estado</label>
-                    <input type="text" class="form-control form-control-sm" id="estadoCsd" name="estadoCsd" readonly1 tabindex="-1">
-                  </div>
-                  <div class="col-md-4">
-                    <label for="fechaInicioCsd" class="form-label">Fecha de Inicio del CSD</label>
-                    <input type="text" class="form-control form-control-sm" id="fechaInicioCsd" name="fechaInicioCsd" readonly1 tabindex="-1">
-                  </div>
-                  <div class="col-md-4">
-                    <label for="fechaVencimientoCsd" class="form-label">Vencimiento del CSD</label>
-                    <input type="text" class="form-control form-control-sm" id="fechaVencimientoCsd" name="fechaVencimientoCsd" readonly1 tabindex="-1">
-                  </div>
-                </div>
-                <br>
-                <div class="row g-3">
-                  <div class="col-md-4">
                     <label for="cerFile" class="form-label">Archivo CER *</label>
                     <input type="file" class="form-control form-control-sm" id="cerFile" name="cerFile" accept=".cer">
                     <small id="cerFileName" class="form-text text-muted"></small>
@@ -247,6 +232,21 @@ if (isset($_SESSION['usuario'])) {
                     <div class="password-container">
                       <button type="button" class="show-password" id="togglePassword">Mostrar</button>
                     </div>
+                  </div>
+                </div>
+                <br>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label for="estadoCsd" class="form-label">Estado</label>
+                    <input type="text" class="form-control form-control-sm" id="estadoCsd" name="estadoCsd" readonly1 tabindex="-1">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="fechaInicioCsd" class="form-label">Fecha de Inicio del CSD</label>
+                    <input type="text" class="form-control form-control-sm" id="fechaInicioCsd" name="fechaInicioCsd" readonly1 tabindex="-1">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="fechaVencimientoCsd" class="form-label">Vencimiento del CSD</label>
+                    <input type="text" class="form-control form-control-sm" id="fechaVencimientoCsd" name="fechaVencimientoCsd" readonly1 tabindex="-1">
                   </div>
                 </div>
 

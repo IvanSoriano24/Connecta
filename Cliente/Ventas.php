@@ -279,13 +279,16 @@ session_destroy(); */
                     <!-- TABLA PEDIDOS  -->
                     <div class="table-data" id="pedidosActivos">
                         <div class="order">
+                            <label for="filtros" style="margin-right: 94%;">Filtrar Por:</label>
                             <div class="head">
                                 <div class="input-group">
                                     <tr>
                                         <td>
+                                            <label for="Periodo">Periodo: </label>
+                                            &nbsp; &nbsp;
                                             <select id="filtroFecha">
                                                 <option value="Hoy">Hoy</option>
-                                                <option value="Mes">Mes</option>
+                                                <option value="Mes">Este Mes</option>
                                                 <option value="Mes Anterior">Mes Anterior</option>
                                                 <option value="Todos">Todos</option>
                                             </select>
@@ -296,6 +299,8 @@ session_destroy(); */
                                     <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
                                         <tr>
                                             <td>
+                                                <label for="Vendedor">Vendedor: </label>
+                                                &nbsp; &nbsp;
                                                 <select id="filtroVendedor">
                                                 </select>
                                             </td>
