@@ -1363,18 +1363,8 @@ function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $
     sqlsrv_close($conn);
     return $CVE_INFO;
 }
-function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
+function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -1534,13 +1524,9 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
             'message' => 'Error al guardar el pedido',
             'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
         ]));
-    } else {
-        return true;
-        // echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
     }
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
 function guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
 {
@@ -1597,18 +1583,8 @@ function guardarPedidoClib($conexionData, $formularioData, $partidasData, $clave
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function guardarPartidas($conexionData, $formularioData, $partidasData)
+function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -1718,23 +1694,13 @@ function guardarPartidas($conexionData, $formularioData, $partidasData)
         die(json_encode(['success' => false, 'message' => 'Error: partidasData no es un array válido']));
     }
     //echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
-    // Confirmar la transacción
-    sqlsrv_commit($conn);
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
-function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae)
+function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae, $conn)
 {
     // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
     // Asumiendo que la descripción está en una tabla llamada "productos"
-    $conn = sqlsrv_connect($conexionData['host'], [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ]);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT DESCR FROM $nombreTabla WHERE CVE_ART = ?";
     $stmt = sqlsrv_query($conn, $sql, [$CVE_ART]);
@@ -1746,22 +1712,11 @@ function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae)
     $descripcion = $row ? $row['DESCR'] : '';
 
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     return $descripcion;
 }
-function actualizarFolio($conexionData, $claveSae)
+function actualizarFolio($conexionData, $claveSae, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -1787,7 +1742,6 @@ function actualizarFolio($conexionData, $claveSae)
 
     // Liberar el recurso solo si la consulta fue exitosa
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     // Retornar el resultado
     if ($rowsAffected > 0) {
@@ -1842,26 +1796,17 @@ function actualizarFolioF($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function actualizarInventario($conexionData, $partidasData)
+function actualizarInventario($conexionData, $partidasData, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
     foreach ($partidasData as $partida) {
         $CVE_ART = $partida['producto'];
-        $cantidad = $partida['cantidad'];
+        //$cantidad = $partida['cantidad'];
+        $cantidad = "uno";
         // SQL para actualizar los campos EXIST y PEND_SURT
         $sql = "UPDATE $nombreTabla
             SET    
@@ -1885,7 +1830,6 @@ function actualizarInventario($conexionData, $partidasData)
         }
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
 function obtenerFolioSiguiente($conexionData, $claveSae)
 {
@@ -1919,19 +1863,8 @@ function obtenerFolioSiguiente($conexionData, $claveSae)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito)
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn)
 {
-    // Establecer la conexión con SQL Server
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -2041,21 +1974,9 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         die();
     }
     /*******************************************/
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
-function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito)
+function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn)
 {
-    // Conectar a SQL Server
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -2082,8 +2003,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     $vendedorData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     if (!$vendedorData) {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene datos registrados.']);
-        sqlsrv_close($conn);
+        //echo json_encode(['success' => false, 'message' => 'El vendedor no tiene datos registrados.']);
+        //sqlsrv_close($conn);
         return;
     }
 
@@ -2098,8 +2019,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     if (!$clienteData) {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene datos registrados.']);
-        sqlsrv_close($conn);
+        //echo json_encode(['success' => false, 'message' => 'El cliente no tiene datos registrados.']);
+        //sqlsrv_close($conn);
         return;
     }
     $vendedor = trim(($vendedorData['NOMBRE']));
@@ -2734,14 +2655,14 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
 
     // Determinar la lista a usar
     $listaOriginal = $listaPrecioCliente ? intval($listaPrecioCliente) : 1;
-    $listaUsada    = $listaOriginal; 
-    $tablaPrecio   = "[{$conexionData['nombreBase']}].[dbo].[PRECIO_X_PROD" 
-                    . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $listaUsada    = $listaOriginal;
+    $tablaPrecio   = "[{$conexionData['nombreBase']}].[dbo].[PRECIO_X_PROD"
+        . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // 1) Consultar el precio en la lista solicitada
     $sql = "SELECT [PRECIO] FROM $tablaPrecio
             WHERE [CVE_ART] = ? AND [CVE_PRECIO] = ?";
-    $params = [ trim($claveProducto), $listaOriginal ];
+    $params = [trim($claveProducto), $listaOriginal];
     $stmt   = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         die(json_encode([
@@ -2760,7 +2681,7 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
     // 2) Si salió cero y no es la lista 1, volver a consultar con lista 1
     if ($precio === 0.0 && $listaOriginal !== 1) {
         $listaUsada = 1;
-        $stmt = sqlsrv_query($conn, $sql, [ trim($claveProducto), 1 ]);
+        $stmt = sqlsrv_query($conn, $sql, [trim($claveProducto), 1]);
         if ($stmt === false) {
             die(json_encode([
                 'success' => false,
@@ -2781,7 +2702,7 @@ function obtenerPrecioProducto($conexionData, $claveProducto, $listaPrecioClient
         echo json_encode([
             'success'   => true,
             'precio'    => $precio,
-            'listaUsada'=> $listaUsada
+            'listaUsada' => $listaUsada
         ]);
     } else {
         echo json_encode([
@@ -3036,23 +2957,37 @@ function validarExistenciasEdicionPedido($pedidoId, $conexionData, $claveSae, $p
 
 function calcularTotalPedido($partidasData)
 {
-    $total = 0;
+    $SUBTOTAL = 0;
+    $IMPORTE = 0;
     foreach ($partidasData as $partida) {
-        $total += $partida['cantidad'] * $partida['precioUnitario'];
+        $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
     }
-    return $total;
+    $IMPORTT = $IMPORTE;
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
+    foreach ($partidasData as $partida) {
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+        $totalPartida = $precioUnitario * $cantidad;
+        // **Aplicar los descuentos en cascada**
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
+    }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+    return $IMPORTE;
 }
-function validarCreditoCliente($conexionData, $clienteId, $totalPedido, $claveSae)
+function validarCreditoCliente($conexionData, $clienteId, $totalPedido, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
@@ -3081,7 +3016,7 @@ function validarCreditoCliente($conexionData, $clienteId, $totalPedido, $claveSa
     $saldoActual = (float)$clienteData['SALDO'];
     $puedeContinuar = ($saldoActual + $totalPedido) <= $limiteCredito;
 
-    sqlsrv_close($conn);
+    sqlsrv_free_stmt($stmt);
 
     // Devolver el resultado y los datos relevantes
     return [
@@ -4430,56 +4365,62 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function validarSaldo($conexionData, $clave, $claveSae)
+function validarSaldo($conexionData, $clave, $claveSae, $conn)
 {
-    // Establecer los datos de conexión
-    $serverName = $conexionData['host'];
-    $database = $conexionData['nombreBase'];
-    $username = $conexionData['usuario'];
-    $password = $conexionData['password'];
-
     try {
-        // Conectar usando PDO con TrustServerCertificate habilitado
-        $dsn = "sqlsrv:server=$serverName;Database=$database;TrustServerCertificate=true";
-        $conn = new PDO($dsn, $username, $password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
-        $tablaCuenM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-        $tablaCuenD = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-        $tablaClie = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-        $tablaMon = "[{$conexionData['nombreBase']}].[dbo].[MONED" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        // Montamos los nombres de tabla dinámicos
+        $db    = $conexionData['nombreBase'];
+        $s   = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
+        $tablaCuenM = "[$db].[dbo].[CUEN_M{$s}]";
+        $tablaCuenD = "[$db].[dbo].[CUEN_DET{$s}]";
+        $tablaClie  = "[$db].[dbo].[CLIE{$s}]";
+        $tablaMon   = "[$db].[dbo].[MONED{$s}]";
         // Consulta SQL para verificar saldo vencido
         $sql = "
-            SELECT TOP 1 1 
-            FROM $tablaCuenM CUENM  
-            LEFT JOIN $tablaClie CLIENTES ON CLIENTES.CLAVE = CUENM.CVE_CLIE
-            LEFT JOIN $tablaCuenD CUEN ON CUEN.CVE_CLIE = CUENM.CVE_CLIE
-                AND CUEN.REFER = CUENM.REFER
-                AND CUEN.NUM_CARGO = CUENM.NUM_CARGO
-            LEFT JOIN $tablaMon MON ON CUENM.NUM_MONED = MON.NUM_MONED    
-            WHERE CUENM.FECHA_VENC < GETDATE()  -- Solo cuentas vencidas
-                AND CLIENTES.STATUS <> 'B'     -- Excluir clientes inactivos
-                AND CLIENTES.CLAVE = :claveCliente
-                AND (
-                    ISNULL((SELECT SUM(IMPORTE) FROM $tablaCuenD WHERE CVE_CLIE = CUENM.CVE_CLIE AND REFER = CUENM.REFER AND NUM_CARGO = CUENM.NUM_CARGO), 0) = 0
-                    OR ISNULL((SELECT SUM(IMPORTE) FROM $tablaCuenD WHERE CVE_CLIE = CUENM.CVE_CLIE AND REFER = CUENM.REFER AND NUM_CARGO = CUENM.NUM_CARGO), 0) < CUENM.IMPORTE
-                )
-        ";
+        SELECT TOP 1 1
+        FROM $tablaCuenM CUENM
+        LEFT JOIN $tablaClie CLIENTES
+          ON CLIENTES.CLAVE = CUENM.CVE_CLIE
+        LEFT JOIN $tablaCuenD CUEND
+          ON CUEND.CVE_CLIE = CUENM.CVE_CLIE
+         AND CUEND.REFER    = CUENM.REFER
+         AND CUEND.NUM_CARGO= CUENM.NUM_CARGO
+        LEFT JOIN $tablaMon MON
+          ON CUENM.NUM_MONED = MON.NUM_MONED
+        WHERE CUENM.FECHA_VENC < GETDATE()
+          AND CLIENTES.STATUS <> 'B'
+          AND CLIENTES.CLAVE = ?
+          AND (
+             ISNULL((
+               SELECT SUM(IMPORTE)
+               FROM $tablaCuenD
+               WHERE CVE_CLIE = CUENM.CVE_CLIE
+                 AND REFER    = CUENM.REFER
+                 AND NUM_CARGO= CUENM.NUM_CARGO
+             ), 0) < CUENM.IMPORTE
+          )
+    ";
 
-        // Preparar y ejecutar la consulta
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':claveCliente', $clave, PDO::PARAM_STR);
-        $stmt->execute();
+        // Ejecutamos la consulta con sqlsrv_query
+        $params = [$clave];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            $errors = print_r(sqlsrv_errors(), true);
+            throw new Exception("Error al verificar saldo vencido:\n{$errors}");
+        }
 
-        // Si encuentra al menos un registro con estado 'VENCIDA' o 'VENCIDA PARCIAL', retorna 1
-        return $stmt->fetchColumn() ? 1 : 0;
+        // Si devuelve fila => saldo vencido
+        $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_NUMERIC);
+        sqlsrv_free_stmt($stmt);
+
+        return ($row !== null) ? 1 : 0;
     } catch (PDOException $e) {
         // Manejo de errores
         echo "Error de conexión: " . $e->getMessage();
         return -1; // Código de error
     }
 }
-function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa)
+function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -4519,7 +4460,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     foreach ($partidasData as &$partida) {  // 🔹 Pasar por referencia para modificar el array
         $CVE_ART = $partida['producto'];
-        $partida['descripcion'] = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
+        $partida['descripcion'] = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae, $conn);
     }
     // Preparar los campos que se guardarán en Firebase 
     $fields = [
@@ -7423,68 +7364,82 @@ switch ($funcion) {
                     $clienteId = $formularioData['cliente'];
                     $clave = formatearClaveCliente($clienteId);
 
-                    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae);
-                    actualizarControl2($conexionData, $claveSae);
+                    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae); //ROLLBACK
+                    actualizarControl2($conexionData, $claveSae); //ROLLBACK
 
                     //$CVE_BITA = insertarBita($conexionData, $claveSae, $formularioData, $partidasData);
                     //actualizarControl1($conexionData, $claveSae);
 
                     if ($conCredito === 'S') {
-                        // Validar crédito del cliente
-                        $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
-
-                        if ($validacionCredito['success']) {
-                            $credito = '0';
-                        } else {
-                            $credito = '1';
+                        ///Inicio
+                        $conn = sqlsrv_connect($conexionData['host'], [
+                            "Database" => $conexionData['nombreBase'],
+                            "UID"      => $conexionData['usuario'],
+                            "PWD"      => $conexionData['password'],
+                            "CharacterSet"         => "UTF-8",
+                            "TrustServerCertificate" => true
+                        ]);
+                        if (!$conn) {
+                            throw new Exception("No pude conectar a la base de datos");
                         }
-
-                        $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
-
-                        if ($validarSaldo == 0 && $credito == 0) {
-                            $estatus = "E";
-                        } else if ($validarSaldo == 1 || $credito == 1) {
-                            $estatus = "C";
+                        // Inicio transacción:
+                        sqlsrv_begin_transaction($conn);
+                        try {
+                            // Validar crédito del cliente
+                            $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae, $conn);
+                            if ($validacionCredito['success']) {
+                                $credito = '0';
+                            } else {
+                                $credito = '1';
+                            }
+                            $validarSaldo = validarSaldo($conexionData, $clave, $claveSae, $conn);
+                            //$validarSaldo = 1;
+                            if ($validarSaldo == 0 && $credito == 0) {
+                                $estatus = "E";
+                            } else if ($validarSaldo == 1 || $credito == 1) {
+                                $estatus = "C";
+                            }
+                            /*$estatus = "E";
+                            $validarSaldo = 0;
+                            $credito = 0;*/
+                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn); //ROLLBACK
+                            //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
+                            actualizarFolio($conexionData, $claveSae, $conn); //ROLLBACK
+                            actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
+                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn); //ROLLBACK
+                            actualizarInventario($conexionData, $partidasData, $conn); //ROLLBACK
+                            if ($validarSaldo == 0 && $credito == 0) {
+                                $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                                validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn);
+                                // Respuesta de éxito
+                                header('Content-Type: application/json; charset=UTF-8');
+                                echo json_encode([
+                                    'success' => true,
+                                    'autorizacion' => false,
+                                    'message' => 'El pedido se completó correctamente.',
+                                ]);
+                                sqlsrv_commit($conn);
+                                sqlsrv_close($conn);
+                                exit();
+                            } else {
+                                guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn);
+                                $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn);
+                                header('Content-Type: application/json; charset=UTF-8');
+                                echo json_encode([
+                                    'success' => false,
+                                    'autorizacion' => true,
+                                    'message' => 'El pedido se completó pero debe ser autorizado.',
+                                ]);
+                                sqlsrv_commit($conn);
+                                sqlsrv_close($conn);
+                            }
+                        } catch (Exception $e) {
+                            // Si falla cualquiera, deshacemos TODO:
+                            sqlsrv_rollback($conn);
+                            sqlsrv_close($conn);
+                            return ['success' => false, 'message' => $e->getMessage()];
                         }
-                        /*$estatus = "E";
-                        $validarSaldo = 0;
-                        $credito = 0;*/
-
-                        $verif = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                        if (!$verif) {
-                            header('Content-Type: application/json; charset=UTF-8');
-                            echo json_encode([
-                                'success' => false,
-                                'message' => 'Hubo un error al gaurdar el pedido.',
-                            ]);
-                            exit();
-                        }
-                        //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                        actualizarFolio($conexionData, $claveSae);
-                        actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
-                        guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
-                        actualizarInventario($conexionData, $partidasData);
-                        if ($validarSaldo == 0 && $credito == 0) {
-                            $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                            validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
-                            // Respuesta de éxito
-                            header('Content-Type: application/json; charset=UTF-8');
-                            echo json_encode([
-                                'success' => true,
-                                'autorizacion' => false,
-                                'message' => 'El pedido se completó correctamente.',
-                            ]);
-                            exit();
-                        } else {
-                            guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                            $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito);
-                            header('Content-Type: application/json; charset=UTF-8');
-                            echo json_encode([
-                                'success' => false,
-                                'autorizacion' => true,
-                                'message' => 'El pedido se completó pero debe ser autorizado.',
-                            ]);
-                        }
+                        ///Fin
                     } else {
                         //$anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
                         $anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
@@ -7502,22 +7457,15 @@ switch ($funcion) {
                         if ($anticipo['success']) {
                             //Funcion para eliminar anticipo
                             $estatus = 'E';
-                            $verif = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            if (!$verif) {
-                                header('Content-Type: application/json; charset=UTF-8');
-                                echo json_encode([
-                                    'success' => false,
-                                    'message' => 'Hubo un error al gaurdar el pedido.',
-                                ]);
-                                exit();
-                            }
+                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
+
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            actualizarFolio($conexionData, $claveSae);
-                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
-                            actualizarInventario($conexionData, $partidasData);
-                            eliminarCxc($conexionData, $anticipo, $claveSae);
-                            remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
-                            comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey);
+                            actualizarFolio($conexionData, $claveSae); //ROLLBACK
+                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
+                            actualizarInventario($conexionData, $partidasData); //ROLLBACK
+                            eliminarCxc($conexionData, $anticipo, $claveSae); //ROLLBACK
+                            remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa); //ROLLBACK
+                            comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey); //ROLLBACK
                             //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
                             /*$datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
                             pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
@@ -7533,19 +7481,11 @@ switch ($funcion) {
                         } elseif ($anticipo['sinFondo']) {
                             //No tiene fondos
                             $estatus = 'C';
-                            $verif = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            if (!$verif) {
-                                header('Content-Type: application/json; charset=UTF-8');
-                                echo json_encode([
-                                    'success' => false,
-                                    'message' => 'Hubo un error al gaurdar el pedido.',
-                                ]);
-                                exit();
-                            }
+                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            actualizarFolio($conexionData, $claveSae);
-                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae);
-                            actualizarInventario($conexionData, $partidasData);
+                            actualizarFolio($conexionData, $claveSae); //ROLLBACK
+                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
+                            actualizarInventario($conexionData, $partidasData); //ROLLBACK
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                             guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
@@ -7629,10 +7569,10 @@ switch ($funcion) {
                     $credito = 0;*/
 
                     // Lógica para edición de pedido
-                    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae);
-                    actualizarControl2($conexionData, $claveSae);
+                    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae); //ROLLBACK
+                    actualizarControl2($conexionData, $claveSae); //ROLLBACK
 
-                    $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus, $DAT_ENVIO);
+                    $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus, $DAT_ENVIO); //ROLLBACK
 
                     if ($resultadoActualizacion['success']) {
                         actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
@@ -7645,6 +7585,7 @@ switch ($funcion) {
                             ]);
                             exit();
                         } else {
+                            actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                             guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData);
                             $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito);
                             header('Content-Type: application/json; charset=UTF-8');
