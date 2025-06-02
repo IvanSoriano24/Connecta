@@ -941,7 +941,7 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
 
     $cveClie = $pedido['CVE_CLPV'];
     $totalPedido = $pedido['CAN_TOT'] + $pedido['IMP_TOT1'] + $pedido['IMP_TOT2'] + $pedido['IMP_TOT3'] + $pedido['IMP_TOT4'];
-
+    $actividad = str_pad(3, 5, ' ', STR_PAD_LEFT);
     // ✅ 4. Formatear las observaciones
     $observaciones = "No.[$folioSiguiente] $" . number_format($totalPedido, 2);
 
@@ -959,7 +959,7 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
         'ADMINISTRADOR',
         $observaciones,
         date('Y-m-d H:i:s'),
-        3
+        $actividad
     ];
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);

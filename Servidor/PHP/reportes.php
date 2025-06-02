@@ -4,65 +4,10 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require '../fpdf/fpdf.php';
-require_once 'firebase.php'; // Archivo de configuración de Firebase
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 
-if (!function_exists('obtenerConexion')) {
-    function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
-    {
-        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => "Content-Type: application/json\r\n"
-            ]
-        ]);
-        $result = file_get_contents($url, false, $context);
-        if ($result === FALSE) {
-            return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
-        }
-        $documents = json_decode($result, true);
-        if (!isset($documents['documents'])) {
-            return ['success' => false, 'message' => 'No se encontraron documentos'];
-        }
-        // Busca el documento donde coincida el campo `noEmpresa`
-        foreach ($documents['documents'] as $document) {
-            $fields = $document['fields'];
-            if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
-                return [
-                    'success' => true,
-                    'data' => [
-                        'host' => $fields['host']['stringValue'],
-                        'puerto' => $fields['puerto']['stringValue'],
-                        'usuario' => $fields['usuario']['stringValue'],
-                        'password' => $fields['password']['stringValue'],
-                        'nombreBase' => $fields['nombreBase']['stringValue'],
-                        'claveSae' => $fields['claveSae']['stringValue']
-                    ]
-                ];
-            }
-        }
-        return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
-    }
-}
-if (!function_exists('formatearClaveVendedor')) {
-    function formatearClaveVendedor($vendedor)
-    {
-        // Asegurar que la clave sea un string y eliminar espacios innecesarios
-        $vendedor = trim((string)$vendedor);
-        $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
-        // Si la clave ya tiene 10 caracteres, devolverla tal cual
-        if (strlen($vendedor) === 5) {
-            return $vendedor;
-        }
+//session_start();
 
-        // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
-        $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
-        return $vendedor;
-    }
-}
+
 // Función para obtener los datos de la empresa desde Firebase
 function obtenerDatosEmpresaFire($noEmpresa)
 {
@@ -1405,8 +1350,7 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
 
     return $rutaArchivo;
 }
-function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noEmpresa, $vendedor, $folio)
-{
+function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noEmpresa, $vendedor, $folio){
     $vendedor = trim($vendedor);
     // Obtener los datos de la empresa
     $datosEmpresaPedidoAutoriza = obtenerDatosEmpresaFire($noEmpresa);
@@ -1510,8 +1454,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
 
     return $rutaArchivo;
 }
-function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor)
-{
+function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor){
 
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
@@ -1829,404 +1772,189 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     return $rutaArchivo;
     /********************************************************************************************************************/
 }
-function mostrarLineasReporte($conexionData, $filtroFecha, $filtroCliente)
-{
-    try {
-        $claveSae = $_SESSION['empresa']['claveSae'];
+function generarPDFPedido($conexionData, $claveSae, $noEmpresa, $folio) {
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT);
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
 
-        $serverName = $conexionData['host'];
-        $connectionInfo = [
-            "Database" => $conexionData['nombreBase'],
-            "UID" => $conexionData['usuario'],
-            "PWD" => $conexionData['password'],
-            "TrustServerCertificate" => true
-        ];
-        $conn = sqlsrv_connect($serverName, $connectionInfo);
-        if ($conn === false) {
-            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
-        }
+    // a) Obtener datos del pedido, cliente, empresa, partidas, etc.
+    $datosEmpresa    = obtenerDatosEmpresaFire($noEmpresa);
+    $datosPedido     = obtenerDatosPedido($CVE_DOC, $conexionData, $claveSae);
+    $datosPartidas   = obtenerDatosPartidasPedido($CVE_DOC, $conexionData, $claveSae);
+    $clienteId       = str_pad(trim($datosPedido['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
+    $datosCliente    = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
+    // … otros valores necesarios (vendedor, totales, etc.) …
 
-        $prefijo = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
-        $tablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE$prefijo]";
-        $tablaFacturas = "[{$conexionData['nombreBase']}].[dbo].[FACTF$prefijo]";
-        $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF$prefijo]";
-        $tablaProductos = "[{$conexionData['nombreBase']}].[dbo].[INVE$prefijo]";
-        $tablaLineas = "[{$conexionData['nombreBase']}].[dbo].[CLIN$prefijo]";
+    // b) Creamos el PDF con tu clase:
+    $pdf = new PDFPedidoAutoriza(
+        $datosEmpresa,
+        $datosCliente,
+        obtenerDatosVendedor(str_pad(trim($datosPedido['CVE_VEND']), 5, ' ', STR_PAD_LEFT)),
+        $datosPedido,
+        // aquí podrías pasar otros datos, ej. primer correo:
+        explode(';', $datosCliente['email'])[0]
+    );
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', '', 9);
+    $pdf->SetTextColor(39, 39, 51);
 
-        $params = [];
-        $where = "WHERE f.STATUS != 'C'";
+    // c) Iteramos partidas y escribimos celdas:
+    $subtotal       = 0;
+    $totalImpuestos = 0;
+    $totalDescuentos= 0;
+    foreach ($datosPartidas as $partida) {
+        $productosData   = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
+        $precioUnitario  = $partida['PREC'];
+        $cantidad        = $partida['CANT'];
+        $desc1           = $partida['DESC1'] ?? 0;
+        $descuentoPartida= $precioUnitario * $cantidad * ($desc1 / 100);
+        $impuestos       = ($partida['IMPU1'] + $partida['IMPU2'] + $partida['IMPU3'] + $partida['IMPU4']
+                            + $partida['IMPU5'] + $partida['IMPU6'] + $partida['IMPU7'] + $partida['IMPU8']) ?? 0;
+        $subtotalPartida = $precioUnitario * $cantidad;
+        $subtotal       += $subtotalPartida;
+        $totalDescuentos+= $descuentoPartida;
+        $impuestoPartida = ($subtotalPartida - $descuentoPartida) * ($impuestos / 100);
+        $totalImpuestos += $impuestoPartida;
 
-        if (!empty($filtroCliente)) {
-            $where .= " AND c.CLAVE LIKE ?";
-            $params[] = '%' . $filtroCliente . '%';
-        }
-
-        if (!empty($filtroFecha)) {
-            $where .= " AND YEAR(f.FECHA_DOC) = ?";
-            $params[] = $filtroFecha;
-        }
-
-        $sql = "
-        WITH VentasPorLinea AS (
-            SELECT 
-                l.CVE_LIN,
-                l.DESC_LIN,
-                MONTH(f.FECHA_DOC) AS Mes,
-                SUM(p.CANT) AS CantidadVendida
-            FROM $tablaLineas l
-            JOIN $tablaProductos i ON i.LIN_PROD = l.CVE_LIN
-            JOIN $tablaPartidas p ON p.CVE_ART = i.CVE_ART
-            JOIN $tablaFacturas f ON f.CVE_DOC = p.CVE_DOC
-            JOIN $tablaClientes c ON c.CLAVE = f.CVE_CLPV
-            $where
-            GROUP BY l.CVE_LIN, l.DESC_LIN, MONTH(f.FECHA_DOC)
-        ),
-        LineasMeses AS (
-            SELECT l.CVE_LIN, l.DESC_LIN, Meses.Mes
-            FROM $tablaLineas l
-            CROSS JOIN (VALUES 
-                (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12)
-            ) AS Meses(Mes)
-        ),
-        Totales AS (
-            SELECT 
-                lm.CVE_LIN,
-                lm.DESC_LIN,
-                lm.Mes,
-                ISNULL(v.CantidadVendida, 0) AS CantidadVendida
-            FROM LineasMeses lm
-            LEFT JOIN VentasPorLinea v ON v.CVE_LIN = lm.CVE_LIN AND v.Mes = lm.Mes
-        )
-        SELECT * FROM (
-            SELECT 
-                t.CVE_LIN,
-                t.DESC_LIN,
-                t.Mes,
-                t.CantidadVendida
-            FROM Totales t
-        ) AS fuente
-        PIVOT (
-            SUM(CantidadVendida)
-            FOR Mes IN ([1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12])
-        ) AS pvt
-        ORDER BY CVE_LIN";
-
-        $stmt = sqlsrv_query($conn, $sql, $params);
-        if ($stmt === false) {
-            die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
-        }
-
-        $reportes = [];
-        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            foreach ($row as $key => $value) {
-                $row[$key] = is_string($value) ? utf8_encode(trim($value)) : ($value ?? 0);
-            }
-            $reportes[] = $row;
-        }
-
-        $countSql = "SELECT COUNT(*) AS total FROM $tablaLineas";
-        $countStmt = sqlsrv_query($conn, $countSql);
-        $totalRow = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
-        $total = (int) $totalRow['total'];
-
-        sqlsrv_free_stmt($stmt);
-        sqlsrv_free_stmt($countStmt);
-        sqlsrv_close($conn);
-
-        echo json_encode(['success' => true, 'data' => $reportes, 'total' => $total]);
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        $pdf->SetTextColor(39, 39, 51);
+        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 7);
+        $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
+        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell(18, 7, "$" . number_format($impuestoPartida, 2), 0, 0, 'R');
+        $pdf->Cell(18, 7, "$" . number_format($precioUnitario, 2), 0, 0, 'R');
+        $pdf->Cell(22, 7, "$" . number_format($subtotalPartida, 2), 0, 1, 'R');
     }
-}
-function mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $pagina, $porPagina, $lineaSeleccionada)
-{
-    $offset = ($pagina - 1) * $porPagina;
 
-    try {
-        $claveSae = $_SESSION['empresa']['claveSae'];
+    // d) Totales:
+    $subtotalConDescuento = $subtotal - $totalDescuentos;
+    $total                = $subtotalConDescuento + $totalImpuestos;
 
-        $serverName = $conexionData['host'];
-        $connectionInfo = [
-            "Database" => $conexionData['nombreBase'],
-            "UID" => $conexionData['usuario'],
-            "PWD" => $conexionData['password'],
-            "TrustServerCertificate" => true
-        ];
-        $conn = sqlsrv_connect($serverName, $connectionInfo);
-        if ($conn === false) {
-            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
-        }
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(155, 7, 'Importe:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotal, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'Descuento:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'Subtotal:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'IVA:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
 
-        $prefijo = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
-        $tablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE$prefijo]";
-        $tablaFacturas = "[{$conexionData['nombreBase']}].[dbo].[FACTF$prefijo]";
-        $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF$prefijo]";
-        $tablaProductos = "[{$conexionData['nombreBase']}].[dbo].[INVE$prefijo]";
-        $tablaLineas = "[{$conexionData['nombreBase']}].[dbo].[CLIN$prefijo]";
-
-        $params = [$lineaSeleccionada];
-        $where = "WHERE f.STATUS != 'C'";
-
-        if (!empty($filtroCliente)) {
-            $where .= " AND c.CLAVE LIKE ?";
-            $params[] = '%' . $filtroCliente . '%';
-        }
-
-        if (!empty($filtroFecha)) {
-            $where .= " AND YEAR(f.FECHA_DOC) = ?";
-            $params[] = $filtroFecha;
-        }
-
-        $sql = "
-        WITH VentasPorProducto AS (
-            SELECT 
-                i.CVE_ART,
-                i.DESCR,
-                i.LIN_PROD,
-                l.DESC_LIN,
-                MONTH(f.FECHA_DOC) AS Mes,
-                SUM(p.CANT) AS CantidadVendida
-            FROM $tablaProductos i
-            JOIN $tablaLineas l ON i.LIN_PROD = l.CVE_LIN
-            JOIN $tablaPartidas p ON p.CVE_ART = i.CVE_ART
-            JOIN $tablaFacturas f ON f.CVE_DOC = p.CVE_DOC
-            JOIN $tablaClientes c ON c.CLAVE = f.CVE_CLPV
-            WHERE f.STATUS != 'C' AND i.LIN_PROD = ?
-            " . (!empty($filtroCliente) ? " AND c.CLAVE LIKE ?" : "") . "
-            " . (!empty($filtroFecha) ? " AND YEAR(f.FECHA_DOC) = ?" : "") . "
-            GROUP BY i.CVE_ART, i.DESCR, i.LIN_PROD, l.DESC_LIN, MONTH(f.FECHA_DOC)
-        ),
-        Meses AS (
-            SELECT 1 AS Mes UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
-            SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
-            SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
-        ),
-        BaseProductos AS (
-            SELECT 
-                i.CVE_ART,
-                i.DESCR,
-                i.LIN_PROD,
-                l.DESC_LIN,
-                m.Mes
-            FROM $tablaProductos i
-            JOIN $tablaLineas l ON i.LIN_PROD = l.CVE_LIN
-            CROSS JOIN Meses m
-            WHERE i.LIN_PROD = ?
-        ),
-        ProductosConVentas AS (
-            SELECT 
-                b.CVE_ART,
-                b.DESCR,
-                b.LIN_PROD,
-                b.DESC_LIN,
-                b.Mes,
-                ISNULL(v.CantidadVendida, 0) AS CantidadVendida
-            FROM BaseProductos b
-            LEFT JOIN VentasPorProducto v 
-                ON b.CVE_ART = v.CVE_ART AND b.Mes = v.Mes
-        )
-        SELECT * FROM (
-            SELECT 
-                CVE_ART,
-                DESCR,
-                LIN_PROD,
-                DESC_LIN,
-                Mes,
-                CantidadVendida
-            FROM ProductosConVentas
-        ) AS fuente
-        PIVOT (
-            SUM(CantidadVendida)
-            FOR Mes IN ([1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12])
-        ) AS pvt
-        ORDER BY CVE_ART
-        OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;
-        ";
-
-        // Parámetros de la consulta
-        $params = [$lineaSeleccionada];
-        if (!empty($filtroCliente)) $params[] = '%' . $filtroCliente . '%';
-        if (!empty($filtroFecha)) $params[] = $filtroFecha;
-        // Otra vez para BaseProductos
-        $params[] = $lineaSeleccionada;
-        $params[] = $offset;
-        $params[] = $porPagina;
-
-        $stmt = sqlsrv_query($conn, $sql, $params);
-        if ($stmt === false) {
-            die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
-        }
-
-        $productos = [];
-        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            foreach ($row as $key => $value) {
-                $row[$key] = is_string($value) ? utf8_encode(trim($value)) : ($value ?? 0);
-            }
-            $productos[] = $row;
-        }
-
-        // Conteo total de productos en la línea
-        $countSql = "SELECT COUNT(*) AS total FROM $tablaProductos WHERE LIN_PROD = ?";
-        $countStmt = sqlsrv_query($conn, $countSql, [$lineaSeleccionada]);
-        $totalRow = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
-        $total = (int) $totalRow['total'];
-
-        sqlsrv_free_stmt($stmt);
-        sqlsrv_free_stmt($countStmt);
-
-        $sqlResumen = "
-        WITH Meses AS (
-            SELECT 1 AS Mes UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
-            SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
-            SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
-        ),
-        LineaSeleccionada AS (
-            SELECT 
-                l.CVE_LIN,
-                l.DESC_LIN
-            FROM $tablaLineas l
-            WHERE l.CVE_LIN = ?
-        ),
-        VentasMes AS (
-            SELECT 
-                l.CVE_LIN,
-                l.DESC_LIN,
-                MONTH(f.FECHA_DOC) AS Mes,
-                SUM(p.CANT) AS CantidadVendida
-            FROM $tablaLineas l
-            JOIN $tablaProductos i ON i.LIN_PROD = l.CVE_LIN
-            JOIN $tablaPartidas p ON p.CVE_ART = i.CVE_ART
-            JOIN $tablaFacturas f ON f.CVE_DOC = p.CVE_DOC
-            JOIN $tablaClientes c ON c.CLAVE = f.CVE_CLPV
-            WHERE f.STATUS != 'C' AND i.LIN_PROD = ?
-            " . (!empty($filtroCliente) ? " AND c.CLAVE LIKE ?" : "") . "
-            " . (!empty($filtroFecha) ? " AND YEAR(f.FECHA_DOC) = ?" : "") . "
-            GROUP BY l.CVE_LIN, l.DESC_LIN, MONTH(f.FECHA_DOC)
-        ),
-        ResumenConMeses AS (
-            SELECT 
-                ls.CVE_LIN,
-                ls.DESC_LIN,
-                m.Mes,
-                ISNULL(vm.CantidadVendida, 0) AS CantidadVendida
-            FROM LineaSeleccionada ls
-            CROSS JOIN Meses m
-            LEFT JOIN VentasMes vm ON vm.CVE_LIN = ls.CVE_LIN AND vm.Mes = m.Mes
-        )
-        SELECT * FROM (
-            SELECT 
-                CVE_LIN,
-                DESC_LIN,
-                Mes,
-                CantidadVendida
-            FROM ResumenConMeses
-        ) AS fuente
-        PIVOT (
-            SUM(CantidadVendida)
-            FOR Mes IN ([1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12])
-        ) AS pvt;
-        ";
-
-        $resumenParams = [$lineaSeleccionada, $lineaSeleccionada];
-        if (!empty($filtroCliente)) $resumenParams[] = '%' . $filtroCliente . '%';
-        if (!empty($filtroFecha)) $resumenParams[] = $filtroFecha;
-
-        $resumenStmt = sqlsrv_query($conn, $sqlResumen, $resumenParams);
-        if ($resumenStmt === false) {
-            die(json_encode(['success' => false, 'message' => 'Error al ejecutar totalVentasSql', 'errors' => sqlsrv_errors()]));
-        }
-
-        $resumenRow = sqlsrv_fetch_array($resumenStmt, SQLSRV_FETCH_ASSOC);
-        if ($resumenRow) {
-            foreach ($resumenRow as $key => $value) {
-                $resumenRow[$key] = is_string($value) ? utf8_encode(trim($value)) : ($value ?? 0);
-            }
-
-            $totalLinea = 0;
-            for ($i = 1; $i <= 12; $i++) {
-                $totalLinea += (int) ($resumenRow[$i] ?? 0);
-            }
-
-            $resumen = [
-                'descripcionLinea' => $resumenRow['DESC_LIN'],
-                'totalLinea' => $totalLinea
-            ];
-            for ($i = 1; $i <= 12; $i++) {
-                $resumen["mes_$i"] = (int) ($resumenRow[$i] ?? 0);
-            }
-        }
-
-        sqlsrv_free_stmt($resumenStmt);
-        sqlsrv_close($conn);
-
-        echo json_encode([
-            'success' => true,
-            'data' => $productos,
-            'total' => $total,
-            'resumen' => $resumen ?? null,
-        ]);
-
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    // e) Guardamos el PDF en disco:
+    $nombreArchivo = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folio) . ".pdf";
+    $rutaDir       = __DIR__ . "/pdfs/";
+    if (!is_dir($rutaDir)) {
+        mkdir($rutaDir, 0777, true);
     }
+    $rutaArchivo = $rutaDir . $nombreArchivo;
+    $pdf->Output($rutaArchivo, "F");
+
+    // f) Devolvemos la ruta absoluta al archivo generado:
+    return $rutaArchivo;
 }
+/*function descargarPedidoPdf($conexionData, $claveSae, $noEmpresa, $folio){
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    // Obtener los datos de la empresa
+    $datosEmpresaPedidoAutoriza = obtenerDatosEmpresaFire($noEmpresa);
+    $datosPedidoAutoriza = obtenerDatosPedido($CVE_DOC, $conexionData, $claveSae);
+    $datosPartidasPedido = obtenerDatosPartidasPedido($CVE_DOC, $conexionData, $claveSae);
+    
+    // Obtener datos del cliente
+    $clienteId = str_pad(trim($datosPedidoAutoriza['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
+    //var_dump($clienteId);
+    $datosClientePedidoAutoriza = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
+    //var_dump($datosClientePedidoAutoriza);
+    $emailPredArray = explode(';', $datosClientePedidoAutoriza['email']); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    // Obtener datos del vendedor
+    $clave = str_pad(trim($datosPedidoAutoriza['CVE_VEND']), 5, ' ', STR_PAD_LEFT);
+    $datosVendedorPedidoAutoriza = obtenerDatosVendedor($clave);
 
-/*-------------------------------------------------------------------------------------------------------------------*/
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
-    // Si es una solicitud POST, asignamos el valor de numFuncion
-    $funcion = $_POST['numFuncion'];
-    //var_dump($funcion);
-} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['numFuncion'])) {
-    // Si es una solicitud GET, asignamos el valor de numFuncion
-    $funcion = $_GET['numFuncion'];
-    //var_dump($funcion);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Error al realizar la peticion.']);
-    exit;
-}
-switch ($funcion) {
-    case 1:
-        if (!isset($_SESSION['empresa']['noEmpresa'])) {
-            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
-            exit;
-        }
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
-        if (!$conexionResult['success']) {
-            echo json_encode($conexionResult);
-            break;
-        }
+    // Variables para cálculo de totales
+    $subtotal = 0;
+    $totalImpuestos = 0;
+    $totalDescuentos = 0;
 
-        $conexionData = $conexionResult['data'];
-        $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
-        $filtroCliente = $_POST['filtroCliente'] ?? '';
+    // Crear el PDF
+    $pdf = new PDFPedidoAutoriza($datosEmpresaPedidoAutoriza, $datosClientePedidoAutoriza, $datosVendedorPedidoAutoriza, $datosPedidoAutoriza, $emailPred);
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', '', 9);
+    $pdf->SetTextColor(39, 39, 51);
 
-        mostrarLineasReporte($conexionData, $filtroFecha, $filtroCliente);
-        break;
-    case 2:
-        if (!isset($_SESSION['empresa']['noEmpresa'])) {
-            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
-            exit;
-        }
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
-        if (!$conexionResult['success']) {
-            echo json_encode($conexionResult);
-            break;
-        }
+    // **Agregar filas de la tabla con los datos de la remisión**
+    foreach ($datosPartidasPedido as $partida) {
+        // **Obtener la descripción del producto desde SQL Server**
+        $productosData = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
 
-        $conexionData = $conexionResult['data'];
-        $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
-        $filtroCliente = $_POST['filtroCliente'] ?? '';
-        $pagina = (int) ($_POST['pagina'] ?? 1);
-        $porPagina = (int) ($_POST['porPagina'] ?? 10);
-        $lineaSeleccionada = $_POST['lineaSeleccionada'] ?? '';
+        // **Cálculos**
+        $precioUnitario = $partida['PREC'];
+        $cantidad = $partida['CANT'];
+        $desc1 = $partida['DESC1'] ?? 0;
+        $desc2 = $partida['DESC2'] ?? 0;
+        //$descTotal = $datosClientePedidoAutoriza['DESCUENTO'];
+        $descuentos = $desc1 + $desc2;
+        // Sumar todos los impuestos
+        $impuestos = ($partida['IMPU1'] + $partida['IMPU2'] + $partida['IMPU3'] + $partida['IMPU4'] +
+            $partida['IMPU5'] + $partida['IMPU6'] + $partida['IMPU7'] + $partida['IMPU8']) ?? 0;
 
-        mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $pagina, $porPagina, $lineaSeleccionada);
-        break;
-    default:
-        echo json_encode(['success' => false, 'message' => 'Función no válida.']);
-        break;
-}
+        $subtotalPartida = $precioUnitario * $cantidad;
+        // **Aplicar descuentos**
+        $descuentoPartida  = $subtotalPartida * (($desc1 / 100));
+        // **Sumar totales**
+        $subtotal += $subtotalPartida;
+        $totalDescuentos += $descuentoPartida;
+
+        $impuestoPartida = ($subtotalPartida - $descuentoPartida) * ($impuestos / 100);
+        $totalImpuestos += $impuestoPartida;
+
+        // **Agregar fila de datos**
+        $pdf->SetTextColor(39, 39, 51);
+        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 7);
+        $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
+        //$pdf->SetFont('Arial', '', 6);
+        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
+        $pdf->Cell(18, 7,"$" . number_format($precioUnitario, 2), 0, 0, 'R');
+        $pdf->Cell(22, 7,"$" . number_format($subtotalPartida, 2), 0, 1, 'R');
+    }
+    // **Calcular totales**
+    $subtotalConDescuento = $subtotal - $totalDescuentos;
+    $total = $subtotalConDescuento + $totalImpuestos;
+
+    // **Mostrar totales en la factura**
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(155, 7, 'Importe:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotal, 2), 0, 1, 'R');
+
+    $pdf->Cell(155, 7, 'Descuento:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
+
+    $pdf->Cell(155, 7, 'Subtotal:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
+
+    $pdf->Cell(155, 7, 'IVA:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
+
+    $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
+
+    // **Generar el nombre del archivo correctamente**
+    $nombreArchivo = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folio) . ".pdf";
+    var_dump($nombreArchivo);
+    // **Limpiar cualquier salida previa antes de enviar el PDF**
+    ob_clean();
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: inline; filename="' . $nombreArchivo . '"');
+
+    // **Generar el PDF**
+    $pdf->Output("I");
+}*/
