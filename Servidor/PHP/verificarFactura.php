@@ -43,8 +43,7 @@ function obtenerPedido($cveDoc, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerProductos($cveDoc, $conexionData, $claveSae)
-{
+function obtenerProductos($cveDoc, $conexionData, $claveSae){
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -60,7 +59,7 @@ function obtenerProductos($cveDoc, $conexionData, $claveSae)
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -518,7 +517,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $numeroWhatsApp = '+527772127123'; // Interzenda*/
 
     if ($correo === 'S' && !empty($emailPred)) {
-        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . trim(urlencode($folioFactura)) . ".pdf";
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_18456.pdf";
 
@@ -527,12 +526,12 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
         //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         
         //$filename = "Factura_" . urldecode($folioFactura) . ".pdf";
-        $filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
+        $filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', trim(urlencode($folioFactura))) . ".pdf";
         //$filename = "Factura_18456.pdf";
 
         $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename);
         var_dump($resultadoWhatsApp);
-        //enviarCorreo($emailPred, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
+        enviarCorreo($emailPred, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
     } else {
         echo json_encode(['success' => false, 'message' => 'El vendedor no tiene un correo electrónico válido registrado.']);
         die();
@@ -581,12 +580,17 @@ function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $envia
                     <tbody>";
 
     $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
-        $clave = htmlspecialchars($partida['CVE_ART']);
+        
+        $clave = $partida['CVE_ART'];
         $descripcion = htmlspecialchars($partida['descripcion']);
-        $cantidad = htmlspecialchars($partida['CANT']);
+        $cantidad = $partida['CANT'];
         $totalPartida = $cantidad * $partida['PREC'];
         $total += $totalPartida;
+        $IMPORTE = $total;
 
         $bodyHTML .= "<tr>
                         <td>$clave</td>
@@ -594,10 +598,19 @@ function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $envia
                         <td>$cantidad</td>
                         <td>$" . number_format($totalPartida, 2) . "</td>
                       </tr>";
+                      $IMPU4 = $partida['IMPU4'];
+        $desc1 = $partida['DESC1'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
     }
 
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
     $bodyHTML .= "</tbody></table>";
-    $bodyHTML .= "<p><b>Total:</b> $" . number_format($total, 2) . "</p>";
+    $bodyHTML .= "<p><b>Total:</b> $" . number_format($IMPORTE, 2) . "</p>";
 
     $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
 
@@ -877,6 +890,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     //$correoVendedor = "desarrollo01@mdcloud.mx";
     $clienteData = obtenerCliente($CVE_CLPV, $conexionData, $claveSae);
     $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".xml";
+    $rutaError = "../XML/sdk2/tmp/ultimo_error_respuesta.txt";
     $titulo = "MDConnecta";
     // Definir el remitente (si no está definido, se usa uno por defecto)
     $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
@@ -901,7 +915,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
 
     // Enviar el correo con el remitente dinámico
-    $resultado = $mail->metEnviarError($titulo, $nombreVendedor, $correoDestino, $asunto, $bodyHTML, $correoRemitente, $contraseñaRemitente, $rutaXml);
+    $resultado = $mail->metEnviarError($titulo, $nombreVendedor, $correoDestino, $asunto, $bodyHTML, $correoRemitente, $contraseñaRemitente, $rutaXml, $rutaError);
 
     if ($resultado === "Correo enviado exitosamente.") {
         //var_dump('success' . true, 'message' . $resultado);
@@ -913,8 +927,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     }
 }
 
-function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
-{
+function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito){
     $numFuncion = '1';
     $pedidoId = $folio;
 
@@ -958,7 +971,7 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     // Obtener tipo de contenido antes de cerrar cURL
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     curl_close($ch);
-    var_dump($facturaResponse);
+    //var_dump($facturaResponse);
     if ($facturaResponse) {
         // Intenta decodificar como JSON
         $facturaData = json_decode($facturaResponse, true);
@@ -1422,6 +1435,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                             //$folioFactura = $folioFactura['folioFactura1'];
                             //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
                             $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
+                            var_dump("folioFactura: ", $folioFactura);
                             //$folioFactura = 26;
                             //var_dump("folioFactura: ", $folioFactura);
                             
