@@ -391,7 +391,7 @@ function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
         echo 'Error cURL: ' . curl_error($ch);
     }
     curl_close($ch);
-    //var_dump("respuestaCfdi: ", $facturaResponse);
+    var_dump("respuestaCfdi: ", $facturaResponse);
     return $facturaResponse;
 }
 
@@ -518,19 +518,21 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $numeroWhatsApp = '+527772127123'; // Interzenda*/
 
     if ($correo === 'S' && !empty($emailPred)) {
-        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_18456.pdf";
 
-        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/". urldecode($rutaPDF);
+        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/". urldecode($rutaPDF);
         
         //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        
         //$filename = "Factura_" . urldecode($folioFactura) . ".pdf";
-        //$filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
-        $filename = "Factura_18456.pdf";
+        $filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
+        //$filename = "Factura_18456.pdf";
+
         $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename);
         var_dump($resultadoWhatsApp);
-        enviarCorreo($emailPred, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
+        //enviarCorreo($emailPred, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
     } else {
         echo json_encode(['success' => false, 'message' => 'El vendedor no tiene un correo electrónico válido registrado.']);
         die();
@@ -1420,22 +1422,25 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                             //$folioFactura = $folioFactura['folioFactura1'];
                             //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
                             $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
+                            //$folioFactura = 26;
                             //var_dump("folioFactura: ", $folioFactura);
+                            
                             actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
+                            
                             $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
+                            
                             //var_dump("Respuesta: ", $respuestaFactura);
                             if ($respuestaFactura['success']) {
                                 $bandera = 1;
+                                var_dump("folio: ", $folio);
+                                var_dump("folioFactura: ", $folioFactura);
                                 actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
                                 $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
                                 validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
                             } else {
-                                $bandera = 0;
-                                //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
                                 enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
                             }
                         } else {
-                            var_dump("No");
                             enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['Problema']);
                         }
                     }

@@ -300,24 +300,24 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     $datos['PAC']['produccion'] = 'NO';
 
     // Rutas y clave de los CSD
-    /*$datos['conf']['cer'] = '../../certificados/EKU9003173C9.cer';
-    $datos['conf']['key'] = '../../certificados/EKU9003173C9.key';
-    $datos['conf']['pass'] = '12345678a';*/
+    $datos['conf']['cer'] = '../../certificados/escuela/EKU9003173C9.cer';
+    $datos['conf']['key'] = '../../certificados/escuela/EKU9003173C9.key';
+    $datos['conf']['pass'] = '12345678a';
     /*$datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
     $datos['conf']['key'] = '../../certificados/2/CSD_unidad_LUHM920412GU2_20220708_132000.key';
-    $datos['conf']['pass'] = 'CUSAr279';*/
-    $locacionArchivos = __DIR__ . "/../../certificados/$noEmpresa/";
+    $datos['conf']['pass'] = 'CUSAr279';
+    $locacionArchivos = __DIR__ . "/../../certificados/$noEmpresa/";*/
 
     // glob devuelve un array, así que tomamos sólo el primer elemento
-    $archivoCerArray = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
-    $archivoKeyArray = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
+    //$archivoCerArray = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
+    //$archivoKeyArray = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
 
-    $cerPath = $archivoCerArray[0] ?? null;
+    /*$cerPath = $archivoCerArray[0] ?? null;
     $keyPath = $archivoKeyArray[0] ?? null;
 
     $datos['conf']['cer']  = $cerPath;
     $datos['conf']['key']  = $keyPath;
-    $datos['conf']['pass'] = $password;
+    $datos['conf']['pass'] = $password;*/
 
     // Datos de la Factura || $pedidoData['']
     $datos['factura']['condicionesDePago'] = $pedidoData['CONDICION'];
@@ -345,9 +345,9 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     $datos['factura']['Exportacion'] = '01';
 
     // Datos del Emisor
-    /*$datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
+    $datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'ESCUELA KEMPER URGATE';  // EMPRESA DE PRUEBA
-    $datos['emisor']['RegimenFiscal'] = '626';*/
+    $datos['emisor']['RegimenFiscal'] = '626';
     /*$datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'MARCOS LUNA HERNANDEZ';  // EMPRESA DE PRUEBA
     $datos['emisor']['RegimenFiscal'] = '612';*/
@@ -359,14 +359,14 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     }*/
 
     // Datos del Emisor
-    $datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
+    /*$datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = $empresaData['razonSocial'];  // EMPRESA DE PRUEBA
     $regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
         $datos['emisor']['RegimenFiscal'] = $matches[1];
     } else {
         $datos['emisor']['RegimenFiscal'] = $regimenStr;
-    }
+    }*/
 
     // Datos del Receptor $clienteData['']
     $datos['receptor']['rfc'] = $clienteData['RFC'];
@@ -466,10 +466,10 @@ $noEmpresa = $_POST['noEmpresa'];
 $claveSae = $_POST['claveSae'];
 $factura = $_POST['factura'];
 
-/*$cve_doc = 15;
+/*$cve_doc = 19;
 $noEmpresa = 3;
 $claveSae = 03;
-$factura = 15;*/
+$factura = 26;*/
 
 /*$cve_doc = 19097;
 $noEmpresa = 2;
