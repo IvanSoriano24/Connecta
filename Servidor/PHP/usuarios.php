@@ -53,16 +53,6 @@ function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
     // Determinar si se trata de una creación (POST) o edición (PATCH)
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS";
     $method = "POST";
-
-    if ($idUsuario) {
-        // Si existe el ID del usuario, actualizamos (PATCH)
-        $url .= "/$idUsuario?key=$firebaseApiKey";
-        $method = "PATCH";
-    } else {
-        // Si no hay ID, estamos creando un nuevo documento
-        $url .= "?key=$firebaseApiKey";
-    }
-
     // Determinar el estado según el tipo de usuario
     if ($idUsuario) {
         $status = obtenerStatus($idUsuario);
@@ -70,27 +60,66 @@ function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
         $status = ($datosUsuario['rolUsuario'] === "CLIENTE") ? "Activo" : "Bloqueado";
     }
 
-    // Determinar qué clave guardar según el tipo de usuario
-    $clave = ($datosUsuario['rolUsuario'] === "CLIENTE") ? $datosUsuario['claveCliente'] : $datosUsuario['claveVendedor'];
-    $opciones = [
-        'cost' => 12,
-    ];
-    // Formatear los datos para Firebase (estructura de "fields")
-    $fields = [
-        'usuario' => ['stringValue' => strip_tags($datosUsuario['usuario'])],
-        'nombre' => ['stringValue' => strip_tags($datosUsuario['nombreUsuario'])],
-        'apellido' => ['stringValue' => strip_tags($datosUsuario['apellidosUsuario'])],
-        'correo' => ['stringValue' => strip_tags($datosUsuario['correoUsuario'])],
-        //'password' => ['stringValue' => $datosUsuario['contrasenaUsuario']],
-        'password' => ['stringValue' => strip_tags(password_hash($datosUsuario['contrasenaUsuario'], PASSWORD_BCRYPT, $opciones))],
-        'telefono' => ['stringValue' => strip_tags($datosUsuario['telefonoUsuario'])],
-        'tipoUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
-        'descripcionUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
-        'status' => ['stringValue' => strip_tags($status)], // Se asigna según la condición
-        'claveUsuario' => ['stringValue' => strip_tags($clave)], // Guardar la clave correcta
-        'noEmpresa' => ['integerValue' => strip_tags($noEmpresa)],
-        'claveSae' => ['stringValue' => strip_tags($claveSae)],
-    ];
+    if ($idUsuario) {
+        // Si existe el ID del usuario, actualizamos (PATCH)
+        $url .= "/$idUsuario?updateMask.fieldPaths=usuario"
+      . "&updateMask.fieldPaths=nombre"
+      . "&updateMask.fieldPaths=apellido"
+      . "&updateMask.fieldPaths=correo"
+      . "&updateMask.fieldPaths=telefono"
+      . "&updateMask.fieldPaths=tipoUsuario"
+      . "&updateMask.fieldPaths=descripcionUsuario"
+      . "&updateMask.fieldPaths=status"
+      . "&updateMask.fieldPaths=claveUsuario"
+      . "&updateMask.fieldPaths=noEmpresa"
+      . "&updateMask.fieldPaths=claveSae"
+      . "&key=$firebaseApiKey";
+        $method = "PATCH";
+
+        // Determinar qué clave guardar según el tipo de usuario
+        $clave = ($datosUsuario['rolUsuario'] === "CLIENTE") ? $datosUsuario['claveCliente'] : $datosUsuario['claveVendedor'];
+        $opciones = [
+            'cost' => 12,
+        ];
+        // Formatear los datos para Firebase (estructura de "fields")
+        $fields = [
+            'usuario' => ['stringValue' => strip_tags($datosUsuario['usuario'])],
+            'nombre' => ['stringValue' => strip_tags($datosUsuario['nombreUsuario'])],
+            'apellido' => ['stringValue' => strip_tags($datosUsuario['apellidosUsuario'])],
+            'correo' => ['stringValue' => strip_tags($datosUsuario['correoUsuario'])],
+            'telefono' => ['stringValue' => strip_tags($datosUsuario['telefonoUsuario'])],
+            'tipoUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
+            'descripcionUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
+            'status' => ['stringValue' => strip_tags($status)], // Se asigna según la condición
+            'claveUsuario' => ['stringValue' => strip_tags($clave)], // Guardar la clave correcta
+            'noEmpresa' => ['integerValue' => strip_tags($noEmpresa)],
+            'claveSae' => ['stringValue' => strip_tags($claveSae)],
+        ];
+    } else {
+        // Si no hay ID, estamos creando un nuevo documento
+        $url .= "?key=$firebaseApiKey";
+        // Determinar qué clave guardar según el tipo de usuario
+        $clave = ($datosUsuario['rolUsuario'] === "CLIENTE") ? $datosUsuario['claveCliente'] : $datosUsuario['claveVendedor'];
+        $opciones = [
+            'cost' => 12,
+        ];
+        // Formatear los datos para Firebase (estructura de "fields")
+        $fields = [
+            'usuario' => ['stringValue' => strip_tags($datosUsuario['usuario'])],
+            'nombre' => ['stringValue' => strip_tags($datosUsuario['nombreUsuario'])],
+            'apellido' => ['stringValue' => strip_tags($datosUsuario['apellidosUsuario'])],
+            'correo' => ['stringValue' => strip_tags($datosUsuario['correoUsuario'])],
+            //'password' => ['stringValue' => $datosUsuario['contrasenaUsuario']],
+            'password' => ['stringValue' => strip_tags(password_hash($datosUsuario['contrasenaUsuario'], PASSWORD_BCRYPT, $opciones))],
+            'telefono' => ['stringValue' => strip_tags($datosUsuario['telefonoUsuario'])],
+            'tipoUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
+            'descripcionUsuario' => ['stringValue' => strip_tags($datosUsuario['rolUsuario'])],
+            'status' => ['stringValue' => strip_tags($status)], // Se asigna según la condición
+            'claveUsuario' => ['stringValue' => strip_tags($clave)], // Guardar la clave correcta
+            'noEmpresa' => ['integerValue' => strip_tags($noEmpresa)],
+            'claveSae' => ['stringValue' => strip_tags($claveSae)],
+        ];
+    }
 
     // Preparar la solicitud
     $options = [
@@ -540,7 +569,7 @@ function obtenerClaveSae($noEmpresa)
         $empBuscada  = (int) $noEmpresa;
         var_dump($fields['noEmpresa']['integerValue']);
         if ($empFirebase === $empBuscada) {
-        //if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
+            //if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return $fields['claveSae']['stringValue'] ?? null; // Retornar `claveSae` si existe
         }
     }

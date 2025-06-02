@@ -288,36 +288,36 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     // Ruta del XML de Debug
     $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($factura) .  '.xml';
 
-    /*
+    
     // Credenciales de Timbrado
     $datos['PAC']['usuario'] = $empresaData['rfc'];
     $datos['PAC']['pass'] = $empresaData['rfc'];
     $datos['PAC']['produccion'] = 'SI';
-    */
+    
     // Credenciales de Timbrado
-    $datos['PAC']['usuario'] = 'DEMO700101XXX';
+    /*$datos['PAC']['usuario'] = 'DEMO700101XXX';
     $datos['PAC']['pass'] = 'DEMO700101XXX';
-    $datos['PAC']['produccion'] = 'NO';
+    $datos['PAC']['produccion'] = 'NO';*/
 
     // Rutas y clave de los CSD
-    $datos['conf']['cer'] = '../../certificados/escuela/EKU9003173C9.cer';
+    /*$datos['conf']['cer'] = '../../certificados/escuela/EKU9003173C9.cer';
     $datos['conf']['key'] = '../../certificados/escuela/EKU9003173C9.key';
-    $datos['conf']['pass'] = '12345678a';
-    /*$datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
+    $datos['conf']['pass'] = '12345678a';*/
+    $datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
     $datos['conf']['key'] = '../../certificados/2/CSD_unidad_LUHM920412GU2_20220708_132000.key';
     $datos['conf']['pass'] = 'CUSAr279';
-    $locacionArchivos = __DIR__ . "/../../certificados/$noEmpresa/";*/
+    $locacionArchivos = __DIR__ . "/../../certificados/$noEmpresa/";
 
     // glob devuelve un array, así que tomamos sólo el primer elemento
-    //$archivoCerArray = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
-    //$archivoKeyArray = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
+    $archivoCerArray = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
+    $archivoKeyArray = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
 
-    /*$cerPath = $archivoCerArray[0] ?? null;
+    $cerPath = $archivoCerArray[0] ?? null;
     $keyPath = $archivoKeyArray[0] ?? null;
 
     $datos['conf']['cer']  = $cerPath;
     $datos['conf']['key']  = $keyPath;
-    $datos['conf']['pass'] = $password;*/
+    $datos['conf']['pass'] = $password;
 
     // Datos de la Factura || $pedidoData['']
     $datos['factura']['condicionesDePago'] = $pedidoData['CONDICION'];
@@ -345,9 +345,9 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     $datos['factura']['Exportacion'] = '01';
 
     // Datos del Emisor
-    $datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
+    /*$datos['emisor']['rfc'] = 'EKU9003173C9'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'ESCUELA KEMPER URGATE';  // EMPRESA DE PRUEBA
-    $datos['emisor']['RegimenFiscal'] = '626';
+    $datos['emisor']['RegimenFiscal'] = '626';*/
     /*$datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'MARCOS LUNA HERNANDEZ';  // EMPRESA DE PRUEBA
     $datos['emisor']['RegimenFiscal'] = '612';*/

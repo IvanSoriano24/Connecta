@@ -1047,6 +1047,45 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
         echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
     }
 }
+function obtenerDatosEnvioVisualizar($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    // Construir la consulta SQL
+    $sql = "SELECT * FROM $nombreTabla WHERE CVE_INFO = ?";
+    //$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
+    $params = [$pedidoID];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    // Verificar si hubo errores al ejecutar la consulta
+    if ($stmt === false) {
+        throw new Exception('Error al ejecutar la consulta.');
+    }
+
+    // Obtener los datos del cliente
+    $envioData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+   
+    if (!empty($envioData)) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => $envioData]);
+        exit();
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -1231,6 +1270,19 @@ switch ($funcion) {
         $pedidoID = $_POST["pedidoID"];
         obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae);
         break;
+        case 11:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        $envioID = $_POST["envioID"];
+        obtenerDatosEnvioVisualizar($firebaseProjectId, $firebaseApiKey, $envioID, $conexionData, $noEmpresa, $claveSae);
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;

@@ -40,24 +40,6 @@ function agregarEventosBotones() {
   // Botones de eliminar
   const botonesEliminar = document.querySelectorAll(".btnCancelarPedido");
   botonesEliminar.forEach((boton) => {
-    /*boton.addEventListener("click", function () {
-      const pedidoID = this.dataset.id; // Obtener el ID del pedido
-      console.log(pedidoID);
-      Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción no se puede deshacer",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Sí, Cancelarlo",
-        cancelButtonText: "Cancelar",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          eliminarPedido(pedidoID); // Llama a la función para eliminar el pedido
-        }
-      });
-    });*/
     boton.addEventListener("click", async function () {
       const pedidoID = this.dataset.id; // Obtener el ID del pedido
       try {
@@ -87,6 +69,50 @@ function agregarEventosBotones() {
         } else {
           console.error("Respuesta inesperada:", res);
         }
+      } catch (error) {
+        console.error("Error al verificar el pedido:", error);
+        Swal.fire({
+          title: "Aviso",
+          text: "Hubo un problema al verificar el pedido",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+      }
+    });
+  });
+  /***************************************************************/
+  const botonesVisualizar = document.querySelectorAll(".btnVerPedido");
+  botonesVisualizar.forEach((boton) => {
+    boton.addEventListener("click", async function () {
+      /*const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      console.log("Redirigiendo con pedidoID:", pedidoID);
+      window.location.href = "altaPedido.php?pedidoID=" + pedidoID;*/
+      const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      try {
+        console.log("Redirigiendo con pedidoID:", pedidoID);
+        window.location.href = "verPedido.php?pedidoID=" + pedidoID;
+      } catch (error) {
+        console.error("Error al verificar el pedido:", error);
+        Swal.fire({
+          title: "Aviso",
+          text: "Hubo un problema al verificar el pedido",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+      }
+    });
+  });
+
+  const botonesDescargar = document.querySelectorAll(".btnDescargarPedido");
+  botonesDescargar.forEach((boton) => {
+    boton.addEventListener("click", async function () {
+      /*const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      console.log("Redirigiendo con pedidoID:", pedidoID);
+      window.location.href = "altaPedido.php?pedidoID=" + pedidoID;*/
+      const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      try {
+        console.log("Redirigiendo con pedidoID:", pedidoID);
+        window.location.href = "altaPedido.php?pedidoID=" + pedidoID;
       } catch (error) {
         console.error("Error al verificar el pedido:", error);
         Swal.fire({
@@ -357,15 +383,15 @@ function datosPedidos(limpiarTabla = true) {
               const row = document.createElement("tr");
               const subtotalText = pedido.Subtotal
                 ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
                 : "Sin subtotal";
               const importeText = pedido.ImporteTotal
                 ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
                 : "Sin importe";
 
               row.innerHTML = `
@@ -374,21 +400,25 @@ function datosPedidos(limpiarTabla = true) {
                                 <td >${pedido.Cliente || "Sin cliente"}</td>
                                 <td>${pedido.Nombre || "Sin nombre"}</td>
                                 <td>${pedido.Estatus || "0"}</td>
-                                <td>${pedido.FechaElaboracion || "Sin fecha"
-                }</td>
+                                <td>${
+                                  pedido.FechaElaboracion || "Sin fecha"
+                                }</td>
                                 <td style="text-align: right;">${subtotalText}</td>
-                                <!--<td style="text-align: right;">${pedido.TotalComisiones
-                  ? `$${parseFloat(
-                    pedido.TotalComisiones
-                  ).toFixed(2)}`
-                  : "Sin Comisiones"
-                }</td>-->
+                                <!--<td style="text-align: right;">${
+                                  pedido.TotalComisiones
+                                    ? `$${parseFloat(
+                                        pedido.TotalComisiones
+                                      ).toFixed(2)}`
+                                    : "Sin Comisiones"
+                                }</td>-->
                                 <td style="text-align: right;">${importeText}</td>
-                               <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
-                }</td>
+                               <td class="nombreVendedor">${
+                                 pedido.NombreVendedor || "Sin vendedor"
+                               }</td>
                                 <td>
-                                    <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
-                }" style="
+                                    <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
+                                      pedido.Clave
+                                    }" style="
                                         display: inline-flex;
                                         align-items: center;
                                         padding: 0.5rem 1rem;
@@ -404,8 +434,9 @@ function datosPedidos(limpiarTabla = true) {
                                     </button>
                                 </td>
                                 <td>
-                                    <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
-                }" style="
+                                    <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${
+                                      pedido.Clave
+                                    }" style="
                                         display: inline-flex;
                                         align-items: center;
                                         padding: 0.5rem 1rem;
@@ -418,6 +449,42 @@ function datosPedidos(limpiarTabla = true) {
                                         cursor: pointer;
                                         transition: background-color 0.3s ease;">
                                         <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
+                                    </button>
+                                </td>
+                                <td>
+                                <button class="btnVerPedido" name="btnVerPedido" data-id="${
+                                  pedido.Clave
+                                }" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        padding: 0.5rem 1rem;
+                                        font-size: 1rem;
+                                        font-family: Lato;
+                                        color: #fff;
+                                        background-color: #007bff;
+                                        border: none;
+                                        border-radius: 0.25rem;
+                                        cursor: pointer;
+                                        transition: background-color 0.3s ease;">
+                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visuzlizar
+                                    </button>
+                                </td>
+                                <td>
+                                <button class="btnDescargarPedido" name="btnDescargarPedido" data-id="${
+                                  pedido.Clave
+                                }" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        padding: 0.5rem 1rem;
+                                        font-size: 1rem;
+                                        font-family: Lato;
+                                        color: #fff;
+                                        background-color: #007bff;
+                                        border: none;
+                                        border-radius: 0.25rem;
+                                        cursor: pointer;
+                                        transition: background-color 0.3s ease;">
+                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Descargar
                                     </button>
                                 </td>
                             `;
@@ -537,7 +604,7 @@ function obtenerDatosEnvioEditar(pedidoID) {
   //
   $("#datosEnvio").prop("disabled", false);
   $("#selectDatosEnvio").prop("disabled", true);
-  
+
   $.post(
     "../Servidor/PHP/clientes.php",
     {
@@ -552,15 +619,22 @@ function obtenerDatosEnvioEditar(pedidoID) {
         document.getElementById("enviar").value = pedido.tituloEnvio || "";
         document.getElementById("idDatos").value = pedido.idDocumento || "";
         document.getElementById("folioDatos").value = pedido.id || "";
-        document.getElementById("nombreContacto").value = pedido.nombreContacto || "";
+        document.getElementById("nombreContacto").value =
+          pedido.nombreContacto || "";
         //document.getElementById("selectDatosEnvio").value = pedido.tituloEnvio || "";
         $("#selectDatosEnvio").val(pedido.tituloEnvio);
-        document.getElementById("compañiaContacto").value = pedido.compania || "";
-        document.getElementById("telefonoContacto").value = pedido.telefonoContacto || "";
-        document.getElementById("correoContacto").value = pedido.correoContacto || "";
-        document.getElementById("direccion1Contacto").value = pedido.linea1 || "";
-        document.getElementById("direccion2Contacto").value = pedido.linea2 || "";
-        document.getElementById("codigoContacto").value = pedido.codigoPostal || "";
+        document.getElementById("compañiaContacto").value =
+          pedido.compania || "";
+        document.getElementById("telefonoContacto").value =
+          pedido.telefonoContacto || "";
+        document.getElementById("correoContacto").value =
+          pedido.correoContacto || "";
+        document.getElementById("direccion1Contacto").value =
+          pedido.linea1 || "";
+        document.getElementById("direccion2Contacto").value =
+          pedido.linea2 || "";
+        document.getElementById("codigoContacto").value =
+          pedido.codigoPostal || "";
         document.getElementById("estadoContacto").value = pedido.estado;
         //document.getElementById("municipioContacto").value = pedido[0].municipio;
 
@@ -570,7 +644,6 @@ function obtenerDatosEnvioEditar(pedidoID) {
 
         obtenerEstadosEdit(edo, municipio);
         obtenerMunicipios(edo, municipio);
-
       } else {
         Swal.fire({
           title: "Aviso",
@@ -604,14 +677,14 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
       const $sel = $("#estadoContacto")
         .prop("disabled", true)
         .empty()
-        .append('<option selected disabled>Selecciona un Estado</option>');
+        .append("<option selected disabled>Selecciona un Estado</option>");
 
       if (resEstado.success) {
         // Normaliza a array aunque venga un solo objeto
         const estados = Array.isArray(resEstado.data)
           ? resEstado.data
           : [resEstado.data];
-        console.log("Estado: ", estados)
+        console.log("Estado: ", estados);
         estados.forEach((e) => {
           $sel.append(
             `<option value="${e.Clave}" 
@@ -622,7 +695,6 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
           );
         });
         if (estadoSeleccionado) {
-          
           $sel.val(estadoSeleccionado);
           // Si además hay municipio, lo pasamos para poblar ese select
           if (municipioSeleccionado) {
@@ -646,51 +718,6 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
     },
   });
 }
-/*function obtenerEstados(estado) {
-  // Habilitamos el select
-  //$("#estadoContacto").prop("disabled", false);
-
-  $.ajax({
-    url: "../Servidor/PHP/ventas.php",
-    method: "POST",
-    data: { numFuncion: "22" },
-    dataType: "json",
-    success: function (resEstado) {
-      if (resEstado.success && Array.isArray(resEstado.data)) {
-        const $estadoNuevoContacto = $("#estadoContacto");
-        $estadoNuevoContacto.empty();
-        $estadoNuevoContacto.append(
-          "<option selected disabled>Selecciona un Estado</option>"
-        );
-        // Filtrar según el largo del RFC
-        resEstado.data.forEach((estado) => {
-          $estadoNuevoContacto.append(
-            `<option value="${estado.Clave}" 
-                data-Pais="${estado.Pais}"
-                data-Descripcion="${estado.Descripcion}">
-                ${estado.Descripcion}
-              </option>`
-          );
-        });
-        $("#estadoContacto").val = estado;
-      } else {
-        Swal.fire({
-          icon: "warning",
-          title: "Aviso",
-          text: resEstado.message || "No se encontraron estados.",
-        });
-        //$("#estadoNuevoContacto").prop("disabled", true);
-      }
-    },
-    error: function () {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Error al obtener la lista de estados.",
-      });
-    },
-  });
-}*/
 function obtenerMunicipios(edo, municipio) {
   // Habilitamos el select
   //$("#estadoContacto").prop("disabled", false);
@@ -1148,15 +1175,15 @@ function doSearch(limpiarTabla = true) {
                 const row = document.createElement("tr");
                 const subtotalText = pedido.Subtotal
                   ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
                   : "Sin subtotal";
                 const importeText = pedido.ImporteTotal
                   ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
                   : "Sin importe";
 
                 row.innerHTML = `
@@ -1167,16 +1194,19 @@ function doSearch(limpiarTabla = true) {
                   <td>${pedido.Estatus || "0"}</td>
                   <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
                   <td style="text-align: right;">${subtotalText}</td>
-                  <!--<td style="text-align: right;">${pedido.TotalComisiones
-                    ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
-                    : "Sin Comisiones"
+                  <!--<td style="text-align: right;">${
+                    pedido.TotalComisiones
+                      ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
+                      : "Sin Comisiones"
                   }</td>-->
                   <td style="text-align: right;">${importeText}</td>
-                <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
-                  }</td>
+                <td class="nombreVendedor">${
+                  pedido.NombreVendedor || "Sin vendedor"
+                }</td>
                   <td>
-                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
-                  }" style="
+                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
+                        pedido.Clave
+                      }" style="
                           display: inline-flex;
                           align-items: center;
                           padding: 0.5rem 1rem;
@@ -1192,8 +1222,9 @@ function doSearch(limpiarTabla = true) {
                       </button>
                   </td>
                   <td>
-                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
-                  }" style="
+                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${
+                        pedido.Clave
+                      }" style="
                           display: inline-flex;
                           align-items: center;
                           padding: 0.5rem 1rem;
@@ -1208,6 +1239,42 @@ function doSearch(limpiarTabla = true) {
                           <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
                       </button>
                   </td>
+                  <td>
+                                <button class="btnVerPedido" name="btnVerPedido" data-id="${
+                                  pedido.Clave
+                                }" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        padding: 0.5rem 1rem;
+                                        font-size: 1rem;
+                                        font-family: Lato;
+                                        color: #fff;
+                                        background-color: #007bff;
+                                        border: none;
+                                        border-radius: 0.25rem;
+                                        cursor: pointer;
+                                        transition: background-color 0.3s ease;">
+                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visuzlizar
+                                    </button>
+                                </td>
+                                <td>
+                                <button class="btnDescargarPedido" name="btnDescargarPedido" data-id="${
+                                  pedido.Clave
+                                }" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        padding: 0.5rem 1rem;
+                                        font-size: 1rem;
+                                        font-family: Lato;
+                                        color: #fff;
+                                        background-color: #007bff;
+                                        border: none;
+                                        border-radius: 0.25rem;
+                                        cursor: pointer;
+                                        transition: background-color 0.3s ease;">
+                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Descargar
+                                    </button>
+                                </td>
                 `;
                 fragment.appendChild(row);
               });

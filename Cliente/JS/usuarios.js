@@ -301,6 +301,7 @@ function visualizarUsuario(idUsuario) {
       try {
         const data = JSON.parse(response);
         if (data.success) {
+          campoContrasena.style.display = 'none';
           if (data.data.tipoUsuario === "CLIENTE") {
             limpiarFormularioCliente();
             document.getElementById("guardarDatosClienteBtn").hidden = true;
@@ -429,6 +430,7 @@ function editarUsuario(idUsuario) {
       try {
         const data = JSON.parse(response);
         if (data.success) {
+          campoContrasena.style.display = 'none';
           if (data.data.tipoUsuario === "CLIENTE") {
             limpiarFormularioCliente();
             document.getElementById("guardarDatosClienteBtn").hidden = false;
@@ -1007,7 +1009,9 @@ $("#btnAgregarCliente").on("click", function () {
   habilitarCamposCliente();
   limpiarFormularioCliente(); // Limpia el formulario antes de abrir
   document.getElementById("guardarDatosClienteBtn").hidden = false;
+  document.getElementById("campoContrasena").hidden = true;
   $("#usuarioModalCliente").modal("show"); // Mostrar modal
+
   obtenerClientes(); // Llamar a la función para obtener clientes
 });
 function cerrarModal() {

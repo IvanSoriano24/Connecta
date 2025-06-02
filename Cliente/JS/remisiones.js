@@ -360,6 +360,9 @@ function obtenerDatosPedido(pedidoID) {
                 //alert("Datos del pedido cargados con éxito");
 
                 console.log("Datos del pedido cargados correctamente.");
+
+                $("#datosEnvio").prop("disabled", false);
+                obtenerDatosEnvioEditar(pedido.DAT_ENVIO); // Función para cargar partidas del pedido
             } else {
                 Swal.fire({
                     title: "Aviso",
@@ -383,7 +386,7 @@ function obtenerDatosPedido(pedidoID) {
         console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
     });
 }
-function obtenerDatosEnvioEditar(pedidoID) {
+function obtenerDatosEnvioEditar(envioID) {
     //
     $("#datosEnvio").prop("disabled", false);
     $("#selectDatosEnvio").prop("disabled", true);
@@ -391,40 +394,20 @@ function obtenerDatosEnvioEditar(pedidoID) {
     $.post(
         "../Servidor/PHP/clientes.php",
         {
-            numFuncion: 10, // Función para obtener el pedido por ID
-            pedidoID: pedidoID,
+            numFuncion: 11, // Función para obtener el pedido por ID
+            envioID: envioID,
         },
         function (response) {
             if (response.success) {
-                const pedido = response.data[0];
+                //console.log("Respuesta: ", response.data);
+                const pedido = response.data;
 
-                console.log("Datos de Envio:", pedido);
-                document.getElementById("enviar").value = pedido.tituloEnvio || "";
-                document.getElementById("idDatos").value = pedido.idDocumento || "";
-                document.getElementById("folioDatos").value = pedido.id || "";
-                document.getElementById("nombreContacto").value = pedido.nombreContacto || "";
-                //document.getElementById("selectDatosEnvio").value = pedido.tituloEnvio || "";
-                $("#selectDatosEnvio").val(pedido.tituloEnvio);
-                document.getElementById("compañiaContacto").value = pedido.compania || "";
-                document.getElementById("telefonoContacto").value = pedido.telefonoContacto || "";
-                document.getElementById("correoContacto").value = pedido.correoContacto || "";
-                document.getElementById("direccion1Contacto").value = pedido.linea1 || "";
-                document.getElementById("direccion2Contacto").value = pedido.linea2 || "";
-                document.getElementById("codigoContacto").value = pedido.codigoPostal || "";
-                document.getElementById("estadoContacto").value = pedido.estado;
-                //document.getElementById("municipioContacto").value = pedido[0].municipio;
-
-                const edo = pedido.estado.trim();
-                const municipio = pedido.municipio;
-                //console.log("Estado Crudo: ", edo);
-
-                obtenerEstadosEdit(edo, municipio);
-                obtenerMunicipios(edo, municipio);
+                document.getElementById("enviar").value = pedido.CALLE || "";
 
             } else {
                 Swal.fire({
                     title: "Aviso",
-                    text: "No se pudo cargar el pedido.",
+                    text: "No se Pudo cargar los Datos de Envio.",
                     icon: "warning",
                     confirmButtonText: "Aceptar",
                 });
@@ -937,7 +920,7 @@ document.addEventListener("DOMContentLoaded", function () {
             obtenerDatosPedido(pedidoID); // Función para cargar datos del pedido
             cargarPartidasPedido(pedidoID); // Función para cargar partidas del pedido
             $("#datosEnvio").prop("disabled", false);
-            obtenerDatosEnvioEditar(pedidoID); // Función para cargar partidas del pedido
+            //obtenerDatosEnvioEditar(pedidoID); // Función para cargar partidas del pedido
         }
     }
 });

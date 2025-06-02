@@ -338,6 +338,8 @@ session_destroy(); */
                                         ?>
                                         <th>Editar</th>
                                         <th>Cancelar</th>
+                                        <th>Visuzlizar</th>
+                                        <th>Descargar</th>
                                     </tr>
                                 </thead>
                                 <tbody id="datosPedidos">

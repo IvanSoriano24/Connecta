@@ -1805,8 +1805,8 @@ function actualizarInventario($conexionData, $partidasData, $conn)
     }
     foreach ($partidasData as $partida) {
         $CVE_ART = $partida['producto'];
-        //$cantidad = $partida['cantidad'];
-        $cantidad = "uno";
+        $cantidad = $partida['cantidad'];
+        //$cantidad = "uno";
         // SQL para actualizar los campos EXIST y PEND_SURT
         $sql = "UPDATE $nombreTabla
             SET    

@@ -38,7 +38,7 @@ function obtenerPedido($cveDoc, $conexionData, $claveSae)
     if ($pedidoData) {
         return $pedidoData;
     } else {
-        echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cve_doc"]);
+        echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cveDoc"]);
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -1436,6 +1436,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                                 var_dump("folioFactura: ", $folioFactura);
                                 actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
                                 $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+                                var_dump("Ruta PDF: ", $rutaPDF);
                                 validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
                             } else {
                                 enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);

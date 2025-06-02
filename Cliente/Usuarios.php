@@ -234,10 +234,10 @@ if (isset($_SESSION['usuario'])) {
                                         <label for="usuario" class="form-label">Usuario</label>
                                         <input type="text" id="usuario" class="form-control">
                                     </div>
-                                    <div class="mb-2">
+                                    <div class="mb-2" id="campoContrasena" style="display: block;">
                                         <label for="contrasenaUsuario" class="form-label">Contraseña del Usuario</label>
                                         <input type="password" id="contrasenaUsuario" class="form-control">
-                                        <!-- <button type="button" id="togglePassword" style="
+                                         <!--<button type="button" id="togglePassword" style="
                                             position: absolute;
                                             right: 10px;
                                             top: 55%;
@@ -252,7 +252,7 @@ if (isset($_SESSION['usuario'])) {
                                             -moz-appearance: none;
                                         ">
                                             <i class="bi bi-eye"></i>
-                                        </button> -->
+                                        </button>-->
                                     </div>
                                     <div class="mb-2">
                                         <label for="telefonoUsuario" class="form-label">Teléfono</label>
