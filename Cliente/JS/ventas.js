@@ -133,38 +133,37 @@ function descargarPdf(pedidoID) {
       pedidoID: pedidoID
     },
     xhrFields: {
-      responseType: 'blob' // muy importante: esperamos un blob (PDF)
+      responseType: 'blob' // indicamos que esperamos un PDF (binary blob)
     },
     success: function(blob, status, xhr) {
-      // El parámetro `blob` es un objeto Blob con los bytes del PDF
-      // Extraemos el nombre de archivo sugerido por el servidor (opcional):
+      // 1) Tratamos de extraer el nombre real del header
       let disposition = xhr.getResponseHeader('Content-Disposition');
-      let filename = "pedido.pdf";
+      let filename = "Pedido_" + pedidoID + ".pdf"; // fallback
       if (disposition && disposition.indexOf('filename=') !== -1) {
-        // Obtiene el texto después de filename="
-        let match = disposition.match(/filename="?(.+)"?/);
+        let match = disposition.match(/filename="?([^"]+)"?/);
         if (match && match[1]) {
-          filename = match[1];
+          //filename = match[1];
+          filename = "Pedido_" + pedidoID + ".pdf"; // fallback
         }
       }
-      // Creamos un enlace temporal para descargar:
+      // 2) Creamos un enlace temporal <a download="..."> con el blob
       let urlBlob = window.URL.createObjectURL(blob);
       let a = document.createElement('a');
       a.style.display = 'none';
       a.href = urlBlob;
-      a.download = filename;
+      a.download = filename; 
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(urlBlob);
       document.body.removeChild(a);
-
-      // Opcional: mostrar mensaje de éxito
-      Swal.fire({
+      console.log(filename);
+      // 3) Mensaje de éxito
+      /*Swal.fire({
         title: "Descargado",
         text: "El pedido se ha descargado correctamente.",
         icon: "success",
         confirmButtonText: "Entendido"
-      });
+      });*/
     },
     error: function(jqXHR, textStatus, errorThrown) {
       Swal.fire({

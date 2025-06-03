@@ -348,9 +348,9 @@ $("#cancelarPedido").click(function () {
 });
 function obtenerDatosPedido(pedidoID) {
     $.post(
-        "../Servidor/PHP/remision.php",
+        "../Servidor/PHP/ventas.php",
         {
-            numFuncion: 3, // Función para obtener el pedido por ID
+            numFuncion: 2, // Función para obtener el pedido por ID
             pedidoID: pedidoID,
         },
         function (response) {
@@ -461,9 +461,9 @@ function obtenerDatosEnvioEditar(envioID) {
 }
 function cargarPartidasPedido(pedidoID) {
     $.post(
-        "../Servidor/PHP/remision.php",
+        "../Servidor/PHP/ventas.php",
         {
-            numFuncion: "4",
+            numFuncion: "3",
             accion: "obtenerPartidas",
             clavePedido: pedidoID,
         },

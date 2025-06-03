@@ -1884,8 +1884,7 @@ function actualizarControl4($conexionData, $claveSae)
         'message' => "TBLCONTROL actualizado correctamente (ID_TABLA = 70, +1 en ULT_CVE)"
     ]);*/
 }
-function actualizarControl5($conexionData, $claveSae)
-{
+function actualizarControl5($conexionData, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2648,13 +2647,10 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
 {
     global $firebaseProjectId, $firebaseApiKey;
 
-    actualizarControl($conexionData, $claveSae);
+    
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
     actualizarFolios($conexionData, $claveSae);
-    actualizarControl4($conexionData, $claveSae);
-    actualizarControl2($conexionData, $claveSae);
-    actualizarControl5($conexionData, $claveSae);
     actualizarInve($conexionData, $pedidoId, $claveSae);
 
     $enlaceLote = validarLotes($conexionData, $pedidoId, $claveSae);
@@ -2666,10 +2662,12 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarInveAmazon($conexionData, $pedidoId, $claveSae);
     actualizarMulti2($conexionData, $pedidoId, $claveSae); //No Terminada
     actualizarAfac($conexionData, $pedidoId, $claveSae);
-    actualizarControl3($conexionData, $claveSae);
+
     $CVE_BITA = insertarBita($conexionData, $pedidoId, $claveSae);
+    actualizarControl3($conexionData, $claveSae);
 
     $folio = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA);
+
 
     insertarMimve($conexionData, $pedidoId, $claveSae, $folio);
     insertarFactr_Clib($conexionData, $folio, $claveSae);
@@ -2684,7 +2682,10 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     insertarInfenvio($conexionData, $pedidoId, $folio, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
     actualizarAlerta($conexionData, $claveSae);
-
+    actualizarControl($conexionData, $claveSae);
+    actualizarControl4($conexionData, $claveSae);
+    actualizarControl2($conexionData, $claveSae);
+    actualizarControl5($conexionData, $claveSae);
 
 
     foreach ($enlaceLote as $enlace) {
