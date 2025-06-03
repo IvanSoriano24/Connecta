@@ -7996,25 +7996,8 @@ switch ($funcion) {
             exit;
         }
         $conexionData = $conexionResult['data'];
-
         // Generamos (o localizamos) el PDF en disco
-        $rutaPDF = generarPDFPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
-        if (!file_exists($rutaPDF)) {
-            header("HTTP/1.1 500 Internal Server Error");
-            echo "Error: no se pudo generar el PDF";
-            exit;
-        }
-
-        $pedidoID = trim($pedidoID);
-        // Enviamos cabeceras para forzar la descarga
-        header("Content-Type: application/pdf");
-        $nombreDescarga = "Pedido_{$pedidoID}.pdf";
-        header('Content-Disposition: attachment; filename="' . $nombreDescarga . '"');
-        header("Content-Length: " . filesize($rutaPDF));
-
-        // Leemos y devolvemos el PDF
-        readfile($rutaPDF);
-        exit;
+        generarPDFPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
