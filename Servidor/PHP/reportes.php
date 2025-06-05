@@ -4,10 +4,65 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require '../fpdf/fpdf.php';
+require_once 'firebase.php'; // Archivo de configuración de Firebase
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-//session_start();
+if (!function_exists('obtenerConexion')) {
+    function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
+    {
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Content-Type: application/json\r\n"
+            ]
+        ]);
+        $result = file_get_contents($url, false, $context);
+        if ($result === FALSE) {
+            return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
+        }
+        $documents = json_decode($result, true);
+        if (!isset($documents['documents'])) {
+            return ['success' => false, 'message' => 'No se encontraron documentos'];
+        }
+        // Busca el documento donde coincida el campo `noEmpresa`
+        foreach ($documents['documents'] as $document) {
+            $fields = $document['fields'];
+            if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
+                return [
+                    'success' => true,
+                    'data' => [
+                        'host' => $fields['host']['stringValue'],
+                        'puerto' => $fields['puerto']['stringValue'],
+                        'usuario' => $fields['usuario']['stringValue'],
+                        'password' => $fields['password']['stringValue'],
+                        'nombreBase' => $fields['nombreBase']['stringValue'],
+                        'claveSae' => $fields['claveSae']['stringValue']
+                    ]
+                ];
+            }
+        }
+        return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
+    }
+}
+if (!function_exists('formatearClaveVendedor')) {
+    function formatearClaveVendedor($vendedor)
+    {
+        // Asegurar que la clave sea un string y eliminar espacios innecesarios
+        $vendedor = trim((string)$vendedor);
+        $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
+        // Si la clave ya tiene 10 caracteres, devolverla tal cual
+        if (strlen($vendedor) === 5) {
+            return $vendedor;
+        }
 
-
+        // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+        $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
+        return $vendedor;
+    }
+}
 // Función para obtener los datos de la empresa desde Firebase
 function obtenerDatosEmpresaFire($noEmpresa)
 {
