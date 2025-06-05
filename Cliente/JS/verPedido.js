@@ -344,7 +344,7 @@ $("#AyudaEnviarA").click(function () {
 });
 
 $("#cancelarPedido").click(function () {
-    window.location.href = "Remisiones.php";
+    window.location.href = "Ventas.php";
 });
 function obtenerDatosPedido(pedidoID) {
     $.post(

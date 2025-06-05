@@ -856,6 +856,238 @@ function actualizarControl3($conexionData, $claveSae)
         'message' => "TBLCONTROL actualizado correctamente (ID_TABLA = 62, +1 en ULT_CVE)"
     ]);*/
 }
+function actualizarControl6($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Construcción dinámica de la tabla TBLCONTROLXX
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[TBLCONTROL" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // ✅ Consulta para incrementar ULT_CVE en +1 donde ID_TABLA = 58
+    $sql = "UPDATE $nombreTabla 
+            SET ULT_CVE = ULT_CVE + 1 
+            WHERE ID_TABLA = 58";
+
+    // Ejecutar la consulta
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar TBLCONTROL (ID_TABLA = 58)',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Cerrar conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    /*echo json_encode([
+        'success' => true,
+        'message' => "TBLCONTROL actualizado correctamente (ID_TABLA = 58, +1 en ULT_CVE)"
+    ]);*/
+}
+function obtenerUltimoDato($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "
+        SELECT TOP 1 [CVE_INFO] 
+        FROM $nombreTabla
+        ORDER BY [CVE_INFO] DESC
+    ";
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $CVE_INFO = $row ? $row['CVE_INFO'] : null;
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    return $CVE_INFO;
+}
+function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener el número de empresa
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $cve_doc = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+
+    $sqlPedido = "SELECT DAT_ENVIO FROM $nombreTabla2 WHERE CVE_DOC = ?";
+    $paramsPedido = [$cve_doc];
+    $stmPedido = qlsrv_query($conn, $sqlPedido, $paramsPedido);
+    $row = sqlsrv_fetch_array($stmPedido, SQLSRV_FETCH_ASSOC);
+    $DAT_ENVIO = $row ? $row['DAT_ENVIO'] : null;
+
+
+    $sqlSelect = "SELECT * FROM $nombreTabla WHERE CVE_INFO = ?";
+    $paramsSelect = [$DAT_ENVIO];
+    $stmSelect = qlsrv_query($conn, $sqlSelect, $paramsSelect);
+    // Obtener los datos
+    $envioData = sqlsrv_fetch_array($stmSelect, SQLSRV_FETCH_ASSOC);
+
+
+    // Extraer los datos del formulario
+    $CVE_INFO = $DAT_ENVIO;
+    $CVE_INFO = $CVE_INFO + 1;
+    $CVE_CONS = "";
+    $NOMBRE = $envioData['NOMBRE'];
+    $CALLE = $envioData['CALLE'];
+    $NUMINT = "";
+    $NUMEXT = "S/N";
+    $CRUZAMIENTOS = "";
+    $CRUZAMIENTOS2 = "";
+    $POB = "";
+    $CURP = "";
+    $REFERDIR = "";
+    $CVE_ZONA = "";
+    $CVE_OBS = "";
+    $STRNOGUIA = "";
+    $STRMODOENV = "";
+    $FECHA_ENV = $envioData['FECHA_ENV'];
+    $NOMBRE_RECEP = "";
+    $NO_RECEP = "";
+    $FECHA_RECEP = "";
+    //$COLONIA = "";
+    $COLONIA = $envioData['COLONIA'];
+    $CODIGO = $envioData['CODIGO'];
+    $ESTADO = $envioData['ESTADO'];
+    $PAIS = "MEXICO";
+    $MUNICIPIO = $envioData['MUNICIPIO'];
+    $PAQUETERIA = "";
+    $CVE_PED_TIEND = "";
+    $F_ENTREGA = "";
+    $R_FACTURA = "";
+    $R_EVIDENCIA = "";
+    $ID_GUIA = "";
+    $FAC_ENV = "";
+    $GUIA_ENV = "";
+    $REG_FISC = "";
+    $CVE_PAIS_SAT = "";
+    $FEEDDOCUMENT_GUIA = "";
+    // Crear la consulta SQL para insertar los datos en la base de datos
+    $sql = "INSERT INTO $nombreTabla
+    (CVE_INFO, CVE_CONS, NOMBRE, CALLE, NUMINT, NUMEXT,
+    CRUZAMIENTOS, CRUZAMIENTOS2, POB, CURP, REFERDIR, CVE_ZONA, CVE_OBS,
+    STRNOGUIA, STRMODOENV, FECHA_ENV, NOMBRE_RECEP, NO_RECEP,
+    FECHA_RECEP, COLONIA, CODIGO, ESTADO, PAIS, MUNICIPIO,
+    PAQUETERIA, CVE_PED_TIEND, F_ENTREGA, R_FACTURA, R_EVIDENCIA,
+    ID_GUIA, FAC_ENV, GUIA_ENV, REG_FISC,
+    CVE_PAIS_SAT, FEEDDOCUMENT_GUIA)
+    VALUES 
+    (?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?, ?,
+    ?, ?)";
+    // Preparar los parámetros para la consulta
+    $params = [
+        $CVE_INFO,
+        $CVE_CONS,
+        $NOMBRE,
+        $CALLE,
+        $NUMINT,
+        $NUMEXT,
+        $CRUZAMIENTOS,
+        $CRUZAMIENTOS2,
+        $POB,
+        $CURP,
+        $REFERDIR,
+        $CVE_ZONA,
+        $CVE_OBS,
+        $STRNOGUIA,
+        $STRMODOENV,
+        $FECHA_ENV,
+        $NOMBRE_RECEP,
+        $NO_RECEP,
+        $FECHA_RECEP,
+        $COLONIA,
+        $CODIGO,
+        $ESTADO,
+        $PAIS,
+        $MUNICIPIO,
+        $PAQUETERIA,
+        $CVE_PED_TIEND,
+        $F_ENTREGA,
+        $R_FACTURA,
+        $R_EVIDENCIA,
+        $ID_GUIA,
+        $FAC_ENV,
+        $GUIA_ENV,
+        $REG_FISC,
+        $CVE_PAIS_SAT,
+        $FEEDDOCUMENT_GUIA
+    ];
+    // Ejecutar la consulta
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar los datos de envio',
+            'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
+        ]));
+    }
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_free_stmt($stmPedido);
+    sqlsrv_free_stmt($stmSelect);
+    sqlsrv_close($conn);
+    return $CVE_INFO;
+}
 function insertarBita($conexionData, $pedidoId, $claveSae)
 {
     $serverName = $conexionData['host'];
@@ -984,7 +1216,7 @@ function insertarBita($conexionData, $pedidoId, $claveSae)
         'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
     ]);*/
 }
-function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
+function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVIO, $DAT_MOSTR)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1054,7 +1286,6 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
     $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
     $tipDoc = 'R';
     $status = 'E';
-    $datMostr = 0;
     $cvePedi = '';  // Vacío según la traza
     $tipDocE = 'F';
     $docAnt = $pedidoId;
@@ -1077,7 +1308,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
         $cveDoc,
         $pedido['CVE_CLPV'],
         $status,
-        $datMostr,
+        $DAT_MOSTR,
         $pedido['CVE_VEND'],
         $cvePedi,
         $fechaDoc,
@@ -1108,7 +1339,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA)
         $pedido['SERIE'],
         $folio,
         $pedido['AUTOANIO'],
-        $pedido['DAT_ENVIO'],
+        $DAT_ENVIO,
         $pedido['CONTADO'],
         $CVE_BITA,
         $pedido['BLOQ'],
@@ -2641,8 +2872,127 @@ function remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $foli
         ]);
     }
 }
+function insertatInfoClie($conexionData, $claveSae, $pedidoId){
+    $serverName   = $conexionData['host'];
+    $connectionInfo = [
+        "Database"  => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+    $tablaClienteInfo = "[{$conexionData['nombreBase']}].[dbo].[INFCLI" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $cve_doc = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
+    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+
+    $sqlPedido = "SELECT CVE_CLPV FROM $nombreTabla WHERE CVE_DOC = ?";
+    $paramsPedido = [$cve_doc];
+    $stmPedido = qlsrv_query($conn, $sqlPedido, $paramsPedido);
+    $row = sqlsrv_fetch_array($stmPedido, SQLSRV_FETCH_ASSOC);
+    $CVE_CLPV = $row ? $row['CVE_CLPV'] : null;
 
 
+    $dataCliente = obtenerDatosCliente($CVE_CLPV, $conexionData, $claveSae);
+
+    $sqlUltimo = "SELECT ISNULL(MAX(CVE_INFO), 0) + 1 AS NUEVO_CVE FROM $tablaClienteInfo";
+    $stmtUlt = sqlsrv_query($conn, $sqlUltimo);
+    if ($stmtUlt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => "Error al obtener el último CVE",
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+    $rowUlt = sqlsrv_fetch_array($stmtUlt, SQLSRV_FETCH_ASSOC);
+    $nuevo = $rowUlt['NUEVO_CVE'];
+
+    $sql = "INSERT INTO $tablaClienteInfo (CALLE, CODIGO, COLONIA, CRUZAMIENTOS, CRUZAMIENTOS2, CURP,
+    CVE_INFO, CVE_PAIS_SAT, CVE_ZONA, ESTADO, MUNICIPIO, NOMBRE, NUMEXT,
+    NUMINT, PAIS, POB, REFERDIR, REG_FISC, RFC)
+    VALUES(?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?)";
+    $params = [
+        $dataCliente['CALLE'],
+        $dataCliente['CODIGO'],
+        $dataCliente['COLONIA'],
+        $dataCliente['CRUZAMIENTOS'],
+        $dataCliente['CRUZAMIENTOS2'],
+        $dataCliente['CURP'],
+        $nuevo,
+        $dataCliente['CVE_PAIS_SAT'],
+        $dataCliente['CVE_ZONA'],
+        $dataCliente['ESTADO'],
+        $dataCliente['MUNICIPIO'],
+        $dataCliente['NOMBRE'],
+        $dataCliente['NUMEXT'],
+        $dataCliente['NUMINT'],
+        $dataCliente['PAIS'],
+        $dataCliente['LOCALIDAD'],
+        $dataCliente['REFERDIR'],
+        $dataCliente['REG_FISC'],
+        $dataCliente['RFC']
+    ];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => "Error al insertar en INFCLI",
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+    sqlsrv_close($conn);
+    //echo json_encode(['success' => true, 'cliente' => $claveCliente]);
+
+    return $nuevo;
+}
+function obtenerDatosCliente($claveCliente, $conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $clie = formatearClaveCliente($claveCliente);
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CLAVE = ?";
+    $params = [$clie];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener los resultados
+    $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($clienteData) {
+        return $clienteData;
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado']);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+/**************************************************************************************************************/
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -2665,8 +3015,10 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
 
     $CVE_BITA = insertarBita($conexionData, $pedidoId, $claveSae);
     actualizarControl3($conexionData, $claveSae);
+    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae);
+    $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $pedidoId);
 
-    $folio = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA);
+    $folio = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVIO, $DAT_MOSTR);
 
 
     insertarMimve($conexionData, $pedidoId, $claveSae, $folio);
@@ -2686,7 +3038,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarControl4($conexionData, $claveSae);
     actualizarControl2($conexionData, $claveSae);
     actualizarControl5($conexionData, $claveSae);
-
+    actualizarControl6($conexionData, $claveSae);
+    //actualizarControl7($conexionData, $claveSae);
 
     foreach ($enlaceLote as $enlace) {
         actualizarDatosComanda(
