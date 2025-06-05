@@ -192,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             cerrarSesion();
             break;
         default:
-            echo "Función no válida.";
+            echo "Funcion no valida.";
             break;
     }
 } else {

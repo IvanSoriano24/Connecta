@@ -436,6 +436,6 @@ switch ($funcion) {
         obtenerUsuarios();
         break;
     default:
-        echo json_encode(['success' => false, 'message' => 'Función no válida.']);
+        echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);
         break;
 }
