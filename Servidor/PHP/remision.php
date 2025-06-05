@@ -954,9 +954,6 @@ function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    // Obtener el número de empresa
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
@@ -965,20 +962,20 @@ function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
 
     $sqlPedido = "SELECT DAT_ENVIO FROM $nombreTabla2 WHERE CVE_DOC = ?";
     $paramsPedido = [$cve_doc];
-    $stmPedido = qlsrv_query($conn, $sqlPedido, $paramsPedido);
+    $stmPedido = sqlsrv_query($conn, $sqlPedido, $paramsPedido);
     $row = sqlsrv_fetch_array($stmPedido, SQLSRV_FETCH_ASSOC);
     $DAT_ENVIO = $row ? $row['DAT_ENVIO'] : null;
 
 
     $sqlSelect = "SELECT * FROM $nombreTabla WHERE CVE_INFO = ?";
     $paramsSelect = [$DAT_ENVIO];
-    $stmSelect = qlsrv_query($conn, $sqlSelect, $paramsSelect);
+    $stmSelect = sqlsrv_query($conn, $sqlSelect, $paramsSelect);
     // Obtener los datos
     $envioData = sqlsrv_fetch_array($stmSelect, SQLSRV_FETCH_ASSOC);
 
 
     // Extraer los datos del formulario
-    $CVE_INFO = $DAT_ENVIO;
+    $CVE_INFO = obtenerUltimoDato($conexionData, $claveSae);
     $CVE_INFO = $CVE_INFO + 1;
     $CVE_CONS = "";
     $NOMBRE = $envioData['NOMBRE'];
@@ -2896,7 +2893,7 @@ function insertatInfoClie($conexionData, $claveSae, $pedidoId){
 
     $sqlPedido = "SELECT CVE_CLPV FROM $nombreTabla WHERE CVE_DOC = ?";
     $paramsPedido = [$cve_doc];
-    $stmPedido = qlsrv_query($conn, $sqlPedido, $paramsPedido);
+    $stmPedido = sqlsrv_query($conn, $sqlPedido, $paramsPedido);
     $row = sqlsrv_fetch_array($stmPedido, SQLSRV_FETCH_ASSOC);
     $CVE_CLPV = $row ? $row['CVE_CLPV'] : null;
 
@@ -2954,6 +2951,20 @@ function insertatInfoClie($conexionData, $claveSae, $pedidoId){
     //echo json_encode(['success' => true, 'cliente' => $claveCliente]);
 
     return $nuevo;
+}
+function formatearClaveCliente($clave)
+{
+    // Asegurar que la clave sea un string y eliminar espacios innecesarios
+    $clave = trim((string) $clave);
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    if (strlen($clave) === 10) {
+        return $clave;
+    }
+
+    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
+    return $clave;
 }
 function obtenerDatosCliente($claveCliente, $conexionData, $claveSae)
 {
@@ -3013,9 +3024,12 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarAfac($conexionData, $pedidoId, $claveSae);
 
     $CVE_BITA = insertarBita($conexionData, $pedidoId, $claveSae);
+    var_dump("Bita: ", $CVE_BITA);
     actualizarControl3($conexionData, $claveSae);
     $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae);
+    var_dump("Envio: ", $DAT_ENVIO);
     $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $pedidoId);
+    var_dump("Cliente: ", $DAT_MOSTR);
 
     $folio = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVIO, $DAT_MOSTR);
 
@@ -3030,13 +3044,13 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarFactp3($conexionData, $pedidoId, $claveSae);
     insertarDoctoSig($conexionData, $pedidoId, $folio, $claveSae);
     insertarPar_Factr_Clib($conexionData, $pedidoId, $folio, $claveSae);
-    insertarInfenvio($conexionData, $pedidoId, $folio, $claveSae);
+    //insertarInfenvio($conexionData, $pedidoId, $folio, $claveSae);
     actualizarAlerta_Usuario($conexionData, $claveSae);
     actualizarAlerta($conexionData, $claveSae);
-    actualizarControl($conexionData, $claveSae);
+    //actualizarControl($conexionData, $claveSae); //?
     actualizarControl4($conexionData, $claveSae);
-    actualizarControl2($conexionData, $claveSae);
-    actualizarControl5($conexionData, $claveSae);
+    //actualizarControl2($conexionData, $claveSae); //?
+    //actualizarControl5($conexionData, $claveSae); //?
     actualizarControl6($conexionData, $claveSae);
     //actualizarControl7($conexionData, $claveSae);
 
