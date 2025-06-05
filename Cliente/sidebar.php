@@ -67,7 +67,7 @@
             </a>
         </li>
         <li>
-            <a href="#" tabindex="-1"> <!--  Dashboard -->
+            <a href="Reportes.php" tabindex="-1"> <!--  Dashboard -->
                 <i class='bx bxs-file'></i>
                 <span class="text">Reportes</span>
             </a>
