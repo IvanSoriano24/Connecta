@@ -7,9 +7,6 @@ require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
 
-session_start();
-
-
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";

@@ -5,7 +5,6 @@ error_reporting(E_ALL);
 
 require 'firebase.php'; // Archivo de configuración de Firebase
 include 'reportes.php';
-session_start();
 
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
 {
