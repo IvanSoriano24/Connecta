@@ -1523,16 +1523,16 @@ switch ($funcion) {
         /*$csrf_token_form = $_POST['token'];
         $csrf_token  = $_SESSION['csrf_token'];
         if ($csrf_token === $csrf_token_form) {*/
-            $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-            $claveSae = $_SESSION['empresa']['claveSae'];
-            $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
-            if (!$conexionResult['success']) {
-                echo json_encode($conexionResult);
-                break;
-            }
-            // Mostrar los clientes usando los datos de conexión obtenidos
-            $conexionData = $conexionResult['data'];
-            mostrarClientesVendedor($conexionData, $claveSae);
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        mostrarClientesVendedor($conexionData, $claveSae);
         /*} else {
             echo json_encode([
                 'success' => false,
@@ -1550,8 +1550,13 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        $clave = $_SESSION['usuario']['claveUsuario'];
-        $claveUsuario = formatearClaveCliente($clave);
+        $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
+        if ($tipoUsuario === "ADMINISTRADOR") {
+            $claveUsuario = 3;
+        } else {
+            $claveUsuario = $_SESSION['usuario']['claveUsuario']; // Clave del cliente
+            $claveUsuario = formatearClaveCliente($claveUsuario);
+        }
         obtenerDatosClienteE($conexionData, $claveUsuario, $claveSae);
         break;
     default:

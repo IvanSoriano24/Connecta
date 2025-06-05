@@ -1529,6 +1529,183 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
 }
+function guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $claveCliente = $formularioData['cliente'];
+    $datosCliente = obtenerDatosCliente($conexionData, $claveCliente, $claveSae);
+    if (!$datosCliente) {
+        die(json_encode(['success' => false, 'message' => 'No se encontraron datos del cliente']));
+    }
+    // Obtener el número de empresa
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    // Extraer los datos del formulario
+    $FOLIO = $formularioData['numero'];
+    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    $FECHA_DOC = $formularioData['diaAlta']; // Fecha del documento
+    $FECHA_ENT = $formularioData['entrega'];
+    // Sumar los totales de las partidas
+    $SUBTOTAL = 0;
+    $IMPORTE = 0;
+    $descuentoCliente = $formularioData['descuentoCliente']; // Valor del descuento en porcentaje (ejemplo: 10 para 10%)
+
+    foreach ($partidasData as $partida) {
+        $SUBTOTAL += $partida['cantidad'] * $partida['precioUnitario']; // Sumar cantidades totales
+        $IMPORTE += $partida['cantidad'] * $partida['precioUnitario']; // Calcular importe total
+    }
+    $IMPORTT = $IMPORTE;
+    /*foreach ($partidasData as $partida) {
+        // Aplicar descuento
+        if ($descuentoCliente > 0) { // Verificar que el descuento sea mayor a 0
+            $DES_TOT = $IMPORT - ($IMPORT * ($descuentoCliente / 100) * ($partida['descuento'] / 100)); // Aplicar porcentaje de descuento
+        } else {
+            $DES_TOT = $IMPORT - ($IMPORT * ($partida['descuento'] / 100)); // Si no hay descuento, el total queda igual al importe
+        }
+    }*/
+    //$IMPORTE = $IMPORTE; // Mantener el importe original
+    $DES_TOT = 0; // Inicializar el total con descuento
+    $DES = 0;
+    $totalDescuentos = 0; // Inicializar acumulador de descuentos
+    $IMP_TOT4 = 0;
+    $IMP_T4 = 0;
+    foreach ($partidasData as $partida) {
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0; // Primer descuento
+        $totalPartida = $precioUnitario * $cantidad;
+        // **Aplicar los descuentos en cascada**
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
+    }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+    $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
+    // Asignación de otros valores del formulario
+    $IMP_TOT1 = 0;
+    $IMP_TOT2 = 0;
+    $IMP_TOT3 = 0;
+    $IMP_TOT5 = 0;
+    $IMP_TOT6 = 0;
+    $IMP_TOT7 = 0;
+    $IMP_TOT8 = 0;
+    //$DES_FIN = $formularioData['descuentoFin'] || 0;
+    $DES_FIN = 0;
+    $CONDICION = $formularioData['condicion'] || "";
+    $RFC = $formularioData['rfc'];
+    $FECHA_ELAB = $formularioData['diaAlta'];
+    $TIP_DOC = $formularioData['factura'];
+    $NUM_ALMA = $formularioData['almacen'];
+    $FORMAENVIO = 'C';
+    $COM_TOT = $formularioData['comision'];
+    $CVE_OBS = $datosCliente['CVE_OBS'];
+    $CVE_BITA = $datosCliente['CVE_BITA'];
+    //$COM_TOT_PORC = $datosCliente['COM_TOT_PORC']; //VENDEDOR
+    $METODODEPAGO = $datosCliente['METODODEPAGO'] ?? "";
+    $NUMCTAPAGO = $datosCliente['NUMCTAPAGO'] ?? "";
+    $FORMADEPAGOSAT = $datosCliente['FORMADEPAGOSAT'] ?? "";
+    $USO_CFDI = $datosCliente['USO_CFDI'];
+    $REG_FISC = $datosCliente['REG_FISC'];
+    $ENLAZADO = 'O'; ////
+    $TIP_DOC_E = 'O'; ////
+    $DES_TOT_PORC = $formularioData['descuentoCliente'];; ////
+    $COM_TOT_PORC = 0; ////
+    $FECHAELAB = new DateTime("now", new DateTimeZone('America/Mexico_City'));
+    $CVE_CLPV = str_pad($claveCliente, 10, ' ', STR_PAD_LEFT);
+    $FECHA_CANCELA = "";
+    // Crear la consulta SQL para insertar los datos en la base de datos
+    $sql = "INSERT INTO $nombreTabla
+    (TIP_DOC, CVE_DOC, CVE_CLPV, STATUS, DAT_MOSTR,
+    CVE_VEND, CVE_PEDI, FECHA_DOC, FECHA_ENT, FECHA_VEN, CAN_TOT,
+    IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4, IMP_TOT5, IMP_TOT6, IMP_TOT7, IMP_TOT8,
+    DES_TOT, DES_FIN, COM_TOT, CONDICION, CVE_OBS, NUM_ALMA, ACT_CXC, ACT_COI, ENLAZADO,
+    TIP_DOC_E, NUM_MONED, TIPCAMB, NUM_PAGOS, FECHAELAB, PRIMERPAGO, RFC, CTLPOL, ESCFD, AUTORIZA,
+    SERIE, FOLIO, AUTOANIO, DAT_ENVIO, CONTADO, CVE_BITA, BLOQ, FORMAENVIO, DES_FIN_PORC, DES_TOT_PORC,
+    IMPORTE, COM_TOT_PORC, METODODEPAGO, NUMCTAPAGO,
+    VERSION_SINC, FORMADEPAGOSAT, USO_CFDI, TIP_TRASLADO, TIP_FAC, REG_FISC
+    ) 
+    VALUES 
+    ('P', ?, ?, ?, 0, 
+    ?, '', ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, 'S', 'N', ?,
+    ?, 1, 1, 1, ?, 0, ?, 0, 'N', 1,
+    '', ?, '', ?, 'N', ?, 'N', 'C', 0, ?,
+    ?, ?, ?, ?,
+    '', ?, ?, '', '', ?)";
+    // Preparar los parámetros para la consulta
+    $params = [
+        $CVE_DOC,
+        $CVE_CLPV,
+        $estatus,
+        $CVE_VEND,
+        $FECHA_DOC,
+        $FECHA_ENT,
+        $FECHA_DOC,
+        $SUBTOTAL,
+        $IMP_TOT1,
+        $IMP_TOT2,
+        $IMP_TOT3,
+        $IMP_TOT4,
+        $IMP_TOT5,
+        $IMP_TOT6,
+        $IMP_TOT7,
+        $IMP_TOT8,
+        $DES_TOT,
+        $DES_FIN,
+        $COM_TOT,
+        $CONDICION,
+        $CVE_OBS,
+        $NUM_ALMA,
+        $ENLAZADO,
+        $TIP_DOC_E,
+        $FECHAELAB,
+        $RFC,
+        $FOLIO,
+        $DAT_ENVIO,
+        $CVE_BITA,
+        $DES_TOT_PORC,
+        $IMPORTE,
+        $COM_TOT_PORC,
+        $METODODEPAGO,
+        $NUMCTAPAGO,
+        $FORMADEPAGOSAT,
+        $USO_CFDI,
+        $REG_FISC
+    ];
+    // Ejecutar la consulta
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar el pedido',
+            'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
+        ]));
+    }
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+}
 function guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
 {
     // Establecer la conexión con SQL Server con UTF-8
@@ -1698,6 +1875,131 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
 }
+function guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener el número de empresa
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    // Iniciar la transacción para las inserciones de las partidas
+    sqlsrv_begin_transaction($conn);
+    $NUM_PAR = 1;
+    // Iterar sobre las partidas recibidas
+    if (isset($partidasData) && is_array($partidasData)) {
+        foreach ($partidasData as $partida) {
+            // Extraer los datos de la partida
+            $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+            $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+            $CVE_ART = $partida['producto']; // Clave del producto
+            $CANT = $partida['cantidad']; // Cantidad
+            $PREC = $partida['precioUnitario']; // Precio
+            // Calcular los impuestos y totales
+            $IMPU1 = $partida['ieps']; // Impuesto 1
+            $IMPU3 = $partida['isr'];
+            //$IMPU1 = 0;
+            //$IMPU2 = $partida['impuesto2']; // Impuesto 2
+            $IMPU2 = 0;
+            $IMPU4 = $partida['iva']; // Impuesto 2
+            // Agregar los cálculos para los demás impuestos...
+            $PXS = 0;
+            $DESC1 = $partida['descuento'];
+            $DESC2 = 0;
+            $COMI = $partida['comision'];
+            $CVE_UNIDAD = $partida['CVE_UNIDAD'];
+            $CVE_PRODSERV = $partida['CVE_PRODSERV'];
+            $NUM_ALMA = $formularioData['almacen'];
+            $COSTO_PROM = $partida['COSTO_PROM'];
+            $UNI_VENTA = $partida['unidad'];
+            if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
+                $TIPO_PORD = 'S';
+            } else {
+                $TIPO_PORD = 'P';
+            }
+            // Calcular el total de la partida (precio * cantidad)
+            $TOT_PARTIDA = $PREC * $CANT;
+            $TOTIMP1 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU1 / 100);
+            $TOTIMP2 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU2 / 100);
+            $TOTIMP4 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU4 / 100);
+            // Agregar los cálculos para los demás TOTIMP...
+
+
+            // Consultar la descripción del producto (si es necesario)
+            //$DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
+
+            // Crear la consulta SQL para insertar los datos de la partida
+            $sql = "INSERT INTO $nombreTabla
+                (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA,
+                TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4,
+                DESC1, DESC2, DESC3, COMI, APAR,
+                ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, TIPO_PROD, CVE_OBS, REG_SERIE, E_LTPD, TIPO_ELEM, 
+                NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, UUID,
+                VERSION_SINC, ID_RELACION, PREC_NETO,
+                CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
+                IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4, 4, 4, 4,
+                ?, ?, 0, ?,
+                ?, ?, 0, 0, ?,
+                'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
+                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
+                0, '', '',
+                ?, ?, '', 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0)";
+            $params = [
+                $CVE_DOC,
+                $NUM_PAR,
+                $CVE_ART,
+                $CANT,
+                $PXS,
+                $PREC,
+                $COSTO_PROM,
+                $IMPU1,
+                $IMPU2,
+                $IMPU3,
+                $IMPU4,
+                $TOTIMP1,
+                $TOTIMP2,
+                $TOTIMP4,
+                $DESC1,
+                $DESC2,
+                $COMI,
+                $NUM_ALMA,
+                $UNI_VENTA,
+                $TIPO_PORD,
+                $TOT_PARTIDA,
+                $CVE_PRODSERV,
+                $CVE_UNIDAD
+            ];
+            // Ejecutar la consulta
+            $stmt = sqlsrv_query($conn, $sql, $params);
+            //var_dump($stmt);
+            if ($stmt === false) {
+                //var_dump(sqlsrv_errors()); // Muestra los errores específicos
+                sqlsrv_rollback($conn);
+                die(json_encode(['success' => false, 'message' => 'Error al insertar la partida', 'errors' => sqlsrv_errors()]));
+            }
+            $NUM_PAR++;
+        }
+    } else {
+        die(json_encode(['success' => false, 'message' => 'Error: partidasData no es un array válido']));
+    }
+    //echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
 function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae, $conn)
 {
     // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
@@ -1750,6 +2052,52 @@ function actualizarFolio($conexionData, $claveSae, $conn)
     } else {
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
+}
+function actualizarFolioE($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // SQL para incrementar el valor de ULT_DOC en 1 donde TIP_DOC es 'P'
+    $sql = "UPDATE $nombreTabla
+            SET [ULT_DOC] = [ULT_DOC] + 1
+            WHERE [TIP_DOC] = 'P'";
+
+    // Ejecutar la consulta SQL
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        // Si la consulta falla, liberar la conexión y retornar el error
+        sqlsrv_close($conn);
+        die(json_encode(['success' => false, 'message' => 'Error al actualizar el folio', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Verificar cuántas filas se han afectado
+    $rowsAffected = sqlsrv_rows_affected($stmt);
+
+    // Liberar el recurso solo si la consulta fue exitosa
+    sqlsrv_free_stmt($stmt);
+
+    // Retornar el resultado
+    if ($rowsAffected > 0) {
+        //echo json_encode(['success' => true, 'message' => 'Folio actualizado correctamente']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
+    }
+    sqlsrv_close($conn);
 }
 function actualizarFolioF($conexionData, $claveSae)
 {
@@ -1831,6 +2179,52 @@ function actualizarInventario($conexionData, $partidasData, $conn)
         }
     }
     sqlsrv_free_stmt($stmt);
+}
+function actualizarInventarioE($conexionData, $partidasData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    foreach ($partidasData as $partida) {
+        $CVE_ART = $partida['producto'];
+        $cantidad = $partida['cantidad'];
+        //$cantidad = "uno";
+        // SQL para actualizar los campos EXIST y PEND_SURT
+        $sql = "UPDATE $nombreTabla
+            SET    
+                [APART] = [APART] + ?   
+            WHERE [CVE_ART] = '$CVE_ART'";
+        // Preparar la consulta
+        $params = array($cantidad, $cantidad);
+
+        // Ejecutar la consulta SQL
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al actualizar el inventario', 'errors' => sqlsrv_errors()]));
+        }
+        // Verificar cuántas filas se han afectado
+        $rowsAffected = sqlsrv_rows_affected($stmt);
+        // Retornar el resultado
+        if ($rowsAffected > 0) {
+            // echo json_encode(['success' => true, 'message' => 'Inventario actualizado correctamente']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No se encontró el producto para actualizar']);
+        }
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
 }
 function obtenerFolioSiguiente($conexionData, $claveSae)
 {
@@ -2029,9 +2423,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     //$numero = '+527775681612';
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -5471,9 +5865,6 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']); // Obtener el string completo de correos
 
     $clienteNombre = trim($clienteData['NOMBRE']);
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
-
     $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
@@ -5481,7 +5872,8 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     $numeroWhatsApp = '+527772127123';*/ // Interzenda
     /*$emailPred = $_SESSION['usuario']['correo'];
     $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
-
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     if ($emailPred === "") {
         $correoBandera = 1;
     } else {
@@ -6428,9 +6820,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     //$numero = '+527775681612';
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -7462,12 +7854,12 @@ switch ($funcion) {
                         if ($anticipo['success']) {
                             //Funcion para eliminar anticipo
                             $estatus = 'E';
-                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
+                            guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
 
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            actualizarFolio($conexionData, $claveSae); //ROLLBACK
-                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
-                            actualizarInventario($conexionData, $partidasData); //ROLLBACK
+                            actualizarFolioE($conexionData, $claveSae); //ROLLBACK
+                            guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
+                            actualizarInventarioE($conexionData, $partidasData); //ROLLBACK
                             eliminarCxc($conexionData, $anticipo, $claveSae); //ROLLBACK
                             comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey); //ROLLBACK
                             remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa); //ROLLBACK
@@ -7486,11 +7878,11 @@ switch ($funcion) {
                         } elseif ($anticipo['sinFondo']) {
                             //No tiene fondos
                             $estatus = 'C';
-                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
+                            guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            actualizarFolio($conexionData, $claveSae); //ROLLBACK
-                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
-                            actualizarInventario($conexionData, $partidasData); //ROLLBACK
+                            actualizarFolioE($conexionData, $claveSae); //ROLLBACK
+                            guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
+                            actualizarInventarioE($conexionData, $partidasData); //ROLLBACK
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                             validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                             guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
