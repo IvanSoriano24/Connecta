@@ -7140,6 +7140,12 @@ function actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProject
         //echo json_encode(['success' => true, 'message' => 'Datos de Envio Guardados']);
     }
 }
+
+function descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID)
+{
+    $rutaPDF = descargarPedidoPdf($conexionData, $claveSae, $noEmpresa, $pedidoID);
+    return $rutaPDF;
+}
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -7961,6 +7967,37 @@ switch ($funcion) {
     case 25:
         $estadoSeleccionado = $_POST['estadoSeleccionado'];
         obtenerEstadoPorClave($estadoSeleccionado);
+        break;
+    /*case 26:
+        $pedidoID = $_POST['pedidoID'];
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conexionData = $conexionResult['data'];
+        descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
+        break;*/
+    case 26:
+        // Obtenemos el pedidoID por GET
+        $pedidoID = isset($_GET['pedidoID']) ? $_GET['pedidoID'] : null;
+        if (!$pedidoID) {
+            header("HTTP/1.1 400 Bad Request");
+            echo "Falta el parámetro pedidoID";
+            exit;
+        }
+
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae  = $_SESSION['empresa']['claveSae'];
+
+        // Obtenemos la conexión
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            header("HTTP/1.1 500 Internal Server Error");
+            echo "Error al conectar a Firebase";
+            exit;
+        }
+        $conexionData = $conexionResult['data'];
+        // Generamos (o localizamos) el PDF en disco
+        generarPDFPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

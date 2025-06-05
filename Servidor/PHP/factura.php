@@ -204,10 +204,14 @@ function insertarBita($conexionData, $remision, $claveSae, $folioFactura)
 
     $cveClie = $remisionn['CVE_CLPV'];
     $totalPedido = $remisionn['CAN_TOT'] + $remisionn['IMP_TOT1'] + $remisionn['IMP_TOT2'] + $remisionn['IMP_TOT3'] + $remisionn['IMP_TOT4'];
+    
+    /*$folioFactura = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $folioFactura = urldecode($folioFactura) . urldecode($SERIE);
+    $folioFactura = str_pad($folioFactura, 20, ' ', STR_PAD_LEFT);*/
 
     // ✅ 4. Formatear las observaciones
     $observaciones = "No.[$folioFactura] $" . number_format($totalPedido, 2);
-
+    $actividad = str_pad(2, 5, ' ', STR_PAD_LEFT);
     // ✅ 5. Insertar en `BITA01`
     $sqlInsert = "INSERT INTO $tablaBita 
         (CVE_BITA, CVE_CAMPANIA, STATUS, CVE_CLIE, CVE_USUARIO, NOM_USUARIO, OBSERVACIONES, FECHAHORA, CVE_ACTIVIDAD) 
@@ -222,7 +226,7 @@ function insertarBita($conexionData, $remision, $claveSae, $folioFactura)
         'ADMINISTRADOR',
         $observaciones,
         date('Y-m-d H:i:s'),
-        2
+        $actividad
     ];
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
@@ -246,7 +250,7 @@ function insertarBita($conexionData, $remision, $claveSae, $folioFactura)
         'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
     ]);*/
 }
-function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $claveSae, $DAT_MOSTR)
+function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveSae, $DAT_MOSTR, $folioFactura, $SERIE, $DAT_ENVIO)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -270,8 +274,8 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $clav
     $remision = str_pad($remision, 20, ' ', STR_PAD_LEFT);
 
 
-    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    /*$cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
+    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);*/
 
     $tablaFacturas = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaRemisiones = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -320,7 +324,7 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $clav
 
     $paramsInsert = [
         $tipDoc,
-        $cveDoc,
+        $folioUnido,
         $pedido['CVE_CLPV'],
         $status,
         $DAT_MOSTR,
@@ -351,10 +355,10 @@ function insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $clav
         $pedido['CTLPOL'],
         $pedido['ESCFD'],
         $pedido['AUTORIZA'],
-        $pedido['SERIE'],
+        $SERIE,
         $folioFactura,
         $pedido['AUTOANIO'],
-        $pedido['DAT_ENVIO'],
+        $DAT_ENVIO,
         $pedido['CONTADO'],
         $CVE_BITA,
         $pedido['BLOQ'],
@@ -480,7 +484,7 @@ function obtenerFolio($conexionData, $claveSae)
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta SQL para obtener el siguiente folio
-    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
+    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
@@ -488,13 +492,19 @@ function obtenerFolio($conexionData, $claveSae)
     // Obtener el siguiente folio
     $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     $folioSiguiente = $row ? $row['FolioSiguiente'] : null;
+    $SERIE = $row ? $row['SERIE'] : null;
 
     actualizarFolio($conexionData, $claveSae);
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
     // Retornar el folio siguiente
-    return $folioSiguiente;
+    
+    //return $folioSiguiente;
+    return [
+        'folioSiguiente' => $folioSiguiente,
+        'serie' => $SERIE
+    ];
 }
 function actualizarFolio($conexionData, $claveSae)
 {
@@ -517,7 +527,7 @@ function actualizarFolio($conexionData, $claveSae)
     // SQL para incrementar el valor de ULT_DOC en 1 donde TIP_DOC es 'P'
     $sql = "UPDATE $nombreTabla
             SET [ULT_DOC] = [ULT_DOC] + 1
-            WHERE TIP_DOC = 'F' AND SERIE = 'STAND.'";
+            WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
 
     // Ejecutar la consulta SQL
     $stmt = sqlsrv_query($conn, $sql);
@@ -937,18 +947,19 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
 
     //Datos de la remision
     $dataRemision = datosRemision($conexionData, $claveSae, $remision);
-
+    /*$folioFactura = urldecode($folioFactura) . urldecode($SERIE);
     $CVE_DOC = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);*/
 
     // Preparar los datos para el INSERT
     $cve_clie   = $dataRemision['CVE_CLPV']; // Clave del cliente
     $CVE_CLIE = formatearClaveCliente($cve_clie);
-    $refer      = $CVE_DOC; // Puede generarse o venir del formulario
+    $refer      = $folioFactura; // Puede generarse o venir del formulario
     $num_cpto   = '1';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
-    $no_factura = $CVE_DOC; // Número de factura o pedido
-    $docto = $CVE_DOC;   // Puede ser un código de documento, si aplica
+    $no_factura = $folioFactura; // Número de factura o pedido
+    $docto = $folioFactura;   // Puede ser un código de documento, si aplica
     //$IMPORTE = 0;
     $STRCVEVEND = $dataRemision['CVE_VEND'];
 
@@ -1063,8 +1074,9 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura)
     }
     $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $CVE_DOC = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    /*$CVE_DOC = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $folioFactura = urldecode($folioFactura) . urldecode($SERIE);
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);*/
 
     // Preparar los datos para el INSERT
     $cve_clie   = $datosCxC['CVE_CLIE']; // Clave del cliente
@@ -1829,7 +1841,7 @@ function actualizarControl2($conexionData, $claveSae)
     //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[TBLCONTROL" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $sql = "UPDATE $nombreTabla SET ULT_CVE = ULT_CVE + 1 WHERE ID_TABLA = 32";
+    $sql = "UPDATE $nombreTabla SET ULT_CVE = ULT_CVE + 1 WHERE ID_TABLA = 58";
 
     $stmt = sqlsrv_query($conn, $sql);
 
@@ -1870,7 +1882,7 @@ function actualizarControl3($conexionData, $claveSae)
     //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[TBLCONTROL" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $sql = "UPDATE $nombreTabla SET ULT_CVE = ULT_CVE + 1 WHERE ID_TABLA = 58";
+    $sql = "UPDATE $nombreTabla SET ULT_CVE = ULT_CVE + 1 WHERE ID_TABLA = 70";
 
     $stmt = sqlsrv_query($conn, $sql);
 
@@ -2056,8 +2068,7 @@ function actualizarInclie1($conexionData, $claveSae, $claveCliente)
         'message' => 'CLIE actualizado correctamente'
     ]);*/
 }
-function insertatInfoClie($conexionData, $claveSae, $claveCliente)
-{
+function insertatInfoClie($conexionData, $claveSae, $claveCliente){
     $serverName   = $conexionData['host'];
     $connectionInfo = [
         "Database"  => $conexionData['nombreBase'],
@@ -2389,14 +2400,212 @@ function validarLotesFactura($conexionData, $claveSae, $remision)
 
     return $todos;
 }
+/*function actualizarControl2($conexionData, $claveSae)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+
+    //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[TBLCONTROL" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "UPDATE $nombreTabla SET ULT_CVE = ULT_CVE + 1 WHERE ID_TABLA = 70";
+
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar TBLCONTROL01',
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+    // Cerrar conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
+}*/
+function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
+{
+    // Establecer la conexión con SQL Server con UTF-8
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener el número de empresa
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $cve_doc = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+
+    $sqlPedido = "SELECT DAT_ENVIO FROM $nombreTabla2 WHERE CVE_DOC = ?";
+    $paramsPedido = [$cve_doc];
+    $stmPedido = qlsrv_query($conn, $sqlPedido, $paramsPedido);
+    $row = sqlsrv_fetch_array($stmPedido, SQLSRV_FETCH_ASSOC);
+    $DAT_ENVIO = $row ? $row['DAT_ENVIO'] : null;
+
+
+    $sqlSelect = "SELECT * FROM $nombreTabla WHERE CVE_INFO = ?";
+    $paramsSelect = [$DAT_ENVIO];
+    $stmSelect = qlsrv_query($conn, $sqlSelect, $paramsSelect);
+    // Obtener los datos
+    $envioData = sqlsrv_fetch_array($stmSelect, SQLSRV_FETCH_ASSOC);
+
+
+    // Extraer los datos del formulario
+    $CVE_INFO = $DAT_ENVIO;
+    $CVE_INFO = $CVE_INFO + 1;
+    $CVE_CONS = "";
+    $NOMBRE = $envioData['NOMBRE'];
+    $CALLE = $envioData['CALLE'];
+    $NUMINT = "";
+    $NUMEXT = "S/N";
+    $CRUZAMIENTOS = "";
+    $CRUZAMIENTOS2 = "";
+    $POB = "";
+    $CURP = "";
+    $REFERDIR = "";
+    $CVE_ZONA = "";
+    $CVE_OBS = "";
+    $STRNOGUIA = "";
+    $STRMODOENV = "";
+    $FECHA_ENV = $envioData['FECHA_ENV'];
+    $NOMBRE_RECEP = "";
+    $NO_RECEP = "";
+    $FECHA_RECEP = "";
+    //$COLONIA = "";
+    $COLONIA = $envioData['COLONIA'];
+    $CODIGO = $envioData['CODIGO'];
+    $ESTADO = $envioData['ESTADO'];
+    $PAIS = "MEXICO";
+    $MUNICIPIO = $envioData['MUNICIPIO'];
+    $PAQUETERIA = "";
+    $CVE_PED_TIEND = "";
+    $F_ENTREGA = "";
+    $R_FACTURA = "";
+    $R_EVIDENCIA = "";
+    $ID_GUIA = "";
+    $FAC_ENV = "";
+    $GUIA_ENV = "";
+    $REG_FISC = "";
+    $CVE_PAIS_SAT = "";
+    $FEEDDOCUMENT_GUIA = "";
+    // Crear la consulta SQL para insertar los datos en la base de datos
+    $sql = "INSERT INTO $nombreTabla
+    (CVE_INFO, CVE_CONS, NOMBRE, CALLE, NUMINT, NUMEXT,
+    CRUZAMIENTOS, CRUZAMIENTOS2, POB, CURP, REFERDIR, CVE_ZONA, CVE_OBS,
+    STRNOGUIA, STRMODOENV, FECHA_ENV, NOMBRE_RECEP, NO_RECEP,
+    FECHA_RECEP, COLONIA, CODIGO, ESTADO, PAIS, MUNICIPIO,
+    PAQUETERIA, CVE_PED_TIEND, F_ENTREGA, R_FACTURA, R_EVIDENCIA,
+    ID_GUIA, FAC_ENV, GUIA_ENV, REG_FISC,
+    CVE_PAIS_SAT, FEEDDOCUMENT_GUIA)
+    VALUES 
+    (?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?, ?,
+    ?, ?)";
+    // Preparar los parámetros para la consulta
+    $params = [
+        $CVE_INFO,
+        $CVE_CONS,
+        $NOMBRE,
+        $CALLE,
+        $NUMINT,
+        $NUMEXT,
+        $CRUZAMIENTOS,
+        $CRUZAMIENTOS2,
+        $POB,
+        $CURP,
+        $REFERDIR,
+        $CVE_ZONA,
+        $CVE_OBS,
+        $STRNOGUIA,
+        $STRMODOENV,
+        $FECHA_ENV,
+        $NOMBRE_RECEP,
+        $NO_RECEP,
+        $FECHA_RECEP,
+        $COLONIA,
+        $CODIGO,
+        $ESTADO,
+        $PAIS,
+        $MUNICIPIO,
+        $PAQUETERIA,
+        $CVE_PED_TIEND,
+        $F_ENTREGA,
+        $R_FACTURA,
+        $R_EVIDENCIA,
+        $ID_GUIA,
+        $FAC_ENV,
+        $GUIA_ENV,
+        $REG_FISC,
+        $CVE_PAIS_SAT,
+        $FEEDDOCUMENT_GUIA
+    ];
+    // Ejecutar la consulta
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar los datos de envio',
+            'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
+        ]));
+    }
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_free_stmt($stmPedido);
+    sqlsrv_free_stmt($stmSelect);
+    sqlsrv_close($conn);
+    return $CVE_INFO;
+}
 /****************************************** Funcion Principal ******************************************/
 function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito)
 {
     global $firebaseProjectId, $firebaseApiKey;
+/* 
+'folioSiguiente' => $folioSiguiente,
+'serie' => $SERIE
+*/
+    $datFactura = obtenerFolio($conexionData, $claveSae);
+    $folioFactura = $datFactura['folioSiguiente'];
+    $SERIE = $datFactura['serie'];
+    $folioFormateado = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $folioUnido = urldecode($SERIE) . urldecode($folioFormateado);
+    $folioUnido = str_pad($folioUnido, 20, ' ', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
 
-    $folioFactura = obtenerFolio($conexionData, $claveSae);
     $remision = obtenerRemision($conexionData, $pedidoId, $claveSae);
-    $CVE_BITA = insertarBita($conexionData, $remision, $claveSae, $folioFactura);
+    $CVE_BITA = insertarBita($conexionData, $remision, $claveSae, $folioUnido);
 
     actualizarAfac($conexionData, $remision, $claveSae);
     //insertarAlerta_Usuario($conexionData, $claveSae); //Verifcar logica
@@ -2405,27 +2614,30 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     actualizarAlerta1($conexionData, $claveSae);
     actualizarAlerta2($conexionData, $claveSae);
 
-    $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioFactura); //No manipula saldo
+    $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioUnido); //No manipula saldo
     //sumarSaldo($conexionData, $claveSae, $datosCxC);
     //Pagar solo si elimino anticipo (clientes sin Credito)
     if (!$credito) {
-        pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura);
+        pagarCxc($conexionData, $claveSae, $datosCxC, $folioUnido);
         //restarSaldo($conexionData, $claveSae, $datosCxC);
     }
 
-    insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae);
+    insertarDoctoSig($conexionData, $remision, $folioUnido, $claveSae);
 
-    $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $claveCliente); //Error datos: CVE_INFO, POB, CALLE
+    $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $claveCliente);
+    actualizarControl2($conexionData, $claveSae); //ROLLBACK
+    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae);
+    actualizarControl3($conexionData, $claveSae);
 
-    insertarFactf($conexionData, $remision, $folioFactura, $CVE_BITA, $claveSae, $DAT_MOSTR);
-    insertarFactf_Clib($conexionData, $folioFactura, $claveSae);
+    insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveSae, $DAT_MOSTR, $folioFactura, $SERIE, $DAT_ENVIO);
+    insertarFactf_Clib($conexionData, $folioUnido, $claveSae);
 
-    actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pedidoId);
+    actualizarFactr($conexionData, $remision, $folioUnido, $claveSae, $pedidoId);
     actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId);
     actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId);
 
-    insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae); //Volver a realizarlo con datos nuevos
-    insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveSae);
+    insertarPar_Factr($conexionData, $remision, $folioUnido, $claveSae); //Volver a realizarlo con datos nuevos
+    insertarPar_Factf_Clib($conexionData, $remision, $folioUnido, $claveSae);
 
     $result = validarLotesFactura($conexionData, $claveSae, $remision);
 
@@ -2439,15 +2651,13 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     actualizarPar_Factf1($conexionData, $claveSae, $remision, $result);
 
     actualizarControl1($conexionData, $claveSae);
-    actualizarControl2($conexionData, $claveSae);
-    actualizarControl3($conexionData, $claveSae);
     actualizarControl4($conexionData, $claveSae);
     actualizarInclie1($conexionData, $claveSae, $claveCliente); //Verificar la logica
     actualizarInclie2($conexionData, $claveSae, $claveCliente);
 
-    insertarCFDI($conexionData, $claveSae, $folioFactura);
+    insertarCFDI($conexionData, $claveSae, $folioUnido);
 
-    return $folioFactura;
+    return $folioUnido;
 }
 function formatearClaveVendedor($vendedor)
 {
@@ -3118,11 +3328,11 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        $folioFactura = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito);
+        $folioUnido = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito);
         header('Content-Type: application/json');
         //die( json_encode(['success' => true, 'folioFactura1' => $folioFactura]));
-        echo json_encode(['success' => true, 'folioFactura1' => $folioFactura]);
-        //return $folioFactura;
+        echo json_encode(['success' => true, 'folioFactura1' => $folioUnido]);
+        //return $folioUnido;
         break;
     case 2:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {

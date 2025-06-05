@@ -111,8 +111,7 @@ function agregarEventosBotones() {
       window.location.href = "altaPedido.php?pedidoID=" + pedidoID;*/
       const pedidoID = this.dataset.id; // Obtener el ID del pedido
       try {
-        console.log("Redirigiendo con pedidoID:", pedidoID);
-        window.location.href = "altaPedido.php?pedidoID=" + pedidoID;
+        descargarPdf(pedidoID);
       } catch (error) {
         console.error("Error al verificar el pedido:", error);
         Swal.fire({
@@ -125,7 +124,58 @@ function agregarEventosBotones() {
     });
   });
 }
-
+function descargarPdf(pedidoID) {
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "GET",
+    data: {
+      numFuncion: 26,
+      pedidoID: pedidoID
+    },
+    xhrFields: {
+      responseType: 'blob' // indicamos que esperamos un PDF (binary blob)
+    },
+    success: function(blob, status, xhr) {
+      // 1) Tratamos de extraer el nombre real del header
+      let disposition = xhr.getResponseHeader('Content-Disposition');
+      let filename = "Pedido_" + pedidoID + ".pdf"; // fallback
+      if (disposition && disposition.indexOf('filename=') !== -1) {
+        let match = disposition.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) {
+          //filename = match[1];
+          filename = "Pedido_" + pedidoID + ".pdf"; // fallback
+        }
+      }
+      // 2) Creamos un enlace temporal <a download="..."> con el blob
+      let urlBlob = window.URL.createObjectURL(blob);
+      let a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = urlBlob;
+      a.download = filename; 
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(urlBlob);
+      document.body.removeChild(a);
+      console.log(filename);
+      // 3) Mensaje de éxito
+      /*Swal.fire({
+        title: "Descargado",
+        text: "El pedido se ha descargado correctamente.",
+        icon: "success",
+        confirmButtonText: "Entendido"
+      });*/
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo descargar el pedido.",
+        icon: "error",
+        confirmButtonText: "Entendido"
+      });
+      console.error("Error en la descarga:", textStatus, errorThrown);
+    }
+  });
+}
 function eliminarPedido(pedidoID) {
   $.post(
     "../Servidor/PHP/ventas.php",
@@ -855,7 +905,6 @@ function actualizarTablaPartidas(pedidoID) {
     tablaProductos.appendChild(nuevaFila);
   });
 }
-
 function eliminarPartidaFormularioEditar(numPar, clavePedido) {
   Swal.fire({
     title: "¿Estás seguro?",

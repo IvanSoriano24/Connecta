@@ -14,11 +14,11 @@ class clsMail
     /*private $defaultUser = 'betovargas584@gmail.com'; // Correo por defecto
     private $defaultPass = 'tbkn bjyu segx vcgm'; // Contraseña por defecto*/
 
-    private $defaultUser = 'mdc2401042j9@gmail.com'; // Correo por defecto
-    private $defaultPass = 'byxj qfob tdvj vbbw'; // Contraseña por defecto
+    /*private $defaultUser = 'mdc2401042j9@gmail.com'; // Correo por defecto
+    private $defaultPass = 'byxj qfob tdvj vbbw'; // Contraseña por defecto*/
 
-    //private $defaultUser = 'servicioalcliente@grupointerzenda.com'; // Correo por defecto
-    //private $defaultPass = 'aB159263#1#'; // Contraseña por defecto
+    private $defaultUser = 'Servicioalcliente@grupointerzenda.com'; // Correo por defecto
+    private $defaultPass = 'aB159263#1#'; // Contraseña por defecto
 
     /*private $defaultUser = 'sonicjos.ys@gmail.com'; // Correo por defecto
     private $defaultPass = 'dnfb fyvb qpuk xqml'; // Contraseña por defecto*/
@@ -32,10 +32,10 @@ class clsMail
         $this->mail->isSMTP();
         $this->mail->SMTPAuth = true;
         $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Cifrado TLS
-        $this->mail->Host = 'smtp.gmail.com'; // Servidor SMTP de Gmail
-        //$this->mail->Host = 'mail.grupointerzenda'; 
+        //$this->mail->Host = 'smtp.gmail.com'; // Servidor SMTP de Gmail
+        $this->mail->Host = 'mail.grupointerzenda.com'; 
+        //$this->mail->Port = 587; // Puerto para TLS
         $this->mail->Port = 587; // Puerto para TLS
-        //$this->mail->Port = 995; // Puerto para TLS
         $this->mail->CharSet = 'UTF-8'; // Codificación
     }
 
@@ -110,7 +110,8 @@ class clsMail
         string $bodyHTML,
         string $correoRemitente = null,
         string $passwordRemitente = null,
-        string $rutaXml = null
+        string $rutaXml = null,
+        string $rutaError = null
     ) {
         try {
             if ($correoRemitente === "" || $passwordRemitente === "") {
@@ -129,10 +130,12 @@ class clsMail
             $this->mail->Subject = $asunto; // Asunto del correo
             $this->mail->Body = $bodyHTML; // Cuerpo del correo
             $this->mail->isHTML(true); // Indicar que el correo tiene contenido HTML
-
             // *Adjuntar el archivo si existe*
             if (!empty($rutaXml) && file_exists($rutaXml)) {
                 $this->mail->addAttachment($rutaXml);
+            }
+            if (!empty($rutaError) && file_exists($rutaError)) {
+                $this->mail->addAttachment($rutaError);
             }
 
             // Enviar el correo y manejar errores

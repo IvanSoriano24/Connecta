@@ -253,13 +253,13 @@ function decryptValue(string $b64Cipher, string $b64Iv): string
     $cipher = base64_decode($b64Cipher);
     return openssl_decrypt($cipher, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
 }
-function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
+function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
 {
-    if (empty($factura)) {
+    if (empty($facturaID)) {
         header('Content-Type: application/json');
         echo json_encode([
             'success'  => false,
-            'Problema' => "Factura no Valida $factura"
+            'Problema' => "Factura no Valida $facturaID"
         ]);
         return;
     }
@@ -271,8 +271,8 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
         die();
     }
     $conexionData = $conexionResult['data'];
-    $facturaID = str_pad($factura, 10, '0', STR_PAD_LEFT);
-    $facturaID = str_pad($facturaID, 20, ' ', STR_PAD_LEFT);
+    /*$facturaID = str_pad($factura, 10, '0', STR_PAD_LEFT);
+    $facturaID = str_pad($facturaID, 20, ' ', STR_PAD_LEFT);*/
 
     $pedidoData = datosPedido($facturaID, $claveSae, $conexionData);
     $productosData = datosPartida($facturaID, $claveSae, $conexionData);
@@ -283,10 +283,10 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
     // Ruta del XML Timbrado
-    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($factura) .  '.xml';
+    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . trim(urlencode($facturaID)) .  '.xml';
 
     // Ruta del XML de Debug
-    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($factura) .  '.xml';
+    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . trim(urlencode($facturaID)) .  '.xml';
 
     
     // Credenciales de Timbrado
@@ -295,17 +295,17 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     $datos['PAC']['produccion'] = 'SI';
     
     // Credenciales de Timbrado
-    /*$datos['PAC']['usuario'] = 'DEMO700101XXX';
+    $datos['PAC']['usuario'] = 'DEMO700101XXX';
     $datos['PAC']['pass'] = 'DEMO700101XXX';
-    $datos['PAC']['produccion'] = 'NO';*/
+    $datos['PAC']['produccion'] = 'NO';
 
     // Rutas y clave de los CSD
     /*$datos['conf']['cer'] = '../../certificados/escuela/EKU9003173C9.cer';
     $datos['conf']['key'] = '../../certificados/escuela/EKU9003173C9.key';
     $datos['conf']['pass'] = '12345678a';*/
-    $datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
+    /*$datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
     $datos['conf']['key'] = '../../certificados/2/CSD_unidad_LUHM920412GU2_20220708_132000.key';
-    $datos['conf']['pass'] = 'CUSAr279';
+    $datos['conf']['pass'] = 'CUSAr279';*/
     $locacionArchivos = __DIR__ . "/../../certificados/$noEmpresa/";
 
     // glob devuelve un array, así que tomamos sólo el primer elemento
@@ -326,7 +326,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     }
     //$datos['factura']['fecha_expedicion'] = $pedidoData['FECHA_DOC']->format('Y-m-d H:i:s');
     $datos['factura']['fecha_expedicion'] = "AUTO";
-    $datos['factura']['folio'] = $factura;
+    $datos['factura']['folio'] = trim($facturaID);
     $datos['factura']['LugarExpedicion'] = $empresaData['codigoPostal'];
     $datos['factura']['metodo_pago'] = $pedidoData['METODODEPAGO'];
     if ($pedidoData['METODODEPAGO'] === 'PPD') {
@@ -359,14 +359,14 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $factura)
     }*/
 
     // Datos del Emisor
-    /*$datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
+    $datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = $empresaData['razonSocial'];  // EMPRESA DE PRUEBA
     $regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
         $datos['emisor']['RegimenFiscal'] = $matches[1];
     } else {
         $datos['emisor']['RegimenFiscal'] = $regimenStr;
-    }*/
+    }
 
     // Datos del Receptor $clienteData['']
     $datos['receptor']['rfc'] = $clienteData['RFC'];

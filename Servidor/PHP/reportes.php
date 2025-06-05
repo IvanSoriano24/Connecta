@@ -1350,8 +1350,7 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
 
     return $rutaArchivo;
 }
-function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noEmpresa, $vendedor, $folio)
-{
+function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noEmpresa, $vendedor, $folio){
     $vendedor = trim($vendedor);
     // Obtener los datos de la empresa
     $datosEmpresaPedidoAutoriza = obtenerDatosEmpresaFire($noEmpresa);
@@ -1455,8 +1454,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
 
     return $rutaArchivo;
 }
-function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor)
-{
+function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor){
 
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
@@ -1773,4 +1771,88 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
 
     return $rutaArchivo;
     /********************************************************************************************************************/
+}
+function generarPDFPedido($conexionData, $claveSae, $noEmpresa, $folio) {
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT);
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    // a) Obtener datos del pedido, cliente, empresa, partidas, etc.
+    $datosEmpresa    = obtenerDatosEmpresaFire($noEmpresa);
+    $datosPedido     = obtenerDatosPedido($CVE_DOC, $conexionData, $claveSae);
+    $datosPartidas   = obtenerDatosPartidasPedido($CVE_DOC, $conexionData, $claveSae);
+    $clienteId       = str_pad(trim($datosPedido['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
+    $datosCliente    = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
+    // b) Creamos el PDF con tu clase:
+    $pdf = new PDFPedidoAutoriza(
+        $datosEmpresa,
+        $datosCliente,
+        obtenerDatosVendedor(str_pad(trim($datosPedido['CVE_VEND']), 5, ' ', STR_PAD_LEFT)),
+        $datosPedido,
+        // aquí podrías pasar otros datos, ej. primer correo:
+        explode(';', $datosCliente['email'])[0]
+    );
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', '', 9);
+    $pdf->SetTextColor(39, 39, 51);
+
+    // c) Iteramos partidas y escribimos celdas:
+    $subtotal       = 0;
+    $totalImpuestos = 0;
+    $totalDescuentos= 0;
+    foreach ($datosPartidas as $partida) {
+        $productosData   = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
+        $precioUnitario  = $partida['PREC'];
+        $cantidad        = $partida['CANT'];
+        $desc1           = $partida['DESC1'] ?? 0;
+        $descuentoPartida= $precioUnitario * $cantidad * ($desc1 / 100);
+        $impuestos       = ($partida['IMPU1'] + $partida['IMPU2'] + $partida['IMPU3'] + $partida['IMPU4']
+                            + $partida['IMPU5'] + $partida['IMPU6'] + $partida['IMPU7'] + $partida['IMPU8']) ?? 0;
+        $subtotalPartida = $precioUnitario * $cantidad;
+        $subtotal       += $subtotalPartida;
+        $totalDescuentos+= $descuentoPartida;
+        $impuestoPartida = ($subtotalPartida - $descuentoPartida) * ($impuestos / 100);
+        $totalImpuestos += $impuestoPartida;
+        $pdf->SetTextColor(39, 39, 51);
+        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 7);
+        $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
+        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell(18, 7, "$" . number_format($impuestoPartida, 2), 0, 0, 'R');
+        $pdf->Cell(18, 7, "$" . number_format($precioUnitario, 2), 0, 0, 'R');
+        $pdf->Cell(22, 7, "$" . number_format($subtotalPartida, 2), 0, 1, 'R');
+    }
+    // d) Totales:
+    $subtotalConDescuento = $subtotal - $totalDescuentos;
+    $total                = $subtotalConDescuento + $totalImpuestos;
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(155, 7, 'Importe:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotal, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'Descuento:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'Subtotal:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'IVA:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
+    
+    //Limpiar cualquier buffer que quedara (importante para que no se 'pegue' nada al PDF)
+    if (ob_get_length()) {
+        ob_end_clean();
+    }
+
+    //Construir un nombre *estrictamente* libre de espacios o "_" al final
+    $folioLimpio = trim($folio);                   // quita espacios 
+    $folioLimpio = trim($folioLimpio, " _");       // quita guiones bajos y espacios al final/inicio
+    $nombreArchivo = "Pedido_" . $folioLimpio . ".pdf";
+
+    //Mandamos headers limpios: Content-Type y Content-Disposition
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
+
+    //Volcar el PDF directamente al navegador:
+    $pdf->Output("I");
+    exit;
 }
