@@ -1829,16 +1829,10 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     return $rutaArchivo;
     /********************************************************************************************************************/
 }
-function mostrarLineasReporte($conexionData, $filtroFecha, $filtroVendedor, $filtroCliente)
+function mostrarLineasReporte($conexionData, $filtroFecha, $filtroCliente)
 {
     try {
         $claveSae = $_SESSION['empresa']['claveSae'];
-        $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
-        $claveVendedor = $_SESSION['empresa']['claveUsuario'] ?? null;
-
-        if ($claveVendedor !== null) {
-            $claveVendedor = formatearClaveVendedor(mb_convert_encoding(trim($claveVendedor), 'UTF-8'));
-        }
 
         $serverName = $conexionData['host'];
         $connectionInfo = [
@@ -1860,21 +1854,11 @@ function mostrarLineasReporte($conexionData, $filtroFecha, $filtroVendedor, $fil
         $tablaLineas = "[{$conexionData['nombreBase']}].[dbo].[CLIN$prefijo]";
 
         $params = [];
-        $where = "WHERE f.STATUS = 'E'";
+        $where = "WHERE f.STATUS != 'C'";
 
         if (!empty($filtroCliente)) {
-            $where .= " AND c.NOMBRE LIKE ?";
+            $where .= " AND c.CLAVE LIKE ?";
             $params[] = '%' . $filtroCliente . '%';
-        }
-
-        if ($tipoUsuario === 'ADMINISTRADOR') {
-            if (!empty($filtroVendedor)) {
-                $where .= " AND f.CVE_VEND = ?";
-                $params[] = $filtroVendedor;
-            }
-        } else {
-            $where .= " AND f.CVE_VEND = ?";
-            $params[] = $claveVendedor;
         }
 
         if (!empty($filtroFecha)) {
@@ -1954,18 +1938,12 @@ function mostrarLineasReporte($conexionData, $filtroFecha, $filtroVendedor, $fil
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function mostrarProductosLineas($conexionData, $filtroFecha, $filtroVendedor, $filtroCliente, $pagina, $porPagina, $lineaSeleccionada)
+function mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $pagina, $porPagina, $lineaSeleccionada)
 {
     $offset = ($pagina - 1) * $porPagina;
 
     try {
         $claveSae = $_SESSION['empresa']['claveSae'];
-        $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
-        $claveVendedor = $_SESSION['empresa']['claveUsuario'] ?? null;
-
-        if ($claveVendedor != null) {
-            $claveVendedor = formatearClaveVendedor(mb_convert_encoding(trim($claveVendedor), 'UTF-8'));
-        }
 
         $serverName = $conexionData['host'];
         $connectionInfo = [
@@ -1987,21 +1965,11 @@ function mostrarProductosLineas($conexionData, $filtroFecha, $filtroVendedor, $f
         $tablaLineas = "[{$conexionData['nombreBase']}].[dbo].[CLIN$prefijo]";
 
         $params = [$lineaSeleccionada];
-        $where = "WHERE f.STATUS = 'E'";
+        $where = "WHERE f.STATUS != 'C'";
 
         if (!empty($filtroCliente)) {
-            $where .= " AND c.NOMBRE LIKE ?";
+            $where .= " AND c.CLAVE LIKE ?";
             $params[] = '%' . $filtroCliente . '%';
-        }
-
-        if ($tipoUsuario === 'ADMINISTRADOR') {
-            if (!empty($filtroVendedor)) {
-                $where .= " AND f.CVE_VEND = ?";
-                $params[] = $filtroVendedor;
-            }
-        } else {
-            $where .= " AND f.CVE_VEND = ?";
-            $params[] = $claveVendedor;
         }
 
         if (!empty($filtroFecha)) {
@@ -2023,11 +1991,8 @@ function mostrarProductosLineas($conexionData, $filtroFecha, $filtroVendedor, $f
             JOIN $tablaPartidas p ON p.CVE_ART = i.CVE_ART
             JOIN $tablaFacturas f ON f.CVE_DOC = p.CVE_DOC
             JOIN $tablaClientes c ON c.CLAVE = f.CVE_CLPV
-            WHERE f.STATUS = 'E' AND i.LIN_PROD = ?
-            " . (!empty($filtroCliente) ? " AND c.NOMBRE LIKE ?" : "") . "
-            " . ($tipoUsuario === 'ADMINISTRADOR'
-                        ? ($filtroVendedor !== '' ? " AND f.CVE_VEND = ?" : "")
-                        : " AND f.CVE_VEND = ?") . "
+            WHERE f.STATUS != 'C' AND i.LIN_PROD = ?
+            " . (!empty($filtroCliente) ? " AND c.CLAVE LIKE ?" : "") . "
             " . (!empty($filtroFecha) ? " AND YEAR(f.FECHA_DOC) = ?" : "") . "
             GROUP BY i.CVE_ART, i.DESCR, i.LIN_PROD, l.DESC_LIN, MONTH(f.FECHA_DOC)
         ),
@@ -2081,11 +2046,6 @@ function mostrarProductosLineas($conexionData, $filtroFecha, $filtroVendedor, $f
         // Parámetros de la consulta
         $params = [$lineaSeleccionada];
         if (!empty($filtroCliente)) $params[] = '%' . $filtroCliente . '%';
-        if ($tipoUsuario === 'ADMINISTRADOR') {
-            if ($filtroVendedor !== '') $params[] = $filtroVendedor;
-        } else {
-            $params[] = $claveVendedor;
-        }
         if (!empty($filtroFecha)) $params[] = $filtroFecha;
         // Otra vez para BaseProductos
         $params[] = $lineaSeleccionada;
@@ -2138,11 +2098,8 @@ function mostrarProductosLineas($conexionData, $filtroFecha, $filtroVendedor, $f
             JOIN $tablaPartidas p ON p.CVE_ART = i.CVE_ART
             JOIN $tablaFacturas f ON f.CVE_DOC = p.CVE_DOC
             JOIN $tablaClientes c ON c.CLAVE = f.CVE_CLPV
-            WHERE f.STATUS = 'E' AND i.LIN_PROD = ?
-            " . (!empty($filtroCliente) ? " AND c.NOMBRE LIKE ?" : "") . "
-            " . ($tipoUsuario === 'ADMINISTRADOR'
-                        ? ($filtroVendedor !== '' ? " AND f.CVE_VEND = ?" : "")
-                        : " AND f.CVE_VEND = ?") . "
+            WHERE f.STATUS != 'C' AND i.LIN_PROD = ?
+            " . (!empty($filtroCliente) ? " AND c.CLAVE LIKE ?" : "") . "
             " . (!empty($filtroFecha) ? " AND YEAR(f.FECHA_DOC) = ?" : "") . "
             GROUP BY l.CVE_LIN, l.DESC_LIN, MONTH(f.FECHA_DOC)
         ),
@@ -2172,11 +2129,6 @@ function mostrarProductosLineas($conexionData, $filtroFecha, $filtroVendedor, $f
 
         $resumenParams = [$lineaSeleccionada, $lineaSeleccionada];
         if (!empty($filtroCliente)) $resumenParams[] = '%' . $filtroCliente . '%';
-        if ($tipoUsuario === 'ADMINISTRADOR') {
-            if ($filtroVendedor !== '') $resumenParams[] = $filtroVendedor;
-        } else {
-            $resumenParams[] = $claveVendedor;
-        }
         if (!empty($filtroFecha)) $resumenParams[] = $filtroFecha;
 
         $resumenStmt = sqlsrv_query($conn, $sqlResumen, $resumenParams);
@@ -2248,10 +2200,9 @@ switch ($funcion) {
 
         $conexionData = $conexionResult['data'];
         $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
-        $filtroVendedor = $_POST['filtroVendedor'] ?? '';
         $filtroCliente = $_POST['filtroCliente'] ?? '';
 
-        mostrarLineasReporte($conexionData, $filtroFecha, $filtroVendedor, $filtroCliente);
+        mostrarLineasReporte($conexionData, $filtroFecha, $filtroCliente);
         break;
     case 2:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -2268,13 +2219,12 @@ switch ($funcion) {
 
         $conexionData = $conexionResult['data'];
         $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
-        $filtroVendedor = $_POST['filtroVendedor'] ?? '';
         $filtroCliente = $_POST['filtroCliente'] ?? '';
         $pagina = (int) ($_POST['pagina'] ?? 1);
         $porPagina = (int) ($_POST['porPagina'] ?? 10);
         $lineaSeleccionada = $_POST['lineaSeleccionada'] ?? '';
 
-        mostrarProductosLineas($conexionData, $filtroFecha, $filtroVendedor, $filtroCliente, $pagina, $porPagina, $lineaSeleccionada);
+        mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $pagina, $porPagina, $lineaSeleccionada);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

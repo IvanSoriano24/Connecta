@@ -236,6 +236,8 @@ function mostrarClientesVendedor($conexionData, $claveSae)
 
         // Construir el nombre de la tabla dinámicamente usando el número de empresa
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $tablaFacturas = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
         // Construir la consulta SQL
         if ($tipoUsuario === 'ADMINISTRADOR') {
             // ADMIN: no hay filtro de vendedor
@@ -245,18 +247,25 @@ function mostrarClientesVendedor($conexionData, $claveSae)
             // Montamos el SQL SIN punto y coma al final
             $sql = "
             SELECT
-                CLAVE,
-                NOMBRE,
-                RFC,
-                CALLE_ENVIO AS CALLE,
-                TELEFONO,
-                SALDO,
-                VAL_RFC AS EstadoDatosTimbrado,
-                NOMBRECOMERCIAL,
-                DESCUENTO
-            FROM $nombreTabla
-            WHERE STATUS = 'A'
-            ORDER BY CLAVE ASC
+                CLIE.CLAVE,
+                CLIE.NOMBRE,
+                CLIE.RFC,
+                CLIE.CALLE_ENVIO AS CALLE,
+                CLIE.TELEFONO,
+                CLIE.SALDO,
+                CLIE.VAL_RFC AS EstadoDatosTimbrado,
+                CLIE.NOMBRECOMERCIAL,
+                CLIE.DESCUENTO,
+                ISNULL(f.PrimerAnoCompra, '') AS PrimerAnoCompra
+            FROM $nombreTabla CLIE
+            LEFT JOIN (
+                SELECT CVE_CLPV, MIN(YEAR(FECHA_DOC)) AS PrimerAnoCompra
+                FROM $tablaFacturas
+                WHERE STATUS = 'E'
+                GROUP BY CVE_CLPV
+            ) AS f ON f.CVE_CLPV = CLIE.CLAVE
+            WHERE CLIE.STATUS = 'A'
+            ORDER BY CLIE.CLAVE ASC
             ";
 
             // Ejecutamos pasando $params
@@ -267,19 +276,26 @@ function mostrarClientesVendedor($conexionData, $claveSae)
 
             $sql = "
             SELECT
-                CLAVE,
-                NOMBRE,
-                RFC,
-                CALLE_ENVIO AS CALLE,
-                TELEFONO,
-                SALDO,
-                VAL_RFC AS EstadoDatosTimbrado,
-                NOMBRECOMERCIAL,
-                DESCUENTO
-            FROM $nombreTabla
-            WHERE STATUS = 'A'
-                AND CVE_VEND = ?
-            ORDER BY CLAVE ASC
+                CLIE.CLAVE,
+                CLIE.NOMBRE,
+                CLIE.RFC,
+                CLIE.CALLE_ENVIO AS CALLE,
+                CLIE.TELEFONO,
+                CLIE.SALDO,
+                CLIE.VAL_RFC AS EstadoDatosTimbrado,
+                CLIE.NOMBRECOMERCIAL,
+                CLIE.DESCUENTO,
+                ISNULL(f.PrimerAnoCompra, '') AS PrimerAnoCompra
+            FROM $nombreTabla CLIE
+            LEFT JOIN (
+                SELECT CVE_CLPV, MIN(YEAR(FECHA_DOC)) AS PrimerAnoCompra
+                FROM $tablaFacturas
+                WHERE STATUS = 'E'
+                GROUP BY CVE_CLPV
+            ) AS f ON f.CVE_CLPV = CLIE.CLAVE
+            WHERE CLIE.STATUS = 'A'
+                AND CLIE.CVE_VEND = ?
+            ORDER BY CLIE.CLAVE ASC
             ";
 
             $stmt = sqlsrv_query($conn, $sql, $params);

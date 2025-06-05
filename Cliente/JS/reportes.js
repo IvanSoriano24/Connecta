@@ -8,6 +8,8 @@ let filtroVendedor = "";
 let filtroCliente = "";
 
 function datosReportes(limpiarTabla = true) {
+    $("#pagination").empty();
+    lineaSeleccionada = null;
     $(".pagination-controls").toggle(!!lineaSeleccionada);
     const tabla = document.getElementById("datosReportes");
     const numColumns = tabla.querySelector("thead")
@@ -29,7 +31,6 @@ function datosReportes(limpiarTabla = true) {
             numFuncion: "1",
             noEmpresa: noEmpresa,
             filtroFecha: filtroFecha,
-            filtroVendedor: filtroVendedor,
             filtroCliente: filtroCliente
 
         },
@@ -108,7 +109,6 @@ function cargarProductosLinea(cveLinea, limpiarTabla = true) {
             noEmpresa: noEmpresa,
             cveLinea: cveLinea,
             filtroFecha: filtroFecha,
-            filtroVendedor: filtroVendedor,
             filtroCliente: filtroCliente,
             pagina: paginaActual,
             porPagina: registrosPorPagina,
@@ -118,7 +118,7 @@ function cargarProductosLinea(cveLinea, limpiarTabla = true) {
             try {
                 if (typeof response === "string") response = JSON.parse(response);
 
-                if (response.success && response.data && response.data.length > 0) {
+                if (response.success) {
                     if (limpiarTabla) {
                         tabla.innerHTML = "";
                     } else {
@@ -127,7 +127,8 @@ function cargarProductosLinea(cveLinea, limpiarTabla = true) {
                     }
 
                     const fragment = document.createDocumentFragment();
-                    // Si hay resumen, agregar primera fila con nombre de la línea y total
+
+                    // Pintar resumen aunque data esté vacía
                     if (response.resumen) {
                         const resumenRow = document.createElement("tr");
                         resumenRow.style.fontWeight = "bold";
@@ -146,29 +147,35 @@ function cargarProductosLinea(cveLinea, limpiarTabla = true) {
                         `;
                         fragment.appendChild(resumenRow);
                     }
-                    response.data.forEach((reporte) => {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td>${reporte.CVE_ART}</td>
-                            <td>${reporte[1] || 0}</td>
-                            <td>${reporte[2] || 0}</td>
-                            <td>${reporte[3] || 0}</td>
-                            <td>${reporte[4] || 0}</td>
-                            <td>${reporte[5] || 0}</td>
-                            <td>${reporte[6] || 0}</td>
-                            <td>${reporte[7] || 0}</td>
-                            <td>${reporte[8] || 0}</td>
-                            <td>${reporte[9] || 0}</td>
-                            <td>${reporte[10] || 0}</td>
-                            <td>${reporte[11] || 0}</td>
-                            <td>${reporte[12] || 0}</td>
-                        `;
-                        fragment.appendChild(row);
-                    });
+
+                    // Ahora procesar data si hay
+                    if (response.data && response.data.length > 0) {
+                        response.data.forEach((reporte) => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${reporte.CVE_ART}</td>
+                                <td>${reporte[1] || 0}</td>
+                                <td>${reporte[2] || 0}</td>
+                                <td>${reporte[3] || 0}</td>
+                                <td>${reporte[4] || 0}</td>
+                                <td>${reporte[5] || 0}</td>
+                                <td>${reporte[6] || 0}</td>
+                                <td>${reporte[7] || 0}</td>
+                                <td>${reporte[8] || 0}</td>
+                                <td>${reporte[9] || 0}</td>
+                                <td>${reporte[10] || 0}</td>
+                                <td>${reporte[11] || 0}</td>
+                                <td>${reporte[12] || 0}</td>
+                            `;
+                            fragment.appendChild(row);
+                        });
+                    }
 
                     tabla.appendChild(fragment);
                     buildPaginationReportes(response.total);
-                } else {
+                }
+
+                else {
                     mostrarSinDatosReportes();
                 }
             } catch (error) {
@@ -282,12 +289,10 @@ function doSearchReportes(limpiarTabla = true) {
     if (searchText.length >= 2) {
         const resultados = [];
 
-        // Recorrer filas actuales (sin tocar encabezado si lo hay)
         for (let i = 0; i < filas.length; i++) {
             const celdas = filas[i].getElementsByTagName("td");
             let coincide = false;
 
-            // Verificar si alguna celda contiene el texto de búsqueda
             for (let j = 0; j < celdas.length; j++) {
                 const texto = celdas[j].textContent || celdas[j].innerText;
                 if (texto.toLowerCase().includes(searchText)) {
@@ -301,7 +306,6 @@ function doSearchReportes(limpiarTabla = true) {
             }
         }
 
-        // Mostrar resultados
         if (limpiarTabla) {
             tabla.innerHTML = "";
         }
@@ -315,7 +319,12 @@ function doSearchReportes(limpiarTabla = true) {
         }
 
     } else {
-        datosReportes(true); // Si el término es muy corto, vuelve a cargar
+        // Ejecutar según si hay línea seleccionada
+        if (lineaSeleccionada) {
+            cargarProductosLinea(lineaSeleccionada, true);
+        } else {
+            datosReportes(true);
+        }
     }
 }
 
@@ -373,6 +382,79 @@ function llenarFiltroVendedor() {
 
 
 function llenarFiltroCliente() {
+    const token = document.getElementById("csrf_token").value;
+
+    $.ajax({
+        url: "../Servidor/PHP/clientes.php",
+        method: "POST",
+        data: {
+            numFuncion: 12,
+            token: token
+        },
+        success: function (responseClientes) {
+            console.log("Respuesta del servidor (clientes):", responseClientes); // DEBUG
+            try {
+                const res = typeof responseClientes === "string"
+                    ? JSON.parse(responseClientes)
+                    : responseClientes;
+
+                if (res.success && Array.isArray(res.data)) {
+                    const selectCliente = $("#filtroClientes");
+                    selectCliente.empty();
+
+                    res.data.forEach((cliente, index) => {
+                        const selected = index === 0 ? 'selected' : '';
+                        selectCliente.append(
+                            `<option value="${cliente.CLAVE}" ${selected}>${cliente.NOMBRE}</option>`
+                        );
+                    });
+
+                    // 👉 Establecer valores de filtro globales
+                    if (res.data.length > 0) {
+                        // Obtener año actual
+                        const anioActual = new Date().getFullYear();
+
+                        // Obtener el primer año de compra del primer cliente
+                        const primerAno = parseInt(res.data[0].PrimerAnoCompra) || anioActual;
+
+                        // Llenar el select de años
+                        const selectFecha = $("#filtroFecha");
+                        selectFecha.empty(); // Limpiar opciones anteriores
+
+                        for (let anio = anioActual; anio >= primerAno; anio--) {
+                            selectFecha.append(`<option value="${anio}">${anio}</option>`);
+                        }
+
+                        $("#filtroClientes").val(res.data[0].CLAVE);
+                        filtroCliente = res.data[0].CLAVE;
+                    }
+
+                    // 👇 Mover aquí la llamada a datosReportes
+                    filtroFecha = $("#filtroFecha").val() || "Hoy";
+                    filtroVendedor = $("#filtroVendedor").val() || "";
+                    datosReportes(true);
+
+                } else {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Aviso",
+                        text: res.message || "No se encontraron clientes.",
+                    });
+                }
+            } catch (error) {
+                console.error("Error al procesar los clientes:", error);
+            }
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Error al obtener la lista de clientes.",
+            });
+        }
+    });
+}
+function llenarFiltroAño(año) {
     const token = document.getElementById("csrf_token").value;
 
     $.ajax({
