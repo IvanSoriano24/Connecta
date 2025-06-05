@@ -1,7 +1,7 @@
 function mostrar() {}
 
 document.addEventListener("DOMContentLoaded", () => {
-  mostrarFolio();
+  //mostrarFolio();
   $("#btnPagar").click(function () {
     pagarPedido();
   });
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const formData = new FormData();
       formData.append("numFuncion", "3");
-      formData.append("claveSae", "01");
+      formData.append("claveSae", "02");
       formData.append("accion", "obtenerFolioSiguiente");
       const response = await fetch("../Servidor/PHP/ventas.php", {
         method: "POST",
@@ -33,10 +33,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function mostrarFolio() {
+  /*async function mostrarFolio() {
     const folio = await obtenerFolioSiguiente();
     folioInput.value = folio;
-  }
+  }*/
 
   async function pagarPedido() {
     const fechaActual =
@@ -433,5 +433,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   mostrarCarrito();
-  mostrarFolio();
+  //mostrarFolio();
 });

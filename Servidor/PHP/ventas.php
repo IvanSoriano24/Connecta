@@ -7,10 +7,9 @@ require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
 
-session_start();
+//session_start();
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
-{
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -29,6 +28,8 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
+        /*var_dump($fields['noEmpresa']['integerValue']);
+        var_dump($noEmpresa);*/
         if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return [
                 'success' => true,
@@ -2952,7 +2953,6 @@ function validarExistenciasEdicionPedido($pedidoId, $conexionData, $claveSae, $p
         ];
     }
 }
-
 
 function calcularTotalPedido($partidasData)
 {
@@ -7214,7 +7214,7 @@ switch ($funcion) {
         if (isset($_SESSION['empresa']['noEmpresa'])) {
             $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         } else {
-            $noEmpresa = "";
+            $noEmpresa = "2";
         }
         if (isset($_SESSION['empresa']['claveSae'])) {
             $claveSae = $_SESSION['empresa']['claveSae'];
@@ -7469,8 +7469,8 @@ switch ($funcion) {
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
                             actualizarInventario($conexionData, $partidasData); //ROLLBACK
                             eliminarCxc($conexionData, $anticipo, $claveSae); //ROLLBACK
-                            remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa); //ROLLBACK
                             comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey); //ROLLBACK
+                            remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa); //ROLLBACK
                             //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
                             /*$datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
                             pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
@@ -7814,17 +7814,19 @@ switch ($funcion) {
         obtenerProductoPedido($clave, $conexionData, $producto, $claveSae);
         break;
     case 17:
-        $noEmpresa = "02";
+        $noEmpresa = "2";
         $claveSae = "02";
         /*$noEmpresa = "01";
         $claveSae = "01";*/
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        //var_dump($conexionResult);
         $conexionData = $conexionResult['data'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];
+        //$listaPrecioCliente = $_POST['listaPrecioCliente'];
         extraerProductosE($conexionData, $claveSae, $listaPrecioCliente);
         break;
     case 18:
-        $noEmpresa = "02";
+        $noEmpresa = "2";
         $claveSae = "02";
         /*$noEmpresa = "01";
         $claveSae = "01";*/
@@ -7834,7 +7836,7 @@ switch ($funcion) {
         extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente);
         break;
     case 19:
-        $claveSae = "02";
+        $claveSae = "2";
         $noEmpresa = "02";
         /*$noEmpresa = "01";
         $claveSae = "01";*/
@@ -7874,7 +7876,8 @@ switch ($funcion) {
                     actualizarFolio($conexionData, $claveSae);
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoClienteEcomers($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $noEmpresa);
-                    //remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
+                    comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey); //ROLLBACK
+                    remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                     // 📌 Respuesta en caso de éxito sin PDF
                     header('Content-Type: application/json; charset=UTF-8');
                     echo json_encode([
@@ -7910,7 +7913,7 @@ switch ($funcion) {
         }
         break;
     case 20:
-        $noEmpresa = "";
+        $noEmpresa = "2";
         $claveSae = "02";
         //$claveSae = "01";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
@@ -8000,6 +8003,7 @@ switch ($funcion) {
         generarPDFPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
         break;
     default:
-        echo json_encode(['success' => false, 'message' => 'Función no válida.']);
+        echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
+        //echo json_encode(['success' => false, 'message' => 'No hay funcion.']);
         break;
 }

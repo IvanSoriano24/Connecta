@@ -153,7 +153,7 @@ async function obtenerPrecioProducto(claveProducto) {
 }
 async function obtenerDatosCliente() {
   try {
-    const response = await fetch("../Servidor/PHP/clientes.php?numFuncion=4");
+    const response = await fetch("../Servidor/PHP/clientes.php?numFuncion=12");
     const data = await response.json();
 
     if (!data.success) {
