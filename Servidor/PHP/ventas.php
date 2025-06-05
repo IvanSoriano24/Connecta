@@ -7808,30 +7808,30 @@ switch ($funcion) {
         obtenerProductoPedido($clave, $conexionData, $producto, $claveSae);
         break;
     case 17:
-        /*$noEmpresa = "02";
-        $claveSae = "02";*/
-        $noEmpresa = "01";
-        $claveSae = "01";
+        $noEmpresa = "02";
+        $claveSae = "02";
+        /*$noEmpresa = "01";
+        $claveSae = "01";*/
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];
         extraerProductosE($conexionData, $claveSae, $listaPrecioCliente);
         break;
     case 18:
-        /*$noEmpresa = "02";
-        $claveSae = "02";*/
-        $noEmpresa = "01";
-        $claveSae = "01";
+        $noEmpresa = "02";
+        $claveSae = "02";
+        /*$noEmpresa = "01";
+        $claveSae = "01";*/
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         $listaPrecioCliente = $_GET['listaPrecioCliente'];
         extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente);
         break;
     case 19:
-        /*$claveSae = "02";
-        $noEmpresa = "02";*/
-        $noEmpresa = "01";
-        $claveSae = "01";
+        $claveSae = "02";
+        $noEmpresa = "02";
+        /*$noEmpresa = "01";
+        $claveSae = "01";*/
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         // 📌 Convertir `formularioData` en un array asociativo
@@ -7905,8 +7905,8 @@ switch ($funcion) {
         break;
     case 20:
         $noEmpresa = "";
-        //$claveSae = "02";
-        $claveSae = "01";
+        $claveSae = "02";
+        //$claveSae = "01";
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
         extraerProductosImagenes($conexionData, $claveSae);
