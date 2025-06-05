@@ -26,7 +26,7 @@ function datosReportes(limpiarTabla = true) {
     }
 
     $.post(
-        "../Servidor/PHP/reportes.php",
+        "../Servidor/PHP/reportesLineas.php",
         {
             numFuncion: "1",
             noEmpresa: noEmpresa,
@@ -103,7 +103,7 @@ function cargarProductosLinea(cveLinea, limpiarTabla = true) {
     }
 
     $.post(
-        "../Servidor/PHP/reportes.php",
+        "../Servidor/PHP/reportesLineas.php",
         {
             numFuncion: "2",
             noEmpresa: noEmpresa,
@@ -425,65 +425,6 @@ function llenarFiltroCliente() {
                             selectFecha.append(`<option value="${anio}">${anio}</option>`);
                         }
 
-                        $("#filtroClientes").val(res.data[0].CLAVE);
-                        filtroCliente = res.data[0].CLAVE;
-                    }
-
-                    // 👇 Mover aquí la llamada a datosReportes
-                    filtroFecha = $("#filtroFecha").val() || "Hoy";
-                    filtroVendedor = $("#filtroVendedor").val() || "";
-                    datosReportes(true);
-
-                } else {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Aviso",
-                        text: res.message || "No se encontraron clientes.",
-                    });
-                }
-            } catch (error) {
-                console.error("Error al procesar los clientes:", error);
-            }
-        },
-        error: function () {
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Error al obtener la lista de clientes.",
-            });
-        }
-    });
-}
-function llenarFiltroAño(año) {
-    const token = document.getElementById("csrf_token").value;
-
-    $.ajax({
-        url: "../Servidor/PHP/clientes.php",
-        method: "POST",
-        data: {
-            numFuncion: 12,
-            token: token
-        },
-        success: function (responseClientes) {
-            console.log("Respuesta del servidor (clientes):", responseClientes); // DEBUG
-            try {
-                const res = typeof responseClientes === "string"
-                    ? JSON.parse(responseClientes)
-                    : responseClientes;
-
-                if (res.success && Array.isArray(res.data)) {
-                    const selectCliente = $("#filtroClientes");
-                    selectCliente.empty();
-
-                    res.data.forEach((cliente, index) => {
-                        const selected = index === 0 ? 'selected' : '';
-                        selectCliente.append(
-                            `<option value="${cliente.CLAVE}" ${selected}>${cliente.NOMBRE}</option>`
-                        );
-                    });
-
-                    // 👉 Establecer valores de filtro globales
-                    if (res.data.length > 0) {
                         $("#filtroClientes").val(res.data[0].CLAVE);
                         filtroCliente = res.data[0].CLAVE;
                     }
