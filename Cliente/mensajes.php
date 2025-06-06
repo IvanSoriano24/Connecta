@@ -1,30 +1,32 @@
 <?php
+//Iniciar sesion
 session_start();
+//Validar si hay una sesion
 if (isset($_SESSION['usuario'])) {
+    //Si la sesion iniciada es de un Cliente, redirigir al E-Commers
     if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
         header('Location:Menu.php');
         exit();
     }
+    //Obtener valores del Usuario
     $nombreUsuario = $_SESSION['usuario']["nombre"];
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     $correo = $_SESSION['usuario']["correo"];
-    if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
-        header('Location:Dashboard.php');
-        exit();
-    }
 
+    //Obtener valores de la empresa
     if (isset($_SESSION['empresa'])) {
         $empresa = $_SESSION['empresa']['razonSocial'];
         $idEmpresa = $_SESSION['empresa']['id'];
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
-        $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
         $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+        $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
     }
+    //Obtener token de seguridad
     $csrf_token  = $_SESSION['csrf_token'];
 } else {
+    //Si no hay una sesion iniciada, redirigir al index
     header('Location:../index.php');
-    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -44,7 +46,7 @@ if (isset($_SESSION['usuario'])) {
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
     <link rel="stylesheet" href="CSS/carrito.css">
-
+    <!-- Titulo y Logo -->
     <title>MDConnecta</title>
     <link rel="icon" href="SRC/logoMDConecta.png" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -62,8 +64,6 @@ if (isset($_SESSION['usuario'])) {
         white-space: nowrap;
         /* Evita que el texto se corte o salte de línea */
     }
-
-
 
     .card-body {
 
@@ -138,6 +138,7 @@ if (isset($_SESSION['usuario'])) {
                 <div class="container mt-10">
                     <hr>
                 </div>
+                <!-- Solo los administradores puede ver y autorizar pedidos -->
                 <?php if ($tipoUsuario === 'ADMINISTRADOR'): ?>
                     <div class="card-body">
                         <h2 class="text-center">Pedidos</h2>
@@ -168,7 +169,7 @@ if (isset($_SESSION['usuario'])) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <!-- Los productos se generarán aquí dinámicamente -->
+                                                <!-- Los pedidos se generarán aquí dinámicamente -->
                                             </tbody>
                                         </table>
                                     </div>
@@ -178,6 +179,7 @@ if (isset($_SESSION['usuario'])) {
                     </div>
                 <?php endif; ?>
                 <br>
+                <!-- Solo los administradores y almacenistas pueden ver terminar las comandas -->
                 <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR'): ?>
                     <div class="card-body">
                         <h2 class="text-center">Comandas</h2>
@@ -210,7 +212,7 @@ if (isset($_SESSION['usuario'])) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <!-- Los productos se generarán aquí dinámicamente -->
+                                                <!-- Las comandas se generarán aquí dinámicamente -->
                                             </tbody>
                                         </table>
                                     </div>
@@ -365,6 +367,7 @@ if (isset($_SESSION['usuario'])) {
                                     </div>
                                 </form>
                             </div>
+                            <!-- Botones para salir y terminar la comanda (verificar JS/mensajes.js) par el funcionamiento -->
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Salir</button>
                                 <button type="button" class="btn btn-success" id="btnTerminar">Terminar</button>

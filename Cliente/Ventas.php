@@ -57,8 +57,6 @@ session_destroy(); */
             /* Difumina el fondo mientras un modal está abierto */
         }
     </style>
-
-
     <style>
         /* From Uiverse.io by barisdogansutcu */
         svg {
