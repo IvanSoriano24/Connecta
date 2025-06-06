@@ -111,7 +111,7 @@ function inicializarEventosBotones() {
       mostrarUsuarios(listaUsuarios, "ADMINISTRADOR", rolSeleccionado); // Filtrar la tabla
     });
 }
-
+//Funcion para activa un usuario dado de baja
 function activarUsuario(usuarioId) {
   Swal.fire({
     title: "¿Estás seguro?",
@@ -128,7 +128,7 @@ function activarUsuario(usuarioId) {
         url: "../Servidor/PHP/usuarios.php", // Cambia la ruta si es necesario
         method: "POST",
         data: {
-          numFuncion: "12", // Identificador para activar usuario
+          numFuncion: "12", // Numero de funcion
           usuarioId: usuarioId,
         },
         success: function (response) {
@@ -301,7 +301,7 @@ function visualizarUsuario(idUsuario) {
       try {
         const data = JSON.parse(response);
         if (data.success) {
-          campoContrasena.style.display = 'none';
+          campoContrasena.style.display = "none";
           if (data.data.tipoUsuario === "CLIENTE") {
             limpiarFormularioCliente();
             document.getElementById("guardarDatosClienteBtn").hidden = true;
@@ -430,7 +430,7 @@ function editarUsuario(idUsuario) {
       try {
         const data = JSON.parse(response);
         if (data.success) {
-          campoContrasena.style.display = 'none';
+          campoContrasena.style.display = "none";
           if (data.data.tipoUsuario === "CLIENTE") {
             limpiarFormularioCliente();
             document.getElementById("guardarDatosClienteBtn").hidden = false;
@@ -446,7 +446,7 @@ function editarUsuario(idUsuario) {
               url: "../Servidor/PHP/usuarios.php",
               method: "GET",
               //data: { numFuncion: "15", token: token }, // Obtener todos los clientes disponibles
-              data: { numFuncion: "15"}, // Obtener todos los clientes disponibles
+              data: { numFuncion: "15" }, // Obtener todos los clientes disponibles
               success: function (responseClientes) {
                 try {
                   const resClientes =
@@ -573,7 +573,6 @@ function editarUsuario(idUsuario) {
                       $("#selectVendedor").prop("disabled", true);
                     }
                     //("#selectVendedor").prop("disabled", true);
-                      
                   } catch (error) {
                     console.error("Error al procesar los vendedores:", error);
                   }
@@ -1285,48 +1284,55 @@ $(document).ready(function () {
   /*********************************************************************************/
   $("#selectEmpresa").prop("disabled", true);
   $("#rolUsuario").on("change", function () {
-    const rolSeleccionado = $(this).val(); // Obtener el rol seleccionado
+    // Se ejecuta cuando cambia el valor del select de rol de usuario
+    const rolSeleccionado = $(this).val(); // Obtenemos el rol seleccionado
 
     if (rolSeleccionado === "VENDEDOR") {
-      // Mostrar el select de vendedores
+      // Si se eligió "VENDEDOR", mostramos el select de vendedores
       $("#divVendedor").show();
 
-      // Realizar la solicitud AJAX para obtener los vendedores
+      // Hacemos petición AJAX para obtener la lista de vendedores desde el servidor
       $.ajax({
         url: "../Servidor/PHP/usuarios.php",
         method: "GET",
-        data: { numFuncion: "13" }, // Llamar la función para obtener vendedores
+        data: { numFuncion: "13" }, // Parámetro que indica al PHP que devuelva vendedores
         success: function (response) {
           try {
+            // Asegurarnos de que la respuesta sea un objeto JSON
             const res =
               typeof response === "string" ? JSON.parse(response) : response;
 
             if (res.success && Array.isArray(res.data)) {
+              // Si la respuesta es exitosa y trae un arreglo de vendedores...
               const selectVendedor = $("#selectVendedor");
-              selectVendedor.empty();
+              selectVendedor.empty(); // Limpiamos opciones previas
               selectVendedor.append(
                 "<option selected disabled>Seleccione un vendedor</option>"
               );
 
+              // Iteramos cada vendedor y agregamos una opción al select
               res.data.forEach((vendedor) => {
                 selectVendedor.append(
                   `<option value="${vendedor.clave}" data-nombre="${vendedor.nombre}">
-                                    ${vendedor.nombre} || ${vendedor.clave}
-                                </option>`
+                  ${vendedor.nombre} || ${vendedor.clave}
+                </option>`
                 );
               });
 
-              // Habilitar el select si hay vendedores disponibles
+              // Habilitamos el select solo si hay vendedores disponibles
               selectVendedor.prop("disabled", res.data.length === 0);
             } else {
+              // Si no se encontraron vendedores o hay un mensaje de error...
               Swal.fire({
                 icon: "warning",
                 title: "Aviso",
                 text: res.message || "No se encontraron vendedores.",
               });
+              // Deshabilitamos el select para evitar selección
               $("#selectVendedor").prop("disabled", true);
             }
           } catch (error) {
+            // Si ocurre un error al parsear o procesar la respuesta JSON
             console.error("Error al procesar la respuesta:", error);
             Swal.fire({
               icon: "error",
@@ -1336,6 +1342,7 @@ $(document).ready(function () {
           }
         },
         error: function () {
+          // Si la llamada AJAX falla (por ejemplo, error 500)
           Swal.fire({
             icon: "error",
             title: "Error",
@@ -1344,8 +1351,9 @@ $(document).ready(function () {
         },
       });
     } else {
-      // Ocultar el div del vendedor si no es "VENDEDOR"
+      // Si el rol no es "VENDEDOR", ocultamos el div del vendedor
       $("#divVendedor").hide();
+      // Y limpiamos/deshabilitamos el select para que no quede activo
       $("#selectVendedor").empty().prop("disabled", true);
     }
   });
@@ -1368,14 +1376,13 @@ $(document).ready(function () {
             title: "Error",
             text: "Este vendedor ya está registrado. Selecciona otro.",
           });
-
           // 🔴 Deseleccionar la opción seleccionada
           $("#selectVendedor").val("");
         }
       });
     }
   });
-
+  //Funcion para validar si ya existe el vendodor
   function validarVendedor(claveVendedor, callback) {
     $.ajax({
       url: "../Servidor/PHP/usuarios.php",
@@ -1463,6 +1470,7 @@ $(document).ready(function () {
                     );
 
                     resEmp.data.forEach((empresa) => {
+                      //Crear el option
                       if (!empresasAsociadas.includes(empresa.noEmpresa)) {
                         selectEmpresa.append(
                           `<option value="${empresa.id}" data-noempresa="${empresa.noEmpresa}" data-clavesar="${empresa.claveSae}">${empresa.razonSocial}</option>`

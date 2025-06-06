@@ -37,6 +37,7 @@ function debouncedSearch() {
   }, 500);
 }
 
+//Funcion para buscar a un cliente
 function doSearch() {
   const searchText = document.getElementById("searchTerm").value.toLowerCase();
   
@@ -270,8 +271,10 @@ function cerrarModal() {
   const modal = bootstrap.Modal.getInstance(
     document.getElementById("usuarioModal")
   );
+  //Cierra el modal
   modal.hide();
 }
+//Funcion para obtener a todos los clientes disponibles de acuerdo a las validaciones correspondientes
 function obtenerClientes(limpiarTabla = true) {
   $.post(
     "../Servidor/PHP/clientes.php",
@@ -374,61 +377,8 @@ function obtenerClientes(limpiarTabla = true) {
     console.error("Error en la solicitud:", textStatus, errorThrown, jqXHR);
   });
 }
-/*function buildPagination(total) {
-  const totalPages = Math.ceil(total / registrosPorPagina);
-  const maxButtons = 5;
-  const $cont = $("#pagination").empty();
 
-  if (totalPages <= 1) return;
-
-  let start = Math.max(1, paginaActual - Math.floor(maxButtons / 2));
-  let end = start + maxButtons - 1;
-  if (end > totalPages) {
-    end = totalPages;
-    start = Math.max(1, end - maxButtons + 1);
-  }
-
-  /*const makeBtn = (txt, page, disabled, active) =>
-    $("<button>")
-      .text(txt)
-      .prop("disabled", disabled)
-      .toggleClass("active", active)
-      .on("click", () => {
-        paginaActual = page;
-        obtenerClientes(true);
-      });*/
-    /*let makeBtn = makeBtn(text, page, disabled, active);
-  // Flechas First / Prev
-  $cont.append(makeBtn("«", 1, paginaActual === 1, false));
-  $cont.append(makeBtn("‹", paginaActual - 1, paginaActual === 1, false));
-
-  // Botones de página
-  for (let i = start; i <= end; i++) {
-    $cont.append(makeBtn(i, i, false, i === paginaActual));
-  }
-
-  // Flechas Next / Last
-  $cont.append(
-    makeBtn("›", paginaActual + 1, paginaActual === totalPages, false)
-  );
-  $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
-}
-function makeBtn(text, page, disabled, active) {
-  const $btn = $("<button>")
-    .text(text)
-    .prop("disabled", disabled)
-    .toggleClass("active", active);
-
-  if (!disabled) {
-    $btn.on("click", () => {
-      paginaActual = page;
-      datosPedidos(true);
-    });
-  }
-
-  return $btn;
-}*/
-// 1) Primero definimos makeBtn como función declarada
+// Definimos makeBtn como función declarada
 function makeBtn(text, page, disabled, active) {
   const $btn = $("<button>")
     .text(text)
@@ -444,7 +394,7 @@ function makeBtn(text, page, disabled, active) {
 
   return $btn;
 }
-// 2) Ahora buildPagination puede usar makeBtn sin problema
+//buildPagination puede usar makeBtn sin problema
 function buildPagination(total) {
     console.log("total : ", total);
     console.log("registrosPorPagina : ", registrosPorPagina);

@@ -1,8 +1,10 @@
+//Obtener el token de seguridad
 const token = document.getElementById("csrf_token").value;
 let paginaActual = 1;
 //const registrosPorPagina = 5; // Ajusta según convenga
 let registrosPorPagina = 10;
 
+//Obtener los prodcutos
 function cargarProductosDash(limpiarTabla = true) {
   const xhr = new XMLHttpRequest();
   xhr.open(
@@ -13,7 +15,7 @@ function cargarProductosDash(limpiarTabla = true) {
     + "&pagina="    + paginaActual
     + "&porPagina=" + registrosPorPagina,
     true
-  );
+  ); //URL con los parametros
   xhr.onload = function () {
     if (xhr.status === 200) {
       let response;
@@ -23,6 +25,7 @@ function cargarProductosDash(limpiarTabla = true) {
         return alert("JSON inválido: " + e.message);
       }
       if (response.success) {
+        //Si devolvio un succes, mostrar los productos en tabla
         mostrarProductosEnTabla(response.productos, response.total, limpiarTabla);
       } else {
         Swal.fire({
@@ -40,6 +43,7 @@ function cargarProductosDash(limpiarTabla = true) {
   xhr.onerror = () => alert("Error de conexión");
   xhr.send();
 }
+//Funcion para mostrar los productos en tabla
 function mostrarProductosEnTabla(productos, total, limpiarTabla) {
   const $tbody = $("#datosProductos");
   if (limpiarTabla) {
@@ -74,6 +78,7 @@ function mostrarProductosEnTabla(productos, total, limpiarTabla) {
   // Construir la paginación UNA SOLA VEZ
   buildPagination(total);
 }
+//Crear boton de navegacion
 function makeBtn(text, page, disabled, active) {
   const $btn = $("<button>")
     .text(text)
@@ -89,7 +94,7 @@ function makeBtn(text, page, disabled, active) {
 
   return $btn;
 }
-// 2) Ahora buildPagination puede usar makeBtn sin problema
+//Ahora buildPagination puede usar makeBtn sin problema
 function buildPagination(total) {
     console.log("total : ", total);
     console.log("registrosPorPagina : ", registrosPorPagina);
@@ -135,6 +140,7 @@ function debouncedSearch() {
 
 const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
 
+//Funcion para buscar un producto(s)
 function doSearch(limpiarTabla = true) {
   const searchText = document.getElementById("searchTerm").value.toLowerCase();
   

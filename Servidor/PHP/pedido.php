@@ -456,8 +456,8 @@ switch ($funcion) {
     case 5:
         $idPedido = $_GET['idPedido'];
         //$claveSae = "02";
-        $claveSae = "01";
-        $noEmpresa = "01";
+        $claveSae = "02";
+        $noEmpresa = "2";
         $conexionResult = obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae, $noEmpresa);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);

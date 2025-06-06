@@ -45,6 +45,7 @@ if (isset($_SESSION['usuario'])) {
 	<!-- My CSS -->
 	<link rel="stylesheet" href="CSS/style.css">
 	<link rel="stylesheet" href="CSS/selec.css">
+	<!-- Titulo y Logo -->
 	<title>MDConnecta</title>
 	<link rel="icon" href="SRC/logoMDConecta.png" />
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -85,6 +86,7 @@ if (isset($_SESSION['usuario'])) {
 	</section>
 	<!-- CONTENT -->
 	</div>
+	<!-- Modal para la seleccion de empresa -->
 	<div class="modal fade" id="empresaModal" tabindex="-1" aria-labelledby="empresaModalLabel" aria-hidden="true"
 		data-bs-backdrop="static" data-bs-keyboard="false" class="modal <?php echo $mostrarModal ? '' : 'd-none'; ?>">
 		<div class="modal-dialog modal-dialog-centered">
@@ -98,21 +100,25 @@ if (isset($_SESSION['usuario'])) {
 						<option value="" selected disabled class="txt">Selecciona una Empresa</option>
 					</select>
 				</div>
+				<!-- Boton para confirmar y cerrar sesion (ver JS/menu.js) para su funcionamiento -->
 				<div class="modal-footer d-flex justify-content-between">
+					<!-- Boton para cerrar sesion -->
 					<button type="button" class="btn btn-danger" id="cerrarSesionModal">Cerrar Sesion</button>
-					
+					<!-- Boton para confirmar empresa -->
 					<button type="button" class="btn btn-secondary" id="confirmarEmpresa">Confirmar</button>
 				</div>
 			</div>
 		</div>
 	</div>
-	<!-- JS Para la confirmacion empresa -->
+	<!-- JS Para el funcionamiento del sistemo -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 	<script>
+		//Funcion para cargar las empresas del usuario
 		document.getElementById('empresaModal').addEventListener('shown.bs.modal', function() {
 			var usuario = '<?php echo $nombreUsuario; ?>';
 			cargarEmpresa(usuario);
 		});
+		//Funcion para verificar si ya se selecciono una empresa
 		document.addEventListener('DOMContentLoaded', function() {
 			const empresaSeleccionada = <?php echo json_encode(isset($_SESSION['empresa']) ? $_SESSION['empresa'] : null); ?>;
 			if (empresaSeleccionada === null) {
@@ -120,10 +126,11 @@ if (isset($_SESSION['usuario'])) {
 				empresaModal.show();
 			}
 		});
+		//Funcion para seleccionar una empresa
 		document.getElementById('confirmarEmpresa').addEventListener('click', function() {
 			const empresaSeleccionada = document.getElementById('empresaSelect').value;
-
 			if (!empresaSeleccionada) {
+				//Mensaje cuando no seleccionas una empresa
 				Swal.fire({
 					title: 'Error',
 					text: 'Por favor, selecciona una empresa.',
@@ -131,10 +138,10 @@ if (isset($_SESSION['usuario'])) {
 				});
 				return;
 			}
-
 			const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
 
 			if (!empresaOption) {
+				//Mensaje cuando no cargan los datos de una empresa
 				Swal.fire({
 					title: 'Error',
 					text: 'No se pudo obtener la información de la empresa.',
@@ -142,6 +149,7 @@ if (isset($_SESSION['usuario'])) {
 				});
 				return;
 			}
+			//Obtener los datos de la empresa
 			const noEmpresa = empresaOption.getAttribute('data-no-empresa');
 			const razonSocial = empresaOption.getAttribute('data-razon-social');
 			const claveUsuario = empresaOption.getAttribute('data-clave-vendedor');
@@ -162,6 +170,7 @@ if (isset($_SESSION['usuario'])) {
 				.then(response => response.json())
 				.then(response => {
 					if (response.success && response.tieneConexion) {
+						//Si tiene conexion a SAE
 						const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
 						$("#empresaSelect").prop("disabled",true);
 						Swal.fire({
@@ -188,12 +197,15 @@ if (isset($_SESSION['usuario'])) {
 						});
 
 					} else {
+						//No tiene conexion a SAE
 						Swal.fire({
 							title: 'Error',
 							text: 'La empresa seleccionada no tiene conexión a SAE.',
 							icon: 'error'
-						}).then(() => { // Espera a que el usuario cierre la alerta antes de ejecutar el código siguiente
+						}).then(() => { 
+							//Obtener el tipo de usuario
 							var tipoUsuario = '<?php echo $tipoUsuario ?>';
+							//Si el usuario es administrador, redirigir a la creacion de conexion
 							if (tipoUsuario == 'ADMINISTRADOR') {
 								seleccionarEmpresa(noEmpresa);
 								const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
@@ -230,6 +242,7 @@ if (isset($_SESSION['usuario'])) {
 		});
 	</script>
 	<script>
+		//Funcion para guardar los datos de empresa en la sesion
 		function sesionNoEmpresa(idEmpresarial) {
 			var id = idEmpresarial.id;
 			var noEmpresa = idEmpresarial.noEmpresa;

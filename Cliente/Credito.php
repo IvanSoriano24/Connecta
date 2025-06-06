@@ -1,18 +1,22 @@
 <?php
-session_start();
-if (isset($_SESSION['usuario'])) {
-    if (
-        $_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
-        $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA'
-    ) {
-        header('Location:Dashboard.php');
-        exit();
+//Iniciar sesion
+    session_start();
+    //Validar si hay una sesion
+    if (isset($_SESSION['usuario'])) {
+        //Si la sesion iniciada no es de un Cliente o un Administrador, redirigir a MDConnecta
+        if ($_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || 
+            $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
+            $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
+            header('Location:Dashboard.php');
+            exit();
+        }
+        //Obtener datos del usuario
+        $nombreUsuario = $_SESSION['usuario']["nombre"];
+        $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
+    } else {
+        //Si no hay una secion, redirigir al inicio de sesion
+        header('Location:../index.php');
     }
-    $nombreUsuario = $_SESSION['usuario']["nombre"];
-    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
-} else {
-    header('Location:../index.php');
-}
 ?>
 <!DOCTYPE html>
 <html>
@@ -111,6 +115,7 @@ if (isset($_SESSION['usuario'])) {
                 <section class="container section-title" data-aos="fade-up">
 
                     <div class="container py-5">
+                        <!-- Contenedor de los saldos -->
                         <div class="row d-flex justify-content-center align-items-center">
                             <div class="col-lg-6">
                                 <div class="card shadow-lg">
@@ -130,6 +135,7 @@ if (isset($_SESSION['usuario'])) {
                                 </div>
                             </div>
                         </div>
+                        <br>
                         <h2 class="text-center">Productos Sugeridos</h2>
                         <div id="product-list" class="product-list">
                             <!-- El carrusel se insertará aquí dinámicamente -->
@@ -143,6 +149,7 @@ if (isset($_SESSION['usuario'])) {
         <!-- FOOTER -->
         <?php include 'FooterEcommerce.php'; ?>
     </div>
+    <!-- Modal de productos recomendados -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <!-- Header del Modal -->
@@ -166,6 +173,7 @@ if (isset($_SESSION['usuario'])) {
                 </div>
                 <div class="modal-details">
                     <p class="modal-price" id="modal-price">$0.00</p>
+                    <!-- Boton para añadir el producto al carrito -->
                     <div class="modal-add-cart">
                         <input type="number" id="cantidadProducto" value="1" min="1">
                         <button id="btn-add-to-cart" class="btn btn-primary">Añadir al carrito</button>
@@ -179,6 +187,7 @@ if (isset($_SESSION['usuario'])) {
             </div>
         </div>
     </div>
+    <!-- Scripts de JS para el funcionamiento del sistema -->
     <script src="JS/credito.js"></script>
     <script src="JS/menu.js"></script>
     <!-- Scroll Top -->
@@ -188,7 +197,6 @@ if (isset($_SESSION['usuario'])) {
     <!-- Vendor JS Files -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- JS Para la confirmacion empresa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

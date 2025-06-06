@@ -66,12 +66,14 @@
                 <span id="mensajesNotificacion" class="badge bg-danger text-white d-none" style="font-size: 0.8rem; margin-left: 10px;">0</span>
             </a>
         </li>
+        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR") { ?>
         <li>
             <a href="Reportes.php" tabindex="-1"> <!--  Dashboard -->
                 <i class='bx bxs-file'></i>
                 <span class="text">Reportes</span>
             </a>
         </li>
+        <?php } ?>
     </ul>
     <ul class="side-menu">
         <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
@@ -86,7 +88,7 @@
                     <li><a class="dropdown-item" href="Correo.php" id="infoCorreo" tabindex="-1">Configuracion de Correo</a></li>
                 </ul>
             </li>
-            
+            <!--
             <li>
                 <a href="Menu.php" class="ecommers-button" tabindex="-1">
                     <i class='bx bxs-store'></i>
@@ -94,7 +96,7 @@
                     <span id="eCommers" class="badge bg-danger text-white d-none" style="font-size: 0.8rem; margin-left: 10px;">0</span>
                 </a>
             </li>
-            
+            -->
         <?php } ?>
         <li>
             <a href="" class="logout" id="cerrarSesion" tabindex="-1">

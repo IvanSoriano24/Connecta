@@ -1,3 +1,4 @@
+//Funcion para obtener a los clientes del e-commers
 function obtenerClientes() {
   $.ajax({
     url: "../Servidor/PHP/descuento.php",
@@ -42,6 +43,7 @@ function obtenerClientes() {
     },
   });
 }
+//Obtenre los productos 
 function cargarProductos(cliente) {
   const numFuncion = 11; // Identificador del caso en PHP
   const xhr = new XMLHttpRequest();
@@ -52,6 +54,7 @@ function cargarProductos(cliente) {
       try {
         const response = JSON.parse(xhr.responseText);
         if (response.success) {
+          //Llamada a funcion para mostrar los datos en tabla
           mostrarProductosEnTabla(response.productos, cliente);
         } else {
           alert("Error desde el servidor: " + response.message);
@@ -71,6 +74,7 @@ function cargarProductos(cliente) {
   xhr.send();
 }
 async function obtenerDescuentoCliente(clienteClave) {
+  //Se guarda el descuento del cliente si esta guardado en Firebase
   const descuentoFirebase = await obtenerClienteDescunetoDeFirebase(clienteClave);
   $.ajax({
     url: "../Servidor/PHP/descuento.php",
@@ -86,7 +90,7 @@ async function obtenerDescuentoCliente(clienteClave) {
         if (res.success && res.data) {
           // Inserta el descuento en el elemento con id "descuentoCliente"
           if(res.data.DESCUENTO === "" || res.data.DESCUENTO === 0 || res.data.DESCUENTO === null){
-            // Asigna el valor obtenido; si es falsy, asigna 0
+            // Asigna el valor obtenido; si es falso, asigna 0
             $("#descuentoCliente").val(descuentoFirebase || 0);
           }else{
             $("#descuentoCliente").val(res.data.DESCUENTO || 0);
@@ -224,6 +228,7 @@ function obtenerDatosParaFirebase() {
   // Retorna el objeto para que luego puedas utilizarlo (por ejemplo, en una llamada a Firebase)
   return datosFirebase;
 }
+//Funcion para guardar los descuentos
 function guardarDescuentos(cliente) {
   const datos = obtenerDatosParaFirebase();
 
@@ -267,6 +272,7 @@ $(document).ready(function () {
   });
   $("#guardarDescuentos").on("click", function () {
     const clienteInput = document.getElementById("descuentosClientes");
+    //Llamada a funcion para guardar los descuentos
     guardarDescuentos(clienteInput.value);
   });
 });

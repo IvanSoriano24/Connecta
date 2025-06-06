@@ -567,7 +567,7 @@ function obtenerClaveSae($noEmpresa)
         $fields = $document['fields'];
         $empFirebase = (int) $fields['noEmpresa']['integerValue'];
         $empBuscada  = (int) $noEmpresa;
-        var_dump($fields['noEmpresa']['integerValue']);
+        //var_dump($fields['noEmpresa']['integerValue']);
         if ($empFirebase === $empBuscada) {
             //if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
             return $fields['claveSae']['stringValue'] ?? null; // Retornar `claveSae` si existe

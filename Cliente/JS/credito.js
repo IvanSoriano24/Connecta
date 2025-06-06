@@ -1,3 +1,4 @@
+//Funcion para obtener el credito del cliente
 function obtenerCredito() {
   $.ajax({
     url: "../Servidor/PHP/creditos.php",
@@ -22,9 +23,11 @@ function obtenerCredito() {
             maximumFractionDigits: 2,
           })}`;
 
+          //Se añade los valores a los campos
           document.getElementById("credito").value = creditoFormateado;
           document.getElementById("saldo").value = saldoFormateado;
 
+          //Si el saldo supera tu credito, te mostrara una alerta, caso contrario te mostrara sugerencias
           if(saldoFormateado >= creditoFormateado){
             Swal.fire({
               icon: "error",
@@ -36,6 +39,7 @@ function obtenerCredito() {
             mostrarSugerencias(res.data.LIMCRED, res.data.SALDO, res.data.CLAVE);
           }
         } else if (res.saldo) {
+          //Si la respuesta es negativa (tienes el saldo vencido/adeudos) mostrara una alerta
           Swal.fire({
             title: "Saldo vencido",
             html: res.message,
@@ -100,9 +104,10 @@ function mostrarSugerencias(credito, saldo, claveUsuario) {
           listaProductos.forEach((prod) => {
             articulos = prod.CVE_ART;
           });
-
+          //Lladama a la funcion para mostrar los productos en cuadriculas
           cargarProductos(res.productos.LISTA_PREC, articulos, claveUsuario);
         } else if (res.sinDatos) {
+          //Esta alerta notificara al usuario sin no tiene pedididos/ventas completas
           Swal.fire({
             title: "Sin dato",
             text: `El sistema no encontro pedidos completados anteriores`,
@@ -264,12 +269,14 @@ function mostrarProductosCuadricula(productos) {
   // Agregar el carrusel al contenedor principal
   contenedorProductos.appendChild(carousel);
 }
+
 function abrirModalProducto(producto, precio) {
   const modal = document.getElementById("productModal");
   if (!modal) {
     console.error("Error: No se encontró el modal");
     return;
   }
+  //Llamada a la funcion para el registro de actividad
   añadirEvento(producto.CVE_ART);
   // Agregar información del producto
   document.getElementById("modal-title").textContent = producto.DESCR;
@@ -322,7 +329,7 @@ function abrirModalProducto(producto, precio) {
       return;
     }
 
-    // Agregar al carrito
+    // Funcion para agregar al carrrito
     agregarAlCarrito(producto, cantidad, precio);
 
     // Llamar a cerrar el modal
@@ -344,6 +351,7 @@ function abrirModalProducto(producto, precio) {
   modal.style.opacity = "1";
   modal.style.visibility = "visible";
 }
+//Funcion para guardar el articulo visto
 function añadirEvento(CVE_ART) {
   $.ajax({
     url: "../Servidor/PHP/tblControl.php",
@@ -366,6 +374,7 @@ function añadirEvento(CVE_ART) {
     },
   });
 }
+//Funcion para cerrar la ventana del producto
 function cerrarModal2() {
   const modal = document.getElementById("productModal");
 
@@ -380,7 +389,7 @@ function cerrarModal2() {
   modal.style.opacity = "0";
   modal.style.visibility = "hidden";
 }
-
+//Funcion para obtener el impuesto del producto (similar al que hay en altaPedido.js)
 async function obtenerImpuesto(cveEsqImpu) {
   try {
     const response = await fetch("../Servidor/PHP/ventas.php", {
@@ -409,6 +418,7 @@ async function obtenerImpuesto(cveEsqImpu) {
     return { impuesto1: 0, impuesto2: 0, impuesto3: 0, impuesto4: 0 };
   }
 }
+//Funcion para obtener el precio del producto (similar al que hay en altaPedido.js)
 async function completarPrecioProducto(producto, cantidad, precioBase) {
   try {
     const CVE_ESQIMPU = producto.CVE_ESQIMPU || "1"; // Si no tiene esquema de impuestos, se asigna "1"
@@ -430,6 +440,7 @@ async function completarPrecioProducto(producto, cantidad, precioBase) {
     console.error("Error al calcular el precio del producto:", error);
   }
 }
+//Funcion para agregar el producto al carrito
 async function agregarAlCarrito(producto, cantidad = 1, precio) {
   let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
   // Buscar si el producto ya está en el carrito
@@ -452,6 +463,7 @@ async function agregarAlCarrito(producto, cantidad = 1, precio) {
       cantidad,
       precio
     );
+    //Guardamos los datos en una variable
     let nuevoProducto = {
       CVE_ART: producto.CVE_ART,
       DESCR: producto.DESCR,

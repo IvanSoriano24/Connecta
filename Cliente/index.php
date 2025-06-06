@@ -1,10 +1,14 @@
 <?php
+//Iniciar sesion
 session_start();
+//Validar si hay una sesion
 if (isset($_SESSION["usuario"])) {
+    //Si la sesion iniciada es de un Cliente, redirigir al E-Commers
     if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
         header('Location:Menu.php');
         exit();
     }
+    //Si existe una conexion, redirigir al Dashboard
     header('Location:Dashboard.php');
 }
 ?>
@@ -21,13 +25,12 @@ if (isset($_SESSION["usuario"])) {
     <!--<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Titulo y Logo -->
     <title>MDConnecta</title>
     <link rel="icon" href="SRC/logoMDConecta.png" />
 </head>
 
 <body>
-
-
 
     <div class="containerP">
         <div id="divContenedor" class="form-container sign-up-container">
@@ -48,6 +51,7 @@ if (isset($_SESSION["usuario"])) {
                 <div id="divPassword" style="position: relative;">
                     <label for="password" class="txt">Contraseña</label>
                     <input type="password" name="password" id="password">
+                    <!-- Boton para mostrar/ocultar la contraseña -->
                     <button type="button" id="togglePassword" style="
                         position: absolute;
                         right: 10px;
@@ -64,13 +68,11 @@ if (isset($_SESSION["usuario"])) {
                     ">
                         <i class="bi bi-eye"></i> <!-- Icono inicial -->
                     </button>
-
                     <span class="error" id="loginPasswordError"></span>
                 </div>
-
+                <!-- Boton para iniciar sesion (revisar JS/menu.js) para su funcionamiento -->
                 <div id="divButton">
                     <button type="submit" id="buttonSesion" name="buttonSesion" class="txt">Ingresar</button>
-
                 </div>
                 <div>
                     <br>
@@ -81,6 +83,7 @@ if (isset($_SESSION["usuario"])) {
     </div>
     <script src="JS/java.js"></script>
     <script>
+        //Funcion para mostrar u ocultar la contraseña
         document.getElementById("togglePassword").addEventListener("click", function() {
             let passwordInput = document.getElementById("password");
             let icon = this.querySelector("i");

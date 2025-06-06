@@ -1,6 +1,7 @@
+//Funcion para cargar las comandas
 function cargarComandas(tipoUsuario) {
+  //Se obtiene el filtro actual
   const filtroStatus = $("#filtroStatus").val();
-
   $.get(
     "../Servidor/PHP/mensajes.php",
     { numFuncion: "1", status: filtroStatus },
@@ -9,7 +10,7 @@ function cargarComandas(tipoUsuario) {
         console.error("Error en la solicitud:", response.message);
         return;
       }
-
+      //Se obtiene el tbdoy para crear las filas
       const tbody = $("#tablaComandas tbody").empty();
       response.data.forEach((comanda) => {
         // 1) Crear la fila como objeto jQuery
@@ -54,6 +55,7 @@ function cargarComandas(tipoUsuario) {
     console.log("Detalles:", jqXHR.responseText);
   });
 }
+//Funcion para cargar los pedidos a autorizar
 function cargarPedidos() {
   const filtroPedido = $("#filtroPedido").val(); // Obtener el filtro seleccionado
 
@@ -70,7 +72,7 @@ function cargarPedidos() {
         response.data.length > 0
       ) {
         const pedidos = response.data;
-
+        //Obtener el del estatus
         pedidos.forEach((pedido) => {
           const color =
             pedido.status === "Autorizado"
@@ -249,8 +251,6 @@ function obtenerMunicipios(edo, municipio) {
   });
 }
 function obtenerDatosEnvioEditar(pedidoID) {
-  //
-  $("#datosEnvio").prop("disabled", false);
   $.post(
     "../Servidor/PHP/clientes.php",
     {
@@ -285,8 +285,7 @@ function obtenerDatosEnvioEditar(pedidoID) {
         const municipio = pedido[0].municipio;
         console.log("Estado Crudo: ", edo);
 
-        //$("#estadoContacto").val(edo);
-        //$("#estadoContacto").val(edo);
+        //Llamar a las funciones para mostrar los estados y municipios
         obtenerEstadosEdit(edo, municipio);
         obtenerMunicipios(edo, municipio);
         console.log("Datos de envio cargados correctamente.");
@@ -359,6 +358,7 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
   });
 }
 function mostrarModal(comandaId) {
+  //Abilitar y/o desabilitar
   $("#btnTerminar").show();
   $("#btnTerminar").prop("disabled", true);
   $("#divFechaEnvio").hide();
@@ -449,6 +449,7 @@ function mostrarModal(comandaId) {
   );
 }
 function mostrarModalPedido(pedidoId) {
+  //Abilitar y/o desabilitar campos
   $("#btnAutorizar").show();
   $("#btnAutorizar").prop("disabled", true);
   $.get(
@@ -501,7 +502,7 @@ function mostrarModalPedido(pedidoId) {
     "json"
   );
 }
-
+//Funcion para autorizar el pedido
 $("#btnAutorizar").click(function () {
   Swal.fire({
     title: "Procesando pedido...",
@@ -512,6 +513,7 @@ $("#btnAutorizar").click(function () {
       Swal.showLoading();
     },
   });
+  //Obtener los datos del pedido
   const pedidoId = $("#detalleIdPedido").val();
   const folio = $("#folio").val();
   const noEmpresa = $("#noEmpresa").val();
@@ -532,12 +534,14 @@ $("#btnAutorizar").click(function () {
     function (response) {
       if (response.success) {
         if (response.notificacion) {
+          //Mostrar mensaje de exito
           Swal.fire({
             text: "El pedido fue autorizado",
             icon: "success",
           }).then(() => {
+            //Cerrar modal y recargar la tabla
             $("#modalPedido").modal("hide");
-            cargarPedidos(); // Recargar la tabla
+            cargarPedidos(); 
             //window.location.reload();
           });
         } else if (response.telefono) {
@@ -574,7 +578,7 @@ $("#btnAutorizar").click(function () {
     "json"
   );
 });
-
+//Funcion para rechazar el pedido
 $("#btnRechazar").click(function () {
   Swal.fire({
     title: "Procesando pedido...",
@@ -585,6 +589,7 @@ $("#btnRechazar").click(function () {
       Swal.showLoading();
     },
   });
+   //Obtener los datos del pedido
   const pedidoId = $("#detalleIdPedido").val();
   const folio = $("#folio").val();
   const cliente = $("#nombreCliente").val();
@@ -594,11 +599,12 @@ $("#btnRechazar").click(function () {
     { numFuncion: "8", pedidoId, folio, vendedor, cliente },
     function (response) {
       if (response.success) {
+        //Mostrar mensaje de exito
         Swal.fire({
           text: "El pedido fue rechazado",
           icon: "success",
         }).then(() => {
-          $("#modalPedido").modal("hide");
+          $("#modalPedido").modal("hide"); //Cerra Modal
           cargarPedidos(); // Recargar la tabla
           //window.location.reload();
         });
@@ -612,6 +618,7 @@ $("#btnRechazar").click(function () {
     "json"
   );
 });
+//Funcion para mostrar los datos de envio
 $("#datEnvio").on("click", function () {
   const $btn = $(this);
   const $datos = $("#datosEnvio");

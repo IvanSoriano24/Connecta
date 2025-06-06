@@ -1,6 +1,7 @@
 <?php
 require 'firebase.php';
 
+//Funcion para obtener los datos de conexion
 function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
@@ -20,7 +21,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
     if (!isset($documents['documents'])) {
         return ['success' => false, 'message' => 'No se encontraron documentos'];
     }
-    // Busca el documento donde coincida el campo `claveSae`
+    // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
         if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
@@ -136,15 +137,17 @@ function verificarPago($conexionData, $cliente, $claveSae, $folio)
 }
 function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae)
 {
+    //Construir la URL con el id del documento y los updateMask para solo actualizar los campos requeridos
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=status&updateMask.fieldPaths=buscar&key=$firebaseApiKey";
 
+    //Estructurar los datos
     $data = [
         'fields' => [
             'status' => ['stringValue' => 'Pagada'],
             'buscar' => ['booleanValue' => false]
         ]
     ];
-
+    //Crear la conexion
     $context = stream_context_create([
         'http' => [
             'method' => 'PATCH',
@@ -152,18 +155,21 @@ function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio,
             'content' => json_encode($data)
         ]
     ]);
-
+    //Realizar la conexion
     $response = @file_get_contents($url, false, $context);
 
+    //Verificar la respuesta
     if ($response === false) {
         echo "Error al actualizar la comanda $pagoId.\n";
     } else {
         //echo "Comanda $pagoId actualizada a 'Pagada'.\n";
+        //Cambiar el estado en base de datos SAE
         estadoSql($folio, $conexionData, $claveSae);
     }
 }
 function estadoSql($folio, $conexionData, $claveSae)
 {
+    //Crear la conexion a la base de datos
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -174,27 +180,29 @@ function estadoSql($folio, $conexionData, $claveSae)
     ];
 
     $conn = sqlsrv_connect($serverName, $connectionInfo);
+    //Validar la conexion
     if ($conn === false) {
         echo "DEBUG: Error al conectar en estadoSql:\n";
         var_dump(sqlsrv_errors());
         exit;
     }
+    //Formatear la clave del pedido
     $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    //Crear la tabla dinamica
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
+    //Crear consulta
     $sql = "UPDATE $nombreTabla SET 
         STATUS = 'E'
         WHERE CVE_DOC = ?";
-
+    //Realizar consulta
     $stmt = sqlsrv_query($conn, $sql, [$CVE_DOC]);
-
+    //Verificar respuesta
     if ($stmt === false) {
         echo "DEBUG: Error al actualizar el pedido:\n";
         var_dump(sqlsrv_errors());
         exit;
     }
-
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -202,8 +210,11 @@ function estadoSql($folio, $conexionData, $claveSae)
 }
 function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
+    //Construir la conexion
     $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
     //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    
+    //Estructurar los datos nesesarios
     $data = [
         'numFuncion' => 1,
         'pedidoId' => $folio,
@@ -212,6 +223,7 @@ function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
         'vendedor' => $vendedor
     ];
 
+    //Realizar la peticion
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $remisionUrl);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -263,7 +275,7 @@ function eliminarCxc($conexionData, $claveSae, $cliente, $pagado)
     $cliente = str_pad($cliente, 10, ' ', STR_PAD_LEFT);
     $NO_FACTURA = $pagado['NO_FACTURA'];
     $REFER = $pagado['REFER'];
-    
+
     // Construir dinámicamente los nombres de las tablas
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_Det" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -302,6 +314,7 @@ function eliminarCxc($conexionData, $claveSae, $cliente, $pagado)
 }
 function liberarExistencias($conexionData, $folio, $claveSae)
 {
+    //Crear conexion a based de datos
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -318,9 +331,10 @@ function liberarExistencias($conexionData, $folio, $claveSae)
     }
     $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    //Crear tablas dinamicas
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
+    //Crear consulta para obtener los productos y la cantidad de estos
     $sql = "SELECT [CVE_ART], [CANT] FROM $nombreTabla
         WHERE [CVE_DOC] = ?";
     $params = [$CVE_DOC];
@@ -379,7 +393,7 @@ function obtenerFecha($conexionData, $cliente, $claveSae)
     }
     $cliente = str_pad($cliente, 10, ' ', STR_PAD_LEFT);
     // Construir dinámicamente los nombres de las tablas
-    $tablaCuenD = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaCuenD = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT FECHAELAB FROM $tablaCuenD WHERE CVE_CLIE = ? AND NUM_CPTO = '9'";
     $params = [$cliente];
@@ -403,6 +417,8 @@ function crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracio
     $productosData = datosPartida($folio, $claveSae, $conexionData);
     $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
     $enviarA = datoEnvio($pedidoData['DAT_ENVIO'], $claveSae, $conexionData);
+    //actualizarControl2($conexionData, $claveSae);
+
     $nombreVendedor = vendedorNom($conexionData, $vendedor, $claveSae);
     $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
     // Determinar el estado según la hora
@@ -695,7 +711,8 @@ function datoEnvio($idEnvio, $claveSae, $conexionData)
 
     return $calleEnvio;
 }
-function restarSaldo($conexionData, $claveSae, $pagado, $cliente){
+function restarSaldo($conexionData, $claveSae, $pagado, $cliente)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -752,6 +769,7 @@ function restarSaldo($conexionData, $claveSae, $pagado, $cliente){
 }
 function verificarPedidos($firebaseProjectId, $firebaseApiKey)
 {
+    //Obtener los pagos
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
 
     $response = @file_get_contents($url);
@@ -766,6 +784,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
     }
     $fechaHoy = date('Y-m-d');
     foreach ($data['documents'] as $document) {
+        //Declarar los datos as usar
         $fields = $document['fields'];
         $status = $fields['status']['stringValue'];
         $fechaElaboracion = $fields['creacion']['stringValue'];
@@ -776,32 +795,38 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
         $folio = $fields['folio']['stringValue'];
         $buscar = $fields['buscar']['booleanValue'];
         $vendedor = $fields['vendedor']['stringValue'];
+        //Filtrar pagos que aun no esten pagados
         if ($status === 'Sin Pagar') {
             //$cliente = "878";
+            //Filtrar pagos que ya han sido confirmados
             if ($buscar) {
+                //Obtener los datos de conexion
                 $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
                 if ($conexionResult['success']) {
                     $conexionData = $conexionResult['data'];
                     $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
                     $fechaLimiteObj = new DateTime($fechaLimite);
+                    //Validar que no hayan pasado las 24/72 horas
                     if ($fechaPago <= $fechaLimiteObj) {
+                        //Verificar si se realizo el pago
                         $pagado = verificarPago($conexionData, $cliente, $claveSae, $folio);
-                        $pagado['pagada'] = true;
+                        //$pagado['pagada'] = true;
                         if ($pagado['pagada']) {
                             /*var_dump($pagado);
                             die();*/
                             $pagoId = basename($document['name']);
                             //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
-                            //cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
+                            cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                             //var_dump($pagado);
-                            //eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
-                            //restarSaldo($conexionData, $claveSae, $pagado, $cliente);
-                            var_dump($cliente);
-                            //crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
-                            //crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
+                            eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
+                            restarSaldo($conexionData, $claveSae, $pagado, $cliente);
+                            //var_dump($cliente);
+                            crearComanda($folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
+                            crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
                             //Remision y Demas
                         }
                     } else if ($fechaPago > $fechaLimiteObj) {
+                        //Si ya pasaron, liberar existencias
                         liberarExistencias($conexionData, $folio, $claveSae);
                         //Notificar
                     }
@@ -811,4 +836,5 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
     }
 }
 
+//Funcion primaria para validar si se realizo el pago
 //verificarPedidos($firebaseProjectId, $firebaseApiKey);

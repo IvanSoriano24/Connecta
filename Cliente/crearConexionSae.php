@@ -41,16 +41,13 @@ session_destroy(); */
   <link rel="stylesheet" href="CSS/selec.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Titulo y Logo -->
   <title>MDConnecta</title>
   <link rel="icon" href="SRC/logoMDConecta.png" />
-
-
 </head>
 
 <body>
-
   <div class="hero_area">
-
     <!-- CONTENT -->
     <section id="content">
       <!-- MAIN -->
@@ -70,7 +67,6 @@ session_destroy(); */
                 <input class="input-small" type="text" name="idDocumento" id="idDocumento" value="" hidden>
                 <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
               </div>
-
               <div class="form-row">
                 <label for="host">Host:</label>
                 <input class="input-mt" type="text" name="host" id="host" value="">
@@ -94,13 +90,18 @@ session_destroy(); */
                 <label for="nombreBase">Nombre Base Datos:</label>
                 <input class="input-mt" type="text" name="nombreBase" id="nombreBase" value="">
               </div>
+              <!-- Campo oculto hasta que se pruebe la conexion a banco -->
               <div class="form-row">
                 <label for="nombreBase">Nombre Banco:</label>
                 <input class="input-mt" type="text" name="nombreBanco" id="nombreBanco" value="">
               </div>
+              <!-- Botones (revisar el archivo menu.js) -->
               <div class="form-buttons">
+                <!-- Boton para probar conexion -->
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
+                <!-- Boton para guardar conexion -->
                 <button type="button" class="btn-save" id="confirmarConexionNew">Guardar</button>
+                <!-- Boton para cerrar sesion -->
                 <button type="button" class="btn-cancel" id="cerrarSesion">Cerrar Sesión</button>
               </div>
             </form>
@@ -116,7 +117,7 @@ session_destroy(); */
   </section>
   <!-- CONTENT -->
 
-  <!-- JS Para la confirmacion empresa -->
+  <!-- JS Para el funcionamiento del sistemo -->
   <script>
     document.getElementById("togglePassword").addEventListener("click", function() {
       let passwordInput = document.getElementById("password");

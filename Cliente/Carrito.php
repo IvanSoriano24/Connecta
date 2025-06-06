@@ -1,14 +1,20 @@
 <?php
+//Iniciar sesion
     session_start();
-
+    //Validar si hay una sesion
     if (isset($_SESSION['usuario'])) {
-        if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+        //Si la sesion iniciada no es de un Cliente o un Administrador, redirigir a MDConnecta
+        if ($_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || 
+            $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
+            $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
             header('Location:Dashboard.php');
             exit();
         }
+        //Obtener datos del usuario
         $nombreUsuario = $_SESSION['usuario']["nombre"];
         $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
     } else {
+        //Si no hay una secion, redirigir al inicio de sesion
         header('Location:../index.php');
     }
 ?>
