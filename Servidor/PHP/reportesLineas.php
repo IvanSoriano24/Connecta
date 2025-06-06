@@ -167,10 +167,8 @@ function mostrarLineasReporte($conexionData, $filtroFecha, $filtroCliente)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $pagina, $porPagina, $lineaSeleccionada)
+function mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $lineaSeleccionada)
 {
-    $offset = ($pagina - 1) * $porPagina;
-
     try {
         $claveSae = $_SESSION['empresa']['claveSae'];
 
@@ -268,8 +266,7 @@ function mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $pa
             SUM(CantidadVendida)
             FOR Mes IN ([1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12])
         ) AS pvt
-        ORDER BY CVE_ART
-        OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;
+        ORDER BY CVE_ART;
         ";
 
         // Parámetros de la consulta
@@ -278,8 +275,6 @@ function mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $pa
         if (!empty($filtroFecha)) $params[] = $filtroFecha;
         // Otra vez para BaseProductos
         $params[] = $lineaSeleccionada;
-        $params[] = $offset;
-        $params[] = $porPagina;
 
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
@@ -449,11 +444,9 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
         $filtroCliente = $_POST['filtroCliente'] ?? '';
-        $pagina = (int) ($_POST['pagina'] ?? 1);
-        $porPagina = (int) ($_POST['porPagina'] ?? 10);
         $lineaSeleccionada = $_POST['lineaSeleccionada'] ?? '';
 
-        mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $pagina, $porPagina, $lineaSeleccionada);
+        mostrarProductosLineas($conexionData, $filtroFecha, $filtroCliente, $lineaSeleccionada);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
