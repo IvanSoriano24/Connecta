@@ -9,7 +9,8 @@ include 'reportes.php';
 
 //session_start();
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae){
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -1704,7 +1705,6 @@ function guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
-
 }
 function guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
 {
@@ -1895,7 +1895,7 @@ function guardarPartidasE($conexionData, $formularioData, $partidasData, $claveS
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Iniciar la transacción para las inserciones de las partidas
-    sqlsrv_begin_transaction($conn);
+    //    sqlsrv_begin_transaction($conn);
     $NUM_PAR = 1;
     // Iterar sobre las partidas recibidas
     if (isset($partidasData) && is_array($partidasData)) {
@@ -2002,6 +2002,33 @@ function guardarPartidasE($conexionData, $formularioData, $partidasData, $claveS
 }
 function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae, $conn)
 {
+    // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
+    // Asumiendo que la descripción está en una tabla llamada "productos"
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "SELECT DESCR FROM $nombreTabla WHERE CVE_ART = ?";
+    $stmt = sqlsrv_query($conn, $sql, [$CVE_ART]);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
+    }
+
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $descripcion = $row ? $row['DESCR'] : '';
+
+    sqlsrv_free_stmt($stmt);
+
+    return $descripcion;
+}
+function obtenerDescripcionProductoE($CVE_ART, $conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
     // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
     // Asumiendo que la descripción está en una tabla llamada "productos"
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -2423,9 +2450,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -3382,6 +3409,61 @@ function calcularTotalPedido($partidasData)
 function validarCreditoCliente($conexionData, $clienteId, $totalPedido, $claveSae, $conn)
 {
 
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT LIMCRED, SALDO FROM $nombreTabla WHERE [CLAVE] = ?";
+    $params = [str_pad($clienteId, 10, ' ', STR_PAD_LEFT)];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
+    }
+
+    $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if (!$clienteData) {
+        sqlsrv_close($conn);
+        return [
+            'success' => false,
+            'saldoActual' => null,
+            'limiteCredito' => null
+        ];
+    }
+
+    $limiteCredito = (float)$clienteData['LIMCRED'];
+    $saldoActual = (float)$clienteData['SALDO'];
+    $puedeContinuar = ($saldoActual + $totalPedido) <= $limiteCredito;
+
+    sqlsrv_free_stmt($stmt);
+
+    // Devolver el resultado y los datos relevantes
+    return [
+        'success' => $puedeContinuar,
+        'saldoActual' => $saldoActual,
+        'limiteCredito' => $limiteCredito
+    ];
+}
+function validarCreditoClienteE($conexionData, $clienteId, $totalPedido, $claveSae)
+{
+    // 1) Conectar
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID"      => $conexionData['usuario'],
+        "PWD"      => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -4813,6 +4895,78 @@ function validarSaldo($conexionData, $clave, $claveSae, $conn)
         return -1; // Código de error
     }
 }
+function validarSaldoE($conexionData, $clave, $claveSae)
+{
+    try {
+        // 1) Conectar
+        $serverName = $conexionData['host'];
+        $connectionInfo = [
+            "Database" => $conexionData['nombreBase'],
+            "UID"      => $conexionData['usuario'],
+            "PWD"      => $conexionData['password'],
+            "CharacterSet" => "UTF-8",
+            "TrustServerCertificate" => true
+        ];
+        $conn = sqlsrv_connect($serverName, $connectionInfo);
+        if ($conn === false) {
+            die(json_encode([
+                'success' => false,
+                'message' => 'Error al conectar con la base de datos',
+                'errors'  => sqlsrv_errors()
+            ]));
+        }
+        // Montamos los nombres de tabla dinámicos
+        $db    = $conexionData['nombreBase'];
+        $s   = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
+        $tablaCuenM = "[$db].[dbo].[CUEN_M{$s}]";
+        $tablaCuenD = "[$db].[dbo].[CUEN_DET{$s}]";
+        $tablaClie  = "[$db].[dbo].[CLIE{$s}]";
+        $tablaMon   = "[$db].[dbo].[MONED{$s}]";
+        // Consulta SQL para verificar saldo vencido
+        $sql = "
+        SELECT TOP 1 1
+        FROM $tablaCuenM CUENM
+        LEFT JOIN $tablaClie CLIENTES
+          ON CLIENTES.CLAVE = CUENM.CVE_CLIE
+        LEFT JOIN $tablaCuenD CUEND
+          ON CUEND.CVE_CLIE = CUENM.CVE_CLIE
+         AND CUEND.REFER    = CUENM.REFER
+         AND CUEND.NUM_CARGO= CUENM.NUM_CARGO
+        LEFT JOIN $tablaMon MON
+          ON CUENM.NUM_MONED = MON.NUM_MONED
+        WHERE CUENM.FECHA_VENC < GETDATE()
+          AND CLIENTES.STATUS <> 'B'
+          AND CLIENTES.CLAVE = ?
+          AND (
+             ISNULL((
+               SELECT SUM(IMPORTE)
+               FROM $tablaCuenD
+               WHERE CVE_CLIE = CUENM.CVE_CLIE
+                 AND REFER    = CUENM.REFER
+                 AND NUM_CARGO= CUENM.NUM_CARGO
+             ), 0) < CUENM.IMPORTE
+          )
+    ";
+
+        // Ejecutamos la consulta con sqlsrv_query
+        $params = [$clave];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            $errors = print_r(sqlsrv_errors(), true);
+            throw new Exception("Error al verificar saldo vencido:\n{$errors}");
+        }
+
+        // Si devuelve fila => saldo vencido
+        $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_NUMERIC);
+        sqlsrv_free_stmt($stmt);
+
+        return ($row !== null) ? 1 : 0;
+    } catch (PDOException $e) {
+        // Manejo de errores
+        echo "Error de conexión: " . $e->getMessage();
+        return -1; // Código de error
+    }
+}
 function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -5892,6 +6046,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
 
         if ($numeroBandera === 0) {
             $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            //var_dump($resultadoWhatsApp);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -6646,8 +6801,7 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData)
-{
+function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData){
     global $firebaseProjectId, $firebaseApiKey;
 
     // Validar que se cuente con los datos mínimos requeridos
@@ -6686,7 +6840,7 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     foreach ($partidasData as &$partida) {  // 🔹 Pasar por referencia para modificar el array
         $CVE_ART = $partida['producto'];
-        $partida['descripcion'] = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
+        $partida['descripcion'] = obtenerDescripcionProductoE($CVE_ART, $conexionData, $claveSae);
     }
     // Preparar los campos que se guardarán en Firebase 
     $fields = [
@@ -6820,9 +6974,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -7855,7 +8009,7 @@ switch ($funcion) {
                             //Funcion para eliminar anticipo
                             $estatus = 'E';
                             guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
-
+                            actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             actualizarFolioE($conexionData, $claveSae); //ROLLBACK
                             guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
@@ -7879,6 +8033,7 @@ switch ($funcion) {
                             //No tiene fondos
                             $estatus = 'C';
                             guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
+                            actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             actualizarFolioE($conexionData, $claveSae); //ROLLBACK
                             guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
@@ -7924,7 +8079,11 @@ switch ($funcion) {
                 }
                 exit(); //borar
             } elseif ($tipoOperacion === 'editar') {
-
+                /*echo json_encode([
+                            'success' => false,
+                            'message' => 'No se pudo actualizar el pedido.',
+                        ]);
+                die();*/
                 $clienteId = $formularioData['cliente'];
                 $clave = formatearClaveCliente($clienteId);
                 $dataCredito = json_decode(validarCreditos($conexionData, $clave), true);
@@ -7945,7 +8104,7 @@ switch ($funcion) {
                     $totalPedido = calcularTotalPedido($partidasData);
 
                     // Validar crédito del cliente
-                    $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
+                    $validacionCredito = validarCreditoClienteE($conexionData, $clave, $totalPedido, $claveSae);
 
                     if ($validacionCredito['success']) {
                         $credito = '0';
@@ -7953,7 +8112,7 @@ switch ($funcion) {
                         $credito = '1';
                     }
 
-                    $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
+                    $validarSaldo = validarSaldoE($conexionData, $clave, $claveSae);
 
                     if ($validarSaldo == 0 && $credito == 0) {
                         $estatus = "E";
@@ -8258,7 +8417,7 @@ switch ($funcion) {
 
         $resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
         if ($resultadoValidacion['success']) {
-            $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae);
+            $validacionCredito = validarCreditoClienteE($conexionData, $clave, $totalPedido, $claveSae);
             if ($validacionCredito['success']) {
                 $validarSaldo = validarSaldo($conexionData, $clave, $claveSae);
                 if ($validarSaldo === 0) {
