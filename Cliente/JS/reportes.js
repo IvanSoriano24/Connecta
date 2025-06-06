@@ -1,16 +1,11 @@
 const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
 
-let paginaActual = 1;
-let registrosPorPagina = 10;
-
 let filtroFecha = "";
 let filtroVendedor = "";
 let filtroCliente = "";
 
 function datosReportes(limpiarTabla = true) {
-    $("#pagination").empty();
     lineaSeleccionada = null;
-    $(".pagination-controls").toggle(!!lineaSeleccionada);
     const tabla = document.getElementById("datosReportes");
     const numColumns = tabla.querySelector("thead")
         ? tabla.querySelector("thead").rows[0].cells.length
@@ -110,8 +105,6 @@ function cargarProductosLinea(cveLinea, limpiarTabla = true) {
             cveLinea: cveLinea,
             filtroFecha: filtroFecha,
             filtroCliente: filtroCliente,
-            pagina: paginaActual,
-            porPagina: registrosPorPagina,
             lineaSeleccionada: lineaSeleccionada
         },
         function (response) {
@@ -172,7 +165,6 @@ function cargarProductosLinea(cveLinea, limpiarTabla = true) {
                     }
 
                     tabla.appendChild(fragment);
-                    buildPaginationReportes(response.total);
                 }
 
                 else {
@@ -194,58 +186,14 @@ let lineaSeleccionada = null;
 $(document).on("click", ".linea-click", function () {
     const cveLinea = $(this).data("linea");
     if (!cveLinea) return;
-    paginaActual = 1; // Reinicia la paginación al hacer clic en una línea
     cargarProductosLinea(cveLinea, true);
 });
-
-function buildPaginationReportes(total) {
-    const $cont = $("#pagination").empty();
-
-    if (!lineaSeleccionada) return; // ❌ No construir si no hay línea
-    $(".pagination-controls").toggle(!!lineaSeleccionada);
-
-    const totalPages = Math.ceil(total / registrosPorPagina);
-    const maxButtons = 5;
-
-    if (totalPages <= 1) return;
-
-    let start = Math.max(1, paginaActual - Math.floor(maxButtons / 2));
-    let end = start + maxButtons - 1;
-    if (end > totalPages) {
-        end = totalPages;
-        start = Math.max(1, end - maxButtons + 1);
-    }
-
-    function makeBtn(text, page, disabled, active) {
-        return $("<button>")
-            .text(text)
-            .toggleClass("active", active)
-            .prop("disabled", disabled)
-            .on("click", function () {
-                if (paginaActual !== page) {
-                    paginaActual = page;
-                    cargarProductosLinea(lineaSeleccionada, true);
-                }
-            });
-    }
-
-    $cont.append(makeBtn("«", 1, paginaActual === 1, false));
-    $cont.append(makeBtn("‹", paginaActual - 1, paginaActual === 1, false));
-
-    for (let i = start; i <= end; i++) {
-        $cont.append(makeBtn(i, i, false, i === paginaActual));
-    }
-
-    $cont.append(makeBtn("›", paginaActual + 1, paginaActual === totalPages, false));
-    $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
-}
 
 $(document).on("change", "#filtroFecha, #filtroVendedor, #filtroClientes", function () {
     filtroFecha = $("#filtroFecha").val();
     filtroVendedor = $("#filtroVendedor").val();
     filtroCliente = $("#filtroClientes").val();
 
-    paginaActual = 1;
     datosReportes(true);
 });
 let partidasData = []; // Este contiene las partidas actuales del formulario
@@ -282,9 +230,6 @@ function doSearchReportes(limpiarTabla = true) {
     const searchText = document.getElementById("searchTerm").value.toLowerCase();
     const tabla = document.getElementById("datosReportes");
     const filas = tabla.getElementsByTagName("tr");
-
-    // Control de paginación según si hay una línea seleccionada
-    $(".pagination-controls").toggle(!!lineaSeleccionada);
 
     if (searchText.length >= 2) {
         const resultados = [];

@@ -309,18 +309,6 @@ session_destroy(); */
                             <tbody id="datosReportes">
                             </tbody>
                         </table>
-                        <!-- Botón Mostrar Más -->
-                        <div id="pagination" class="pagination">
-                        </div>
-                        <div class="pagination-controls">
-                            <label for="selectCantidad" class="cantidad-label">Mostrar</label>
-                            <select id="selectCantidad" class="cantidad-select">
-                                <option value="10">10</option>
-                                <option value="20">20</option>
-                                <option value="30">30</option>
-                            </select>
-                            <span class="cantidad-label">por página</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -343,16 +331,6 @@ session_destroy(); */
     } else {
         llenarFiltroCliente();
     }
-
-    $("#selectCantidad").on("change", function () {
-        const seleccion = parseInt($(this).val(), 10);
-        registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
-
-        // Verifica si ya hay una línea seleccionada
-        if (lineaSeleccionada) {
-            cargarProductosLinea(lineaSeleccionada, true); // Limpia la tabla y carga nuevos datos
-        }
-    });
 </script>
 </body>
 </html>
