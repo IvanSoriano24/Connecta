@@ -4,6 +4,7 @@
 
 // Maneja la creación de la fila de partidas
 function agregarFilaPartidas() {
+  //Verificamos si se tiene un cliente seleccionado
   const clienteSeleccionado =
     sessionStorage.getItem("clienteSeleccionado") === "true";
   if (!clienteSeleccionado) {
@@ -16,17 +17,20 @@ function agregarFilaPartidas() {
     return;
   }
 
+  //Obtenemos la tabla y las filas de las partidas
   const tablaProductos = document.querySelector("#tablaProductos tbody");
   const filas = tablaProductos.querySelectorAll("tr");
 
   //  Permitir agregar la primera fila sin validaciones previas
   if (filas.length > 0) {
+    //Obtenemos los datos (producto, cantidad y total) de la ultima fila
     const ultimaFila = filas[filas.length - 1];
     const ultimoProducto = ultimaFila.querySelector(".producto").value.trim();
     const ultimaCantidad =
       parseFloat(ultimaFila.querySelector(".cantidad").value) || 0;
     const ultimoTotal =
       parseFloat(ultimaFila.querySelector(".subtotalPartida").value) || 0;
+    //Validamos si hay un producto o si este tiene una cantidad es diferente a 0
     if (ultimoProducto === "" || ultimaCantidad === 0) {
       Swal.fire({
         title: "Aviso",
@@ -36,6 +40,7 @@ function agregarFilaPartidas() {
       });
       return;
     }
+    //Validamos si el total de la partida es diferente a 0
     if (ultimoTotal === 0) {
       Swal.fire({
         title: "Aviso",
@@ -129,6 +134,7 @@ function agregarFilaPartidas() {
   //console.log("Partidas actuales después de agregar:", partidasData);
 }
 function eliminarPartidaFormulario(numPar, filaAEliminar) {
+  //Mensaje para confirmar
   Swal.fire({
     title: "¿Estás seguro?",
     text: "¿Deseas eliminar esta partida?",
@@ -163,37 +169,55 @@ function eliminarPartidaFormulario(numPar, filaAEliminar) {
 }
 
 function obtenerProductos(input) {
-  const numFuncion = 5; // Número de función para identificar la acción (en este caso obtener productos)
+  // numFuncion=5 indica en PHP que queremos la acción “obtener productos”
+  const numFuncion = 5;
+
+  // Creamos un nuevo objeto XMLHttpRequest
   const xhr = new XMLHttpRequest();
-  xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
+
+  // Configuramos la llamada GET a nuestro endpoint, pasando numFuncion por query string
+  xhr.open(
+    "GET",
+    "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion,
+    true
+  );
+
+  // Indicamos que enviaremos/recibiremos JSON
   xhr.setRequestHeader("Content-Type", "application/json");
 
+  // Cuando la respuesta llegue al 100%:
   xhr.onload = function () {
+    // Si el servidor respondió con HTTP 200 (OK)
     if (xhr.status === 200) {
+      // Parseamos el texto JSON que devolvió el servidor
       const response = JSON.parse(xhr.responseText);
+
+      // Si el servidor indicó éxito en el JSON:
       if (response.success) {
-        // Procesamos la respuesta de los productos
+        // Llamamos a la función que muestra la lista de productos, 
+        // pasándole el array de productos y el input donde se debe desplegar
         mostrarListaProductos(response.productos, input);
       } else {
+        // Si success = false, mostramos un aviso con el mensaje devuelto
         Swal.fire({
           title: "Aviso",
           text: response.message,
           icon: "warning",
           confirmButtonText: "Aceptar",
         });
-        //alert("Error: " + response.message);
       }
     } else {
+      // Si el HTTP status no es 200, hubo un error en la consulta
       Swal.fire({
         title: "Aviso",
         text: "Hubo un problema con la consulta de productos.",
         icon: "error",
         confirmButtonText: "Aceptar",
       });
-      //alert("Hubo un problema con la consulta de productos.");
     }
   };
 
+  // Si ocurre algún error de red (por ejemplo, sin conexión)
   xhr.onerror = function () {
     Swal.fire({
       title: "Aviso",
@@ -201,24 +225,23 @@ function obtenerProductos(input) {
       icon: "error",
       confirmButtonText: "Aceptar",
     });
-    //alert("Hubo un problema con la conexión.");
   };
 
+  // Finalmente, enviamos la petición al servidor
   xhr.send();
 }
 
 async function obtenerImpuesto(cveEsqImpu) {
   return new Promise((resolve, reject) => {
     $.ajax({
-      url: "../Servidor/PHP/ventas.php",
-      type: "POST",
-      data: { cveEsqImpu: cveEsqImpu, numFuncion: "7" },
+      url: "../Servidor/PHP/ventas.php",      // Endpoint en el servidor que procesa la solicitud
+      type: "POST",                            // Método HTTP POST
+      data: { cveEsqImpu: cveEsqImpu, numFuncion: "7" }, // Parámetros enviados al servidor
       success: function (response) {
         try {
-          // Usa el objeto directamente
+          // Si el servidor indica éxito, extraemos los impuestos y resolvemos la promesa
           if (response.success) {
-            const { IMPUESTO1, IMPUESTO2, IMPUESTO3, IMPUESTO4 } =
-              response.impuestos;
+            const { IMPUESTO1, IMPUESTO2, IMPUESTO3, IMPUESTO4 } = response.impuestos;
             resolve({
               impuesto1: IMPUESTO1,
               impuesto2: IMPUESTO2,
@@ -226,15 +249,18 @@ async function obtenerImpuesto(cveEsqImpu) {
               impuesto4: IMPUESTO4,
             });
           } else {
+            // Si success = false, mostramos error en consola y rechazamos la promesa
             console.error("Error del servidor:", response.message);
             reject("Error del servidor: " + response.message);
           }
         } catch (error) {
+          // Si la respuesta no tiene el formato esperado, rechazamos la promesa
           console.error("Error al procesar la respuesta:", error);
           reject("Error al procesar la respuesta: " + error.message);
         }
       },
       error: function (xhr, status, error) {
+        // Si falla la petición AJAX, rechazamos la promesa
         reject("Error en la solicitud AJAX: " + error);
       },
     });
@@ -242,20 +268,28 @@ async function obtenerImpuesto(cveEsqImpu) {
 }
 async function completarPrecioProducto(cveArt, filaTabla) {
   try {
-    // Obtener la lista de precios correctamente
+    // Obtenemos el elemento <select> de lista de precios
     const listaPrecioElement = document.getElementById("listaPrecios");
     console.log(listaPrecioElement.value);
-    let descuento = filaTabla.querySelector(".descuento");
-    const descuentoCliente = document.getElementById("descuentoCliente").value;
-    descuento.value = descuentoCliente;
-    //descuento.readOnly = false;
-    const cvePrecio = listaPrecioElement ? listaPrecioElement.value : "1";
-    // Obtener el precio del producto
-    const resultado = await obtenerPrecioProducto(cveArt, cvePrecio);
-    if (!resultado) return;
 
+    // Buscamos el campo de descuento dentro de la fila
+    let descuento = filaTabla.querySelector(".descuento");
+    // Leemos el descuento predeterminado del cliente
+    const descuentoCliente = document.getElementById("descuentoCliente").value;
+    // Inicialmente, asignamos ese descuento al campo
+    descuento.value = descuentoCliente;
+
+    // Determinamos la clave de lista de precios; si no existe, usamos "1"
+    const cvePrecio = listaPrecioElement ? listaPrecioElement.value : "1";
+
+    // Llamamos a la función que obtiene precio y lista usada
+    const resultado = await obtenerPrecioProducto(cveArt, cvePrecio);
+    if (!resultado) return; // Si no hay resultado válido, salimos
+
+    // Desestructuramos el objeto {precio, listaUsada}
     const { precio, listaUsada } = resultado;
 
+    // Si no se obtuvo precio, mostramos alerta y salimos
     if (!precio) {
       Swal.fire({
         title: "Aviso",
@@ -263,39 +297,40 @@ async function completarPrecioProducto(cveArt, filaTabla) {
         icon: "warning",
         confirmButtonText: "Aceptar",
       });
-      //alert("No se pudo obtener el precio del producto.");
       return;
     }
-    if(listaUsada != 1){
+
+    // Si la lista usada no es la predeterminada (1), forzamos el descuento a 0
+    if (listaUsada != 1) {
       descuento.value = 0;
     }
-    // Seleccionar el input correspondiente dentro de la fila
+
+    // Buscamos el campo de precioUnitario dentro de la fila
     const precioInput = filaTabla.querySelector(".precioUnidad");
     if (precioInput) {
-      precioInput.value = parseFloat(precio).toFixed(2); // Establecer el precio con 2 decimales
+      // Asignamos el precio con dos decimales y lo dejamos readonly
+      precioInput.value = parseFloat(precio).toFixed(2);
       precioInput.readOnly = true;
     } else {
       console.error("No se encontró el campo 'precioUnidad' en la fila.");
     }
-    // Obtener y manejar impuestos
-    var CVE_ESQIMPU = document.getElementById("CVE_ESQIMPU").value; // Asegurarse de usar el valor
+
+    // Obtenemos la clave de esquema de impuestos del formulario principal
+    const CVE_ESQIMPU = document.getElementById("CVE_ESQIMPU").value;
     if (!CVE_ESQIMPU) {
       console.error("CVE_ESQIMPU no tiene un valor válido.");
       return;
     }
+    // Llamamos a la función que obtiene los valores de impuestos
     const impuestos = await obtenerImpuesto(CVE_ESQIMPU);
 
-    // Obtén los campos de la fila
+    // Obtenemos cada campo de impuesto dentro de la fila
     const impuesto1Input = filaTabla.querySelector(".ieps");
     const impuesto2Input = filaTabla.querySelector(".impuesto2");
     const impuesto4Input = filaTabla.querySelector(".iva");
     const impuesto3Input = filaTabla.querySelector(".impuesto3");
-    /*const impuesto1Input = document.querySelector(".ieps");
-    const impuesto2Input = document.querySelector(".descuento2");
-    const impuesto4Input = document.querySelector(".iva");
-    const impuesto3Input = document.querySelector(".impuesto3");*/
 
-    // Verifica si los campos existen y asigna los valores de los impuestos
+    // Si existen los campos, asignamos los valores y los dejamos readonly
     if (impuesto1Input && impuesto4Input) {
       impuesto1Input.value = parseFloat(impuestos.impuesto1);
       impuesto4Input.value = parseFloat(impuestos.impuesto4);
@@ -303,43 +338,42 @@ async function completarPrecioProducto(cveArt, filaTabla) {
       impuesto1Input.readOnly = true;
       impuesto4Input.readOnly = true;
     } else {
-      console.error(
-        "No se encontraron uno o más campos 'descuento' en la fila."
-      );
+      console.error("No se encontraron uno o más campos de impuestos en la fila.");
     }
 
-    // Maneja los impuestos como sea necesario
+    // Aquí podrías manejar impuesto2Input si lo usas en alguna lógica adicional
   } catch (error) {
     console.error("Error al completar el precio del producto:", error);
   }
 }
-
 // Función para obtener el precio del producto
 async function obtenerPrecioProducto(claveProducto, listaPrecioCliente) {
   try {
+    // Realizamos un GET a ventas.php para el numFuncion=6, enviando claveProducto y listaPrecioCliente
     const response = await $.get("../Servidor/PHP/ventas.php", {
-      numFuncion: "6", // Cambia según la función que uses en tu PHP
+      numFuncion: "6",
       claveProducto: claveProducto,
       listaPrecioCliente: listaPrecioCliente,
     });
-    if (response.success) {
-      //console.log(response);
-      return {
-      precio: parseFloat(response.precio),
-      listaUsada: response.listaUsada
-    };
 
+    // Si el servidor devuelve success = true, retornamos un objeto con precio y listaUsada
+    if (response.success) {
+      return {
+        precio: parseFloat(response.precio),
+        listaUsada: response.listaUsada,
+      };
     } else {
+      // Si success = false, mostramos un aviso y retornamos null
       Swal.fire({
         title: "Aviso",
         text: response.message,
         icon: "warning",
         confirmButtonText: "Aceptar",
       });
-      //alert(response.message); // Muestra el mensaje de error
       return null;
     }
   } catch (error) {
+    // Si hay un error en la llamada AJAX, lo registramos en consola y retornamos null
     console.error("Error al obtener el precio del producto:", error);
     return null;
   }
@@ -380,20 +414,9 @@ function mostrarListaProductos(productos, input) {
       celdaDescripcion.textContent = producto.DESCR;
       const celdaExist = document.createElement("td");
       celdaExist.textContent = producto.EXIST;
-      // const celdaLinea = document.createElement("td");
-      // celdaLinea.textContent = producto.LIN_PROD;
-
-      // const celdaDisponible = document.createElement("td");
-      // celdaDisponible.textContent = producto.DISPONIBLE;
-
-      // const celdaClaveAlterna = document.createElement("td");
-      // celdaClaveAlterna.textContent = producto.CVE_ALT;
       fila.appendChild(celdaClave);
       fila.appendChild(celdaDescripcion);
       fila.appendChild(celdaExist);
-      // fila.appendChild(celdaLinea);
-      // fila.appendChild(celdaDisponible);
-      // fila.appendChild(celdaClaveAlterna);
       fila.onclick = async function () {
         if (producto.EXIST > 0) {
           input.value = producto.CVE_ART;
@@ -443,14 +466,17 @@ function mostrarListaProductos(productos, input) {
 }
 
 function calcularSubtotal(fila) {
+  //Obtiene el campo de la cantidad
   const cantidadInput = fila.querySelector(".cantidad");
+  //Obtiene el campo del precio
   const precioInput = fila.querySelector(".precioUnidad");
+  //Obtiene el campo del total
   const subtotalInput = fila.querySelector(".subtotalPartida");
 
-  const cantidad = parseFloat(cantidadInput.value) || 0; // Manejar valores no numéricos
-  const precio = parseFloat(precioInput.value) || 0;
+  const cantidad = parseFloat(cantidadInput.value) || 0; // Obtiene el valor de la cantidad de producto
+  const precio = parseFloat(precioInput.value) || 0; //Obtiene el valor del precio del producto
 
-  const subtotal = cantidad * precio;
+  const subtotal = cantidad * precio; //Realiza la operacion
   subtotalInput.value = subtotal.toFixed(2); // Actualizar el subtotal con dos decimales
 }
 
@@ -500,9 +526,10 @@ function consolidarPartidasEnTabla() {
 
 function guardarPedido(id) {
   try {
+    //Obtenemos los datos de envio
     const envioData = extraerDatosEnvio();
     console.log("Datos de envio obtenidos:", envioData);
-
+    //Validamos que esten completas
     const validacion = validarDatosEnvio();
     if (!validacion) {
       Swal.fire({
@@ -513,6 +540,7 @@ function guardarPedido(id) {
       });
       return;
     }
+    //Mensaje de carga
     Swal.fire({
       title: "Procesando pedido...",
       text: "Por favor, espera mientras se completa el pedido.",
@@ -522,11 +550,12 @@ function guardarPedido(id) {
         Swal.showLoading();
       },
     });
+    //Funcion para unir las partidas cuyos productos sean el mismo
     consolidarPartidasEnTabla();
-    // Obtener la información del formulario y las partidas
+    // Obtener la información del formulario
     const formularioData = obtenerDatosFormulario();
     console.log("Datos del formulario obtenidos:", formularioData);
-
+    // Obtener la información de las partidas
     const partidasData = obtenerDatosPartidas();
     console.log("Datos de partidas obtenidos:", partidasData);
 
@@ -541,9 +570,9 @@ function guardarPedido(id) {
   }
 }
 function validarDatosEnvio() {
+//Obtenemos los valores
   const nombreContacto = document.getElementById("nombreContacto").value;
   const compañiaContacto = document.getElementById("compañiaContacto").value;
-
   const telefonoContacto = document.getElementById("telefonoContacto").value;
   const correoContacto = document.getElementById("correoContacto").value;
   const direccion1Contacto =
@@ -691,10 +720,15 @@ function obtenerDatosPartidas() {
   return partidasData;
 }
 function enviarDatosBackend(formularioData, partidasData, envioData) {
+  //Se crear un FormData para enviar los datos
   const formData = new FormData();
+  //Se agrega el numero de funcion
   formData.append("numFuncion", "8");
+  //Se los datos del pedido
   formData.append("formulario", JSON.stringify(formularioData));
+  //Se agrega las partidas
   formData.append("partidas", JSON.stringify(partidasData));
+  //Se agrega los datos de envio
   formData.append("envio", JSON.stringify(envioData));
 
   fetch("../Servidor/PHP/ventas.php", {
@@ -725,6 +759,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
       console.log("Respuesta del servidor:", data);
 
       if (data.success) {
+        //Mensaje cuando el pedido se realizo con exito
         Swal.fire({
           title: "¡Pedido guardado exitosamente!",
           text: data.message || "El pedido se procesó correctamente.",
@@ -735,6 +770,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           window.location.href = "Ventas.php";
         });
       } else if (data.autorizacion) {
+        //Mensaje cuando se tiene que autorizar el pedido por un administrador
         Swal.fire({
           title: "Saldo vencido",
           text:
@@ -746,8 +782,10 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           window.location.href = "Ventas.php";
         });
       } else if (data.exist) {
+        //Mensaje cuando no hay existencias para algunos productos
         Swal.fire({
           title: "Error al guardar el pedido",
+          //Creacion de Mensaje con los productos, exitencias y apartados de estos
           html: `
             <p>${
               data.message ||
@@ -775,6 +813,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           confirmButtonText: "Aceptar",
         });
       } else if (data.cxc) {
+        //Mensaje cuando no se encontro un anticipo y tiene 24/27 horas para pagar
         Swal.fire({
           title: "Cuenta por pagar",
           text: data.message || "El cliente tiene una cuenta por pagar",
@@ -785,6 +824,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           window.location.href = "Ventas.php";
         });
       } else if (data.telefono) {
+        //Mensaje cuando solo se le pudo notificar al cliente por WhatsApp
         Swal.fire({
           title: "Pedido Guardado",
           text: data.message || "",
@@ -795,6 +835,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           window.location.href = "Ventas.php";
         });
       } else if (data.correo) {
+        //Mensaje cuando solo se le pudo notificar al cliente por correo
         Swal.fire({
           title: "Pedido Guardado",
           text: data.message || "",
@@ -805,6 +846,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           window.location.href = "Ventas.php";
         });
       } else if (data.notificacion) {
+        //Mensaje cuando no se pudo notificar al cliente y se le notifico al vendedor
         Swal.fire({
           title: "Pedido Guardado",
           text: data.message || "",
@@ -814,7 +856,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else if (data.datos) {
+      /*} else if (data.datos) {
         Swal.fire({
           title: "Pedido Guardado",
           text: data.message || "El cliente tiene una cuenta por pagar",
@@ -823,7 +865,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
-        });
+        });*/
       } else {
         Swal.fire({
           title: "Error al guardar el pedido",
@@ -846,12 +888,12 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
   return false;
 }
 
-function editarPedido(pedidoID) {
+/*function editarPedido(pedidoID) {
   // Datos necesarios para la edición
   const datos = {
-    numFuncion: "11", // Ejemplo: Caso 4 para editar pedido
+    numFuncion: "11", // Numero de funcion
     pedidoID: pedidoID,
-    cliente: $("#cliente").val(),
+    cliente: $("#cliente").val(), //C
     // Otros datos del formulario
   };
 
@@ -881,8 +923,8 @@ function editarPedido(pedidoID) {
   }).fail(function (xhr, status, error) {
     console.error("Error de AJAX:", error);
   });
-}
-function filtrarClientes() {
+}*/
+/*function filtrarClientes() {
   const criterio = document.getElementById("filtroCriterioClientes").value;
   const busqueda = document
     .getElementById("campoBusquedaClientes")
@@ -894,7 +936,7 @@ function filtrarClientes() {
   });
 
   renderClientes(clientesFiltrados);
-}
+}*/
 // MODAL MOSTRAR CLIENTES
 
 // Variables globales
@@ -906,8 +948,8 @@ let clientesData = []; // Para almacenar los datos originales de los clientes
 function abrirModalClientes() {
   const modalElement = document.getElementById("modalClientes");
   const modal = new bootstrap.Modal(modalElement);
-  const datosClientes = document.getElementById("datosClientes");
-  const token = document.getElementById("csrf_token").value;
+  const datosClientes = document.getElementById("datosClientes"); //Tbody de la tabla del modal
+  const token = document.getElementById("csrf_token").value; //Token de seguridad
 
   // Solicitar datos al servidor
   $.post(
@@ -930,7 +972,7 @@ function abrirModalClientes() {
       }
     }
   );
-
+//Abrir modal
   modal.show();
 }
 
@@ -940,6 +982,7 @@ function renderClientes(clientes) {
   datosClientes.innerHTML = "";
   clientes.forEach((cliente) => {
     const fila = document.createElement("tr");
+    //Contruir fila con datos
     fila.innerHTML = `
             <td>${cliente.CLAVE}</td>
             <td>${cliente.NOMBRE}</td>
@@ -962,9 +1005,9 @@ function seleccionarClienteDesdeModal(cliente) {
 
   // Actualizar estado de cliente seleccionado
   sessionStorage.setItem("clienteSeleccionado", true);
-  llenarDatosCliente(cliente);
+  llenarDatosCliente(cliente); //Llenar los campos del cliente con su informacion
   cerrarModalClientes(); // Cerrar el modal
-  desbloquearCampos();
+  desbloquearCampos(); //Desbloque los campos para el formulario
 }
 
 function validarCreditoCliente(clienteId) {
@@ -1534,27 +1577,22 @@ function actualizarDatos() {
   });
 }
 function guardarDatosEnvio() {
+  // 1. Obtener el ID del cliente seleccionado
   const clienteId = document.getElementById("cliente").value;
 
+  // 2. Leer todos los campos del formulario de nuevo envío
   const tituloEnvio = document.getElementById("titutoContacto").value;
   const nombreContacto = document.getElementById("nombreNuevoContacto").value;
   const compañia = document.getElementById("compañiaNuevoContacto").value;
-  const telefonoContacto = document.getElementById(
-    "telefonoNuevoContacto"
-  ).value;
+  const telefonoContacto = document.getElementById("telefonoNuevoContacto").value;
   const correoContacto = document.getElementById("correoNuevoContacto").value;
-  const linea1Contacto = document.getElementById(
-    "direccion1NuevoContacto"
-  ).value;
-  const linea2Contacto = document.getElementById(
-    "direccion2NuevoContacto"
-  ).value;
+  const linea1Contacto = document.getElementById("direccion1NuevoContacto").value;
+  const linea2Contacto = document.getElementById("direccion2NuevoContacto").value;
   const codigoContacto = document.getElementById("codigoNuevoContacto").value;
   const estadoContacto = document.getElementById("estadoNuevoContacto").value;
-  const municipioContacto = document.getElementById(
-    "municipioNuevoContacto"
-  ).value;
+  const municipioContacto = document.getElementById("municipioNuevoContacto").value;
 
+  // 3. Validar que no falte ninguno de los campos requeridos
   if (
     !nombreContacto ||
     !tituloEnvio ||
@@ -1572,15 +1610,17 @@ function guardarDatosEnvio() {
       title: "Aviso",
       text: "Faltan datos.",
     });
-    return;
+    return; // Abortamos si falta algún campo
   }
+
+  // 4. Enviar los datos al servidor vía AJAX
   $.ajax({
-    url: "../Servidor/PHP/clientes.php",
+    url: "../Servidor/PHP/clientes.php", // Punto final en PHP que procesará el guardado
     method: "POST",
     data: {
-      numFuncion: "6",
-      clienteId: clienteId,
-      tituloEnvio: tituloEnvio,
+      numFuncion: "6",            // Identificador de la función en el servidor
+      clienteId: clienteId,       // ID del cliente al que pertenece esta dirección
+      tituloEnvio: tituloEnvio,   // Título o alias de la dirección
       nombreContacto: nombreContacto,
       compañia: compañia,
       telefonoContacto: telefonoContacto,
@@ -1593,29 +1633,32 @@ function guardarDatosEnvio() {
     },
     dataType: "json",
     success: function (envios) {
+      // Esta función se ejecuta si la petición AJAX devuelve HTTP 200
       if (envios.success) {
         Swal.fire({
-          icon: "succes",
-          title: "Exito",
-          text: "Se Guardaron los Nuevos Datos de Envio.",
+          icon: "success",
+          title: "Éxito",
+          text: "Se guardaron los nuevos datos de envío.",
         }).then(() => {
+          // Cuando cierren el cuadro de alerta, ocultamos el modal y recargamos listados
           $("#modalNuevoEnvio").modal("hide");
-          mostrarMoldal();
-          //$("#modalEnvio").modal("show");
+          mostrarMoldal(); // Suponemos que esta función recarga la lista de envíos
         });
       } else {
+        // Si success = false, mostramos advertencia con el mensaje del servidor
         Swal.fire({
           icon: "warning",
           title: "Aviso",
-          text: envios.message || "No se encontraron datos de Envio.",
+          text: envios.message || "No se pudieron guardar los datos de envío.",
         });
       }
     },
     error: function () {
+      // Si la petición AJAX falla (500, 404, etc.)
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Error al obtener los datos de envio.",
+        text: "Error al guardar los datos de envío.",
       });
     },
   });
@@ -1646,6 +1689,7 @@ function mostrarMoldal() {
   $("#modalEnvio").modal("show");
 }
 function limpiarFormulario() {
+  //Limpia los campos (los deja vacios)
   $("#idDatos").val("");
   $("#folioDatos").val("");
   $("#nombreContacto").val("");
@@ -1659,6 +1703,7 @@ function limpiarFormulario() {
   $("#municipioContacto").val("");
 }
 function limpiarFormularioNuevo() {
+  //Limpia los campos (los deja vacios)
   $("#titutoContacto").val("");
   $("#nombreNuevoContacto").val("");
   $("#compañiaNuevoContacto").val("");
@@ -1736,7 +1781,7 @@ document
     }
   });
 $(document).ready(function () {
-  $("#guardarPedido").click(async function (event) {
+  $("#guardarPedido").click(async function (event) { //Funcion que se activa al guardar el pedido
     event.preventDefault();
     const clienteSeleccionado =
       sessionStorage.getItem("clienteSeleccionado") === "true";
@@ -1748,7 +1793,7 @@ $(document).ready(function () {
       // Obtener el siguiente folio del backend
       const folio = await obtenerFolioSiguiente();
       console.log("Folio obtenido:", folio);
-
+      // Verificar si es una alta de pedido o una edicion
       if (folio == id) {
         console.log("Guardando nuevo pedido...");
         id = 0;
@@ -1762,6 +1807,7 @@ $(document).ready(function () {
         document.getElementById("numero").value
       );
       if (!clienteSeleccionado) {
+        //Mensaje cuando se quiera guardar pero no hay cliente
         Swal.fire({
           title: "Aviso",
           text: "Debes Tener un Cliente para Guardar.",
@@ -1773,6 +1819,7 @@ $(document).ready(function () {
       const tablaProductos = document.querySelector("#tablaProductos tbody");
       const filas = tablaProductos.querySelectorAll("tr");
       if (!filas[filas.length - 1]) {
+        //Mensaje cuando se quiera guardar pero no hay partidas
         Swal.fire({
           title: "Aviso",
           text: "Debes Crear una Partida Antes de Guardar.",
@@ -1790,6 +1837,7 @@ $(document).ready(function () {
         parseFloat(ultimaFila.querySelector(".subtotalPartida").value) || 0;
 
       if (ultimoProducto === "" || ultimaCantidad === 0) {
+        //Mensaje cuando se quiera guardar pero no hay producto seleccionado o su cantidad es 0
         Swal.fire({
           title: "Aviso",
           text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de guardar el pedido.",
@@ -1799,6 +1847,7 @@ $(document).ready(function () {
         return;
       }
       if (ultimoTotal === 0) {
+        //Mensaje cuando se quiera guardar el total es 0
         Swal.fire({
           title: "Aviso",
           text: "No puedes realizar un pedido con costo 0.",
@@ -1817,18 +1866,23 @@ $(document).ready(function () {
   });
 });
 $("#cerrarModalHeader").on("click", function () {
+  //Funcion para cerrar el modal de datos de envio
   cerrarModalEnvio();
 });
 $("#cerrarModalHeaderNuevo").on("click", function () {
+  //Funcion para cerrar el modal de nuevos datos de envio
   cerrarModalNuevoEnvio();
 });
 $("#cerrarModalFooter").on("click", function () {
+  //Funcion para cerrar el modal de datos de envio
   cerrarModalEnvio();
 });
 $("#cerrarModalFooterNuevo").on("click", function () {
+  //Funcion para cerrar el modal de nuevos datos de envio
   cerrarModalNuevoEnvio();
 });
 $("#AyudaCondicion").click(function () {
+  //Boton de ayuda para el campo de condicion
   event.preventDefault();
   Swal.fire({
     title: "Ayuda",
@@ -1839,6 +1893,7 @@ $("#AyudaCondicion").click(function () {
 });
 
 $("#AyudaDescuento").click(function () {
+  //Boton de ayuda para el campo de descuento
   event.preventDefault();
   Swal.fire({
     title: "Ayuda",
@@ -1849,6 +1904,7 @@ $("#AyudaDescuento").click(function () {
 });
 
 $("#AyudaDescuentofin").click(function () {
+  //Boton de ayuda para el campo de descuento financiero
   event.preventDefault();
   Swal.fire({
     title: "Ayuda",
@@ -1859,6 +1915,7 @@ $("#AyudaDescuentofin").click(function () {
 });
 
 $("#AyudaEnviarA").click(function () {
+  //Boton de ayuda para el campo de Enviar a
   event.preventDefault();
   Swal.fire({
     title: "Ayuda",
@@ -1869,12 +1926,15 @@ $("#AyudaEnviarA").click(function () {
 });
 
 $("#cancelarPedido").click(function () {
+  //Boton para redigir a la seccion de pedidos
   window.location.href = "Ventas.php";
 });
 $("#datosEnvio").click(function () {
+  //Funcion para mostrar el modal de los datos de envio
   mostrarMoldal();
 });
 $("#nuevosDatosEnvio").click(function () {
+  //!!!!!!!
   $("#modalEnvio").modal("hide");
   limpiarFormularioNuevo();
   obtenerEstadosNuevos();

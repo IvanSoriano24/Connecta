@@ -41,9 +41,9 @@ session_destroy(); */
   <link rel="stylesheet" href="CSS/selec.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Titulo y Logo -->
   <title>MDConnecta</title>
   <link rel="icon" href="SRC/logoMDConecta.png" />
-
 </head>
 
 <body>
@@ -78,6 +78,7 @@ session_destroy(); */
               <!--<i class='bx bx-search'></i> -->
               <i class='bx bx-filter'></i>
             </div>
+          <!-- Formulario para la Coexion -->
             <form action="">
               <div class="form-row">
                 <label for="noEmpresa">No. Empresa:</label>
@@ -86,22 +87,6 @@ session_destroy(); */
                 <input class="input-small" type="text" name="idDocumento" id="idDocumento" value="" hidden>
                 <input type="hidden" id="csrf_token" name="csrf_token" value="<?php echo $csrf_token; ?>">
               </div>
-
-              <div class="form-row" hidden>
-                <label for="claveSae">Sae:</label>
-                <select style="text-align: right;" class="input-mt" name="claveSae" id="claveSae" disabled>
-                  <option value="01">1</option>
-                  <option value="02">2</option>
-                  <option value="03">3</option>
-                  <option value="04">4</option>
-                  <option value="05">5</option>
-                  <option value="06">6</option>
-                  <option value="07">7</option>
-                  <option value="08">8</option>
-                  <option value="09">9</option>
-                </select>
-              </div>
-
               <div class="form-row">
                 <label for="host">Host:</label>
                 <input class="input-mt" type="text" name="host" id="host" value="">
@@ -133,9 +118,13 @@ session_destroy(); */
                 <label for="nombreBase">Nombre Banco:</label>
                 <input class="input-mt" type="text" name="nombreBanco" id="nombreBanco" value="">
               </div>
+              <!-- Botones (revisar el archivo menu.js) -->
               <div class="form-buttons">
+                <!-- Boton para probar conexion -->
                 <button type="button" class="btn-probarco" id="probarConexion">Probar Conexion</button>
+                <!-- Boton para guardar conexion -->
                 <button type="button" class="btn-save" id="confirmarConexion">Guardar</button>
+                <!-- Boton para cancelar -->
                 <button type="button" class="btn-cancel">Cancelar</button>
               </div>
             </form>
@@ -151,11 +140,12 @@ session_destroy(); */
   </section>
   <!-- CONTENT -->
 
-  <!-- JS Para la confirmacion empresa -->
+  <!-- JS Para el funcionamiento del sistema -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="JS/menu.js"></script>
   <script src="JS/app.js"></script>
   <script src="JS/script.js"></script>
+  <!-- Funcion para mostrar la contraseña -->
   <script>
     document.getElementById("togglePassword").addEventListener("click", function() {
       let passwordInput = document.getElementById("password");
@@ -167,6 +157,7 @@ session_destroy(); */
       }
     });
   </script>
+  <!-- Funcion para mostrar los datos de conexion al cargar la pagina -->
   <script>
     $(document).ready(function() {
       const claveSae = '<?php echo $claveSae ?>';

@@ -1,5 +1,5 @@
 let idEmpresarial;
-
+//Funcion para cerrar el modal
 function cerrarModal() {
   const modal = bootstrap.Modal.getInstance(
     document.getElementById("infoEmpresa")

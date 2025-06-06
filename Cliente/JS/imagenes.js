@@ -1,3 +1,4 @@
+//Funcion para obtener los productos con sus imagenes
 function cargarArticulosConImagenes() {
   const numFuncion = 20; // Identificador de la función en PHP
   const xhr = new XMLHttpRequest();
@@ -9,6 +10,7 @@ function cargarArticulosConImagenes() {
         const response = JSON.parse(xhr.responseText);
         // Validar si la respuesta es válida y contiene artículos
         if (response.success && Array.isArray(response.productos)) {
+          //Llamada de funcion para mostrar los articulos
           mostrarArticulos(response.productos);
         } else {
           console.error(
@@ -31,6 +33,7 @@ function cargarArticulosConImagenes() {
   };
   xhr.send();
 }
+//Funcion para mostrar los productos con sus imagenes
 function mostrarArticulos(articulos) {
   const productList = document.getElementById("product-list");
   productList.innerHTML = ""; // Limpia el contenedor antes de cargar los productos

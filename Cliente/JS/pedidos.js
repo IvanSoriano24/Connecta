@@ -1,3 +1,4 @@
+//Funcion para cargar los pedidos en el E-Commers
 function cargarPedidos() {
   $.get(
     "../Servidor/PHP/pedido.php",
@@ -57,8 +58,8 @@ function vizualizarPedido(idPedido) {
       if (response.success && response.partidas) {
         const pedido = response.partidas;
         let tbodyHTML = "";
-// Mostrar el modal
-$("#modalDetallesPedido").modal("show");
+        // Mostrar el modal
+        $("#modalDetallesPedido").modal("show");
         // Recorrer cada partida y generar la fila correspondiente
         pedido.forEach(function (item) {
           tbodyHTML += "<tr>";
@@ -122,7 +123,7 @@ function agregarEventosBotones() {
 
 $(document).ready(function () {
   cargarPedidos();
-  $("#editarPedidoForm").on("submit", function (event) {
+  /*$("#editarPedidoForm").on("submit", function (event) {
     event.preventDefault(); // Evitar la recarga de la página
     // Obtener los valores del formulario
     const idPedido = $("#idPedido").val();
@@ -158,6 +159,7 @@ $(document).ready(function () {
     });
   });
   $("#cerrarFormulario").on("click", function () {
+    //Cerrar el 
     $("#formularioEditarPedido").hide();
-  });
+  });*/
 });

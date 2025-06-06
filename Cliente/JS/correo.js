@@ -161,7 +161,9 @@ function editarCorreo(correo) {
       });
     });
 }
+//Funcion para eliminar un correo
 function eliminarCorreo(documentId) {
+  //Mensaje de confirmacion
   Swal.fire({
     title: "¿Estás seguro?",
     text: "Esta acción no se puede revertir.",
@@ -227,7 +229,7 @@ document.getElementById("btnAgregar").addEventListener("click", function () {
 });
 document
   .getElementById("btnGuardarCorreo")
-  .addEventListener("click", function () {
+  .addEventListener("click", function () { // Funcion para guardar un correo
     // Obtener los valores del formulario
     const correo = document.getElementById("correo").value;
     const contraseña = document.getElementById("contraseña").value;
@@ -297,7 +299,7 @@ document
   });
 document
   .getElementById("btnGuardarEdicion")
-  .addEventListener("click", function () {
+  .addEventListener("click", function () { //Funcion para editar un correo
     // Obtener los valores del formulario de edición y limpiar espacios en blanco
     const correoEditar = document.getElementById("correoEditar").value.trim();
     const contraseñaEditar = document

@@ -1,16 +1,20 @@
 <?php
+//Iniciar sesion
     session_start();
-
+    //Validar si hay una sesion
     if (isset($_SESSION['usuario'])) {
+        //Si la sesion iniciada no es de un Cliente o un Administrador, redirigir a MDConnecta
         if ($_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || 
             $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
             $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
             header('Location:Dashboard.php');
             exit();
         }
+        //Obtener datos del usuario
         $nombreUsuario = $_SESSION['usuario']["nombre"];
         $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
     } else {
+        //Si no hay una secion, redirigir al inicio de sesion
         header('Location:../index.php');
     }
 ?>
@@ -130,6 +134,7 @@
                 </div>
                 <div class="modal-details">
                     <p class="modal-price" id="modal-price">$0.00</p>
+                    <!-- Boton para añadir el producto al carrito -->
                     <div class="modal-add-cart">
                         <input type="number" id="cantidadProducto" value="1" min="1">
                         <button id="btn-add-to-cart" class="btn btn-primary">Añadir al carrito</button>
@@ -144,6 +149,7 @@
         </div>
     </div>
 
+    <!-- Scripts de JS para el funcionamiento del sistema -->
     <script src="JS/articulos.js"></script>
     <script src="JS/carrito.js"></script>
     <script src="JS/menu.js"></script>

@@ -1,22 +1,36 @@
 <?php
+//Iniciar sesion
 session_start();
+//Validar si hay una sesion
 if (isset($_SESSION['usuario'])) {
-  $nombreUsuario = $_SESSION['usuario']["nombre"];
-  $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
-  $correo = $_SESSION['usuario']["correo"];
+    //Si la sesion iniciada es de un Cliente, redirigir al E-Commers
+    if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
+        header('Location:Menu.php');
+        exit();
+    }
+    //Obtener valores del Usuario
+    $nombreUsuario = $_SESSION['usuario']["nombre"];
+    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+    $correo = $_SESSION['usuario']["correo"];
 
-  //$empresa = $_SESSION['empresa']['razonSocial'];
-  if (isset($_SESSION['empresa'])) {
-    $empresa = $_SESSION['empresa']['razonSocial'];
-    $idEmpresa = $_SESSION['empresa']['id'];
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
-    $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
-    $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
-  }
-  $csrf_token  = $_SESSION['csrf_token'];
+    //$mostrarModal = isset($_SESSION['empresa']) ? false : true;
+
+    //$empresa = $_SESSION['empresa']['razonSocial'];
+
+    //Obtener valores de la empresa
+    if (isset($_SESSION['empresa'])) {
+        $empresa = $_SESSION['empresa']['razonSocial'];
+        $idEmpresa = $_SESSION['empresa']['id'];
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
+        $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+        $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
+    }
+    //Obtener token de seguridad
+    $csrf_token  = $_SESSION['csrf_token'];
 } else {
-  header('Location:../index.php');
+    //Si no hay una sesion iniciada, redirigir al index
+    header('Location:../index.php');
 }
 ?>
 
@@ -55,7 +69,7 @@ if (isset($_SESSION['usuario'])) {
     }
   </style>
 
-
+    <!-- Titulo y Logo -->
   <title>MDConnecta</title>
   <link rel="icon" href="SRC/logoMDConecta.png" />
 </head>
@@ -65,14 +79,18 @@ if (isset($_SESSION['usuario'])) {
     <!-- SIDEBAR -->
     <?php include 'sidebar.php'; ?>
     <!-- CONTENT -->
+     <!-- Seccion de informacion de empresa -->
     <div id="seccionInfo">
       <section id="content">
         <!-- NAVBAR -->
         <?php include 'navbar.php'; ?>
         <!-- MAIN -->
         <main class="text-center ">
+          <!-- Botones para cambiar las secciones -->
           <div class="btn-group mb-4" role="group">
+            <!-- Boton para cambiar a la seccion de informacion de empresa -->
             <button type="button" class="btn btn-primary" id="btnInfo">Información General</button>
+            <!-- Boton para cambiar a la seccion de datos fiscales -->
             <button type="button" class="btn btn-primary" id="btnFact">Datos de Facturación</button>
           </div>
           <div class="head-title">
@@ -182,12 +200,16 @@ if (isset($_SESSION['usuario'])) {
         </main>
       </section>
     </div>
+    <!-- Seccion de datos fiscales -->
     <div id="seccionFact" style="display:none">
       <section id="content">
         <?php include 'navbar.php'; ?>
         <main class="text-center">
+          <!-- Botones para cambiar las secciones -->
           <div class="btn-group mb-4" role="group">
+            <!-- Boton para cambiar a la seccion de informacion de empresa -->
             <button type="button" class="btn btn-primary" id="btnInfoFac">Información General</button>
+            <!-- Boton para cambiar a la seccion de datos fiscales -->
             <button type="button" class="btn btn-primary" id="btnFactFac">Información Fiscal</button>
           </div>
           <div class="head-title">
@@ -263,9 +285,6 @@ if (isset($_SESSION['usuario'])) {
       </section>
     </div>
   </div>
-
-  <!-- MAIN -->
-
 
   <!-- CONTENT -->
   </div>

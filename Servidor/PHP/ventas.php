@@ -3742,8 +3742,7 @@ function listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket)
 
     return $imagenesPorArticulo;
 }
-function extraerProductos($conexionData, $claveSae)
-{
+function extraerProductos($conexionData, $claveSae){
     // Parámetros de paginación
     $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
     $porPagina = isset($_GET['porPagina']) ? (int)$_GET['porPagina'] : 10;

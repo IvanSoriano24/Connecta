@@ -1,17 +1,22 @@
 <?php
+//Iniciar sesion
 session_start();
-
+//Validar si hay una sesion
 if (isset($_SESSION['usuario'])) {
+    //Si la sesion iniciada no es de un Cliente o un Administrador, redirigir a MDConnecta
     if (
-        $_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
+        $_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' ||
+        $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
         $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA'
     ) {
         header('Location:Dashboard.php');
         exit();
     }
+    //Obtener datos del usuario
     $nombreUsuario = $_SESSION['usuario']["nombre"];
-    $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+    $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
 } else {
+    //Si no hay una secion, redirigir al inicio de sesion
     header('Location:../index.php');
 }
 ?>
@@ -64,7 +69,6 @@ if (isset($_SESSION['usuario'])) {
     <div class="hero_area">
         <!--MENU HEADER-->
         <?php include 'HeaderEcommerce.php'; ?>
-
         <main class="text-center">
             <section id="hero" class="hero section">
                 <!-- Contact Section -->
@@ -72,6 +76,7 @@ if (isset($_SESSION['usuario'])) {
 
                     <main class="container my-5">
                         <div class="card shadow">
+                            <!-- Titulo -->
                             <div class="card-header bg-primary text-white">
                                 <h3 class="mb-0" style="color:#ffffff">Descuentos</h3>
                             </div>
@@ -87,28 +92,10 @@ if (isset($_SESSION['usuario'])) {
                                     <div class="col-md-6">
                                         <label for="descuentoCliente" class="form-label">Descuento Cliente:</label>
                                         <input type="number" id="descuentoCliente" class="form-control"
-                                            style="text-align: right;">
+                                            style="text-align: right;" min="0">
                                     </div>
                                 </div>
                                 <!-- Tabla de Productos -->
-                                <!-- <div class="table-responsive table-scroll"
-                                                            data-mdb-perfect-scrollbar="true"
-                                                            style="position: relative; height: 500px">
-                                    <table class="table table-striped">
-                                        <thead class="table-dark sticky-top">
-                                            <tr>
-                                                <th>Clave</th>
-                                                <th>Descripción</th>
-                                                <th>Descuento</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="datosDescuentos">
-                                            Las filas se cargarán dinámicamente
-                                        </tbody>
-                                    </table>
-                                </div> -->
-
-
                                 <div class="container mt-7">
                                     <div class="container section-title" data-aos="fade-up">
                                         <!-- Table -->
@@ -123,7 +110,7 @@ if (isset($_SESSION['usuario'])) {
                                                                 <th scope="col">Descuento</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody id="datosDescuentos" >
+                                                        <tbody id="datosDescuentos">
                                                             <tr>
                                                         </tbody>
                                                     </table>
@@ -132,8 +119,7 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Botón para guardar -->
+                                <!-- Botón para guardar (revisar JS/descuentos.js) para el funcionamiento-->
                                 <div class="d-flex justify-content-end mt-3">
                                     <button type="button" class="btn btn-success" id="guardarDescuentos">Guardar
                                         Descuentos</button>
@@ -151,6 +137,7 @@ if (isset($_SESSION['usuario'])) {
     <!-- FOOTER -->
     <?php include 'FooterEcommerce.php'; ?>
     </div>
+    <!-- JS para el funcionamiento del sistema -->
     <script src="JS/descuentos.js"></script>
     <script src="JS/menu.js"></script>
     <!-- Scroll Top -->

@@ -1,25 +1,37 @@
 <?php
+//Iniciar sesion
 session_start();
+//Validar si hay una sesion
 if (isset($_SESSION['usuario'])) {
+    //Si la sesion iniciada es de un Cliente, redirigir al E-Commers
+    if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
+        header('Location:Menu.php');
+        exit();
+    }
+    //Obtener valores del Usuario
     $nombreUsuario = $_SESSION['usuario']["nombre"];
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     $correo = $_SESSION['usuario']["correo"];
 
+    //$mostrarModal = isset($_SESSION['empresa']) ? false : true;
+
     //$empresa = $_SESSION['empresa']['razonSocial'];
+
+    //Obtener valores de la empresa
     if (isset($_SESSION['empresa'])) {
         $empresa = $_SESSION['empresa']['razonSocial'];
         $idEmpresa = $_SESSION['empresa']['id'];
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
         $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+        $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
     }
+    //Obtener token de seguridad
     $csrf_token  = $_SESSION['csrf_token'];
 } else {
+    //Si no hay una sesion iniciada, redirigir al index
     header('Location:../index.php');
 }
-/*
-session_unset();
-session_destroy(); */
 ?>
 
 <!DOCTYPE html>
@@ -40,6 +52,7 @@ session_destroy(); */
     <link rel="stylesheet" href="CSS/selec.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Titulo y Logo -->
     <title>MDConnecta</title>
     <link rel="icon" href="SRC/logoMDConecta.png" />
 </head>
@@ -57,7 +70,7 @@ session_destroy(); */
                 <div class="card-body">
                     <div class="container-fluid mt-10">
                         <h2 class="text-center">Correos</h2>
-                        <!-- Tabla de comandas -->
+                        <!-- Tabla de correos -->
                         <div class="table-data">
                             <div class="order">
                                 <button class="btn btn-success" id="btnAgregar">
@@ -124,9 +137,12 @@ session_destroy(); */
                         </div>
                     </div>
                 </div>
+                <!-- Botones para guardar o cancelar el correo -->
                 <div class="modal-footer">
+                    <!-- Boton para cancelar el correo -->
                     <button type="button" class="btn btn-secondary" id="cerrarModalCorreoFooter"
                         data-dismiss="modal">Cancelar</button>
+                        <!-- Boton para crear el correo -->
                     <button type="button" class="btn btn-primary custom-blue" id="btnGuardarCorreo">Guardar
                         Correo</button>
                 </div>
@@ -159,17 +175,18 @@ session_destroy(); */
                         </div>
                     </div>
                 </div>
+                <!-- Botones para guardar o cancelar cambios (ver JS/correo.js) para su funcionamiento -->
                 <div class="modal-footer">
+                    <!-- Boton para cancelar cambios -->
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cerrarModalCorreoEditarFooter">Cancelar</button>
+                    <!-- Boton para guardar cambios -->
                     <button type="button" class="btn btn-primary custom-blue" id="btnGuardarEdicion">Guardar Cambios</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CONTENT -->
-
-    <!-- JS Para la confirmacion empresa -->
+    <!-- JS Para el funcionamiento del sistema -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>

@@ -1,20 +1,19 @@
 <?php
+//Iniciar sesion
 session_start();
+//Validar si hay una sesion
 if (isset($_SESSION['usuario'])) {
+	//Si la sesion iniciada es de un Cliente, redirigir al E-Commers
 	if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
 		header('Location:Menu.php');
 		exit();
 	}
+	//Obtener valores del Usuario
 	$nombreUsuario = $_SESSION['usuario']["nombre"];
 	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 	$correo = $_SESSION['usuario']["correo"];
-	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
-		header('Location:Dashboard.php');
-		exit();
-	}
 
-	$mostrarModal = isset($_SESSION['empresa']) ? false : true;
-
+	//Obtener valores de la empresa
 	//$empresa = $_SESSION['empresa']['razonSocial'];
 	if (isset($_SESSION['empresa'])) {
 		$empresa = $_SESSION['empresa']['razonSocial'];
@@ -25,8 +24,10 @@ if (isset($_SESSION['usuario'])) {
 		$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
 	}
 
+	//Obtener token de seguridad
 	$csrf_token  = $_SESSION['csrf_token'];
 } else {
+	//Si no hay una sesion iniciada, redirigir al index
 	header('Location:../index.php');
 }
 ?>
@@ -59,7 +60,6 @@ if (isset($_SESSION['usuario'])) {
 	<link rel="icon" href="SRC/logoMDConecta.png" />
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 
 	<style>
 		body.modal-open .hero_area {
@@ -118,7 +118,7 @@ if (isset($_SESSION['usuario'])) {
 			box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 		}
 	</style>
-<style>
+	<style>
 		.pagination {
 			text-align: center;
 			margin-top: 1rem;
@@ -169,6 +169,7 @@ if (isset($_SESSION['usuario'])) {
 		}
 	</style>
 </head>
+
 <body>
 	<div class="hero_area">
 		<!-- SIDEBAR -->
@@ -193,11 +194,13 @@ if (isset($_SESSION['usuario'])) {
 					</div>
 
 					<div class="table-data">
+						<!-- Tokken de seguridad -->
 						<input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
 						<div class="order">
 							<!-- HTML -->
 							<div class="head search-head">
 								<h3>Clientes</h3>
+								<!-- Barra de busqueda -->
 								<div class="input-group">
 									<i class='bx bx-search search-icon'></i>
 									<input
@@ -208,6 +211,7 @@ if (isset($_SESSION['usuario'])) {
 										onkeyup="debouncedSearch()" />
 								</div>
 							</div>
+							<!-- Tabla con los datos de los clientes -->
 							<table id="clientes">
 								<thead>
 									<tr>
@@ -220,11 +224,14 @@ if (isset($_SESSION['usuario'])) {
 										<th>Visualizar</th>
 									</tr>
 								</thead>
+								<!-- Tbdy con datos dinamicos -->
 								<tbody id="datosClientes">
 								</tbody>
 							</table>
+							<!-- Paginacion -->
 							<div id="pagination" class="pagination">
 							</div>
+							<!-- Cantidad de clientes a mostrar -->
 							<div class="pagination-controls">
 								<label for="selectCantidad" class="cantidad-label">Mostrar</label>
 								<select id="selectCantidad" class="cantidad-select">
@@ -244,6 +251,7 @@ if (isset($_SESSION['usuario'])) {
 
 	</section>
 	<!-- CONTENT -->
+	 <!-- Modal con los datos del cliente -->
 	<div id="usuarioModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="modal-dialog modal-xl" role="document">
 			<div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
@@ -276,8 +284,7 @@ if (isset($_SESSION['usuario'])) {
 							<input type="text" id="saldo" class="input-mt form-control text-end" readonly1>
 						</div>
 					</div>
-				</div>
-
+				</div>				
 				<div class="modal-body">
 					<!-- Navegacion Pestañas -->
 					<div class="btn-group mb-3" role="group">
@@ -511,8 +518,6 @@ if (isset($_SESSION['usuario'])) {
 									</div>
 								</div>
 							</div>
-
-
 						</div>
 					</div>
 
@@ -541,7 +546,7 @@ if (isset($_SESSION['usuario'])) {
 	</script>
 
 
-	<!-- JS Para la confirmacion empresa -->
+	<!-- Scripts de JS para el funcionamiento del sistema -->
 	<script src="JS/menu.js"></script>
 	<script src="JS/app.js"></script>
 	<script src="JS/script.js"></script>

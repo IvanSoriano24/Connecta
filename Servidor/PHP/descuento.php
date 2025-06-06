@@ -39,8 +39,7 @@ function obtenerConexion($firebaseProjectId, $firebaseApiKey, $claveSae, $noEmpr
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function obtenerClienteFireStore()
-{
+function obtenerClienteFireStore(){
     global $firebaseProjectId, $firebaseApiKey;
 
     // URL de Firebase para obtener la colección de USUARIOS

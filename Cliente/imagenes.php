@@ -1,19 +1,22 @@
 <?php
-session_start();
-
-if (isset($_SESSION['usuario'])) {
-    if (
-        $_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
-        $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA'
-    ) {
-        header('Location:Dashboard.php');
-        exit();
+//Iniciar sesion
+    session_start();
+    //Validar si hay una sesion
+    if (isset($_SESSION['usuario'])) {
+        //Si la sesion iniciada no es de un Cliente o un Administrador, redirigir a MDConnecta
+        if ($_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || 
+            $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||
+            $_SESSION['usuario']['tipoUsuario'] == 'FACTURISTA') {
+            header('Location:Dashboard.php');
+            exit();
+        }
+        //Obtener datos del usuario
+        $nombreUsuario = $_SESSION['usuario']["nombre"];
+        $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
+    } else {
+        //Si no hay una secion, redirigir al inicio de sesion
+        header('Location:../index.php');
     }
-    $nombreUsuario = $_SESSION['usuario']["nombre"];
-    $tipoUsuario   = $_SESSION['usuario']["tipoUsuario"];
-} else {
-    header('Location:../index.php');
-}
 ?>
 <!DOCTYPE html>
 <html>
@@ -115,7 +118,7 @@ if (isset($_SESSION['usuario'])) {
     </div>
     <!-- FOOTER -->
     <?php include 'FooterEcommerce.php'; ?>
-
+    <!-- JS para el funcionamiento del sistema -->
     <script src="JS/imagenes.js"></script>
     <script src="JS/menu.js"></script>
     <!-- Scroll Top -->

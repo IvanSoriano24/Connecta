@@ -1,21 +1,23 @@
 <?php
+//Iniciar sesion
 session_start();
+//Validar si hay una sesion
 if (isset($_SESSION['usuario'])) {
+    //Si la sesion iniciada es de un Cliente, redirigir al E-Commers
     if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
         header('Location:Menu.php');
         exit();
     }
+    //Obtener valores del Usuario
     $nombreUsuario = $_SESSION['usuario']["nombre"];
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     $correo = $_SESSION['usuario']["correo"];
-    if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
-        header('Location:Dashboard.php');
-        exit();
-    }
 
-    $mostrarModal = isset($_SESSION['empresa']) ? false : true;
+    //$mostrarModal = isset($_SESSION['empresa']) ? false : true;
 
     //$empresa = $_SESSION['empresa']['razonSocial'];
+
+    //Obtener valores de la empresa
     if (isset($_SESSION['empresa'])) {
         $empresa = $_SESSION['empresa']['razonSocial'];
         $idEmpresa = $_SESSION['empresa']['id'];
@@ -24,13 +26,13 @@ if (isset($_SESSION['usuario'])) {
         $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
         $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
     }
-
+    //Obtener token de seguridad
     $csrf_token  = $_SESSION['csrf_token'];
 } else {
+    //Si no hay una sesion iniciada, redirigir al index
     header('Location:../index.php');
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -46,16 +48,14 @@ if (isset($_SESSION['usuario'])) {
 
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
-
     <link rel="stylesheet" href="CSS/selec.css">
 
+    <!-- Titulo y Logo -->
     <title>MDConnecta</title>
     <link rel="icon" href="SRC/logoMDConecta.png" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-
-
 </head>
 
 <style>
@@ -344,6 +344,7 @@ if (isset($_SESSION['usuario'])) {
 
     /*-------------------------------------------------------*/
 </style>
+<!-- Estilos para la tabla de partidas -->
 <style>
     .tabla-scroll {
         height: 300px;
@@ -378,35 +379,8 @@ if (isset($_SESSION['usuario'])) {
             <?php include 'navbar.php'; ?>
             <!-- MAIN -->
             <main class="">
-
-                <div class="head-title">
-                    <!-- <div class="left">
-                        <h4>Alta de Pedidos</h4>
-                        <ul class="breadcrumb">
-                            <li>
-                                <a href="#">Inicio</a>
-                            </li>
-                            <li><i class='bx bx-chevron-right'></i></li>
-                            <li>
-                                <a class="" href="Ventas.php">Ventas</a>
-                            </li>
-                            <li><i class='bx bx-chevron-right'></i></li>
-                            <li>
-                                <a class="" href="altaPedido.php">Alta Pedidos</a>
-                            </li>
-                        </ul>
-                         -->
-
-
-                </div>
-
-
-                <!-- <div class="head">
-                                <h3>Alta Pedido</h3>
-                                <a class=''>Campos Obligatorios *</a>
-                            </div> -->
-
                 <div class="card-body ">
+                    <!-- Formulario -->
                     <form class="form-container" id="formularioPedido">
                         <!-- 1st row: 4 inputs (2 select, 2 text) -->
                         <div class="row">
@@ -425,7 +399,6 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;"
                                     readonly1 tabindex="-1">
                             </div>
-
                             <div class="form-element">
                                 <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
                                 <label for="cliente">Cliente</label>
@@ -445,26 +418,21 @@ if (isset($_SESSION['usuario'])) {
                                     <ul id="clientesSugeridos" class="suggestions-list"></ul>
                                 </div>
                             </div>
-
                         </div>
                         <div class="row">
-
                             <div class="form-element" style="display: none;">
                                 <label for="rfc">RFC <a class='bx'> *</a></label>
                                 <input type="text" name="rfc" id="rfc" tabindex="-1">
                             </div>
-
                             <div class="form-element">
                                 <label for="nombre">Nombre <a class='bx'> *</a></label>
                                 <input type="text" name="nombre" id="nombre" style="width: 700px;" tabindex="-1" readonly />
                             </div>
-
                             <div class="form-element">
                                 <label for="supedido">O.C</label>
                                 <input type="text" name="supedido" id="supedido" style="width:170px;" disabled>
                             </div>
                         </div>
-
                         <div class="row">
                             <div class="form-element" style="display: none;">
                                 <label for="calle">Calle </label>
@@ -495,14 +463,8 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="entrega">Entrega </label>
                                 <input type="date" name="entrega" id="entrega"
                                     style="width:180px; align-items: center;" disabled tabindex="-1">
-
                             </div>
-                            <!--<div class="form-element">
-                                <label for="esquema">Esquema </label>
-                                <input type="text" name="esquema" id="esquema" value="0" style="width: 170px;" readonly1>
-                            </div>-->
                         </div>
-
                         <div class="row">
                             <div class="form-element" style="display: none;">
                                 <label for="colonia">Colonia:</label>
@@ -518,9 +480,7 @@ if (isset($_SESSION['usuario'])) {
                                     </button>
                                 </div>
                             </div>
-
                             <div class="form-element">
-
                             </div>
                             <div class="form-element">
                                 <label for="descuentoCliente">Descuento </label>
@@ -542,7 +502,6 @@ if (isset($_SESSION['usuario'])) {
                                     </button>
                                 </div>
                             </div>
-
                             <div class="form-element" style="display: none;">
                                 <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
                                 <input type="text" name="codigoPostal" id="codigoPostal"
@@ -553,7 +512,6 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="text" name="poblacion" id="poblacion" style="background-color: #e0e0e0; "
                                     value="" readonly>
                             </div>
-
                             <div class="form-element"></div>
 
                             <!--<div class="form-element">
@@ -574,7 +532,6 @@ if (isset($_SESSION['usuario'])) {
                             </div>
 
                         </div>
-
                         <div class="row">
                             <div class="form-element" style="display: none;">
                                 <div class="form-element">
@@ -609,6 +566,7 @@ if (isset($_SESSION['usuario'])) {
                         </div>-->
                     </form>
                     <!-- 5th row: 2 buttons -->
+                    <!-- Seccion de partidas  -->
                     <div class="table-data">
                         <div class="order">
                             <div class="table-container">
@@ -617,6 +575,7 @@ if (isset($_SESSION['usuario'])) {
                                         Partida</button>
                                     <br>
                                     <div class="tabla-scroll">
+                                        <!-- Tabla de partidas -->
                                         <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
                                             <thead>
                                                 <tr>
@@ -636,6 +595,7 @@ if (isset($_SESSION['usuario'])) {
                                         </table>
                                     </div>
                                 </div>
+                                <!-- Campos ocultos para la lista de precios y la lista de impuestos -->
                                 <input class="input-mt" type="text" name="listaPrecios" id="listaPrecios" readonly
                                     hidden>
                                 <input class="input-mt" type="text" name="CVE_ESQIMPU" id="CVE_ESQIMPU" readonly hidden>
@@ -643,6 +603,7 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                     <br>
+                    <!-- Botones para el Guardado y la cancelacion del pedio (revisar archivo JS/altaPedido.js) -->
                     <div class="row">
                         <div class="form-element"></div>
                         <button type="button" class="btn-save" id="guardarPedido" tabindex="-1"
@@ -704,6 +665,7 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
+                <!-- Modal Datos de Envio -->
                 <div id="modalEnvio" class="modal fade" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content">
@@ -711,7 +673,6 @@ if (isset($_SESSION['usuario'])) {
                                 <h5 class="modal-title">Datos de Envío</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
-
                             <form id="formularioEnvio" class="px-4 pb-4">
                                 <!-- selector y botón de nuevo dato -->
                                 <div class="row align-items-center mb-3">
@@ -734,7 +695,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="hidden" id="folioDatos" value="">
                                 <input type="hidden" id="titutoDatos" value="">
 
-                                <!-- Sección: Datos de contacto y dirección -->
+                                <!-- Sección: Datos de contacto -->
                                 <div class="row">
                                     <div class="col-md-6">
                                         <h6 class="fw-bold">Dirección</h6>
@@ -755,7 +716,7 @@ if (isset($_SESSION['usuario'])) {
                                             <input type="email" id="correoContacto" class="form-control" disabled>
                                         </div>
                                     </div>
-
+                                    <!-- Sección: Datos de dirección -->
                                     <div class="col-md-6">
                                         <h6 class="fw-bold">Detalles de la dirección</h6>
                                         <div class="mb-3">
@@ -784,7 +745,6 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                     </div>
                                 </div>
-
                                 <!-- botones al pie -->
                                 <div class="d-flex justify-content-end gap-2">
                                     <button type="button" class="btn btn-primary" id="actualizarDatos">Guardar</button>
@@ -794,18 +754,15 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
-
+                <!-- Modal Nuevos Datos de Envio -->
                 <div id="modalNuevoEnvio" class="modal fade" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content">
-
                             <div class="modal-header border-0">
                                 <h5 class="modal-title">Crear Datos de Envío</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
-
                             <form id="formularioNuevoEnvio" class="px-4 pb-4">
-
                                 <!-- Título del envío -->
                                 <div class="row mb-3">
                                     <div class="col">
@@ -823,7 +780,7 @@ if (isset($_SESSION['usuario'])) {
                                 <!-- Datos ocultos -->
                                 <input type="hidden" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
 
-                                <!-- Dirección y datos del contacto -->
+                                <!-- Datos del contacto -->
                                 <div class="row">
                                     <div class="col-md-6">
                                         <h6 class="fw-bold">Dirección</h6>
@@ -872,7 +829,7 @@ if (isset($_SESSION['usuario'])) {
                                                 required>
                                         </div>
                                     </div>
-
+                                    <!-- Direccion del contacto -->
                                     <div class="col-md-6">
                                         <h6 class="fw-bold">Detalles de la dirección</h6>
 
@@ -933,7 +890,6 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                     </div>
                                 </div>
-
                                 <!-- Botones -->
                                 <div class="d-flex justify-content-end gap-2">
                                     <button type="button" id="guardarDatosEnvio" class="btn btn-primary">
@@ -947,7 +903,6 @@ if (isset($_SESSION['usuario'])) {
                                         Cancelar
                                     </button>
                                 </div>
-
                             </form>
                         </div>
                     </div>
@@ -1013,7 +968,7 @@ if (isset($_SESSION['usuario'])) {
         </div>
     </div>
 
-
+    <!-- Scripts de JS para el funcionamiento del sistema -->
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
@@ -1022,6 +977,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/altaPedido.js"></script>
     <!--<script src="JS/clientes.js"></script>-->
 
+    <!-- Funcion JS para obtener la fecha actual-->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const now = new Date();
@@ -1029,253 +985,263 @@ if (isset($_SESSION['usuario'])) {
             document.getElementById("entrega").value = fechaActual;
         });
     </script>
+    <!-- Funcion JS la sugerencia de Clientes y Productos-->
     <script>
         $(document).ready(function() {
-            $(document).ready(function() {
-                const suggestionsList = $('#clientesSugeridos');
-                const suggestionsListProductos = $('#productosSugeridos');
-                let highlightedIndex = -1; // Índice del elemento destacado
+            // Referencias a los elementos UL donde se mostrarán las sugerencias
+            const suggestionsList = $('#clientesSugeridos');
+            const suggestionsListProductos = $('#productosSugeridos');
+            let highlightedIndex = -1; // Índice del elemento actualmente resaltado
 
-                $('#cliente').on('input', function() {
-                    const clienteInput = $(this).val().trim();
-                    const claveUsuario = '<?php echo $claveUsuario ?>';
-                    const $clienteInput = $(this);
+            // Evento que se dispara al escribir en el campo de cliente
+            $('#cliente').on('input', function() {
+                const clienteInput = $(this).val().trim(); // Valor ingresado
+                const claveUsuario = '<?php echo $claveUsuario ?>'; // Clave de usuario PHP inyectada
+                const $clienteInput = $(this);
 
-                    if (clienteInput.length >= 1) {
-                        $.ajax({
-                            url: '../Servidor/PHP/ventas.php',
-                            type: 'POST',
-                            data: {
-                                cliente: clienteInput,
-                                numFuncion: '4',
-                                clave: claveUsuario
-                            },
-                            success: function(response) {
-                                try {
-                                    if (typeof response === 'string') {
-                                        response = JSON.parse(response);
-                                    }
-                                } catch (e) {
-                                    console.error("Error al parsear la respuesta JSON",
-                                        e);
-                                    return;
+                if (clienteInput.length >= 1) {
+                    // Si hay al menos un carácter, solicitamos sugerencias al servidor
+                    $.ajax({
+                        url: '../Servidor/PHP/ventas.php',
+                        type: 'POST',
+                        data: {
+                            cliente: clienteInput, // Texto a buscar
+                            numFuncion: '4', // Código de función para "buscar cliente"
+                            clave: claveUsuario // Clave de usuario para filtrar resultados
+                        },
+                        success: function(response) {
+                            try {
+                                // Si la respuesta viene como string, intentamos parsear a JSON
+                                if (typeof response === 'string') {
+                                    response = JSON.parse(response);
                                 }
+                            } catch (e) {
+                                console.error("Error al parsear la respuesta JSON", e);
+                                return;
+                            }
 
-                                if (response.success && Array.isArray(response
-                                        .cliente) && response.cliente.length > 0) {
-                                    suggestionsList.empty().show();
-                                    highlightedIndex = -
-                                        1; // Reiniciar el índice destacado
+                            // Si la búsqueda tuvo éxito y devolvió un arreglo con al menos un cliente...
+                            if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
+                                suggestionsList.empty().show(); // Limpiamos y mostramos el listado
+                                highlightedIndex = -1; // Reiniciamos índice resaltado
 
-                                    response.cliente.forEach((cliente, index) => {
-                                        const listItem = $('<li></li>')
-                                            .text(
-                                                `${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`
-                                            )
-                                            .attr('data-index', index)
-                                            .attr('data-cliente', JSON
-                                                .stringify(cliente))
-                                            .on('click', function() {
-                                                seleccionarClienteDesdeSugerencia
-                                                    (cliente);
-                                            });
+                                // Iteramos sobre cada cliente encontrado y creamos un <li> para cada uno
+                                response.cliente.forEach((cliente, index) => {
+                                    const listItem = $('<li></li>')
+                                        .text(`${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`) // Texto visible
+                                        .attr('data-index', index) // Índice en el arreglo
+                                        .attr('data-cliente', JSON.stringify(cliente)) // Datos completos JSON en atributo
+                                        .on('click', function() {
+                                            // Al hacer clic, seleccionamos ese cliente
+                                            seleccionarClienteDesdeSugerencia(cliente);
+                                        });
 
-                                        suggestionsList.append(listItem);
-                                    });
-                                } else {
-                                    suggestionsList.empty().hide();
-                                }
-                            },
-                            error: function() {
-                                console.error(
-                                    "Error en la solicitud AJAX para sugerencias");
+                                    suggestionsList.append(listItem);
+                                });
+                            } else {
+                                // Si no hay coincidencias, ocultamos el listado
                                 suggestionsList.empty().hide();
                             }
-                        });
-                    } else {
-                        suggestionsList.empty().hide();
-                    }
-                });
-                $('#cliente').on('keydown', function(e) {
-                    const items = suggestionsList.find('li');
-                    if (!items.length) return;
-
-                    if (e.key === 'ArrowDown') {
-                        // Mover hacia abajo en las sugerencias
-                        highlightedIndex = (highlightedIndex + 1) % items.length;
-                        actualizarDestacado(items, highlightedIndex);
-                        e.preventDefault();
-                    } else if (e.key === 'ArrowUp') {
-                        // Mover hacia arriba en las sugerencias
-                        highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
-                        actualizarDestacado(items, highlightedIndex);
-                        e.preventDefault();
-                    } else if (e.key === 'Tab' || e.key === 'Enter') {
-                        // Seleccionar el cliente destacado
-                        if (highlightedIndex >= 0) {
-                            const clienteSeleccionado = JSON.parse($(items[highlightedIndex]).attr(
-                                'data-cliente'));
-                            seleccionarClienteDesdeSugerencia(clienteSeleccionado);
-                            suggestionsList.empty().hide();
-                            e.preventDefault(); // Evitar el comportamiento predeterminado del tabulador
+                        },
+                        error: function() {
+                            console.error("Error en la solicitud AJAX para sugerencias");
+                            suggestionsList.empty().hide(); // Ocultamos ante fallo
                         }
-                    }
-                });
-
-                function actualizarDestacado(items, index) {
-                    items.removeClass('highlighted');
-                    $(items[index]).addClass('highlighted');
+                    });
+                } else {
+                    // Si el input queda vacío, limpamos y ocultamos las sugerencias
+                    suggestionsList.empty().hide();
                 }
+            });
 
-                $(document).on("input", ".producto", function() {
-                    const productoInput = $(this).val().trim();
-                    const claveUsuario = '<?php echo $claveUsuario ?>';
-                    const $productoInput = $(this);
+            // Manejo de navegación con teclado en el campo de cliente
+            $('#cliente').on('keydown', function(e) {
+                const items = suggestionsList.find('li');
+                if (!items.length) return; // Si no hay sugerencias, nada que hacer
 
-                    // 🚨 Corregir selección de la lista de sugerencias (debe estar en la misma fila)
-                    const suggestionsListProductos = $productoInput.closest("td").find(".suggestions-list-productos");
-
-                    if (productoInput.length >= 2) {
-                        $.ajax({
-                            url: "../Servidor/PHP/ventas.php",
-                            type: "POST",
-                            data: {
-                                producto: productoInput,
-                                numFuncion: "16",
-                                clave: claveUsuario,
-                            },
-                            success: function(response) {
-                                try {
-                                    if (typeof response === "string") {
-                                        response = JSON.parse(response);
-                                    }
-                                } catch (e) {
-                                    console.error("Error al parsear la respuesta JSON", e);
-                                    return;
-                                }
-
-                                const items = suggestionsListProductos.empty().show().find("li"); // lo vaciamos y ya dejamos items en vacío
-
-                                if (response.success && Array.isArray(response.productos) && response.productos.length > 0) {
-                                    suggestionsListProductos.removeClass("d-none");
-
-                                    // 1) Poblar lista
-                                    response.productos.forEach((producto, index) => {
-                                        const listItem = $("<li></li>")
-                                            .text(`${producto.CVE_ART.trim()} - ${producto.DESCR}`)
-                                            .attr("data-index", index)
-                                            .attr("data-producto", JSON.stringify(producto))
-                                            .addClass("suggestion-item")
-                                            .on("click", function() {
-                                                seleccionarProductoDesdeSugerencia($productoInput, producto);
-                                            });
-                                        suggestionsListProductos.append(listItem);
-                                    });
-
-                                    // 2) Preseleccionar la primera opción
-                                    highlightedIndex = 0;
-                                    const allItems = suggestionsListProductos.find("li");
-                                    actualizarDestacadoProducto(allItems, highlightedIndex);
-
-                                } else {
-                                    //suggestionsListProductos.empty();
-                                    suggestionsListProductos.empty()
-                                        .append("<li class='no-match'>No se encontraron coincidencias</li>")
-                                        .show();
-                                }
-                            },
-
-                            error: function() {
-                                console.error("Error en la solicitud AJAX para sugerencias");
-                                suggestionsListProductos.empty().hide();
-                            },
-                        });
-                    } else {
-                        suggestionsListProductos.empty().hide();
-                    }
-                });
-                $(document).on("keydown", ".producto", function(e) {
-                    const $input = $(this);
-                    const $suggestions = $input.closest("tr").find(".suggestions-list-productos");
-
-                    // Sólo tomamos los <li> que realmente tienen datos-producto
-                    const items = $suggestions.find("li.suggestion-item");
-
-                    // 1) Si Tab/Enter y NO hay sugerencias reales ⇒ bloquear + alerta
-                    if ((e.key === "Tab" || e.key === "Enter") && items.length === 0) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Aviso',
-                            text: 'No se encontraron coincidencias para ese producto.',
-                        });
-                        return;
-                    }
-
-                    // 2) Navegar con flechas sólo si hay sugerencias
-                    if (e.key === "ArrowDown" && items.length > 0) {
-                        highlightedIndex = (highlightedIndex + 1) % items.length;
-                        actualizarDestacadoProducto(items, highlightedIndex);
-                        e.preventDefault();
-                    } else if (e.key === "ArrowUp" && items.length > 0) {
-                        highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
-                        actualizarDestacadoProducto(items, highlightedIndex);
-                        e.preventDefault();
-                    }
-
-                    // 3) Si Tab/Enter y SÍ hay sugerencias ⇒ seleccionamos
-                    if ((e.key === "Tab" || e.key === "Enter") && items.length > 0) {
-                        e.preventDefault();
-                        const productoSeleccionado = JSON.parse(
-                            $(items[highlightedIndex]).attr("data-producto")
+                if (e.key === 'ArrowDown') {
+                    // Flecha abajo: avanzamos índice (circular) y resaltamos
+                    highlightedIndex = (highlightedIndex + 1) % items.length;
+                    actualizarDestacado(items, highlightedIndex);
+                    e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                    // Flecha arriba: retrocedemos índice (circular) y resaltamos
+                    highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+                    actualizarDestacado(items, highlightedIndex);
+                    e.preventDefault();
+                } else if (e.key === 'Tab' || e.key === 'Enter') {
+                    // Tab o Enter: si hay elemento resaltado, lo seleccionamos
+                    if (highlightedIndex >= 0) {
+                        const clienteSeleccionado = JSON.parse(
+                            $(items[highlightedIndex]).attr('data-cliente')
                         );
-                        seleccionarProductoDesdeSugerencia($input, productoSeleccionado);
-                        $suggestions.empty().hide();
-
-                        // **Nueva línea**: pasar el foco al input de cantidad de la misma fila
-                        const $cantidadInput = $input.closest("tr").find(".cantidad");
-                        if ($cantidadInput.length) {
-                            $cantidadInput.focus();
-                            // opcional: seleccionar todo el texto existente
-                            $cantidadInput.select();
-                        }
+                        seleccionarClienteDesdeSugerencia(clienteSeleccionado);
+                        suggestionsList.empty().hide();
+                        e.preventDefault(); // Prevenir tabulación normal
                     }
-                });
+                }
+            });
 
-                function actualizarDestacadoProducto(items, index) {
-                    items.removeClass("highlighted");
-                    $(items[index]).addClass("highlighted");
+            // Función para aplicar/remover la clase "highlighted" al <li> correcto
+            function actualizarDestacado(items, index) {
+                items.removeClass('highlighted');
+                $(items[index]).addClass('highlighted');
+            }
+
+            // Evento de entrada en campos con clase .producto (para sugerir productos)
+            $(document).on("input", ".producto", function() {
+                const productoInput = $(this).val().trim(); // Valor ingresado
+                const claveUsuario = '<?php echo $claveUsuario ?>'; // Clave de usuario
+                const $productoInput = $(this);
+
+                // Obtenemos el <ul> de sugerencias correspondiente a esa fila
+                const suggestionsListProductos = $productoInput.closest("td")
+                    .find(".suggestions-list-productos");
+
+                if (productoInput.length >= 2) {
+                    // Si hay al menos 2 caracteres, solicitamos sugerencias de producto
+                    $.ajax({
+                        url: "../Servidor/PHP/ventas.php",
+                        type: "POST",
+                        data: {
+                            producto: productoInput, // Texto a buscar
+                            numFuncion: "16", // Código de función para "buscar producto"
+                            clave: claveUsuario,
+                        },
+                        success: function(response) {
+                            try {
+                                if (typeof response === "string") {
+                                    response = JSON.parse(response);
+                                }
+                            } catch (e) {
+                                console.error("Error al parsear la respuesta JSON", e);
+                                return;
+                            }
+
+                            // Limpiamos el <ul> y lo mostramos
+                            suggestionsListProductos.empty().show();
+
+                            if (response.success && Array.isArray(response.productos) && response.productos.length > 0) {
+                                suggestionsListProductos.removeClass("d-none");
+
+                                // a) Poblar lista con cada producto sugerido
+                                response.productos.forEach((producto, index) => {
+                                    const listItem = $("<li></li>")
+                                        .text(`${producto.CVE_ART.trim()} - ${producto.DESCR}`) // Texto a mostrar
+                                        .attr("data-index", index)
+                                        .attr("data-producto", JSON.stringify(producto)) // Datos JSON
+                                        .addClass("suggestion-item")
+                                        .on("click", function() {
+                                            seleccionarProductoDesdeSugerencia($productoInput, producto);
+                                        });
+                                    suggestionsListProductos.append(listItem);
+                                });
+
+                                // b) Resaltamos la primera opción por defecto
+                                highlightedIndex = 0;
+                                const allItems = suggestionsListProductos.find("li");
+                                actualizarDestacadoProducto(allItems, highlightedIndex);
+
+                            } else {
+                                // Si no hubo coincidencias, mostramos mensaje "no match"
+                                suggestionsListProductos.empty()
+                                    .append("<li class='no-match'>No se encontraron coincidencias</li>")
+                                    .show();
+                            }
+                        },
+                        error: function() {
+                            console.error("Error en la solicitud AJAX para sugerencias");
+                            suggestionsListProductos.empty().hide();
+                        },
+                    });
+                } else {
+                    // Si el input tiene menos de 2 caracteres, ocultamos sugerencias
+                    suggestionsListProductos.empty().hide();
+                }
+            });
+
+            // Manejo de navegación con teclado en campo .producto
+            $(document).on("keydown", ".producto", function(e) {
+                const $input = $(this);
+                // Obtenemos sólo los <li> que tienen la clase suggestion-item (coincidencias reales)
+                const $suggestions = $input.closest("tr").find(".suggestions-list-productos");
+                const items = $suggestions.find("li.suggestion-item");
+
+                // 1) Si se presiona Tab/Enter pero no hay sugerencias => mostrar aviso y bloquear
+                if ((e.key === "Tab" || e.key === "Enter") && items.length === 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Aviso',
+                        text: 'No se encontraron coincidencias para ese producto.',
+                    });
+                    return;
                 }
 
-                $(document).on("click", function(event) {
-                    if (!$(event.target).closest(".producto, .suggestions-list-productos").length) {
-                        $(".suggestions-list-productos").empty().hide();
-                    }
-                });
+                // 2) Navegar con flechas solo si hay sugerencias
+                if (e.key === "ArrowDown" && items.length > 0) {
+                    highlightedIndex = (highlightedIndex + 1) % items.length;
+                    actualizarDestacadoProducto(items, highlightedIndex);
+                    e.preventDefault();
+                } else if (e.key === "ArrowUp" && items.length > 0) {
+                    highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+                    actualizarDestacadoProducto(items, highlightedIndex);
+                    e.preventDefault();
+                }
 
-                // Cerrar la lista de sugerencias si se hace clic fuera del input
-                $(document).on('click', function(event) {
-                    if (!$(event.target).closest('#cliente').length) {
-                        $('#clientesSugeridos').empty().hide();
-                    }
-                });
+                // 3) Si Tab/Enter y hay sugerencias => seleccionamos la resaltada
+                if ((e.key === "Tab" || e.key === "Enter") && items.length > 0) {
+                    e.preventDefault();
+                    const productoSeleccionado = JSON.parse(
+                        $(items[highlightedIndex]).attr("data-producto")
+                    );
+                    seleccionarProductoDesdeSugerencia($input, productoSeleccionado);
+                    $suggestions.empty().hide();
 
-                // Al hacer clic en la X, borrar el valor del input y los demás campos
-                $('#clearInput').on('click', function() {
-                    $('#cliente').val(''); // Borra el valor del input
-                    $('#rfc').val(''); // Borra el valor de RFC
-                    $('#nombre').val(''); // Borra el valor de nombre
-                    $('#calle').val(''); // Borra el valor de calle
-                    $('#numE').val(''); // Borra el valor de número externo
-                    $('#colonia').val(''); // Borra el valor de colonia
-                    $('#codigoPostal').val(''); // Borra el valor de código postal
-                    $('#poblacion').val(''); // Borra el valor de población
-                    $('#pais').val(''); // Borra el valor de país
-                    $('#regimenFiscal').val(''); // Borra el valor de régimen fiscal
-                    $('#destinatario').val(''); // Borra el valor de destinatario
-                    $('#clientesSugeridos').empty().hide(); // Oculta las sugerencias
-                    $(this).hide(); // Oculta la X
-                });
+                    // Luego de seleccionar, enfocamos el input de cantidad en la misma fila
+                    const $cantidadInput = $input.closest("tr").find(".cantidad");
+                    if ($cantidadInput.length) {
+                        $cantidadInput.focus();
+                        $cantidadInput.select();
+                    }
+                }
+            });
+
+            // Helper: resalta el <li> en índice dado para productos
+            function actualizarDestacadoProducto(items, index) {
+                items.removeClass("highlighted");
+                $(items[index]).addClass("highlighted");
+            }
+
+            // Si se hace clic en cualquier parte fuera de .producto o .suggestions-list-productos, ocultamos las sugerencias
+            $(document).on("click", function(event) {
+                if (!$(event.target).closest(".producto, .suggestions-list-productos").length) {
+                    $(".suggestions-list-productos").empty().hide();
+                }
+            });
+
+            // Si se hace clic fuera del campo #cliente, ocultamos la lista de sugerencias de clientes
+            $(document).on('click', function(event) {
+                if (!$(event.target).closest('#cliente').length) {
+                    $('#clientesSugeridos').empty().hide();
+                }
+            });
+
+            // Evento para el botón "X" que limpia el input de cliente y sus campos relacionados
+            $('#clearInput').on('click', function() {
+                $('#cliente').val(''); // Limpia campo cliente
+                $('#rfc').val(''); // Limpia RFC
+                $('#nombre').val(''); // Limpia nombre
+                $('#calle').val(''); // Limpia calle
+                $('#numE').val(''); // Limpia número exterior
+                $('#colonia').val(''); // Limpia colonia
+                $('#codigoPostal').val(''); // Limpia código postal
+                $('#poblacion').val(''); // Limpia población
+                $('#pais').val(''); // Limpia país
+                $('#regimenFiscal').val(''); // Limpia régimen fiscal
+                $('#destinatario').val(''); // Limpia destinatario
+                $('#clientesSugeridos').empty().hide(); // Oculta sugerencias de clientes
+                $(this).hide(); // Oculta el botón "X"
             });
         });
     </script>
