@@ -560,7 +560,7 @@ function guardarPedido(id) {
     console.log("Datos de partidas obtenidos:", partidasData);
 
     // Determinar si es alta o edición
-    formularioData.tipoOperacion = id === 0 ? "alta" : "editar";
+    //formularioData.tipoOperacion = id === 0 ? "alta" : "editar";
     console.log("Datos preparados para enviar:", formularioData, partidasData);
 
     // Enviar los datos al backend
@@ -654,6 +654,7 @@ function obtenerDatosFormulario() {
     //conCredito: "S",
     token: document.getElementById("csrf_token").value,
     ordenCompra: document.getElementById("supedido").value,
+    tipoOperacion: document.getElementById("tipoOperacion").value,
   };
   return formularioData;
 }
@@ -868,9 +869,9 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
         });*/
       } else {
         Swal.fire({
-          title: "Error al guardar el pedido",
+          title: "Error al Guardar el Pedido",
           text: data.message || "Ocurrió un error inesperado.",
-          icon: "error",
+          icon: "warning",
           confirmButtonText: "Aceptar",
         });
       }

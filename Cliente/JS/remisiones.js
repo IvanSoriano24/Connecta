@@ -12,6 +12,103 @@ function agregarEventosBotones() {
             window.location.href = "verRemision.php?pedidoID=" + pedidoID;
         });
     });
+    const botonesFacturar = document.querySelectorAll(".btnFacturar");
+    botonesFacturar.forEach((boton) => {
+        boton.addEventListener("click", async function () {
+            const pedidoID = this.dataset.id; // Obtener el ID del pedido
+            try {
+                const res = await verificarPedido(pedidoID);
+                if (res.success) {
+                    Swal.fire({
+                        title: "Aviso",
+                        text: "Esta Remision ya ha Sido Facturado",
+                        icon: "error",
+                        confirmButtonText: "Entendido",
+                    });
+                } else if (res.fail) {
+                    Swal.fire({
+                        title: "Aviso",
+                        text: "Funcion en Construccion",
+                        icon: "error",
+                        confirmButtonText: "Entendido",
+                    });
+                    //facturarRemision(pedidoID); // Llama a la función para facturar la remision
+                } else {
+                    console.error("Respuesta inesperada:", res);
+                }
+            } catch (error) {
+                console.error("Error al verificar el pedido:", error);
+                Swal.fire({
+                    title: "Aviso",
+                    text: "Hubo un problema al verificar el pedido",
+                    icon: "error",
+                    confirmButtonText: "Entendido",
+                });
+            }
+        });
+    });
+}
+function facturarRemision(pedidoID) {
+  $.post(
+    "../Servidor/PHP/remision.php",
+    { numFuncion: "9", pedidoID: pedidoID },
+    function (response) {
+      try {
+        if (typeof response === "string") {
+          response = JSON.parse(response);
+        }
+        if (response.success) {
+          Swal.fire({
+            title: "Facturado",
+            text: "La remision ha sido Facturado Correctamente",
+            icon: "success",
+            confirmButtonText: "Entendido",
+          }).then(() => {
+            datosPedidos(); // Actualizar la tabla después de eliminar
+          });
+        } else {
+          Swal.fire({
+            title: "Aviso",
+            text: response.message || "No se pudo cancelar el pedido",
+            icon: "error",
+            confirmButtonText: "Entendido",
+          });
+        }
+      } catch (error) {
+        console.error("Error al procesar la respuesta JSON:", error);
+      }
+    }
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    Swal.fire({
+      title: "Aviso",
+      text: "Hubo un problema al intentar eliminar el pedido",
+      icon: "error",
+      confirmButtonText: "Entendido",
+    });
+    console.log("Detalles del error:", jqXHR.responseText);
+  });
+}
+function verificarPedido(pedidoID) {
+    return new Promise((resolve, reject) => {
+        $.post(
+            "../Servidor/PHP/remision.php",
+            { numFuncion: "8", pedidoID: pedidoID },
+            function (response) {
+                try {
+                    // Si se configuró dataType "json" en $.post, response ya es un objeto.
+                    // Si no, se puede verificar:
+                    if (typeof response === "string") {
+                        response = JSON.parse(response);
+                    }
+                    resolve(response);
+                } catch (error) {
+                    reject("Error al parsear la respuesta: " + error);
+                }
+            }
+        ).fail(function (jqXHR, textStatus, errorThrown) {
+            reject("Error en la solicitud AJAX: " + errorThrown);
+        });
+    });
 }
 // CARGAR Los Datos
 // Función para mostrar mensaje cuando no hay datos
@@ -242,20 +339,19 @@ function datosPedidos(limpiarTabla = true) {
                                 <td>${pedido.Nombre || "Sin nombre"}</td>
                                 <td>${pedido.Estatus || "0"}</td>
                                 <td>${pedido.FechaElaboracion || "Sin fecha"
-                            }</td>
+                                }</td>
                                 <td style="text-align: right;">${subtotalText}</td>
                                 <!--<td style="text-align: right;">${pedido.TotalComisiones
-                                ? `$${parseFloat(
-                                    pedido.TotalComisiones
-                                ).toFixed(2)}`
-                                : "Sin Comisiones"
-                            }</td>-->
+                                    ? `$${parseFloat(
+                                        pedido.TotalComisiones
+                                    ).toFixed(2)}`
+                                    : "Sin Comisiones"
+                                }</td>-->
                                 <td style="text-align: right;">${importeText}</td>
-                               <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
-                            }</td>
+                               <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"}
+                                </td>
                                 <td>
-                                    <button class="btnVerPedido" name="btnVerPedido" data-id="${pedido.Clave
-                            }" style="
+                                    <button class="btnVerPedido" name="btnVerPedido" data-id="${pedido.Clave}" style="
                                         display: inline-flex;
                                         align-items: center;
                                         padding: 0.5rem 1rem;
@@ -268,6 +364,22 @@ function datosPedidos(limpiarTabla = true) {
                                         cursor: pointer;
                                         transition: background-color 0.3s ease;">
                                         <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver Remisión
+                                    </button>
+                                </td>
+                                <td>
+                                    <button class="btnFacturar" name="btnFacturar" data-id="${pedido.Clave}" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        padding: 0.5rem 1rem;
+                                        font-size: 1rem;
+                                        font-family: Lato;
+                                        color: #fff;
+                                        background-color: #007bff;
+                                        border: none;
+                                        border-radius: 0.25rem;
+                                        cursor: pointer;
+                                        transition: background-color 0.3s ease;">
+                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Facturar Remisión
                                     </button>
                                 </td>
                             `;
@@ -844,15 +956,15 @@ function doSearch(limpiarTabla = true) {
                   <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
                   <td style="text-align: right;">${subtotalText}</td>
                   <!--<td style="text-align: right;">${pedido.TotalComisiones
-                                    ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
-                                    : "Sin Comisiones"
-                                }</td>-->
+                                        ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
+                                        : "Sin Comisiones"
+                                    }</td>-->
                   <td style="text-align: right;">${importeText}</td>
                 <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
-                                }</td>
+                                    }</td>
                   <td>
                       <button class="btnVerPedido" name="btnVerPedido" data-id="${pedido.Clave
-                                }" style="
+                                    }" style="
                           display: inline-flex;
                           align-items: center;
                           padding: 0.5rem 1rem;
@@ -865,6 +977,23 @@ function doSearch(limpiarTabla = true) {
                           cursor: pointer;
                           transition: background-color 0.3s ease;">
                           <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver Remisión
+                      </button>
+                  </td>
+                  <td>
+                      <button class="btnFacturar" name="btnFacturar" data-id="${pedido.Clave
+                                    }" style="
+                          display: inline-flex;
+                          align-items: center;
+                          padding: 0.5rem 1rem;
+                          font-size: 1rem;
+                          font-family: Lato;
+                          color: #fff;
+                          background-color: #007bff;
+                          border: none;
+                          border-radius: 0.25rem;
+                          cursor: pointer;
+                          transition: background-color 0.3s ease;">
+                          <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Facturar Remisión
                       </button>
                   </td>
                 `;

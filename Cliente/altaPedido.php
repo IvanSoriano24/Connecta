@@ -394,6 +394,9 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="numero">Folio:</label>
                                 <input type="text" name="numero" id="numero" readonly tabindex="-1">
                             </div>
+
+                            <input type="text" name="tipoOperacion" id="tipoOperacion" hidden readonly value="alta" tabindex="-1">
+
                             <div class="form-element">
                                 <label for="fecha">Fecha </label>
                                 <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;"

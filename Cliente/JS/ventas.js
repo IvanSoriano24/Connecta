@@ -609,6 +609,7 @@ function obtenerDatosPedido(pedidoID) {
         document.getElementById("diaAlta").value = pedido.FECHA_DOC || "";
         document.getElementById("entrega").value = pedido.FECHA_ENT || "";
         document.getElementById("numero").value = pedido.FOLIO || "";
+        document.getElementById("tipoOperacion").value = "editar";
 
         //document.getElementById("enviar").value = pedido.CALLE_ENVIO || "";
         document.getElementById("descuentoCliente").value =
