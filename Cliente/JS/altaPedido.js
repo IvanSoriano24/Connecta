@@ -696,15 +696,17 @@ function extraerDatosEnvio() {
   return envioData;
 }
 function obtenerDatosPartidas() {
-  // Aquí obtienes las partidas de la tabla
   const partidasData = [];
   const filas = document.querySelectorAll("#tablaProductos tbody tr");
+
   filas.forEach((fila) => {
+    const descuentoInput = fila.querySelector(".descuento").value;
     const partida = {
       cantidad: fila.querySelector(".cantidad").value,
       producto: fila.querySelector(".producto").value,
       unidad: fila.querySelector(".unidad").value,
-      descuento: fila.querySelector(".descuento").value,
+      // Si el campo descuento está vacío, se asigna 0.
+      descuento: descuentoInput.trim() === "" ? 0 : descuentoInput,
       ieps: fila.querySelector(".ieps").value,
       impuesto2: fila.querySelector(".impuesto2").value,
       isr: fila.querySelector(".impuesto3").value,

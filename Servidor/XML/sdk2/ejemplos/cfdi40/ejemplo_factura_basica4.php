@@ -283,17 +283,17 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
     // Ruta del XML Timbrado
-    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . trim(urlencode($facturaID)) .  '.xml';
+    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' .  preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
 
     // Ruta del XML de Debug
-    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . trim(urlencode($facturaID)) .  '.xml';
+    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) .  '.xml';
 
-    
+
     // Credenciales de Timbrado
-    $datos['PAC']['usuario'] = $empresaData['rfc'];
+    /*$datos['PAC']['usuario'] = $empresaData['rfc'];
     $datos['PAC']['pass'] = $empresaData['rfc'];
-    $datos['PAC']['produccion'] = 'SI';
-    
+    $datos['PAC']['produccion'] = 'SI';*/
+
     // Credenciales de Timbrado
     $datos['PAC']['usuario'] = 'DEMO700101XXX';
     $datos['PAC']['pass'] = 'DEMO700101XXX';
@@ -326,7 +326,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     }
     //$datos['factura']['fecha_expedicion'] = $pedidoData['FECHA_DOC']->format('Y-m-d H:i:s');
     $datos['factura']['fecha_expedicion'] = "AUTO";
-    $datos['factura']['folio'] = trim($facturaID);
+    $datos['factura']['folio'] = trim($pedidoData['FOLIO']);
     $datos['factura']['LugarExpedicion'] = $empresaData['codigoPostal'];
     $datos['factura']['metodo_pago'] = $pedidoData['METODODEPAGO'];
     if ($pedidoData['METODODEPAGO'] === 'PPD') {
@@ -379,6 +379,8 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     $IMPU = 0;
     $DES = 0;
     $Sum = 0;
+    $IEPS = 0;
+    $porIEPS = 0;
     foreach ($productosData as $producto) {
         $dataProduc = datosProcuto($producto['CVE_ART'], $claveSae, $conexionData);
         $concepto = [];
@@ -411,10 +413,22 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
         //$concepto['Impuestos']['Traslados'][0]['Importe'] = sprintf('%.2f', round($baseImpuesto * ($producto['IMPU4'] / 100), 2));        //Original
         $concepto['Impuestos']['Traslados'][0]['Importe'] = sprintf('%.3f', ($baseImpuesto * ($producto['IMPU4'] / 100)));
 
+        if ($producto['IMPU1'] != 0) {
+            $concepto['Impuestos']['Traslados'][1]['Base'] = sprintf('%.3f', $baseImpuesto);
+            $concepto['Impuestos']['Traslados'][1]['Impuesto'] = '003';
+            $concepto['Impuestos']['Traslados'][1]['TipoFactor'] = 'Cuota';
+            $concepto['Impuestos']['Traslados'][1]['TasaOCuota'] = sprintf('%.6f', $producto['IMPU1'] / 100);
+            //$concepto['Impuestos']['Traslados'][1]['Importe'] = sprintf('%.2f', round($baseImpuesto * ($producto['IMPU4'] / 100), 2));        //Original
+            $concepto['Impuestos']['Traslados'][1]['Importe'] = sprintf('%.3f', ($baseImpuesto * ($producto['IMPU1'] / 100)));
+        
+            $IEPS = $IEPS + ($baseImpuesto * ($producto['IMPU1'] / 100));
+            $porIEPS = $producto['IMPU1'];
+        }
         $IMPU = $IMPU + ($baseImpuesto * ($producto['IMPU4'] / 100));
         $DES = $DES + $precioDes;
         $Sum = $Sum + $precioDes;
         $datos['conceptos'][] = $concepto;
+        
     }
     // Se agregan los Impuestos
     $datos['impuestos']['translados'][0]['Base'] = sprintf('%.2f', $pedidoData['CAN_TOT'] - $DES);
@@ -423,8 +437,16 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     $datos['impuestos']['translados'][0]['importe'] = sprintf('%.2f', $IMPU); //Original sin sprintf
     $datos['impuestos']['translados'][0]['TipoFactor'] = 'Tasa';
 
+    if ($producto['IMPU1'] != 0) {
+        $datos['impuestos']['translados'][1]['Base'] = sprintf('%.2f', $pedidoData['CAN_TOT'] - $DES);
+        $datos['impuestos']['translados'][1]['impuesto'] = '002';
+        $datos['impuestos']['translados'][1]['tasa'] = sprintf('%.2f', $porIEPS);
+        $datos['impuestos']['translados'][1]['importe'] = sprintf('%.2f', $IEPS); //Original sin sprintf
+        $datos['impuestos']['translados'][1]['TipoFactor'] = 'Tasa';
+    }
+
     //$datos['impuestos']['TotalImpuestosTrasladados'] = round($IMPU, 2);   //Original
-    $datos['impuestos']['TotalImpuestosTrasladados'] = sprintf('%.2f', $IMPU);
+    $datos['impuestos']['TotalImpuestosTrasladados'] = sprintf('%.2f', $IMPU + $IEPS);
 
     /*echo "<pre>";
     print_r($datos);

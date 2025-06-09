@@ -92,8 +92,56 @@ function obtenerDatosVendedor($clave)
 
     return false;
 }
-function obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae, $conn)
-{
+function obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae, $conn){
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a SQL Server', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT NOMBRE, RFC, CALLE, NUMEXT, NUMINT, COLONIA, MUNICIPIO, ESTADO, PAIS, CODIGO, TELEFONO, EMAILPRED, DESCUENTO, REG_FISC
+            FROM $nombreTabla WHERE [CLAVE] = ?";
+
+    $params = [$clienteId];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
+    }
+
+    $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    //sqlsrv_close($conn);
+
+    if (!$clienteData) {
+        return null; // Cliente no encontrado
+    }
+
+    return [
+        'nombre' => trim($clienteData['NOMBRE']) ?? 'Desconocido',
+        //'rfc' => trim($clienteData['RFC']) ?? 'N/A',
+        'rfc' => $clienteData['RFC'] ?? 'N/A',
+        'direccion' => trim($clienteData['CALLE'] . " " . ($clienteData['NUMEXT'] ?? '') . " " . ($clienteData['NUMINT'] ?? '')),
+        //'colonia' => trim($clienteData['COLONIA']) ?? 'N/A',
+        'colonia' => $clienteData['COLONIA'] ?? 'N/A',
+        'ubicacion' => trim($clienteData['MUNICIPIO'] . ", " . $clienteData['ESTADO'] . ", " . $clienteData['PAIS']) ?? 'N/A',
+        //'codigoPostal' => trim($clienteData['CODIGO']) ?? 'N/A',
+        'codigoPostal' => $clienteData['CODIGO'] ?? 'N/A',
+        'telefono' => $clienteData['TELEFONO'] ?? 'N/A',
+        'email' => $clienteData['EMAILPRED'] ?? 'N/A',
+        'DESCUENTO' => $clienteData['DESCUENTO'] ?? 0,
+        'REG_FISC' => $clienteData['REG_FISC'] ?? 0
+    ];
+}
+function obtenerDatosClienteReporteE($conexionData, $clienteId, $claveSae){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a SQL Server', 'errors' => sqlsrv_errors()]));
     }
@@ -377,8 +425,41 @@ function obtenerDatosPartidasPedido($cveDoc, $conexionData, $claveSae)
 
     return $partidas;
 }
-function obtenerDescripcionProductoPedidoAutoriza($CVE_ART, $conexionData, $claveSae, $conn)
-{
+function obtenerDescripcionProductoPedidoAutoriza($CVE_ART, $conexionData, $claveSae, $conn){
+    if (!is_resource($conn)) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'La conexión no es un recurso válido.'
+        ]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "SELECT DESCR, CVE_PRODSERV FROM $nombreTabla WHERE CVE_ART = ?";
+    $stmt = sqlsrv_query($conn, $sql, [$CVE_ART]);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
+    }
+
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $descripcion = $row ? $row['DESCR'] : '';
+    $CVE_PRODSERV = $row ? $row['CVE_PRODSERV'] : '';
+
+    sqlsrv_free_stmt($stmt);
+
+    return [
+        "DESCR" => $descripcion,
+        "CVE_PRODSERV" => $CVE_PRODSERV
+    ];
+}
+function obtenerDescripcionProductoPedidoAutorizaE($CVE_ART, $conexionData, $claveSae){
+    // Configuración de conexión a SQL Server
+    $conn = sqlsrv_connect($conexionData['host'], [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ]);
+
     if (!is_resource($conn)) {
         die(json_encode([
             'success' => false,
@@ -1335,6 +1416,110 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
 
     return $rutaArchivo;
 }
+function generarReportePedidoE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO){
+    $datosEmpresaFire = obtenerDatosEmpresaFire($noEmpresa);
+
+    $clienteId = str_pad(trim($formularioData['cliente']), 10, ' ', STR_PAD_LEFT);
+    $datosClienteReporte = obtenerDatosClienteReporteE($conexionData, $clienteId, $claveSae);
+
+    $emailPredArray = explode(';', $datosClienteReporte['email']); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]);
+
+    $clave = str_pad(trim($formularioData['claveVendedor']), 5, ' ', STR_PAD_LEFT);
+    $datosVendedor = obtenerDatosVendedor($clave);
+    $ordenCompra = $formularioData['ordenCompra'];
+    // Variables para cálculo de totales
+    $subtotal = 0;
+    $totalImpuestos = 0;
+    $totalDescuentos = 0;
+
+    $pdf = new PDFPedido($datosEmpresaFire, $datosClienteReporte, $datosVendedor, $formularioData, $ordenCompra, $emailPred, $FOLIO);
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', '', 9);
+    $pdf->SetTextColor(39, 39, 51);
+
+    foreach ($partidasData as $partida) {
+        $productosData = obtenerDescripcionProductoPedidoAutorizaE($partida['producto'], $conexionData, $claveSae);
+
+        $precioUnitario = $partida['precioUnitario'];
+        $cantidad = $partida['cantidad'];
+        $desc1 = $partida['descuento'] ?? 0;
+        //$descTotal = intval($formularioData['descuentoCliente'] ?? 0);
+        //$descuentos = $desc1  + $descTotal;
+
+        $ieps = intval($partida['ieps'] ?? 0);
+        $impuesto2 = intval($partida['impuesto2'] ?? 0);
+        $isr = intval($partida['isr'] ?? 0);
+        $iva = intval($partida['iva'] ?? 0);
+        $impuestos = $ieps + $impuesto2 + $isr + $iva;
+
+        $subtotalPartida = $precioUnitario * $cantidad;
+
+        $descuentoPartida = $subtotalPartida * (($desc1 / 100));
+
+        $totalDescuentos += $descuentoPartida;
+        $subtotal += $subtotalPartida;
+
+        $impuestoPartida = ($subtotalPartida - $descuentoPartida) * ($impuestos / 100);
+        $totalImpuestos += $impuestoPartida;
+
+        $pdf->SetTextColor(39, 39, 51);
+        /*$pdf->Cell(20, 7, $partida['producto'], 0, 0, 'C');
+        $pdf->Cell(70, 7, iconv("UTF-8", "ISO-8859-1", $descripcion), 0);
+        $pdf->Cell(15, 7, $cantidad, 0, 0, 'C');
+        $pdf->Cell(20, 7, number_format($precioUnitario, 2), 0, 0, 'C');
+        $pdf->Cell(20, 7, number_format($desc1, 2) . "%", 1, 0, 'C');
+        $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 0, 0, 'C');
+        $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');*/
+        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->SetFont('Arial', '', 7);
+        $pdf->Cell(28, 7, $partida['unidad'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
+        $pdf->Cell(15, 7, $partida['producto'], 0, 0, 'C');
+        //$pdf->SetFont('Arial', '', 6);
+        $pdf->Cell(65, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
+        $pdf->Cell(18, 7,"$" . number_format($precioUnitario, 2), 0, 0, 'R');
+        $pdf->Cell(22, 7,"$" . number_format($subtotalPartida, 2), 0, 1, 'R');
+    }
+
+    // Calcular totales
+    $subtotalConDescuento = $subtotal - $totalDescuentos;
+    $total = $subtotalConDescuento + $totalImpuestos;
+
+    //$total = $subtotal - $subtotalConDescuento + $totalImpuestos;
+
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(155, 7, 'Importe:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotal, 2), 0, 1, 'R');
+
+    $pdf->Cell(155, 7, 'Descuento:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
+
+    $pdf->Cell(155, 7, 'Subtotal:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
+
+    $pdf->Cell(155, 7, 'IVA:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
+
+    $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
+
+    // **Generar el nombre del archivo correctamente**
+    $nombreArchivo = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $FOLIO) . ".pdf";
+    $rutaArchivo = __DIR__ . "/pdfs/" . $nombreArchivo;
+
+    // **Asegurar que la carpeta `pdfs/` exista**
+    if (!is_dir(__DIR__ . "/pdfs")) {
+        mkdir(__DIR__ . "/pdfs", 0777, true);
+    }
+
+    // **Guardar el PDF en el servidor**
+    $pdf->Output($rutaArchivo, "F");
+
+    return $rutaArchivo;
+}
 function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noEmpresa, $vendedor, $folio)
 {
     $vendedor = trim($vendedor);
@@ -1346,7 +1531,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
     // Obtener datos del cliente
     $clienteId = str_pad(trim($datosPedidoAutoriza['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
     //var_dump($clienteId);
-    $datosClientePedidoAutoriza = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
+    $datosClientePedidoAutoriza = obtenerDatosClienteReporteE($conexionData, $clienteId, $claveSae);
     //var_dump($datosClientePedidoAutoriza);
     $emailPredArray = explode(';', $datosClientePedidoAutoriza['email']); // Divide los correos por `;`
     $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
@@ -1368,7 +1553,7 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
     // **Agregar filas de la tabla con los datos de la remisión**
     foreach ($datosPartidasPedido as $partida) {
         // **Obtener la descripción del producto desde SQL Server**
-        $productosData = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
+        $productosData = obtenerDescripcionProductoPedidoAutorizaE($partida['CVE_ART'], $conexionData, $claveSae);
 
         // **Cálculos**
         $precioUnitario = $partida['PREC'];
@@ -1453,7 +1638,7 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
 
     // Obtener datos del cliente
     $clienteId = str_pad(trim($datosRemisiones['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
-    $datosClienteRemision = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
+    $datosClienteRemision = obtenerDatosClienteReporteE($conexionData, $clienteId, $claveSae);
 
     $emailPredArray = explode(';', $datosClienteRemision['email']); // Divide los correos por `;`
     $emailPred = trim($emailPredArray[0]);
@@ -1560,7 +1745,7 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     // Obtener datos del cliente
     $clienteId = str_pad(trim($datosPedidoAutoriza['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
     //var_dump($clienteId);
-    $datosClientePedidoAutoriza = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
+    $datosClientePedidoAutoriza = obtenerDatosClienteReporteE($conexionData, $clienteId, $claveSae);
     //var_dump($datosClientePedidoAutoriza);
     $emailPredArray = explode(';', $datosClientePedidoAutoriza['email']); // Divide los correos por `;`
     $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
@@ -1652,7 +1837,7 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     // **Agregar filas de la tabla con los datos de la remisión**
     foreach ($datosPartidasPedido as $partida) {
         // **Obtener la descripción del producto desde SQL Server**
-        $productosData = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
+        $productosData = obtenerDescripcionProductoPedidoAutorizaE($partida['CVE_ART'], $conexionData, $claveSae);
 
         // **Cálculos**
         $precioUnitario = $partida['PREC'];
@@ -1767,7 +1952,7 @@ function generarPDFPedido($conexionData, $claveSae, $noEmpresa, $folio) {
     $datosPedido     = obtenerDatosPedido($CVE_DOC, $conexionData, $claveSae);
     $datosPartidas   = obtenerDatosPartidasPedido($CVE_DOC, $conexionData, $claveSae);
     $clienteId       = str_pad(trim($datosPedido['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
-    $datosCliente    = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
+    $datosCliente    = obtenerDatosClienteReporteE($conexionData, $clienteId, $claveSae);
     // b) Creamos el PDF con tu clase:
     $pdf = new PDFPedidoAutoriza(
         $datosEmpresa,
@@ -1786,7 +1971,7 @@ function generarPDFPedido($conexionData, $claveSae, $noEmpresa, $folio) {
     $totalImpuestos = 0;
     $totalDescuentos= 0;
     foreach ($datosPartidas as $partida) {
-        $productosData   = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae);
+        $productosData   = obtenerDescripcionProductoPedidoAutorizaE($partida['CVE_ART'], $conexionData, $claveSae);
         $precioUnitario  = $partida['PREC'];
         $cantidad        = $partida['CANT'];
         $desc1           = $partida['DESC1'] ?? 0;

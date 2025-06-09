@@ -21,18 +21,18 @@ function agregarEventosBotones() {
                 if (res.success) {
                     Swal.fire({
                         title: "Aviso",
-                        text: "Esta Remision ya ha Sido Facturado",
-                        icon: "error",
+                        text: "Esta Remision ya ha Sido Facturada",
+                        icon: "warning",
                         confirmButtonText: "Entendido",
                     });
                 } else if (res.fail) {
-                    Swal.fire({
+                    /*Swal.fire({
                         title: "Aviso",
                         text: "Funcion en Construccion",
                         icon: "error",
                         confirmButtonText: "Entendido",
-                    });
-                    //facturarRemision(pedidoID); // Llama a la función para facturar la remision
+                    });*/
+                    facturarRemision(pedidoID); // Llama a la función para facturar la remision
                 } else {
                     console.error("Respuesta inesperada:", res);
                 }
@@ -69,8 +69,8 @@ function facturarRemision(pedidoID) {
         } else {
           Swal.fire({
             title: "Aviso",
-            text: response.message || "No se pudo cancelar el pedido",
-            icon: "error",
+            text: response.message || "No se pudo facturar la remision",
+            icon: "warning",
             confirmButtonText: "Entendido",
           });
         }
@@ -81,8 +81,8 @@ function facturarRemision(pedidoID) {
   ).fail(function (jqXHR, textStatus, errorThrown) {
     Swal.fire({
       title: "Aviso",
-      text: "Hubo un problema al intentar eliminar el pedido",
-      icon: "error",
+      text: "Hubo un problema al intentar facturar la Remision",
+      icon: "warning",
       confirmButtonText: "Entendido",
     });
     console.log("Detalles del error:", jqXHR.responseText);
@@ -180,13 +180,13 @@ function buildPagination(total) {
 }
 /***********************************************************************/
 // Función para cargar los pedidos con el filtro seleccionado y guardar el filtro en localStorage
-function cargarPedidos(estadoPedido, filtroFecha) {
+function cargarPedidos(estadoRemision, filtroFecha) {
     document.getElementById("searchTerm").value = "";
     // Guarda el filtro seleccionado
     localStorage.setItem("filtroSeleccionado", filtroFecha);
-    localStorage.setItem("estadoPedido", estadoPedido);
+    localStorage.setItem("estadoRemision", estadoRemision);
     /*let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";*/
+    let estadoRemision = localStorage.getItem("estadoRemision") || "Activos";*/
     //console.log("Cargando pedidos con filtro:", filtroFecha);
 
     // Asegúrate de que la variable noEmpresa esté definida
@@ -201,7 +201,7 @@ function cargarPedidos(estadoPedido, filtroFecha) {
             numFuncion: "2",
             noEmpresa: noEmpresa,
             filtroFecha: filtroFecha,
-            estadoPedido: estadoPedido,
+            estadoPedido: estadoRemision,
             filtroVendedor: filtroVendedor,
             pagina: paginaActual,
             porPagina: registrosPorPagina,
@@ -251,7 +251,7 @@ let registrosPorPagina = 10; // Ajusta según convenga
 function datosPedidos(limpiarTabla = true) {
     // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
     let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
+    let estadoRemision = localStorage.getItem("estadoRemision") || "Vendidos";
     const pedidosTable = document.getElementById("datosPedidos");
     const numColumns = 12; // Número de columnas de tu tabla
 
@@ -281,7 +281,7 @@ function datosPedidos(limpiarTabla = true) {
             numFuncion: "2",
             noEmpresa: noEmpresa,
             filtroFecha: filtroFecha,
-            estadoPedido: estadoPedido,
+            estadoPedido: estadoRemision,
             filtroVendedor: filtroVendedor,
             pagina: paginaActual,
             porPagina: registrosPorPagina,
@@ -703,7 +703,7 @@ function actualizarTablaPartidas(pedidoID) {
                 Swal.fire({
                     title: "Aviso",
                     text: "La cantidad no puede ser negativa.",
-                    icon: "error",
+                    icon: "warning",
                     confirmButtonText: "Entendido",
                 });
                 cantidadInput.value = 0; // Restablecer el valor a 0
@@ -814,11 +814,11 @@ $(document).on("change", "#filtroVendedor", function () {
 // Al cargar la página, se lee el filtro guardado y se carga la información
 document.addEventListener("DOMContentLoaded", function () {
     let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
+    let estadoRemision = localStorage.getItem("estadoRemision") || "Vendidos";
 
     // 🔹 Resaltar el botón correspondiente al estado guardado
     $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary");
-    $(`.filtro-rol[data-rol="${estadoPedido}"]`)
+    $(`.filtro-rol[data-rol="${estadoRemision}"]`)
         .removeClass("btn-secondary")
         .addClass("btn-primary");
 
@@ -835,18 +835,18 @@ function inicializarEventosBotones() {
     $(".filtro-rol")
         .off("click")
         .on("click", function () {
-            let estadoPedido = $(this).data("rol"); // Obtener el rol del botón
+            let estadoRemision = $(this).data("rol"); // Obtener el rol del botón
             $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary"); // Resetear colores de botones
             $(this).removeClass("btn-secondary").addClass("btn-primary"); // Resaltar botón seleccionado
             var filtroSeleccionado = document.getElementById("filtroFecha").value;
-            localStorage.setItem("estadoPedido", this.value);
-            cargarPedidos(estadoPedido, filtroSeleccionado); // Filtrar la tabla
+            localStorage.setItem("estadoRemision", this.value);
+            cargarPedidos(estadoRemision, filtroSeleccionado); // Filtrar la tabla
         });
 }
 $("#filtroFecha").change(function () {
-    let estadoPedido = $(".filtro-rol.btn-primary").data("rol");
+    let estadoRemision = $(".filtro-rol.btn-primary").data("rol");
     var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
-    cargarPedidos(estadoPedido, filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
+    cargarPedidos(estadoRemision, filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
 });
 
 let debounceTimeout;
@@ -864,7 +864,7 @@ function doSearch(limpiarTabla = true) {
     if (searchText.length >= 2) {
         // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
         let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-        let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
+        let estadoRemision = localStorage.getItem("estadoRemision") || "Vendidos";
         document.getElementById("filtroFecha").value = filtroFecha;
         const pedidosTable = document.getElementById("datosPedidos");
         const numColumns = 12; // Número de columnas de tu tabla
@@ -895,7 +895,7 @@ function doSearch(limpiarTabla = true) {
                 numFuncion: "6",
                 noEmpresa: noEmpresa,
                 filtroFecha: filtroFecha,
-                estadoPedido: estadoPedido,
+                estadoPedido: estadoRemision,
                 filtroVendedor: filtroVendedor,
                 pagina: paginaActual,
                 porPagina: registrosPorPagina,

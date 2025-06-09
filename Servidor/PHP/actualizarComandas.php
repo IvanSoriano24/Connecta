@@ -1,4 +1,5 @@
 <?php
+set_time_limit(0);
 require 'firebase.php'; // Archivo con las credenciales de Firebase
 
 function actualizarComandasPendientes($firebaseProjectId, $firebaseApiKey) {

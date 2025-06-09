@@ -1409,10 +1409,13 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $totalDescuentos = 0; // Inicializar acumulador de descuentos
     $IMP_TOT4 = 0;
     $IMP_T4 = 0;
+    $IMP_TOT1 = 0;
+    $IMP_T1 = 0;
     foreach ($partidasData as $partida) {
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
         $IMPU4 = $partida['iva'];
+        $IMPU1 = $partida['ieps'];
         $desc1 = $partida['descuento'] ?? 0; // Primer descuento
         $totalPartida = $precioUnitario * $cantidad;
         // **Aplicar los descuentos en cascada**
@@ -1422,11 +1425,13 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
 
         $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
         $IMP_TOT4 += $IMP_T4;
+
+        $IMP_T1 = ($totalPartida - $DES) * ($IMPU1 / 100);
+        $IMP_TOT1 += $IMP_T1;
     }
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
-    $IMP_TOT1 = 0;
     $IMP_TOT2 = 0;
     $IMP_TOT3 = 0;
     $IMP_TOT5 = 0;
@@ -1786,6 +1791,11 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
             // Calcular los impuestos y totales
             $IMPU1 = $partida['ieps']; // Impuesto 1
             $IMPU3 = $partida['isr'];
+            if($IMPU1 != 0){
+                $IMP1APLA = 0;
+            }else{
+                $IMP1APLA = 4;
+            }
             //$IMPU1 = 0;
             //$IMPU2 = $partida['impuesto2']; // Impuesto 2
             $IMPU2 = 0;
@@ -1826,7 +1836,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
                 VERSION_SINC, ID_RELACION, PREC_NETO,
                 CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
                 IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4, 4, 4, 4,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4, 4, 0,
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
@@ -1846,6 +1856,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
                 $IMPU2,
                 $IMPU3,
                 $IMPU4,
+                $IMP1APLA,
                 $TOTIMP1,
                 $TOTIMP2,
                 $TOTIMP4,
@@ -2644,9 +2655,10 @@ function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
 }
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
-    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
-    //$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     // ✅ Verifica que los valores no estén vacíos
     if (empty($noPedido) || empty($claveSae)) {
@@ -4284,6 +4296,11 @@ function eliminarImagen($conexionData)
 function generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn)
 {
     $rutaPDF = generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
+    return $rutaPDF;
+}
+function generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO)
+{
+    $rutaPDF = generarReportePedidoE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO);
     return $rutaPDF;
 }
 // -----------------------------------------------------------------------------------------------------//
@@ -6596,9 +6613,9 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         if ($correoBandera === 0) {
             enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
         }
-
         if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -6624,8 +6641,10 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
 }
 function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
-    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     // ✅ Verifica que los valores no estén vacíos
     if (empty($noPedido) || empty($claveSae)) {
@@ -6635,8 +6654,8 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urldecode($claveCliente);
-    /*$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido*/
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente);
+    //$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido  
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 
 
@@ -8182,7 +8201,7 @@ switch ($funcion) {
                     if ($resultadoActualizacion['success']) {
                         actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                         if ($validarSaldo === 0 && $credito == 0) {
-                            $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                            $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero']);
                             validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                             echo json_encode([
                                 'success' => true,

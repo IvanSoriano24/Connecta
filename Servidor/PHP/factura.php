@@ -2646,6 +2646,11 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     insertarCFDI($conexionData, $claveSae, $folioUnido);
 
     return $folioUnido;
+    /*return [
+        'folio' => $folioFactura,
+        'serie' => $SERIE,
+        'folioUnico' => $folioUnido
+    ];*/
 }
 function formatearClaveVendedor($vendedor)
 {
@@ -3316,10 +3321,10 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        $folioUnido = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito);
+        $folio = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito);
         header('Content-Type: application/json');
         //die( json_encode(['success' => true, 'folioFactura1' => $folioFactura]));
-        echo json_encode(['success' => true, 'folioFactura1' => $folioUnido]);
+        echo json_encode(['success' => true, 'folioFactura1' => $folio]);
         //return $folioUnido;
         break;
     case 2:
