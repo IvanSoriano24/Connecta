@@ -578,26 +578,36 @@ function actualizarEstadoPedido($folio, $conexionData, $claveSae)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    // Crear la consulta SQL para actualizar el pedido
-    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+
+    $tablaClib  = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT);
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-    $sql = "UPDATE $nombreTabla SET 
-        STATUS = 'E'
-        WHERE CVE_DOC = ?";
 
-    $params = [$CVE_DOC];
-    $stmt = sqlsrv_query($conn, $sql, $params);
+    // Iniciar transacción
+    sqlsrv_begin_transaction($conn);
 
-    if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al actualizar el pedido', 'errors' => sqlsrv_errors()]));
+    try {
+        // 2. Actualizar CAMPLIB3 = 'V' en FACTP_CLIB
+        $sql2 = "UPDATE $tablaClib SET CAMPLIB3 = 'V' WHERE CLAVE_DOC = ?";
+        $stmt2 = sqlsrv_prepare($conn, $sql2, [$CVE_DOC]);
+        if (!$stmt2 || !sqlsrv_execute($stmt2)) {
+            throw new Exception('Error al actualizar CAMPLIB3 en FACTP_CLIB');
+        }
+
+        // Confirmar transacción
+        sqlsrv_commit($conn);
+
+        sqlsrv_free_stmt($stmt2);
+        sqlsrv_close($conn);
+
+        return ['success' => true, 'message' => 'Estado y campo CAMPLIB3 actualizados correctamente'];
+
+    } catch (Exception $e) {
+        sqlsrv_rollback($conn);
+        sqlsrv_close($conn);
+        return ['success' => false, 'message' => $e->getMessage(), 'errors' => sqlsrv_errors()];
     }
-
-    // Cerrar la conexión
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
-
-    return ['success' => true, 'message' => 'Status actualizado'];
 }
 function generarPDFP($CVE_DOC, $conexionData, $claveSae, $noEmpresa, $vend, $folio)
 {

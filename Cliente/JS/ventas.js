@@ -301,49 +301,7 @@ function cargarPedidos(estadoPedido, filtroFecha) {
     return;
   }
 
-  $.post(
-    "../Servidor/PHP/ventas.php",
-    {
-      numFuncion: "1",
-      noEmpresa: noEmpresa,
-      filtroFecha: filtroFecha,
-      estadoPedido: estadoPedido,
-      filtroVendedor: filtroVendedor,
-      pagina: paginaActual,
-      porPagina: registrosPorPagina,
-    },
-    function (response) {
-      console.log("Respuesta del servidor:", response);
-      try {
-        if (typeof response === "string") {
-          response = JSON.parse(response);
-        }
-        if (response && response.success && response.data) {
-          console.log("Datos: ", response);
-          let pedidos = response.data;
-          //console.log("Pedidos recibidos:", pedidos);
-          // Ordenamos los pedidos (de mayor a menor clave)
-          pedidos = pedidos.sort((a, b) => {
-            const claveA = parseInt(a.Clave, 10) || 0;
-            const claveB = parseInt(b.Clave, 10) || 0;
-            return claveB - claveA;
-          });
-          datosPedidos(true);
-        } else {
-          console.warn(
-            "No se recibieron datos o se devolvió un error:",
-            response.message
-          );
-          mostrarSinDatos();
-        }
-      } catch (error) {
-        console.error("Error al procesar la respuesta JSON:", error);
-      }
-    },
-    "json"
-  ).fail(function (jqXHR, textStatus, errorThrown) {
-    console.error("Error en la solicitud:", textStatus, errorThrown);
-  });
+  datosPedidos(true);
 }
 
 // Variables globales de paginación
