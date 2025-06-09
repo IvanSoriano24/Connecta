@@ -182,12 +182,10 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
 }*/
 function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor)
 {
-    // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     $estadoPedido = $_POST['estadoPedido'] ?? 'Activos';
     $filtroVendedor = $_POST['filtroVendedor'] ?? '';
 
-    // Parámetros de paginación
     $pagina = isset($_POST['pagina']) ? (int)$_POST['pagina'] : 1;
     $porPagina = isset($_POST['porPagina']) ? (int)$_POST['porPagina'] : 10;
     $offset = ($pagina - 1) * $porPagina;
@@ -197,6 +195,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
         }
+
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
         if (!is_numeric($noEmpresa)) {
@@ -224,12 +223,12 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
         }
 
-        // Construir nombres de tablas dinámicamente
         $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $nombreTabla2  = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $nombreTabla3  = "[{$conexionData['nombreBase']}].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTablaCLIB = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-        // Reescribir la consulta evitando duplicados con `DISTINCT`
+        // Consulta principal
         $sql = "
             SELECT DISTINCT 
                 f.TIP_DOC              AS Tipo,
@@ -245,16 +244,21 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
                 f.DOC_SIG              AS DOC_SIG,
                 v.NOMBRE               AS NombreVendedor
             FROM $nombreTabla2 f
-            LEFT JOIN $nombreTabla  c ON c.CLAVE   = f.CVE_CLPV
-            LEFT JOIN $nombreTabla3 v ON v.CVE_VEND= f.CVE_VEND
-            ";
-        if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
-            $sql .= "WHERE f.STATUS IN ('E','O')";
+            LEFT JOIN $nombreTabla     c ON c.CLAVE     = f.CVE_CLPV
+            LEFT JOIN $nombreTabla3    v ON v.CVE_VEND  = f.CVE_VEND
+            LEFT JOIN $nombreTablaCLIB clib ON clib.CLAVE_DOC = f.CVE_DOC
+            WHERE ";
+
+        // Filtro de estado por CAMPLIB3
+        if ($estadoPedido == "Activos") {
+            $sql .= "clib.CAMPLIB3 = 'A' ";
+        } elseif ($estadoPedido == "Vendidos") {
+            $sql .= "clib.CAMPLIB3 = 'E' ";
         } else {
-            $sql .= "WHERE f.STATUS IN ('C')";
+            $sql .= "clib.CAMPLIB3 = 'C' ";
         }
 
-        // Agregar filtros de fecha
+        // Filtro por fecha
         if ($filtroFecha == 'Hoy') {
             $sql .= " AND CAST(f.FECHAELAB AS DATE) = CAST(GETDATE() AS DATE) ";
         } elseif ($filtroFecha == 'Mes') {
@@ -263,25 +267,19 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             $sql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
         }
 
-        // Filtrar por vendedor si el usuario no es administrador
-        /*if ($tipoUsuario !== 'ADMINISTRADOR') {
-            $sql .= " AND f.CVE_VEND = ? ";
-            $params = [intval($claveVendedor)];
-        } else {
-            $params = [];
-        }*/
+        // Filtro por vendedor
+        $params = [];
         if ($tipoUsuario === 'ADMINISTRADOR') {
             if ($filtroVendedor !== '') {
                 $sql      .= " AND f.CVE_VEND = ?";
                 $params[]  = $filtroVendedor;
             }
         } else {
-            // Usuarios no ADMIN sólo ven sus pedidos
             $sql      .= " AND f.CVE_VEND = ?";
             $params[]  = $claveVendedor;
         }
 
-        // Agregar orden y paginación
+        // Orden y paginación
         $sql .= " ORDER BY f.FECHAELAB DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
         $params[] = $offset;
         $params[] = $porPagina;
@@ -292,12 +290,10 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
 
-        // Arreglo para almacenar los pedidos evitando duplicados
         $clientes = [];
         $clavesRegistradas = [];
 
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            // Validar codificación y manejar nulos
             foreach ($row as $key => $value) {
                 if ($value !== null && is_string($value)) {
                     $value = trim($value);
@@ -313,27 +309,28 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
                 $row[$key] = $value;
             }
 
-            // 🚨 Evitar pedidos duplicados usando CVE_DOC como clave única
             if (!in_array($row['Clave'], $clavesRegistradas)) {
-                $clavesRegistradas[] = $row['Clave']; // Registrar la clave para evitar repetición
+                $clavesRegistradas[] = $row['Clave'];
                 $clientes[] = $row;
             }
         }
-        /*if($estadoPedido == "Vendidos"){
-            $clientes = filtrarPedidosVendidos($clientes);
-        }*/
-        $countSql  = "
+
+        // Consulta para total
+        $countSql = "
             SELECT COUNT(DISTINCT f.CVE_DOC) AS total
             FROM $nombreTabla2 f
-            LEFT JOIN $nombreTabla c ON c.CLAVE    = f.CVE_CLPV
-            LEFT JOIN $nombreTabla3 v ON v.CVE_VEND = f.CVE_VEND
-        ";
-        if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
-            $countSql .= "WHERE f.STATUS IN ('E','O')";
+            LEFT JOIN $nombreTabla     c ON c.CLAVE    = f.CVE_CLPV
+            LEFT JOIN $nombreTabla3    v ON v.CVE_VEND = f.CVE_VEND
+            LEFT JOIN $nombreTablaCLIB clib ON clib.CLAVE_DOC = f.CVE_DOC
+            WHERE ";
+        if ($estadoPedido == "Activos") {
+            $countSql .= "clib.CAMPLIB3 = 'A' ";
+        } elseif ($estadoPedido == "Vendidos") {
+            $countSql .= "clib.CAMPLIB3 = 'E' ";
         } else {
-            $countSql .= "WHERE f.STATUS IN ('C')";
+            $countSql .= "clib.CAMPLIB3 = 'C' ";
         }
-        // Agregar filtros de fecha
+
         if ($filtroFecha == 'Hoy') {
             $countSql .= " AND CAST(f.FECHAELAB AS DATE) = CAST(GETDATE() AS DATE) ";
         } elseif ($filtroFecha == 'Mes') {
@@ -341,24 +338,22 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
         } elseif ($filtroFecha == 'Mes Anterior') {
             $countSql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
         }
+
         if ($tipoUsuario === 'ADMINISTRADOR') {
             if ($filtroVendedor !== '') {
                 $countSql      .= " AND f.CVE_VEND = ?";
-                $params[]  = $filtroVendedor;
             }
         } else {
-            // Usuarios no ADMIN sólo ven sus pedidos
             $countSql      .= " AND f.CVE_VEND = ?";
-            $params[]  = $claveVendedor;
         }
 
         $countStmt = sqlsrv_query($conn, $countSql, $params);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
         sqlsrv_free_stmt($countStmt);
-
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
+
         header('Content-Type: application/json; charset=UTF-8');
         if (empty($clientes)) {
             echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
@@ -1532,9 +1527,38 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
             'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
         ]));
     }
-    return $FOLIO;
+    // Determinar el valor de CAMPLIB3 en base al estatus
+    $valorCampoLib3 = ($estatus === 'E') ? 'A' : (($estatus === 'C') ? 'C' : '');
+
+    // Tabla de campos libres del pedido
+    $nombreTablaCamposLibres = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta para insertar o actualizar CAMPLIB3
+    // Primero intentamos un UPDATE, si no existe el registro se puede hacer un INSERT (opcional según la lógica del sistema)
+    $sqlCamposLibres = "
+    IF EXISTS (SELECT 1 FROM $nombreTablaCamposLibres WHERE CLAVE_DOC = ?)
+        UPDATE $nombreTablaCamposLibres SET CAMPLIB3 = ? WHERE CLAVE_DOC = ?
+    ELSE
+        INSERT INTO $nombreTablaCamposLibres (CLAVE_DOC, CAMPLIB3) VALUES (?, ?)
+    ";
+
+    $paramsCamposLibres = [
+        $CVE_DOC, $valorCampoLib3, $CVE_DOC, // Para UPDATE
+        $CVE_DOC, $valorCampoLib3           // Para INSERT
+    ];
+
+    $stmtCamposLibres = sqlsrv_query($conn, $sqlCamposLibres, $paramsCamposLibres);
+
+    if ($stmtCamposLibres === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar CAMPLIB3 en FACTP_CLIB',
+            'sql_error' => sqlsrv_errors()
+        ]));
+    }
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
+    return $FOLIO;
 }
 function guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
 {
@@ -3681,23 +3705,40 @@ function eliminarPedido($conexionData, $pedidoID, $claveSae)
         echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    //$clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
+
     $pedidoID = str_pad($pedidoID, 20, ' ', STR_PAD_LEFT);
-    // Nombre de la tabla dinámico basado en la empresa
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    // Actualizar el estatus del pedido
-    $query = "UPDATE $nombreTabla SET STATUS = 'C' WHERE CVE_DOC = ?";
-    $stmt = sqlsrv_prepare($conn, $query, [$pedidoID]);
 
-    if (!$stmt) {
-        echo json_encode(['success' => false, 'message' => 'Error al preparar la consulta', 'errors' => sqlsrv_errors()]);
-        exit;
-    }
+    $tablaPedidos   = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPedidosCLIB = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    if (sqlsrv_execute($stmt)) {
+    // Iniciar transacción
+    sqlsrv_begin_transaction($conn);
+
+    try {
+        // 1. Actualizar STATUS en FACTP##
+        $query1 = "UPDATE $tablaPedidos SET STATUS = 'C' WHERE CVE_DOC = ?";
+        $stmt1 = sqlsrv_prepare($conn, $query1, [$pedidoID]);
+        if (!$stmt1 || !sqlsrv_execute($stmt1)) {
+            throw new Exception('Error al cancelar el pedido en FACTP', 1);
+        }
+
+        // 2. Actualizar CAMPLIB3 en FACTP_CLIB##
+        $query2 = "UPDATE $tablaPedidosCLIB SET CAMPLIB3 = 'C' WHERE CLAVE_DOC = ?";
+        $stmt2 = sqlsrv_prepare($conn, $query2, [$pedidoID]);
+        if (!$stmt2 || !sqlsrv_execute($stmt2)) {
+            throw new Exception('Error al actualizar CAMPLIB3 en FACTP_CLIB', 2);
+        }
+
+        sqlsrv_commit($conn);
         echo json_encode(['success' => true, 'pedido' => $pedidoID]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error al actualizar el estatus del pedido', 'errors' => sqlsrv_errors()]);
+
+    } catch (Exception $e) {
+        sqlsrv_rollback($conn);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage(),
+            'errors' => sqlsrv_errors()
+        ]);
     }
 
     sqlsrv_close($conn);
@@ -8008,11 +8049,7 @@ switch ($funcion) {
                             }
                             $validarSaldo = validarSaldo($conexionData, $clave, $claveSae, $conn);
                             //$validarSaldo = 1;
-                            if ($validarSaldo == 0 && $credito == 0) {
-                                $estatus = "E";
-                            } else if ($validarSaldo == 1 || $credito == 1) {
-                                $estatus = "C";
-                            }
+                            $estatus = "E";
                             /*$estatus = "E";
                             $validarSaldo = 0;
                             $credito = 0;*/
