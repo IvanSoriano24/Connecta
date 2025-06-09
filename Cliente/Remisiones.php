@@ -331,6 +331,7 @@ session_destroy(); */
                                         <?php //}
                                         ?>
                                         <th>Visualizar</th>
+                                        <th>Facturar</th>
                                     </tr>
                                 </thead>
                                 <tbody id="datosPedidos">

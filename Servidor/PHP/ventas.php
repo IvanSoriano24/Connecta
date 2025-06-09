@@ -1380,8 +1380,8 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Extraer los datos del formulario
-    $FOLIO = $formularioData['numero'];
-    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $FOLIO = obtenerFolioSiguientePedido($conexionData, $claveSae, $conn);
+    $CVE_DOC = str_pad($FOLIO, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     $FECHA_DOC = $formularioData['diaAlta']; // Fecha del documento
     $FECHA_ENT = $formularioData['entrega'];
@@ -1527,6 +1527,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
             'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
         ]));
     }
+    return $FOLIO;
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
 }
@@ -1761,7 +1762,7 @@ function guardarPedidoClib($conexionData, $formularioData, $partidasData, $clave
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn)
+function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $FOLIO)
 {
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -1777,7 +1778,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
     if (isset($partidasData) && is_array($partidasData)) {
         foreach ($partidasData as $partida) {
             // Extraer los datos de la partida
-            $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+            $CVE_DOC = str_pad($FOLIO, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
             $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
             $CVE_ART = $partida['producto']; // Clave del producto
             $CANT = $partida['cantidad']; // Cantidad
@@ -2284,8 +2285,49 @@ function obtenerFolioSiguiente($conexionData, $claveSae)
     // Retornar el folio siguiente
     return $folioSiguiente;
 }
+function obtenerFolioSiguientePedido($conexionData, $claveSae, $conn)
+{
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    // Consulta SQL para obtener el siguiente folio
+    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente FROM $nombreTabla WHERE TIP_DOC = 'P'";
+    $stmt = sqlsrv_query($conn, $sql);
+
+    // SQL para incrementar el valor de ULT_DOC en 1 donde TIP_DOC es 'P'
+    $sql2 = "UPDATE $nombreTabla SET [ULT_DOC] = [ULT_DOC] + 1 WHERE [TIP_DOC] = 'P'";
+
+    // Ejecutar la consulta SQL
+    $stmt2 = sqlsrv_query($conn, $sql2);
+
+    if ($stmt === false) {
+        // Si la consulta falla, liberar la conexión y retornar el error
+        sqlsrv_close($conn);
+        die(json_encode(['success' => false, 'message' => 'Error al actualizar el folio', 'errors' => sqlsrv_errors()]));
+    }
+    if ($stmt2 === false) {
+        // Si la consulta falla, liberar la conexión y retornar el error
+        sqlsrv_close($conn);
+        die(json_encode(['success' => false, 'message' => 'Error al actualizar el folio', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Verificar cuántas filas se han afectado
+    $rowsAffected = sqlsrv_rows_affected($stmt);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Obtener el siguiente folio
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $folioSiguiente = $row ? $row['FolioSiguiente'] : null;
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    // Retornar el folio siguiente
+    return $folioSiguiente;
+}
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn)
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO)
 {
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -2295,7 +2337,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     $vendedor = $formularioData['vendedor']; // Número de vendedor
     $claveCliente = $formularioData['cliente'];
     $clave = formatearClaveCliente($claveCliente);
-    $noPedido = $formularioData['numero']; // Número de pedido
+    $noPedido = $FOLIO; // Número de pedido
     /*$claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
     $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);*/
 
@@ -2397,7 +2439,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     }
     /*******************************************/
 }
-function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn)
+function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn, $FOLIO)
 {
 
     if ($conn === false) {
@@ -2408,7 +2450,7 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     // Obtener datos del pedido
-    $noPedido = $formularioData['numero'];
+    $noPedido = $FOLIO;
     $enviarA = $formularioData['enviar'];
     $vendedor = $formularioData['vendedor'];
     $claveCliente = $formularioData['cliente'];
@@ -3742,7 +3784,8 @@ function listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket)
 
     return $imagenesPorArticulo;
 }
-function extraerProductos($conexionData, $claveSae){
+function extraerProductos($conexionData, $claveSae)
+{
     // Parámetros de paginación
     $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
     $porPagina = isset($_GET['porPagina']) ? (int)$_GET['porPagina'] : 10;
@@ -4238,9 +4281,9 @@ function eliminarImagen($conexionData)
         ]);
     }
 }
-function generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa)
+function generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn)
 {
-    $rutaPDF = generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+    $rutaPDF = generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
     return $rutaPDF;
 }
 // -----------------------------------------------------------------------------------------------------//
@@ -4966,15 +5009,16 @@ function validarSaldoE($conexionData, $clave, $claveSae)
         return -1; // Código de error
     }
 }
-function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn)
+function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
     // Validar que se cuente con los datos mínimos requeridos
-    if (empty($formularioData['numero']) || empty($formularioData['cliente'])) {
+    if (empty($FOLIO) || empty($formularioData['cliente'])) {
         echo json_encode(['success' => false, 'message' => 'Faltan datos del pedido.']);
         return;
     }
+    $FOLIO = (string)$FOLIO;
     // Agregar la descripción del producto a cada partida
     $SUBTOTAL = 0;
     $IMPORTE = 0;
@@ -5010,7 +5054,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
     }
     // Preparar los campos que se guardarán en Firebase 
     $fields = [
-        'folio'     => ['stringValue' => $formularioData['numero']],
+        'folio'     => ['stringValue' => $FOLIO],
         'cliente'    => ['stringValue' => $formularioData['cliente']],
         'ordenCompra'    => ['stringValue' => $formularioData['ordenCompra']],
         'enviar'     => ['stringValue' => isset($formularioData['enviar']) ? $formularioData['enviar'] : ''],
@@ -6800,7 +6844,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData){
+function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // Validar que se cuente con los datos mínimos requeridos
@@ -7952,15 +7997,15 @@ switch ($funcion) {
                             /*$estatus = "E";
                             $validarSaldo = 0;
                             $credito = 0;*/
-                            guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn); //ROLLBACK
+                            $FOLIO = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            actualizarFolio($conexionData, $claveSae, $conn); //ROLLBACK
+                            //actualizarFolio($conexionData, $claveSae, $conn); //ROLLBACK
                             actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
-                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn); //ROLLBACK
+                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $FOLIO); //ROLLBACK
                             actualizarInventario($conexionData, $partidasData, $conn); //ROLLBACK
                             if ($validarSaldo == 0 && $credito == 0) {
-                                $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                                validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn);
+                                $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
+                                validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO);
                                 // Respuesta de éxito
                                 header('Content-Type: application/json; charset=UTF-8');
                                 echo json_encode([
@@ -7972,8 +8017,8 @@ switch ($funcion) {
                                 sqlsrv_close($conn);
                                 exit();
                             } else {
-                                guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn);
-                                $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn);
+                                guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO);
+                                $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn, $FOLIO);
                                 header('Content-Type: application/json; charset=UTF-8');
                                 echo json_encode([
                                     'success' => false,
@@ -7991,6 +8036,11 @@ switch ($funcion) {
                         }
                         ///Fin
                     } else {
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'No se Puede Realizar Pedidos a Clientes sin Credito',
+                        ]);
+                        die();
                         //$anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
                         $anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
 

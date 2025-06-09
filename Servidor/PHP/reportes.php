@@ -92,19 +92,8 @@ function obtenerDatosVendedor($clave)
 
     return false;
 }
-function obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae)
+function obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a SQL Server', 'errors' => sqlsrv_errors()]));
     }
@@ -121,7 +110,7 @@ function obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae)
     }
 
     $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-    sqlsrv_close($conn);
+    //sqlsrv_close($conn);
 
     if (!$clienteData) {
         return null; // Cliente no encontrado
@@ -388,17 +377,14 @@ function obtenerDatosPartidasPedido($cveDoc, $conexionData, $claveSae)
 
     return $partidas;
 }
-function obtenerDescripcionProductoPedidoAutoriza($CVE_ART, $conexionData, $claveSae)
+function obtenerDescripcionProductoPedidoAutoriza($CVE_ART, $conexionData, $claveSae, $conn)
 {
-    // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
-    // Asumiendo que la descripción está en una tabla llamada "productos"
-    $conn = sqlsrv_connect($conexionData['host'], [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ]);
+    if (!is_resource($conn)) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'La conexión no es un recurso válido.'
+        ]));
+    }
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "SELECT DESCR, CVE_PRODSERV FROM $nombreTabla WHERE CVE_ART = ?";
     $stmt = sqlsrv_query($conn, $sql, [$CVE_ART]);
@@ -411,7 +397,6 @@ function obtenerDescripcionProductoPedidoAutoriza($CVE_ART, $conexionData, $clav
     $CVE_PRODSERV = $row ? $row['CVE_PRODSERV'] : '';
 
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     return [
         "DESCR" => $descripcion,
@@ -547,8 +532,9 @@ class PDFPedido extends FPDF
     private $formularioData;
     private $ordenCompra;
     private $emailPred;
+    private $FOLIO;
 
-    function __construct($datosEmpresaFire, $datosClienteReporte, $datosVendedor, $formularioData, $ordenCompra, $emailPred)
+    function __construct($datosEmpresaFire, $datosClienteReporte, $datosVendedor, $formularioData, $ordenCompra, $emailPred, $FOLIO)
     {
         parent::__construct();
         $this->datosEmpresaFire = $datosEmpresaFire;
@@ -557,6 +543,7 @@ class PDFPedido extends FPDF
         $this->formularioData = $formularioData;
         $this->ordenCompra = $ordenCompra;
         $this->emailPred = $emailPred;
+        $this->FOLIO = $FOLIO;
     }
 
     function Header()
@@ -648,7 +635,7 @@ class PDFPedido extends FPDF
             $this->SetX(140);
             $this->SetFont('Arial', '', 10);
             $this->SetTextColor(39, 39, 51);
-            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1", "Pedido Nro: " . $this->formularioData['numero']), 0, 0, 'L');
+            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1", "Pedido Nro: " . $this->FOLIO), 0, 0, 'L');
 
             $this->Ln(5);
 
@@ -1244,11 +1231,11 @@ class PDFFactura extends FPDF
     }
 }
 
-function generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa){
+function generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn){
     $datosEmpresaFire = obtenerDatosEmpresaFire($noEmpresa);
 
     $clienteId = str_pad(trim($formularioData['cliente']), 10, ' ', STR_PAD_LEFT);
-    $datosClienteReporte = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae);
+    $datosClienteReporte = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae, $conn);
 
     $emailPredArray = explode(';', $datosClienteReporte['email']); // Divide los correos por `;`
     $emailPred = trim($emailPredArray[0]);
@@ -1261,13 +1248,13 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
     $totalImpuestos = 0;
     $totalDescuentos = 0;
 
-    $pdf = new PDFPedido($datosEmpresaFire, $datosClienteReporte, $datosVendedor, $formularioData, $ordenCompra, $emailPred);
+    $pdf = new PDFPedido($datosEmpresaFire, $datosClienteReporte, $datosVendedor, $formularioData, $ordenCompra, $emailPred, $FOLIO);
     $pdf->AddPage();
     $pdf->SetFont('Arial', '', 9);
     $pdf->SetTextColor(39, 39, 51);
 
     foreach ($partidasData as $partida) {
-        $productosData = obtenerDescripcionProductoPedidoAutoriza($partida['producto'], $conexionData, $claveSae);
+        $productosData = obtenerDescripcionProductoPedidoAutoriza($partida['producto'], $conexionData, $claveSae, $conn);
 
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
@@ -1335,7 +1322,7 @@ function generarReportePedido($formularioData, $partidasData, $conexionData, $cl
     $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
 
     // **Generar el nombre del archivo correctamente**
-    $nombreArchivo = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $formularioData['numero']) . ".pdf";
+    $nombreArchivo = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $FOLIO) . ".pdf";
     $rutaArchivo = __DIR__ . "/pdfs/" . $nombreArchivo;
 
     // **Asegurar que la carpeta `pdfs/` exista**

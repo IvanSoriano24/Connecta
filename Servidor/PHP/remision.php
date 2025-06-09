@@ -2111,7 +2111,8 @@ function actualizarControl4($conexionData, $claveSae)
         'message' => "TBLCONTROL actualizado correctamente (ID_TABLA = 70, +1 en ULT_CVE)"
     ]);*/
 }
-function actualizarControl5($conexionData, $claveSae){
+function actualizarControl5($conexionData, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2868,7 +2869,8 @@ function remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $foli
         ]);
     }
 }
-function insertatInfoClie($conexionData, $claveSae, $pedidoId){
+function insertatInfoClie($conexionData, $claveSae, $pedidoId)
+{
     $serverName   = $conexionData['host'];
     $connectionInfo = [
         "Database"  => $conexionData['nombreBase'],
@@ -3007,7 +3009,7 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
 {
     global $firebaseProjectId, $firebaseApiKey;
 
-    
+
     actualizarMulti($conexionData, $pedidoId, $claveSae);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
     actualizarFolios($conexionData, $claveSae);
@@ -3114,7 +3116,8 @@ function obtenerProductosPedido($conn, $conexionData, $pedidoId, $claveSae)
     return $productos;
 }
 // ✅ 2. Obtener los lotes disponibles para un producto
-function obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $claveSae){
+function obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $claveSae)
+{
     $tablaLotes = "[{$conexionData['nombreBase']}].[dbo].[LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT REG_LTPD, CANTIDAD, LOTE
@@ -3290,7 +3293,8 @@ function formatearClaveVendedor($vendedor)
     $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
     return $vendedor;
 }
-function mostrarRemisiones($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor) {
+function mostrarRemisiones($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor)
+{
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     $estadoPedido = $_POST['estadoPedido'] ?? 'Activos';
@@ -3477,9 +3481,9 @@ function mostrarRemisiones($conexionData, $filtroFecha, $estadoPedido, $filtroVe
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
-
 }
-function mostrarRemisionEspecifica($clave, $conexionData, $claveSae) {
+function mostrarRemisionEspecifica($clave, $conexionData, $claveSae)
+{
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -3919,6 +3923,164 @@ function obtenerEstadoPorClave($claveSeleccionada)
     }
 }
 /*-------------------------------------------------------------------------------------------------------------------*/
+function pedidoFacturado($conexionData, $pedidoID, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    //$clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
+    $pedidoID = str_pad($pedidoID, 20, ' ', STR_PAD_LEFT);
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT DOC_SIG, TIP_DOC_SIG FROM $nombreTabla
+    WHERE CVE_DOC = ?";
+
+    $params = [$pedidoID];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $DOC_SIG = $row['DOC_SIG'];
+        $TIP_DOC_SIG = $row['TIP_DOC_SIG'];
+    }
+
+    if ($DOC_SIG !== NULL && $TIP_DOC_SIG === "F") {
+        return true;
+    } else if ($DOC_SIG === NULL && $TIP_DOC_SIG !== 'F') {
+        return false;
+    }
+    // Liberar recursos y cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function obtenerFolio($remisionId, $claveSae, $conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    $remisionId = str_pad($remisionId, 20, ' ', STR_PAD_LEFT);
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT CVE_DOC, FOLIO FROM $nombreTabla
+    WHERE DOC_SIG = ?";
+
+    $params = [$remisionId];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $FOLIO = $row['FOLIO'];
+    }
+    return $FOLIO;
+}
+function obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpresa)
+{
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos.']);
+    } else {
+        $data = json_decode($response, true);
+        $comandas = [];
+
+        if (isset($data['documents'])) {
+            foreach ($data['documents'] as $document) {
+                $fields = $document['fields'];
+                $status = $fields['status']['stringValue'];
+                // Aplicar el filtro de estado si está definido
+
+                if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
+                    if ($fields['folio']['stringValue'] === $pedidoID) {
+                        $comandas[] = [
+                            'id' => basename($document['name']),
+                            'noPedido' => $fields['folio']['stringValue'],
+                            'nombreCliente' => $fields['nombreCliente']['stringValue'],
+                            'status' =>  $fields['status']['stringValue'],                            
+                            'folio' =>  $fields['folio']['stringValue'],
+                            'claveCliente' =>  $fields['claveCliente']['stringValue'],
+                            'credito' =>  $fields['credito']['booleanValue']
+                        ];
+                    }
+                }
+            }
+        }
+       
+        return $comandas;
+    }
+}
+function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $firebaseProjectId, $firebaseApiKey)
+{
+    $pedidoID = obtenerFolio($remisionId, $claveSae, $conexionData);
+    $datosComanda = obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpresa);
+    $folio = $datosComanda['folio'];
+    $claveCliente = $datosComanda['claveCliente'];
+    $credito = $datosComanda['credito'];
+    $docName = $datosComanda['id'];
+
+    $respuestaValidaciones = validaciones($folio, $noEmpresa, $claveSae);
+    //var_dump($respuestaValidaciones);
+    if ($respuestaValidaciones['success']) {
+        //$folioFactura = $folioFactura['folioFactura1'];
+        //$folioFactura = json_decode(facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito), true);
+        $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
+        var_dump("folioFactura: ", $folioFactura);
+        //$folioFactura = 26;
+        //var_dump("folioFactura: ", $folioFactura);
+
+        actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
+
+        $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
+
+        //var_dump("Respuesta: ", $respuestaFactura);
+        if ($respuestaFactura['success']) {
+            $bandera = 1;
+            var_dump("folio: ", $folio);
+            var_dump("folioFactura: ", $folioFactura);
+            actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+            $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+            var_dump("Ruta PDF: ", $rutaPDF);
+            validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
+        } else {
+            enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
+        }
+    } else {
+        enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['Problema']);
+    }
+}
+
+/*-------------------------------------------------------------------------------------------------------------------*/
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -4066,6 +4228,39 @@ switch ($funcion) {
     case 7:
         $estadoSeleccionado = $_POST['estadoSeleccionado'];
         obtenerEstadoPorClave($estadoSeleccionado);
+        break;
+    case 8:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        $pedidoID = $_POST['pedidoID'];
+        $verificado = pedidoFacturado($conexionData, $pedidoID, $claveSae);
+        if ($verificado) {
+            echo json_encode(['success' => true, 'message' => 'Pedido Facturado, no se puede cancelar']);
+        } else {
+            echo json_encode(['success' => false, 'fail' => true, 'message' => 'Pedido no Facturado, se puede facturar']);
+        }
+        break;
+    case 9:
+        $remisionId = $_POST['pedidoID'];
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $firebaseProjectId, $firebaseApiKey);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Remision.']);

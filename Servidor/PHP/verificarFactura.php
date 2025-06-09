@@ -43,7 +43,8 @@ function obtenerPedido($cveDoc, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerProductos($cveDoc, $conexionData, $claveSae){
+function obtenerProductos($cveDoc, $conexionData, $claveSae)
+{
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -522,9 +523,9 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_18456.pdf";
 
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/". urldecode($rutaPDF);
-        
+
         //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
-        
+
         //$filename = "Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', trim(urlencode($folioFactura))) . ".pdf";
         //$filename = "Factura_18456.pdf";
@@ -584,7 +585,7 @@ function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $envia
     $IMPORTE = 0;
     $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
-        
+
         $clave = $partida['CVE_ART'];
         $descripcion = htmlspecialchars($partida['descripcion']);
         $cantidad = $partida['CANT'];
@@ -598,7 +599,7 @@ function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $envia
                         <td>$cantidad</td>
                         <td>$" . number_format($totalPartida, 2) . "</td>
                       </tr>";
-                      $IMPU4 = $partida['IMPU4'];
+        $IMPU4 = $partida['IMPU4'];
         $desc1 = $partida['DESC1'] ?? 0;
         $desProcentaje = ($desc1 / 100);
         $DES = $totalPartida * $desProcentaje;
@@ -927,7 +928,8 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     }
 }
 
-function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito){
+function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
+{
     $numFuncion = '1';
     $pedidoId = $folio;
 
@@ -1438,11 +1440,11 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                             var_dump("folioFactura: ", $folioFactura);
                             //$folioFactura = 26;
                             //var_dump("folioFactura: ", $folioFactura);
-                            
+
                             actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
-                            
+
                             $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
-                            
+
                             //var_dump("Respuesta: ", $respuestaFactura);
                             if ($respuestaFactura['success']) {
                                 $bandera = 1;
