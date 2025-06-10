@@ -3006,6 +3006,46 @@ function obtenerDatosCliente($claveCliente, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+function actualizarStatusPedido($conexionData, $pedidoId, $claveSae){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $cve_doc = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
+    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+     $sqlUpdate = "UPDATE $nombreTabla 
+                  SET CAMPLIB3 = 'V', 
+                  WHERE CLAVE_DOC = ?";
+
+    $paramsUpdate = [$cve_doc];
+
+    $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
+    if ($stmtUpdate === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => "Error al actualizar FACTP_CLIBXX para el pedido $pedidoId",
+            'errors' => sqlsrv_errors()
+        ]));
+    }
+
+    // Cerrar conexión
+    sqlsrv_free_stmt($stmtUpdate);
+    sqlsrv_close($conn);
+
+
+}
 /**************************************************************************************************************/
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor)
 {
@@ -3066,6 +3106,8 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
             $enlace
         );
     }
+
+    actualizarStatusPedido($conexionData, $pedidoId, $claveSae);
 
     //remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio);
 
@@ -4149,11 +4191,11 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
     if (empty($archivoCer) || empty($archivoKey)) {
         return [
             'success'  => false,
-            'Problema' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
+            'message' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
         ];
         /*echo json_encode([
             'success'  => false,
-            'Problema' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
+            'message' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
         ]);
         return;*/
     }
@@ -4168,7 +4210,7 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
         header('Content-Type: application/json');
         return [
             'success'  => false,
-            'Problema' => 'Faltan datos del pedido: ' . implode(', ', $faltanPedido)
+            'message' => 'Faltan datos del pedido: ' . implode(', ', $faltanPedido)
         ];
     }
     $requeridos = ['RFC', 'NOMBRE', 'USO_CFDI', 'CODIGO', 'REG_FISC'];
@@ -4182,11 +4224,11 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
         header('Content-Type: application/json');
         return [
             'success'  => false,
-            'Problema' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
+            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
         ];
         /*echo json_encode([
             'success'  => false,
-            'Problema' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
+            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
         ]);
         return;*/
     }
@@ -4194,12 +4236,12 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
         $problem = $clienteData['VAL_RFC'];
         /*echo json_encode([
             'success'  => false,
-            "Problema' => 'Cliente no puede timbrar: $problem"
+            "message' => 'Cliente no puede timbrar: $problem"
         ]);
         return;*/
         return [
             'success'  => false,
-            "Problema' => 'Cliente no puede timbrar: $problem"
+            "message' => 'Cliente no puede timbrar: $problem"
         ];
     }
     $requeridosEmpre = ['rfc', 'razonSocial', 'regimenFiscal', 'codigoPostal', 'keyEncValue', 'keyEncIv'];
@@ -4213,12 +4255,12 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
         header('Content-Type: application/json');
         /*echo json_encode([
             'success'  => false,
-            'Problema' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
+            'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ]);
         return;*/
         return [
             'success'  => false,
-            'Problema' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
+            'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ];
     }
     return ['success' => true];
@@ -5261,9 +5303,11 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
                 echo json_encode(['success' => true, 'message' => "Remision facturada"]);
             } else {
                 enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
+                echo json_encode(['success' => false, 'message' => "Hubo un problema al crear el CFDI, consultar correo"]);
             }
         } else {
-            enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['Problema']);
+            enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message']);
+            echo json_encode(['success' => false, 'message' => $respuestaValidaciones['message']]);
         }
     } else {
         echo json_encode([

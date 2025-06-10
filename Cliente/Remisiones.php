@@ -44,6 +44,12 @@ session_destroy(); */
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Ionicons v5 -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <!-- IconPark Core -->
+    <link rel="stylesheet" href="https://unpkg.com/@icon-park/web/lib/index.css" />
+
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -332,6 +338,7 @@ session_destroy(); */
                                         ?>
                                         <th>Visualizar</th>
                                         <th>Facturar</th>
+                                        <th>Estado Factura</th>
                                     </tr>
                                 </thead>
                                 <tbody id="datosPedidos">
@@ -361,11 +368,47 @@ session_destroy(); */
                             </button>-->
                         </div>
                     </div>
+                    <!-- Modal de Errores de Facturacion -->
+                    <div id="modalErrores" class="modal fade" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title">Errores de Facturacion</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form id="formularioErrores" class="px-4 pb-4">
+                                    <!-- selector y botón de nuevo dato -->
+                                    <!--<div class="row align-items-center mb-3">
+                                        <div class="col-md-4 text-end">
+                                            <button type="button" id="nuevosDatosEnvio" class="btn btn-outline-primary">
+                                                <i class="bx bxs-add-to-queue me-1"></i>Nuevo Dato
+                                            </button>
+                                        </div>
+                                    </div>-->
+                                    <!-- Sección: Datos de contacto -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="fw-bold">Dirección</h6>
+                                            <div class="mb-3">
+                                                <label for="nombreContacto" class="form-label">Nombre del contacto <span class="text-danger">*</span></label>
+                                                <input type="text" id="nombreContacto" class="form-control" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- botones al pie -->
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cerrarModalFooter">Cancelar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </main>
-            <!-- MAIN -->
-        </section>
-        <!-- CONTENT -->
+    </div>
+    </main>
+    <!-- MAIN -->
+    </section>
+    <!-- CONTENT -->
     </div>
     <!-- CONTENT -->
     <!-- JS Para la confirmacion empresa -->

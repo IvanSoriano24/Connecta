@@ -1169,7 +1169,7 @@ function verificarNotificaciones() {
 }
 
 // Llamar periódicamente a la función de verificación de notificaciones
-//setInterval(verificarNotificaciones, 30000); // Verificar cada 30 segundos
+setInterval(verificarNotificaciones, 30000); // Verificar cada 30 segundos
 $(document).ready(function () {
   $("#rfcModal").on(
     "input",

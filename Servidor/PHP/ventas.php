@@ -1360,7 +1360,7 @@ function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $
     sqlsrv_close($conn);
     return $CVE_INFO;
 }
-function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn)
+function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito)
 {
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -1445,9 +1445,16 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $CVE_OBS = $datosCliente['CVE_OBS'];
     $CVE_BITA = $datosCliente['CVE_BITA'];
     //$COM_TOT_PORC = $datosCliente['COM_TOT_PORC']; //VENDEDOR
-    $METODODEPAGO = $datosCliente['METODODEPAGO'] ?? "";
+    if ($conCredito === 'S') {
+        $METODODEPAGO = "PPD";
+        $FORMADEPAGOSAT = 99;
+    } else {
+        $METODODEPAGO = "PUE";
+        //$FORMADEPAGOSAT = 03;
+        $FORMADEPAGOSAT = $datosCliente['FORMADEPAGOSAT'] ?? 03;
+    }
+
     $NUMCTAPAGO = $datosCliente['NUMCTAPAGO'] ?? "";
-    $FORMADEPAGOSAT = $datosCliente['FORMADEPAGOSAT'] ?? "";
     $USO_CFDI = $datosCliente['USO_CFDI'];
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
@@ -1543,8 +1550,11 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     ";
 
     $paramsCamposLibres = [
-        $CVE_DOC, $valorCampoLib3, $CVE_DOC, // Para UPDATE
-        $CVE_DOC, $valorCampoLib3           // Para INSERT
+        $CVE_DOC,
+        $valorCampoLib3,
+        $CVE_DOC, // Para UPDATE
+        $CVE_DOC,
+        $valorCampoLib3           // Para INSERT
     ];
 
     $stmtCamposLibres = sqlsrv_query($conn, $sqlCamposLibres, $paramsCamposLibres);
@@ -1815,9 +1825,9 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
             // Calcular los impuestos y totales
             $IMPU1 = $partida['ieps']; // Impuesto 1
             $IMPU3 = $partida['isr'];
-            if($IMPU1 != 0){
+            if ($IMPU1 != 0) {
                 $IMP1APLA = 0;
-            }else{
+            } else {
                 $IMP1APLA = 4;
             }
             //$IMPU1 = 0;
@@ -2692,8 +2702,8 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urldecode($claveCliente);
-    /*$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido*/
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente);
+    //$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido  
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 
     // ✅ Construir la lista de productos
@@ -3731,7 +3741,6 @@ function eliminarPedido($conexionData, $pedidoID, $claveSae)
 
         sqlsrv_commit($conn);
         echo json_encode(['success' => true, 'pedido' => $pedidoID]);
-
     } catch (Exception $e) {
         sqlsrv_rollback($conn);
         echo json_encode([
@@ -6656,7 +6665,6 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         }
         if ($numeroBandera === 0) {
             $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
-            
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -7482,8 +7490,7 @@ function obtenerEstados()
         echo json_encode(['success' => false, 'message' => 'No se encontraron registros para País MEX.']);
     }
 }
-function obtenerMunicipios($estadoSeleccionado)
-{
+function obtenerMunicipios($estadoSeleccionado){
     $filePath = "../../Complementos/CAT_MUNICIPIO.xml";
     if (!file_exists($filePath)) {
         echo "El archivo no existe en la ruta: $filePath";
@@ -7529,6 +7536,54 @@ function obtenerMunicipios($estadoSeleccionado)
         echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
     }
 }
+function obtenerMunicipiosEdit($estadoSeleccionado, $municipio)
+{
+    $filePath = "../../Complementos/CAT_MUNICIPIO.xml";
+    if (!file_exists($filePath)) {
+        echo "El archivo no existe en la ruta: $filePath";
+        return;
+    }
+
+    $xmlContent = file_get_contents($filePath);
+    if ($xmlContent === false) {
+        echo "Error al leer el archivo XML en $filePath";
+        return;
+    }
+
+    try {
+        $municipios = new SimpleXMLElement($xmlContent);
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        return;
+    }
+
+    $estado = [];
+
+    // Iterar sobre cada <row>
+    foreach ($municipios->row as $row) {
+        $Estado = (string)$row['Descripcion'];
+        // Sólo procesamos si País es 'MEX'
+        if ($Estado !== $municipio) {
+            continue;
+        }
+        $estado[] = [
+            'Clave' => (string)$row['Clave'],
+            'Estado' => (string)$row['Estado'],
+            'Descripcion' => (string)$row['Descripcion']
+        ];
+    }
+
+    if (!empty($estado)) {
+        // Ordenar los vendedores por nombre alfabéticamente
+        usort($estado, function ($a, $b) {
+            return strcmp($a['Clave'] ?? '', $b['Clave'] ?? '');
+        });
+        echo json_encode(['success' => true, 'data' => $estado]);
+        exit();
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
+    }
+}
 function obtenerEstadoPorClave($claveSeleccionada)
 {
     $filePath = "../../Complementos/CAT_ESTADOS.xml";
@@ -7553,7 +7608,7 @@ function obtenerEstadoPorClave($claveSeleccionada)
 
     $encontrado = null;
     foreach ($estados->row as $row) {
-        if ((string)$row['Clave'] === $claveSeleccionada && (string)$row['Pais'] === 'MEX') {
+        if ((string)$row['Descripcion'] === $claveSeleccionada && (string)$row['Pais'] === 'MEX') {
             $encontrado = [
                 'Clave'       => (string)$row['Clave'],
                 'Pais'        => (string)$row['Pais'],
@@ -7785,7 +7840,7 @@ function actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProject
 
     if ($response === false) {
         $error = error_get_last();
-        echo json_encode(['success' => false, 'message' => 'No se Actualizo el Nombre del Contacto']);
+        //echo json_encode(['success' => false, 'message' => 'No se Actualizo el Nombre del Contacto']);
     } else {
         //echo json_encode(['success' => true, 'message' => 'Datos de Envio Guardados']);
     }
@@ -8053,7 +8108,7 @@ switch ($funcion) {
                             /*$estatus = "E";
                             $validarSaldo = 0;
                             $credito = 0;*/
-                            $FOLIO = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn); //ROLLBACK
+                            $FOLIO = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             //actualizarFolio($conexionData, $claveSae, $conn); //ROLLBACK
                             actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
@@ -8657,6 +8712,11 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         // Generamos (o localizamos) el PDF en disco
         generarPDFPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
+        break;
+    case 27:
+        $estadoSeleccionado = $_POST['estado'];
+        $municipio = $_POST['municipio'];
+        obtenerMunicipiosEdit($estadoSeleccionado, $municipio);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);

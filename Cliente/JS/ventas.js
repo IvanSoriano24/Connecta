@@ -130,16 +130,16 @@ function descargarPdf(pedidoID) {
     method: "GET",
     data: {
       numFuncion: 26,
-      pedidoID: pedidoID
+      pedidoID: pedidoID,
     },
     xhrFields: {
-      responseType: 'blob' // indicamos que esperamos un PDF (binary blob)
+      responseType: "blob", // indicamos que esperamos un PDF (binary blob)
     },
-    success: function(blob, status, xhr) {
+    success: function (blob, status, xhr) {
       // 1) Tratamos de extraer el nombre real del header
-      let disposition = xhr.getResponseHeader('Content-Disposition');
+      let disposition = xhr.getResponseHeader("Content-Disposition");
       let filename = "Pedido_" + pedidoID + ".pdf"; // fallback
-      if (disposition && disposition.indexOf('filename=') !== -1) {
+      if (disposition && disposition.indexOf("filename=") !== -1) {
         let match = disposition.match(/filename="?([^"]+)"?/);
         if (match && match[1]) {
           //filename = match[1];
@@ -148,10 +148,10 @@ function descargarPdf(pedidoID) {
       }
       // 2) Creamos un enlace temporal <a download="..."> con el blob
       let urlBlob = window.URL.createObjectURL(blob);
-      let a = document.createElement('a');
-      a.style.display = 'none';
+      let a = document.createElement("a");
+      a.style.display = "none";
       a.href = urlBlob;
-      a.download = filename; 
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(urlBlob);
@@ -165,15 +165,15 @@ function descargarPdf(pedidoID) {
         confirmButtonText: "Entendido"
       });*/
     },
-    error: function(jqXHR, textStatus, errorThrown) {
+    error: function (jqXHR, textStatus, errorThrown) {
       Swal.fire({
         title: "Error",
         text: "No se pudo descargar el pedido.",
         icon: "error",
-        confirmButtonText: "Entendido"
+        confirmButtonText: "Entendido",
       });
       console.error("Error en la descarga:", textStatus, errorThrown);
-    }
+    },
   });
 }
 function eliminarPedido(pedidoID) {
@@ -622,37 +622,36 @@ function obtenerDatosEnvioEditar(pedidoID) {
     },
     function (response) {
       if (response.success) {
-        const pedido = response.data[0];
+        const pedido = response.data;
 
         console.log("Datos de Envio:", pedido);
-        document.getElementById("enviar").value = pedido.tituloEnvio || "";
+        document.getElementById("enviar").value = pedido.CALLE || "";
         document.getElementById("idDatos").value = pedido.idDocumento || "";
         document.getElementById("folioDatos").value = pedido.id || "";
-        document.getElementById("nombreContacto").value =
-          pedido.nombreContacto || "";
+        document.getElementById("nombreContacto").value = pedido.NOMBRE || "";
         //document.getElementById("selectDatosEnvio").value = pedido.tituloEnvio || "";
         $("#selectDatosEnvio").val(pedido.tituloEnvio);
-        document.getElementById("compañiaContacto").value =
-          pedido.compania || "";
-        document.getElementById("telefonoContacto").value =
-          pedido.telefonoContacto || "";
-        document.getElementById("correoContacto").value =
-          pedido.correoContacto || "";
+        /*document.getElementById("compañiaContacto").value =
+          pedido.compania || "";*/
+        /*document.getElementById("telefonoContacto").value =
+          pedido.telefonoContacto || "";*/
+        /*document.getElementById("correoContacto").value =
+          pedido.correoContacto || "";*/
         document.getElementById("direccion1Contacto").value =
-          pedido.linea1 || "";
+          pedido.CALLE || "";
         document.getElementById("direccion2Contacto").value =
-          pedido.linea2 || "";
-        document.getElementById("codigoContacto").value =
-          pedido.codigoPostal || "";
-        document.getElementById("estadoContacto").value = pedido.estado;
+          pedido.COLONIA || "";
+        document.getElementById("codigoContacto").value = pedido.CODIGO || "";
+        //document.getElementById("estadoContacto").value = pedido.estado;
         //document.getElementById("municipioContacto").value = pedido[0].municipio;
 
-        const edo = pedido.estado.trim();
-        const municipio = pedido.municipio;
+        const edo = pedido.ESTADO;
+        const municipio = pedido.MUNICIPIO;
         //console.log("Estado Crudo: ", edo);
-
         obtenerEstadosEdit(edo, municipio);
-        obtenerMunicipios(edo, municipio);
+        obtenerMunicipiosEdit(edo, municipio);
+
+        $("#datosEnvio").prop("disabled", true);
       } else {
         Swal.fire({
           title: "Aviso",
@@ -704,7 +703,12 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
           );
         });
         if (estadoSeleccionado) {
-          $sel.val(estadoSeleccionado);
+          $sel.find("option").each(function () {
+            if ($(this).text().trim() === estadoSeleccionado.trim()) {
+              $(this).prop("selected", true);
+              return false; // sale del each
+            }
+          });
           // Si además hay municipio, lo pasamos para poblar ese select
           if (municipioSeleccionado) {
             //obtenerMunicipios(estadoSeleccionado, municipioSeleccionado);
@@ -727,45 +731,52 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
     },
   });
 }
-function obtenerMunicipios(edo, municipio) {
-  // Habilitamos el select
-  //$("#estadoContacto").prop("disabled", false);
+function obtenerMunicipiosEdit(edo, municipio) {
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
     method: "POST",
-    data: { numFuncion: "23", estado: edo },
+    data: { numFuncion: "27", estado: edo, municipio: municipio },
     dataType: "json",
-    success: function (resMunicipio) {
-      if (resMunicipio.success && Array.isArray(resMunicipio.data)) {
-        const $municipioNuevoContacto = $("#municipioContacto");
-        $municipioNuevoContacto.empty();
-        $municipioNuevoContacto.append(
-          "<option selected disabled>Selecciona un Estado</option>"
-        );
-        // Filtrar según el largo del RFC
-        resMunicipio.data.forEach((municipio) => {
-          $municipioNuevoContacto.append(
-            `<option value="${municipio.Clave}" 
-                data-estado="${municipio.Estado}"
-                data-Descripcion="${municipio.Descripcion || ""}">
-                ${municipio.Descripcion}
-              </option>`
+    success: function (res) {
+      const $sel = $("#municipioContacto");
+      $sel.empty().prop("disabled", false)
+          .append("<option selected disabled>Selecciona un municipio</option>");
+
+      if (res.success && Array.isArray(res.data)) {
+        // 1) Poblo el select
+        res.data.forEach(mun => {
+          $sel.append(
+            `<option value="${mun.Clave}"
+                     data-estado="${mun.Estado}"
+                     data-descripcion="${mun.Descripcion}">
+               ${mun.Descripcion}
+             </option>`
           );
         });
+
+        // 2) Preselecciono el que coincide con `municipio` (que debe ser la Clave)
+        if (municipio) {
+          // Si `municipio` es la descripción:
+          $sel.find("option").filter((i, o) => $(o).text().trim() === municipio.trim()).prop("selected", true);
+          $sel.prop("disabled", true);
+
+          // Si `municipio` es la clave (value):
+          //$sel.val(municipio);
+        }
       } else {
         Swal.fire({
           icon: "warning",
           title: "Aviso",
-          text: resMunicipio.message || "No se encontraron municipios.",
+          text: res.message || "No se encontraron municipios.",
         });
-        //$("#municipioNuevoContacto").prop("disabled", true);
+        $sel.prop("disabled", true);
       }
     },
     error: function () {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Error al obtener la lista de estados.",
+        text: "Error al obtener la lista de municipios.",
       });
     },
   });

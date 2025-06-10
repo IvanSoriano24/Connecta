@@ -1123,6 +1123,7 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
     }
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $CVE_DOC = str_pad($pedidoID, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     // Construir la consulta SQL
@@ -1147,54 +1148,16 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
     // Limpiar y preparar los datos para la respuesta
     $DAT_ENVIO = trim($envioData['DAT_ENVIO'] ?? "");
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
-
-    // Configura el contexto de la solicitud para manejar errores y tiempo de espera
-    $context = stream_context_create([
-        'http' => [
-            'timeout' => 10 // Tiempo máximo de espera en segundos
-        ]
-    ]);
-
-    // Realizar la consulta a Firebase
-    $response = @file_get_contents($url, false, $context);
-    if ($response === false) {
-        return false; // Error en la petición
+    $sqlEnvio = "SELECT * FROM $nombreTabla2 WHERE CVE_INFO = ?";
+    $params2 = [$DAT_ENVIO];
+    $stmt2 = sqlsrv_query($conn, $sqlEnvio, $params2);
+    if ($stmt2 === false) {
+        throw new Exception('Error al ejecutar la consulta.');
     }
 
-    // Decodifica la respuesta JSON
-    $data = json_decode($response, true);
-    if (!isset($data['documents'])) {
-        return false; // No se encontraron documentos
-    }
-
-    $datos = [];
-    // Busca los datos de la empresa por noEmpresa
-    foreach ($data['documents'] as $document) {
-        $fields = $document['fields'];
-        $documentName = $document['name']; // Aquí obtienes el nombre completo del documento
-        $documentId = basename($documentName);
-        if (isset($fields['id']['integerValue']) && $fields['id']['integerValue'] === $DAT_ENVIO) {
-            $datos[] = [
-                'idDocumento' => $documentId,
-                'claveCliente' => $fields['claveCliente']['stringValue'] ?? null,
-                'claveSae' => $fields['claveSae']['stringValue'] ?? null,
-                'codigoPostal' => $fields['codigoPostal']['stringValue'] ?? null,
-                'compania' => $fields['compania']['stringValue'] ?? null,
-                'correoContacto' => $fields['correoContacto']['stringValue'] ?? null,
-                'estado' => $fields['estado']['stringValue'] ?? null,
-                'linea1' => $fields['linea1']['stringValue'] ?? null,
-                'linea2' => $fields['linea2']['stringValue'] ?? null,
-                'municipio' => $fields['municipio']['stringValue'] ?? null,
-                'nombreContacto' => $fields['nombreContacto']['stringValue'] ?? null,
-                'telefonoContacto' => $fields['telefonoContacto']['stringValue'] ?? null,
-                'id' => $fields['id']['integerValue'] ?? null,
-                'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? null,
-                'tituloEnvio' => $fields['tituloEnvio']['stringValue'] ?? null,
-            ];
-        }
-    }
-
+    // Obtener los datos del cliente
+    $datos = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
+    
     if (!empty($datos)) {
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'data' => $datos]);

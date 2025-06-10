@@ -358,7 +358,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             $usuariosData = json_decode($response, true);
             $telefonoVendedor = null;
             $vendedor = formatearClaveVendedor($vendedor);
-            var_dump($vendedor);
+            //var_dump($vendedor);
             // Buscar al vendedor por clave
             if (isset($usuariosData['documents'])) {
                 foreach ($usuariosData['documents'] as $document) {
