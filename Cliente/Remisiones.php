@@ -339,6 +339,7 @@ session_destroy(); */
                                         <th>Visualizar</th>
                                         <th>Facturar</th>
                                         <th>Estado Factura</th>
+                                        <th>Mostrar Errores</th>
                                     </tr>
                                 </thead>
                                 <tbody id="datosPedidos">
@@ -368,47 +369,50 @@ session_destroy(); */
                             </button>-->
                         </div>
                     </div>
-                    <!-- Modal de Errores de Facturacion -->
-                    <div id="modalErrores" class="modal fade" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header border-0">
-                                    <h5 class="modal-title">Errores de Facturacion</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <form id="formularioErrores" class="px-4 pb-4">
-                                    <!-- selector y botón de nuevo dato -->
-                                    <!--<div class="row align-items-center mb-3">
-                                        <div class="col-md-4 text-end">
-                                            <button type="button" id="nuevosDatosEnvio" class="btn btn-outline-primary">
-                                                <i class="bx bxs-add-to-queue me-1"></i>Nuevo Dato
-                                            </button>
-                                        </div>
-                                    </div>-->
-                                    <!-- Sección: Datos de contacto -->
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h6 class="fw-bold">Dirección</h6>
-                                            <div class="mb-3">
-                                                <label for="nombreContacto" class="form-label">Nombre del contacto <span class="text-danger">*</span></label>
-                                                <input type="text" id="nombreContacto" class="form-control" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- botones al pie -->
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cerrarModalFooter">Cancelar</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                 </div>
+            </main>
+            <!-- MAIN -->
+        </section>
+        <!-- CONTENT -->
     </div>
-    </main>
-    <!-- MAIN -->
-    </section>
-    <!-- CONTENT -->
+    <!-- Modal de Errores de Facturacion -->
+    <div id="modalErrores" class="modal fade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Errores de Facturacion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formularioErrores" class="px-4 pb-4">
+                    <div class="row">
+                        
+                            <div class="table-data">
+                                <div class="order">
+                                    <div class="head">
+                                        <table
+                                            class="table table-hover table-striped text-center align-middle">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th scope="col">Origen del Error</th>
+                                                    <th scope="col">Problema</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="detallesErrores">
+                                                <!-- Los productos se generarán aquí dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                    </div>
+                    <!-- botones al pie -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cerrarModalFooter">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <!-- CONTENT -->
     <!-- JS Para la confirmacion empresa -->

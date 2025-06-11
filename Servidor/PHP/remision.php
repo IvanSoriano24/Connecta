@@ -3006,7 +3006,8 @@ function obtenerDatosCliente($claveCliente, $conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function actualizarStatusPedido($conexionData, $pedidoId, $claveSae){
+function actualizarStatusPedido($conexionData, $pedidoId, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -3025,7 +3026,7 @@ function actualizarStatusPedido($conexionData, $pedidoId, $claveSae){
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-     $sqlUpdate = "UPDATE $nombreTabla 
+    $sqlUpdate = "UPDATE $nombreTabla 
                   SET CAMPLIB3 = 'V', 
                   WHERE CLAVE_DOC = ?";
 
@@ -3043,8 +3044,6 @@ function actualizarStatusPedido($conexionData, $pedidoId, $claveSae){
     // Cerrar conexión
     sqlsrv_free_stmt($stmtUpdate);
     sqlsrv_close($conn);
-
-
 }
 /**************************************************************************************************************/
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor)
@@ -3337,7 +3336,7 @@ function formatearClaveVendedor($vendedor)
     $vendedor = str_pad($vendedor, 5, ' ', STR_PAD_LEFT);
     return $vendedor;
 }
-function mostrarRemisiones($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor)
+function mostrarRemisiones($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $firebaseProjectId, $firebaseApiKey)
 {
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
@@ -3512,16 +3511,60 @@ function mostrarRemisiones($conexionData, $filtroFecha, $estadoPedido, $filtroVe
         $countStmt = sqlsrv_query($conn, $countSql, $params);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
-        sqlsrv_free_stmt($countStmt);
-
-        sqlsrv_free_stmt($stmt);
-        sqlsrv_close($conn);
         header('Content-Type: application/json; charset=UTF-8');
         if (empty($clientes)) {
             echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
             exit;
         }
-        echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
+
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA?key=$firebaseApiKey";
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Content-Type: application/json\r\n"
+            ]
+        ]);
+
+        $response = @file_get_contents($url, false, $context);
+
+        if ($response === false) {
+            echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos.']);
+        } else {
+            $data = json_decode($response, true);
+            $fallas = [];
+
+            if (isset($data['documents'])) {
+                foreach ($data['documents'] as $document) {
+                    foreach ($clientes as $remision) {
+                        //var_dump($clientes);
+                        $fields = $document['fields'];
+                        $empFirebase = (int) $fields['noEmpresa']['integerValue'];
+                        $empBuscada  = (int) $noEmpresa;
+                        if ($empFirebase === $empBuscada) {
+                            $folioFirebase = (int) $fields['folio']['stringValue'];
+                            $remisionId = $remision['Clave'];
+                            //var_dump($fields['folio']['stringValue']);
+                            $folioBuscada  = (int) $remisionId;
+                            if ($folioFirebase === $folioBuscada) {
+                                $fallas[] = [
+                                    'id' => basename($document['name']),
+                                    'folio' => $fields['folio']['stringValue'],
+                                    'claveSae' => $fields['claveSae']['stringValue'],
+                                    'noEmpresa' =>  $fields['noEmpresa']['integerValue']
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        sqlsrv_free_stmt($countStmt);
+
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+
+        echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes, 'fallas' => $fallas]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
@@ -3603,6 +3646,7 @@ function mostrarRemisionEspecifica($clave, $conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'Pedido no encontrado']);
         exit;
     }
+    
     // Liberar recursos y cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -3711,8 +3755,7 @@ function obtenerMunicipios($estadoSeleccionado)
         echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
     }
 }
-function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda)
-{
+function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda, $firebaseProjectId, $firebaseApiKey){
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     $estadoPedido = $_POST['estadoPedido'] ?? 'Activos';
@@ -3912,6 +3955,50 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
         $countStmt = sqlsrv_query($conn, $countSql, $params);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
+
+        
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA?key=$firebaseApiKey";
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Content-Type: application/json\r\n"
+            ]
+        ]);
+
+        $response = @file_get_contents($url, false, $context);
+
+        if ($response === false) {
+            echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos.']);
+        } else {
+            $data = json_decode($response, true);
+            $fallas = [];
+
+            if (isset($data['documents'])) {
+                foreach ($data['documents'] as $document) {
+                    foreach ($clientes as $remision) {
+                        //var_dump($clientes);
+                        $fields = $document['fields'];
+                        $empFirebase = (int) $fields['noEmpresa']['integerValue'];
+                        $empBuscada  = (int) $noEmpresa;
+                        if ($empFirebase === $empBuscada) {
+                            $folioFirebase = (int) $fields['folio']['stringValue'];
+                            $remisionId = $remision['Clave'];
+                            //var_dump($fields['folio']['stringValue']);
+                            $folioBuscada  = (int) $remisionId;
+                            if ($folioFirebase === $folioBuscada) {
+                                $fallas[] = [
+                                    'id' => basename($document['name']),
+                                    'folio' => $fields['folio']['stringValue'],
+                                    'claveSae' => $fields['claveSae']['stringValue'],
+                                    'noEmpresa' =>  $fields['noEmpresa']['integerValue']
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         sqlsrv_free_stmt($countStmt);
 
         sqlsrv_free_stmt($stmt);
@@ -3921,7 +4008,7 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
             echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
             exit;
         }
-        echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
+        echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes, 'fallas' => $fallas]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
@@ -4178,7 +4265,8 @@ function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
 {
     global $firebaseProjectId, $firebaseApiKey;
-
+    $errores = [];
+    $origen = [];
     $folio = str_pad($folio, 10, '0', STR_PAD_LEFT);
     $folio = str_pad($folio, 20, ' ', STR_PAD_LEFT);
     $pedidoData = datosPedidoValidacion($folio, $claveSae, $conexionData);
@@ -4189,9 +4277,13 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
     $archivoKey = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
 
     if (empty($archivoCer) || empty($archivoKey)) {
-        return [
+        /*return [
             'success'  => false,
             'message' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
+        ];*/
+        $errores = [
+            'origen' => 'Empresa',
+            'message' => 'No se encontró el .cer o el .key para la empresa'  . implode(', ', $noEmpresa)
         ];
         /*echo json_encode([
             'success'  => false,
@@ -4208,10 +4300,15 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
     }
     if (!empty($faltanPedido)) {
         header('Content-Type: application/json');
-        return [
-            'success'  => false,
+        $errores = [
+            'origen' => 'Pedido',
             'message' => 'Faltan datos del pedido: ' . implode(', ', $faltanPedido)
         ];
+        //return;
+        /*return [
+            'success'  => false,
+            'message' => 'Faltan datos del pedido: ' . implode(', ', $faltanPedido)
+        ];*/
     }
     $requeridos = ['RFC', 'NOMBRE', 'USO_CFDI', 'CODIGO', 'REG_FISC'];
     $faltan = [];
@@ -4222,10 +4319,14 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
     }
     if (!empty($faltan)) {
         header('Content-Type: application/json');
-        return [
-            'success'  => false,
+        $errores = [
+            'origen' => 'Cliente',
             'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
         ];
+        /*return [
+            'success'  => false,
+            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
+        ];*/
         /*echo json_encode([
             'success'  => false,
             'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
@@ -4239,10 +4340,14 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
             "message' => 'Cliente no puede timbrar: $problem"
         ]);
         return;*/
-        return [
+        $errores = [
+            'origen' => 'Cliente',
+            'message' => "Cliente no puede timbrar, status: $problem"
+        ];
+        /*return [
             'success'  => false,
             "message' => 'Cliente no puede timbrar: $problem"
-        ];
+        ];*/
     }
     $requeridosEmpre = ['rfc', 'razonSocial', 'regimenFiscal', 'codigoPostal', 'keyEncValue', 'keyEncIv'];
     $faltanEmpre = [];
@@ -4258,12 +4363,23 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
             'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ]);
         return;*/
-        return [
-            'success'  => false,
+        $errores = [
+            'origen' => 'Empresa',
             'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ];
+        /*return [
+            'success'  => false,
+            'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
+        ];*/
     }
-    return ['success' => true];
+    if (empty($errores)) {
+        return ['success' => true];
+    } else {
+        return [
+            'success'  => false,
+            'message' => $errores
+        ];
+    }
 }
 function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
 {
@@ -4654,6 +4770,51 @@ function enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $f
         echo json_encode(['success' => false, 'message' => $resultado]);
         //var_dump('success' . false, 'message' . $resultado);
     }
+}
+function guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema, $remisionId, $claveCliente){
+    $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
+    //var_dump($problema);
+    // Si me llega un único error en formato asociativo, lo convierto en array de uno:
+    if (isset($problema['origen']) && isset($problema['message'])) {
+        $problema = [ $problema ];
+    }
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA?key=$firebaseApiKey";
+    // Construir el arrayValue de fallas
+    $valores = [];
+    foreach ($problema as $f) {
+        $valores[] = [
+            'mapValue' => [
+                'fields' => [
+                    'origen'  => ['stringValue' => $f['origen']],
+                    'message' => ['stringValue' => $f['message']],
+                ],
+            ],
+        ];
+    }
+
+    $fields = [
+        'folio'     => ['stringValue'  => $remisionId],
+        'cliente'   => ['stringValue'  => $claveCliente],
+        'claveSae'  => ['stringValue'  => $claveSae],
+        'noEmpresa' => ['integerValue' => $noEmpresa],
+        'creacion'  => ['stringValue'  => $fechaCreacion],
+        'problemas'    => [                  // aquí va el nuevo array
+            'arrayValue' => [
+                'values' => $valores
+            ]
+        ],
+    ];
+
+    $payload = json_encode(['fields' => $fields], JSON_UNESCAPED_SLASHES);
+    $ctx = stream_context_create([
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+        ]
+    ]);
+
+    $response = @file_get_contents($url, false, $ctx);
 }
 function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema, $folioFactura)
 {
@@ -5306,13 +5467,41 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
                 echo json_encode(['success' => false, 'message' => "Hubo un problema al crear el CFDI, consultar correo"]);
             }
         } else {
-            enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message']);
-            echo json_encode(['success' => false, 'message' => $respuestaValidaciones['message']]);
+            //enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message']);
+            guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message'], $remisionId, $claveCliente);
+            echo json_encode(['success' => false, 'message' => 'Hubo un error al Facturar']);
         }
     } else {
         echo json_encode([
             'success'  => false,
             'message' => "La Comanda debe de estar Terminada"
+        ]);
+    }
+}
+function visualizarFallasFactura($id, $firebaseProjectId, $firebaseApiKey){
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA/$id?key=$firebaseApiKey";
+
+    $response = @file_get_contents($url);
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los detalles de la comanda.']);
+    } else {
+        $data = json_decode($response, true);
+        $fields = $data['fields'];
+        $problemas = [];
+        foreach ($fields['problemas']['arrayValue']['values'] as $problemas) {
+            $problemas[] = [
+                'message' => $problemas['mapValue']['fields']['message']['stringValue'],
+                'origen' => $problemas['mapValue']['fields']['origen']['stringValue'] ?? "N/A"
+            ];
+        }
+
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'id' => $id,
+                'folio' => $fields['folio']['stringValue'],
+                'problemas' => $problemas
+            ]
         ]);
     }
 }
@@ -5366,7 +5555,7 @@ switch ($funcion) {
         $filtroFecha = $_POST['filtroFecha'];
         $estadoPedido = $_POST['estadoPedido'];
         $filtroVendedor = $_POST['filtroVendedor'];
-        mostrarRemisiones($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor);
+        mostrarRemisiones($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $firebaseProjectId, $firebaseApiKey);
         break;
     case 3:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -5460,7 +5649,7 @@ switch ($funcion) {
         $estadoPedido = $_POST['estadoPedido'];
         $filtroVendedor = $_POST['filtroVendedor'];
         $filtroBusqueda = $_POST['filtroBusqueda'];
-        mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda);
+        mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda, $firebaseProjectId, $firebaseApiKey);
         break;
     case 7:
         $estadoSeleccionado = $_POST['estadoSeleccionado'];
@@ -5498,6 +5687,10 @@ switch ($funcion) {
         }
         $conexionData = $conexionResult['data'];
         facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $firebaseProjectId, $firebaseApiKey);
+        break;
+    case 10:
+        $id = $_GET['id'];
+        visualizarFallasFactura($id, $firebaseProjectId, $firebaseApiKey);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Remision.']);
