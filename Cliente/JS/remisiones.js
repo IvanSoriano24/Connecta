@@ -53,19 +53,29 @@ function agregarEventosBotones() {
   });
 }
 function facturarRemision(pedidoID) {
+  Swal.fire({
+    title: "Procesando facturacion...",
+    text: "Por favor, espera mientras se completa el pedido.",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+  const $fila = $(`button.btnFacturar[data-id="${pedidoID}"]`).closest("tr");
+  const fallaId = $fila.find("button.btn-error").data("falla-id");
+  console.log("Falla asociada a esta remisión:", fallaId);
   //Llamada al servidor con el id de la remision
   $.post(
     "../Servidor/PHP/remision.php",
-    { numFuncion: "9", pedidoID: pedidoID },
+    { numFuncion: "9", pedidoID: pedidoID, fallaId: fallaId },
     function (response) {
       try {
         if (typeof response === "string") {
           response = JSON.parse(response);
         }
         // Localizamos la fila y la celda del icono de estado
-        const $fila = $(`button.btnFacturar[data-id="${pedidoID}"]`).closest(
-          "tr"
-        );
+
         const $celdaIcono = $fila.find(".estadoFactura ion-icon");
 
         if (response.success) {
@@ -95,6 +105,13 @@ function facturarRemision(pedidoID) {
           });
         }
       } catch (error) {
+        Swal.fire({
+          title: "Aviso",
+          //text:  "No se pudo facturar la remisión",
+          text: "No se pudo facturar la remisión",
+          icon: "warning",
+          confirmButtonText: "Entendido",
+        });
         console.error("Error al procesar la respuesta JSON:", error);
       }
     }
@@ -125,7 +142,7 @@ function mostrarModalErrores(id) {
       // 1) Normalizar -> de un object con claves numéricas a un array de plain objects
       let erroresRaw = response.data.problemas;
       let errores = [];
-
+      console.log("Respuesta: ", response.data);
       if (Array.isArray(erroresRaw)) {
         // si ya es array, perfecto
         errores = erroresRaw;
@@ -506,14 +523,14 @@ function datosPedidos(limpiarTabla = true) {
                 const falla = fallas.find((f) => f.folio === pedido.Clave);
 
                 if (falla && falla.id) {
-                  // 1) botón de Errores
                   const btn = document.createElement("button");
-                  btn.className = "btn btn-secondary btn-sm";
+                  btn.className = "btn btn-secondary btn-sm btn-error"; // <— aquí
                   btn.textContent = "Errores";
+                  // asigna el id de falla al atributo data-falla-id
+                  btn.setAttribute("data-falla-id", falla.id);
                   btn.onclick = () => mostrarModalErrores(falla.id);
                   td.appendChild(btn);
 
-                  // 2) colorear icono de estadoFactura en rojo
                   const icon = row.querySelector(".estadoFactura ion-icon");
                   if (icon) icon.style.color = "red";
                 } else {

@@ -593,8 +593,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'usuarioSae' => $input['usuarioSae'],
                 'password' => $input['password'],
                 'nombreBase' => $input['nombreBase'],
-                'nombreBanco' => $input['nombreBanco'] ?? ""
-                //'claveSae' => $input['claveSae']
+                'nombreBanco' => $input['nombreBanco'] ?? "",
+                'claveSae' => $input['claveSae'] ?? ""
             ];
             $resultadoConexion = probarConexionSQLServer($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBase']);
             if ($resultadoConexion['success']) {

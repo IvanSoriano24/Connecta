@@ -1157,7 +1157,7 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
 
     // Obtener los datos del cliente
     $datos = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
-    
+
     if (!empty($datos)) {
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'data' => $datos]);
@@ -1282,6 +1282,106 @@ function obtenerDatosClienteE($conexionData, $claveUsuario, $claveSae)
     exit();
 }
 
+function datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $CVE_DOC = str_pad($pedidoID, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    // Construir la consulta SQL
+    $sql = "SELECT DAT_ENVIO FROM $nombreTabla WHERE CVE_DOC = ?";
+    //$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
+    $params = [$CVE_DOC];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    // Verificar si hubo errores al ejecutar la consulta
+    if ($stmt === false) {
+        throw new Exception('Error al ejecutar la consulta.');
+    }
+
+    // Obtener los datos del cliente
+    $envioData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+    if (!$envioData) {
+        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado.']);
+        exit;
+    }
+    //var_dump($clienteData);
+    // Limpiar y preparar los datos para la respuesta
+    $DAT_ENVIO = trim($envioData['DAT_ENVIO'] ?? "");
+    //var_dump($DAT_ENVIO);
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
+
+    // Configura el contexto de la solicitud para manejar errores y tiempo de espera
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 10,
+        ]
+    ]);
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los datos de Firestore.']);
+        return;
+    }
+
+    // Decodificar JSON
+    $data = json_decode($response, true);
+    if (!isset($data['documents']) || !is_array($data['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron documentos en Firestore.']);
+        return;
+    }
+
+    // Ahora sí, iteramos SOLO sobre los documentos
+    $datosEnvio = [];
+    foreach ($data['documents'] as $doc) {
+        // cada $doc tiene keys: 'name', 'fields', etc.
+        if (!isset($doc['name'], $doc['fields']['noEmpresa']['integerValue'])) {
+            continue; // se salta entradas inesperadas
+        }
+        $fields = $doc['fields'];
+        $emp = (int) ($fields['noEmpresa']['integerValue'] ?? 0);
+        $idEnvio = (int) ($fields['id']['integerValue'] ?? 0);
+
+        if ($emp === (int)$noEmpresa && $idEnvio === (int)$DAT_ENVIO) {
+            $documentId = basename($doc['name']);
+            $datosEnvio[] = [
+                'idDocumento'     => $documentId,
+                'noEmpresa'       => $emp,
+                'id'              => $idEnvio,
+                'tituloEnvio'     => $fields['tituloEnvio']['stringValue']   ?? '',
+                'nombreContacto'  => $fields['nombreContacto']['stringValue'] ?? '',
+                'compania'        => $fields['compania']['stringValue']       ?? '',
+                'telefonoContacto' => $fields['telefonoContacto']['stringValue'] ?? '',
+                'correoContacto'  => $fields['correoContacto']['stringValue'] ?? '',
+                'linea1'          => $fields['linea1']['stringValue']        ?? '',
+                'linea2'          => $fields['linea2']['stringValue']        ?? '',
+                'codigoPostal'    => $fields['codigoPostal']['stringValue']  ?? '',
+                'estado'          => $fields['estado']['stringValue']        ?? '',
+                'municipio'       => $fields['municipio']['stringValue']     ?? '',
+                'claveSae'        => $fields['claveSae']['stringValue']      ?? '',
+                'claveCliente'    => $fields['claveCliente']['stringValue']  ?? '',
+            ];
+        }
+    }
+
+    // Finalmente devolvemos
+    echo json_encode(['success' => true, 'data' => $datosEnvio]);
+}
+
+/***********************************************************************************************************/
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
     $funcion = $_POST['numFuncion'];
@@ -1521,6 +1621,19 @@ switch ($funcion) {
             $claveUsuario = formatearClaveCliente($claveUsuario);
         }
         obtenerDatosClienteE($conexionData, $claveUsuario, $claveSae);
+        break;
+    case 14:
+        $pedidoID = $_POST['pedidoID'];
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

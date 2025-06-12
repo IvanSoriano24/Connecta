@@ -379,32 +379,35 @@ session_destroy(); */
     <div id="modalErrores" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title">Errores de Facturacion</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header border-0 justify-content-center position-relative">
+                    <!-- Título centrado -->
+                    <h5 class="modal-title mx-auto">Errores de Facturación</h5>
+                    <!-- Botón de cierre posicionado absolutamente en la esquina superior derecha -->
+                    <button type="button"
+                        class="btn-close position-absolute top-0 end-0 m-3"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
                 </div>
                 <form id="formularioErrores" class="px-4 pb-4">
                     <div class="row">
-                        
-                            <div class="table-data">
-                                <div class="order">
-                                    <div class="head">
-                                        <table
-                                            class="table table-hover table-striped text-center align-middle">
-                                            <thead class="table-dark">
-                                                <tr>
-                                                    <th scope="col">Origen del Error</th>
-                                                    <th scope="col">Problema</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="detallesErrores">
-                                                <!-- Los productos se generarán aquí dinámicamente -->
-                                            </tbody>
-                                        </table>
-                                    </div>
+                        <div class="table-data">
+                            <div class="order">
+                                <div class="head">
+                                    <table
+                                        class="table table-hover table-striped text-center align-middle">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th scope="col">Origen del Error</th>
+                                                <th scope="col">Problema</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="detallesErrores">
+                                            <!-- Los productos se generarán aquí dinámicamente -->
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                        
+                        </div>
                     </div>
                     <!-- botones al pie -->
                     <div class="d-flex justify-content-end gap-2">

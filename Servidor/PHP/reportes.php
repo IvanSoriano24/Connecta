@@ -1766,7 +1766,7 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     }
 
     // Ruta de los archivos (ajusta la ruta según corresponda)
-    $nombreArchivoBase = "cfdi_" . urlencode($datosClientePedidoAutoriza['nombre']) . "_" . urlencode($folioFactura);
+    $nombreArchivoBase = "cfdi_" . urlencode($datosClientePedidoAutoriza['nombre']) . "_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura);
     $xmlFile = "../XML/sdk2/timbrados/" . $nombreArchivoBase . ".xml";
     $qrFile = "../XML/sdk2/timbrados/" . $nombreArchivoBase . ".png";
 

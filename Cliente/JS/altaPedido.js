@@ -432,6 +432,48 @@ function mostrarListaProductos(productos, input) {
           CVE_UNIDAD.value = producto.CVE_UNIDAD;
           CVE_PRODSERV.value = producto.CVE_PRODSERV;
           COSTO_PROM.value = producto.COSTO_PROM;
+          if (!producto.CVE_PRODSERV) {
+            Swal.fire({
+              title: "Datos Fiscales",
+              text: "Este producto no cuenta con CVE_PRODSERV",
+              icon: "warnig",
+              confirmButtonText: "Entendido",
+            });
+
+            const precioInput = filaTabla.querySelector(".precioUnidad");
+            const cantidadInput = filaTabla.querySelector(".cantidad");
+            const unidadInput = filaTabla.querySelector(".unidad");
+            const descuentoInput = filaTabla.querySelector(".descuento");
+            const totalInput = filaTabla.querySelector(".subtotalPartida");
+            precioInput.value = parseFloat(0).toFixed(2);
+            cantidadInput.value = parseFloat(0).toFixed(2);
+            unidadInput.value = parseFloat(0).toFixed(2);
+            descuentoInput.value = parseFloat(0).toFixed(2);
+            totalInput.value = parseFloat(0).toFixed(2);
+
+            return; // 🚨 Salir de la función si `filaProd` no es válido
+          }
+          if (!producto.CVE_UNIDAD) {
+            Swal.fire({
+              title: "Datos Fiscales",
+              text: "Este producto no cuenta con CVE_UNIDAD",
+              icon: "warnig",
+              confirmButtonText: "Entendido",
+            });
+            
+            const precioInput = filaTabla.querySelector(".precioUnidad");
+            const cantidadInput = filaTabla.querySelector(".cantidad");
+            const unidadInput = filaTabla.querySelector(".unidad");
+            const descuentoInput = filaTabla.querySelector(".descuento");
+            const totalInput = filaTabla.querySelector(".subtotalPartida");
+            precioInput.value = parseFloat(0).toFixed(2);
+            cantidadInput.value = parseFloat(0).toFixed(2);
+            unidadInput.value = parseFloat(0).toFixed(2);
+            descuentoInput.value = parseFloat(0).toFixed(2);
+            totalInput.value = parseFloat(0).toFixed(2);
+
+            return; // 🚨 Salir de la función si `filaProd` no es válido
+          }
           // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
           const campoCantidad = filaTabla.querySelector("input.cantidad");
           if (campoCantidad) {
@@ -540,7 +582,7 @@ function guardarPedido(id) {
       return;
     }
     //Mensaje de carga
-    Swal.fire({
+    /*Swal.fire({
       title: "Procesando pedido...",
       text: "Por favor, espera mientras se completa el pedido.",
       allowOutsideClick: false,
@@ -548,7 +590,7 @@ function guardarPedido(id) {
       didOpen: () => {
         Swal.showLoading();
       },
-    });
+    });*/
     //Funcion para unir las partidas cuyos productos sean el mismo
     consolidarPartidasEnTabla();
     // Obtener la información del formulario
@@ -556,8 +598,25 @@ function guardarPedido(id) {
     console.log("Datos del formulario obtenidos:", formularioData);
     // Obtener la información de las partidas
     const partidasData = obtenerDatosPartidas();
-    console.log("Datos de partidas obtenidos:", partidasData);
 
+    console.log("Datos de partidas obtenidos:", partidasData);
+    const validacionPartidas = validarPartidas(partidasData);
+    if (!validacionPartidas) {
+      Swal.fire({
+        title: "Error al guardar el pedido",
+        text: "Algunos Productos no Cuentan con Datos Fiscales",
+        icon: "warning",
+        confirmButtonText: "Aceptar",
+      });
+      return;
+    }
+    Swal.fire({
+      title: "¡Pedido guardado exitosamente!",
+      text: "Datos Correctos.",
+      icon: "success",
+      confirmButtonText: "Aceptar",
+    });
+    return;
     // Determinar si es alta o edición
     //formularioData.tipoOperacion = id === 0 ? "alta" : "editar";
     console.log("Datos preparados para enviar:", formularioData, partidasData);
@@ -587,7 +646,7 @@ function validarDatosEnvio() {
     "descripcion"
   );
   const tipoOperacion = document.getElementById("tipoOperacion").value;
-  
+
   if (tipoOperacion === "alta") {
     if (
       !nombreContacto ||
@@ -618,6 +677,15 @@ function validarDatosEnvio() {
 
     return true; // Todos los campos obligatorios están completos
   }
+}
+function validarPartidas(partidasData) {
+  partidasData.forEach((partida) => {
+    if (partida.CVE_PRODSERV == "" || partida.CVE_UNIDAD == "") {
+      console.log(partida);
+      return false;
+    }
+  });
+  return true;
 }
 function obtenerDatosFormulario() {
   const now = new Date(); // Obtiene la fecha y hora actual
@@ -1183,6 +1251,47 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   console.log(COSTO_PROM.value);
   if (!filaProd) {
     console.error("Error: No se encontró la fila del producto.");
+    return; // 🚨 Salir de la función si `filaProd` no es válido
+  }
+  if (!producto.CVE_PRODSERV) {
+    Swal.fire({
+      title: "Datos Fiscales",
+      text: "Este producto no cuenta con CVE_PRODSERV",
+      icon: "warnig",
+      confirmButtonText: "Entendido",
+    });
+    const precioInput = filaProd.querySelector(".precioUnidad");
+    const cantidadInput = filaProd.querySelector(".cantidad");
+    const unidadInput = filaProd.querySelector(".unidad");
+    const descuentoInput = filaProd.querySelector(".descuento");
+    const totalInput = filaProd.querySelector(".subtotalPartida");
+    precioInput.value = parseFloat(0).toFixed(2);
+    cantidadInput.value = parseFloat(0).toFixed(2);
+    unidadInput.value = parseFloat(0).toFixed(2);
+    descuentoInput.value = parseFloat(0).toFixed(2);
+    totalInput.value = parseFloat(0).toFixed(2);
+
+    return; // 🚨 Salir de la función si `filaProd` no es válido
+  }
+  if (!producto.CVE_UNIDAD) {
+    Swal.fire({
+      title: "Datos Fiscales",
+      text: "Este producto no cuenta con CVE_UNIDAD",
+      icon: "warnig",
+      confirmButtonText: "Entendido",
+    });
+
+    const precioInput = filaProd.querySelector(".precioUnidad");
+    const cantidadInput = filaProd.querySelector(".cantidad");
+    const unidadInput = filaProd.querySelector(".unidad");
+    const descuentoInput = filaProd.querySelector(".descuento");
+    const totalInput = filaProd.querySelector(".subtotalPartida");
+    precioInput.value = parseFloat(0).toFixed(2);
+    cantidadInput.value = parseFloat(0).toFixed(2);
+    unidadInput.value = parseFloat(0).toFixed(2);
+    descuentoInput.value = parseFloat(0).toFixed(2);
+    totalInput.value = parseFloat(0).toFixed(2);
+
     return; // 🚨 Salir de la función si `filaProd` no es válido
   }
 

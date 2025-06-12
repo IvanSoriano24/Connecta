@@ -476,7 +476,7 @@ function probarConexionSAE() {
     password: $("#password").val(),
     nombreBase: $("#nombreBase").val(),
     nombreBanco: $("#nombreBanco").val(),
-    claveSae: $("#claveSae").val(),
+    //claveSae: $("#claveSae").val(),
   };
   fetch("../Servidor/PHP/sae.php", {
     method: "POST",
@@ -501,8 +501,8 @@ function probarConexionSAE() {
           icon: "success",
         }).then(() => {
           document.getElementById("divClaveBancaria").hidden = false;
-          document.getElementById("claveSae").value =
-            responseData.numeroTabla || "0";
+          /*document.getElementById("claveSae").value =
+            responseData.numeroTabla || "0";*/
           document.getElementById("claveBancaria").value =
             responseData.noCuenta || "0";
         });
@@ -513,8 +513,8 @@ function probarConexionSAE() {
           icon: "warning",
         }).then(() => {
           document.getElementById("divClaveBancaria").hidden = false;
-          document.getElementById("claveSae").value =
-            responseData.numeroTabla || "0";
+          /*document.getElementById("claveSae").value =
+            responseData.numeroTabla || "0";*/
           document.getElementById("claveBancaria").value =
             responseData.noCuenta || "0";
         });
@@ -1169,7 +1169,7 @@ function verificarNotificaciones() {
 }
 
 // Llamar periódicamente a la función de verificación de notificaciones
-setInterval(verificarNotificaciones, 50000); // Verificar cada 30 segundos
+//setInterval(verificarNotificaciones, 500000); // Verificar cada 30 segundos
 $(document).ready(function () {
   $("#rfcModal").on(
     "input",

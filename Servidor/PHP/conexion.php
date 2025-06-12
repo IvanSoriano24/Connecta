@@ -58,6 +58,7 @@ function login($funcion)
             $response = file_get_contents($url);
 
             if ($response === false) {
+                header("Location: /index.php?error=4");
                 die("Error al conectarse con Firebase.");
             }
 

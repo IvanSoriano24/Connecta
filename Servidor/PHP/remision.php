@@ -3646,7 +3646,7 @@ function mostrarRemisionEspecifica($clave, $conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'Pedido no encontrado']);
         exit;
     }
-    
+
     // Liberar recursos y cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -3755,7 +3755,8 @@ function obtenerMunicipios($estadoSeleccionado)
         echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
     }
 }
-function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda, $firebaseProjectId, $firebaseApiKey){
+function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor, $filtroBusqueda, $firebaseProjectId, $firebaseApiKey)
+{
     // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     $estadoPedido = $_POST['estadoPedido'] ?? 'Activos';
@@ -3956,7 +3957,7 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
 
-        
+
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA?key=$firebaseApiKey";
         $context = stream_context_create([
             'http' => [
@@ -3998,7 +3999,7 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
                 }
             }
         }
-        
+
         sqlsrv_free_stmt($countStmt);
 
         sqlsrv_free_stmt($stmt);
@@ -4266,7 +4267,6 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
 {
     global $firebaseProjectId, $firebaseApiKey;
     $errores = [];
-    $origen = [];
     $folio = str_pad($folio, 10, '0', STR_PAD_LEFT);
     $folio = str_pad($folio, 20, ' ', STR_PAD_LEFT);
     $pedidoData = datosPedidoValidacion($folio, $claveSae, $conexionData);
@@ -4281,7 +4281,7 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
             'success'  => false,
             'message' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
         ];*/
-        $errores = [
+        $errores[] = [
             'origen' => 'Empresa',
             'message' => 'No se encontró el .cer o el .key para la empresa'  . implode(', ', $noEmpresa)
         ];
@@ -4291,7 +4291,7 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
         ]);
         return;*/
     }
-    $requeridosPedido = ['FORMADEPAGOSAT', 'METODODEPAGO', 'USO_CFDI', 'REG_FISC'];
+    $requeridosPedido = ['FORMADEPAGOSAT', 'USO_CFDI', 'REG_FISC'];
     $faltanPedido = [];
     foreach ($requeridosPedido as $campo) {
         if (empty($clienteData[$campo])) {
@@ -4300,8 +4300,8 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
     }
     if (!empty($faltanPedido)) {
         header('Content-Type: application/json');
-        $errores = [
-            'origen' => 'Pedido',
+        $errores[] = [
+            'origen' => 'Cliente',
             'message' => 'Faltan datos del pedido: ' . implode(', ', $faltanPedido)
         ];
         //return;
@@ -4319,7 +4319,7 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
     }
     if (!empty($faltan)) {
         header('Content-Type: application/json');
-        $errores = [
+        $errores[] = [
             'origen' => 'Cliente',
             'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
         ];
@@ -4340,7 +4340,7 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
             "message' => 'Cliente no puede timbrar: $problem"
         ]);
         return;*/
-        $errores = [
+        $errores[] = [
             'origen' => 'Cliente',
             'message' => "Cliente no puede timbrar, status: $problem"
         ];
@@ -4363,7 +4363,7 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
             'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ]);
         return;*/
-        $errores = [
+        $errores[] = [
             'origen' => 'Empresa',
             'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ];
@@ -4387,8 +4387,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -4474,8 +4474,8 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
 }
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -4771,50 +4771,91 @@ function enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $f
         //var_dump('success' . false, 'message' . $resultado);
     }
 }
-function guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema, $remisionId, $claveCliente){
+function guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema, $remisionId, $claveCliente, $fallaId)
+{
     $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
     //var_dump($problema);
     // Si me llega un único error en formato asociativo, lo convierto en array de uno:
     if (isset($problema['origen']) && isset($problema['message'])) {
-        $problema = [ $problema ];
+        $problema = [$problema];
     }
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA?key=$firebaseApiKey";
-    // Construir el arrayValue de fallas
-    $valores = [];
-    foreach ($problema as $f) {
-        $valores[] = [
-            'mapValue' => [
-                'fields' => [
-                    'origen'  => ['stringValue' => $f['origen']],
-                    'message' => ['stringValue' => $f['message']],
+    if ($fallaId === "") {
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA?key=$firebaseApiKey";
+        // Construir el arrayValue de fallas
+        $valores = [];
+        foreach ($problema as $f) {
+            $valores[] = [
+                'mapValue' => [
+                    'fields' => [
+                        'origen'  => ['stringValue' => $f['origen']],
+                        'message' => ['stringValue' => $f['message']],
+                    ],
                 ],
+            ];
+        }
+
+        $fields = [
+            'folio'     => ['stringValue'  => $remisionId],
+            'cliente'   => ['stringValue'  => $claveCliente],
+            'claveSae'  => ['stringValue'  => $claveSae],
+            'noEmpresa' => ['integerValue' => $noEmpresa],
+            'creacion'  => ['stringValue'  => $fechaCreacion],
+            'problemas'    => [                  // aquí va el nuevo array
+                'arrayValue' => [
+                    'values' => $valores
+                ]
             ],
         ];
-    }
 
-    $fields = [
-        'folio'     => ['stringValue'  => $remisionId],
-        'cliente'   => ['stringValue'  => $claveCliente],
-        'claveSae'  => ['stringValue'  => $claveSae],
-        'noEmpresa' => ['integerValue' => $noEmpresa],
-        'creacion'  => ['stringValue'  => $fechaCreacion],
-        'problemas'    => [                  // aquí va el nuevo array
-            'arrayValue' => [
-                'values' => $valores
+        $payload = json_encode(['fields' => $fields], JSON_UNESCAPED_SLASHES);
+        $ctx = stream_context_create([
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => $payload,
             ]
-        ],
-    ];
+        ]);
 
-    $payload = json_encode(['fields' => $fields], JSON_UNESCAPED_SLASHES);
-    $ctx = stream_context_create([
-        'http' => [
-            'header'  => "Content-Type: application/json\r\n",
-            'method'  => 'POST',
-            'content' => $payload,
-        ]
-    ]);
+        $response = @file_get_contents($url, false, $ctx);
+    } else {
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA/$fallaId?key=$firebaseApiKey";
+        // Construir el arrayValue de fallas
+        $valores = [];
+        foreach ($problema as $f) {
+            $valores[] = [
+                'mapValue' => [
+                    'fields' => [
+                        'origen'  => ['stringValue' => $f['origen']],
+                        'message' => ['stringValue' => $f['message']],
+                    ],
+                ],
+            ];
+        }
 
-    $response = @file_get_contents($url, false, $ctx);
+        $fields = [
+            'folio'     => ['stringValue'  => $remisionId],
+            'cliente'   => ['stringValue'  => $claveCliente],
+            'claveSae'  => ['stringValue'  => $claveSae],
+            'noEmpresa' => ['integerValue' => $noEmpresa],
+            'creacion'  => ['stringValue'  => $fechaCreacion],
+            'problemas'    => [                  // aquí va el nuevo array
+                'arrayValue' => [
+                    'values' => $valores
+                ]
+            ],
+        ];
+
+        $payload = json_encode(['fields' => $fields], JSON_UNESCAPED_SLASHES);
+        $ctx = stream_context_create([
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'PATCH',
+                'content' => $payload,
+            ]
+        ]);
+
+        $response = @file_get_contents($url, false, $ctx);
+    }
 }
 function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema, $folioFactura)
 {
@@ -5253,12 +5294,14 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
 
     if ($correo === 'S' && !empty($emailPred)) {
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . trim(urlencode($folioFactura)) . ".pdf";
-        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
+
+        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
+
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_18456.pdf";
 
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/". urldecode($rutaPDF);
 
-        //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        $rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
 
         //$filename = "Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', trim(urlencode($folioFactura))) . ".pdf";
@@ -5431,7 +5474,27 @@ function crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura)
     $rutaPDF = generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
     return $rutaPDF;
 }
-function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $firebaseProjectId, $firebaseApiKey)
+function eliminarErrores($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $remisionId, $claveCliente, $fallaId)
+{
+
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA/$fallaId?key=$firebaseApiKey";
+    $options = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'DELETE',
+        ],
+    ];
+    $context = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al eliminar los errores.']);
+        return;
+    } else {
+        echo json_encode(['success' => true, 'message' => 'Errores eliminados']);
+    }
+}
+function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $firebaseProjectId, $firebaseApiKey, $fallaId)
 {
     $pedidoID = obtenerFolio($remisionId, $claveSae, $conexionData);
     //var_dump($pedidoID);
@@ -5444,6 +5507,7 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
     $status = $datosComanda[0]['status'];
     if ($status === 'TERMINADA') {
         $respuestaValidaciones = validaciones($folio, $noEmpresa, $claveSae, $conexionData);
+
         //var_dump($respuestaValidaciones);
         if ($respuestaValidaciones['success']) {
             $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
@@ -5461,6 +5525,9 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
                 $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
                 //var_dump("Ruta PDF: ", $rutaPDF);
                 validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
+                if ($fallaId != "") {
+                    eliminarErrores($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $remisionId, $claveCliente, $fallaId);
+                }
                 echo json_encode(['success' => true, 'message' => "Remision facturada"]);
             } else {
                 enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
@@ -5468,7 +5535,7 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
             }
         } else {
             //enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message']);
-            guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message'], $remisionId, $claveCliente);
+            guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message'], $remisionId, $claveCliente, $fallaId);
             echo json_encode(['success' => false, 'message' => 'Hubo un error al Facturar']);
         }
     } else {
@@ -5478,7 +5545,8 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
         ]);
     }
 }
-function visualizarFallasFactura($id, $firebaseProjectId, $firebaseApiKey){
+function visualizarFallasFactura($id, $firebaseProjectId, $firebaseApiKey)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA/$id?key=$firebaseApiKey";
 
     $response = @file_get_contents($url);
@@ -5487,20 +5555,21 @@ function visualizarFallasFactura($id, $firebaseProjectId, $firebaseApiKey){
     } else {
         $data = json_decode($response, true);
         $fields = $data['fields'];
-        $problemas = [];
-        foreach ($fields['problemas']['arrayValue']['values'] as $problemas) {
-            $problemas[] = [
-                'message' => $problemas['mapValue']['fields']['message']['stringValue'],
-                'origen' => $problemas['mapValue']['fields']['origen']['stringValue'] ?? "N/A"
+        $listaDeProblemas = [];
+        foreach ($fields['problemas']['arrayValue']['values'] as $valor) {
+            $listaDeProblemas[] = [
+                'message' => $valor['mapValue']['fields']['message']['stringValue'],
+                'origen'  => $valor['mapValue']['fields']['origen']['stringValue'] ?? "N/A"
             ];
         }
 
+        //var_dump($problemas);
         echo json_encode([
             'success' => true,
             'data' => [
                 'id' => $id,
                 'folio' => $fields['folio']['stringValue'],
-                'problemas' => $problemas
+                'problemas' => $listaDeProblemas
             ]
         ]);
     }
@@ -5678,6 +5747,7 @@ switch ($funcion) {
         break;
     case 9:
         $remisionId = $_POST['pedidoID'];
+        $fallaId = $_POST['fallaId'] ?? "";
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
@@ -5686,7 +5756,7 @@ switch ($funcion) {
             break;
         }
         $conexionData = $conexionResult['data'];
-        facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $firebaseProjectId, $firebaseApiKey);
+        facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $firebaseProjectId, $firebaseApiKey, $fallaId);
         break;
     case 10:
         $id = $_GET['id'];

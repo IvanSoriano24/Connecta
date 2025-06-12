@@ -15,7 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
             message = "Tu cuenta está dada de baja. Por favor, contacta al administrador.";
         } else if (error === "4") {
             message = "No hay conexion al sistema.";
-        }
+        } 
+        
 
         // Mostrar el mensaje de error con SweetAlert2
         Swal.fire({

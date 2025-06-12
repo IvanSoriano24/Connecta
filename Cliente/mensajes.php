@@ -294,7 +294,7 @@ if (isset($_SESSION['usuario'])) {
                                             <h6 class="fw-bold">Dirección</h6>
                                             <div class="mb-3">
                                                 <label for="nombreContacto" class="form-label">Nombre del contacto <span class="text-danger">*</span></label>
-                                                <input type="text" id="nombreContacto" class="form-control" required>
+                                                <input type="text" id="nombreContacto" class="form-control" disabled >
                                             </div>
                                             <div class="mb-3">
                                                 <label for="compañiaContacto" class="form-label">Compañía <span class="text-danger">*</span></label>

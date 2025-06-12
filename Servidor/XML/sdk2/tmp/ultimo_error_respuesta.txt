@@ -1,0 +1,3 @@
+a:3:{s:16:"codigo_mf_numero";i:7;s:15:"codigo_mf_texto";s:189:"ERROR EN DATOS CAPTURADOS: http://www.sat.gob.mx/cfd/4}Concepto':  El campo 'ClaveProdServ'  es obligatorio.
+http://www.sat.gob.mx/cfd/4}Concepto':  El campo 'ClaveUnidad'  es obligatorio.
+";s:9:"ejecucion";d:77.14300000000001;}

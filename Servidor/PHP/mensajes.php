@@ -247,7 +247,8 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
         echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.', 'response' => $result, 'data' => $data]);
     }
 }
-function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId){
+function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
 
     // Datos de actualización en Firebase
@@ -602,7 +603,6 @@ function actualizarEstadoPedido($folio, $conexionData, $claveSae)
         sqlsrv_close($conn);
 
         return ['success' => true, 'message' => 'Estado y campo CAMPLIB3 actualizados correctamente'];
-
     } catch (Exception $e) {
         sqlsrv_rollback($conn);
         sqlsrv_close($conn);
@@ -1224,6 +1224,47 @@ function liberarExistencias($conexionData, $folio, $claveSae)
     }
 }
 
+function obtenerEstadoComanda($claveSeleccionada)
+{
+    $filePath = "../../Complementos/CAT_ESTADOS.xml";
+
+    if (!file_exists($filePath)) {
+        echo json_encode(['success' => false, 'message' => "El archivo no existe en la ruta: $filePath"]);
+        return;
+    }
+
+    $xmlContent = file_get_contents($filePath);
+    if ($xmlContent === false) {
+        echo json_encode(['success' => false, 'message' => "Error al leer el archivo XML en $filePath"]);
+        return;
+    }
+
+    try {
+        $estados = new SimpleXMLElement($xmlContent);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        return;
+    }
+
+    $encontrado = null;
+    foreach ($estados->row as $row) {
+        if ((string)$row['Clave'] === $claveSeleccionada && (string)$row['Pais'] === 'MEX') {
+            $encontrado = [
+                'Clave'       => (string)$row['Clave'],
+                'Pais'        => (string)$row['Pais'],
+                'Descripcion' => (string)$row['Descripcion']
+            ];
+            break;
+        }
+    }
+
+    if ($encontrado !== null) {
+        echo json_encode(['success' => true, 'data' => $encontrado]);
+    } else {
+        echo json_encode(['success' => false, 'message' => "No se encontró el estado con clave $claveSeleccionada"]);
+    }
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -1330,6 +1371,10 @@ switch ($funcion) {
     case 9:
         $comandaId = $_GET['comandaId'];
         activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
+        break;
+    case 10:
+        $estadoSeleccionado = $_POST['estadoSeleccionado'];
+        obtenerEstadoComanda($estadoSeleccionado);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);
