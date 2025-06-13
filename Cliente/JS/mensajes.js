@@ -292,7 +292,7 @@ function obtenerDatosEnvioEditar(pedidoID) {
       } else {
         Swal.fire({
           title: "Aviso",
-          text: "No se pudo cargar el pedido.",
+          text: "No se pudo cargar los datos de envio.",
           icon: "warning",
           confirmButtonText: "Aceptar",
         });
@@ -304,12 +304,12 @@ function obtenerDatosEnvioEditar(pedidoID) {
     //console.log(errorThrown);
     Swal.fire({
       title: "Aviso",
-      text: "Error al cargar el pedido.",
+      text: "Error al cargar los datos de envio.",
       icon: "error",
       confirmButtonText: "Aceptar",
     });
     //alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
-    console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+    console.log("Error al cargar los datos de envio: " + textStatus + " " + errorThrown);
   });
 }
 function obtenerEstadosComanda(estadoSeleccionado, municipioSeleccionado) {

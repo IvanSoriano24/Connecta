@@ -283,10 +283,11 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
     // Ruta del XML Timbrado
-    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' .  preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
+    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
 
     // Ruta del XML de Debug
-    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) .  '.xml';
+    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
+    //$datos['xml_debug']='../../timbrados/sin_timbrar_ejemplo_factura4.xml';
 
 
     // Credenciales de Timbrado
@@ -303,9 +304,9 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     /*$datos['conf']['cer'] = '../../certificados/escuela/EKU9003173C9.cer';
     $datos['conf']['key'] = '../../certificados/escuela/EKU9003173C9.key';
     $datos['conf']['pass'] = '12345678a';*/
-    /*$datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
+    $datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
     $datos['conf']['key'] = '../../certificados/2/CSD_unidad_LUHM920412GU2_20220708_132000.key';
-    $datos['conf']['pass'] = 'CUSAr279';*/
+    $datos['conf']['pass'] = 'CUSAr279';
     $locacionArchivos = __DIR__ . "/../../certificados/$noEmpresa/";
 
     // glob devuelve un array, así que tomamos sólo el primer elemento
@@ -350,8 +351,8 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     $datos['emisor']['RegimenFiscal'] = '626';*/
     /*$datos['emisor']['rfc'] = 'LUHM920412GU2'; //RFC DE PRUEBA
     $datos['emisor']['nombre'] = 'MARCOS LUNA HERNANDEZ';  // EMPRESA DE PRUEBA
-    $datos['emisor']['RegimenFiscal'] = '612';*/
-    /*$regimenStr = $empresaData['regimenFiscal'];
+    $datos['emisor']['RegimenFiscal'] = '612';
+    $regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
         $datos['emisor']['RegimenFiscal'] = $matches[1];
     } else {
@@ -359,13 +360,13 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     }*/
 
     // Datos del Emisor
-    $datos['emisor']['rfc'] = $empresaData['rfc']; //RFC DE PRUEBA
-    $datos['emisor']['nombre'] = $empresaData['razonSocial'];  // EMPRESA DE PRUEBA
+    $datos['emisor']['rfc'] = trim($empresaData['rfc']); 
+    $datos['emisor']['nombre'] = trim($empresaData['razonSocial']);
     $regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
-        $datos['emisor']['RegimenFiscal'] = $matches[1];
+        $datos['emisor']['RegimenFiscal'] = trim($matches[1]);
     } else {
-        $datos['emisor']['RegimenFiscal'] = $regimenStr;
+        $datos['emisor']['RegimenFiscal'] = trim($regimenStr);
     }
 
     // Datos del Receptor $clienteData['']

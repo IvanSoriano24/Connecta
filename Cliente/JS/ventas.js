@@ -187,7 +187,7 @@ function eliminarPedido(pedidoID) {
         }
         if (response.success) {
           Swal.fire({
-            title: "Eliminado",
+            title: "Cancelado",
             text: "El pedido ha sido cancelado correctamente",
             icon: "success",
             confirmButtonText: "Entendido",

@@ -48,138 +48,6 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-/*function mostrarPedidos($conexionData, $filtroFecha, $filtroVendedor)
-{
-    // Recuperar filtros enviados
-    $filtroFecha    = $_POST['filtroFecha']    ?? 'Todos';
-    $filtroVendedor = $_POST['filtroVendedor'] ?? '';
-
-    // Parámetros de paginación
-    $pagina   = isset($_POST['pagina'])   ? (int)$_POST['pagina']   : 1;
-    $porPagina= isset($_POST['porPagina'])? (int)$_POST['porPagina']: 50;
-    $offset   = ($pagina - 1) * $porPagina;
-
-    try {
-        //session_start();
-        if (!isset($_SESSION['empresa']['noEmpresa'])) {
-            echo json_encode(['success'=>false,'message'=>'No se ha definido la empresa en la sesión']);
-            exit;
-        }
-        $noEmpresa    = $_SESSION['empresa']['noEmpresa'];
-        $claveSae     = $_SESSION['empresa']['claveSae'];
-        $tipoUsuario  = $_SESSION['usuario']['tipoUsuario'];
-        $claveVendedor= $_SESSION['empresa']['claveUsuario'] ?? '';
-
-        // Aseguramos encoding de la clave de vendedor
-        if ($claveVendedor !== '') {
-            $claveVendedor = mb_convert_encoding(trim($claveVendedor),'UTF-8');
-        }
-
-        // Conectar
-        $conn = sqlsrv_connect($conexionData['host'], [
-            "Database"              => $conexionData['nombreBase'],
-            "UID"                   => $conexionData['usuario'],
-            "PWD"                   => $conexionData['password'],
-            "TrustServerCertificate"=> true
-        ]);
-        if ($conn === false) {
-            die(json_encode(['success'=>false,'message'=>'Error al conectar','errors'=>sqlsrv_errors()]));
-        }
-
-        // Tablas dinámicas
-        $cliTbl = "[{$conexionData['nombreBase']}].[dbo].CLIE".str_pad($claveSae,2,'0',STR_PAD_LEFT);
-        $facTbl = "[{$conexionData['nombreBase']}].[dbo].FACTP".str_pad($claveSae,2,'0',STR_PAD_LEFT);
-        $venTbl = "[{$conexionData['nombreBase']}].[dbo].VEND".str_pad($claveSae,2,'0',STR_PAD_LEFT);
-
-        // Base de la consulta
-        $sql = "
-            SELECT 
-              f.TIP_DOC   AS Tipo,
-              f.CVE_DOC   AS Clave,
-              f.CVE_CLPV  AS Cliente,
-              c.NOMBRE    AS Nombre,
-              f.STATUS    AS Estatus,
-              CONVERT(VARCHAR(10),f.FECHAELAB,105) AS FechaElaboracion,
-              f.CAN_TOT   AS Subtotal,
-              f.IMPORTE   AS ImporteTotal,
-              v.NOMBRE    AS NombreVendedor
-            FROM $facTbl f
-            LEFT JOIN $cliTbl c ON c.CLAVE    = f.CVE_CLPV
-            LEFT JOIN $venTbl v ON v.CVE_VEND = f.CVE_VEND
-            WHERE f.STATUS IN ('E','O')
-        ";
-
-        $params = [];
-
-        // Filtros de fecha
-        if ($filtroFecha === 'Hoy') {
-            $sql .= " AND CAST(f.FECHAELAB AS DATE)=CAST(GETDATE() AS DATE)";
-        } elseif ($filtroFecha === 'Mes') {
-            $sql .= " AND MONTH(f.FECHAELAB)=MONTH(GETDATE()) AND YEAR(f.FECHAELAB)=YEAR(GETDATE())";
-        } elseif ($filtroFecha === 'Mes Anterior') {
-            $sql .= " AND MONTH(f.FECHAELAB)=MONTH(DATEADD(MONTH,-1,GETDATE())) AND YEAR(f.FECHAELAB)=YEAR(DATEADD(MONTH,-1,GETDATE()))";
-        }
-
-        // Filtro por vendedor
-        if ($tipoUsuario === 'ADMINISTRADOR') {
-            
-            if ($filtroVendedor !== '') {
-                $sql      .= " AND f.CVE_VEND = ?";
-                $params[]  = $filtroVendedor;
-            }
-        } else {
-            // Usuarios no ADMIN sólo ven sus pedidos
-            $sql      .= " AND f.CVE_VEND = ?";
-            $params[]  = $claveVendedor;
-        }
-
-        // Orden y paginación
-        $sql .= " ORDER BY f.FECHAELAB DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-        $params[] = $offset;
-        $params[] = $porPagina;
-
-        // Ejecutar
-        $stmt = sqlsrv_query($conn, $sql, $params);
-        if ($stmt === false) {
-            die(json_encode(['success'=>false,'message'=>'Error al ejecutar la consulta','errors'=>sqlsrv_errors()]));
-        }
-
-        // Recorrer resultados
-        $clientes = [];
-        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            // Trim y encoding strings
-            foreach ($row as $k => $v) {
-                
-                if (is_string($v)) {
-                    $v = trim($v);
-                    $enc = mb_detect_encoding($v, mb_list_encodings(), true);
-                    if ($enc && $enc !== 'UTF-8') {
-                        $v = mb_convert_encoding($v,'UTF-8',$enc);
-                    }
-                } elseif ($v === null) {
-                    $v = '';
-                }
-                $row[$k] = $v;
-            }
-            var_dump($row);
-            $clientes[] = $row;
-        }
-
-        sqlsrv_free_stmt($stmt);
-        sqlsrv_close($conn);
-
-        if (empty($clientes)) {
-            echo json_encode(['success'=>false,'message'=>'No se encontraron pedidos']);
-            exit;
-        }
-
-        header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode(['success'=>true,'data'=>$clientes]);
-
-    } catch (Exception $e) {
-        echo json_encode(['success'=>false,'message'=>$e->getMessage()]);
-    }
-}*/
 function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor)
 {
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
@@ -253,7 +121,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
         if ($estadoPedido == "Activos") {
             $sql .= "clib.CAMPLIB3 = 'A' ";
         } elseif ($estadoPedido == "Vendidos") {
-            $sql .= "clib.CAMPLIB3 = 'E' ";
+            $sql .= "clib.CAMPLIB3 = 'V' ";
         } else {
             $sql .= "clib.CAMPLIB3 = 'C' ";
         }
@@ -283,7 +151,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
         $sql .= " ORDER BY f.FECHAELAB DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
         $params[] = $offset;
         $params[] = $porPagina;
-
+        //var_dump($sql);
         // Ejecutar la consulta
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
@@ -323,6 +191,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             LEFT JOIN $nombreTabla3    v ON v.CVE_VEND = f.CVE_VEND
             LEFT JOIN $nombreTablaCLIB clib ON clib.CLAVE_DOC = f.CVE_DOC
             WHERE ";
+
         if ($estadoPedido == "Activos") {
             $countSql .= "clib.CAMPLIB3 = 'A' ";
         } elseif ($estadoPedido == "Vendidos") {
@@ -8147,11 +8016,11 @@ switch ($funcion) {
                         }
                         ///Fin
                     } else {
-                        echo json_encode([
+                        /*echo json_encode([
                             'success' => false,
                             'message' => 'No se Puede Realizar Pedidos a Clientes sin Credito',
                         ]);
-                        die();
+                        die();*/
                         //$anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
                         $anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
 

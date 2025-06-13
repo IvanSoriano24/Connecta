@@ -55,7 +55,7 @@ function agregarEventosBotones() {
 function facturarRemision(pedidoID) {
   Swal.fire({
     title: "Procesando facturacion...",
-    text: "Por favor, espera mientras se completa el pedido.",
+    text: "Por favor, espera mientras se completa la facturacion.",
     allowOutsideClick: false,
     allowEscapeKey: false,
     didOpen: () => {

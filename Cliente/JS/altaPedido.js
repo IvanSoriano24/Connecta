@@ -582,7 +582,7 @@ function guardarPedido(id) {
       return;
     }
     //Mensaje de carga
-    /*Swal.fire({
+    Swal.fire({
       title: "Procesando pedido...",
       text: "Por favor, espera mientras se completa el pedido.",
       allowOutsideClick: false,
@@ -590,7 +590,7 @@ function guardarPedido(id) {
       didOpen: () => {
         Swal.showLoading();
       },
-    });*/
+    });
     //Funcion para unir las partidas cuyos productos sean el mismo
     consolidarPartidasEnTabla();
     // Obtener la información del formulario
@@ -600,23 +600,7 @@ function guardarPedido(id) {
     const partidasData = obtenerDatosPartidas();
 
     console.log("Datos de partidas obtenidos:", partidasData);
-    const validacionPartidas = validarPartidas(partidasData);
-    if (!validacionPartidas) {
-      Swal.fire({
-        title: "Error al guardar el pedido",
-        text: "Algunos Productos no Cuentan con Datos Fiscales",
-        icon: "warning",
-        confirmButtonText: "Aceptar",
-      });
-      return;
-    }
-    Swal.fire({
-      title: "¡Pedido guardado exitosamente!",
-      text: "Datos Correctos.",
-      icon: "success",
-      confirmButtonText: "Aceptar",
-    });
-    return;
+
     // Determinar si es alta o edición
     //formularioData.tipoOperacion = id === 0 ? "alta" : "editar";
     console.log("Datos preparados para enviar:", formularioData, partidasData);

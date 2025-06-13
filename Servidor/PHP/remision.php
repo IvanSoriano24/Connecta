@@ -4387,8 +4387,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -4474,8 +4474,8 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
 }
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -5295,13 +5295,11 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     if ($correo === 'S' && !empty($emailPred)) {
         //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . trim(urlencode($folioFactura)) . ".pdf";
 
-        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
+        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
 
-        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_18456.pdf";
+        
 
-        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/". urldecode($rutaPDF);
-
-        $rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
 
         //$filename = "Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', trim(urlencode($folioFactura))) . ".pdf";
@@ -5316,8 +5314,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     }
     sqlsrv_close($conn);
 }
-function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr)
-{
+function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr){
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
 
