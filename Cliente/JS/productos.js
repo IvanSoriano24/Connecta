@@ -30,7 +30,7 @@ function cargarProductosDash(limpiarTabla = true) {
       } else {
         Swal.fire({
             title: "Aviso",
-            text: "Error desde el servidor: " + response.message,
+            text: response.message,
             icon: "warning",
             confirmButtonText: "Entendido",
           });

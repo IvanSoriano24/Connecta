@@ -518,11 +518,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $numeroWhatsApp = '+527772127123'; // Interzenda*/
 
     if ($correo === 'S' && !empty($emailPred)) {
-        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . trim(urlencode($folioFactura)) . ".pdf";
-        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
-        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_18456.pdf";
-
-        //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/". urldecode($rutaPDF);
+        $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
 
         //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
 
@@ -928,8 +924,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     }
 }
 
-function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
-{
+function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito){
     $numFuncion = '1';
     $pedidoId = $folio;
 

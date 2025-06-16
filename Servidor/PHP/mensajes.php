@@ -247,7 +247,8 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
         echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.', 'response' => $result, 'data' => $data]);
     }
 }
-function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId){
+function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
 
     // Datos de actualización en Firebase
@@ -578,26 +579,35 @@ function actualizarEstadoPedido($folio, $conexionData, $claveSae)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    // Crear la consulta SQL para actualizar el pedido
-    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+
+    $tablaClib  = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT);
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-    $sql = "UPDATE $nombreTabla SET 
-        STATUS = 'E'
-        WHERE CVE_DOC = ?";
 
-    $params = [$CVE_DOC];
-    $stmt = sqlsrv_query($conn, $sql, $params);
+    // Iniciar transacción
+    sqlsrv_begin_transaction($conn);
 
-    if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al actualizar el pedido', 'errors' => sqlsrv_errors()]));
+    try {
+        // 2. Actualizar CAMPLIB3 = 'V' en FACTP_CLIB
+        $sql2 = "UPDATE $tablaClib SET CAMPLIB3 = 'V' WHERE CLAVE_DOC = ?";
+        $stmt2 = sqlsrv_prepare($conn, $sql2, [$CVE_DOC]);
+        if (!$stmt2 || !sqlsrv_execute($stmt2)) {
+            throw new Exception('Error al actualizar CAMPLIB3 en FACTP_CLIB');
+        }
+
+        // Confirmar transacción
+        sqlsrv_commit($conn);
+
+        sqlsrv_free_stmt($stmt2);
+        sqlsrv_close($conn);
+
+        return ['success' => true, 'message' => 'Estado y campo CAMPLIB3 actualizados correctamente'];
+    } catch (Exception $e) {
+        sqlsrv_rollback($conn);
+        sqlsrv_close($conn);
+        return ['success' => false, 'message' => $e->getMessage(), 'errors' => sqlsrv_errors()];
     }
-
-    // Cerrar la conexión
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
-
-    return ['success' => true, 'message' => 'Status actualizado'];
 }
 function generarPDFP($CVE_DOC, $conexionData, $claveSae, $noEmpresa, $vend, $folio)
 {
@@ -1214,6 +1224,47 @@ function liberarExistencias($conexionData, $folio, $claveSae)
     }
 }
 
+function obtenerEstadoComanda($claveSeleccionada)
+{
+    $filePath = "../../Complementos/CAT_ESTADOS.xml";
+
+    if (!file_exists($filePath)) {
+        echo json_encode(['success' => false, 'message' => "El archivo no existe en la ruta: $filePath"]);
+        return;
+    }
+
+    $xmlContent = file_get_contents($filePath);
+    if ($xmlContent === false) {
+        echo json_encode(['success' => false, 'message' => "Error al leer el archivo XML en $filePath"]);
+        return;
+    }
+
+    try {
+        $estados = new SimpleXMLElement($xmlContent);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        return;
+    }
+
+    $encontrado = null;
+    foreach ($estados->row as $row) {
+        if ((string)$row['Clave'] === $claveSeleccionada && (string)$row['Pais'] === 'MEX') {
+            $encontrado = [
+                'Clave'       => (string)$row['Clave'],
+                'Pais'        => (string)$row['Pais'],
+                'Descripcion' => (string)$row['Descripcion']
+            ];
+            break;
+        }
+    }
+
+    if ($encontrado !== null) {
+        echo json_encode(['success' => true, 'data' => $encontrado]);
+    } else {
+        echo json_encode(['success' => false, 'message' => "No se encontró el estado con clave $claveSeleccionada"]);
+    }
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -1320,6 +1371,10 @@ switch ($funcion) {
     case 9:
         $comandaId = $_GET['comandaId'];
         activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
+        break;
+    case 10:
+        $estadoSeleccionado = $_POST['estadoSeleccionado'];
+        obtenerEstadoComanda($estadoSeleccionado);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

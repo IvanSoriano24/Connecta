@@ -48,146 +48,12 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-/*function mostrarPedidos($conexionData, $filtroFecha, $filtroVendedor)
-{
-    // Recuperar filtros enviados
-    $filtroFecha    = $_POST['filtroFecha']    ?? 'Todos';
-    $filtroVendedor = $_POST['filtroVendedor'] ?? '';
-
-    // Parámetros de paginación
-    $pagina   = isset($_POST['pagina'])   ? (int)$_POST['pagina']   : 1;
-    $porPagina= isset($_POST['porPagina'])? (int)$_POST['porPagina']: 50;
-    $offset   = ($pagina - 1) * $porPagina;
-
-    try {
-        //session_start();
-        if (!isset($_SESSION['empresa']['noEmpresa'])) {
-            echo json_encode(['success'=>false,'message'=>'No se ha definido la empresa en la sesión']);
-            exit;
-        }
-        $noEmpresa    = $_SESSION['empresa']['noEmpresa'];
-        $claveSae     = $_SESSION['empresa']['claveSae'];
-        $tipoUsuario  = $_SESSION['usuario']['tipoUsuario'];
-        $claveVendedor= $_SESSION['empresa']['claveUsuario'] ?? '';
-
-        // Aseguramos encoding de la clave de vendedor
-        if ($claveVendedor !== '') {
-            $claveVendedor = mb_convert_encoding(trim($claveVendedor),'UTF-8');
-        }
-
-        // Conectar
-        $conn = sqlsrv_connect($conexionData['host'], [
-            "Database"              => $conexionData['nombreBase'],
-            "UID"                   => $conexionData['usuario'],
-            "PWD"                   => $conexionData['password'],
-            "TrustServerCertificate"=> true
-        ]);
-        if ($conn === false) {
-            die(json_encode(['success'=>false,'message'=>'Error al conectar','errors'=>sqlsrv_errors()]));
-        }
-
-        // Tablas dinámicas
-        $cliTbl = "[{$conexionData['nombreBase']}].[dbo].CLIE".str_pad($claveSae,2,'0',STR_PAD_LEFT);
-        $facTbl = "[{$conexionData['nombreBase']}].[dbo].FACTP".str_pad($claveSae,2,'0',STR_PAD_LEFT);
-        $venTbl = "[{$conexionData['nombreBase']}].[dbo].VEND".str_pad($claveSae,2,'0',STR_PAD_LEFT);
-
-        // Base de la consulta
-        $sql = "
-            SELECT 
-              f.TIP_DOC   AS Tipo,
-              f.CVE_DOC   AS Clave,
-              f.CVE_CLPV  AS Cliente,
-              c.NOMBRE    AS Nombre,
-              f.STATUS    AS Estatus,
-              CONVERT(VARCHAR(10),f.FECHAELAB,105) AS FechaElaboracion,
-              f.CAN_TOT   AS Subtotal,
-              f.IMPORTE   AS ImporteTotal,
-              v.NOMBRE    AS NombreVendedor
-            FROM $facTbl f
-            LEFT JOIN $cliTbl c ON c.CLAVE    = f.CVE_CLPV
-            LEFT JOIN $venTbl v ON v.CVE_VEND = f.CVE_VEND
-            WHERE f.STATUS IN ('E','O')
-        ";
-
-        $params = [];
-
-        // Filtros de fecha
-        if ($filtroFecha === 'Hoy') {
-            $sql .= " AND CAST(f.FECHAELAB AS DATE)=CAST(GETDATE() AS DATE)";
-        } elseif ($filtroFecha === 'Mes') {
-            $sql .= " AND MONTH(f.FECHAELAB)=MONTH(GETDATE()) AND YEAR(f.FECHAELAB)=YEAR(GETDATE())";
-        } elseif ($filtroFecha === 'Mes Anterior') {
-            $sql .= " AND MONTH(f.FECHAELAB)=MONTH(DATEADD(MONTH,-1,GETDATE())) AND YEAR(f.FECHAELAB)=YEAR(DATEADD(MONTH,-1,GETDATE()))";
-        }
-
-        // Filtro por vendedor
-        if ($tipoUsuario === 'ADMINISTRADOR') {
-            
-            if ($filtroVendedor !== '') {
-                $sql      .= " AND f.CVE_VEND = ?";
-                $params[]  = $filtroVendedor;
-            }
-        } else {
-            // Usuarios no ADMIN sólo ven sus pedidos
-            $sql      .= " AND f.CVE_VEND = ?";
-            $params[]  = $claveVendedor;
-        }
-
-        // Orden y paginación
-        $sql .= " ORDER BY f.FECHAELAB DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-        $params[] = $offset;
-        $params[] = $porPagina;
-
-        // Ejecutar
-        $stmt = sqlsrv_query($conn, $sql, $params);
-        if ($stmt === false) {
-            die(json_encode(['success'=>false,'message'=>'Error al ejecutar la consulta','errors'=>sqlsrv_errors()]));
-        }
-
-        // Recorrer resultados
-        $clientes = [];
-        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            // Trim y encoding strings
-            foreach ($row as $k => $v) {
-                
-                if (is_string($v)) {
-                    $v = trim($v);
-                    $enc = mb_detect_encoding($v, mb_list_encodings(), true);
-                    if ($enc && $enc !== 'UTF-8') {
-                        $v = mb_convert_encoding($v,'UTF-8',$enc);
-                    }
-                } elseif ($v === null) {
-                    $v = '';
-                }
-                $row[$k] = $v;
-            }
-            var_dump($row);
-            $clientes[] = $row;
-        }
-
-        sqlsrv_free_stmt($stmt);
-        sqlsrv_close($conn);
-
-        if (empty($clientes)) {
-            echo json_encode(['success'=>false,'message'=>'No se encontraron pedidos']);
-            exit;
-        }
-
-        header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode(['success'=>true,'data'=>$clientes]);
-
-    } catch (Exception $e) {
-        echo json_encode(['success'=>false,'message'=>$e->getMessage()]);
-    }
-}*/
 function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor)
 {
-    // Recuperar el filtro de fecha enviado o usar 'Todos' por defecto , $filtroVendedor
     $filtroFecha = $_POST['filtroFecha'] ?? 'Todos';
     $estadoPedido = $_POST['estadoPedido'] ?? 'Activos';
     $filtroVendedor = $_POST['filtroVendedor'] ?? '';
 
-    // Parámetros de paginación
     $pagina = isset($_POST['pagina']) ? (int)$_POST['pagina'] : 1;
     $porPagina = isset($_POST['porPagina']) ? (int)$_POST['porPagina'] : 10;
     $offset = ($pagina - 1) * $porPagina;
@@ -197,6 +63,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
             exit;
         }
+
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
         if (!is_numeric($noEmpresa)) {
@@ -224,12 +91,12 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
         }
 
-        // Construir nombres de tablas dinámicamente
         $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $nombreTabla2  = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $nombreTabla3  = "[{$conexionData['nombreBase']}].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $nombreTablaCLIB = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-        // Reescribir la consulta evitando duplicados con `DISTINCT`
+        // Consulta principal
         $sql = "
             SELECT DISTINCT 
                 f.TIP_DOC              AS Tipo,
@@ -245,16 +112,21 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
                 f.DOC_SIG              AS DOC_SIG,
                 v.NOMBRE               AS NombreVendedor
             FROM $nombreTabla2 f
-            LEFT JOIN $nombreTabla  c ON c.CLAVE   = f.CVE_CLPV
-            LEFT JOIN $nombreTabla3 v ON v.CVE_VEND= f.CVE_VEND
-            ";
-        if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
-            $sql .= "WHERE f.STATUS IN ('E','O')";
+            LEFT JOIN $nombreTabla     c ON c.CLAVE     = f.CVE_CLPV
+            LEFT JOIN $nombreTabla3    v ON v.CVE_VEND  = f.CVE_VEND
+            LEFT JOIN $nombreTablaCLIB clib ON clib.CLAVE_DOC = f.CVE_DOC
+            WHERE ";
+
+        // Filtro de estado por CAMPLIB3
+        if ($estadoPedido == "Activos") {
+            $sql .= "clib.CAMPLIB3 = 'A' ";
+        } elseif ($estadoPedido == "Vendidos") {
+            $sql .= "clib.CAMPLIB3 = 'V' ";
         } else {
-            $sql .= "WHERE f.STATUS IN ('C')";
+            $sql .= "clib.CAMPLIB3 = 'C' ";
         }
 
-        // Agregar filtros de fecha
+        // Filtro por fecha
         if ($filtroFecha == 'Hoy') {
             $sql .= " AND CAST(f.FECHAELAB AS DATE) = CAST(GETDATE() AS DATE) ";
         } elseif ($filtroFecha == 'Mes') {
@@ -263,41 +135,33 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             $sql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
         }
 
-        // Filtrar por vendedor si el usuario no es administrador
-        /*if ($tipoUsuario !== 'ADMINISTRADOR') {
-            $sql .= " AND f.CVE_VEND = ? ";
-            $params = [intval($claveVendedor)];
-        } else {
-            $params = [];
-        }*/
+        // Filtro por vendedor
+        $params = [];
         if ($tipoUsuario === 'ADMINISTRADOR') {
             if ($filtroVendedor !== '') {
                 $sql      .= " AND f.CVE_VEND = ?";
                 $params[]  = $filtroVendedor;
             }
         } else {
-            // Usuarios no ADMIN sólo ven sus pedidos
             $sql      .= " AND f.CVE_VEND = ?";
             $params[]  = $claveVendedor;
         }
 
-        // Agregar orden y paginación
+        // Orden y paginación
         $sql .= " ORDER BY f.FECHAELAB DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ";
         $params[] = $offset;
         $params[] = $porPagina;
-
+        //var_dump($sql);
         // Ejecutar la consulta
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
 
-        // Arreglo para almacenar los pedidos evitando duplicados
         $clientes = [];
         $clavesRegistradas = [];
 
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            // Validar codificación y manejar nulos
             foreach ($row as $key => $value) {
                 if ($value !== null && is_string($value)) {
                     $value = trim($value);
@@ -313,27 +177,29 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
                 $row[$key] = $value;
             }
 
-            // 🚨 Evitar pedidos duplicados usando CVE_DOC como clave única
             if (!in_array($row['Clave'], $clavesRegistradas)) {
-                $clavesRegistradas[] = $row['Clave']; // Registrar la clave para evitar repetición
+                $clavesRegistradas[] = $row['Clave'];
                 $clientes[] = $row;
             }
         }
-        /*if($estadoPedido == "Vendidos"){
-            $clientes = filtrarPedidosVendidos($clientes);
-        }*/
-        $countSql  = "
+
+        // Consulta para total
+        $countSql = "
             SELECT COUNT(DISTINCT f.CVE_DOC) AS total
             FROM $nombreTabla2 f
-            LEFT JOIN $nombreTabla c ON c.CLAVE    = f.CVE_CLPV
-            LEFT JOIN $nombreTabla3 v ON v.CVE_VEND = f.CVE_VEND
-        ";
-        if ($estadoPedido == "Activos" || $estadoPedido == "Vendidos") {
-            $countSql .= "WHERE f.STATUS IN ('E','O')";
+            LEFT JOIN $nombreTabla     c ON c.CLAVE    = f.CVE_CLPV
+            LEFT JOIN $nombreTabla3    v ON v.CVE_VEND = f.CVE_VEND
+            LEFT JOIN $nombreTablaCLIB clib ON clib.CLAVE_DOC = f.CVE_DOC
+            WHERE ";
+
+        if ($estadoPedido == "Activos") {
+            $countSql .= "clib.CAMPLIB3 = 'A' ";
+        } elseif ($estadoPedido == "Vendidos") {
+            $countSql .= "clib.CAMPLIB3 = 'E' ";
         } else {
-            $countSql .= "WHERE f.STATUS IN ('C')";
+            $countSql .= "clib.CAMPLIB3 = 'C' ";
         }
-        // Agregar filtros de fecha
+
         if ($filtroFecha == 'Hoy') {
             $countSql .= " AND CAST(f.FECHAELAB AS DATE) = CAST(GETDATE() AS DATE) ";
         } elseif ($filtroFecha == 'Mes') {
@@ -341,24 +207,22 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
         } elseif ($filtroFecha == 'Mes Anterior') {
             $countSql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
         }
+
         if ($tipoUsuario === 'ADMINISTRADOR') {
             if ($filtroVendedor !== '') {
                 $countSql      .= " AND f.CVE_VEND = ?";
-                $params[]  = $filtroVendedor;
             }
         } else {
-            // Usuarios no ADMIN sólo ven sus pedidos
             $countSql      .= " AND f.CVE_VEND = ?";
-            $params[]  = $claveVendedor;
         }
 
         $countStmt = sqlsrv_query($conn, $countSql, $params);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
         sqlsrv_free_stmt($countStmt);
-
         sqlsrv_free_stmt($stmt);
         sqlsrv_close($conn);
+
         header('Content-Type: application/json; charset=UTF-8');
         if (empty($clientes)) {
             echo json_encode(['success' => false, 'message' => 'No se encontraron pedidos']);
@@ -1365,7 +1229,7 @@ function gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $
     sqlsrv_close($conn);
     return $CVE_INFO;
 }
-function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn)
+function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito)
 {
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -1409,10 +1273,13 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $totalDescuentos = 0; // Inicializar acumulador de descuentos
     $IMP_TOT4 = 0;
     $IMP_T4 = 0;
+    $IMP_TOT1 = 0;
+    $IMP_T1 = 0;
     foreach ($partidasData as $partida) {
         $precioUnitario = $partida['precioUnitario'];
         $cantidad = $partida['cantidad'];
         $IMPU4 = $partida['iva'];
+        $IMPU1 = $partida['ieps'];
         $desc1 = $partida['descuento'] ?? 0; // Primer descuento
         $totalPartida = $precioUnitario * $cantidad;
         // **Aplicar los descuentos en cascada**
@@ -1422,11 +1289,13 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
 
         $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
         $IMP_TOT4 += $IMP_T4;
+
+        $IMP_T1 = ($totalPartida - $DES) * ($IMPU1 / 100);
+        $IMP_TOT1 += $IMP_T1;
     }
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
-    $IMP_TOT1 = 0;
     $IMP_TOT2 = 0;
     $IMP_TOT3 = 0;
     $IMP_TOT5 = 0;
@@ -1445,9 +1314,16 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $CVE_OBS = $datosCliente['CVE_OBS'];
     $CVE_BITA = $datosCliente['CVE_BITA'];
     //$COM_TOT_PORC = $datosCliente['COM_TOT_PORC']; //VENDEDOR
-    $METODODEPAGO = $datosCliente['METODODEPAGO'] ?? "";
+    if ($conCredito === 'S') {
+        $METODODEPAGO = "PPD";
+        $FORMADEPAGOSAT = 99;
+    } else {
+        $METODODEPAGO = "PUE";
+        //$FORMADEPAGOSAT = 03;
+        $FORMADEPAGOSAT = $datosCliente['FORMADEPAGOSAT'] ?? 03;
+    }
+
     $NUMCTAPAGO = $datosCliente['NUMCTAPAGO'] ?? "";
-    $FORMADEPAGOSAT = $datosCliente['FORMADEPAGOSAT'] ?? "";
     $USO_CFDI = $datosCliente['USO_CFDI'];
     $REG_FISC = $datosCliente['REG_FISC'];
     $ENLAZADO = 'O'; ////
@@ -1527,9 +1403,41 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
             'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
         ]));
     }
-    return $FOLIO;
+    // Determinar el valor de CAMPLIB3 en base al estatus
+    $valorCampoLib3 = ($estatus === 'E') ? 'A' : (($estatus === 'C') ? 'C' : '');
+
+    // Tabla de campos libres del pedido
+    $nombreTablaCamposLibres = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta para insertar o actualizar CAMPLIB3
+    // Primero intentamos un UPDATE, si no existe el registro se puede hacer un INSERT (opcional según la lógica del sistema)
+    $sqlCamposLibres = "
+    IF EXISTS (SELECT 1 FROM $nombreTablaCamposLibres WHERE CLAVE_DOC = ?)
+        UPDATE $nombreTablaCamposLibres SET CAMPLIB3 = ? WHERE CLAVE_DOC = ?
+    ELSE
+        INSERT INTO $nombreTablaCamposLibres (CLAVE_DOC, CAMPLIB3) VALUES (?, ?)
+    ";
+
+    $paramsCamposLibres = [
+        $CVE_DOC,
+        $valorCampoLib3,
+        $CVE_DOC, // Para UPDATE
+        $CVE_DOC,
+        $valorCampoLib3           // Para INSERT
+    ];
+
+    $stmtCamposLibres = sqlsrv_query($conn, $sqlCamposLibres, $paramsCamposLibres);
+
+    if ($stmtCamposLibres === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar CAMPLIB3 en FACTP_CLIB',
+            'sql_error' => sqlsrv_errors()
+        ]));
+    }
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
+    return $FOLIO;
 }
 function guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
 {
@@ -1786,6 +1694,11 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
             // Calcular los impuestos y totales
             $IMPU1 = $partida['ieps']; // Impuesto 1
             $IMPU3 = $partida['isr'];
+            if ($IMPU1 != 0) {
+                $IMP1APLA = 0;
+            } else {
+                $IMP1APLA = 4;
+            }
             //$IMPU1 = 0;
             //$IMPU2 = $partida['impuesto2']; // Impuesto 2
             $IMPU2 = 0;
@@ -1826,7 +1739,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
                 VERSION_SINC, ID_RELACION, PREC_NETO,
                 CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
                 IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4, 4, 4, 4,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4, 4, 0,
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
@@ -1846,6 +1759,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
                 $IMPU2,
                 $IMPU3,
                 $IMPU4,
+                $IMP1APLA,
                 $TOTIMP1,
                 $TOTIMP2,
                 $TOTIMP4,
@@ -2644,9 +2558,10 @@ function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
 }
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
-    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
-    //$token = 'EAAQbK4YCPPcBOwTkPW9uIomHqNTxkx1A209njQk5EZANwrZBQ3pSjIBEJepVYAe5N8A0gPFqF3pN3Ad2dvfSitZCrtNiZA5IbYEpcyGjSRZCpMsU8UQwK1YWb2UPzqfnYQXBc3zHz2nIfbJ2WJm56zkJvUo5x6R8eVk1mEMyKs4FFYZA4nuf97NLzuH6ulTZBNtTgZDZD'; // 📌 Reemplázalo con un token válido
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     // ✅ Verifica que los valores no estén vacíos
     if (empty($noPedido) || empty($claveSae)) {
@@ -2656,8 +2571,8 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urldecode($claveCliente);
-    /*$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido*/
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente);
+    //$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido  
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 
     // ✅ Construir la lista de productos
@@ -3669,23 +3584,39 @@ function eliminarPedido($conexionData, $pedidoID, $claveSae)
         echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    //$clave = str_pad($pedidoID, 10, ' ', STR_PAD_LEFT);
+
     $pedidoID = str_pad($pedidoID, 20, ' ', STR_PAD_LEFT);
-    // Nombre de la tabla dinámico basado en la empresa
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    // Actualizar el estatus del pedido
-    $query = "UPDATE $nombreTabla SET STATUS = 'C' WHERE CVE_DOC = ?";
-    $stmt = sqlsrv_prepare($conn, $query, [$pedidoID]);
 
-    if (!$stmt) {
-        echo json_encode(['success' => false, 'message' => 'Error al preparar la consulta', 'errors' => sqlsrv_errors()]);
-        exit;
-    }
+    $tablaPedidos   = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPedidosCLIB = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    if (sqlsrv_execute($stmt)) {
+    // Iniciar transacción
+    sqlsrv_begin_transaction($conn);
+
+    try {
+        // 1. Actualizar STATUS en FACTP##
+        $query1 = "UPDATE $tablaPedidos SET STATUS = 'C' WHERE CVE_DOC = ?";
+        $stmt1 = sqlsrv_prepare($conn, $query1, [$pedidoID]);
+        if (!$stmt1 || !sqlsrv_execute($stmt1)) {
+            throw new Exception('Error al cancelar el pedido en FACTP', 1);
+        }
+
+        // 2. Actualizar CAMPLIB3 en FACTP_CLIB##
+        $query2 = "UPDATE $tablaPedidosCLIB SET CAMPLIB3 = 'C' WHERE CLAVE_DOC = ?";
+        $stmt2 = sqlsrv_prepare($conn, $query2, [$pedidoID]);
+        if (!$stmt2 || !sqlsrv_execute($stmt2)) {
+            throw new Exception('Error al actualizar CAMPLIB3 en FACTP_CLIB', 2);
+        }
+
+        sqlsrv_commit($conn);
         echo json_encode(['success' => true, 'pedido' => $pedidoID]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error al actualizar el estatus del pedido', 'errors' => sqlsrv_errors()]);
+    } catch (Exception $e) {
+        sqlsrv_rollback($conn);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage(),
+            'errors' => sqlsrv_errors()
+        ]);
     }
 
     sqlsrv_close($conn);
@@ -4284,6 +4215,11 @@ function eliminarImagen($conexionData)
 function generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn)
 {
     $rutaPDF = generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
+    return $rutaPDF;
+}
+function generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO)
+{
+    $rutaPDF = generarReportePedidoE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO);
     return $rutaPDF;
 }
 // -----------------------------------------------------------------------------------------------------//
@@ -6596,9 +6532,8 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         if ($correoBandera === 0) {
             enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
         }
-
         if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -6624,8 +6559,10 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
 }
 function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
-    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     // ✅ Verifica que los valores no estén vacíos
     if (empty($noPedido) || empty($claveSae)) {
@@ -6635,8 +6572,8 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urldecode($claveCliente);
-    /*$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido*/
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente);
+    //$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido  
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 
 
@@ -7422,8 +7359,7 @@ function obtenerEstados()
         echo json_encode(['success' => false, 'message' => 'No se encontraron registros para País MEX.']);
     }
 }
-function obtenerMunicipios($estadoSeleccionado)
-{
+function obtenerMunicipios($estadoSeleccionado){
     $filePath = "../../Complementos/CAT_MUNICIPIO.xml";
     if (!file_exists($filePath)) {
         echo "El archivo no existe en la ruta: $filePath";
@@ -7469,6 +7405,54 @@ function obtenerMunicipios($estadoSeleccionado)
         echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
     }
 }
+function obtenerMunicipiosEdit($estadoSeleccionado, $municipio)
+{
+    $filePath = "../../Complementos/CAT_MUNICIPIO.xml";
+    if (!file_exists($filePath)) {
+        echo "El archivo no existe en la ruta: $filePath";
+        return;
+    }
+
+    $xmlContent = file_get_contents($filePath);
+    if ($xmlContent === false) {
+        echo "Error al leer el archivo XML en $filePath";
+        return;
+    }
+
+    try {
+        $municipios = new SimpleXMLElement($xmlContent);
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        return;
+    }
+
+    $estado = [];
+
+    // Iterar sobre cada <row>
+    foreach ($municipios->row as $row) {
+        $Estado = (string)$row['Descripcion'];
+        // Sólo procesamos si País es 'MEX'
+        if ($Estado !== $municipio) {
+            continue;
+        }
+        $estado[] = [
+            'Clave' => (string)$row['Clave'],
+            'Estado' => (string)$row['Estado'],
+            'Descripcion' => (string)$row['Descripcion']
+        ];
+    }
+
+    if (!empty($estado)) {
+        // Ordenar los vendedores por nombre alfabéticamente
+        usort($estado, function ($a, $b) {
+            return strcmp($a['Clave'] ?? '', $b['Clave'] ?? '');
+        });
+        echo json_encode(['success' => true, 'data' => $estado]);
+        exit();
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
+    }
+}
 function obtenerEstadoPorClave($claveSeleccionada)
 {
     $filePath = "../../Complementos/CAT_ESTADOS.xml";
@@ -7493,7 +7477,7 @@ function obtenerEstadoPorClave($claveSeleccionada)
 
     $encontrado = null;
     foreach ($estados->row as $row) {
-        if ((string)$row['Clave'] === $claveSeleccionada && (string)$row['Pais'] === 'MEX') {
+        if ((string)$row['Descripcion'] === $claveSeleccionada && (string)$row['Pais'] === 'MEX') {
             $encontrado = [
                 'Clave'       => (string)$row['Clave'],
                 'Pais'        => (string)$row['Pais'],
@@ -7725,7 +7709,7 @@ function actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProject
 
     if ($response === false) {
         $error = error_get_last();
-        echo json_encode(['success' => false, 'message' => 'No se Actualizo el Nombre del Contacto']);
+        //echo json_encode(['success' => false, 'message' => 'No se Actualizo el Nombre del Contacto']);
     } else {
         //echo json_encode(['success' => true, 'message' => 'Datos de Envio Guardados']);
     }
@@ -7989,15 +7973,11 @@ switch ($funcion) {
                             }
                             $validarSaldo = validarSaldo($conexionData, $clave, $claveSae, $conn);
                             //$validarSaldo = 1;
-                            if ($validarSaldo == 0 && $credito == 0) {
-                                $estatus = "E";
-                            } else if ($validarSaldo == 1 || $credito == 1) {
-                                $estatus = "C";
-                            }
+                            $estatus = "E";
                             /*$estatus = "E";
                             $validarSaldo = 0;
                             $credito = 0;*/
-                            $FOLIO = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn); //ROLLBACK
+                            $FOLIO = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             //actualizarFolio($conexionData, $claveSae, $conn); //ROLLBACK
                             actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
@@ -8036,11 +8016,11 @@ switch ($funcion) {
                         }
                         ///Fin
                     } else {
-                        echo json_encode([
+                        /*echo json_encode([
                             'success' => false,
                             'message' => 'No se Puede Realizar Pedidos a Clientes sin Credito',
                         ]);
-                        die();
+                        die();*/
                         //$anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
                         $anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
 
@@ -8182,7 +8162,7 @@ switch ($funcion) {
                     if ($resultadoActualizacion['success']) {
                         actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                         if ($validarSaldo === 0 && $credito == 0) {
-                            $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
+                            $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero']);
                             validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito);
                             echo json_encode([
                                 'success' => true,
@@ -8601,6 +8581,11 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         // Generamos (o localizamos) el PDF en disco
         generarPDFPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
+        break;
+    case 27:
+        $estadoSeleccionado = $_POST['estado'];
+        $municipio = $_POST['municipio'];
+        obtenerMunicipiosEdit($estadoSeleccionado, $municipio);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);

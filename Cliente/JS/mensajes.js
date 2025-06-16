@@ -254,7 +254,7 @@ function obtenerDatosEnvioEditar(pedidoID) {
   $.post(
     "../Servidor/PHP/clientes.php",
     {
-      numFuncion: 10, // Función para obtener el pedido por ID
+      numFuncion: 14, // Función para obtener el pedido por ID
       pedidoID: pedidoID,
     },
     function (response) {
@@ -286,13 +286,13 @@ function obtenerDatosEnvioEditar(pedidoID) {
         console.log("Estado Crudo: ", edo);
 
         //Llamar a las funciones para mostrar los estados y municipios
-        obtenerEstadosEdit(edo, municipio);
+        obtenerEstadosComanda(edo, municipio);
         obtenerMunicipios(edo, municipio);
         console.log("Datos de envio cargados correctamente.");
       } else {
         Swal.fire({
           title: "Aviso",
-          text: "No se pudo cargar el pedido.",
+          text: "No se pudo cargar los datos de envio.",
           icon: "warning",
           confirmButtonText: "Aceptar",
         });
@@ -304,19 +304,21 @@ function obtenerDatosEnvioEditar(pedidoID) {
     //console.log(errorThrown);
     Swal.fire({
       title: "Aviso",
-      text: "Error al cargar el pedido.",
+      text: "Error al cargar los datos de envio.",
       icon: "error",
       confirmButtonText: "Aceptar",
     });
     //alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
-    console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+    console.log("Error al cargar los datos de envio: " + textStatus + " " + errorThrown);
   });
 }
-function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
+function obtenerEstadosComanda(estadoSeleccionado, municipioSeleccionado) {
   $.ajax({
-    url: "../Servidor/PHP/ventas.php",
+    //url: "../Servidor/PHP/ventas.php",
+    url: "../Servidor/PHP/mensajes.php",
     method: "POST",
-    data: { numFuncion: "25", estadoSeleccionado: estadoSeleccionado },
+    //data: { numFuncion: "25", estadoSeleccionado: estadoSeleccionado },
+    data: { numFuncion: "10", estadoSeleccionado: estadoSeleccionado },
     dataType: "json",
     success: function (resEstado) {
       const $sel = $("#estadoContacto")

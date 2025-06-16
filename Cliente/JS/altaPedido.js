@@ -176,11 +176,7 @@ function obtenerProductos(input) {
   const xhr = new XMLHttpRequest();
 
   // Configuramos la llamada GET a nuestro endpoint, pasando numFuncion por query string
-  xhr.open(
-    "GET",
-    "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion,
-    true
-  );
+  xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
 
   // Indicamos que enviaremos/recibiremos JSON
   xhr.setRequestHeader("Content-Type", "application/json");
@@ -194,7 +190,7 @@ function obtenerProductos(input) {
 
       // Si el servidor indicó éxito en el JSON:
       if (response.success) {
-        // Llamamos a la función que muestra la lista de productos, 
+        // Llamamos a la función que muestra la lista de productos,
         // pasándole el array de productos y el input donde se debe desplegar
         mostrarListaProductos(response.productos, input);
       } else {
@@ -234,14 +230,15 @@ function obtenerProductos(input) {
 async function obtenerImpuesto(cveEsqImpu) {
   return new Promise((resolve, reject) => {
     $.ajax({
-      url: "../Servidor/PHP/ventas.php",      // Endpoint en el servidor que procesa la solicitud
-      type: "POST",                            // Método HTTP POST
+      url: "../Servidor/PHP/ventas.php", // Endpoint en el servidor que procesa la solicitud
+      type: "POST", // Método HTTP POST
       data: { cveEsqImpu: cveEsqImpu, numFuncion: "7" }, // Parámetros enviados al servidor
       success: function (response) {
         try {
           // Si el servidor indica éxito, extraemos los impuestos y resolvemos la promesa
           if (response.success) {
-            const { IMPUESTO1, IMPUESTO2, IMPUESTO3, IMPUESTO4 } = response.impuestos;
+            const { IMPUESTO1, IMPUESTO2, IMPUESTO3, IMPUESTO4 } =
+              response.impuestos;
             resolve({
               impuesto1: IMPUESTO1,
               impuesto2: IMPUESTO2,
@@ -338,7 +335,9 @@ async function completarPrecioProducto(cveArt, filaTabla) {
       impuesto1Input.readOnly = true;
       impuesto4Input.readOnly = true;
     } else {
-      console.error("No se encontraron uno o más campos de impuestos en la fila.");
+      console.error(
+        "No se encontraron uno o más campos de impuestos en la fila."
+      );
     }
 
     // Aquí podrías manejar impuesto2Input si lo usas en alguna lógica adicional
@@ -387,7 +386,7 @@ function mostrarProductos(input) {
   );
   modalProductos.show();
 
-  document.getElementById('campoBusqueda').value = ''
+  document.getElementById("campoBusqueda").value = "";
 
   // Llamar a la función AJAX para obtener los productos desde el servidor
   obtenerProductos(input);
@@ -425,7 +424,7 @@ function mostrarListaProductos(productos, input) {
           const campoUnidad = filaTabla.querySelector(".unidad");
           if (campoUnidad) {
             campoUnidad.value = producto.UNI_MED;
-          } 
+          }
           const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
           const CVE_PRODSERV = filaTabla.querySelector(".CVE_PRODSERV");
           const COSTO_PROM = filaTabla.querySelector(".COSTO_PROM");
@@ -433,6 +432,48 @@ function mostrarListaProductos(productos, input) {
           CVE_UNIDAD.value = producto.CVE_UNIDAD;
           CVE_PRODSERV.value = producto.CVE_PRODSERV;
           COSTO_PROM.value = producto.COSTO_PROM;
+          if (!producto.CVE_PRODSERV) {
+            Swal.fire({
+              title: "Datos Fiscales",
+              text: "Este producto no cuenta con CVE_PRODSERV",
+              icon: "warnig",
+              confirmButtonText: "Entendido",
+            });
+
+            const precioInput = filaTabla.querySelector(".precioUnidad");
+            const cantidadInput = filaTabla.querySelector(".cantidad");
+            const unidadInput = filaTabla.querySelector(".unidad");
+            const descuentoInput = filaTabla.querySelector(".descuento");
+            const totalInput = filaTabla.querySelector(".subtotalPartida");
+            precioInput.value = parseFloat(0).toFixed(2);
+            cantidadInput.value = parseFloat(0).toFixed(2);
+            unidadInput.value = parseFloat(0).toFixed(2);
+            descuentoInput.value = parseFloat(0).toFixed(2);
+            totalInput.value = parseFloat(0).toFixed(2);
+
+            return; // 🚨 Salir de la función si `filaProd` no es válido
+          }
+          if (!producto.CVE_UNIDAD) {
+            Swal.fire({
+              title: "Datos Fiscales",
+              text: "Este producto no cuenta con CVE_UNIDAD",
+              icon: "warnig",
+              confirmButtonText: "Entendido",
+            });
+            
+            const precioInput = filaTabla.querySelector(".precioUnidad");
+            const cantidadInput = filaTabla.querySelector(".cantidad");
+            const unidadInput = filaTabla.querySelector(".unidad");
+            const descuentoInput = filaTabla.querySelector(".descuento");
+            const totalInput = filaTabla.querySelector(".subtotalPartida");
+            precioInput.value = parseFloat(0).toFixed(2);
+            cantidadInput.value = parseFloat(0).toFixed(2);
+            unidadInput.value = parseFloat(0).toFixed(2);
+            descuentoInput.value = parseFloat(0).toFixed(2);
+            totalInput.value = parseFloat(0).toFixed(2);
+
+            return; // 🚨 Salir de la función si `filaProd` no es válido
+          }
           // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
           const campoCantidad = filaTabla.querySelector("input.cantidad");
           if (campoCantidad) {
@@ -557,6 +598,7 @@ function guardarPedido(id) {
     console.log("Datos del formulario obtenidos:", formularioData);
     // Obtener la información de las partidas
     const partidasData = obtenerDatosPartidas();
+
     console.log("Datos de partidas obtenidos:", partidasData);
 
     // Determinar si es alta o edición
@@ -570,7 +612,7 @@ function guardarPedido(id) {
   }
 }
 function validarDatosEnvio() {
-//Obtenemos los valores
+  //Obtenemos los valores
   const nombreContacto = document.getElementById("nombreContacto").value;
   const compañiaContacto = document.getElementById("compañiaContacto").value;
   const telefonoContacto = document.getElementById("telefonoContacto").value;
@@ -587,23 +629,47 @@ function validarDatosEnvio() {
   const municipioContacto = $("#municipioContacto option:selected").data(
     "descripcion"
   );
+  const tipoOperacion = document.getElementById("tipoOperacion").value;
 
-  // Validación de los campos obligatorios
-  if (
-    !nombreContacto ||
-    !compañiaContacto ||
-    !correoContacto ||
-    !telefonoContacto ||
-    !direccion1Contacto ||
-    !direccion2Contacto ||
-    !codigoContacto ||
-    !estadoContacto ||
-    !municipioContacto
-  ) {
-    return false;
+  if (tipoOperacion === "alta") {
+    if (
+      !nombreContacto ||
+      !compañiaContacto ||
+      !correoContacto ||
+      !telefonoContacto ||
+      !direccion1Contacto ||
+      !direccion2Contacto ||
+      !codigoContacto ||
+      !estadoContacto ||
+      !municipioContacto
+    ) {
+      return false;
+    }
+
+    return true; // Todos los campos obligatorios están completos
+  } else {
+    if (
+      !nombreContacto ||
+      !direccion1Contacto ||
+      !direccion2Contacto ||
+      !codigoContacto ||
+      !estadoContacto ||
+      !municipioContacto
+    ) {
+      return false;
+    }
+
+    return true; // Todos los campos obligatorios están completos
   }
-
-  return true; // Todos los campos obligatorios están completos
+}
+function validarPartidas(partidasData) {
+  partidasData.forEach((partida) => {
+    if (partida.CVE_PRODSERV == "" || partida.CVE_UNIDAD == "") {
+      console.log(partida);
+      return false;
+    }
+  });
+  return true;
 }
 function obtenerDatosFormulario() {
   const now = new Date(); // Obtiene la fecha y hora actual
@@ -696,22 +762,24 @@ function extraerDatosEnvio() {
   return envioData;
 }
 function obtenerDatosPartidas() {
-  // Aquí obtienes las partidas de la tabla
   const partidasData = [];
   const filas = document.querySelectorAll("#tablaProductos tbody tr");
+
   filas.forEach((fila) => {
+    const descuentoInput = fila.querySelector(".descuento").value;
     const partida = {
       cantidad: fila.querySelector(".cantidad").value,
       producto: fila.querySelector(".producto").value,
       unidad: fila.querySelector(".unidad").value,
-      descuento: fila.querySelector(".descuento").value,
+      // Si el campo descuento está vacío, se asigna 0.
+      descuento: descuentoInput.trim() === "" ? 0 : descuentoInput,
       ieps: fila.querySelector(".ieps").value,
       impuesto2: fila.querySelector(".impuesto2").value,
       isr: fila.querySelector(".impuesto3").value,
       iva: fila.querySelector(".iva").value,
       comision: fila.querySelector(".comision").value,
       precioUnitario: fila.querySelector(".precioUnidad").value,
-      subtotal: fila.querySelector(".subtotalPartida").value, 
+      subtotal: fila.querySelector(".subtotalPartida").value,
       CVE_UNIDAD: fila.querySelector(".CVE_UNIDAD").value,
       CVE_PRODSERV: fila.querySelector(".CVE_PRODSERV").value,
       COSTO_PROM: fila.querySelector(".COSTO_PROM").value,
@@ -857,7 +925,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      /*} else if (data.datos) {
+        /*} else if (data.datos) {
         Swal.fire({
           title: "Pedido Guardado",
           text: data.message || "El cliente tiene una cuenta por pagar",
@@ -973,7 +1041,7 @@ function abrirModalClientes() {
       }
     }
   );
-//Abrir modal
+  //Abrir modal
   modal.show();
 }
 
@@ -1157,7 +1225,7 @@ function showCustomerSuggestionsProductos() {
 async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   inputProducto.val(`${producto.CVE_ART}`); // Mostrar el producto seleccionado
   const filaProd = inputProducto.closest("tr")[0]; // Asegurar que obtenemos el elemento DOM
-  const CVE_UNIDAD = filaProd.querySelector(".CVE_UNIDAD"); 
+  const CVE_UNIDAD = filaProd.querySelector(".CVE_UNIDAD");
   const CVE_PRODSERV = filaProd.querySelector(".CVE_PRODSERV");
   const COSTO_PROM = filaProd.querySelector(".COSTO_PROM");
   CVE_UNIDAD.value = `${producto.CVE_UNIDAD}`;
@@ -1167,6 +1235,47 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   console.log(COSTO_PROM.value);
   if (!filaProd) {
     console.error("Error: No se encontró la fila del producto.");
+    return; // 🚨 Salir de la función si `filaProd` no es válido
+  }
+  if (!producto.CVE_PRODSERV) {
+    Swal.fire({
+      title: "Datos Fiscales",
+      text: "Este producto no cuenta con CVE_PRODSERV",
+      icon: "warnig",
+      confirmButtonText: "Entendido",
+    });
+    const precioInput = filaProd.querySelector(".precioUnidad");
+    const cantidadInput = filaProd.querySelector(".cantidad");
+    const unidadInput = filaProd.querySelector(".unidad");
+    const descuentoInput = filaProd.querySelector(".descuento");
+    const totalInput = filaProd.querySelector(".subtotalPartida");
+    precioInput.value = parseFloat(0).toFixed(2);
+    cantidadInput.value = parseFloat(0).toFixed(2);
+    unidadInput.value = parseFloat(0).toFixed(2);
+    descuentoInput.value = parseFloat(0).toFixed(2);
+    totalInput.value = parseFloat(0).toFixed(2);
+
+    return; // 🚨 Salir de la función si `filaProd` no es válido
+  }
+  if (!producto.CVE_UNIDAD) {
+    Swal.fire({
+      title: "Datos Fiscales",
+      text: "Este producto no cuenta con CVE_UNIDAD",
+      icon: "warnig",
+      confirmButtonText: "Entendido",
+    });
+
+    const precioInput = filaProd.querySelector(".precioUnidad");
+    const cantidadInput = filaProd.querySelector(".cantidad");
+    const unidadInput = filaProd.querySelector(".unidad");
+    const descuentoInput = filaProd.querySelector(".descuento");
+    const totalInput = filaProd.querySelector(".subtotalPartida");
+    precioInput.value = parseFloat(0).toFixed(2);
+    cantidadInput.value = parseFloat(0).toFixed(2);
+    unidadInput.value = parseFloat(0).toFixed(2);
+    descuentoInput.value = parseFloat(0).toFixed(2);
+    totalInput.value = parseFloat(0).toFixed(2);
+
     return; // 🚨 Salir de la función si `filaProd` no es válido
   }
 
@@ -1585,13 +1694,21 @@ function guardarDatosEnvio() {
   const tituloEnvio = document.getElementById("titutoContacto").value;
   const nombreContacto = document.getElementById("nombreNuevoContacto").value;
   const compañia = document.getElementById("compañiaNuevoContacto").value;
-  const telefonoContacto = document.getElementById("telefonoNuevoContacto").value;
+  const telefonoContacto = document.getElementById(
+    "telefonoNuevoContacto"
+  ).value;
   const correoContacto = document.getElementById("correoNuevoContacto").value;
-  const linea1Contacto = document.getElementById("direccion1NuevoContacto").value;
-  const linea2Contacto = document.getElementById("direccion2NuevoContacto").value;
+  const linea1Contacto = document.getElementById(
+    "direccion1NuevoContacto"
+  ).value;
+  const linea2Contacto = document.getElementById(
+    "direccion2NuevoContacto"
+  ).value;
   const codigoContacto = document.getElementById("codigoNuevoContacto").value;
   const estadoContacto = document.getElementById("estadoNuevoContacto").value;
-  const municipioContacto = document.getElementById("municipioNuevoContacto").value;
+  const municipioContacto = document.getElementById(
+    "municipioNuevoContacto"
+  ).value;
 
   // 3. Validar que no falte ninguno de los campos requeridos
   if (
@@ -1619,9 +1736,9 @@ function guardarDatosEnvio() {
     url: "../Servidor/PHP/clientes.php", // Punto final en PHP que procesará el guardado
     method: "POST",
     data: {
-      numFuncion: "6",            // Identificador de la función en el servidor
-      clienteId: clienteId,       // ID del cliente al que pertenece esta dirección
-      tituloEnvio: tituloEnvio,   // Título o alias de la dirección
+      numFuncion: "6", // Identificador de la función en el servidor
+      clienteId: clienteId, // ID del cliente al que pertenece esta dirección
+      tituloEnvio: tituloEnvio, // Título o alias de la dirección
       nombreContacto: nombreContacto,
       compañia: compañia,
       telefonoContacto: telefonoContacto,
@@ -1782,7 +1899,8 @@ document
     }
   });
 $(document).ready(function () {
-  $("#guardarPedido").click(async function (event) { //Funcion que se activa al guardar el pedido
+  $("#guardarPedido").click(async function (event) {
+    //Funcion que se activa al guardar el pedido
     event.preventDefault();
     const clienteSeleccionado =
       sessionStorage.getItem("clienteSeleccionado") === "true";

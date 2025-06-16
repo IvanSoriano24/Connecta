@@ -44,6 +44,12 @@ session_destroy(); */
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Ionicons v5 -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <!-- IconPark Core -->
+    <link rel="stylesheet" href="https://unpkg.com/@icon-park/web/lib/index.css" />
+
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -332,6 +338,8 @@ session_destroy(); */
                                         ?>
                                         <th>Visualizar</th>
                                         <th>Facturar</th>
+                                        <th>Estado Factura</th>
+                                        <th>Mostrar Errores</th>
                                     </tr>
                                 </thead>
                                 <tbody id="datosPedidos">
@@ -367,6 +375,48 @@ session_destroy(); */
         </section>
         <!-- CONTENT -->
     </div>
+    <!-- Modal de Errores de Facturacion -->
+    <div id="modalErrores" class="modal fade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0 justify-content-center position-relative">
+                    <!-- Título centrado -->
+                    <h5 class="modal-title mx-auto">Errores de Facturación</h5>
+                    <!-- Botón de cierre posicionado absolutamente en la esquina superior derecha -->
+                    <button type="button"
+                        class="btn-close position-absolute top-0 end-0 m-3"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
+                </div>
+                <form id="formularioErrores" class="px-4 pb-4">
+                    <div class="row">
+                        <div class="table-data">
+                            <div class="order">
+                                <div class="head">
+                                    <table
+                                        class="table table-hover table-striped text-center align-middle">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th scope="col">Origen del Error</th>
+                                                <th scope="col">Problema</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="detallesErrores">
+                                            <!-- Los productos se generarán aquí dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- botones al pie -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cerrarModalFooter">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <!-- CONTENT -->
     <!-- JS Para la confirmacion empresa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
@@ -391,7 +441,7 @@ session_destroy(); */
             const seleccion = parseInt($(this).val(), 10);
             registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
             paginaActual = 1; // volvemos a la primera página
-            estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
+            estadoRemision = localStorage.getItem("estadoRemision") || "Vendidos";
             datosPedidos(true); // limpia la tabla y carga sólo registrosPorPagina filas
         });
         // Evento para el cambio del filtro
