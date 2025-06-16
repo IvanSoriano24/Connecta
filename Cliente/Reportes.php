@@ -213,6 +213,21 @@ session_destroy(); */
             color: #888;
             min-width: 80%;
         }
+        #reportes {
+            border-collapse: separate !important;
+            border-spacing: 0;
+            width: 100%;
+            min-width: 1000px;
+        }
+
+        #reportes thead th {
+            position: sticky;
+            background-color: #f9f9f9;
+            border-bottom: 2px solid gray;
+            z-index: 2;
+            white-space: nowrap; /* evita que se rompa el texto */
+            top: -36px; /* sube 2px el sticky */
+        }
     </style>
 </head>
 <body>
@@ -224,7 +239,7 @@ session_destroy(); */
         <!-- NAVBAR -->
         <?php include 'navbar.php'; ?>
         <!-- MAIN -->
-        <main class="text-center ">
+        <main class="text-center">
             <div class="head-title">
                 <div class="left">
                     <h1>Reportes</h1>
@@ -240,41 +255,24 @@ session_destroy(); */
                 </div>
 
                 <!-- TABLA PEDIDOS  -->
-                <div class="table-data" id="reportesActivos">
+                <div class="table-data" id="reportesActivos" style="display: block !important;">
                     <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
-                    <div class="order">
+                    <div class="order" style="overflow: visible">
                         <label for="filtros" style="margin-right: 94%;">Filtrar Por:</label>
                         <div class="head">
                             <div class="input-group">
-                                <tr>
-                                    <td>
-                                        <label for="Periodo">Periodo: </label>
-                                        <select id="filtroFecha">
-
-                                        </select>
-                                    </td>
-                                </tr>
+                                <label for="Periodo">Periodo: </label>
+                                <select id="filtroFecha"></select>
                             </div>
-
                             <div class="input-group">
                                 <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
-                                    <tr>
-                                        <td>
-                                            <label for="Vendedor">Vendedor: </label>
-                                            <select id="filtroVendedor">
-                                            </select>
-                                        </td>
-                                    </tr>
+                                    <label for="Vendedor">Vendedor: </label>
+                                    <select id="filtroVendedor"></select>
                                 <?php } ?>
                             </div>
                             <div class="input-group">
-                                <tr>
-                                    <td>
-                                        <label for="Clientes">Clientes: </label>
-                                        <select id="filtroClientes">
-                                        </select>
-                                    </td>
-                                </tr>
+                                <label for="Clientes">Clientes: </label>
+                                <select id="filtroClientes"></select>
                             </div>
                             <h3></h3>
                             <div class="input-group">
