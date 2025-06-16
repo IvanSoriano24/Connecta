@@ -4269,7 +4269,8 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
     $errores = [];
     $folio = str_pad($folio, 10, '0', STR_PAD_LEFT);
     $folio = str_pad($folio, 20, ' ', STR_PAD_LEFT);
-    $pedidoData = datosPedidoValidacion($folio, $claveSae, $conexionData);
+    $pedidoData = datosPedido($folio, $claveSae, $conexionData);
+    $partidasData = datosPartidasValidacion($folio, $claveSae, $conexionData);
     $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
     $empresaData = datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey);
     $locacionArchivos = "../XML/sdk2/certificados/$noEmpresa/";
@@ -4371,6 +4372,29 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
             'success'  => false,
             'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ];*/
+    }
+    $requeridos = ['CVE_PRODSERV', 'CVE_UNIDAD'];
+    $faltan = [];
+    foreach ($requeridos as $campo) {
+        if (empty($partidasData[$campo])) {
+            $faltan[] = $campo;
+        }
+    }
+    if (!empty($faltan)) {
+        header('Content-Type: application/json');
+        $errores[] = [
+            'origen' => 'Pedido',
+            'message' => 'Faltan datos de productos: ' . implode(', ', $faltan)
+        ];
+        /*return [
+            'success'  => false,
+            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
+        ];*/
+        /*echo json_encode([
+            'success'  => false,
+            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
+        ]);
+        return;*/
     }
     if (empty($errores)) {
         return ['success' => true];
@@ -4539,8 +4563,7 @@ function datosPedido($cve_doc, $claveSae, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosPedidoValidacion($cve_doc, $claveSae, $conexionData)
-{
+function datosPartidasValidacion($cve_doc, $claveSae, $conexionData){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -4554,7 +4577,7 @@ function datosPedidoValidacion($cve_doc, $claveSae, $conexionData)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
@@ -5297,7 +5320,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
 
         $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
 
-        
+
 
         //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
 
@@ -5314,7 +5337,8 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     }
     sqlsrv_close($conn);
 }
-function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr){
+function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr)
+{
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
 

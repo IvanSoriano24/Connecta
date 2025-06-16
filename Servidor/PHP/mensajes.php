@@ -809,13 +809,79 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         if ($correoBandera === 0 && $numeroBandera === 0) {
             echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
         } elseif ($correoBandera === 1 && $numeroBandera === 0) {
-            echo json_encode(['success' => true, 'telefono' => true, 'message' => 'Pedido Autorizado y notificado por WhatsApp.']);
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
         } elseif ($correoBandera === 0 && $numeroBandera === 1) {
-            echo json_encode(['success' => true, 'correo' => true, 'message' => 'Pedido Autorizado y notificado por correo.']);
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo.']);
         } else {
+            $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+            // Consultar Firebase para obtener los datos del vendedor
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'header' => "Content-Type: application/json\r\n"
+                ]
+            ]);
+
+            $response = @file_get_contents($firebaseUrl, false, $context);
+
+            $usuariosData = json_decode($response, true);
+            $telefonoVendedor = null;
+            $correoVendedor = null;
+            $vendedor = formatearClaveVendedor($vend);
+            //var_dump($vendedor);
+            // Buscar al vendedor por clave
+            if (isset($usuariosData['documents'])) {
+                foreach ($usuariosData['documents'] as $document) {
+                    $fields = $document['fields'];
+                    if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                        if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                            if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                                $telefonoVendedor = $fields['telefono']['stringValue'];
+                                $correoVendedor = $fields['correo']['stringValue'];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
+            $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
             echo json_encode(['success' => true, 'notificacion' => false, 'message' => 'Pedido Autorizado, pero no se pudo notificar al cliente.']);
         }
     } else {
+        $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+            // Consultar Firebase para obtener los datos del vendedor
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'header' => "Content-Type: application/json\r\n"
+                ]
+            ]);
+
+            $response = @file_get_contents($firebaseUrl, false, $context);
+
+            $usuariosData = json_decode($response, true);
+            $telefonoVendedor = null;
+            $correoVendedor = null;
+            $vendedor = formatearClaveVendedor($vend);
+            //var_dump($vendedor);
+            // Buscar al vendedor por clave
+            if (isset($usuariosData['documents'])) {
+                foreach ($usuariosData['documents'] as $document) {
+                    $fields = $document['fields'];
+                    if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                        if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                            if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                                $telefonoVendedor = $fields['telefono']['stringValue'];
+                                $correoVendedor = $fields['correo']['stringValue'];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
+            $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
         echo json_encode(['success' => false, 'datos' => false, 'message' => 'El cliente no tiene un correo y telefono válido registrado.']);
         die();
     }

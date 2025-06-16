@@ -106,12 +106,25 @@ function agregarFilaPartidas() {
       Swal.fire({
         title: "Aviso",
         text: "La cantidad no puede ser negativa.",
-        icon: "error",
+        icon: "warning",
         confirmButtonText: "Entendido",
       });
       cantidadInput.value = 0; // Restablecer el valor a 0
     } else {
       calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
+    }
+  });
+  const descuentoInput = nuevaFila.querySelector(".descuento");
+  const descuentoGeneral = document.getElementById("descuentoCliente").value;
+  descuentoInput.addEventListener("input", () => {
+    if (parseFloat(descuentoInput.value) > descuentoGeneral) {
+      Swal.fire({
+        title: "Aviso",
+        text: "El descuento no puede ser mayor a lo establecido.",
+        icon: "warning",
+        confirmButtonText: "Entendido",
+      });
+      descuentoInput.value = 0; // Restablecer el valor a 0
     }
   });
 

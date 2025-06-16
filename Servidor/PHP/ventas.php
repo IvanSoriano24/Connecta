@@ -2335,21 +2335,30 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
 
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
-            /*echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
-            die();*/
+            /// Respuesta de éxito
+            header('Content-Type: application/json; charset=UTF-8');
+            echo json_encode([
+                'success' => true,
+                'autorizacion' => false,
+                'message' => 'El pedido se completó correctamente.',
+            ]);
         } elseif ($correoBandera === 1 && $numeroBandera === 0) {
-            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado y Notificado por WhatsApp.']);
-            die();
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp.']);
+            //die();
         } elseif ($correoBandera === 0 && $numeroBandera === 1) {
-            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado y notificado por Correo.']);
-            die();
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo.']);
+            // die();
         } else {
-            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, pero no se Pudo Notificar al Cliente.']);
-            die();
+            $emailPred = $_SESSION['usuario']['correo'];
+            $numeroWhatsApp = $_SESSION['usuario']['telefono'];
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
+            //die();
         }
     } else {
-        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado.']);
-        die();
+        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y WhatsApp Válido Registrado.']);
+        //die();
     }
     /*******************************************/
 }
@@ -6030,26 +6039,35 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
 
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
-            /*echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp. Se tiene 24 horas para saldar el pedido.']);
-            die();*/
+            // Respuesta de éxito
+            header('Content-Type: application/json; charset=UTF-8');
+            echo json_encode([
+                'success' => false,
+                'cxc' => true,
+                'message' => 'El pedido tiene 24 Horas para liquidarse.',
+            ]);
         } elseif ($correoBandera === 1 && $numeroBandera === 0) {
-            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado y Notificado por WhatsApp. Se tiene 24 horas para saldar el pedido.']);
-            die();
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp. Se tiene 24 horas para saldar el pedido.']);
+            //die();
         } elseif ($correoBandera === 0 && $numeroBandera === 1) {
-            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado y notificado por Correo. Se tiene 24 horas para saldar el pedido.']);
-            die();
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo. Se tiene 24 horas para saldar el pedido.']);
+            //die();
         } else {
             $correoVendedor = $_SESSION['usuario']['correo'];
             $telefonoVendedor = $_SESSION['usuario']['telefono'];
             enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
             $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
 
-            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, no se le pudo notificar al cliente pero si al vendedor. Se tiene 24 horas para saldar el pedido.']);
-            die();
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar. Se tiene 24 horas para saldar el pedido.']);
+            //die();
         }
     } else {
+        $correoVendedor = $_SESSION['usuario']['correo'];
+            $telefonoVendedor = $_SESSION['usuario']['telefono'];
+            enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado. Se tiene 24 horas para saldar el pedido.']);
-        die();
+        //die();
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -6538,21 +6556,31 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
 
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
-            /*echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
-            die();*/
+            echo json_encode([
+                'success' => true,
+                'message' => 'El pedido fue actualizado correctamente.',
+            ]);
         } elseif ($correoBandera === 1 && $numeroBandera === 0) {
-            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado y Notificado por WhatsApp.']);
-            die();
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp.']);
+            //die();
         } elseif ($correoBandera === 0 && $numeroBandera === 1) {
-            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado y notificado por Correo.']);
-            die();
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo.']);
+            //die();
         } else {
-            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, pero no se Pudo Notificar al Cliente.']);
-            die();
+            $emailPred = $_SESSION['usuario']['correo'];
+            $numeroWhatsApp = $_SESSION['usuario']['telefono'];
+            enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
+            //die();
         }
     } else {
-        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado.']);
-        die();
+        $emailPred = $_SESSION['usuario']['correo'];
+            $numeroWhatsApp = $_SESSION['usuario']['telefono'];
+            enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+        echo json_encode(['success' => false, 'datos' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
+        //die();
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -7359,7 +7387,8 @@ function obtenerEstados()
         echo json_encode(['success' => false, 'message' => 'No se encontraron registros para País MEX.']);
     }
 }
-function obtenerMunicipios($estadoSeleccionado){
+function obtenerMunicipios($estadoSeleccionado)
+{
     $filePath = "../../Complementos/CAT_MUNICIPIO.xml";
     if (!file_exists($filePath)) {
         echo "El archivo no existe en la ruta: $filePath";
@@ -7986,13 +8015,6 @@ switch ($funcion) {
                             if ($validarSaldo == 0 && $credito == 0) {
                                 $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
                                 validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO);
-                                // Respuesta de éxito
-                                header('Content-Type: application/json; charset=UTF-8');
-                                echo json_encode([
-                                    'success' => true,
-                                    'autorizacion' => false,
-                                    'message' => 'El pedido se completó correctamente.',
-                                ]);
                                 sqlsrv_commit($conn);
                                 sqlsrv_close($conn);
                                 exit();
@@ -8072,13 +8094,6 @@ switch ($funcion) {
                             guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
                             //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
                             //actualizarFolioF($conexionData, $claveSae);
-                            // Respuesta de éxito
-                            header('Content-Type: application/json; charset=UTF-8');
-                            echo json_encode([
-                                'success' => false,
-                                'cxc' => true,
-                                'message' => 'El pedido tiene 24 Horas para liquidarse.',
-                            ]);
                             exit();
                         } elseif ($anticipo['fechaVencimiento']) {
                             header('Content-Type: application/json; charset=UTF-8');
@@ -8164,10 +8179,6 @@ switch ($funcion) {
                         if ($validarSaldo === 0 && $credito == 0) {
                             $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero']);
                             validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito);
-                            echo json_encode([
-                                'success' => true,
-                                'message' => 'El pedido fue actualizado correctamente.',
-                            ]);
                             exit();
                         } else {
                             actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
