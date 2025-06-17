@@ -47,8 +47,6 @@ session_destroy(); */
     <!-- Ionicons v5 -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-    <!-- IconPark Core -->
-    <link rel="stylesheet" href="https://unpkg.com/@icon-park/web/lib/index.css" />
 
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">

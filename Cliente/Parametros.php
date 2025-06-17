@@ -75,7 +75,7 @@ if (isset($_SESSION['usuario'])) {
                         <!-- Boton para cambiar a la seccion de datos fiscales -->
                         <button type="button" class="btn btn-primary" id="btnAdmin">Configuracion de Administradores</button>
                         <!-- Boton para cambiar a la seccion de datos fiscales -->
-                        <button type="button" class="btn btn-primary" id="btnVend">Configuracion de Vendedores</button>
+                        <button type="button" class="btn btn-primary" id="btnSerie">Configuracion de Series</button>
                     </div>
                     <div class="card-body">
                         <div class="container-fluid mt-10">
@@ -134,7 +134,7 @@ if (isset($_SESSION['usuario'])) {
                         <!-- Boton para cambiar a la seccion de datos fiscales -->
                         <button type="button" class="btn btn-primary" id="btnAdminAdmin">Configuracion de Administradores</button>
                         <!-- Boton para cambiar a la seccion de datos fiscales -->
-                        <button type="button" class="btn btn-primary" id="btnVendAdmin">Configuracion de Vendedores</button>
+                        <button type="button" class="btn btn-primary" id="btnSerieAdmin">Configuracion de Series</button>
                     </div>
                     <div class="card-body">
                         <div class="container-fluid mt-10">
@@ -181,7 +181,7 @@ if (isset($_SESSION['usuario'])) {
                 <!-- MAIN -->
             </section>
         </div>
-        <div id="vend" style="display:none">
+        <div id="serie" style="display:none">
             <section id="content">
                 <!-- NAVBAR -->
                 <?php include 'navbar.php'; ?>
@@ -189,11 +189,11 @@ if (isset($_SESSION['usuario'])) {
                 <main class="text-center ">
                     <!-- Botones para cambiar las secciones -->
                     <div class="btn-group mb-4" role="group">
-                        <button type="button" class="btn btn-primary" id="btnCamVend">Campos Libres</button>
+                        <button type="button" class="btn btn-primary" id="btnCamSerie">Campos Libres</button>
                         <!-- Boton para cambiar a la seccion de datos fiscales -->
-                        <button type="button" class="btn btn-primary" id="btnAdminVend">Configuracion de Administradores</button>
+                        <button type="button" class="btn btn-primary" id="btnAdminSerie">Configuracion de Administradores</button>
                         <!-- Boton para cambiar a la seccion de datos fiscales -->
-                        <button type="button" class="btn btn-primary" id="btnVendVend">Configuracion de Vendedores</button>
+                        <button type="button" class="btn btn-primary" id="btnSerieSerie">Configuracion de Series</button>
                     </div>
                     <div class="card-body">
                         <div class="container-fluid mt-10">
@@ -206,13 +206,10 @@ if (isset($_SESSION['usuario'])) {
                                         </li>
                                         <li><i class='bx bx-chevron-right'></i></li>
                                         <li>
-                                            <a href="#">Vendedores</a>
+                                            <a href="#">Series</a>
                                         </li>
                                     </ul>
                                 </div>
-                                <button class="btn btn-success" id="btnAgregar">
-                                    <i class='bx bxs-briefcase'></i> Agregar
-                                </button>
                             </div>
                             <!-- Tabla de correos -->
                             <div class="table-data">
@@ -222,9 +219,9 @@ if (isset($_SESSION['usuario'])) {
                                         <table id="tablaParametros">
                                             <thead>
                                                 <tr>
-                                                    <th scope="col">Vendedor</th>
-                                                    <th scope="col">Clave</th>
-                                                    <th scope="col">Editar</th>
+                                                    <th scope="col">Tipo de Documento</th>
+                                                    <th scope="col">Serie</th>
+                                                    <th scope="col">Tipo</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="parametros">
@@ -242,50 +239,50 @@ if (isset($_SESSION['usuario'])) {
         </div>
 
         <div id="seleccionarCampoLibre" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Seleccionar un Campo Libre</h5>
-                    <button type="button" class="btn-close custom-close" data-dismiss="modal"
-                        id="cerrarModalAsociasionHeader" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Seleccionar Tabla</h6>
-                                <select id="selectTabla" class="form-select">
-                                    <option selected disabled>Seleccione una Tabla</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>Seleccionar Campo</h6>
-                                <select id="selectCampo" class="form-select">
-                                    <option selected disabled>Seleccione un Campo</option>
-                                </select>
-                            </div>
-                            <div class="col-md-12">
-                                <label for="descripcion">Descripcion</label>
-                                <input type="text" name="descripcion" id="descripcion">
-                            </div>
-                            <div id="camposSeleccionados" class="mt-4">
-                                <h6>Campos Seleccionados</h6>
-                                <ul id="listaCamposSeleccionado" class="list-group">
-                                    <!-- Las empresas asociadas se cargarán dinámicamente aquí -->
-                                </ul>
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Seleccionar un Campo Libre</h5>
+                        <button type="button" class="btn-close custom-close" data-dismiss="modal"
+                            id="cerrarModalAsociasionHeader" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Seleccionar Tabla</h6>
+                                    <select id="selectTabla" class="form-select">
+                                        <option selected disabled>Seleccione una Tabla</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Seleccionar Campo</h6>
+                                    <select id="selectCampo" class="form-select">
+                                        <option selected disabled>Seleccione un Campo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="descripcion">Descripcion</label>
+                                    <input type="text" name="descripcion" id="descripcion">
+                                </div>
+                                <div id="camposSeleccionados" class="mt-4">
+                                    <h6>Campos Seleccionados</h6>
+                                    <ul id="listaCamposSeleccionado" class="list-group">
+                                        <!-- Las empresas asociadas se cargarán dinámicamente aquí -->
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cerrarModalCamposLibres"
-                        data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary custom-blue" id="btnGuardarCamposLibres">Guardar
-                        Campo Libre</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="cerrarModalCamposLibres"
+                            data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary custom-blue" id="btnGuardarCamposLibres">Guardar
+                            Campo Libre</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
         <!-- CONTENT -->
     </div>
     </section>
@@ -300,25 +297,25 @@ if (isset($_SESSION['usuario'])) {
             // al hacer clic en "Información General"
             $("#btnCam").click(function() {
                 $("#admin").hide();
-                $("#vend").hide();
+                $("#serie").hide();
                 $("#cambLib").show();
-                $("#btnAdmin, #btnVend").removeClass("active");
+                $("#btnAdmin, #btnSerie").removeClass("active");
                 $(this).addClass("active");
             });
             // al hacer clic en "Datos de Facturación"
             $("#btnAdmin").click(function() {
                 $("#cambLib").hide();
-                $("#vend").hide();
+                $("#serie").hide();
                 $("#admin").show();
-                $("#btnCam, #btnVend").removeClass("active");
+                $("#btnCam, #btnSerie").removeClass("active");
                 $("#btnAdminAdmin").addClass("active");
             });
-            $("#btnVend").click(function() {
+            $("#btnSerie").click(function() {
                 $("#cambLib").hide();
                 $("#admin").hide();
-                $("#vend").show();
+                $("#serie").show();
                 $("#btnCam, #btnAdmin").removeClass("active");
-                $("#btnVendVend").addClass("active");
+                $("#btnSerieSerie").addClass("active");
             });
             // inicia con primer botón activo
             $("#btnCam").addClass("active");
@@ -328,25 +325,25 @@ if (isset($_SESSION['usuario'])) {
         $(function() {
             $("#btnCamAdmin").click(function() {
                 $("#admin").hide();
-                $("#vend").hide();
+                $("#serie").hide();
                 $("#cambLib").show();
-                $("#btnAdmin, #btnVend").removeClass("active");
+                $("#btnAdmin, #btnSerie").removeClass("active");
                 $("#btnCam").addClass("active");
             });
             // al hacer clic en "Datos de Facturación"
             $("#btnAdminAdmin").click(function() {
                 $("#cambLib").hide();
-                $("#vend").hide();
+                $("#serie").hide();
                 $("#admin").show();
-                $("#btnCam, #btnVend").removeClass("active");
+                $("#btnCam, #btnSerie").removeClass("active");
                 $(this).addClass("active");
             });
-            $("#btnVendAdmin").click(function() {
+            $("#btnSerieAdmin").click(function() {
                 $("#cambLib").hide();
                 $("#admin").hide();
-                $("#vend").show();
+                $("#serie").show();
                 $("#btnCam, #btnAdmin").removeClass("active");
-                $("#btnVendVend").addClass("active");
+                $("#btnSerieSerie").addClass("active");
             });
             // inicia con primer botón activo
             //$("#btnInfo").addClass("active");
@@ -355,25 +352,25 @@ if (isset($_SESSION['usuario'])) {
     <script>
         $(function() {
             // al hacer clic en "Información General"
-            $("#btnCamVend").click(function() {
+            $("#btnCamSerie").click(function() {
                 $("#admin").hide();
-                $("#vend").hide();
+                $("#serie").hide();
                 $("#cambLib").show();
-                $("#btnAdmin, #btnVend").removeClass("active");
+                $("#btnAdmin, #btnSerie").removeClass("active");
                 $("#btnCam").addClass("active");
             });
             // al hacer clic en "Datos de Facturación"
-            $("#btnAdminVend").click(function() {
+            $("#btnAdminSerie").click(function() {
                 $("#cambLib").hide();
-                $("#vend").hide();
+                $("#serie").hide();
                 $("#admin").show();
-                $("#btnCam, #btnVend").removeClass("active");
+                $("#btnCam, #btnSerie").removeClass("active");
                 $("#btnAdminAdmin").addClass("active");
             });
-            $("#btnVendVend").click(function() {
+            $("#btnSerieSerie").click(function() {
                 $("#cambLib").hide();
                 $("#admin").hide();
-                $("#vend").show();
+                $("#serie").show();
                 $("#btnCam, #btnAdmin").removeClass("active");
                 $(this).addClass("active");
             });

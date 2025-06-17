@@ -89,7 +89,7 @@ function cargarTablas() {
           Swal.fire({
             title: "Error",
             text: res.message,
-            icon: "error",
+            icon: "warning",
             confirmButtonText: "Entendido",
           });
         } else {
@@ -199,6 +199,7 @@ $(document).ready(function () {
   $("#selectCampo").on("change", function () {
     const campoSeleccionado = $(this).find(":selected");
     const tablaSeleccionada = document.getElementById("selectTabla");
+    
 
     if (campoSeleccionado.val()) {
       const campo = campoSeleccionado.val(); // Guardamos la clave seleccionada
@@ -211,7 +212,7 @@ $(document).ready(function () {
         } else {
           // ❌ El vendedor ya existe, no permitimos seleccionarlo
           Swal.fire({
-            icon: "error",
+            icon: "warning",
             title: "Error",
             text: "Este campo ya está registrado. Seleccione otro.",
           });
@@ -234,7 +235,7 @@ $(document).ready(function () {
             callback(res.exists); // Devuelve true si el vendedor ya existe, false si no
           } else {
             Swal.fire({
-              icon: "error",
+              icon: "warning",
               title: "Error",
               text: res.message || "Error al validar el campo.",
             });
@@ -243,7 +244,7 @@ $(document).ready(function () {
         } catch (error) {
           console.error("Error al procesar la validación del campo:", error);
           Swal.fire({
-            icon: "error",
+            icon: "warning",
             title: "Error",
             text: "Error en la validación del campo.",
           });
@@ -252,7 +253,7 @@ $(document).ready(function () {
       },
       error: function () {
         Swal.fire({
-          icon: "error",
+          icon: "warning",
           title: "Error",
           text: "No se pudo verificar el campo.",
         });
@@ -290,11 +291,12 @@ $(document).ready(function () {
             //$("#selectUsuario").val("").change(); // Limpia el selector de usuarios
             //$("#selectEmpresa").val(""); // Limpia el selector de empresas
             $("#seleccionarCampoLibre").modal("hide"); // Cerrar el modal
+            obtenerCamposTabla()
             //location.reload();
           });
         } else {
           Swal.fire({
-            icon: "error",
+            icon: "warning",
             title: "Error",
             text: res.message || "Error al guardar la asociación.",
           });
@@ -302,7 +304,7 @@ $(document).ready(function () {
       } catch (error) {
         console.error("Error al procesar la respuesta:", error);
         Swal.fire({
-          icon: "error",
+          icon: "warning",
           title: "Error",
           text: "Error al guardar la asociación.",
         });
@@ -310,7 +312,7 @@ $(document).ready(function () {
     },
     error: function () {
       Swal.fire({
-        icon: "error",
+        icon: "warning",
         title: "Error",
         text: "Error al realizar la solicitud.",
       });

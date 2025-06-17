@@ -253,8 +253,7 @@ function decryptValue(string $b64Cipher, string $b64Iv): string
     $cipher = base64_decode($b64Cipher);
     return openssl_decrypt($cipher, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
 }
-function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
-{
+function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
     if (empty($facturaID)) {
         header('Content-Type: application/json');
         echo json_encode([

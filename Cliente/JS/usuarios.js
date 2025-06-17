@@ -1372,7 +1372,7 @@ $(document).ready(function () {
         } else {
           // ❌ El vendedor ya existe, no permitimos seleccionarlo
           Swal.fire({
-            icon: "error",
+            icon: "warning",
             title: "Error",
             text: "Este vendedor ya está registrado. Selecciona otro.",
           });
@@ -1397,7 +1397,7 @@ $(document).ready(function () {
             callback(res.exists); // Devuelve true si el vendedor ya existe, false si no
           } else {
             Swal.fire({
-              icon: "error",
+              icon: "warning",
               title: "Error",
               text: res.message || "Error al validar el vendedor.",
             });
@@ -1406,7 +1406,7 @@ $(document).ready(function () {
         } catch (error) {
           console.error("Error al procesar la validación del vendedor:", error);
           Swal.fire({
-            icon: "error",
+            icon: "warning",
             title: "Error",
             text: "Error en la validación del vendedor.",
           });
@@ -1415,7 +1415,7 @@ $(document).ready(function () {
       },
       error: function () {
         Swal.fire({
-          icon: "error",
+          icon: "warning",
           title: "Error",
           text: "No se pudo verificar el vendedor.",
         });

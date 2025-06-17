@@ -452,8 +452,17 @@ function datosPedidos(limpiarTabla = true) {
                 ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
                 : "<i class='bx bx-check-square' style='color: gray; display: block; margin: 0 auto;'></i>"; // Centrado de la palomita con display: block y margin: 0 auto*/
               const estadoFactura = pedido.DOC_SIG
-                ? `<ion-icon name="document-sharp" style="color:green;display:block;margin:0 auto;"></ion-icon>`
-                : `<ion-icon name="document-sharp" style="color:gray; display:block;margin:0 auto;"></ion-icon>`;
+              // icono con label que Ionicons propagará al <title> interno
+              ? `<ion-icon 
+                  name="document-sharp"
+                  title="Factura generada"
+                  style="color:green; display:block; margin:0 auto;">
+                </ion-icon>`
+              : `<ion-icon 
+                  name="document-sharp"
+                  title="Sin factura"
+                  style="color:gray; display:block; margin:0 auto;">
+                </ion-icon>`;
 
               row.innerHTML = `
                                 <td>${pedido.Tipo || "Sin tipo"}</td>
@@ -541,7 +550,6 @@ function datosPedidos(limpiarTabla = true) {
 
               fragment.appendChild(row);
             });
-
             // Agregar todas las filas de una sola vez
             pedidosTable.appendChild(fragment);
             buildPagination(response.total);
@@ -1106,8 +1114,19 @@ function doSearch(limpiarTabla = true) {
                   ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
                   : "<i class='bx bx-check-square' style='color: gray; display: block; margin: 0 auto;'></i>"; // Centrado de la palomita con display: block y margin: 0 auto*/
                 const estadoFactura = pedido.DOC_SIG
-                  ? `<ion-icon name="document-sharp" style="color:green;display:block;margin:0 auto;"></ion-icon>`
-                  : `<ion-icon name="document-sharp" style="color:gray; display:block;margin:0 auto;"></ion-icon>`;
+                // icono con label que Ionicons propagará al <title> interno
+                ? `<ion-icon 
+                    name="document-sharp"
+                    title="Factura generada"
+                    style="color:green; display:block; margin:0 auto;">
+                  </ion-icon>`
+                : `<ion-icon 
+                    name="document-sharp"
+                    title="Sin factura"
+                    style="color:gray; display:block; margin:0 auto;">
+                  </ion-icon>`;
+
+
                 row.innerHTML = `
                   <td>${pedido.Tipo || "Sin tipo"}</td>
                   <td>${pedido.Clave || "Sin nombre"}</td>

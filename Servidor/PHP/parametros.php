@@ -264,11 +264,10 @@ function verificarCampoFirebase($campo, $tabla){
             if (isset($entry['arrayValue']['values'])) {
                 foreach ($entry['arrayValue']['values'] as $elem) {
                     $f = $elem['mapValue']['fields'];
-                    $resultado[] = [
-                        'tabla'       => $tabla,
-                        'campo'       => $f['campo']['stringValue']     ?? '',
-                        'descripcion' => $f['descripcion']['stringValue'] ?? '',
-                    ];
+                    if($f['campo']['stringValue'] == $campo){
+                        echo json_encode(['success' => true, 'exists' => true]);
+                        return;
+                    }
                 }
             }
         }

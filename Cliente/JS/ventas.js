@@ -123,6 +123,67 @@ function agregarEventosBotones() {
       }
     });
   });
+
+  const botonesConfirmacion = document.querySelectorAll(".btnEnviarPedido");
+  botonesConfirmacion.forEach((boton) => {
+    boton.addEventListener("click", async function () {
+      /*const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      console.log("Redirigiendo con pedidoID:", pedidoID);
+      window.location.href = "altaPedido.php?pedidoID=" + pedidoID;*/
+      const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      try {
+        enviarConfirmacion(pedidoID);
+      } catch (error) {
+        console.error("Error al verificar el pedido:", error);
+        Swal.fire({
+          title: "Aviso",
+          text: "Hubo un problema al verificar el pedido",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+      }
+    });
+  });
+}
+function enviarConfirmacion(pedidoID) {
+  $.post(
+    "../Servidor/PHP/ventas.php",
+    { numFuncion: "28", pedidoID: pedidoID },
+    function (response) {
+      try {
+        if (typeof response === "string") {
+          response = JSON.parse(response);
+        }
+        if (response.success) {
+          Swal.fire({
+            title: "Enviado",
+            text: "Se ha Enviado la Confirmacion al Pedido",
+            icon: "success",
+            confirmButtonText: "Entendido",
+          }).then(() => {
+            datosPedidos(); // Actualizar la tabla
+          });
+        } else {
+          Swal.fire({
+            title: "Aviso",
+            text: response.message || "No se pudo cancelar el pedido",
+            icon: "error",
+            confirmButtonText: "Entendido",
+          });
+        }
+      } catch (error) {
+        console.error("Error al procesar la respuesta JSON:", error);
+      }
+    }
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    Swal.fire({
+      title: "Aviso",
+      text: "Hubo un problema al intentar enviar el pedido",
+      icon: "error",
+      confirmButtonText: "Entendido",
+    });
+    console.log("Detalles del error:", jqXHR.responseText);
+  });
 }
 function descargarPdf(pedidoID) {
   $.ajax({
@@ -429,7 +490,7 @@ function datosPedidos(limpiarTabla = true) {
                                     }" style="
                                         display: inline-flex;
                                         align-items: center;
-                                        padding: 0.5rem 1rem;
+                                        padding: 0.5rem 0.5rem;
                                         font-size: 1rem;
                                         font-family: Lato;
                                         color: #fff;
@@ -447,7 +508,7 @@ function datosPedidos(limpiarTabla = true) {
                                     }" style="
                                         display: inline-flex;
                                         align-items: center;
-                                        padding: 0.5rem 1rem;
+                                        padding: 0.5rem 0.5rem;
                                         font-size: 1rem;
                                         font-family: Lato;
                                         color: #fff;
@@ -465,7 +526,7 @@ function datosPedidos(limpiarTabla = true) {
                                 }" style="
                                         display: inline-flex;
                                         align-items: center;
-                                        padding: 0.5rem 1rem;
+                                        padding: 0.5rem 0.5rem;
                                         font-size: 1rem;
                                         font-family: Lato;
                                         color: #fff;
@@ -483,7 +544,7 @@ function datosPedidos(limpiarTabla = true) {
                                 }" style="
                                         display: inline-flex;
                                         align-items: center;
-                                        padding: 0.5rem 1rem;
+                                        padding: 0.5rem 0.5rem;
                                         font-size: 1rem;
                                         font-family: Lato;
                                         color: #fff;
@@ -496,6 +557,17 @@ function datosPedidos(limpiarTabla = true) {
                                     </button>
                                 </td>
                             `;
+              const td = document.createElement("td");
+              if (estadoPedido === "Activos") {
+                const btn = document.createElement("button");
+                btn.className = "btnEnviarPedido";
+                btn.textContent = "Enviar Pedido";
+                btn.style =
+                  "display: inline-flex; align-items: center; padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
+                btn.onclick = () => mostrarModalErrores(pedido.Clave);
+                td.appendChild(btn);
+                row.appendChild(td);
+              }
               fragment.appendChild(row);
             });
 
@@ -739,12 +811,14 @@ function obtenerMunicipiosEdit(edo, municipio) {
     dataType: "json",
     success: function (res) {
       const $sel = $("#municipioContacto");
-      $sel.empty().prop("disabled", false)
-          .append("<option selected disabled>Selecciona un municipio</option>");
+      $sel
+        .empty()
+        .prop("disabled", false)
+        .append("<option selected disabled>Selecciona un municipio</option>");
 
       if (res.success && Array.isArray(res.data)) {
         // 1) Poblo el select
-        res.data.forEach(mun => {
+        res.data.forEach((mun) => {
           $sel.append(
             `<option value="${mun.Clave}"
                      data-estado="${mun.Estado}"
@@ -757,7 +831,10 @@ function obtenerMunicipiosEdit(edo, municipio) {
         // 2) Preselecciono el que coincide con `municipio` (que debe ser la Clave)
         if (municipio) {
           // Si `municipio` es la descripción:
-          $sel.find("option").filter((i, o) => $(o).text().trim() === municipio.trim()).prop("selected", true);
+          $sel
+            .find("option")
+            .filter((i, o) => $(o).text().trim() === municipio.trim())
+            .prop("selected", true);
           $sel.prop("disabled", true);
 
           // Si `municipio` es la clave (value):
@@ -1095,6 +1172,11 @@ function inicializarEventosBotones() {
       $(this).removeClass("btn-secondary").addClass("btn-primary"); // Resaltar botón seleccionado
       var filtroSeleccionado = document.getElementById("filtroFecha").value;
       localStorage.setItem("estadoPedido", this.value);
+      if (estadoPedido !== "Activos") {
+        document.getElementById("confirmacion").style.display = "none";
+      } else {
+        document.getElementById("confirmacion").style.display = "block";
+      }
       cargarPedidos(estadoPedido, filtroSeleccionado); // Filtrar la tabla
     });
 }
@@ -1228,7 +1310,7 @@ function doSearch(limpiarTabla = true) {
                       }" style="
                           display: inline-flex;
                           align-items: center;
-                          padding: 0.5rem 1rem;
+                          padding: 0.5rem 0.5rem;
                           font-size: 1rem;
                           font-family: Lato;
                           color: #fff;
@@ -1246,7 +1328,7 @@ function doSearch(limpiarTabla = true) {
                       }" style="
                           display: inline-flex;
                           align-items: center;
-                          padding: 0.5rem 1rem;
+                          padding: 0.5rem 0.5rem;
                           font-size: 1rem;
                           font-family: Lato;
                           color: #fff;
@@ -1264,7 +1346,7 @@ function doSearch(limpiarTabla = true) {
                                 }" style="
                                         display: inline-flex;
                                         align-items: center;
-                                        padding: 0.5rem 1rem;
+                                        padding: 0.5rem 0.5rem;
                                         font-size: 1rem;
                                         font-family: Lato;
                                         color: #fff;
@@ -1282,7 +1364,7 @@ function doSearch(limpiarTabla = true) {
                                 }" style="
                                         display: inline-flex;
                                         align-items: center;
-                                        padding: 0.5rem 1rem;
+                                        padding: 0.5rem 0.5rem;
                                         font-size: 1rem;
                                         font-family: Lato;
                                         color: #fff;
@@ -1295,6 +1377,17 @@ function doSearch(limpiarTabla = true) {
                                     </button>
                                 </td>
                 `;
+                const td = document.createElement("td");
+                if (estadoPedido === "Activos") {
+                  const btn = document.createElement("button");
+                  btn.className = "btnEnviarPedido";
+                  btn.textContent = "Enviar Pedido";
+                  btn.style =
+                    "display: inline-flex; align-items: center; padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
+                  btn.onclick = () => mostrarModalErrores(pedido.Clave);
+                  td.appendChild(btn);
+                  row.appendChild(td);
+                }
                 fragment.appendChild(row);
               });
 
