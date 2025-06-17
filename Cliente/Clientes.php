@@ -373,6 +373,10 @@ if (isset($_SESSION['usuario'])) {
 										<label for="colonia">Colonia</label>
 										<input type="text" id="colonia" class="form-control" readonly1>
 									</div>
+									<div class="col-6">
+										<label for="correo">Correo</label>
+										<input type="text" id="correo" class="form-control" readonly1>
+									</div>
 								</div>
 
 								<div class="form-group row">

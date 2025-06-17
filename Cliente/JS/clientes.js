@@ -203,6 +203,8 @@ function agregarEventosBotones() {
               cliente.MUNICIPIO || "Sin municipio";
             document.getElementById("colonia").value =
               cliente.COLONIA || "Sin colonia";
+              document.getElementById("correo").value =
+              cliente.EMAILPRED || "Sin correo";
             document.getElementById("referencia").value =
               cliente.REFERENCIA || "Sin referencia";
             document.getElementById("clasificacion").value =

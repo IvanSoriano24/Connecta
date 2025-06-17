@@ -1464,8 +1464,8 @@ function guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Extraer los datos del formulario
-    $FOLIO = $formularioData['numero'];
-    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $FOLIO = obtenerFolioSiguientePedidoE($conexionData, $claveSae);
+    $CVE_DOC = str_pad($FOLIO, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     $FECHA_DOC = $formularioData['diaAlta']; // Fecha del documento
     $FECHA_ENT = $formularioData['entrega'];
@@ -1611,6 +1611,39 @@ function guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae
             'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
         ]));
     }
+    // Determinar el valor de CAMPLIB3 en base al estatus
+    $valorCampoLib3 = ($estatus === 'E') ? 'A' : (($estatus === 'C') ? 'C' : '');
+
+    // Tabla de campos libres del pedido
+    $nombreTablaCamposLibres = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta para insertar o actualizar CAMPLIB3
+    // Primero intentamos un UPDATE, si no existe el registro se puede hacer un INSERT (opcional según la lógica del sistema)
+    $sqlCamposLibres = "
+    IF EXISTS (SELECT 1 FROM $nombreTablaCamposLibres WHERE CLAVE_DOC = ?)
+        UPDATE $nombreTablaCamposLibres SET CAMPLIB3 = ? WHERE CLAVE_DOC = ?
+    ELSE
+        INSERT INTO $nombreTablaCamposLibres (CLAVE_DOC, CAMPLIB3) VALUES (?, ?)
+    ";
+
+    $paramsCamposLibres = [
+        $CVE_DOC,
+        $valorCampoLib3,
+        $CVE_DOC, // Para UPDATE
+        $CVE_DOC,
+        $valorCampoLib3           // Para INSERT
+    ];
+
+    $stmtCamposLibres = sqlsrv_query($conn, $sqlCamposLibres, $paramsCamposLibres);
+
+    if ($stmtCamposLibres === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar CAMPLIB3 en FACTP_CLIB',
+            'sql_error' => sqlsrv_errors()
+        ]));
+    }
+    return $FOLIO;
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -1790,7 +1823,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
 }
-function guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae)
+function guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae, $folio)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1816,7 +1849,7 @@ function guardarPartidasE($conexionData, $formularioData, $partidasData, $claveS
     if (isset($partidasData) && is_array($partidasData)) {
         foreach ($partidasData as $partida) {
             // Extraer los datos de la partida
-            $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+            $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
             $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
             $CVE_ART = $partida['producto']; // Clave del producto
             $CANT = $partida['cantidad']; // Cantidad
@@ -2237,6 +2270,58 @@ function obtenerFolioSiguientePedido($conexionData, $claveSae, $conn)
     $folioSiguiente = $row ? $row['FolioSiguiente'] : null;
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
+    // Retornar el folio siguiente
+    return $folioSiguiente;
+}
+function obtenerFolioSiguientePedidoE($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    // Consulta SQL para obtener el siguiente folio
+    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente FROM $nombreTabla WHERE TIP_DOC = 'P'";
+    $stmt = sqlsrv_query($conn, $sql);
+
+    // SQL para incrementar el valor de ULT_DOC en 1 donde TIP_DOC es 'P'
+    $sql2 = "UPDATE $nombreTabla SET [ULT_DOC] = [ULT_DOC] + 1 WHERE [TIP_DOC] = 'P'";
+
+    // Ejecutar la consulta SQL
+    $stmt2 = sqlsrv_query($conn, $sql2);
+
+    if ($stmt === false) {
+        // Si la consulta falla, liberar la conexión y retornar el error
+        sqlsrv_close($conn);
+        die(json_encode(['success' => false, 'message' => 'Error al actualizar el folio', 'errors' => sqlsrv_errors()]));
+    }
+    if ($stmt2 === false) {
+        // Si la consulta falla, liberar la conexión y retornar el error
+        sqlsrv_close($conn);
+        die(json_encode(['success' => false, 'message' => 'Error al actualizar el folio', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Verificar cuántas filas se han afectado
+    $rowsAffected = sqlsrv_rows_affected($stmt);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Obtener el siguiente folio
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $folioSiguiente = $row ? $row['FolioSiguiente'] : null;
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
     // Retornar el folio siguiente
     return $folioSiguiente;
 }
@@ -4226,6 +4311,7 @@ function generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $
     $rutaPDF = generarReportePedido($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
     return $rutaPDF;
 }
+
 function generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO)
 {
     $rutaPDF = generarReportePedidoE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO);
@@ -4562,10 +4648,9 @@ function actualizarInventarioEcomers($conexionData, $partidasData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa)
-{
+function remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio){
     $numFuncion = '1';
-    $pedidoId = $formularioData['numero'];
+    $pedidoId = $folio;
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
@@ -5277,7 +5362,7 @@ function NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasDa
     ];
 }
 
-function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa)
+function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -5306,7 +5391,7 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
     $fields = [
-        'folio'     => ['stringValue' => $formularioData['numero']],
+        'folio'     => ['stringValue' => $folio],
         'cliente'    => ['stringValue' => $formularioData['cliente']],
         'claveSae'   => ['stringValue' => $claveSae],
         'noEmpresa'  => ['integerValue' => $noEmpresa],
@@ -5935,7 +6020,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
     //echo json_encode(['success' => true, 'message' => 'CxC creada y pagada.']);
     return;
 }
-function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $conCredito)
+function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $conCredito, $folio)
 {
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
@@ -5956,7 +6041,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     $vendedor = $formularioData['vendedor']; // Número de vendedor
     $claveCliente = $formularioData['cliente'];
     $clave = formatearClaveCliente($claveCliente);
-    $noPedido = $formularioData['numero']; // Número de pedido
+    $noPedido = $folio; // Número de pedido
     /*$claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
     $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);*/
 
@@ -6063,9 +6148,9 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
         }
     } else {
         $correoVendedor = $_SESSION['usuario']['correo'];
-            $telefonoVendedor = $_SESSION['usuario']['telefono'];
-            enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+        $telefonoVendedor = $_SESSION['usuario']['telefono'];
+        enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado. Se tiene 24 horas para saldar el pedido.']);
         //die();
     }
@@ -6576,9 +6661,9 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         }
     } else {
         $emailPred = $_SESSION['usuario']['correo'];
-            $numeroWhatsApp = $_SESSION['usuario']['telefono'];
-            enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+        $numeroWhatsApp = $_SESSION['usuario']['telefono'];
+        enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         echo json_encode(['success' => false, 'datos' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
         //die();
     }
@@ -7222,7 +7307,7 @@ function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexio
     $comanda = [
         "fields" => [
             "idComanda" => ["stringValue" => uniqid()],
-            "folio" => ["stringValue" => $formularioData['numero']],
+            "folio" => ["stringValue" => $folio],
             "nombreCliente" => ["stringValue" => $nombreCliente],
             "claveCliente" => ["stringValue" => $formularioData['cliente']],
             "enviarA" => ["stringValue" => $formularioData['enviar']],
@@ -8059,15 +8144,15 @@ switch ($funcion) {
                         if ($anticipo['success']) {
                             //Funcion para eliminar anticipo
                             $estatus = 'E';
-                            guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
+                            $folio = guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
                             actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            actualizarFolioE($conexionData, $claveSae); //ROLLBACK
-                            guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
+                            //actualizarFolioE($conexionData, $claveSae); //ROLLBACK
+                            guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae, $folio); //ROLLBACK
                             actualizarInventarioE($conexionData, $partidasData); //ROLLBACK
                             eliminarCxc($conexionData, $anticipo, $claveSae); //ROLLBACK
-                            comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey); //ROLLBACK
-                            remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa); //ROLLBACK
+                            comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $folio); //ROLLBACK
+                            remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio); //ROLLBACK
                             //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
                             /*$datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
                             pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
@@ -8083,15 +8168,15 @@ switch ($funcion) {
                         } elseif ($anticipo['sinFondo']) {
                             //No tiene fondos
                             $estatus = 'C';
-                            guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
+                            $folio = guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
                             actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            actualizarFolioE($conexionData, $claveSae); //ROLLBACK
-                            guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae); //ROLLBACK
+                            //actualizarFolioE($conexionData, $claveSae); //ROLLBACK
+                            guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae, $folio); //ROLLBACK
                             actualizarInventarioE($conexionData, $partidasData); //ROLLBACK
-                            $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
-                            validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito);
-                            guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa);
+                            $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio);
+                            validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio);
+                            guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio);
                             //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
                             //actualizarFolioF($conexionData, $claveSae);
                             exit();

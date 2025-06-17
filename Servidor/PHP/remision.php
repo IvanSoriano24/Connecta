@@ -4263,54 +4263,79 @@ function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 
     return false; // No se encontró la empresa
 }
+function datosFolios($claveSae, $conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT TIP_DOC, SERIE, TIPO
+        FROM $nombreTabla
+        WHERE TIP_DOC = 'F' AND TIPO = 'D'";
+
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener los resultados
+    $foliosData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($foliosData) {
+        return $foliosData;
+    } else {
+        echo json_encode(['success' => false, 'message' => "Folios no encontrados"]);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
 function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
 {
     global $firebaseProjectId, $firebaseApiKey;
     $errores = [];
     $folio = str_pad($folio, 10, '0', STR_PAD_LEFT);
     $folio = str_pad($folio, 20, ' ', STR_PAD_LEFT);
-    $pedidoData = datosPedido($folio, $claveSae, $conexionData);
+    $pedidoData = datosPedidoValidacion($folio, $claveSae, $conexionData);
     $partidasData = datosPartidasValidacion($folio, $claveSae, $conexionData);
     $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
     $empresaData = datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+    $folioData = datosFolios($claveSae, $conexionData);
+
     $locacionArchivos = "../XML/sdk2/certificados/$noEmpresa/";
     $archivoCer = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
     $archivoKey = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
 
     if (empty($archivoCer) || empty($archivoKey)) {
-        /*return [
-            'success'  => false,
-            'message' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
-        ];*/
         $errores[] = [
             'origen' => 'Empresa',
             'message' => 'No se encontró el .cer o el .key para la empresa'  . implode(', ', $noEmpresa)
         ];
-        /*echo json_encode([
-            'success'  => false,
-            'message' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
-        ]);
-        return;*/
     }
-    $requeridosPedido = ['FORMADEPAGOSAT', 'USO_CFDI', 'REG_FISC'];
-    $faltanPedido = [];
-    foreach ($requeridosPedido as $campo) {
-        if (empty($clienteData[$campo])) {
-            $faltanPedido[] = $campo;
+    $requeridos = ['TIP_DOC', 'SERIE', 'TIPO'];
+    $faltan = [];
+    foreach ($requeridos as $campo) {
+        if (empty($folioData[$campo])) {
+            $faltan[] = $campo;
         }
     }
-    if (!empty($faltanPedido)) {
+    if (!empty($faltan)) {
         header('Content-Type: application/json');
         $errores[] = [
-            'origen' => 'Cliente',
-            'message' => 'Faltan datos del pedido: ' . implode(', ', $faltanPedido)
+            'origen' => 'SAE',
+            'message' => 'Faltan datos del Folio para la Facturacion: ' . implode(', ', $faltan)
         ];
-        //return;
-        /*return [
-            'success'  => false,
-            'message' => 'Faltan datos del pedido: ' . implode(', ', $faltanPedido)
-        ];*/
     }
+    
+
     $requeridos = ['RFC', 'NOMBRE', 'USO_CFDI', 'CODIGO', 'REG_FISC'];
     $faltan = [];
     foreach ($requeridos as $campo) {
@@ -4324,31 +4349,13 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
             'origen' => 'Cliente',
             'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
         ];
-        /*return [
-            'success'  => false,
-            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
-        ];*/
-        /*echo json_encode([
-            'success'  => false,
-            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
-        ]);
-        return;*/
     }
     if ($clienteData['VAL_RFC'] != 200) {
         $problem = $clienteData['VAL_RFC'];
-        /*echo json_encode([
-            'success'  => false,
-            "message' => 'Cliente no puede timbrar: $problem"
-        ]);
-        return;*/
         $errores[] = [
             'origen' => 'Cliente',
             'message' => "Cliente no puede timbrar, status: $problem"
         ];
-        /*return [
-            'success'  => false,
-            "message' => 'Cliente no puede timbrar: $problem"
-        ];*/
     }
     $requeridosEmpre = ['rfc', 'razonSocial', 'regimenFiscal', 'codigoPostal', 'keyEncValue', 'keyEncIv'];
     $faltanEmpre = [];
@@ -4359,19 +4366,10 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
     }
     if (!empty($faltanEmpre)) {
         header('Content-Type: application/json');
-        /*echo json_encode([
-            'success'  => false,
-            'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
-        ]);
-        return;*/
         $errores[] = [
             'origen' => 'Empresa',
             'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ];
-        /*return [
-            'success'  => false,
-            'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
-        ];*/
     }
     $requeridos = ['CVE_PRODSERV', 'CVE_UNIDAD'];
     $faltan = [];
@@ -4386,15 +4384,6 @@ function validaciones($folio, $noEmpresa, $claveSae, $conexionData)
             'origen' => 'Pedido',
             'message' => 'Faltan datos de productos: ' . implode(', ', $faltan)
         ];
-        /*return [
-            'success'  => false,
-            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
-        ];*/
-        /*echo json_encode([
-            'success'  => false,
-            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
-        ]);
-        return;*/
     }
     if (empty($errores)) {
         return ['success' => true];
@@ -4558,12 +4547,49 @@ function datosPedido($cve_doc, $claveSae, $conexionData)
     if ($pedidoData) {
         return $pedidoData;
     } else {
+        echo json_encode(['success' => false, 'message' => "Factura no encontrado $cve_doc"]);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function datosPedidoValidacion($cve_doc, $claveSae, $conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT * FROM $nombreTabla WHERE
+        CVE_DOC = ?";
+    $params = [$cve_doc];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    // Obtener los resultados
+    $pedidoData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($pedidoData) {
+        return $pedidoData;
+    } else {
         echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cve_doc"]);
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosPartidasValidacion($cve_doc, $claveSae, $conexionData){
+function datosPartidasValidacion($cve_doc, $claveSae, $conexionData)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -5531,6 +5557,8 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
 
         //var_dump($respuestaValidaciones);
         if ($respuestaValidaciones['success']) {
+            /*var_dump($respuestaValidaciones);
+            die();*/
             $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito);
             //var_dump("folioFactura: ", $folioFactura);
             actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
