@@ -360,7 +360,9 @@ function insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc)
         $almacen = $row['NUM_ALM'];
         $cveArt = $row['CVE_ART'];
         $cveCpto = 51; // Concepto de movimiento para la remisión
-        $fechaDocu = date('Y-m-d H:i:s');
+        $fechaDocu = date('Y-m-d');
+        $FECHAELAB = date('Y-m-d H:i:s');
+
         $tipoDoc = 'R';
         $claveClpv = $row['CVE_CLPV'];
         $vendedor = $row['CVE_VEND'];
@@ -396,7 +398,7 @@ function insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc)
             $existencia,
             $existencia,
             1,
-            $fechaDocu,
+            $FECHAELAB,
             $cveFolio,
             -1,
             'L',
@@ -5351,7 +5353,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
         //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
 
         //$filename = "Factura_" . urldecode($folioFactura) . ".pdf";
-        $filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', trim(urlencode($folioFactura))) . ".pdf";
+        $filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
         //$filename = "Factura_18456.pdf";
 
         $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename);

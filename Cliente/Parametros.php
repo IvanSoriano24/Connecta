@@ -13,10 +13,6 @@ if (isset($_SESSION['usuario'])) {
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     $correo = $_SESSION['usuario']["correo"];
 
-    //$mostrarModal = isset($_SESSION['empresa']) ? false : true;
-
-    //$empresa = $_SESSION['empresa']['razonSocial'];
-
     //Obtener valores de la empresa
     if (isset($_SESSION['empresa'])) {
         $empresa = $_SESSION['empresa']['razonSocial'];
@@ -62,6 +58,7 @@ if (isset($_SESSION['usuario'])) {
         <?php include 'sidebar.php'; ?>
 
         <!-- CONTENT -->
+        <!-- Seccion de los Campos Libres -->
         <div id="cambLib">
             <section id="content">
                 <!-- NAVBAR -->
@@ -70,17 +67,18 @@ if (isset($_SESSION['usuario'])) {
                 <main class="text-center ">
                     <!-- Botones para cambiar las secciones -->
                     <div class="btn-group mb-4" role="group">
-                        <!-- Boton para cambiar a la seccion de informacion de empresa -->
+                        <!-- Boton para cambiar a la seccion de campos libres -->
                         <button type="button" class="btn btn-primary" id="btnCam">Campos Libres</button>
-                        <!-- Boton para cambiar a la seccion de datos fiscales -->
+                        <!-- Boton para cambiar a la seccion de configuracion de administrador -->
                         <button type="button" class="btn btn-primary" id="btnAdmin">Configuracion de Administradores</button>
-                        <!-- Boton para cambiar a la seccion de datos fiscales -->
+                        <!-- Boton para cambiar a la seccion de series de folio -->
                         <button type="button" class="btn btn-primary" id="btnSerie">Configuracion de Series</button>
                     </div>
                     <div class="card-body">
                         <div class="container-fluid mt-10">
                             <div class="head-title">
                                 <div class="left">
+                                    <!-- Titulo del Modulo -->
                                     <h1>Parametros del Sistema</h1>
                                     <ul class="breadcrumb">
                                         <li>
@@ -88,6 +86,7 @@ if (isset($_SESSION['usuario'])) {
                                         </li>
                                         <li><i class='bx bx-chevron-right'></i></li>
                                         <li>
+                                            <!-- Seccion del modulo -->
                                             <a href="#">Campos Libres</a>
                                         </li>
                                     </ul>
@@ -96,7 +95,7 @@ if (isset($_SESSION['usuario'])) {
                                     <i class='bx bxs-briefcase'></i> Seleccionar Campo Libre
                                 </button>
                             </div>
-                            <!-- Tabla de correos -->
+                            <!-- Tabla de campos -->
                             <div class="table-data">
                                 <div class="order">
                                     <input type="hidden" id="idDocumentoClimb">
@@ -110,7 +109,7 @@ if (isset($_SESSION['usuario'])) {
                                                 </tr>
                                             </thead>
                                             <tbody id="parametros">
-                                                <!-- Los correos se agregarán aquí dinámicamente -->
+                                                <!-- Las tablas junto a sus campos se agregarán aquí dinámicamente -->
                                             </tbody>
                                         </table>
                                     </div>
@@ -122,6 +121,7 @@ if (isset($_SESSION['usuario'])) {
                 <!-- MAIN -->
             </section>
         </div>
+        <!-- Seccion de los los Administradores -->
         <div id="admin" style="display:none">
             <section id="content">
                 <!-- NAVBAR -->
@@ -130,16 +130,18 @@ if (isset($_SESSION['usuario'])) {
                 <main class="text-center ">
                     <!-- Botones para cambiar las secciones -->
                     <div class="btn-group mb-4" role="group">
+                        <!-- Boton para cambiar a la seccion de los campos libres -->
                         <button type="button" class="btn btn-primary" id="btnCamAdmin">Campos Libres</button>
-                        <!-- Boton para cambiar a la seccion de datos fiscales -->
+                        <!-- Boton para cambiar a la seccion de la configuracion de administrador -->
                         <button type="button" class="btn btn-primary" id="btnAdminAdmin">Configuracion de Administradores</button>
-                        <!-- Boton para cambiar a la seccion de datos fiscales -->
+                        <!-- Boton para cambiar a la seccion de series de folios -->
                         <button type="button" class="btn btn-primary" id="btnSerieAdmin">Configuracion de Series</button>
                     </div>
                     <div class="card-body">
                         <div class="container-fluid mt-10">
                             <div class="head-title">
                                 <div class="left">
+                                    <!-- Titulo del Modulo -->
                                     <h1>Parametros del Sistema</h1>
                                     <ul class="breadcrumb">
                                         <li>
@@ -147,20 +149,18 @@ if (isset($_SESSION['usuario'])) {
                                         </li>
                                         <li><i class='bx bx-chevron-right'></i></li>
                                         <li>
+                                            <!-- Seccion del Modulo -->
                                             <a href="#">Administrador</a>
                                         </li>
                                     </ul>
                                 </div>
-                                <button class="btn btn-success" id="btnAgregar">
-                                    <i class='bx bxs-briefcase'></i> Agregar
-                                </button>
                             </div>
-                            <!-- Tabla de correos -->
+                            <!-- Tabla de administradores -->
                             <div class="table-data">
                                 <div class="order">
                                     <input type="hidden" id="idDocumentoAdmin">
                                     <div class="head">
-                                        <table id="tablaParametros">
+                                        <table id="tablaAdministradores">
                                             <thead>
                                                 <tr>
                                                     <th scope="col">Administradores</th>
@@ -168,8 +168,8 @@ if (isset($_SESSION['usuario'])) {
                                                     <th scope="col">Editar</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="parametros">
-                                                <!-- Los correos se agregarán aquí dinámicamente -->
+                                            <tbody id="administradores">
+                                                <!-- Los administradores se agregarán aquí dinámicamente -->
                                             </tbody>
                                         </table>
                                     </div>
@@ -181,6 +181,7 @@ if (isset($_SESSION['usuario'])) {
                 <!-- MAIN -->
             </section>
         </div>
+        <!-- Seccion de las Series de los Folios -->
         <div id="serie" style="display:none">
             <section id="content">
                 <!-- NAVBAR -->
@@ -189,16 +190,18 @@ if (isset($_SESSION['usuario'])) {
                 <main class="text-center ">
                     <!-- Botones para cambiar las secciones -->
                     <div class="btn-group mb-4" role="group">
+                        <!-- Boton para cambiar a la seccion de los campos libres -->
                         <button type="button" class="btn btn-primary" id="btnCamSerie">Campos Libres</button>
-                        <!-- Boton para cambiar a la seccion de datos fiscales -->
+                        <!-- Boton para cambiar a la seccion de los administradores -->
                         <button type="button" class="btn btn-primary" id="btnAdminSerie">Configuracion de Administradores</button>
-                        <!-- Boton para cambiar a la seccion de datos fiscales -->
+                        <!-- Boton para cambiar a la seccion de las series de los folios -->
                         <button type="button" class="btn btn-primary" id="btnSerieSerie">Configuracion de Series</button>
                     </div>
                     <div class="card-body">
                         <div class="container-fluid mt-10">
                             <div class="head-title">
                                 <div class="left">
+                                    <!-- Titulo del modulo -->
                                     <h1>Parametros del Sistema</h1>
                                     <ul class="breadcrumb">
                                         <li>
@@ -206,12 +209,13 @@ if (isset($_SESSION['usuario'])) {
                                         </li>
                                         <li><i class='bx bx-chevron-right'></i></li>
                                         <li>
+                                            <!-- Seccion del modulo -->
                                             <a href="#">Series</a>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
-                            <!-- Tabla de correos -->
+                            <!-- Tabla de las series -->
                             <div class="table-data">
                                 <div class="order">
                                     <input type="hidden" id="idDocumentoVend">
@@ -225,7 +229,7 @@ if (isset($_SESSION['usuario'])) {
                                                 </tr>
                                             </thead>
                                             <tbody id="parametros">
-                                                <!-- Los correos se agregarán aquí dinámicamente -->
+                                                <!-- Las series se agregarán aquí dinámicamente -->
                                             </tbody>
                                         </table>
                                     </div>
@@ -238,51 +242,117 @@ if (isset($_SESSION['usuario'])) {
             </section>
         </div>
 
-        <div id="seleccionarCampoLibre" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <!-- Modales -->
+        <!-- Modal Campos Libres-->
+        <div id="seleccionarCampoLibre" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Seleccionar un Campo Libre</h5>
-                        <button type="button" class="btn-close custom-close" data-dismiss="modal"
-                            id="cerrarModalAsociasionHeader" aria-label="Close"></button>
+                    <!-- Encabezado -->
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title w-100 text-center">Seleccionar Campo Libre</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
-                    <div class="modal-body">
-                        <div class="container">
-                            <div class="row">
+                    <!-- Cuerpo -->
+                    <div class="modal-body px-4">
+                        <form id="formCamposLibres">
+                            <div class="row g-3">
+                                <!-- Seleccion de la tabla de SAE -->
                                 <div class="col-md-6">
-                                    <h6>Seleccionar Tabla</h6>
-                                    <select id="selectTabla" class="form-select">
-                                        <option selected disabled>Seleccione una Tabla</option>
+                                    <label for="selectTabla" class="form-label fw-semibold">Tabla</label>
+                                    <select id="selectTabla" class="form-select form-select-sm">
+                                        <option selected disabled>Seleccione una tabla</option>
                                     </select>
                                 </div>
+                                <!-- Seleccion del campo de la tabla seleccionada -->
                                 <div class="col-md-6">
-                                    <h6>Seleccionar Campo</h6>
-                                    <select id="selectCampo" class="form-select">
-                                        <option selected disabled>Seleccione un Campo</option>
+                                    <label for="selectCampo" class="form-label fw-semibold">Campo</label>
+                                    <select id="selectCampo" class="form-select form-select-sm">
+                                        <option selected disabled>Seleccione un campo</option>
                                     </select>
                                 </div>
-                                <div class="col-md-12">
-                                    <label for="descripcion">Descripcion</label>
-                                    <input type="text" name="descripcion" id="descripcion">
-                                </div>
-                                <div id="camposSeleccionados" class="mt-4">
-                                    <h6>Campos Seleccionados</h6>
-                                    <ul id="listaCamposSeleccionado" class="list-group">
-                                        <!-- Las empresas asociadas se cargarán dinámicamente aquí -->
-                                    </ul>
+                                <!-- Campo de la descripcion del campo -->
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control form-control-sm" id="descripcion" placeholder="Descripción">
+                                        <label for="descripcion">Descripción</label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                            <hr class="my-4">
+                            <!-- Tabla con los campos usados de la tabla seleccionada -->
+                            <div id="camposSeleccionados">
+                                <h6 class="fw-semibold mb-3">Campos Seleccionados</h6>
+                                <ul id="listaCamposSeleccionado" class="list-group list-group-flush">
+                                    <!-- Los ítems seleccionados -->
+                                </ul>
+                            </div>
+                        </form>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" id="cerrarModalCamposLibres"
-                            data-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-primary custom-blue" id="btnGuardarCamposLibres">Guardar
-                            Campo Libre</button>
+                    <!-- Pie de modal con los botones-->
+                    <div class="modal-footer border-0">
+                        <!-- Boton para cancelar la accion y cerra el modal-->
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <!-- Boton para guardar (revisar el archivo JS/parametros.js) para su funcionamiento -->
+                        <button type="button" class="btn btn-primary" id="btnGuardarCamposLibres">Guardar Campo Libre</button>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- Modal Administrador-->
+        <div id="seleccionarClaveAdministrador" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <!-- Encabezado -->
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title w-100 text-center">Seleccionar Vendedor para Administrador</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <!-- Cuerpo -->
+                    <div class="modal-body">
+                        <form id="formCamposLibres" novalidate>
+                            <div class="row gx-3 gy-4">
+                                <!-- Nombre del administrador -->
+                                <div class="col-md-6">
+                                    <label for="nombreAdministrador" class="form-label fw-semibold">Administrador</label>
+                                    <input
+                                        type="text"
+                                        class="form-control form-control-sm"
+                                        id="nombreAdministrador"
+                                        name="nombreAdministrador"
+                                        readonly
+                                        tabindex="-1" />
+                                    <input type="hidden" id="idUsuario" name="idUsuario" />
+                                </div>
+                                <!-- Select de vendedores -->
+                                <div class="col-md-6">
+                                    <label for="vendedores" class="form-label fw-semibold">Vendedores</label>
+                                    <select
+                                        id="vendedores"
+                                        name="vendedores"
+                                        class="form-select form-select-sm"
+                                        required>
+                                        <option value="" disabled selected>Seleccione un Vendedor</option>
+                                        <!-- Opciones se inyectan vía JS -->
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Pie de modal -->
+                    <div class="modal-footer border-0">
+                        <!-- Boton para cancelar y cerrar el modal -->
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <!-- Boton para guardar (revisar el archivo JS/parametros.js) para su funcionamiento -->
+                        <button type="button" class="btn btn-primary" id="btnGuardarClave">
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- CONTENT -->
     </div>
     </section>
@@ -292,86 +362,127 @@ if (isset($_SESSION['usuario'])) {
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>
     <script src="JS/parametros.js"></script>
+    <!-- Script para los botones de navegacion en la seccion de los campos libres -->
     <script>
         $(function() {
-            // al hacer clic en "Información General"
+            // al hacer clic en "Campos Libres"
             $("#btnCam").click(function() {
+                //Se ocultan las otras secciones
                 $("#admin").hide();
                 $("#serie").hide();
+                //Se muestra la seccion de los campos libres
                 $("#cambLib").show();
+                //Se remueve la clase 'active' de los botones de las otras secciones
                 $("#btnAdmin, #btnSerie").removeClass("active");
+                //Se añade la clase 'active' al boton de la seccion correspondiente
                 $(this).addClass("active");
             });
-            // al hacer clic en "Datos de Facturación"
+            // al hacer clic en "Configuracion de Administradores"
             $("#btnAdmin").click(function() {
+                //Se ocultan las otras secciones
                 $("#cambLib").hide();
                 $("#serie").hide();
+                //Se muestra la seccion de la configuracion de los administradores
                 $("#admin").show();
+                //Se remueve la clase 'active' de los botones de las otras secciones
                 $("#btnCam, #btnSerie").removeClass("active");
+                //Se añade la clase 'active' al boton de la seccion correspondiente
                 $("#btnAdminAdmin").addClass("active");
             });
+            // al hacer clic en "Configuracion de Series"
             $("#btnSerie").click(function() {
+                //Se ocultan las otras secciones
                 $("#cambLib").hide();
                 $("#admin").hide();
+                //Se muestra la seccion de las series
                 $("#serie").show();
+                //Se remueve la clase 'active' de los botones de las otras secciones
                 $("#btnCam, #btnAdmin").removeClass("active");
+                //Se añade la clase 'active' al boton de la seccion correspondiente
                 $("#btnSerieSerie").addClass("active");
             });
             // inicia con primer botón activo
             $("#btnCam").addClass("active");
         });
     </script>
+    <!-- Script para los botones de navegacion en la seccion de la configuracion de los administradores -->
     <script>
         $(function() {
+            // al hacer clic en "Campos Libres"
             $("#btnCamAdmin").click(function() {
+                //Se ocultan las otras secciones
                 $("#admin").hide();
                 $("#serie").hide();
+                //Se muestra la seccion de los campos libres
                 $("#cambLib").show();
+                //Se remueve la clase 'active' de los botones de las otras secciones
                 $("#btnAdmin, #btnSerie").removeClass("active");
+                //Se añade la clase 'active' al boton de la seccion correspondiente
                 $("#btnCam").addClass("active");
             });
-            // al hacer clic en "Datos de Facturación"
+            // al hacer clic en "Configuracion de Administradores"
             $("#btnAdminAdmin").click(function() {
+                //Se ocultan las otras secciones
                 $("#cambLib").hide();
                 $("#serie").hide();
+                //Se muestra la seccion de la configuracion de los administradores
                 $("#admin").show();
+                //Se remueve la clase 'active' de los botones de las otras secciones
                 $("#btnCam, #btnSerie").removeClass("active");
+                //Se añade la clase 'active' al boton de la seccion correspondiente
                 $(this).addClass("active");
             });
+            // al hacer clic en "Configuracion de Series"
             $("#btnSerieAdmin").click(function() {
+                //Se ocultan las otras secciones
                 $("#cambLib").hide();
                 $("#admin").hide();
+                //Se muestra la seccion de la configuracion de las series
                 $("#serie").show();
+                //Se remueve la clase 'active' de los botones de las otras secciones
                 $("#btnCam, #btnAdmin").removeClass("active");
+                //Se añade la clase 'active' al boton de la seccion correspondiente
                 $("#btnSerieSerie").addClass("active");
             });
-            // inicia con primer botón activo
-            //$("#btnInfo").addClass("active");
         });
     </script>
+    <!-- Script para los botones de navegacion en la seccion de las series -->
     <script>
         $(function() {
-            // al hacer clic en "Información General"
+            // al hacer clic en "Campos Libres"
             $("#btnCamSerie").click(function() {
+                //Se ocultan las otras secciones
                 $("#admin").hide();
                 $("#serie").hide();
+                //Se muestra la seccion de los campos libres
                 $("#cambLib").show();
+                //Se remueve la clase 'active' de los botones de las otras secciones
                 $("#btnAdmin, #btnSerie").removeClass("active");
+                //Se añade la clase 'active' al boton de la seccion correspondiente
                 $("#btnCam").addClass("active");
             });
-            // al hacer clic en "Datos de Facturación"
+            // al hacer clic en "Configuracion de Administradores"
             $("#btnAdminSerie").click(function() {
+                //Se ocultan las otras secciones
                 $("#cambLib").hide();
                 $("#serie").hide();
+                //Se muestra la seccion de la configuracion de los administradores
                 $("#admin").show();
+                //Se remueve la clase 'active' de los botones de las otras secciones
                 $("#btnCam, #btnSerie").removeClass("active");
+                //Se añade la clase 'active' al boton de la seccion correspondiente
                 $("#btnAdminAdmin").addClass("active");
             });
+            // al hacer clic en "Configuracion de Series"
             $("#btnSerieSerie").click(function() {
+                //Se ocultan las otras secciones
                 $("#cambLib").hide();
                 $("#admin").hide();
+                //Se muestra la seccion de las series
                 $("#serie").show();
+                //Se remueve la clase 'active' de los botones de las otras secciones
                 $("#btnCam, #btnAdmin").removeClass("active");
+                //Se añade la clase 'active' al boton de la seccion correspondiente
                 $(this).addClass("active");
             });
             // inicia con primer botón activo

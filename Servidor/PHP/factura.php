@@ -1050,8 +1050,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
         'CVE_CLIE' => $CVE_CLIE
     ];
 }
-function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision)
-{
+function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision){
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
 
     $serverName = $conexionData['host'];
@@ -1136,8 +1135,8 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision)
         $refer,         // REFER
         '22',             // NUM_CPTO
         1,                // NUM_CARGO
-        $CVE_DOC,         // NO_FACTURA
-        $CVE_DOC,         // DOCTO
+        $no_factura,         // NO_FACTURA
+        $docto,         // DOCTO
         $datosCxC['IMPORTE'], // IMPORTE
         $fecha_apli,      // FECHA_APLI
         $fecha_venc,      // FECHA_VENC
@@ -2260,8 +2259,7 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura)
     sqlsrv_free_stmt($stmt);
     //echo json_encode(['success' => true, 'facturaId' => $facturaId]);
 }
-function sumarSaldo($conexionData, $claveSae, $pagado)
-{
+function sumarSaldo($conexionData, $claveSae, $pagado){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -2281,10 +2279,10 @@ function sumarSaldo($conexionData, $claveSae, $pagado)
     //$importe = '1250.75';
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "UPDATE $nombreTabla SET
-        [SALDO] = [SALDO] + (? * -1)
+        [SALDO] = [SALDO] + (? * 1)
         WHERE CLAVE = ?";
 
-    $params = [$pagado['importe'], $pagado['CLIENTE']];
+    $params = [$pagado['IMPORTE'], $pagado['CVE_CLIE' ]];
 
     $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -2302,7 +2300,7 @@ function sumarSaldo($conexionData, $claveSae, $pagado)
     // ✅ Liberar memoria y cerrar conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
-
+    $cliente = $pagado['CVE_CLIE' ];
     return json_encode([
         'success' => true,
         'message' => "Saldo actualizado correctamente para el cliente: $cliente"
@@ -2603,7 +2601,7 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     actualizarAlerta2($conexionData, $claveSae);
 
     $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioUnido); //No manipula saldo
-    //sumarSaldo($conexionData, $claveSae, $datosCxC);
+    sumarSaldo($conexionData, $claveSae, $datosCxC);
     //Pagar solo si elimino anticipo (clientes sin Credito)
     if (!$credito) {
         pagarCxc($conexionData, $claveSae, $datosCxC, $folioUnido, $remision);

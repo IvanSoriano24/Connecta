@@ -303,9 +303,9 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
     /*$datos['conf']['cer'] = '../../certificados/escuela/EKU9003173C9.cer';
     $datos['conf']['key'] = '../../certificados/escuela/EKU9003173C9.key';
     $datos['conf']['pass'] = '12345678a';*/
-    $datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
+    /*$datos['conf']['cer'] = '../../certificados/2/00001000000513872236.cer';
     $datos['conf']['key'] = '../../certificados/2/CSD_unidad_LUHM920412GU2_20220708_132000.key';
-    $datos['conf']['pass'] = 'CUSAr279';
+    $datos['conf']['pass'] = 'CUSAr279';*/
     $locacionArchivos = __DIR__ . "/../../certificados/$noEmpresa/";
 
     // glob devuelve un array, así que tomamos sólo el primer elemento

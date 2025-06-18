@@ -43,6 +43,29 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
+function validarUsuario($datosUsuario){
+    global $firebaseProjectId, $firebaseApiKey;
+
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+        $response = @file_get_contents($url);
+
+        if ($response === FALSE) {
+            echo json_encode(['success' => false, 'message' => 'Error al obtener los usuarios.']);
+            return;
+        }
+        $data = json_decode($response, true);
+        if (!isset($data['documents'])) {
+            echo json_encode(['success' => false, 'message' => 'No se encontraron usuarios.']);
+            return;
+        }
+        foreach ($data['documents'] as $document) {
+            $fields = $document['fields'];
+            if ($fields['usuario']['stringValue'] === $datosUsuario['usuario']) {
+                return false;
+            }
+        }
+        return true;
+}
 function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -1303,7 +1326,8 @@ switch ($funcion) {
 
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
-
+        $validacion = validarUsuario($datosUsuario);
+        if($validacion){
         if ($csrf_token === $csrf_token_form) {
             // Guardar los datos en Firebase o la base de datos
             guardarUsuario($datosUsuario, $noEmpresa, $claveSae);
@@ -1311,6 +1335,12 @@ switch ($funcion) {
             echo json_encode([
                 'success' => false,
                 'message' => 'Error en la sesion.',
+            ]);
+        }
+        } else{
+             echo json_encode([
+                'success' => false,
+                'message' => 'Usuario ya Existe.',
             ]);
         }
         break;

@@ -1199,7 +1199,7 @@ $(document).ready(function () {
           Swal.fire({
             title: "Eror",
             text: res.message,
-            icon: "error",
+            icon: "warning",
           });
         }
       },

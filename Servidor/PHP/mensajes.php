@@ -1289,7 +1289,6 @@ function liberarExistencias($conexionData, $folio, $claveSae)
         }
     }
 }
-
 function obtenerEstadoComanda($claveSeleccionada)
 {
     $filePath = "../../Complementos/CAT_ESTADOS.xml";
