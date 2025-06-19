@@ -390,6 +390,9 @@ function datosPedidos(limpiarTabla = true) {
     pedidosTable.insertAdjacentHTML("beforeend", spinnerRow);
   }
 
+  // Antes de procesar los pedidos, mira el tipo de usuario (viene de PHP como variable global)
+  const displayButtons = ["FACTURISTA", "ADMINISTRADOR"].includes(tipoUsuario);
+
   $.post(
     "../Servidor/PHP/remision.php",
     {
@@ -452,13 +455,13 @@ function datosPedidos(limpiarTabla = true) {
                 ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
                 : "<i class='bx bx-check-square' style='color: gray; display: block; margin: 0 auto;'></i>"; // Centrado de la palomita con display: block y margin: 0 auto*/
               const estadoFactura = pedido.DOC_SIG
-              // icono con label que Ionicons propagará al <title> interno
-              ? `<ion-icon 
+                ? // icono con label que Ionicons propagará al <title> interno
+                  `<ion-icon 
                   name="document-sharp"
                   title="Factura generada"
                   style="color:green; display:block; margin:0 auto;">
                 </ion-icon>`
-              : `<ion-icon 
+                : `<ion-icon 
                   name="document-sharp"
                   title="Sin factura"
                   style="color:gray; display:block; margin:0 auto;">
@@ -504,48 +507,51 @@ function datosPedidos(limpiarTabla = true) {
                                         <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver Remisión
                                     </button>
                                 </td>
-                                <td>
-                                    <button class="btnFacturar" name="btnFacturar" data-id="${
-                                      pedido.Clave
-                                    }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 1rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #007bff;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        Facturar
-                                        <!--<i class="icon icon-bill" data-theme="outline" style="margin-right:.5rem;"></i>-->
-                                    </button>
-                                </td>
-                                <td class="estadoFactura" name="estadoFactura" style="text-align: center;">${estadoFactura}</td> <!-- Centrar la palomita -->
                             `;
-              const td = document.createElement("td");
+              // Celda “Facturar” (sólo para FACTURISTA y ADMINISTRADOR)
+              if (displayButtons) {
+                const btnFact = `
+            <button class="btnFacturar" data-id="${pedido.Clave}" style="…">
+              Facturar
+            </button>
+          `;
+                row.innerHTML += `<td>${btnFact}</td>`;
+              } else {
+                row.innerHTML += `<td></td>`;
+              }
 
-              if (!pedido.DOC_SIG) {
-                // buscar una sola falla que coincida con este pedido
-                const falla = fallas.find((f) => f.folio === pedido.Clave);
+              // Celda “Estado Factura”
+              const iconColor = pedido.DOC_SIG ? "green" : "gray";
+              row.innerHTML += `<td class="estadoFactura" style="text-align:center;">
+          <ion-icon name="document-sharp" title="${
+            pedido.DOC_SIG ? "Factura generada" : "Sin factura"
+          }"
+                    style="color:${iconColor};display:block;margin:0 auto;"></ion-icon>
+        </td>`;
 
-                if (falla && falla.id) {
-                  const btn = document.createElement("button");
-                  btn.className = "btn btn-secondary btn-sm btn-error"; // <— aquí
-                  btn.textContent = "Errores";
-                  // asigna el id de falla al atributo data-falla-id
-                  btn.setAttribute("data-falla-id", falla.id);
-                  btn.onclick = () => mostrarModalErrores(falla.id);
-                  td.appendChild(btn);
+              // Celda “Errores” (sólo para FACTURISTA y ADMINISTRADOR Y remisiones NO facturadas)
+              if (displayButtons) {
+                let tdErrores = document.createElement("td");
+                if (!pedido.DOC_SIG) {
+                  const falla = fallas.find((f) => f.folio === pedido.Clave);
+                  if (falla?.id) {
+                    const btnErr = document.createElement("button");
+                    btnErr.className = "btn btn-secondary btn-sm btn-error";
+                    btnErr.textContent = "Errores";
+                    btnErr.onclick = () => mostrarModalErrores(falla.id);
+                    tdErrores.appendChild(btnErr);
 
-                  const icon = row.querySelector(".estadoFactura ion-icon");
-                  if (icon) icon.style.color = "red";
-                } else {
-                  td.textContent = "-";
+                    // también ponemos el icono en rojo
+                    const icon = row.querySelector(".estadoFactura ion-icon");
+                    if (icon) icon.style.color = "red";
+                  } else {
+                    tdErrores.textContent = "-";
+                  }
                 }
-                row.appendChild(td);
+                row.appendChild(tdErrores);
+              } else {
+                // columna vacía para que no se desalineen
+                row.innerHTML += `<td></td>`;
               }
 
               fragment.appendChild(row);
@@ -1050,7 +1056,9 @@ function doSearch(limpiarTabla = true) {
     } else {
       pedidosTable.insertAdjacentHTML("beforeend", spinnerRow);
     }
-
+  
+    const displayButtons = ["FACTURISTA", "ADMINISTRADOR"].includes(tipoUsuario);
+    
     $.post(
       "../Servidor/PHP/remision.php",
       {
@@ -1114,18 +1122,17 @@ function doSearch(limpiarTabla = true) {
                   ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
                   : "<i class='bx bx-check-square' style='color: gray; display: block; margin: 0 auto;'></i>"; // Centrado de la palomita con display: block y margin: 0 auto*/
                 const estadoFactura = pedido.DOC_SIG
-                // icono con label que Ionicons propagará al <title> interno
-                ? `<ion-icon 
+                  ? // icono con label que Ionicons propagará al <title> interno
+                    `<ion-icon 
                     name="document-sharp"
                     title="Factura generada"
                     style="color:green; display:block; margin:0 auto;">
                   </ion-icon>`
-                : `<ion-icon 
+                  : `<ion-icon 
                     name="document-sharp"
                     title="Sin factura"
                     style="color:gray; display:block; margin:0 auto;">
                   </ion-icon>`;
-
 
                 row.innerHTML = `
                   <td>${pedido.Tipo || "Sin tipo"}</td>
@@ -1162,49 +1169,54 @@ function doSearch(limpiarTabla = true) {
                           <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver Remisión
                       </button>
                   </td>
-                 <td>
-                                    <button class="btnFacturar" name="btnFacturar" data-id="${
-                                      pedido.Clave
-                                    }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 1rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #007bff;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        Facturar
-                                        <!--<i class="icon icon-bill" data-theme="outline" style="margin-right:.5rem;"></i>-->
-                                    </button>
-                                </td>
-                  <td class="estadoFactura" name="estadoFactura "style="text-align: center;">${estadoFactura}</td> <!-- Centrar la palomita -->
                 `;
-                const td = document.createElement("td");
-
-                if (!pedido.DOC_SIG) {
-                  // buscar una sola falla que coincida con este pedido
-                  const falla = fallas.find((f) => f.folio === pedido.Clave);
-
-                  if (falla && falla.id) {
-                    // 1) botón de Errores
-                    const btn = document.createElement("button");
-                    btn.className = "btn btn-secondary btn-sm";
-                    btn.textContent = "Errores";
-                    btn.onclick = () => mostrarModalErrores(falla.id);
-                    td.appendChild(btn);
-
-                    // 2) colorear icono de estadoFactura en rojo
-                    const icon = row.querySelector(".estadoFactura ion-icon");
-                    if (icon) icon.style.color = "red";
-                  } else {
-                    td.textContent = "-";
-                  }
-                  row.appendChild(td);
+                /*****/
+                // Celda “Facturar” (sólo para FACTURISTA y ADMINISTRADOR)
+                if (displayButtons) {
+                  const btnFact = `
+                  <button class="btnFacturar" data-id="${pedido.Clave}" style="…">
+                    Facturar
+                  </button>
+                `;
+                  row.innerHTML += `<td>${btnFact}</td>`;
+                } else {
+                  row.innerHTML += `<td></td>`;
                 }
+
+                // Celda “Estado Factura”
+                const iconColor = pedido.DOC_SIG ? "green" : "gray";
+                row.innerHTML += `<td class="estadoFactura" style="text-align:center;">
+                <ion-icon name="document-sharp" title="${
+                  pedido.DOC_SIG ? "Factura generada" : "Sin factura"
+                }"
+                    style="color:${iconColor};display:block;margin:0 auto;"></ion-icon>
+                </td>`;
+
+                // Celda “Errores” (sólo para FACTURISTA y ADMINISTRADOR Y remisiones NO facturadas)
+                if (displayButtons) {
+                  let tdErrores = document.createElement("td");
+                  if (!pedido.DOC_SIG) {
+                    const falla = fallas.find((f) => f.folio === pedido.Clave);
+                    if (falla?.id) {
+                      const btnErr = document.createElement("button");
+                      btnErr.className = "btn btn-secondary btn-sm btn-error";
+                      btnErr.textContent = "Errores";
+                      btnErr.onclick = () => mostrarModalErrores(falla.id);
+                      tdErrores.appendChild(btnErr);
+
+                      // también ponemos el icono en rojo
+                      const icon = row.querySelector(".estadoFactura ion-icon");
+                      if (icon) icon.style.color = "red";
+                    } else {
+                      tdErrores.textContent = "-";
+                    }
+                  }
+                  row.appendChild(tdErrores);
+                } else {
+                  // columna vacía para que no se desalineen
+                  row.innerHTML += `<td></td>`;
+                }
+
                 fragment.appendChild(row);
               });
 

@@ -73,12 +73,21 @@ function obtenerCamposUsados()
             if (isset($entry['arrayValue']['values'])) {
                 foreach ($entry['arrayValue']['values'] as $elem) {
                     $f = $elem['mapValue']['fields'];
-                    $resultado[] = [
-                        'id' => basename($doc['name']),
-                        'tabla'       => $tabla,
-                        'campo'       => $f['campo']['stringValue']     ?? '',
-                        'descripcion' => $f['descripcion']['stringValue'] ?? '',
-                    ];
+                    if ($tabla != "factura" && $tabla != "pedido" && $tabla != "remision") {
+                        $resultado[] = [
+                            'id' => basename($doc['name']),
+                            'tabla'       => $tabla,
+                            'campo'       => $f['campo']['stringValue']     ?? '',
+                            'descripcion' => $f['descripcion']['stringValue'] ?? '',
+                        ];
+                    } else {
+                        $resultado[] = [
+                            'id' => basename($doc['name']),
+                            'tabla'       => $tabla,
+                            'serie'       => $f['serie']['stringValue']     ?? '',
+                            'tipo' => $f['tipo']['stringValue'] ?? '',
+                        ];
+                    }
                 }
             }
         }
@@ -141,7 +150,6 @@ function mostrarUsuarios()
     echo json_encode(['success' => true, 'data' => $usuarios]);
     exit();
 }
-
 function obtenerCamposLibres($conexionData)
 {
     $serverName = $conexionData['host'];
@@ -168,6 +176,61 @@ function obtenerCamposLibres($conexionData)
     // Retornamos los usuarios como JSON
     header('Content-Type: application/json');
     echo json_encode(['success' => true, 'data' => $tables]);
+}
+function obtenerSeries($conexionData, $claveSae, $documento)
+{
+    $serverName   = $conexionData['host'];
+    $Database     = $conexionData['nombreBase'];
+    $UID          = $conexionData['usuario'];
+    $PWD          = $conexionData['password'];
+
+    try {
+        // Conexión a la base de datos
+        $dsn = "sqlsrv:Server=$serverName;Database=$Database;TrustServerCertificate=true";
+        $conn = new PDO($dsn, $UID, $PWD);
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // Construcción dinámica del nombre de tabla con el formato adecuado
+        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+        // Determinamos el tipo de folio basado en el documento
+        switch ($documento) {
+            case "factura":
+                $folio = "F";
+                break;
+            case "pedido":
+                $folio = "P";
+                break;
+            case "remision":
+                $folio = "R";
+                break;
+            default:
+                throw new Exception("Documento no soportado: '$documento'");
+        }
+
+        // Preparar la consulta utilizando parámetros para evitar inyección SQL
+        $sql = "SELECT TIP_DOC, SERIE, TIPO FROM $nombreTabla WHERE TIP_DOC = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$folio]);
+        $folios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Ordenamos el resultado por la columna "SERIE"
+        usort($folios, function ($a, $b) {
+            return strcmp($a['SERIE'], $b['SERIE']);
+        });
+
+        // Enviamos la respuesta en formato JSON
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => $folios]);
+    } catch (PDOException $e) {
+        header('Content-Type: application/json');
+        // En caso de error de conexión o consulta, devolvemos el mensaje de error
+        echo json_encode(['success' => false, 'error' => 'Error en la base de datos: ' . $e->getMessage()]);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        // Otros errores generales se capturan aquí
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
 }
 function obtenerCampos($conexionData, $tabla)
 {
@@ -300,8 +363,7 @@ function guardarCamposLibres($noEmpresa, $tabla, $campo, $descripcion, $document
         }
     }
 }
-function verificarCampoFirebase($campo, $tabla)
-{
+function verificarCampoFirebase($campo, $tabla){
     global $firebaseProjectId, $firebaseApiKey;
 
     $url = "https://firestore.googleapis.com/v1/projects/"
@@ -571,6 +633,19 @@ switch ($funcion) {
         $usuario = $_POST['usuario'];
         $id = $_POST['id'];
         guardarClaveAdministrador($id, $vendedores, $usuario);
+        break;
+        case 10:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        $documento = $_GET['documento'];
+        obtenerSeries($conexionData, $claveSae, $documento);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

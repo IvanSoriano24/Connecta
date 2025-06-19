@@ -125,7 +125,7 @@ session_destroy(); */
                 <!-- Boton para guardar conexion -->
                 <button type="button" class="btn-save" id="confirmarConexion">Guardar</button>
                 <!-- Boton para cancelar -->
-                <button type="button" class="btn-cancel">Cancelar</button>
+                <button type="button" class="btn-cancel" onclick="window.location.href='Dashboard.php';">Cancelar</button>
               </div>
             </form>
           </div>

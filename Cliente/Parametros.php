@@ -8,6 +8,10 @@ if (isset($_SESSION['usuario'])) {
         header('Location:Menu.php');
         exit();
     }
+    if ($_SESSION['usuario']['tipoUsuario'] != 'ADMINISTRADOR') {
+        header('Location:Dashboard.php');
+        exit();
+    }
     //Obtener valores del Usuario
     $nombreUsuario = $_SESSION['usuario']["nombre"];
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
@@ -214,13 +218,16 @@ if (isset($_SESSION['usuario'])) {
                                         </li>
                                     </ul>
                                 </div>
+                                <button class="btn btn-success" id="btnAgregarSerie">
+                                    <i class='bx bxs-briefcase'></i> Seleccionar Serie
+                                </button>
                             </div>
                             <!-- Tabla de las series -->
                             <div class="table-data">
                                 <div class="order">
                                     <input type="hidden" id="idDocumentoVend">
                                     <div class="head">
-                                        <table id="tablaParametros">
+                                        <table id="tablaSeries">
                                             <thead>
                                                 <tr>
                                                     <th scope="col">Tipo de Documento</th>
@@ -228,7 +235,7 @@ if (isset($_SESSION['usuario'])) {
                                                     <th scope="col">Tipo</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="parametros">
+                                            <tbody id="series">
                                                 <!-- Las series se agregarán aquí dinámicamente -->
                                             </tbody>
                                         </table>
@@ -348,6 +355,46 @@ if (isset($_SESSION['usuario'])) {
                         <button type="button" class="btn btn-primary" id="btnGuardarClave">
                             Guardar
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Series-->
+        <div id="seleccionarSerie" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <!-- Encabezado -->
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title w-100 text-center">Seleccionar Serie</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <!-- Cuerpo -->
+                    <div class="modal-body px-4">
+                        <form id="formCamposLibres">
+                            <div class="row g-3">
+                                <!-- Seleccion de folio -->
+                                <div class="col-md-6">
+                                    <label for="selectFolio" class="form-label fw-semibold">Documento</label>
+                                    <select id="selectFolio" class="form-select form-select-sm">
+                                        <option selected disabled>Seleccione un Tipo de Documento</option>
+                                    </select>
+                                </div>
+                                <!-- Seleccion del la serie -->
+                                <div class="col-md-6">
+                                    <label for="selectSerie" class="form-label fw-semibold">Serie</label>
+                                    <select id="selectSerie" class="form-select form-select-sm">
+                                        <option selected disabled>Seleccione la Serie</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Pie de modal con los botones-->
+                    <div class="modal-footer border-0">
+                        <!-- Boton para cancelar la accion y cerra el modal-->
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <!-- Boton para guardar la seleccion (revisar el archivo JS/parametros.js) para su funcionamiento -->
+                        <button type="button" class="btn btn-primary" id="btnGuardarCamposLibres">Guardar Serie</button>
                     </div>
                 </div>
             </div>

@@ -83,13 +83,13 @@ function buildPagination(total) {
 }
 /***********************************************************************/
 // Función para cargar los pedidos con el filtro seleccionado y guardar el filtro en localStorage
-function cargarPedidos(estadoPedido, filtroFecha) {
+function cargarPedidos(estadoFactura, filtroFecha) {
     document.getElementById("searchTerm").value = "";
     // Guarda el filtro seleccionado
     localStorage.setItem("filtroSeleccionado", filtroFecha);
-    localStorage.setItem("estadoPedido", estadoPedido);
+    localStorage.setItem("estadoFactura", estadoFactura);
     /*let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Activos";*/
+    let estadoFactura = localStorage.getItem("estadoFactura") || "Activos";*/
     //console.log("Cargando pedidos con filtro:", filtroFecha);
 
     // Asegúrate de que la variable noEmpresa esté definida
@@ -97,18 +97,19 @@ function cargarPedidos(estadoPedido, filtroFecha) {
         console.error("La variable noEmpresa no está definida");
         return;
     }
-
+    //Peticion al servidor
     $.post(
         "../Servidor/PHP/factura.php",
         {
             numFuncion: "2",
             noEmpresa: noEmpresa,
             filtroFecha: filtroFecha,
-            estadoPedido: estadoPedido,
+            estadoPedido: estadoFactura,
             filtroVendedor: filtroVendedor,
             pagina: paginaActual,
             porPagina: registrosPorPagina,
         },
+        //Respuesta del servidor
         function (response) {
             console.log("Respuesta del servidor:", response);
             try {
@@ -154,7 +155,7 @@ let registrosPorPagina = 10; // Ajusta según convenga
 function datosPedidos(limpiarTabla = true) {
     // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
     let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
+    let estadoFactura = localStorage.getItem("estadoFactura") || "Vendidos";
     const pedidosTable = document.getElementById("datosPedidos");
     const numColumns = 12; // Número de columnas de tu tabla
 
@@ -184,7 +185,7 @@ function datosPedidos(limpiarTabla = true) {
             numFuncion: "2",
             noEmpresa: noEmpresa,
             filtroFecha: filtroFecha,
-            estadoPedido: estadoPedido,
+            estadoPedido: estadoFactura,
             filtroVendedor: filtroVendedor,
             pagina: paginaActual,
             porPagina: registrosPorPagina,
@@ -702,11 +703,11 @@ $(document).on("change", "#filtroVendedor", function () {
 // Al cargar la página, se lee el filtro guardado y se carga la información
 document.addEventListener("DOMContentLoaded", function () {
     let filtroGuardado = localStorage.getItem("filtroSeleccionado") || "Hoy";
-    let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
+    let estadoFactura = localStorage.getItem("estadoFactura") || "Vendidos";
 
     // 🔹 Resaltar el botón correspondiente al estado guardado
     $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary");
-    $(`.filtro-rol[data-rol="${estadoPedido}"]`)
+    $(`.filtro-rol[data-rol="${estadoFactura}"]`)
         .removeClass("btn-secondary")
         .addClass("btn-primary");
 
@@ -723,18 +724,18 @@ function inicializarEventosBotones() {
     $(".filtro-rol")
         .off("click")
         .on("click", function () {
-            let estadoPedido = $(this).data("rol"); // Obtener el rol del botón
+            let estadoFactura = $(this).data("rol"); // Obtener el rol del botón
             $(".filtro-rol").removeClass("btn-primary").addClass("btn-secondary"); // Resetear colores de botones
             $(this).removeClass("btn-secondary").addClass("btn-primary"); // Resaltar botón seleccionado
             var filtroSeleccionado = document.getElementById("filtroFecha").value;
-            localStorage.setItem("estadoPedido", this.value);
-            cargarPedidos(estadoPedido, filtroSeleccionado); // Filtrar la tabla
+            localStorage.setItem("estadoFactura", this.value);
+            cargarPedidos(estadoFactura, filtroSeleccionado); // Filtrar la tabla
         });
 }
 $("#filtroFecha").change(function () {
-    let estadoPedido = $(".filtro-rol.btn-primary").data("rol");
+    let estadoFactura = $(".filtro-rol.btn-primary").data("rol");
     var filtroSeleccionado = $(this).val(); // Obtener el valor seleccionado del filtro
-    cargarPedidos(estadoPedido, filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
+    cargarPedidos(estadoFactura, filtroSeleccionado); // Llamar la función para cargar los pedidos con el filtro
 });
 
 let debounceTimeout;
@@ -752,7 +753,7 @@ function doSearch(limpiarTabla = true) {
     if (searchText.length >= 2) {
         // Recupera el filtro guardado o usa "Hoy" como valor predeterminado
         let filtroFecha = localStorage.getItem("filtroSeleccionado") || "Hoy";
-        let estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
+        let estadoFactura = localStorage.getItem("estadoFactura") || "Vendidos";
         document.getElementById("filtroFecha").value = filtroFecha;
         const pedidosTable = document.getElementById("datosPedidos");
         const numColumns = 12; // Número de columnas de tu tabla
@@ -783,7 +784,7 @@ function doSearch(limpiarTabla = true) {
                 numFuncion: "6",
                 noEmpresa: noEmpresa,
                 filtroFecha: filtroFecha,
-                estadoPedido: estadoPedido,
+                estadoPedido: estadoFactura,
                 filtroVendedor: filtroVendedor,
                 pagina: paginaActual,
                 porPagina: registrosPorPagina,

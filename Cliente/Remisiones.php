@@ -349,9 +349,17 @@ session_destroy(); */
                                         <?php //}
                                         ?>
                                         <th>Visualizar</th>
+                                        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "FACTURISTA") {
+                                        ?>
                                         <th>Facturar</th>
+                                        <?php }
+                                        ?>
                                         <th>Estado Factura</th>
+                                        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "FACTURISTA") {
+                                        ?>
                                         <th>Mostrar Errores</th>
+                                        <?php }
+                                        ?>
                                     </tr>
                                 </thead>
                                 <tbody id="datosPedidos">
@@ -421,13 +429,15 @@ session_destroy(); */
     </div>
     <!-- CONTENT -->
     <!-- JS Para la confirmacion empresa -->
+     <script>
+        const tipoUsuario = "<?php echo $tipoUsuario; ?>";
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
     <script src="JS/remisiones.js"></script>
     <script>
-        var tipoUsuario = "<?php echo $tipoUsuario; ?>";
         if (tipoUsuario === "ADMINISTRADOR") {
             llenarFiltroVendedor();
         }

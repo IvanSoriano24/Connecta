@@ -13,55 +13,83 @@ function obtenerCamposTabla() {
       const datos = json.data; // array de { tabla, campo, descripcion }
       document.getElementById("idDocumentoClimb").value = datos[0].id;
       // 1) Agrupar por nombre de tabla
-      const grupos = datos.reduce((acc, { tabla, campo, descripcion }) => {
-        if (!acc[tabla]) acc[tabla] = [];
-        acc[tabla].push({ campo, descripcion });
-        return acc;
-      }, {});
+      const grupos = datos.reduce(
+        (acc, { tabla, campo, descripcion, serie, tipo }) => {
+          if (!acc[tabla]) acc[tabla] = [];
+          acc[tabla].push({ campo, descripcion, serie, tipo });
+          return acc;
+        },
+        {}
+      );
 
       // 2) Construir las filas
       const tbody = document.querySelector("#tablaParametros tbody");
+      const tbodySerie = document.querySelector("#tablaSeries tbody");
+      tbodySerie.innerHTML = "";
       tbody.innerHTML = "";
 
       Object.entries(grupos).forEach(([tabla, campos]) => {
-        // --- crear <select> con todas las opciones ---
-        const select = document.createElement("select");
-        select.className = "form-select form-select-sm";
-        campos.forEach(({ campo, descripcion }, idx) => {
-          const opt = document.createElement("option");
-          opt.value = campo;
-          opt.textContent = campo;
-          // guardamos la descripción en un data-atributo
-          opt.dataset.descripcion = descripcion;
-          select.appendChild(opt);
-        });
+        if (tabla != "factura" && tabla != "pedido" && tabla != "remision") {
+          // --- crear <select> con todas las opciones ---
+          const select = document.createElement("select");
+          select.className = "form-select form-select-sm";
+          campos.forEach(({ campo, descripcion }, idx) => {
+            const opt = document.createElement("option");
+            opt.value = campo;
+            opt.textContent = campo;
+            // guardamos la descripción en un data-atributo
+            opt.dataset.descripcion = descripcion;
+            select.appendChild(opt);
+          });
 
-        // --- crear la celda de descripción ---
-        const tdDescripcion = document.createElement("td");
-        // inicializamos con la descripción del primer campo
-        tdDescripcion.textContent = campos[0].descripcion;
+          // --- crear la celda de descripción ---
+          const tdDescripcion = document.createElement("td");
+          // inicializamos con la descripción del primer campo
+          tdDescripcion.textContent = campos[0].descripcion;
 
-        // al cambiar el select, actualizamos la descripción
-        select.addEventListener("change", () => {
-          const desc = select.selectedOptions[0].dataset.descripcion;
-          tdDescripcion.textContent = desc;
-        });
+          // al cambiar el select, actualizamos la descripción
+          select.addEventListener("change", () => {
+            const desc = select.selectedOptions[0].dataset.descripcion;
+            tdDescripcion.textContent = desc;
+          });
 
-        // --- armar la fila completa ---
-        const tr = document.createElement("tr");
-        // Columna: nombre de la tabla
-        const tdTabla = document.createElement("td");
-        tdTabla.textContent = tabla;
-        // Columna: el select de campos
-        const tdSelect = document.createElement("td");
-        tdSelect.appendChild(select);
+          // --- armar la fila completa ---
+          const tr = document.createElement("tr");
+          // Columna: nombre de la tabla
+          const tdTabla = document.createElement("td");
+          tdTabla.textContent = tabla;
+          // Columna: el select de campos
+          const tdSelect = document.createElement("td");
+          tdSelect.appendChild(select);
 
-        tr.appendChild(tdTabla);
-        tr.appendChild(tdSelect);
-        tr.appendChild(tdDescripcion);
+          tr.appendChild(tdTabla);
+          tr.appendChild(tdSelect);
+          tr.appendChild(tdDescripcion);
 
-        tbody.appendChild(tr);
+          tbody.appendChild(tr);
+        } else {
+          console.log(campos);
+          const tdSerie = document.createElement("td");
+          const tdFolio = document.createElement("td");
+          const tdTipo = document.createElement("td");
+          tdSerie.textContent = campos[0].serie;
+          tdTipo.textContent = campos[0].tipo;
+          // --- armar la fila completa ---
+          const tr = document.createElement("tr");
+
+          tdFolio.textContent = tabla;
+          /*tdSerie.textContent = tdSerie;
+          tdTipo.textContent = tdTipo;*/
+
+          tr.appendChild(tdFolio);
+          tr.appendChild(tdSerie);
+          tr.appendChild(tdTipo);
+
+          tbodySerie.appendChild(tr);
+        }
       });
+
+      //
     })
     .catch((err) => console.error("Error de fetch:", err));
 }
@@ -77,7 +105,7 @@ function obtenerAdministradores() {
         if (response.success) {
           //Si la respuesta fue satisfactoria
           listaUsuarios = response.data; // Guardar datos en la variable
-          mostrarUsuarios(listaUsuarios); // Mostrar los usuarios 
+          mostrarUsuarios(listaUsuarios); // Mostrar los usuarios
         } else {
           //Si la respuesta no fue satisfactoria
           console.log(response.message);
@@ -263,6 +291,49 @@ function cargarTablas() {
     },
   });
 }
+function cargarSeries() {
+  const documento = document.getElementById("selectFolio").value;
+  $.ajax({
+    url: "../Servidor/PHP/parametros.php",
+    method: "GET",
+    data: { numFuncion: "10", documento: documento }, // Función para obtener usuarios
+    success: function (response) {
+      try {
+        const res =
+          typeof response === "string" ? JSON.parse(response) : response;
+
+        if (res.success && Array.isArray(res.data)) {
+          const selectSerie = $("#selectSerie");
+          selectSerie.empty();
+          selectSerie.append(
+            "<option selected disabled>Seleccione un Tipo de Documento</option>"
+          );
+          res.data.forEach((tabla) => {
+            // Incluimos `data-usuario` para usarlo posteriormente
+            selectSerie.append(
+              `<option value="${tabla.SERIE}">${tabla.SERIE}</option>`
+            );
+          });
+        } else if (res.token) {
+          Swal.fire({
+            title: "Error",
+            text: res.message,
+            icon: "warning",
+            confirmButtonText: "Entendido",
+          });
+        } else {
+          alert(res.message || "No se pudieron cargar los usuarios.");
+        }
+      } catch (error) {
+        console.error("Error al procesar la respuesta:", error);
+        alert("Error al cargar usuarios.");
+      }
+    },
+    error: function () {
+      alert("Error al cargar usuarios.");
+    },
+  });
+}
 function mostrarCamposUsados(tabla) {
   const idDocumento = $("#idDocumentoClimb").val();
   $.ajax({
@@ -306,7 +377,42 @@ function mostrarCamposUsados(tabla) {
     },
   });
 }
+async function verificarFolios() {
+  try {
+    const resp = await fetch("../Servidor/PHP/parametros.php?numFuncion=1");
+    const json = await resp.json();
+    if (!json.success) {
+      console.error("No se pudieron cargar los parámetros");
+      return;
+    }
 
+    // Todos los tipos que queremos soportar
+    const tiposDisponibles = ["pedido", "remision", "factura"];
+
+    // Extraemos los tipos ya guardados (suponiendo que vienen como campo 'tipo')
+    const tiposGuardados = new Set(json.data.map(item => item.tabla));
+
+    const select = document.getElementById("selectFolio");
+    // Limpiamos las opciones dinámicas (dejamos sólo el placeholder)
+    Array.from(select.options)
+      .filter(opt => opt.value !== "")
+      .forEach(opt => select.removeChild(opt));
+
+    // Para cada tipo, si no está en la BBDD lo agregamos:
+    tiposDisponibles.forEach(tipo => {
+      if (!tiposGuardados.has(tipo)) {
+        const option = document.createElement("option");
+        option.value = tipo;
+        // capitalizamos sólo la primera letra para mostrar bonito
+        option.textContent = tipo.charAt(0).toUpperCase() + tipo.slice(1);
+        select.appendChild(option);
+      }
+    });
+
+  } catch (err) {
+    console.error("Error de fetch:", err);
+  }
+}
 function cerrarModal() {
   limpiarCampos();
   $("#seleccionarCampoLibre").modal("hide"); // Cierra el modal usando Bootstrap
@@ -321,9 +427,6 @@ function limpiarCampos() {
   $("#descripcion").val("");
 }
 $(document).ready(function () {
-  $("#btnAgregar").click(function () {
-    mostrarMoldal();
-  });
   $("#cerrarModalCamposHeader").click(function () {
     cerrarModal();
   });
@@ -334,10 +437,16 @@ $(document).ready(function () {
   $("#btnAgregarCampo").on("click", function () {
     // Obtener usuarios y empresas
     cargarTablas();
-    //cargarEmpresas();
-
     // Mostrar el modal
     $("#seleccionarCampoLibre").modal("show");
+  });
+  $("#btnAgregarSerie").on("click", function () {
+    // Mostrar el modal
+    verificarFolios();
+    $("#seleccionarSerie").modal("show");
+  });
+  $("#selectFolio").on("change", function () {
+    cargarSeries();
   });
 
   $("#selectTabla").on("change", function () {

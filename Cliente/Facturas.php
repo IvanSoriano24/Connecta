@@ -388,7 +388,7 @@ session_destroy(); */
         const seleccion = parseInt($(this).val(), 10);
         registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
         paginaActual = 1; // volvemos a la primera página
-        estadoPedido = localStorage.getItem("estadoPedido") || "Vendidos";
+        estadoFactura = localStorage.getItem("estadoFactura") || "Vendidos";
         datosPedidos(true); // limpia la tabla y carga sólo registrosPorPagina filas
     });
     // Evento para el cambio del filtro
