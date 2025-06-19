@@ -5635,8 +5635,7 @@ function eliminarCxc($conexionData, $anticipo, $claveSae, $conn)
     if (isset($stmtCunetM)) sqlsrv_free_stmt($stmtCunetM);
     //if (isset($stmtCunetDet)) sqlsrv_free_stmt($stmtCunetDet);
 }
-function eliminarCxCBanco($conexionData, $anticipo, $claveSae, $conn)
-{
+function eliminarCxCBanco($conexionData, $anticipo, $claveSae, $conn){
 
     // Construir los nombres de las tablas
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -5662,15 +5661,6 @@ function eliminarCxCBanco($conexionData, $anticipo, $claveSae, $conn)
             throw new Exception('Error al ejecutar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
         }
 
-        // Eliminar de la tabla CUEN_Det
-        /*$sqlCunetDet = "DELETE FROM $tablaCunetDet WHERE [REFER] = ? AND [NO_FACTURA] = ?";
-        $stmtCunetDet = sqlsrv_prepare($conn, $sqlCunetDet, $params);*/
-        /*if ($stmtCunetDet === false) {
-            throw new Exception('Error al preparar la consulta para $tablaCunetDet: ' . print_r(sqlsrv_errors(), true));
-        }
-        if (!sqlsrv_execute($stmtCunetDet)) {
-            throw new Exception('Error al ejecutar la consulta para $tablaCunetDet: ' . print_r(sqlsrv_errors(), true));
-        }*/
 
     // Liberar recursos y cerrar conexión
     if (isset($stmtCunetM)) sqlsrv_free_stmt($stmtCunetM);
@@ -8417,7 +8407,7 @@ switch ($funcion) {
                                 actualizarInventario($conexionData, $partidasData, $conn);
                                 comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $folio);
                                 remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio);
-                                //eliminarCxCBanco($anticipo, $claveSae, $formularioData, $conn);
+                                eliminarCxCBanco($anticipo, $claveSae, $formularioData, $conn);
                                 // Respuesta de éxito
                                 header('Content-Type: application/json; charset=UTF-8');
                                 echo json_encode([
