@@ -729,15 +729,15 @@ function restarSaldo($conexionData, $claveSae, $pagado, $cliente)
             'errors' => sqlsrv_errors()
         ]));
     }
-    $imp = -6380.0;
+    //$imp = -6380.0;
     $cliente = formatearClaveCliente($cliente);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "UPDATE $nombreTabla SET
         [SALDO] = [SALDO] + (? * -1)
         WHERE CLAVE = ?";
 
-    //$params = [$pagado['importePagado'], $cliente];
-    $params = [$imp, $cliente];
+    $params = [$pagado['importePagado'], $cliente];
+    //$params = [$imp, $cliente];
     var_dump($sql);
     var_dump($params);
 
@@ -806,7 +806,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                     $conexionData = $conexionResult['data'];
                     $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
                     $fechaLimiteObj = new DateTime($fechaLimite);
-                    //Validar que no hayan pasado las 24/72 horas
+                    //Validar que no hayan pasado las 24horas
                     if ($fechaPago <= $fechaLimiteObj) {
                         //Verificar si se realizo el pago
                         $pagado = verificarPago($conexionData, $cliente, $claveSae, $folio);
@@ -837,4 +837,4 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
 }
 
 //Funcion primaria para validar si se realizo el pago
-//verificarPedidos($firebaseProjectId, $firebaseApiKey);
+verificarPedidos($firebaseProjectId, $firebaseApiKey);

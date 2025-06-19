@@ -1311,30 +1311,27 @@ function validaciones($folio, $noEmpresa, $claveSae)
     $archivoKey = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
 
     if (empty($archivoCer) || empty($archivoKey)) {
-        return [
-            'success'  => false,
-            'Problema' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
+        $errores[] = [
+            'origen' => 'Empresa',
+            'message' => 'No se encontró el .cer o el .key para la empresa'  . implode(', ', $noEmpresa)
         ];
-        /*echo json_encode([
-            'success'  => false,
-            'Problema' => "No se encontró el .cer o el .key para la empresa $noEmpresa"
-        ]);
-        return;*/
     }
-    $requeridosPedido = ['FORMADEPAGOSAT', 'METODODEPAGO', 'USO_CFDI', 'REG_FISC'];
-    $faltanPedido = [];
-    foreach ($requeridosPedido as $campo) {
-        if (empty($clienteData[$campo])) {
-            $faltanPedido[] = $campo;
+    $requeridos = ['TIP_DOC', 'SERIE', 'TIPO'];
+    $faltan = [];
+    foreach ($requeridos as $campo) {
+        if (empty($folioData[$campo])) {
+            $faltan[] = $campo;
         }
     }
-    if (!empty($faltanPedido)) {
+    if (!empty($faltan)) {
         header('Content-Type: application/json');
-        return [
-            'success'  => false,
-            'Problema' => 'Faltan datos del pedido: ' . implode(', ', $faltanPedido)
+        $errores[] = [
+            'origen' => 'SAE',
+            'message' => 'Faltan datos del Folio para la Facturacion: ' . implode(', ', $faltan)
         ];
     }
+    
+
     $requeridos = ['RFC', 'NOMBRE', 'USO_CFDI', 'CODIGO', 'REG_FISC'];
     $faltan = [];
     foreach ($requeridos as $campo) {
@@ -1344,26 +1341,16 @@ function validaciones($folio, $noEmpresa, $claveSae)
     }
     if (!empty($faltan)) {
         header('Content-Type: application/json');
-        return [
-            'success'  => false,
-            'Problema' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
+        $errores[] = [
+            'origen' => 'Cliente',
+            'message' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
         ];
-        /*echo json_encode([
-            'success'  => false,
-            'Problema' => 'Faltan datos del cliente: ' . implode(', ', $faltan)
-        ]);
-        return;*/
     }
     if ($clienteData['VAL_RFC'] != 200) {
         $problem = $clienteData['VAL_RFC'];
-        /*echo json_encode([
-            'success'  => false,
-            "Problema' => 'Cliente no puede timbrar: $problem"
-        ]);
-        return;*/
-        return [
-            'success'  => false,
-            "Problema' => 'Cliente no puede timbrar: $problem"
+        $errores[] = [
+            'origen' => 'Cliente',
+            'message' => "Cliente no puede timbrar, status: $problem"
         ];
     }
     $requeridosEmpre = ['rfc', 'razonSocial', 'regimenFiscal', 'codigoPostal', 'keyEncValue', 'keyEncIv'];
@@ -1375,17 +1362,33 @@ function validaciones($folio, $noEmpresa, $claveSae)
     }
     if (!empty($faltanEmpre)) {
         header('Content-Type: application/json');
-        /*echo json_encode([
-            'success'  => false,
-            'Problema' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
-        ]);
-        return;*/
-        return [
-            'success'  => false,
-            'Problema' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
+        $errores[] = [
+            'origen' => 'Empresa',
+            'message' => 'Faltan datos de la empresa: ' . implode(', ', $faltanEmpre)
         ];
     }
-    return ['success' => true];
+    $requeridos = ['CVE_PRODSERV', 'CVE_UNIDAD'];
+    $faltan = [];
+    foreach ($requeridos as $campo) {
+        if (empty($partidasData[$campo])) {
+            $faltan[] = $campo;
+        }
+    }
+    if (!empty($faltan)) {
+        header('Content-Type: application/json');
+        $errores[] = [
+            'origen' => 'Pedido',
+            'message' => 'Faltan datos de productos: ' . implode(', ', $faltan)
+        ];
+    }
+    if (empty($errores)) {
+        return ['success' => true];
+    } else {
+        return [
+            'success'  => false,
+            'message' => $errores
+        ];
+    }
 }
 function verificarHora($firebaseProjectId, $firebaseApiKey)
 {
@@ -1453,7 +1456,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                                 enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
                             }
                         } else {
-                            enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['Problema']);
+                            enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message']);
                         }
                     }
                 }

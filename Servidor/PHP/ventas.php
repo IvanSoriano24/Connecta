@@ -5362,12 +5362,11 @@ function NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasDa
         'DOCTO'       => trim($anticipo['DOCTO'])
     ];
 }
-
-function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio)
+function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
-    $serverName = $conexionData['host'];
+    /*$serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
@@ -5375,7 +5374,7 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
         "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    $conn = sqlsrv_connect($serverName, $connectionInfo);*/
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -5388,11 +5387,9 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
     $vendedor = $formularioData['vendedor'];
     $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
     $fechaLimite = date("Y-m-d H:i:s", strtotime($fechaCreacion . ' + 1 day')); // Suma 24 horas
-
-
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
     $fields = [
-        'folio'     => ['stringValue' => $folio],
+        'folio'     => ['stringValue' => (string)$folio],
         'cliente'    => ['stringValue' => $formularioData['cliente']],
         'claveSae'   => ['stringValue' => $claveSae],
         'noEmpresa'  => ['integerValue' => $noEmpresa],
@@ -5419,8 +5416,9 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
     $response = @file_get_contents($url, false, $context);
 
     if ($response === FALSE) {
-        echo json_encode(['success' => false, 'message' => 'Error al guardar el pedido autorizado en Firebase.']);
-        return;
+        $error = error_get_last();
+         die(json_encode(['success' => false, 'message' => 'Error al guardar el pedido autorizado en Firebase.', 'error' => $error]));
+        //return;
     }
 }
 function nuevoFolio($conexionData, $claveSae)
@@ -5596,26 +5594,8 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
     sqlsrv_close($conn);
     return $no_factura;
 }
-function eliminarCxc($conexionData, $anticipo, $claveSae)
+function eliminarCxc($conexionData, $anticipo, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-
-    // Conectar a la base de datos
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-    if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
-    }
 
     // Construir los nombres de las tablas
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -5628,67 +5608,35 @@ function eliminarCxc($conexionData, $anticipo, $claveSae)
     $referencia = $anticipo['Referencia'];
     $factura = $anticipo['NO_FACTURA'];
     // Iniciar una transacción
-    sqlsrv_begin_transaction($conn);
+    // Eliminar de la tabla CUEN_M
+    $sqlCunetM = "DELETE FROM $tablaCunetM WHERE [REFER] = ? AND [NO_FACTURA] = ?";
+    //$params = [$anticipo['Referencia'], $anticipo['NO_FACTURA']];
+    $params = [$referencia, $factura];
+    $stmtCunetM = sqlsrv_prepare($conn, $sqlCunetM, $params);
+    if ($stmtCunetM === false) {
+        throw new Exception('Error al preparar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
+    }
+    if (!sqlsrv_execute($stmtCunetM)) {
+        throw new Exception('Error al ejecutar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
+    }
 
-    try {
-        // Eliminar de la tabla CUEN_M
-        $sqlCunetM = "DELETE FROM $tablaCunetM WHERE [REFER] = ? AND [NO_FACTURA] = ?";
-        //$params = [$anticipo['Referencia'], $anticipo['NO_FACTURA']];
-        $params = [$referencia, $factura];
-        $stmtCunetM = sqlsrv_prepare($conn, $sqlCunetM, $params);
-        if ($stmtCunetM === false) {
-            throw new Exception('Error al preparar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
-        }
-        if (!sqlsrv_execute($stmtCunetM)) {
-            throw new Exception('Error al ejecutar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
-        }
-
-        // Eliminar de la tabla CUEN_Det
-        /*$sqlCunetDet = "DELETE FROM $tablaCunetDet WHERE [REFER] = ? AND [NO_FACTURA] = ?";
+    // Eliminar de la tabla CUEN_Det
+    /*$sqlCunetDet = "DELETE FROM $tablaCunetDet WHERE [REFER] = ? AND [NO_FACTURA] = ?";
         $stmtCunetDet = sqlsrv_prepare($conn, $sqlCunetDet, $params);*/
-        /*if ($stmtCunetDet === false) {
+    /*if ($stmtCunetDet === false) {
             throw new Exception('Error al preparar la consulta para $tablaCunetDet: ' . print_r(sqlsrv_errors(), true));
         }
         if (!sqlsrv_execute($stmtCunetDet)) {
             throw new Exception('Error al ejecutar la consulta para $tablaCunetDet: ' . print_r(sqlsrv_errors(), true));
         }*/
 
-        // Confirmar la transacción
-        sqlsrv_commit($conn);
-    } catch (Exception $e) {
-        // Revertir la transacción en caso de error
-        sqlsrv_rollback($conn);
-        die(json_encode([
-            'success' => false,
-            'message' => $e->getMessage()
-        ]));
-    }
 
     // Liberar recursos y cerrar conexión
     if (isset($stmtCunetM)) sqlsrv_free_stmt($stmtCunetM);
     //if (isset($stmtCunetDet)) sqlsrv_free_stmt($stmtCunetDet);
-    sqlsrv_close($conn);
 }
-function eliminarCxCBanco($conexionData, $anticipo, $claveSae)
+function eliminarCxCBanco($conexionData, $anticipo, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-
-    // Conectar a la base de datos
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-    if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
-    }
 
     // Construir los nombres de las tablas
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -5701,9 +5649,7 @@ function eliminarCxCBanco($conexionData, $anticipo, $claveSae)
     $referencia = $anticipo['Referencia'];
     $factura = $anticipo['NO_FACTURA'];
     // Iniciar una transacción
-    sqlsrv_begin_transaction($conn);
-
-    try {
+  
         // Eliminar de la tabla CUEN_M
         $sqlCunetM = "DELETE FROM $tablaCunetM WHERE [REFER] = ? AND [NO_FACTURA] = ?";
         //$params = [$anticipo['Referencia'], $anticipo['NO_FACTURA']];
@@ -5726,21 +5672,10 @@ function eliminarCxCBanco($conexionData, $anticipo, $claveSae)
             throw new Exception('Error al ejecutar la consulta para $tablaCunetDet: ' . print_r(sqlsrv_errors(), true));
         }*/
 
-        // Confirmar la transacción
-        sqlsrv_commit($conn);
-    } catch (Exception $e) {
-        // Revertir la transacción en caso de error
-        sqlsrv_rollback($conn);
-        die(json_encode([
-            'success' => false,
-            'message' => $e->getMessage()
-        ]));
-    }
-
     // Liberar recursos y cerrar conexión
     if (isset($stmtCunetM)) sqlsrv_free_stmt($stmtCunetM);
     //if (isset($stmtCunetDet)) sqlsrv_free_stmt($stmtCunetDet);
-    sqlsrv_close($conn);
+
 }
 function crearCxc($conexionData, $claveSae, $formularioData, $partidasData)
 {
@@ -6021,19 +5956,8 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
     //echo json_encode(['success' => true, 'message' => 'CxC creada y pagada.']);
     return;
 }
-function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $conCredito, $folio)
+function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn)
 {
-    // Establecer la conexión con SQL Server
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -6062,8 +5986,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
 
     if (!$clienteData) {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene datos registrados.']);
-        sqlsrv_close($conn);
+        die(json_encode(['success' => false, 'message' => 'El cliente no tiene datos registrados.']));
         return;
     }
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6119,8 +6042,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
         }
 
         if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
-            //var_dump($resultadoWhatsApp);
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);            
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -6156,7 +6078,6 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
         //die();
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
 function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
@@ -6172,8 +6093,8 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
     $productosJson = urlencode(json_encode($partidasData));
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urldecode($claveCliente);
-    /*$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave); // Solo pasamos el número de pedido*/
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente);
+    //$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido  
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 
 
@@ -8455,15 +8376,29 @@ switch ($funcion) {
                         }
                         ///Fin
                     } else {
-                        /*echo json_encode([
+                        ///Inicio
+                        $conn = sqlsrv_connect($conexionData['host'], [
+                            "Database" => $conexionData['nombreBase'],
+                            "UID"      => $conexionData['usuario'],
+                            "PWD"      => $conexionData['password'],
+                            "CharacterSet"         => "UTF-8",
+                            "TrustServerCertificate" => true
+                        ]);
+                        if (!$conn) {
+                            throw new Exception("No pude conectar a la base de datos");
+                        }
+                        // Inicio transacción:
+                        sqlsrv_begin_transaction($conn);
+                        try {
+                            /*echo json_encode([
                             'success' => false,
                             'message' => 'No se Puede Realizar Pedidos a Clientes sin Credito',
-                        ]);
-                        die();*/
-                        //$anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
-                        $anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
+                            ]);
+                            die();*/
+                            //$anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
+                            $anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
 
-                        /*$anticipo = [
+                            /*$anticipo = [
                             'success' => $true,
                             'sinFondo' => $fondo,
                             'IMPORTE' => $IMPORTE,
@@ -8471,61 +8406,64 @@ switch ($funcion) {
                             'Vencimiento' => $fechaVencimiento,
                             'Referencia' => $REFER,
                             'NO_FACTURA' => $NO_FACTURA
-                        ];*/
-                        //$anticipo['success'] = true;
-                        if ($anticipo['success']) {
-                            //Funcion para eliminar anticipo
-                            $estatus = 'E';
-                            $folio = guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
-                            actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
-                            //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            //actualizarFolioE($conexionData, $claveSae); //ROLLBACK
-                            guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae, $folio); //ROLLBACK
-                            actualizarInventarioE($conexionData, $partidasData); //ROLLBACK
-                            eliminarCxc($conexionData, $anticipo, $claveSae); //ROLLBACK
-                            comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $folio); //ROLLBACK
-                            remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio); //ROLLBACK
-                            //eliminarCxCBanco($anticipo, $claveSae, $formularioData);
-                            /*$datosCxC = crearCxc($conexionData, $claveSae, $formularioData, $partidasData);
-                            pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partidasData);
-                            restarSaldo($conexionData, $claveSae, $datosCxC, $clave);*/
-                            //actualizarFolioF($conexionData, $claveSae);
-                            // Respuesta de éxito
-                            header('Content-Type: application/json; charset=UTF-8');
-                            echo json_encode([
-                                'success' => true,
-                                'message' => 'El pedido se completó correctamente. CXC eliminado.',
-                            ]);
-                            exit();
-                        } elseif ($anticipo['sinFondo']) {
-                            //No tiene fondos
-                            $estatus = 'C';
-                            $folio = guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO); //ROLLBACK
-                            actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
-                            //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            //actualizarFolioE($conexionData, $claveSae); //ROLLBACK
-                            guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae, $folio); //ROLLBACK
-                            actualizarInventarioE($conexionData, $partidasData); //ROLLBACK
-                            $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio);
-                            validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio);
-                            guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio);
-                            //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
-                            //actualizarFolioF($conexionData, $claveSae);
-                            exit();
-                        } elseif ($anticipo['fechaVencimiento']) {
-                            header('Content-Type: application/json; charset=UTF-8');
-                            echo json_encode([
-                                'success' => false,
-                                'message' => 'Anticipo vencido.',
-                            ]);
-                            exit();
-                        } else {
-                            header('Content-Type: application/json; charset=UTF-8');
-                            echo json_encode([
-                                'success' => false,
-                                'message' => 'Hubo un error inesperado.',
-                            ]);
-                            exit();
+                            ];*/
+                            //$anticipo['success'] = true;
+                            $estatus = "E";
+                            if ($anticipo['success']) {
+                                eliminarCxc($conexionData, $anticipo, $claveSae, $conn);
+                                $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
+                                actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
+                                guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
+                                actualizarInventario($conexionData, $partidasData, $conn);
+                                comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $folio);
+                                remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio);
+                                //eliminarCxCBanco($anticipo, $claveSae, $formularioData, $conn);
+                                // Respuesta de éxito
+                                header('Content-Type: application/json; charset=UTF-8');
+                                echo json_encode([
+                                    'success' => true,
+                                    'message' => 'El pedido se completó correctamente. CXC eliminado.',
+                                ]);
+                                sqlsrv_commit($conn);
+                                sqlsrv_close($conn);
+                                exit();
+                            } elseif ($anticipo['sinFondo']) {
+                                //No tiene fondos
+                                $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
+                                actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
+                                guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
+                                actualizarInventario($conexionData, $partidasData, $conn);
+                                $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio, $conn);
+                                guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn);
+                                validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn);
+                                //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
+                                sqlsrv_commit($conn);
+                                sqlsrv_close($conn);
+                                exit();
+                            } elseif ($anticipo['fechaVencimiento']) {
+                                header('Content-Type: application/json; charset=UTF-8');
+                                echo json_encode([
+                                    'success' => false,
+                                    'message' => 'Anticipo vencido.',
+                                ]);
+                                sqlsrv_commit($conn);
+                                sqlsrv_close($conn);
+                                exit();
+                            } else {
+                                header('Content-Type: application/json; charset=UTF-8');
+                                echo json_encode([
+                                    'success' => false,
+                                    'message' => 'Hubo un error inesperado.',
+                                ]);
+                                sqlsrv_commit($conn);
+                                sqlsrv_close($conn);
+                                exit();
+                            }
+                        } catch (Exception $e) {
+                            // Si falla cualquiera, deshacemos TODO:
+                            sqlsrv_rollback($conn);
+                            sqlsrv_close($conn);
+                            return ['success' => false, 'message' => $e->getMessage()];
                         }
                         //exit();
                     }
