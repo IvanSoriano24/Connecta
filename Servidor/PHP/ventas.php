@@ -764,7 +764,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         $IMPU2 = 0;
         $IMPU4 = $partida['iva']; // Impuesto 2
         // Agregar los cálculos para los demás impuestos...
-        $PXS = 0;
+        $PXS = $CANT;
         $DESC1 = $partida['descuento'];
         $DESC2 = 0;
         $COMI = $partida['comision'];
@@ -1682,7 +1682,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
             $IMPU2 = 0;
             $IMPU4 = $partida['iva']; // Impuesto 2
             // Agregar los cálculos para los demás impuestos...
-            $PXS = 0;
+            $PXS = $CANT;
             $DESC1 = $partida['descuento'];
             $DESC2 = 0;
             $COMI = $partida['comision'];
@@ -1759,6 +1759,18 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
                 sqlsrv_rollback($conn);
                 die(json_encode(['success' => false, 'message' => 'Error al insertar la partida', 'errors' => sqlsrv_errors()]));
             }
+
+            // AQUÍ AGREGA EL INSERT EN PAR_FACTP_CLIBxx
+            $nombreTablaCamposLibresPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+            $sqlInsertParClib = "INSERT INTO $nombreTablaCamposLibresPartidas (CLAVE_DOC, NUM_PART) VALUES (?, ?)";
+            $paramsParClib = [$CVE_DOC, $NUM_PAR];
+            $stmtClib = sqlsrv_query($conn, $sqlInsertParClib, $paramsParClib);
+
+            if ($stmtClib === false) {
+                sqlsrv_rollback($conn);
+                die(json_encode(['success' => false, 'message' => 'Error al insertar en PAR_FACTP_CLIB', 'errors' => sqlsrv_errors()]));
+            }
+
             $NUM_PAR++;
         }
     } else {
