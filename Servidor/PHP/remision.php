@@ -1287,7 +1287,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVI
     $tipDoc = 'R';
     $status = 'E';
     $cvePedi = '';  // Vacío según la traza
-    $tipDocE = 'F';
+    $tipDocE = 'P';
     $docAnt = $pedidoId;
     $tipDocAnt = 'P';
 
@@ -1417,11 +1417,12 @@ function insertarFactr_Clib($conexionData, $cveDoc, $claveSae)
     $tablaFactrClib = "[{$conexionData['nombreBase']}].[dbo].[FACTR_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $claveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    $CAMPLIB3 = 'A';
 
 
     // ✅ 2. Insertar en `FACTR_CLIB01`
-    $sqlInsert = "INSERT INTO $tablaFactrClib (CLAVE_DOC) VALUES (?)";
-    $paramsInsert = [$claveDoc];
+    $sqlInsert = "INSERT INTO $tablaFactrClib (CLAVE_DOC), (CAMPLIB3) VALUES (?,?)";
+    $paramsInsert = [$claveDoc, $CAMPLIB3];
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
     if ($stmtInsert === false) {
@@ -1586,13 +1587,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
     }
 
     // ✅ 2. Obtener las partidas del pedido (`PAR_FACTPXX`)
-    $sqlPartidas = "SELECT NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
-                           IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, 
-                           DESC1, DESC2, DESC3, COMI, APAR, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
-                           TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, IMPRIMIR, MAN_IEPS, 
-                           MTO_PORC, MTO_CUOTA, CVE_ESQ, IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, 
-                           IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, TOTIMP6, TOTIMP7, TOTIMP8 
-                    FROM $tablaPartidasPedido WHERE CVE_DOC = ?";
+    $sqlPartidas = "SELECT * FROM $tablaPartidasPedido WHERE CVE_DOC = ?";
     $paramsPartidas = [$pedidoId];
 
     $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $paramsPartidas);
@@ -1684,7 +1679,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
             $row['REG_SERIE'],
             $eLtpd,
             $numMov,
-            $TOT_PARTIDA,
+            $row['TOT_PARTIDA'],
             $row['IMPRIMIR'],
             $row['MAN_IEPS'],
             1,

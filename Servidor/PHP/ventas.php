@@ -1648,61 +1648,6 @@ function guardarPedidoE($conexionData, $formularioData, $partidasData, $claveSae
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO)
-{
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-    if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
-    }
-    $claveCliente = $formularioData['cliente'];
-    $datosCliente = obtenerDatosCliente($conexionData, $claveCliente, $claveSae);
-    if (!$datosCliente) {
-        die(json_encode(['success' => false, 'message' => 'No se encontraron datos del cliente']));
-    }
-    // Obtener el número de empresa
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $claveSae = $_SESSION['empresa']['claveSae'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    // Extraer los datos del formulario
-    $FOLIO = $formularioData['numero'];
-    $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-    $estatus = "A";
-    // Crear la consulta SQL para insertar los datos en la base de datos
-    $sql = "INSERT INTO $nombreTabla
-    (CVE_DOC, CAMPLIB9) 
-    VALUES 
-    (?, ?)";
-    // Preparar los parámetros para la consulta
-    $params = [
-        $CVE_DOC,
-        $estatus
-    ];
-    // Ejecutar la consulta
-    $stmt = sqlsrv_query($conn, $sql, $params);
-
-    if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al guardar el pedido',
-            'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
-        ]));
-    } else {
-        // echo json_encode(['success' => true, 'message' => 'Pedido guardado con éxito']);
-    }
-    // Cerrar la conexión
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
-}
 function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $FOLIO)
 {
     if ($conn === false) {
@@ -1730,7 +1675,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
             if ($IMPU1 != 0) {
                 $IMP1APLA = 0;
             } else {
-                $IMP1APLA = 4;
+                $IMP1APLA = 6;
             }
             //$IMPU1 = 0;
             //$IMPU2 = $partida['impuesto2']; // Impuesto 2
@@ -1772,14 +1717,14 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
                 VERSION_SINC, ID_RELACION, PREC_NETO,
                 CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
                 IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4, 4, 0,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 6, 6, 0,
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
                 0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
                 0, '', '',
-                ?, ?, '', 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0)";
+                ?, ?, '', 0, 0, 0, 6,
+                6, 0, 0, 0, 0, 6, 6)";
             $params = [
                 $CVE_DOC,
                 $NUM_PAR,
