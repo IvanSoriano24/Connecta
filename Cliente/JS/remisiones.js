@@ -30,13 +30,13 @@ function agregarEventosBotones() {
           });
         } else if (res.fail) {
           //Si no esta facturada, realizara la facturacion
-          /*Swal.fire({
+          Swal.fire({
                         title: "Aviso",
                         text: "Funcion en Construccion",
-                        icon: "error",
+                        icon: "warning",
                         confirmButtonText: "Entendido",
-                    });*/
-          facturarRemision(pedidoID); // Llama a la función para facturar la remision
+                    });
+          //facturarRemision(pedidoID); // Llama a la función para facturar la remision
         } else {
           console.error("Respuesta inesperada:", res);
         }

@@ -1292,7 +1292,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVI
     $tipDocAnt = 'P';
 
     // ✅ 4. Insertar en FACTRXX
-    $sqlInsert = "INSERT INTO $tablaRemisiones 
+$sqlInsert = "INSERT INTO $tablaRemisiones 
         (TIP_DOC, CVE_DOC, CVE_CLPV, STATUS, DAT_MOSTR, CVE_VEND, CVE_PEDI, FECHA_DOC, FECHA_ENT, FECHA_VEN,
         CAN_TOT, IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4, DES_TOT, DES_FIN, COM_TOT, CVE_OBS, NUM_ALMA, ACT_CXC,
         ACT_COI, ENLAZADO, NUM_MONED, TIPCAMB, NUM_PAGOS, FECHAELAB, PRIMERPAGO, RFC, CTLPOL, ESCFD, AUTORIZA,
@@ -1301,7 +1301,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVI
         USO_CFDI, TIP_FAC, REG_FISC, IMP_TOT5, IMP_TOT6, IMP_TOT7, IMP_TOT8)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     $paramsInsert = [
         $tipDoc,
@@ -1421,7 +1421,7 @@ function insertarFactr_Clib($conexionData, $cveDoc, $claveSae)
 
 
     // ✅ 2. Insertar en `FACTR_CLIB01`
-    $sqlInsert = "INSERT INTO $tablaFactrClib (CLAVE_DOC), (CAMPLIB3) VALUES (?,?)";
+    $sqlInsert = "INSERT INTO $tablaFactrClib (CLAVE_DOC, CAMPLIB3) VALUES (?,?)";
     $paramsInsert = [$claveDoc, $CAMPLIB3];
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
@@ -1571,7 +1571,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
 
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
-
+    $cveDoc = trim($cveDoc);
     $cveDoc = str_pad($cveDoc, 10, '0', STR_PAD_LEFT);
     $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
@@ -1633,7 +1633,8 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
             TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, 
             APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, UUID,
             IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, 
-            TOTIMP6, TOTIMP7, TOTIMP8)
+            TOTIMP6, TOTIMP7, TOTIMP8,
+            CVE_PRODSERV, CVE_UNIDAD)
         VALUES (
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?, ?, 
@@ -1641,7 +1642,8 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, '',
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?)";
+        ?, ?, ?,
+        ?, ?)";
 
         $paramsInsert = [
             $cveDoc,
@@ -1700,7 +1702,9 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
             $row['TOTIMP5'],
             $row['TOTIMP6'],
             $row['TOTIMP7'],
-            $row['TOTIMP8']
+            $row['TOTIMP8'],
+            $row['CVE_PRODSERV'],
+            $row['CVE_UNIDAD']
         ];
 
         $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
@@ -3024,7 +3028,7 @@ function actualizarStatusPedido($conexionData, $pedidoId, $claveSae)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sqlUpdate = "UPDATE $nombreTabla 
-                  SET CAMPLIB3 = 'V', 
+                  SET CAMPLIB3 = 'V' 
                   WHERE CLAVE_DOC = ?";
 
     $paramsUpdate = [$cve_doc];

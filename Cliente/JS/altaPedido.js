@@ -445,7 +445,7 @@ function mostrarListaProductos(productos, input) {
           CVE_UNIDAD.value = producto.CVE_UNIDAD;
           CVE_PRODSERV.value = producto.CVE_PRODSERV;
           COSTO_PROM.value = producto.COSTO_PROM;
-          if (!producto.CVE_PRODSERV) {
+          /*if (!producto.CVE_PRODSERV) {
             Swal.fire({
               title: "Datos Fiscales",
               text: "Este producto no cuenta con CVE_PRODSERV",
@@ -486,7 +486,7 @@ function mostrarListaProductos(productos, input) {
             totalInput.value = parseFloat(0).toFixed(2);
 
             return; // 🚨 Salir de la función si `filaProd` no es válido
-          }
+          }*/
           // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
           const campoCantidad = filaTabla.querySelector("input.cantidad");
           if (campoCantidad) {
@@ -734,6 +734,7 @@ function obtenerDatosFormulario() {
     token: document.getElementById("csrf_token").value,
     ordenCompra: document.getElementById("supedido").value,
     tipoOperacion: document.getElementById("tipoOperacion").value,
+    CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value,
   };
   return formularioData;
 }
@@ -1250,7 +1251,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
     console.error("Error: No se encontró la fila del producto.");
     return; // 🚨 Salir de la función si `filaProd` no es válido
   }
-  if (!producto.CVE_PRODSERV) {
+  /*if (!producto.CVE_PRODSERV) {
     Swal.fire({
       title: "Datos Fiscales",
       text: "Este producto no cuenta con CVE_PRODSERV",
@@ -1290,7 +1291,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
     totalInput.value = parseFloat(0).toFixed(2);
 
     return; // 🚨 Salir de la función si `filaProd` no es válido
-  }
+  }*/
 
   // Convertir `filaProd` en un objeto jQuery para compatibilidad
   const $filaProd = $(filaProd);

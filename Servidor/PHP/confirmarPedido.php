@@ -1,9 +1,12 @@
 <?php
+// Se establece la zona horaria
 date_default_timezone_set('America/Mexico_City');
+// Se importa los datos de firebase
 require 'firebase.php'; // Archivo de configuración de Firebase
-//session_start();
+//Funcion para obtener la conexion de la empresa
 function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
 {
+    // URL de la coleccion
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -11,20 +14,24 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
             'header' => "Content-Type: application/json\r\n"
         ]
     ]);
+    //Realizamos la peticion
     $result = file_get_contents($url, false, $context);
 
+    //Si no fue correcta, nos regresa un false
     if ($result === FALSE) {
         return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
     }
+    //Guardamos los resultados decodificados
     $documents = json_decode($result, true);
-
+    //Regresa un false si no hay datos
     if (!isset($documents['documents'])) {
         return ['success' => false, 'message' => 'No se encontraron documentos'];
     }
-    // Busca el documento donde coincida el campo `claveSae`
+    // Busca el documento donde coincida el campo `noEmpresa`
     foreach ($documents['documents'] as $document) {
         $fields = $document['fields'];
         if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
+            //Retorna los datos obtenedos
             return [
                 'success' => true,
                 'data' => [
@@ -38,10 +45,12 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
             ];
         }
     }
+    //Regresa un false si no se encontro una conexion para la empresa especificada
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 function obtenerProductos($pedidoId, $conexionData, $claveSae)
 {
+    //Creamos la conexion
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -51,32 +60,42 @@ function obtenerProductos($pedidoId, $conexionData, $claveSae)
         "TrustServerCertificate" => true
     ];
     $conn = sqlsrv_connect($serverName, $connectionInfo);
+    //Verificamos que la conexion sea exitosa
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    $CVE_DOC = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    //Formateamos la clave para coincidir con SAE
+    $CVE_DOC = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); 
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    //Creamos el nombre de la tabla de forma dinamica con respecto a la claveSAE
     $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
+    //Construimos la consulta
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_DOC = ?";
+    //Construimos los parametros
     $params = [$CVE_DOC];
-
+    //Ejecutamos la consulta con los parametros
     $stmt = sqlsrv_query($conn, $sql, $params);
+    //Dar mensaje de error si falla
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
     }
-
+    //Se crear un array donde se guardaran los datos
     $partidas = [];
+    //Se itera sobre los resultados de la consulta y se guardan en el array
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $partidas[] = $row;
     }
+    //Se retorna los resultados
     return $partidas;
+    //Se libera y se cierra la conexion
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
 function obtenerDescripcion($producto, $conexionData, $claveSae)
 {
+     //Creamos la conexion
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -89,14 +108,13 @@ function obtenerDescripcion($producto, $conexionData, $claveSae)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
-
+    //Creamos el nombre de la tabla de forma dinamica con respecto a la claveSAE
     $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[INVE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
+    //Construimos la consulta
     $sql = "SELECT * FROM $nombreTabla WHERE
         CVE_ART = ?";
     $params = [$producto];
-
+    //Ejecutamos la consulta con los parametros
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
@@ -104,6 +122,7 @@ function obtenerDescripcion($producto, $conexionData, $claveSae)
     // Obtener los resultados
     $productoData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     if ($productoData) {
+        //Retornar los resultados
         return $productoData;
     } else {
         echo json_encode(['success' => false, 'message' => 'Producto no encontrado']);
@@ -116,16 +135,17 @@ function formatearClaveVendedor($clave)
     // Asegurar que la clave sea un string y eliminar espacios innecesarios
     $clave = trim((string) $clave);
     $clave = str_pad($clave, 5, ' ', STR_PAD_LEFT);
-    // Si la clave ya tiene 10 caracteres, devolverla tal cual
+    // Si la clave ya tiene 5 caracteres, devolverla tal cual
     if (strlen($clave) === 5) {
         return $clave;
     }
-
-    // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
+    // Si es menor a 5 caracteres, rellenar con espacios a la izquierda
     $clave = str_pad($clave, 5, ' ', STR_PAD_LEFT);
     return $clave;
 }
+//Verificamos si se recibe los datos
 if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
+    //Guardamos los datos recibidos en variables
     $pedidoId = $_GET['pedidoId'] ?? "";
     $accion = $_GET['accion'];
     $nombreCliente = urldecode($_GET['nombreCliente'] ?? 'Desconocido');
@@ -137,30 +157,33 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $clave = $_GET['clave'] ?? "";
     $conCredito = $_GET['conCredito'] ?? "";
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
-    // Obtener fecha y hora actual si no está incluida en los parámetros
+    //Verificamos si el pedido ya fue aceptado
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
     if ($resultado) {
+        //Si ya fue aceptado, mostrar este mensaje
         echo "<div class='container'>
             <div class='title'>Solicitud Inválida</div>
             <div class='message'>Este Pedido ya Fue Aceptado.</div>
             <!--<a href='/index.php' class='button'>Volver al inicio</a>-->
           </div>";
     } else {
+        //Verifcamos que accion realizara
         if ($accion === 'confirmar') {
-
+            //Verificamos si es un pedido realizado con credito o sin credito
             if ($conCredito === 'S') {
+                //Obtenemos los datos de conexion
                 $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
                 if (!$conexionResult['success']) {
                     echo json_encode($conexionResult);
                     die();
                 }
                 $conexionData = $conexionResult['data'];
-
                 // Obtener la hora actual
                 $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
                 // Determinar el estado según la hora
                 $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
                 //$estadoComanda = $horaActual >= 15 ? "Pendiente" : "Abierta"; // "Pendiente" después de 3:00 PM
+                //Obtenemos los productos
                 $producto = obtenerProductos($pedidoId, $conexionData, $claveSae);
                 // Preparar datos para Firebase
                 $comanda = [
@@ -208,10 +231,11 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         'content' => json_encode($comanda)
                     ]
                 ]);
-
+                //Realizamos la consulta
                 $response = @file_get_contents($url, false, $context);
 
                 if ($response === false) {
+                    //Si la consulta no fue correcta, mostrará este mensaje
                     $error = error_get_last();
                     echo "<div class='container'>
                         <div class='title'>Error al Conectarse</div>
@@ -219,8 +243,10 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                       </div>";
                 } else {
+                    //Si fue correcta, empieza a realizar la remision obteniendo 
                     $result = json_decode($response, true);
                     if (isset($result['name'])) {
+
                         $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
                         //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 

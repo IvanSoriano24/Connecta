@@ -768,6 +768,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         $DESC1 = $partida['descuento'];
         $DESC2 = 0;
         $COMI = $partida['comision'];
+        $CVE_ESQIMPU = $formularioData['CVE_ESQIMPU'];
         $NUM_ALMA = $formularioData['almacen'];
         $UNI_VENTA = $partida['unidad'];
         if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
@@ -784,7 +785,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
             // Si la partida ya existe, realizar un UPDATE
             $sql = "UPDATE $nombreTabla SET 
                 CANT = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
-                TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ? 
+                TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ?,
                 WHERE NUM_PAR = ? AND CVE_ART = ? AND CVE_DOC = ?";
             $params = [
                 $CANT,
@@ -807,7 +808,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4,
                 DESC1, DESC2, DESC3, COMI, APAR,
                 ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, TIPO_PROD, CVE_OBS, REG_SERIE, E_LTPD, TIPO_ELEM, 
-                NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, UUID,
+                //NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, UUID,
                 VERSION_SINC, ID_RELACION, PREC_NETO,
                 CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
                 IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
@@ -815,7 +816,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
-                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
+                0, ?, 'S', 'N', 1, 0, 'C', 0, 0, ?, '', //
                 0, '', '',
                 ?, ?, '', 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0)";
@@ -840,6 +841,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 $UNI_VENTA,
                 $TIPO_PORD,
                 $TOT_PARTIDA,
+                $CVE_ESQIMPU,
                 $CVE_PRODSERV,
                 $CVE_UNIDAD
             ];
@@ -1689,6 +1691,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
             $CVE_UNIDAD = $partida['CVE_UNIDAD'];
             $CVE_PRODSERV = $partida['CVE_PRODSERV'];
             $NUM_ALMA = $formularioData['almacen'];
+            $CVE_ESQIMPU = $formularioData['CVE_ESQIMPU'];
             $COSTO_PROM = $partida['COSTO_PROM'];
             $UNI_VENTA = $partida['unidad'];
             if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
@@ -1721,7 +1724,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
                 ?, ?, 0, ?,
                 ?, ?, 0, 0, ?,
                 'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
-                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
+                0, ?, 'S', 'N', 1, 0, 'C', 0, 0, ?, '',
                 0, '', '',
                 ?, ?, '', 0, 0, 0, 6,
                 6, 0, 0, 0, 0, 6, 6)";
@@ -1748,6 +1751,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
                 $UNI_VENTA,
                 $TIPO_PORD,
                 $TOT_PARTIDA,
+                $CVE_ESQIMPU,
                 $CVE_PRODSERV,
                 $CVE_UNIDAD
             ];
@@ -1779,131 +1783,6 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
     //echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
-}
-function guardarPartidasE($conexionData, $formularioData, $partidasData, $claveSae, $folio)
-{
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-    if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
-    }
-    // Obtener el número de empresa
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    $claveSae = $_SESSION['empresa']['claveSae'];
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    // Iniciar la transacción para las inserciones de las partidas
-    //    sqlsrv_begin_transaction($conn);
-    $NUM_PAR = 1;
-    // Iterar sobre las partidas recibidas
-    if (isset($partidasData) && is_array($partidasData)) {
-        foreach ($partidasData as $partida) {
-            // Extraer los datos de la partida
-            $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-            $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-            $CVE_ART = $partida['producto']; // Clave del producto
-            $CANT = $partida['cantidad']; // Cantidad
-            $PREC = $partida['precioUnitario']; // Precio
-            // Calcular los impuestos y totales
-            $IMPU1 = $partida['ieps']; // Impuesto 1
-            $IMPU3 = $partida['isr'];
-            //$IMPU1 = 0;
-            //$IMPU2 = $partida['impuesto2']; // Impuesto 2
-            $IMPU2 = 0;
-            $IMPU4 = $partida['iva']; // Impuesto 2
-            // Agregar los cálculos para los demás impuestos...
-            $PXS = 0;
-            $DESC1 = $partida['descuento'];
-            $DESC2 = 0;
-            $COMI = $partida['comision'];
-            $CVE_UNIDAD = $partida['CVE_UNIDAD'];
-            $CVE_PRODSERV = $partida['CVE_PRODSERV'];
-            $NUM_ALMA = $formularioData['almacen'];
-            $COSTO_PROM = $partida['COSTO_PROM'];
-            $UNI_VENTA = $partida['unidad'];
-            if ($UNI_VENTA === 'No aplica' || $UNI_VENTA === 'SERVICIO' || $UNI_VENTA === 'Servicio') {
-                $TIPO_PORD = 'S';
-            } else {
-                $TIPO_PORD = 'P';
-            }
-            // Calcular el total de la partida (precio * cantidad)
-            $TOT_PARTIDA = $PREC * $CANT;
-            $TOTIMP1 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU1 / 100);
-            $TOTIMP2 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU2 / 100);
-            $TOTIMP4 = ($TOT_PARTIDA - ($TOT_PARTIDA * ($DESC1 / 100))) * ($IMPU4 / 100);
-            // Agregar los cálculos para los demás TOTIMP...
-
-
-            // Consultar la descripción del producto (si es necesario)
-            //$DESCR_ART = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae);
-
-            // Crear la consulta SQL para insertar los datos de la partida
-            $sql = "INSERT INTO $nombreTabla
-                (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA,
-                TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4,
-                DESC1, DESC2, DESC3, COMI, APAR,
-                ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, TIPO_PROD, CVE_OBS, REG_SERIE, E_LTPD, TIPO_ELEM, 
-                NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, UUID,
-                VERSION_SINC, ID_RELACION, PREC_NETO,
-                CVE_PRODSERV, CVE_UNIDAD, IMPU8, IMPU7, IMPU6, IMPU5, IMP5APLA,
-                IMP6APLA, TOTIMP8, TOTIMP7, TOTIMP6, TOTIMP5, IMP8APLA, IMP7APLA)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4, 4, 4, 4,
-                ?, ?, 0, ?,
-                ?, ?, 0, 0, ?,
-                'N', ?, '', 1, ?, ?, 0, 0, 0, 'N',
-                0, ?, 'S', 'N', 0, 0, 0, 0, 0, 0, '',
-                0, '', '',
-                ?, ?, '', 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0)";
-            $params = [
-                $CVE_DOC,
-                $NUM_PAR,
-                $CVE_ART,
-                $CANT,
-                $PXS,
-                $PREC,
-                $COSTO_PROM,
-                $IMPU1,
-                $IMPU2,
-                $IMPU3,
-                $IMPU4,
-                $TOTIMP1,
-                $TOTIMP2,
-                $TOTIMP4,
-                $DESC1,
-                $DESC2,
-                $COMI,
-                $NUM_ALMA,
-                $UNI_VENTA,
-                $TIPO_PORD,
-                $TOT_PARTIDA,
-                $CVE_PRODSERV,
-                $CVE_UNIDAD
-            ];
-            // Ejecutar la consulta
-            $stmt = sqlsrv_query($conn, $sql, $params);
-            //var_dump($stmt);
-            if ($stmt === false) {
-                //var_dump(sqlsrv_errors()); // Muestra los errores específicos
-                sqlsrv_rollback($conn);
-                die(json_encode(['success' => false, 'message' => 'Error al insertar la partida', 'errors' => sqlsrv_errors()]));
-            }
-            $NUM_PAR++;
-        }
-    } else {
-        die(json_encode(['success' => false, 'message' => 'Error: partidasData no es un array válido']));
-    }
-    //echo json_encode(['success' => true, 'message' => 'Partidas guardadas con éxito']);
-    // Cerrar la conexión
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
 function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae, $conn)
 {
@@ -2457,9 +2336,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     //$numero = '+527775681612';
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -4483,7 +4362,7 @@ function guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $
             $IMPU3 = $partida['isr'];
             $IMPU2 = 0;
             $IMPU4 = $partida['iva'];
-            $PXS = 0;
+            $PXS = $CANT;
             $DESC1 = $partida['descuento'];
             $DESC2 = $partida['descuento2'];
             $COMI = $partida['comision'];
@@ -6937,9 +6816,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    $numero = "+527773750925";
+    //$numero = "+527773750925";
     //$numero = '+527775681612';
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
