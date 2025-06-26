@@ -31,7 +31,7 @@
                 <span class="text">Inicio</span>
             </a>
         </li>
-        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR") { ?>
+        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR" || $tipoUsuario == "FACTURISTA") { ?>
             <li class="dropdown-manual">
                 <a href="#" class="dropdown-toggle-manual" tabindex="-1">
                     <i class='bx bxs-shopping-bag-alt'></i>

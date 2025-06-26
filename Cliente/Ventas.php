@@ -268,10 +268,12 @@ session_destroy(); */
                     </div>
                     <!-- Secciones de Pedido-->
                     <div class="button-container">
-                        <a href="#" class="btn-crear" id="altaPedido">
-                            <i class='bx bxs-file-plus'></i>
-                            <span href="#" class="text">Crear Pedido</span>
-                        </a>
+                        <?php if ($tipoUsuario != "FACTURISTA") { ?>
+                            <a href="#" class="btn-crear" id="altaPedido">
+                                <i class='bx bxs-file-plus'></i>
+                                <span href="#" class="text">Crear Pedido</span>
+                            </a>
+                        <?php } ?>
                     </div>
 
                     <!-- TABLA PEDIDOS  -->
@@ -382,31 +384,11 @@ session_destroy(); */
     <script src="JS/script.js"></script>
     <script src="JS/ventas.js"></script>
     <script>
-        var tipoUsuario = "<?php echo $tipoUsuario; ?>";
+        const tipoUsuario = "<?php echo $tipoUsuario; ?>";
         if (tipoUsuario === "ADMINISTRADOR") {
             llenarFiltroVendedor();
         }
-    </script>
-    <!--<script>
-        $(document).ready(function() {
-            datosPedidos();
-        });
-    </script>-->
-    <!--<script>
-      
-        if (tipoUsuario != "ADMINISTRADOR") {
-            document
-                .querySelectorAll("#datosPedidos .nombreVendedor")
-                //.forEach(td => td.remove());
-                .forEach(td => td.remove());
-        }
-    </script>-->
-    <script>
-        // Asignar el evento "change" al select del filtro (asegúrate que el id sea correcto)
-        /*document.getElementById("filtroFecha").addEventListener("change", function() {
-            const filtroSeleccionado = this.value;
-            cargarPedidos(filtroSeleccionado);
-        });*/
+
         // Evento para el botón "Mostrar más"
         $("#selectCantidad").on("change", function() {
             const seleccion = parseInt($(this).val(), 10);
@@ -432,6 +414,7 @@ session_destroy(); */
             datosPedidos(true);
         });
     </script>
+    <div id="tipoUsuario" data-tipo="<?php echo htmlspecialchars($tipoUsuario); ?>" style="display:none;"></div>
 </body>
 
 </html>

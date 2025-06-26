@@ -463,100 +463,47 @@ function datosPedidos(limpiarTabla = true) {
                   })}`
                 : "Sin importe";
 
+              const tipoUsuario = document.getElementById("tipoUsuario").dataset.tipo;
+              const mostrarBotones = tipoUsuario !== "FACTURISTA";
+              console.log(tipoUsuario)
+              console.log(mostrarBotones)
+
               row.innerHTML = `
-                                <td>${pedido.Tipo || "Sin tipo"}</td>
-                                <td>${pedido.Clave || "Sin nombre"}</td>
-                                <td >${pedido.Cliente || "Sin cliente"}</td>
-                                <td>${pedido.Nombre || "Sin nombre"}</td>
-                                <td>${pedido.Estatus || "0"}</td>
-                                <td>${
-                                  pedido.FechaElaboracion || "Sin fecha"
-                                }</td>
-                                <td style="text-align: right;">${subtotalText}</td>
-                                <!--<td style="text-align: right;">${
-                                  pedido.TotalComisiones
-                                    ? `$${parseFloat(
-                                        pedido.TotalComisiones
-                                      ).toFixed(2)}`
-                                    : "Sin Comisiones"
-                                }</td>-->
-                                <td style="text-align: right;">${importeText}</td>
-                               <td class="nombreVendedor">${
-                                 pedido.NombreVendedor || "Sin vendedor"
-                               }</td>
-                                <td>
-                                    <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
-                                      pedido.Clave
-                                    }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 0.5rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #007bff;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
-                                    </button>
-                                </td>
-                                <td>
-                                    <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${
-                                      pedido.Clave
-                                    }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 0.5rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #dc3545;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
-                                    </button>
-                                </td>
-                                <td>
-                                <button class="btnVerPedido" name="btnVerPedido" data-id="${
-                                  pedido.Clave
-                                }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 0.5rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #007bff;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visuzlizar
-                                    </button>
-                                </td>
-                                <td>
-                                <button class="btnDescargarPedido" name="btnDescargarPedido" data-id="${
-                                  pedido.Clave
-                                }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 0.5rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #007bff;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Descargar
-                                    </button>
-                                </td>
-                            `;
+                <td>${pedido.Tipo || "Sin tipo"}</td>
+                <td>${pedido.Clave || "Sin nombre"}</td>
+                <td>${pedido.Cliente || "Sin cliente"}</td>
+                <td>${pedido.Nombre || "Sin nombre"}</td>
+                <td>${pedido.Estatus || "0"}</td>
+                <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
+                <td style="text-align: right;">${subtotalText}</td>
+                <td style="text-align: right;">${importeText}</td>
+                <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"}</td>
+                ${mostrarBotones ? `
+                  <td>
+                    <button class="btnEditarPedido" data-id="${pedido.Clave}" style="...">
+                      <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btnCancelarPedido" data-id="${pedido.Clave}" style="...">
+                      <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
+                    </button>
+                  </td>
+                ` : `
+                  <td></td>
+                  <td></td>
+                `}
+                <td>
+                  <button class="btnVerPedido" data-id="${pedido.Clave}" style="...">
+                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar
+                  </button>
+                </td>
+                <td>
+                  <button class="btnDescargarPedido" data-id="${pedido.Clave}" style="...">
+                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Descargar
+                  </button>
+                </td>
+              `;
               const td = document.createElement("td");
               if (estadoPedido === "Activos") {
                 const btn = document.createElement("button");
