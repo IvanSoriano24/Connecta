@@ -290,14 +290,14 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
 
 
     // Credenciales de Timbrado
-    /*$datos['PAC']['usuario'] = $empresaData['rfc'];
+    $datos['PAC']['usuario'] = $empresaData['rfc'];
     $datos['PAC']['pass'] = $empresaData['rfc'];
-    $datos['PAC']['produccion'] = 'SI';*/
+    $datos['PAC']['produccion'] = 'SI';
 
     // Credenciales de Timbrado
-    $datos['PAC']['usuario'] = 'DEMO700101XXX';
+    /*$datos['PAC']['usuario'] = 'DEMO700101XXX';
     $datos['PAC']['pass'] = 'DEMO700101XXX';
-    $datos['PAC']['produccion'] = 'NO';
+    $datos['PAC']['produccion'] = 'NO';*/
 
     // Rutas y clave de los CSD
     /*$datos['conf']['cer'] = '../../certificados/escuela/EKU9003173C9.cer';

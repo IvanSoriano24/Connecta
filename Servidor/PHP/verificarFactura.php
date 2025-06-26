@@ -365,8 +365,8 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
 
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -419,7 +419,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     }
 
     $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     $formularioData = obtenerPedido($cveDoc, $conexionData, $claveSae);
     $partidasData = obtenerProductos($cveDoc, $conexionData, $claveSae);
@@ -432,9 +432,9 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $enviarA = $clienteData['CALLE']; // Dirección de envío
     $vendedor = $vendedorData['NOMBRE']; // Número de vendedor
     $noPactura = $folioFactura; // Número de pedido
-    $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".xml";
-    $rutaQr = "../XML/sdk2/timbrados/cfdi_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".png";
-    $rutaCfdi = "../XML/sdk2/timbrados/cfdi_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".xml";
+    $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".xml";
+    $rutaQr = "../XML/sdk2/timbrados/cfdi_" . urlencode($clienteData['NOMBRE']) . "_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".png";
+    $rutaCfdi = "../XML/sdk2/timbrados/cfdi_" . urlencode($clienteData['NOMBRE']) . "_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".xml";
 
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     foreach ($partidasData as &$partida) {
@@ -788,8 +788,12 @@ function enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $f
     $bodyHTML = "<p>Estimado/a <b>$nombreVendedor</b>,</p>";
     $bodyHTML .= "<p>Se le notifica que hubo un problema al realizar la factura del pedido: <b>$folio</b>.</p>";
     $bodyHTML .= "<p><b>Fecha de Reporte:</b> " . $fechaActual . "</p>";
-    $bodyHTML .= "<p><b>Problema:</b> " . $problema . "</p>";
-
+    foreach ($problema as $problem) {
+        // Escapa siempre datos dinámicos si vienen de afuera
+        $mensaje = htmlspecialchars($problem['message'], ENT_QUOTES, 'UTF-8');
+        $origen = htmlspecialchars($problem['origen'], ENT_QUOTES, 'UTF-8');
+        $bodyHTML .= "<p><b>Problema:</b> {$mensaje} -- <b>Origen:</b> {$origen}</p>";
+    }
     $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
 
     // Enviar el correo con el remitente dinámico
@@ -929,8 +933,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito){
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -1042,12 +1046,12 @@ function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera)
     }
     if ($bandera == 1) {
         $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-        $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+        //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
         $pedidoData = datosPedido($cveDoc, $claveSae, $conexionData);
         $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
 
-        $file = '../XML/sdk2/timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . urlencode($folioFactura) . '.xml';
+        $file = '../XML/sdk2/timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . '.xml';
 
         if (file_exists($file)) {
             $xml = simplexml_load_file($file);
@@ -1090,13 +1094,13 @@ function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera)
                 ];
                 $stmt = sqlsrv_query($conn, $sql, $params);
                 if ($stmt === false) {
-                    die(json_encode(['success' => false, 'message' => 'Error al actualizar el CFDI', 'errors' => sqlsrv_errors()]));
+                    return(json_encode(['success' => false, 'message' => 'Error al actualizar el CFDI', 'errors' => sqlsrv_errors()]));
                 }
             } else {
-                die(json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
+                return(json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
             }
         } else {
-            die(json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
+            return(json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
         }
     }
 }
@@ -1204,7 +1208,7 @@ function datosPedidoValidacion($cve_doc, $claveSae, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function datosPartida($cve_doc, $claveSae, $conexionData)
+function datosPartidasValidacion($cve_doc, $claveSae, $conexionData)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -1230,11 +1234,13 @@ function datosPartida($cve_doc, $claveSae, $conexionData)
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
     }
 
-    $partidas = [];
-    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $partidas[] = $row;
+    // Obtener los resultados
+    $pedidoData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($pedidoData) {
+        return $pedidoData;
+    } else {
+        echo json_encode(['success' => false, 'message' => "Pedido/Factura no encontrado $cve_doc"]);
     }
-    return $partidas;
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
@@ -1291,6 +1297,41 @@ function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 
     return false; // No se encontró la empresa
 }
+function datosFolios($claveSae, $conexionData)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT TIP_DOC, SERIE, TIPO
+        FROM $nombreTabla
+        WHERE TIP_DOC = 'F' AND TIPO = 'D'";
+
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    // Obtener los resultados
+    $foliosData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($foliosData) {
+        return $foliosData;
+    } else {
+        echo json_encode(['success' => false, 'message' => "Folios no encontrados"]);
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
 function validaciones($folio, $noEmpresa, $claveSae)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -1304,8 +1345,11 @@ function validaciones($folio, $noEmpresa, $claveSae)
     $folio = str_pad($folio, 10, '0', STR_PAD_LEFT);
     $folio = str_pad($folio, 20, ' ', STR_PAD_LEFT);
     $pedidoData = datosPedidoValidacion($folio, $claveSae, $conexionData);
+    $partidasData = datosPartidasValidacion($folio, $claveSae, $conexionData);
     $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
     $empresaData = datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+    $folioData = datosFolios($claveSae, $conexionData);
+
     $locacionArchivos = "../XML/sdk2/certificados/$noEmpresa/";
     $archivoCer = glob($locacionArchivos . "{*.cer,*/*.cer}", GLOB_BRACE);
     $archivoKey = glob($locacionArchivos . "{*.key,*/*.key}", GLOB_BRACE);
@@ -1456,6 +1500,7 @@ function verificarHora($firebaseProjectId, $firebaseApiKey)
                                 enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura);
                             }
                         } else {
+                            //var_dump($respuestaValidaciones['message']);
                             enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message']);
                         }
                     }

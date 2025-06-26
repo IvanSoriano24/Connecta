@@ -89,12 +89,16 @@ class clsMail
             /*if (!empty($archivoAdjunto) && file_exists($archivoAdjunto)) {
                 if (!empty($rutaCfdi) && file_exists($rutaCfdi)) {
                     unlink($rutaCfdi);
-                    unlink($rutaXml);
+                    //unlink($rutaXml);
                     unlink($rutaQr);
                     unlink($archivoAdjunto);
                 } else {
                     unlink($archivoAdjunto);
                 }
+                if (!empty($rutaXml) && file_exists($rutaXml)) {
+                    unlink($rutaXml);
+                }
+
             }*/
             return "Correo enviado exitosamente.";
         } catch (Exception $e) {
@@ -144,9 +148,9 @@ class clsMail
             }
 
             // *Eliminar el archivo adjunto después del envío*
-            /*if (!empty($rutaXml) && file_exists($rutaXml)) {
+            if (!empty($rutaXml) && file_exists($rutaXml)) {
                 unlink($rutaXml);
-            }*/
+            }
             return "Correo enviado exitosamente.";
         } catch (Exception $e) {
             return "Error al enviar el correo: {$this->mail->ErrorInfo}";

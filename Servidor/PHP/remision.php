@@ -4401,8 +4401,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -4488,8 +4488,8 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
 }
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -4647,7 +4647,7 @@ function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera)
     }
     if ($bandera == 1) {
         $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-        $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+        //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
         $pedidoData = datosPedido($cveDoc, $claveSae, $conexionData);
         $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
@@ -4695,13 +4695,13 @@ function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera)
                 ];
                 $stmt = sqlsrv_query($conn, $sql, $params);
                 if ($stmt === false) {
-                    die(json_encode(['success' => false, 'message' => 'Error al actualizar el CFDI', 'errors' => sqlsrv_errors()]));
+                    return(json_encode(['success' => false, 'message' => 'Error al actualizar el CFDI', 'errors' => sqlsrv_errors()]));
                 }
             } else {
-                die(json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
+                return(json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
             }
         } else {
-            die(json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
+            return(json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
         }
     }
 }
@@ -4923,12 +4923,12 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $cveDoc = str_pad($folio, 10, '0', STR_PAD_LEFT);
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
+    //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     $fechaActual = date("Y-m-d H:i:s");
 
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT CVE_VEND, CVE_CLPV FROM $nombreTabla
         WHERE CVE_DOC = ?";
@@ -5008,7 +5008,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
 
     // Construcción del cuerpo del correo
     $bodyHTML = "<p>Estimado/a <b>$nombreVendedor</b>,</p>";
-    $bodyHTML .= "<p>Se le notifica que hubo un problema al realizar la factura: <b>$folioFactura</b>.</p>";
+    $bodyHTML .= "<p>Se le notifica que hubo un problema al realizar el CFDI: <b>$folioFactura</b>.</p>";
     $bodyHTML .= "<p><b>Fecha de Reporte:</b> " . $fechaActual . "</p>";
     $bodyHTML .= "<p><b>Problema:</b> " . $problema . "</p>";
 
@@ -5243,7 +5243,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     }
 
     $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     $formularioData = obtenerPedido($cveDoc, $conexionData, $claveSae);
     $partidasData = obtenerProductos($cveDoc, $conexionData, $claveSae);

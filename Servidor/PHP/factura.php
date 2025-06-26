@@ -351,7 +351,7 @@ function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveS
         $pedido['PRIMERPAGO'],
         $pedido['RFC'],
         $pedido['CTLPOL'],
-        $pedido['ESCFD'],
+        'T',
         $pedido['AUTORIZA'],
         $SERIE,
         $folioFactura,
@@ -372,7 +372,7 @@ function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveS
         $fechaDoc,
         $pedido['FORMADEPAGOSAT'],
         $pedido['USO_CFDI'],
-        $pedido['TIP_FAC'],
+        'F',
         $pedido['REG_FISC'],
         $pedido['IMP_TOT5'],
         $pedido['IMP_TOT6'],
@@ -432,8 +432,8 @@ function insertarFactf_Clib($conexionData, $folioFactura, $claveSae)
 
     // Tablas dinámicas
     $tablaFactrClib = "[{$conexionData['nombreBase']}].[dbo].[FACTF_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $claveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    $claveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    //$claveDoc = str_pad($claveDoc, 20, ' ', STR_PAD_LEFT);
 
 
     // ✅ 2. Insertar en `FACTR_CLIB01`
@@ -947,12 +947,14 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
     $dataRemision = datosRemision($conexionData, $claveSae, $remision);
     /*$folioFactura = urldecode($folioFactura) . urldecode($SERIE);
     $CVE_DOC = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-
+    
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);*/
 
     // Preparar los datos para el INSERT
     $cve_clie   = $dataRemision['CVE_CLPV']; // Clave del cliente
     $CVE_CLIE = formatearClaveCliente($cve_clie);
+    $data = obtenerDatosCliente($CVE_CLIE, $conexionData, $claveSae);
+    $diasCredito = $data['DIASCRED'];
     $refer      = $folioFactura; // Puede generarse o venir del formulario
     $num_cpto   = '1';  // Concepto: ajustar según tu lógica de negocio
     $num_cargo  = 1;    // Número de cargo: un valor de ejemplo
@@ -969,7 +971,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
     $IMPORTE = $dataRemision['IMPORTE'];
 
     $fecha_apli = date("Y-m-d 00:00:00.000");         // Fecha de aplicación: ahora
-    $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
+    $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + ' . $diasCredito . ' day')); // Vencimiento a 24 horas
     $status     = 'A';  // Estado inicial, por ejemplo
     $USUARIO    = '0';
     $IMPMON_EXT = $IMPORTE;
@@ -1193,7 +1195,7 @@ function insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae)
     $remisionId = str_pad($remisionId, 20, ' ', STR_PAD_LEFT);
 
     $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     // Tabla dinámica
     $tablaDoctoSig = "[{$conexionData['nombreBase']}].[dbo].[DOCTOSIGF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -1374,7 +1376,7 @@ function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pe
     $remisionId = str_pad($remisionId, 20, ' ', STR_PAD_LEFT);
 
     $cveDocFactura = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-    $cveDocFactura = str_pad($cveDocFactura, 20, ' ', STR_PAD_LEFT);
+    //$cveDocFactura = str_pad($cveDocFactura, 20, ' ', STR_PAD_LEFT);
 
     // ✅ Actualizar DOC_SIG y TIP_DOC_SIG en FACTPXX
     $sqlUpdate = "UPDATE $tablaFactr 
@@ -1551,7 +1553,7 @@ function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
     $remisionId = str_pad($remisionId, 20, ' ', STR_PAD_LEFT);
 
     $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     // Tablas dinámicas
     $tablaPartidasRemision = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -1722,7 +1724,7 @@ function insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveS
     $tablaParFactfClib = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+    //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     // ✅ 2. Contar el número de partidas del pedido en `PAR_FACTPXX`
     $sqlContarPartidas = "SELECT COUNT(*) AS TOTAL_PARTIDAS FROM $tablaPartidasRemisiones WHERE CVE_DOC = ?";
@@ -2220,7 +2222,7 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura)
     }
 
     $facturaId = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-    $facturaId = str_pad($facturaId, 20, ' ', STR_PAD_LEFT);
+    //$facturaId = str_pad($facturaId, 20, ' ', STR_PAD_LEFT);
 
     $tablaCFDI = "[{$conexionData['nombreBase']}].[dbo].[CFDI" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
@@ -2579,16 +2581,16 @@ function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
 function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito)
 {
     global $firebaseProjectId, $firebaseApiKey;
-/* 
-'folioSiguiente' => $folioSiguiente,
-'serie' => $SERIE
-*/
+    /* 
+    'folioSiguiente' => $folioSiguiente,
+    'serie' => $SERIE
+    */
     $datFactura = obtenerFolio($conexionData, $claveSae);
     $folioFactura = $datFactura['folioSiguiente'];
     $SERIE = $datFactura['serie'];
     $folioFormateado = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $folioUnido = urldecode($SERIE) . urldecode($folioFormateado);
-    $folioUnido = str_pad($folioUnido, 20, ' ', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    //$folioUnido = str_pad($folioUnido, 20, ' ', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
 
     $remision = obtenerRemision($conexionData, $pedidoId, $claveSae);
     $CVE_BITA = insertarBita($conexionData, $remision, $claveSae, $folioUnido);
@@ -2871,7 +2873,7 @@ function mostrarRemisionEspecifica($clave, $conexionData, $claveSae) {
     // Limpiar la clave y construir el nombre de la tabla
     $clave = mb_convert_encoding(trim($clave), 'UTF-8');
     $clave = str_pad($clave, 10, 0, STR_PAD_LEFT);
-    $clave = str_pad($clave, 20, ' ', STR_PAD_LEFT);
+    //$clave = str_pad($clave, 20, ' ', STR_PAD_LEFT);
 
     $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -2949,7 +2951,7 @@ function obtenerPartidasRemision($conexionData, $clavePedido)
         echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    $clavePedido = str_pad($clavePedido, 20, ' ', STR_PAD_LEFT);
+    //$clavePedido = str_pad($clavePedido, 20, ' ', STR_PAD_LEFT);
     // Tabla dinámica basada en el número de empresa
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";

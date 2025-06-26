@@ -7,8 +7,7 @@ require '../fpdf/fpdf.php';
 session_start();
 
 // Función para obtener los datos de la empresa desde Firebase
-function obtenerDatosEmpresaFire($noEmpresa)
-{
+function obtenerDatosEmpresaFire($noEmpresa){
     global $firebaseProjectId, $firebaseApiKey;
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
 
@@ -1732,10 +1731,9 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
     // **Generar el PDF**
     $pdf->Output("I");
 }
-function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura)
-{
-    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $CVE_DOC = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
+function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura){
+    $CVE_DOC = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    //$CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
 
     // Obtener los datos de la empresa
     $datosEmpresaPedidoAutoriza = obtenerDatosEmpresaFire($noEmpresa);

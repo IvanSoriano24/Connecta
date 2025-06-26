@@ -1481,10 +1481,8 @@ switch ($funcion) {
         obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $claveSae);
         break;
     case 5:
-        //$noEmpresa = "01";
-        $noEmpresa = "2";
-        //$claveSae = "02";
-        $claveSae = "02";
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
 
         if (!$conexionResult['success']) {
