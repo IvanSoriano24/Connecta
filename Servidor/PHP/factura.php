@@ -304,7 +304,7 @@ function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveS
     $tipDoc = 'F';
     $status = 'E';
     $cvePedi = '';  // Vacío según la traza
-    $tipDocE = 'F';
+    $tipDocE = 'R'; //Documento Enlazado
     $docAnt = $remision;
     $tipDocAnt = 'R';
 
@@ -352,7 +352,7 @@ function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveS
         $pedido['RFC'],
         $pedido['CTLPOL'],
         'T',
-        $pedido['AUTORIZA'],
+        0,
         $SERIE,
         $folioFactura,
         $pedido['AUTOANIO'],
@@ -1560,14 +1560,14 @@ function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
     $tablaPartidasFactura = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-
     // ✅ 2. Obtener las partidas del pedido (`PAR_FACTPXX`)
     $sqlPartidas = "SELECT NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, 
                            IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, 
                            DESC1, DESC2, DESC3, COMI, APAR, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, 
                            TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, E_LTPD, IMPRIMIR, MAN_IEPS, 
                            MTO_PORC, MTO_CUOTA, CVE_ESQ, IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, 
-                           IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, TOTIMP6, TOTIMP7, TOTIMP8 
+                           IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, TOTIMP6, TOTIMP7, TOTIMP8,
+                           PREC_NETO, CVE_PRODSERV, CVE_UNIDAD, E_LTPD
                     FROM $tablaPartidasRemision WHERE CVE_DOC = ?";
     $paramsPartidas = [$remisionId];
 
@@ -1614,7 +1614,8 @@ function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
             TIPO_PROD, TIPO_ELEM, CVE_OBS, REG_SERIE, NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, 
             APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, UUID,
             IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, 
-            TOTIMP6, TOTIMP7, TOTIMP8)
+            TOTIMP6, TOTIMP7, TOTIMP8,
+            PREC_NETO, CVE_PRODSERV, CVE_UNIDAD)
         VALUES (
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?, ?, 
@@ -1622,7 +1623,7 @@ function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
         ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, '',
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?)";
+        ?, ?, ?, ?, ?, ?)";
 
         $paramsInsert = [
             $cveDoc,
@@ -1680,7 +1681,10 @@ function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
             $row['TOTIMP5'],
             $row['TOTIMP6'],
             $row['TOTIMP7'],
-            $row['TOTIMP8']
+            $row['TOTIMP8'],
+            0,
+            $row['CVE_PRODSERV'],
+            $row['CVE_UNIDAD']
         ];
 
         $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
@@ -2139,7 +2143,7 @@ function insertatInfoClie($conexionData, $claveSae, $claveCliente){
 
     return $nuevo;
 }
-function actualizarPar_Factf1($conexionData, $claveSae, $remision, array $enlaces)
+function actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, array $enlaces)
 {
     // 1) Conectar
     $conn = sqlsrv_connect($conexionData['host'], [
@@ -2158,8 +2162,8 @@ function actualizarPar_Factf1($conexionData, $claveSae, $remision, array $enlace
     }
 
     // 2) Prepara el padding de la remisión igual que en PAR_FACTFxx
-    $rem  = str_pad($remision, 10, '0', STR_PAD_LEFT);
-    $rem  = str_pad($rem,      20, ' ', STR_PAD_LEFT);
+    /*$rem  = str_pad($remision, 10, '0', STR_PAD_LEFT);
+    $rem  = str_pad($rem,      20, ' ', STR_PAD_LEFT);*/
 
     // 3) Nombre de la tabla PAR_FACTFxx
     $tablaPar = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF"
@@ -2177,7 +2181,7 @@ function actualizarPar_Factf1($conexionData, $claveSae, $remision, array $enlace
     foreach ($enlaces as $enlace) {
         $params = [
             $enlace['E_LTPD'],
-            $rem,
+            $folioUnido,
             $enlace['CVE_ART'],
         ];
         $stmt = sqlsrv_query($conn, $sql, $params);
@@ -2228,10 +2232,10 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura)
 
     $sql = "INSERT INTO $tablaCFDI
     (TIPO_DOC, CVE_DOC, VERSION, UUID, NO_SERIE, FECHA_CERT, FECHA_CANCELA, XML_DOC, XML_DOC_CANCELA,
-    DESGLOCEIMP1, DESGLOCEIMP2, DESGLOCEIMP3, DESGLOCEIMP4)
+    DESGLOCEIMP1, DESGLOCEIMP2, DESGLOCEIMP3, DESGLOCEIMP4, EN_TABLERO)
     values
     (?, ?, ?, ?, ?, ?, ?, ?, ?,
-    ?, ?, ?, ?)";
+    ?, ?, ?, ?, ?)";
     $params = [
         "F",
         $facturaId,
@@ -2245,6 +2249,7 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura)
         'N',
         'N',
         'N',
+        'S',
         'S'
     ];
 
@@ -2628,6 +2633,7 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     insertarPar_Factf_Clib($conexionData, $remision, $folioUnido, $claveSae);
 
     $result = validarLotesFactura($conexionData, $claveSae, $remision);
+    actualizarControl4($conexionData, $claveSae);
 
     /*$datos = obtenerDatosPreEnlace($conexionData, $claveSae, $remision);    //No se pudo por falta de datos
     
@@ -2636,10 +2642,9 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     }*/
     //var_dump($result);
 
-    actualizarPar_Factf1($conexionData, $claveSae, $remision, $result);
+    actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, $result);
 
     actualizarControl1($conexionData, $claveSae);
-    //actualizarControl4($conexionData, $claveSae); //?
     actualizarInclie1($conexionData, $claveSae, $claveCliente); //Verificar la logica
     actualizarInclie2($conexionData, $claveSae, $claveCliente);
 

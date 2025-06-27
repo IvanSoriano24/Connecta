@@ -691,7 +691,6 @@ function validarCreditos($conexionData, $clienteId)
         echo json_encode(['success' => false, 'message' => 'ID de cliente no proporcionado.']);
         exit;
     }
-
     try {
         // Configuración de conexión
         $serverName = $conexionData['host'];

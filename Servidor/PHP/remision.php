@@ -909,6 +909,56 @@ function actualizarControl6($conexionData, $claveSae)
         'message' => "TBLCONTROL actualizado correctamente (ID_TABLA = 58, +1 en ULT_CVE)"
     ]);*/
 }
+function actualizarControl7($conexionData, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con la base de datos',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Construcción dinámica de la tabla TBLCONTROLXX
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[TBLCONTROL" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // ✅ Consulta para incrementar ULT_CVE en +1 donde ID_TABLA = 67
+    $sql = "UPDATE $nombreTabla 
+            SET ULT_CVE = ULT_CVE + 1 
+            WHERE ID_TABLA = 67";
+
+    // Ejecutar la consulta
+    $stmt = sqlsrv_query($conn, $sql);
+
+    if ($stmt === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al actualizar TBLCONTROL (ID_TABLA = 67)',
+            'errors' => sqlsrv_errors()
+        ]);
+        die();
+    }
+
+    // Cerrar conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    /*echo json_encode([
+        'success' => true,
+        'message' => "TBLCONTROL actualizado correctamente (ID_TABLA = 67, +1 en ULT_CVE)"
+    ]);*/
+}
 function obtenerUltimoDato($conexionData, $claveSae)
 {
     $serverName = $conexionData['host'];
@@ -3096,7 +3146,7 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     //actualizarControl2($conexionData, $claveSae); //?
     //actualizarControl5($conexionData, $claveSae); //?
     actualizarControl6($conexionData, $claveSae);
-    //actualizarControl7($conexionData, $claveSae);
+    actualizarControl7($conexionData, $claveSae);
 
     foreach ($enlaceLote as $enlace) {
         actualizarDatosComanda(
@@ -4401,8 +4451,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -4488,8 +4538,8 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
 }
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -4923,7 +4973,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
-    $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
+    //$cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
     //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     $fechaActual = date("Y-m-d H:i:s");
@@ -4933,7 +4983,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
     $sql = "SELECT CVE_VEND, CVE_CLPV FROM $nombreTabla
         WHERE CVE_DOC = ?";
 
-    $stmt = sqlsrv_query($conn, $sql, [$cveDoc]);
+    $stmt = sqlsrv_query($conn, $sql, [$folioFactura]);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
     }
