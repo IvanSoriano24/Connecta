@@ -87,6 +87,7 @@ function verificarPago($conexionData, $cliente, $claveSae, $folio)
         return ['success' => false, 'message' => 'Pedido no encontrado'];
     }
     $importePedido = (float)$row1['IMPORTE'];
+    var_dump("importePedido: ", $importePedido);
 
     // 5) Recuperar el único anticipo (NUM_CPTO='9' y REFER=CVE_DOC)
     $sql2 = "SELECT TOP 1 
@@ -111,8 +112,11 @@ function verificarPago($conexionData, $cliente, $claveSae, $folio)
     sqlsrv_close($conn);
 
     $importePagado = (float)$row2['importeAnticipo'] ?? 0;
+    var_dump("importePagado: ", $importePagado);
     $saldo   = $importePedido - $importePagado;
+    var_dump("saldo: ", $saldo);
     $pagada  = $importePagado >= $importePedido;
+    var_dump("pagada: ", $pagada);
 
     // 6) Si no hay anticipo, devolvemos pagada=false
     if (!$row2) {
@@ -211,8 +215,8 @@ function estadoSql($folio, $conexionData, $claveSae)
 function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
     //Construir la conexion
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
     
     //Estructurar los datos nesesarios
     $data = [
@@ -800,6 +804,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
             //$cliente = "878";
             //Filtrar pagos que ya han sido confirmados
             if ($buscar) {
+                //var_dump("Si");
                 //Obtener los datos de conexion
                 $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
                 if ($conexionResult['success']) {
@@ -810,10 +815,11 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                     if ($fechaPago <= $fechaLimiteObj) {
                         //Verificar si se realizo el pago
                         $pagado = verificarPago($conexionData, $cliente, $claveSae, $folio);
+                        
                         //$pagado['pagada'] = true;
                         if ($pagado['pagada']) {
-                            /*var_dump($pagado);
-                            die();*/
+                            var_dump($pagado);
+                            //die();
                             $pagoId = basename($document['name']);
                             //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
                             cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);

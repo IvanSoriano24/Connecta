@@ -184,12 +184,17 @@ function eliminarPartidaFormulario(numPar, filaAEliminar) {
 function obtenerProductos(input) {
   // numFuncion=5 indica en PHP que queremos la acción “obtener productos”
   const numFuncion = 5;
-
+  const chechk = false;
+  //alert(chechk);
   // Creamos un nuevo objeto XMLHttpRequest
   const xhr = new XMLHttpRequest();
 
   // Configuramos la llamada GET a nuestro endpoint, pasando numFuncion por query string
-  xhr.open("GET", "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion, true);
+  xhr.open(
+    "GET",
+    "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion + "&chechk=" + chechk,
+    true
+  );
 
   // Indicamos que enviaremos/recibiremos JSON
   xhr.setRequestHeader("Content-Type", "application/json");
@@ -239,7 +244,183 @@ function obtenerProductos(input) {
   // Finalmente, enviamos la petición al servidor
   xhr.send();
 }
+function mostrarTodosProductos(element) {
+  // numFuncion=5 indica en PHP que queremos la acción “obtener productos”
+  const numFuncion = 5;
+  const chechk = element.checked;
+  //alert(chechk);
+  // Creamos un nuevo objeto XMLHttpRequest
+  const xhr = new XMLHttpRequest();
 
+  // Configuramos la llamada GET a nuestro endpoint, pasando numFuncion por query string
+  xhr.open(
+    "GET",
+    "../Servidor/PHP/ventas.php?numFuncion=" + numFuncion + "&chechk=" + chechk,
+    true
+  );
+
+  // Indicamos que enviaremos/recibiremos JSON
+  xhr.setRequestHeader("Content-Type", "application/json");
+
+  // Cuando la respuesta llegue al 100%:
+  xhr.onload = function () {
+    // Si el servidor respondió con HTTP 200 (OK)
+    if (xhr.status === 200) {
+      // Parseamos el texto JSON que devolvió el servidor
+      const response = JSON.parse(xhr.responseText);
+
+      // Si el servidor indicó éxito en el JSON:
+      if (response.success) {
+        // Llamamos a la función que muestra la lista de productos,
+        // pasándole el array de productos y el input donde se debe desplegar
+        mostrarListaProductosCheck(response.productos);
+      } else {
+        // Si success = false, mostramos un aviso con el mensaje devuelto
+        Swal.fire({
+          title: "Aviso",
+          text: response.message,
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        });
+      }
+    } else {
+      // Si el HTTP status no es 200, hubo un error en la consulta
+      Swal.fire({
+        title: "Aviso",
+        text: "Hubo un problema con la consulta de productos.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      });
+    }
+  };
+
+  // Si ocurre algún error de red (por ejemplo, sin conexión)
+  xhr.onerror = function () {
+    Swal.fire({
+      title: "Aviso",
+      text: "Hubo un problema con la conexión.",
+      icon: "error",
+      confirmButtonText: "Aceptar",
+    });
+  };
+
+  // Finalmente, enviamos la petición al servidor
+  xhr.send();
+}
+function mostrarListaProductosCheck(productos) {
+  const tablaProductos = document.querySelector("#tablalistaProductos tbody");
+  const campoBusqueda = document.getElementById("campoBusqueda");
+  const filtroCriterio = document.getElementById("filtroCriterio");
+
+  // Función para renderizar productos
+  function renderProductos(filtro = "") {
+    tablaProductos.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos productos
+    const criterio = filtroCriterio.value; // Obtener criterio seleccionado
+    const productosFiltrados = productos.filter((producto) =>
+      producto[criterio].toLowerCase().includes(filtro.toLowerCase())
+    );
+    productosFiltrados.forEach(function (producto) {
+      const fila = document.createElement("tr");
+      const celdaClave = document.createElement("td");
+      celdaClave.textContent = producto.CVE_ART;
+      const celdaDescripcion = document.createElement("td");
+      celdaDescripcion.textContent = producto.DESCR;
+      const celdaExist = document.createElement("td");
+      celdaExist.textContent = producto.EXIST;
+      fila.appendChild(celdaClave);
+      fila.appendChild(celdaDescripcion);
+      fila.appendChild(celdaExist);
+      fila.onclick = async function () {
+        if (producto.EXIST > 0) {
+          //input.value = producto.CVE_ART;
+          const campoProducto = filaTabla.querySelector(".producto");
+          campoProducto = producto.CVE_ART;
+          $("#CVE_ESQIMPU").val(producto.CVE_ESQIMPU);
+          const filaTabla = input.closest("tr");
+          const campoUnidad = filaTabla.querySelector(".unidad");
+          if (campoUnidad) {
+            campoUnidad.value = producto.UNI_MED;
+          }
+          const CVE_UNIDAD = filaTabla.querySelector(".CVE_UNIDAD");
+          const CVE_PRODSERV = filaTabla.querySelector(".CVE_PRODSERV");
+          const COSTO_PROM = filaTabla.querySelector(".COSTO_PROM");
+
+          CVE_UNIDAD.value = producto.CVE_UNIDAD;
+          CVE_PRODSERV.value = producto.CVE_PRODSERV;
+          COSTO_PROM.value = producto.COSTO_PROM;
+          /*if (!producto.CVE_PRODSERV) {
+            Swal.fire({
+              title: "Datos Fiscales",
+              text: "Este producto no cuenta con CVE_PRODSERV",
+              icon: "warnig",
+              confirmButtonText: "Entendido",
+            });
+
+            const precioInput = filaTabla.querySelector(".precioUnidad");
+            const cantidadInput = filaTabla.querySelector(".cantidad");
+            const unidadInput = filaTabla.querySelector(".unidad");
+            const descuentoInput = filaTabla.querySelector(".descuento");
+            const totalInput = filaTabla.querySelector(".subtotalPartida");
+            precioInput.value = parseFloat(0).toFixed(2);
+            cantidadInput.value = parseFloat(0).toFixed(2);
+            unidadInput.value = parseFloat(0).toFixed(2);
+            descuentoInput.value = parseFloat(0).toFixed(2);
+            totalInput.value = parseFloat(0).toFixed(2);
+
+            return; // 🚨 Salir de la función si `filaProd` no es válido
+          }
+          if (!producto.CVE_UNIDAD) {
+            Swal.fire({
+              title: "Datos Fiscales",
+              text: "Este producto no cuenta con CVE_UNIDAD",
+              icon: "warnig",
+              confirmButtonText: "Entendido",
+            });
+            
+            const precioInput = filaTabla.querySelector(".precioUnidad");
+            const cantidadInput = filaTabla.querySelector(".cantidad");
+            const unidadInput = filaTabla.querySelector(".unidad");
+            const descuentoInput = filaTabla.querySelector(".descuento");
+            const totalInput = filaTabla.querySelector(".subtotalPartida");
+            precioInput.value = parseFloat(0).toFixed(2);
+            cantidadInput.value = parseFloat(0).toFixed(2);
+            unidadInput.value = parseFloat(0).toFixed(2);
+            descuentoInput.value = parseFloat(0).toFixed(2);
+            totalInput.value = parseFloat(0).toFixed(2);
+
+            return; // 🚨 Salir de la función si `filaProd` no es válido
+          }*/
+          // Desbloquear o mantener bloqueado el campo de cantidad según las existencias
+          const campoCantidad = filaTabla.querySelector("input.cantidad");
+          if (campoCantidad) {
+            // if (producto.EXIST > 0) {
+            campoCantidad.readOnly = false;
+            campoCantidad.value = 0; // Valor inicial opcional
+          }
+          // Cerrar el modal
+          cerrarModal();
+          await completarPrecioProducto(producto.CVE_ART, filaTabla);
+        } else {
+          // campoCantidad.readOnly = true;
+          // campoCantidad.value = "Sin existencias"; // Mensaje opcional
+          Swal.fire({
+            title: "Aviso",
+            text: `El producto "${producto.CVE_ART}" no tiene existencias disponibles.`,
+            icon: "warning",
+            confirmButtonText: "Entendido",
+          });
+        }
+      };
+      tablaProductos.appendChild(fila);
+    });
+  }
+  // Evento para actualizar la tabla al escribir en el campo de búsqueda
+  campoBusqueda.addEventListener("input", () => {
+    renderProductos(campoBusqueda.value);
+  });
+  // Renderizar productos inicialmente
+  renderProductos();
+}
 async function obtenerImpuesto(cveEsqImpu) {
   return new Promise((resolve, reject) => {
     $.ajax({

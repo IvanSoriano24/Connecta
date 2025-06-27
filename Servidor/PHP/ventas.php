@@ -1,4 +1,5 @@
 <?php
+set_time_limit(0);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -2336,9 +2337,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -2635,8 +2636,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
@@ -2856,7 +2857,7 @@ function obtenerProductoPedido($claveVendedor, $conexionData, $clienteInput)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function obtenerProductos($conexionData)
+function obtenerProductos($conexionData, $chechk)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2874,10 +2875,19 @@ function obtenerProductos($conexionData)
     }
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
-    // Consulta SQL
-    $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [CVE_PRODSERV], [COSTO_PROM], [UUID]
+    $chechk = ($chechk === 'true');
+    //var_dump($chechk);
+    if ($chechk) {
+        //var_dump("True");
+        // Consulta SQL
+        $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [CVE_PRODSERV], [COSTO_PROM], [UUID]
+        FROM $nombreTabla";
+    } else {
+        //var_dump("False");
+        // Consulta SQL
+        $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [CVE_PRODSERV], [COSTO_PROM], [UUID]
         FROM $nombreTabla WHERE [EXIST] > 0";
+    }
 
     $stmt = sqlsrv_query($conn, $sql);
 
@@ -4491,8 +4501,8 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -4673,8 +4683,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -5198,7 +5208,8 @@ function NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasDa
         'DOCTO'       => trim($anticipo['DOCTO'])
     ];
 }
-function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn){
+function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     /*$serverName = $conexionData['host'];
@@ -5221,7 +5232,7 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
     $vendedor = $formularioData['vendedor'];
     $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
-    $fechaLimite = date("Y-m-d H:i:s", strtotime($fechaCreacion . ' + 1 day')); // Suma 24 horas
+    $fechaLimite = date("Y-m-d H:i:s", strtotime($fechaCreacion . ' + 2 day')); // Suma 72 horas
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
     $fields = [
         'folio'     => ['stringValue' => (string)$folio],
@@ -5252,7 +5263,7 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
 
     if ($response === FALSE) {
         $error = error_get_last();
-         die(json_encode(['success' => false, 'message' => 'Error al guardar el pedido autorizado en Firebase.', 'error' => $error]));
+        die(json_encode(['success' => false, 'message' => 'Error al guardar el pedido autorizado en Firebase.', 'error' => $error]));
         //return;
     }
 }
@@ -5358,7 +5369,7 @@ function generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $part
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
     $fecha_apli = date("Y-m-d 00:00:00.000");         // Fecha de aplicación: ahora
-    $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 24 horas
+    $fecha_venc = date("Y-m-d 00:00:00.000", strtotime($fecha_apli . ' + 1 day')); // Vencimiento a 72 horas
     $status     = 'A';  // Estado inicial, por ejemplo
     $USUARIO    = '0';
     $IMPMON_EXT = $IMPORTE;
@@ -5470,7 +5481,8 @@ function eliminarCxc($conexionData, $anticipo, $claveSae, $conn)
     if (isset($stmtCunetM)) sqlsrv_free_stmt($stmtCunetM);
     //if (isset($stmtCunetDet)) sqlsrv_free_stmt($stmtCunetDet);
 }
-function eliminarCxCBanco($conexionData, $anticipo, $claveSae, $conn){
+function eliminarCxCBanco($conexionData, $anticipo, $claveSae, $conn)
+{
 
     // Construir los nombres de las tablas
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -5483,18 +5495,18 @@ function eliminarCxCBanco($conexionData, $anticipo, $claveSae, $conn){
     $referencia = $anticipo['Referencia'];
     $factura = $anticipo['NO_FACTURA'];
     // Iniciar una transacción
-  
-        // Eliminar de la tabla CUEN_M
-        $sqlCunetM = "DELETE FROM $tablaCunetM WHERE [REFER] = ? AND [NO_FACTURA] = ?";
-        //$params = [$anticipo['Referencia'], $anticipo['NO_FACTURA']];
-        $params = [$referencia, $factura];
-        $stmtCunetM = sqlsrv_prepare($conn, $sqlCunetM, $params);
-        if ($stmtCunetM === false) {
-            throw new Exception('Error al preparar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
-        }
-        if (!sqlsrv_execute($stmtCunetM)) {
-            throw new Exception('Error al ejecutar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
-        }
+
+    // Eliminar de la tabla CUEN_M
+    $sqlCunetM = "DELETE FROM $tablaCunetM WHERE [REFER] = ? AND [NO_FACTURA] = ?";
+    //$params = [$anticipo['Referencia'], $anticipo['NO_FACTURA']];
+    $params = [$referencia, $factura];
+    $stmtCunetM = sqlsrv_prepare($conn, $sqlCunetM, $params);
+    if ($stmtCunetM === false) {
+        throw new Exception('Error al preparar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
+    }
+    if (!sqlsrv_execute($stmtCunetM)) {
+        throw new Exception('Error al ejecutar la consulta para $tablaCunetM: ' . print_r(sqlsrv_errors(), true));
+    }
 
 
     // Liberar recursos y cerrar conexión
@@ -5867,7 +5879,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
         }
 
         if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);            
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -5877,13 +5889,13 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
             echo json_encode([
                 'success' => false,
                 'cxc' => true,
-                'message' => 'El pedido tiene 24 Horas para liquidarse.',
+                'message' => 'El pedido tiene 75 Horas para liquidarse.',
             ]);
         } elseif ($correoBandera === 1 && $numeroBandera === 0) {
-            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp. Se tiene 24 horas para saldar el pedido.']);
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp. Se tiene 72 horas para saldar el pedido.']);
             //die();
         } elseif ($correoBandera === 0 && $numeroBandera === 1) {
-            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo. Se tiene 24 horas para saldar el pedido.']);
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo. Se tiene 72 horas para saldar el pedido.']);
             //die();
         } else {
             $correoVendedor = $_SESSION['usuario']['correo'];
@@ -5891,7 +5903,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
             enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
             $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
 
-            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar. Se tiene 24 horas para saldar el pedido.']);
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar. Se tiene 72 horas para saldar el pedido.']);
             //die();
         }
     } else {
@@ -5899,7 +5911,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
         $telefonoVendedor = $_SESSION['usuario']['telefono'];
         enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
         $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
-        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado. Se tiene 24 horas para saldar el pedido.']);
+        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado. Se tiene 72 horas para saldar el pedido.']);
         //die();
     }
     sqlsrv_free_stmt($stmt);
@@ -6056,8 +6068,8 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     $productosJson = urlencode(json_encode($partidasData));
     $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
@@ -6566,8 +6578,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
@@ -6815,9 +6827,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -6928,8 +6940,8 @@ function facturar($folio, $claveSae, $noEmpresa)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -7836,8 +7848,8 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
@@ -8044,6 +8056,7 @@ switch ($funcion) {
         }
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
+        $chechk = $_GET['chechk'] ?? false;
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         if (!$conexionResult['success']) {
             echo json_encode($conexionResult);
@@ -8051,7 +8064,7 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        obtenerProductos($conexionData);
+        obtenerProductos($conexionData, $chechk);
         break;
     case 6:
         if (isset($_SESSION['empresa']['noEmpresa'])) {

@@ -937,9 +937,23 @@ if (isset($_SESSION['usuario'])) {
                                 <option value="DESCR">Descripción</option>
                             </select>
                         </div>
-                        <div class="col-8">
+                        <div class="col-6">
                             <label for="campoBusqueda" class="form-label">Buscar:</label>
                             <input type="search" id="campoBusqueda" class="form-control" placeholder="Escribe aquí...">
+                        </div>
+                        <div class="col-2">
+                            <div class="form-check">
+                                <!-- onchange en el input y paso de this -->
+                                <input
+                                    type="checkbox"
+                                    name="todosProductos"
+                                    id="todosProductos"
+                                    class="form-check-input"
+                                    onchange="mostrarTodosProductos(this)">
+                                <label class="form-check-label" for="todosProductos">
+                                    Mostrar Todos los Productos
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
