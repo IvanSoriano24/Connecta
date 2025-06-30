@@ -39,6 +39,8 @@ session_destroy(); */
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Asegúrate de tener FontAwesome incluido en tu <head> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <!-- Bootsstrap  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -124,110 +126,6 @@ session_destroy(); */
             font-weight: 600;
             color: #333;
         }
-
-        .input-group {
-            position: relative;
-            width: 300px;
-            /* ajusta al ancho deseado */
-        }
-
-        .search-group .search-input,
-        .input-group .search-input {
-            width: 100%;
-            padding: 0.5rem 1rem 0.5rem 2.5rem;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 0.25rem;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .input-group .search-icon {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.2rem;
-            color: #888;
-            pointer-events: none;
-        }
-
-        .input-group .search-input:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-        .pagination {
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        .pagination button {
-            margin: 0 .25rem;
-            padding: 0.4rem .8rem;
-            border: 1px solid #007bff;
-            background: none;
-            cursor: pointer;
-        }
-
-        .pagination button.active {
-            background: #007bff;
-            color: #fff;
-        }
-
-        /*******************/
-        .pagination-controls {
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            font-family: Lato, sans-serif;
-            font-size: 0.9rem;
-            color: #333;
-        }
-
-        .cantidad-label {
-            margin: 0;
-        }
-
-        .cantidad-select {
-            padding: 0.4rem 0.6rem;
-            font-size: 0.9rem;
-            border: 1px solid #ccc;
-            border-radius: 0.25rem;
-            background-color: #fff;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .cantidad-select:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-        #filtroFecha,
-        #filtroVendedor,
-        #filtroClientes {
-            border: 1px solid #ccc;
-            border-radius: 0.25rem;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            color: #888;
-            min-width: 80%;
-        }
-        #reportes {
-            border-collapse: separate !important;
-            border-spacing: 0;
-            width: 100%;
-            min-width: 1000px;
-        }
-
-        #reportes thead th {
-            position: sticky;
-            background-color: #f9f9f9;
-            border-bottom: 2px solid gray;
-            z-index: 2;
-            white-space: nowrap; /* evita que se rompa el texto */
-            top: -36px; /* sube 2px el sticky */
-        }
     </style>
 </head>
 <body>
@@ -253,60 +151,50 @@ session_destroy(); */
                         </li>
                     </ul>
                 </div>
-
-                <!-- TABLA PEDIDOS  -->
-                <div class="table-data" id="reportesActivos" style="display: block !important;">
-                    <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
-                    <div class="order" style="overflow: visible">
-                        <label for="filtros" style="margin-right: 94%;">Filtrar Por:</label>
-                        <div class="head">
-                            <div class="input-group">
-                                <label for="Periodo">Periodo: </label>
-                                <select id="filtroFecha"></select>
-                            </div>
-                            <div class="input-group">
-                                <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
-                                    <label for="Vendedor">Vendedor: </label>
-                                    <select id="filtroVendedor"></select>
-                                <?php } ?>
-                            </div>
-                            <div class="input-group">
-                                <label for="Clientes">Clientes: </label>
-                                <select id="filtroClientes"></select>
-                            </div>
-                            <h3></h3>
-                            <div class="input-group">
-                                <i class='bx bx-search search-icon'></i>
-                                <input
-                                    id="searchTerm"
-                                    class="search-input"
-                                    type="text"
-                                    placeholder="Buscar..."
-                                    onkeyup="debouncedSearchReportes()" />
-                            </div>
-                            <!-- <i class='bx bx-filter'></i> -->
+                <div class="menu-reportes-container">
+                    <!-- Ventas -->
+                    <div class="menu-reportes-group">
+                        <div class="menu-reportes-title">
+                            <span>Ventas</span>
                         </div>
-                        <table id="reportes">
-                            <thead>
-                            <tr>
-                                <th>Líneas y Productos</th>
-                                <th>ENERO</th>
-                                <th>FEBRERO</th>
-                                <th>MARZO</th>
-                                <th>ABRIL</th>
-                                <th>MAYO</th>
-                                <th>JUNIO</th>
-                                <th>JULIO</th>
-                                <th>AGOSTO</th>
-                                <th>SEPTIEMBRE</th>
-                                <th>OCTUBRE</th>
-                                <th>NOVIEMBRE</th>
-                                <th>DICIEMBRE</th>
-                            </tr>
-                            </thead>
-                            <tbody id="datosReportes">
-                            </tbody>
-                        </table>
+                        <div class="menu-reportes-btns">
+                            <a href="../../../../Users/Servidor/IdeaProjects/MDConnecta/Cliente/SRC/ventasCantidadesR.php" class="menu-reportes-btn">
+                                <span>Cantidades Ventas</span>
+                                <i class="fa-solid fa-chart-line"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Cuentas por Cobrar -->
+                    <div class="menu-reportes-group">
+                        <div class="menu-reportes-title">
+                            <span>Cuentas por cobrar</span>
+                        </div>
+                        <div class="menu-reportes-btns">
+                            <a href="../../../../Users/Servidor/IdeaProjects/MDConnecta/Cliente/SRC/estadosCuentasGeneralR.php" class="menu-reportes-btn">
+                                <span>Estados de Cuenta General</span>
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </a>
+                            <a href="../../../../Users/Servidor/IdeaProjects/MDConnecta/Cliente/SRC/estadosCuentasDetalladoR.php" class="menu-reportes-btn">
+                                <span>Estados de Cuenta Detallado</span>
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </a>
+                            <a href="../../../../Users/Servidor/IdeaProjects/MDConnecta/Cliente/SRC/cobranzaGeneralR.php" class="menu-reportes-btn">
+                                <span>Cobranza General</span>
+                                <i class="fa-solid fa-sack-dollar"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Ejemplo -->
+                    <div class="menu-reportes-group">
+                        <div class="menu-reportes-title">
+                            <span>Ejemplo</span>
+                        </div>
+                        <div class="menu-reportes-btns">
+                            <a href="reporte_ejemplo.php" class="menu-reportes-btn">
+                                <span>Ejemplo</span>
+                                <i class="fa-solid fa-lightbulb"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -321,14 +209,5 @@ session_destroy(); */
 <script src="JS/menu.js"></script>
 <script src="JS/app.js"></script>
 <script src="JS/script.js"></script>
-<script src="JS/reportes.js"></script>
-<script>
-    var tipoUsuario = "<?php echo $tipoUsuario; ?>";
-    if (tipoUsuario === "ADMINISTRADOR") {
-        llenarFiltroVendedor();
-    } else {
-        llenarFiltroCliente();
-    }
-</script>
 </body>
 </html>
