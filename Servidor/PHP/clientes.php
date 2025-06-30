@@ -821,6 +821,167 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
         echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
     }
 }
+function obtenerDatosEnvioTabla($firebaseProjectId, $firebaseApiKey, $conexionData, $noEmpresa)
+{
+    // 1) Conexión a SQL Server
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar a la base de datos',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+
+    // 2) Nombre de la tabla de clientes
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // 3) Petición a Firebase
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
+    $context = stream_context_create(['http' => ['timeout' => 10]]);
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener datos de Firebase']);
+        exit;
+    }
+    $body = json_decode($response, true);
+    if (!isset($body['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron documentos en Firebase']);
+        exit;
+    }
+
+    // 4) Filtrar y armar array de envíos
+    $datos = [];
+    foreach ($body['documents'] as $doc) {
+        $f = $doc['fields'];
+        if (
+            isset($f['noEmpresa']['integerValue'])
+            && intval($f['noEmpresa']['integerValue']) === intval($noEmpresa)
+        ) {
+            $datos[] = [
+                'idDocumento'   => basename($doc['name']),
+                'id'            => $f['id']['integerValue']       ?? null,
+                'tituloEnvio'   => $f['tituloEnvio']['stringValue'] ?? null,
+                'clienteClave'  => $f['claveCliente']['stringValue'] ?? null,
+                // inicializamos en vacío: se llenará abajo
+                'clienteNombre' => null,
+            ];
+        }
+    }
+
+    if (empty($datos)) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron envíos para esta empresa.']);
+        exit;
+    }
+
+    // 5) Obtener nombre de cliente para cada envío
+    $sql = "SELECT CLAVE, NOMBRE FROM $nombreTabla WHERE CLAVE = ?";
+    foreach ($datos as &$envio) {
+        $params = [$envio['clienteClave']];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt !== false && $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            $envio['clienteNombre'] = $row['NOMBRE'];
+        } else {
+            $envio['clienteNombre'] = '(cliente no encontrado)';
+        }
+        sqlsrv_free_stmt($stmt);
+    }
+    unset($envio);
+
+    // 6) Ordenar por título (o por cliente si prefieres)
+    usort($datos, function ($a, $b) {
+        return strcmp($a['tituloEnvio'], $b['tituloEnvio']);
+    });
+
+    // 7) Devolver JSON
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'data' => $datos]);
+    exit;
+}
+function obtenerClientes($conexionData, $claveSae)
+{
+    // 1) Conexión a SQL Server
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al conectar a la base de datos',
+            'errors'  => sqlsrv_errors()
+        ]));
+    }
+
+    // 2) Nombre de la tabla de clientes
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "SELECT
+                CLAVE,
+                NOMBRE,
+                RFC,
+                CALLE_ENVIO AS CALLE,
+                TELEFONO,
+                SALDO,
+                VAL_RFC AS EstadoDatosTimbrado,
+                NOMBRECOMERCIAL,
+                DESCUENTO
+            FROM $nombreTabla
+            WHERE STATUS = 'A'
+            ORDER BY CLAVE ASC";
+ $stmt = sqlsrv_query($conn, $sql);
+    $clientes = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        foreach ($row as $key => $value) {
+            // Limpiar espacios en blanco solo si el valor no es null
+            if ($value !== null && is_string($value)) {
+                $value = trim($value); // Eliminar espacios en blanco al principio y al final
+
+                // Verificar si el valor no está vacío antes de intentar convertirlo
+                if (!empty($value)) {
+                    // Detectar la codificación del valor
+                    $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
+
+                    // Si la codificación no se puede detectar o no es UTF-8, convertir la codificación
+                    if ($encoding && $encoding !== 'UTF-8') {
+                        $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                    }
+                }
+            } elseif ($value === null) {
+                // Si el valor es null, asignar un valor predeterminado
+                $value = '';
+            }
+
+            // Asignar el valor limpio al campo correspondiente
+            $row[$key] = $value;
+        }
+        $clientes[] = $row;
+    }
+    // Liberar recursos y cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    // Retornar los datos en formato JSON
+    if (empty($clientes)) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
+        exit;
+    }
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode(['success' => true, 'data' => $clientes]);
+}
 function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $claveSae)
 {
     $serverName = $conexionData['host'];
@@ -1038,8 +1199,7 @@ function actualizarFolio($firebaseProjectId, $firebaseApiKey, $folio)
         echo json_encode(['success' => true, 'message' => 'Datos de Envio Guardados']);
     }
 }
-function llenarDatosEnvio($id, $firebaseProjectId, $firebaseApiKey)
-{
+function llenarDatosEnvio($id, $firebaseProjectId, $firebaseApiKey){
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS/$id?key=$firebaseApiKey";
@@ -1281,8 +1441,7 @@ function obtenerDatosClienteE($conexionData, $claveUsuario, $claveSae)
     exit();
 }
 
-function datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
-{
+function datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae){
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1631,6 +1790,32 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae);
+        break;
+    case 15:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        obtenerDatosEnvioTabla($firebaseProjectId, $firebaseApiKey, $conexionData, $noEmpresa);
+        break;
+    case 16:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        obtenerClientes($conexionData, $claveSae);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

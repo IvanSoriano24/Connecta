@@ -52,11 +52,16 @@
             </a>
         </li>
         <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR") { ?>
-            <li>
-                <a href="Clientes.php" tabindex="-1">
+
+             <li>
+                <a href="#" class="dropdown-toggle-manual" tabindex="-1">
                     <i class='bx bxs-user'></i>
-                    <span class="text">Mis Clientes</span>
+                    <span class="text">Clientes</span>
                 </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="Clientes.php" tabindex="-1"><i class='bx bxs-user'></i><span class="text">Mis Clientes</span></a></li>
+                    <li><a class="dropdown-item" href="DatosEnvio.php" tabindex="-1"><i class='bx bxs-user'></i><span class="text">Datos de Envio</span></a></li>
+                </ul>
             </li>
         <?php } ?>
         <li>

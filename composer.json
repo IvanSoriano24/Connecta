@@ -1,0 +1,17 @@
+{
+    "name": "md-cloud01/md-connecta",
+    "autoload": {
+        "psr-4": {
+            "MdCloud01\\MdConnecta\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "JoseMDCloud",
+            "email": "desarrollo01@mdcloud.mx"
+        }
+    ],
+    "require": {
+        "phpoffice/phpspreadsheet": "^4.4"
+    }
+}

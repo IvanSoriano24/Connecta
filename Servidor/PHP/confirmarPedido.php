@@ -247,8 +247,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     $result = json_decode($response, true);
                     if (isset($result['name'])) {
 
-                        //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-                        $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+                        $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                        //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
                         $data = [
                             'numFuncion' => 1,
