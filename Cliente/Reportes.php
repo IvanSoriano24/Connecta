@@ -158,7 +158,7 @@ session_destroy(); */
                             <span>Ventas</span>
                         </div>
                         <div class="menu-reportes-btns">
-                            <a href="../../../../Users/Servidor/IdeaProjects/MDConnecta/Cliente/SRC/ventasCantidadesR.php" class="menu-reportes-btn">
+                            <a href="ventasCantidadesR.php" class="menu-reportes-btn">
                                 <span>Cantidades Ventas</span>
                                 <i class="fa-solid fa-chart-line"></i>
                             </a>
@@ -170,21 +170,21 @@ session_destroy(); */
                             <span>Cuentas por cobrar</span>
                         </div>
                         <div class="menu-reportes-btns">
-                            <a href="../../../../Users/Servidor/IdeaProjects/MDConnecta/Cliente/SRC/estadosCuentasGeneralR.php" class="menu-reportes-btn">
+                            <a href="estadosCuentasGeneralR.php" class="menu-reportes-btn">
                                 <span>Estados de Cuenta General</span>
                                 <i class="fa-solid fa-file-invoice-dollar"></i>
                             </a>
-                            <a href="../../../../Users/Servidor/IdeaProjects/MDConnecta/Cliente/SRC/estadosCuentasDetalladoR.php" class="menu-reportes-btn">
+                            <a href="estadosCuentasDetalladoR.php" class="menu-reportes-btn">
                                 <span>Estados de Cuenta Detallado</span>
                                 <i class="fa-solid fa-file-invoice-dollar"></i>
                             </a>
-                            <a href="../../../../Users/Servidor/IdeaProjects/MDConnecta/Cliente/SRC/cobranzaGeneralR.php" class="menu-reportes-btn">
+                            <a href="cobranzaGeneralR.php" class="menu-reportes-btn">
                                 <span>Cobranza General</span>
                                 <i class="fa-solid fa-sack-dollar"></i>
                             </a>
                         </div>
                     </div>
-                    <!-- Ejemplo -->
+                    <!-- 
                     <div class="menu-reportes-group">
                         <div class="menu-reportes-title">
                             <span>Ejemplo</span>
@@ -196,6 +196,7 @@ session_destroy(); */
                             </a>
                         </div>
                     </div>
+                     -->
                 </div>
             </div>
         </main>

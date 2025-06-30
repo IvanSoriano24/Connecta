@@ -358,7 +358,7 @@ session_destroy(); */
 <script src="JS/menu.js"></script>
 <script src="JS/app.js"></script>
 <script src="JS/script.js"></script>
-<script src="../../../../Users/Servidor/IdeaProjects/MDConnecta/Cliente/JS/cobranzaGeneralR.js"></script>
+<script src="JS/cobranzaGeneralR.js"></script>
 <script>
     var tipoUsuario = "<?php echo $tipoUsuario; ?>";
     if (tipoUsuario === "ADMINISTRADOR") {
