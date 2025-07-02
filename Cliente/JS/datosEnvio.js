@@ -30,6 +30,15 @@ function obtenerDatosTabla() {
             cellVisualizar.appendChild(btnVisualizar);
             row.appendChild(cellVisualizar);
 
+            // Celda para el botón de Editar
+            const cellEditar = document.createElement("td");
+            const btnEditar = document.createElement("button");
+            btnEditar.textContent = "Editar";
+            btnEditar.classList.add("btn", "btn-info");
+            btnEditar.onclick = () => editarDatos(correo.idDocumento); // Implementa la función visualizarCorreo
+            cellEditar.appendChild(btnEditar);
+            row.appendChild(cellEditar);
+
             tablaBody.appendChild(row);
           });
         } else {
@@ -282,6 +291,13 @@ function visualizarDatos(id) {
   // Abrir el modal
   const modalEnvio = new bootstrap.Modal(document.getElementById("modalEnvio"));
   obtenerEstados();
+  obtenerDatosEnvioVisualizar(id);
+  modalEnvio.show();
+}
+function editarDatos(id) {
+  // Abrir el modal
+  const modalEnvio = new bootstrap.Modal(document.getElementById("modalEnvio"));
+  obtenerEstados();
   obtenerDatosEnvioEditar(id);
   modalEnvio.show();
 }
@@ -355,6 +371,49 @@ function obtenerMunicipios(edo, municipio) {
         text: "Error al obtener la lista de estados.",
       });
     },
+  });
+}
+function obtenerDatosEnvioVisualizar(id) {
+  $.post(
+    "../Servidor/PHP/clientes.php",
+    { numFuncion: "7", idDocumento: id },
+    function (response) {
+      if (response.success && response.data) {
+        const data = response.data.fields;
+        const edo = data.estado.stringValue;
+        const municipio = data.municipio.stringValue;
+
+        // 1) Habilito el select (si no debe ser sólo lectura)
+        $("#estadoContacto").prop("disabled", true);
+        $("#nombreContacto").prop("disabled", true);
+
+        // 2) Cargo la lista de estados, y en su callback selecciono el que venga
+        obtenerEstados().then(() => {
+          // aquí el select ya está lleno de <option value="XXX">Estado XXX</option>
+          $("#estadoContacto").val(edo);
+
+          // Ya que el estado está seleccionado, cargo municipios pasándole el valor
+          obtenerMunicipios(edo, municipio);
+        });
+
+        // resto de campos
+        $("#idDatos").val(id);
+        $("#folioDatos").val(data.id.integerValue);
+        $("#nombreContacto").val(data.nombreContacto.stringValue);
+        $("#titutoDatos").val(data.tituloEnvio.stringValue);
+        $("#compañiaContacto").val(data.compania.stringValue);
+        $("#telefonoContacto").val(data.telefonoContacto.stringValue);
+        $("#correoContacto").val(data.correoContacto.stringValue);
+        $("#direccion1Contacto").val(data.linea1.stringValue);
+        $("#direccion2Contacto").val(data.linea2.stringValue);
+        $("#codigoContacto").val(data.codigoPostal.stringValue);
+      } else {
+        Swal.fire("Error", response.message || "No se pudo obtener datos.", "error");
+      }
+    },
+    "json"
+  ).fail(() => {
+    Swal.fire("Error", "Fallo la petición al servidor.", "error");
   });
 }
 function obtenerDatosEnvioEditar(id) {

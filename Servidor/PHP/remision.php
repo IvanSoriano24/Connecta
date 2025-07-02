@@ -87,8 +87,7 @@ function actualizarControl($conexionData, $claveSae)
 
     //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
 }
-function actualizarFolios($conexionData, $claveSae)
-{
+function actualizarFolios($conexionData, $claveSae){
     // Establecer conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -3115,14 +3114,16 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     actualizarInve3($conexionData, $pedidoId, $claveSae);
     actualizarInveClaro($conexionData, $pedidoId, $claveSae);
     actualizarInveAmazon($conexionData, $pedidoId, $claveSae);
-    actualizarMulti2($conexionData, $pedidoId, $claveSae); //No Terminada
+    actualizarMulti2($conexionData, $pedidoId, $claveSae); 
+
     actualizarAfac($conexionData, $pedidoId, $claveSae);
 
     $CVE_BITA = insertarBita($conexionData, $pedidoId, $claveSae);
     //var_dump("Bita: ", $CVE_BITA);
     actualizarControl3($conexionData, $claveSae);
     $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae);
-    var_dump("Envio: ", $DAT_ENVIO);
+    //actualizamos
+    //var_dump("Envio: ", $DAT_ENVIO);
     $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $pedidoId);
     //var_dump("Cliente: ", $DAT_MOSTR);
 
@@ -3147,7 +3148,6 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     //actualizarControl2($conexionData, $claveSae); //?
     //actualizarControl5($conexionData, $claveSae); //?
     actualizarControl6($conexionData, $claveSae);
-    actualizarControl7($conexionData, $claveSae);
 
     foreach ($enlaceLote as $enlace) {
         actualizarDatosComanda(
@@ -3360,6 +3360,7 @@ function validarLotes($conexionData, $pedidoId, $claveSae)
         actualizarLotes($conn, $conexionData, $lotesUtilizados, $claveProducto, $claveSae);
         /*******************/
         $resultadoPorProducto = insertarEnlaceLTPD($conn, $conexionData, $lotesUtilizados, $claveSae, $claveProducto);
+        actualizarControl7($conexionData, $claveSae);
         // Si esa función te devuelve un array de 1 o varios elementos,
         // mézclalos todos en tu array maestro:
         $enlaceLTPDResultados = array_merge(

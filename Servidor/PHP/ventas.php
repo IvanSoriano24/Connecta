@@ -4566,7 +4566,6 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
 }
 function validarCorreoClienteEcomers($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $noEmpresa)
 {
-
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -8658,7 +8657,7 @@ switch ($funcion) {
                     guardarPedidoEcomers($conexionData, $formularioData, $partidasData, $claveSae);
                     guardarPartidasEcomers($conexionData, $formularioData, $partidasData, $claveSae);
                     actualizarInventarioEcomers($conexionData, $partidasData, $claveSae);
-                    actualizarFolio($conexionData, $claveSae);
+                    //actualizarFolio($conexionData, $claveSae);
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa);
                     validarCorreoClienteEcomers($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $noEmpresa);
                     comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey); //ROLLBACK
