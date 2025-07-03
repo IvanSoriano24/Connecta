@@ -4933,6 +4933,57 @@ function validarSaldoE($conexionData, $clave, $claveSae)
         return -1; // Código de error
     }
 }
+
+function guardarDatosPedido($envioData, $noEmpresa) {
+    global $firebaseProjectId, $firebaseApiKey;
+
+    // Construir los fields de Firestore con el formato correcto
+    $fields = [
+        'idPedido'            => ['stringValue'  => $envioData['idDocumento']],
+        'noEmpresa'           => ['integerValue' => (int)$noEmpresa],
+        'nombreContacto'      => ['stringValue'  => $envioData['nombreContacto']],
+        'companiaContacto'    => ['stringValue'  => $envioData['compañiaContacto']],
+        'telefonoContacto'    => ['stringValue'  => $envioData['telefonoContacto']],
+        'correoContacto'      => ['stringValue'  => $envioData['correoContacto']],
+        'direccion1Contacto'  => ['stringValue'  => $envioData['direccion1Contacto']],
+        'direccion2Contacto'  => ['stringValue'  => $envioData['direccion2Contacto']],
+        'codigoContacto'      => ['stringValue'  => $envioData['codigoContacto']],
+        'estadoContacto'      => ['stringValue'  => $envioData['estadoContacto']],
+        'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']]
+    ];
+
+    // Prepara la URL de la colección
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO?key=$firebaseApiKey";
+
+    $payload = json_encode(['fields' => $fields]);
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+        ]
+    ];
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        $error = error_get_last();
+        echo json_encode(['success' => false, 'message' => $error['message']]);
+        exit;
+    }
+
+    // Extrae el nombre/id del documento creado en Firestore
+    $resData = json_decode($response, true);
+    if (isset($resData['name'])) {
+        // El id es la última parte de la URL del campo "name"
+        $parts = explode('/', $resData['name']);
+        return end($parts);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se pudo obtener el id del documento']);
+        exit;
+    }
+}
+
 function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO, $envioData)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -4976,7 +5027,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
         $CVE_ART = $partida['producto'];
         $partida['descripcion'] = obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae, $conn);
     }
-    // Preparar los campos que se guardarán en Firebase 
+    // Preparar los campos que se guardarán en Firebase
     $fields = [
         'folio'       => ['stringValue' => (string)$FOLIO],
         'cliente'     => ['stringValue' => $formularioData['cliente']],
@@ -5031,7 +5082,7 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
 
     // Finalmente, enviamos todo a Firestore
     $url = "https://firestore.googleapis.com/v1/projects/"
-         . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+        . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
 
     $payload = json_encode(['fields' => $fields]);
     $options = [
@@ -8253,6 +8304,7 @@ switch ($funcion) {
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $FOLIO); //ROLLBACK
                             actualizarInventario($conexionData, $partidasData, $conn); //ROLLBACK
                             if ($validarSaldo == 0 && $credito == 0) {
+                                guardarDatosPedido($envioData, $noEmpresa);
                                 $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
                                 validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO, $envioData);
                                 sqlsrv_commit($conn);
