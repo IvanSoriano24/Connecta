@@ -88,6 +88,7 @@ if (isset($_SESSION['usuario'])) {
                                                 <th>Cliente</th>
                                                 <th>Titulo de Envio</th>
                                                 <th>Visualizar</th>
+                                                <th>Editar</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -267,7 +268,7 @@ if (isset($_SESSION['usuario'])) {
             </div>
         </div>
     </div>
-    <!-- Modal de edición de correo -->
+    <!-- Modal de visualizacion de correo -->
     <div id="modalEnvio" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -337,6 +338,89 @@ if (isset($_SESSION['usuario'])) {
                             <div class="mb-3">
                                 <label for="municipioContacto" class="form-label">Municipio <span class="text-danger">*</span></label>
                                 <select id="municipioContacto" class="form-select" disabled>
+                                    <option selected disabled>Selecciona un municipio</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- botones al pie -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cerrarModalFooter">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de edicion -->
+     <div id="modalEnvioEditar" class="modal fade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Datos de Envío</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formularioEnvioEditar" class="px-4 pb-4">
+                    <!-- selector y botón de nuevo dato -->
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-8 d-flex align-items-center">
+                            <div class="mb-3">
+                                <label for="titutoDatosEditar" class="form-label">Titulo de Envio <span class="text-danger">*</span></label>
+                                <input type="text" id="titutoDatosEditar" class="form-control" required>
+                            </div>
+                        </div>
+                    </div> 
+
+                    <!-- campos ocultos -->
+                    <input type="hidden" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
+                    <input type="hidden" id="folioDatosEditar" value="">
+                    <input type="hidden" id="idDatosEditar" value="">
+                    <input type="hidden" id="titutoDatosEditar" value="">
+
+                    <!-- Sección: Datos de contacto -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Dirección</h6>
+                            <div class="mb-3">
+                                <label for="nombreContacto" class="form-label">Nombre del contacto <span class="text-danger">*</span></label>
+                                <input type="text" id="nombreContactoEditar" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="compañiaContacto" class="form-label">Compañía <span class="text-danger">*</span></label>
+                                <input type="text" id="compañiaContactoEditar" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="telefonoContacto" class="form-label">Teléfono <span class="text-danger">*</span></label>
+                                <input type="tel" id="telefonoContactoEditar" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="correoContacto" class="form-label">Correo electrónico <span class="text-danger">*</span></label>
+                                <input type="email" id="correoContactoEditar" class="form-control">
+                            </div>
+                        </div>
+                        <!-- Sección: Datos de dirección -->
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Detalles de la dirección</h6>
+                            <div class="mb-3">
+                                <label for="direccion1Contacto" class="form-label">Línea 1 <span class="text-danger">*</span></label>
+                                <input type="text" id="direccion1ContactoEditar" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="direccion2Contacto" class="form-label">Línea 2 <span class="text-danger">*</span></label>
+                                <input type="text" id="direccion2ContactoEditar" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="codigoContacto" class="form-label">Código Postal <span class="text-danger">*</span></label>
+                                <input type="text" id="codigoContactoEditar" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>
+                                <select id="estadoContactoEditar" class="form-select" >
+                                    <option selected disabled>Selecciona un estado</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="municipioContacto" class="form-label">Municipio <span class="text-danger">*</span></label>
+                                <select id="municipioContactoEditar" class="form-select">
                                     <option selected disabled>Selecciona un municipio</option>
                                 </select>
                             </div>

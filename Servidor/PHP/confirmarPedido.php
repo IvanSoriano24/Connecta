@@ -146,17 +146,31 @@ function formatearClaveVendedor($clave)
 //Verificamos si se recibe los datos
 if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     //Guardamos los datos recibidos en variables
-    $pedidoId = $_GET['pedidoId'] ?? "";
-    $accion = $_GET['accion'];
-    $nombreCliente = urldecode($_GET['nombreCliente'] ?? 'Desconocido');
-    $enviarA = urldecode($_GET['enviarA'] ?? 'No especificado');
-    $vendedor = urldecode($_GET['vendedor'] ?? 'Sin vendedor');
-    $claveSae = $_GET['claveSae'] ?? "";
-    $claveCliente = $_GET['claveCliente'] ?? "";
-    $noEmpresa = $_GET['noEmpresa'] ?? "";
-    $clave = $_GET['clave'] ?? "";
-    $conCredito = $_GET['conCredito'] ?? "";
+    $pedidoId         = $_GET['pedidoId'] ?? "";
+    $accion           = $_GET['accion'];
+    $nombreCliente    = urldecode($_GET['nombreCliente'] ?? 'Desconocido');
+    $enviarA          = urldecode($_GET['enviarA'] ?? 'No especificado');
+    $vendedor         = urldecode($_GET['vendedor'] ?? 'Sin vendedor');
+    $claveSae         = $_GET['claveSae'] ?? "";
+    $claveCliente     = $_GET['claveCliente'] ?? "";
+    $noEmpresa        = $_GET['noEmpresa'] ?? "";
+    $clave            = $_GET['clave'] ?? "";
+    $conCredito       = $_GET['conCredito'] ?? "";
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
+    // --- aquí decodificamos el envío completo ---
+    $envioData = [];
+    if (!empty($_GET['envioData'])) {
+        // primero deshacemos el urlencode y luego json_decode
+        $raw = urldecode($_GET['envioData']);
+        $decoded = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            $envioData = $decoded;
+        } else {
+            // JSON inválido, podrías loguearlo o asignar valores por default
+            $envioData = [];
+        }
+    }
+
     //Verificamos si el pedido ya fue aceptado
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
     if ($resultado) {
@@ -189,6 +203,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 $comanda = [
                     "fields" => [
                         "idComanda" => ["stringValue" => uniqid()],
+                        "idDatos" => ["stringValue" => $idDatos],
                         "folio" => ["stringValue" => $pedidoId],
                         "claveCliente" => ["stringValue" => $claveCliente],
                         "nombreCliente" => ["stringValue" => $nombreCliente],

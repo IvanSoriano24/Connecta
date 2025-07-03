@@ -287,6 +287,102 @@ function guardarDatosEnvio() {
     },
   });
 }
+function actualizarDatos() {
+  // 1. Obtener el ID del cliente seleccionado
+  const idDatosEditar = document.getElementById("idDatosEditar").value;
+
+  // 2. Leer todos los campos del formulario de nuevo envío
+  const tituloEnvio = document.getElementById("titutoDatosEditar").value;
+  const nombreContacto = document.getElementById("nombreContactoEditar").value;
+  const compañia = document.getElementById("compañiaContactoEditar").value;
+  const telefonoContacto = document.getElementById(
+    "telefonoContactoEditar"
+  ).value;
+  const correoContacto = document.getElementById("correoContactoEditar").value;
+  const linea1Contacto = document.getElementById(
+    "direccion1ContactoEditar"
+  ).value;
+  const linea2Contacto = document.getElementById(
+    "direccion2ContactoEditar"
+  ).value;
+  const codigoContacto = document.getElementById("codigoContactoEditar").value;
+  const estadoContacto = document.getElementById("estadoContactoEditar").value;
+  const municipioContacto = document.getElementById(
+    "municipioContactoEditar"
+  ).value;
+
+  // 3. Validar que no falte ninguno de los campos requeridos
+  if (
+    !idDatosEditar ||
+    !nombreContacto ||
+    !tituloEnvio ||
+    !compañia ||
+    !correoContacto ||
+    !telefonoContacto ||
+    !linea1Contacto ||
+    !linea2Contacto ||
+    !codigoContacto ||
+    !estadoContacto ||
+    !municipioContacto
+  ) {
+    Swal.fire({
+      icon: "warning",
+      title: "Aviso",
+      text: "Faltan datos.",
+    });
+    return; // Abortamos si falta algún campo
+  }
+
+  // 4. Enviar los datos al servidor vía AJAX
+  $.ajax({
+    url: "../Servidor/PHP/clientes.php", // Punto final en PHP que procesará el guardado
+    method: "POST",
+    data: {
+      numFuncion: "17", // Identificador de la función en el servidor
+      idDocumento: idDatosEditar, // ID del cliente al que pertenece esta dirección
+      tituloEnvio: tituloEnvio, // Título o alias de la dirección
+      nombreContacto: nombreContacto,
+      compañia: compañia,
+      telefonoContacto: telefonoContacto,
+      correoContacto: correoContacto,
+      linea1Contacto: linea1Contacto,
+      linea2Contacto: linea2Contacto,
+      codigoContacto: codigoContacto,
+      estadoContacto: estadoContacto,
+      municipioContacto: municipioContacto,
+    },
+    dataType: "json",
+    success: function (envios) {
+      // Esta función se ejecuta si la petición AJAX devuelve HTTP 200
+      if (envios.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Se guardaron los nuevos datos de envío.",
+        }).then(() => {
+          // Cuando cierren el cuadro de alerta, ocultamos el modal y recargamos listados
+          $("#modalEnvioEditar").modal("hide");
+          //mostrarMoldal(); // Suponemos que esta función recarga la lista de envíos
+        });
+      } else {
+        // Si success = false, mostramos advertencia con el mensaje del servidor
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: envios.message || "No se pudieron guardar los datos de envío.",
+        });
+      }
+    },
+    error: function () {
+      // Si la petición AJAX falla (500, 404, etc.)
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al guardar los datos de envío.",
+      });
+    },
+  });
+}
 function visualizarDatos(id) {
   // Abrir el modal
   const modalEnvio = new bootstrap.Modal(document.getElementById("modalEnvio"));
@@ -296,7 +392,7 @@ function visualizarDatos(id) {
 }
 function editarDatos(id) {
   // Abrir el modal
-  const modalEnvio = new bootstrap.Modal(document.getElementById("modalEnvio"));
+  const modalEnvio = new bootstrap.Modal(document.getElementById("modalEnvioEditar"));
   obtenerEstados();
   obtenerDatosEnvioEditar(id);
   modalEnvio.show();
@@ -310,6 +406,34 @@ function obtenerEstados() {
   })
     .done(function (resEstado) {
       const $sel = $("#estadoContacto")
+        .prop("disabled", false)
+        .empty()
+        .append("<option selected disabled>Selecciona un Estado</option>");
+      if (resEstado.success && Array.isArray(resEstado.data)) {
+        resEstado.data.forEach((e) => {
+          $sel.append(`<option value="${e.Clave}">${e.Descripcion}</option>`);
+        });
+      } else {
+        Swal.fire(
+          "Aviso",
+          resEstado.message || "No se encontraron estados.",
+          "warning"
+        );
+      }
+    })
+    .fail(function () {
+      Swal.fire("Error", "No pude cargar la lista de estados.", "error");
+    });
+}
+function obtenerEstadosEditar() {
+  return $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "22" },
+    dataType: "json",
+  })
+    .done(function (resEstado) {
+      const $sel = $("#estadoContactoEditar")
         .prop("disabled", false)
         .empty()
         .append("<option selected disabled>Selecciona un Estado</option>");
@@ -355,6 +479,50 @@ function obtenerMunicipios(edo, municipio) {
           );
         });
         $("#municipioContacto").val(municipio);
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resMunicipio.message || "No se encontraron municipios.",
+        });
+        //$("#municipioNuevoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
+function obtenerMunicipiosEditar(edo, municipio) {
+  // Habilitamos el select
+  //$("#estadoContacto").prop("disabled", false);
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "23", estado: edo },
+    dataType: "json",
+    success: function (resMunicipio) {
+      if (resMunicipio.success && Array.isArray(resMunicipio.data)) {
+        const $municipioNuevoContacto = $("#municipioContactoEditar");
+        $municipioNuevoContacto.empty();
+        $municipioNuevoContacto.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+       
+        resMunicipio.data.forEach((municipio) => {
+          $municipioNuevoContacto.append(
+            `<option value="${municipio.Clave}" 
+                data-estado="${municipio.Estado}"
+                data-Descripcion="${municipio.Descripcion || ""}">
+                ${municipio.Descripcion}
+              </option>`
+          );
+        });
+        $("#municipioContactoEditar").val(municipio);
       } else {
         Swal.fire({
           icon: "warning",
@@ -427,29 +595,29 @@ function obtenerDatosEnvioEditar(id) {
         const municipio = data.municipio.stringValue;
 
         // 1) Habilito el select (si no debe ser sólo lectura)
-        $("#estadoContacto").prop("disabled", true);
-        $("#nombreContacto").prop("disabled", true);
+        //$("#estadoContactoEditar").prop("disabled", true);
+        //$("#nombreContactoEditar").prop("disabled", true);
 
         // 2) Cargo la lista de estados, y en su callback selecciono el que venga
-        obtenerEstados().then(() => {
+        obtenerEstadosEditar().then(() => {
           // aquí el select ya está lleno de <option value="XXX">Estado XXX</option>
-          $("#estadoContacto").val(edo);
+          $("#estadoContactoEditar").val(edo);
 
           // Ya que el estado está seleccionado, cargo municipios pasándole el valor
-          obtenerMunicipios(edo, municipio);
+          obtenerMunicipiosEditar(edo, municipio);
         });
 
         // resto de campos
-        $("#idDatos").val(id);
-        $("#folioDatos").val(data.id.integerValue);
-        $("#nombreContacto").val(data.nombreContacto.stringValue);
-        $("#titutoDatos").val(data.tituloEnvio.stringValue);
-        $("#compañiaContacto").val(data.compania.stringValue);
-        $("#telefonoContacto").val(data.telefonoContacto.stringValue);
-        $("#correoContacto").val(data.correoContacto.stringValue);
-        $("#direccion1Contacto").val(data.linea1.stringValue);
-        $("#direccion2Contacto").val(data.linea2.stringValue);
-        $("#codigoContacto").val(data.codigoPostal.stringValue);
+        $("#idDatosEditar").val(id);
+        $("#folioDatosEditar").val(data.id.integerValue);
+        $("#nombreContactoEditar").val(data.nombreContacto.stringValue);
+        $("#titutoDatosEditar").val(data.tituloEnvio.stringValue);
+        $("#compañiaContactoEditar").val(data.compania.stringValue);
+        $("#telefonoContactoEditar").val(data.telefonoContacto.stringValue);
+        $("#correoContactoEditar").val(data.correoContacto.stringValue);
+        $("#direccion1ContactoEditar").val(data.linea1.stringValue);
+        $("#direccion2ContactoEditar").val(data.linea2.stringValue);
+        $("#codigoContactoEditar").val(data.codigoPostal.stringValue);
       } else {
         Swal.fire("Error", response.message || "No se pudo obtener datos.", "error");
       }

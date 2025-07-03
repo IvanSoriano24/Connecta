@@ -2163,7 +2163,7 @@ function obtenerFolioSiguientePedidoE($conexionData, $claveSae)
     return $folioSiguiente;
 }
 // Función para validar si el cliente tiene correo
-function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO)
+function validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO, $envioData)
 {
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -2248,11 +2248,11 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         // Enviar notificaciones solo si los datos son válidos
         if ($correoBandera === 0) {
-            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $envioData); // Enviar correo
         }
 
         if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $envioData);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -2273,8 +2273,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         } else {
             $emailPred = $_SESSION['usuario']['correo'];
             $numeroWhatsApp = $_SESSION['usuario']['telefono'];
-            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $envioData); // Enviar correo
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $envioData);
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
             //die();
         }
@@ -2337,9 +2337,9 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -2487,23 +2487,15 @@ function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
 
     return $result;
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $envioData)
 {
     //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-
+    $id = $envioData['idDocumento'];
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-    // ✅ Verifica que los valores no estén vacíos
-    if (empty($noPedido) || empty($claveSae)) {
-        error_log("Error: noPedido o noEmpresa están vacíos.");
-        return false;
-    }
-    $productosJson = urlencode(json_encode($partidasData));
-    // ✅ Generar URLs dinámicas correctamente
-    // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente);
-    //$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido  
+
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idDatos=" . urlencode($id);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 
     // ✅ Construir la lista de productos
@@ -2610,11 +2602,10 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     return $result;
 }
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData)
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $datosEnvio)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
-
     // Definir el remitente (si no está definido, se usa uno por defecto)
     $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
     $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
@@ -2636,12 +2627,70 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
-    // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
-    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa);
+    // 1) Parámetros habituales
+    $paramsFijos = [
+        'pedidoId'      => $noPedido,
+        'accion'        => 'confirmar',
+        'nombreCliente' => $clienteNombre,
+        'enviarA'       => $enviarA,
+        'vendedor'      => $vendedor,
+        'fechaElab'     => $fechaElaboracion,
+        'claveSae'      => $claveSae,
+        'noEmpresa'     => $noEmpresa,
+        'clave'         => $clave,
+        'conCredito'    => $conCredito,
+    ];
+
+    // 2) Tu array de datos de envío
+    $envioData = [
+        'claveVendedor'      => $datosEnvio['claveVendedor'],
+        'idDocumento'        => $datosEnvio['idDocumento'],
+        'nombreContacto'     => $datosEnvio['nombreContacto'],
+        'compañiaContacto'   => $datosEnvio['compañiaContacto'],
+        'diaAlta'            => $datosEnvio['diaAlta'],
+        'fechaAlta'          => $datosEnvio['fechaAlta'],
+        'telefonoContacto'   => $datosEnvio['telefonoContacto'],
+        'correoContacto'     => $datosEnvio['correoContacto'],
+        'direccion1Contacto' => $datosEnvio['direccion1Contacto'],
+        'direccion2Contacto' => $datosEnvio['direccion2Contacto'],
+        'codigoContacto'     => $datosEnvio['codigoContacto'],
+        'estadoContacto'     => $datosEnvio['estadoContacto'],
+        'municipioContacto'  => $datosEnvio['municipioContacto'],
+    ];
+
+    // 3) Serializamos y codificamos el JSON
+    $jsonEnvio = rawurlencode(json_encode($envioData));
+
+    // 4) Construimos la URL
+    $urlConfirmar = sprintf(
+        "%s/confirmarPedido.php?%s&envioData=%s",
+        $urlBase,
+        http_build_query($paramsFijos),
+        $jsonEnvio
+    );
+    // Parámetros “fijos” para rechazo
+    $paramsRechazo = [
+        'pedidoId'      => $noPedido,
+        'accion'        => 'rechazar',
+        'nombreCliente' => $clienteNombre,
+        'vendedor'      => $vendedor,
+        'fechaElab'     => $fechaElaboracion,
+        'claveSae'      => $claveSae,
+        'noEmpresa'     => $noEmpresa,
+    ];
+    // Serializamos el mismo $envioData que antes:
+    $jsonEnvio = rawurlencode(json_encode($envioData));
+
+    // Construimos la URL de rechazo
+    $urlRechazar = sprintf(
+        "%s/confirmarPedido.php?%s&envioData=%s",
+        $urlBase,
+        http_build_query($paramsRechazo),
+        $jsonEnvio
+    );
 
     // Construcción del cuerpo del correo
     $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
@@ -4501,8 +4550,8 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -4682,8 +4731,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -4885,7 +4934,7 @@ function validarSaldoE($conexionData, $clave, $claveSae)
         return -1; // Código de error
     }
 }
-function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO)
+function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO, $envioData)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -4930,68 +4979,79 @@ function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, 
     }
     // Preparar los campos que se guardarán en Firebase 
     $fields = [
-        'folio'     => ['stringValue' => $FOLIO],
-        'cliente'    => ['stringValue' => $formularioData['cliente']],
-        'ordenCompra'    => ['stringValue' => $formularioData['ordenCompra']],
-        'enviar'     => ['stringValue' => isset($formularioData['enviar']) ? $formularioData['enviar'] : ''],
-        'vendedor'   => ['stringValue' => isset($formularioData['vendedor']) ? $formularioData['vendedor'] : ''],
-        'diaAlta'    => ['stringValue' => isset($formularioData['fechaAlta']) ? $formularioData['fechaAlta'] : ''],
-        //'partidas'   => ['stringValue' => json_encode($partidasData)], // Guardamos las partidas como JSON
-        "partidas" => [
-            "arrayValue" => [
-                "values" => array_map(function ($partidasData) {
-                    return [
-                        "mapValue" => [
-                            "fields" => [
-                                "cantidad" => ["stringValue" => $partidasData["cantidad"]],
-                                "producto" => ["stringValue" => $partidasData["producto"]],
-                                "unidad" => ["stringValue" => $partidasData["unidad"]],
-                                "descuento" => ["stringValue" => $partidasData["descuento"]],
-                                "ieps" => ["stringValue" => $partidasData["ieps"]],
-                                "impuesto2" => ["stringValue" => $partidasData["impuesto2"]],
-                                "isr" => ["stringValue" => $partidasData["isr"]],
-                                "iva" => ["stringValue" => $partidasData["iva"]],
-                                "comision" => ["stringValue" => $partidasData["comision"]],
-                                "precioUnitario" => ["stringValue" => $partidasData["precioUnitario"]],
-                                "subtotal" => ["stringValue" => $partidasData["subtotal"]],
-                                "descripcion" => ["stringValue" => $partidasData["descripcion"]],
-                            ]
-                        ]
-                    ];
-                }, $partidasData)
-            ]
+        'folio'       => ['stringValue' => (string)$FOLIO],
+        'cliente'     => ['stringValue' => $formularioData['cliente']],
+        'ordenCompra' => ['stringValue' => $formularioData['ordenCompra']],
+        'enviar'      => ['stringValue' => $formularioData['enviar'] ?? ''],
+        'vendedor'    => ['stringValue' => $formularioData['vendedor'] ?? ''],
+        'diaAlta'     => ['stringValue' => $formularioData['fechaAlta'] ?? ''],
+        'partidas'    => [
+            'arrayValue' => ['values' => array_map(function($p) {
+                return [
+                    'mapValue' => ['fields' => [
+                        'cantidad'       => ['stringValue' => $p['cantidad']],
+                        'producto'       => ['stringValue' => $p['producto']],
+                        'unidad'         => ['stringValue' => $p['unidad']],
+                        'descuento'      => ['stringValue' => $p['descuento']],
+                        'ieps'           => ['stringValue' => $p['ieps']],
+                        'impuesto2'      => ['stringValue' => $p['impuesto2']],
+                        'isr'            => ['stringValue' => $p['isr']],
+                        'iva'            => ['stringValue' => $p['iva']],
+                        'comision'       => ['stringValue' => $p['comision']],
+                        'precioUnitario' => ['stringValue' => $p['precioUnitario']],
+                        'subtotal'       => ['stringValue' => $p['subtotal']],
+                        'descripcion'    => ['stringValue' => $p['descripcion']],
+                    ]]
+                ];
+            }, $partidasData)]
         ],
-        'importe'   => ['doubleValue' => $IMPORTE],
+        'importe'    => ['doubleValue' => $IMPORTE],
         'claveSae'   => ['stringValue' => $claveSae],
         'noEmpresa'  => ['integerValue' => $noEmpresa],
-        'status' => ['stringValue' => 'Sin Autorizar']
+        'status'     => ['stringValue' => 'Sin Autorizar'],
     ];
 
-    // URL para crear un nuevo documento en la colección PEDIDOS_AUTORIZAR
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+    // **AÑADE AQUÍ** los datos de envío:
+    $fields['envio'] = [
+        'mapValue' => ['fields' => [
+            'claveVendedor'      => ['stringValue'  => $envioData['claveVendedor']],
+            'idDocumento'        => ['stringValue'  => $envioData['idDocumento']],
+            'nombreContacto'     => ['stringValue'  => $envioData['nombreContacto']],
+            'companiaContacto'   => ['stringValue'  => $envioData['compañiaContacto']],
+            'diaAlta'            => ['stringValue'  => $envioData['diaAlta']],
+            'fechaAlta'          => ['stringValue'  => $envioData['fechaAlta']],
+            'telefonoContacto'   => ['stringValue'  => $envioData['telefonoContacto']],
+            'correoContacto'     => ['stringValue'  => $envioData['correoContacto']],
+            'direccion1Contacto' => ['stringValue'  => $envioData['direccion1Contacto']],
+            'direccion2Contacto' => ['stringValue'  => $envioData['direccion2Contacto']],
+            'codigoContacto'     => ['stringValue'  => $envioData['codigoContacto']],
+            'estadoContacto'     => ['stringValue'  => $envioData['estadoContacto']],
+            'municipioContacto'  => ['stringValue'  => $envioData['municipioContacto']],
+        ]]
+    ];
 
-    // Crear el payload a enviar
+    // Finalmente, enviamos todo a Firestore
+    $url = "https://firestore.googleapis.com/v1/projects/"
+         . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+
     $payload = json_encode(['fields' => $fields]);
-
-    // Configurar las opciones HTTP para el POST
     $options = [
         'http' => [
             'header'  => "Content-Type: application/json\r\n",
             'method'  => 'POST',
             'content' => $payload,
-        ],
+        ]
     ];
-    $context = stream_context_create($options);
-
-    // Ejecutar la petición a Firebase
+    $context  = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
 
-    if ($response === FALSE) {
+    if ($response === false) {
         $error = error_get_last();
-        echo json_encode(['success' => false, 'message' => $error]);
-        die();
+        echo json_encode(['success' => false, 'message' => $error['message']]);
+        exit;
     }
     //echo json_encode(['success' => true, 'message' => 'Pedido guardado y en espera de ser autorizado.']);
+    //exit;
 }
 function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
 {
@@ -5207,7 +5267,7 @@ function NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasDa
         'DOCTO'       => trim($anticipo['DOCTO'])
     ];
 }
-function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn)
+function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn, $envioData)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -5232,6 +5292,7 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
     $vendedor = $formularioData['vendedor'];
     $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
     $fechaLimite = date("Y-m-d H:i:s", strtotime($fechaCreacion . ' + 2 day')); // Suma 72 horas
+    $id = $envioData['idDocumento'];
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
     $fields = [
         'folio'     => ['stringValue' => (string)$folio],
@@ -5242,7 +5303,8 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
         'creacion' => ['stringValue' => $fechaCreacion],
         'limite' => ['stringValue' => $fechaLimite],
         'vendedor' => ['stringValue' => $vendedor],
-        'buscar' => ['booleanValue' => false]
+        'buscar' => ['booleanValue' => false],
+        'idDatos' => ['stringValue' => $id]
     ];
 
     $payload = json_encode(['fields' => $fields]);
@@ -6067,8 +6129,8 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     $productosJson = urlencode(json_encode($partidasData));
     $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
@@ -6577,8 +6639,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
@@ -6826,9 +6888,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
     //$numero = "7775681612";
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
     //$numero = "+527773340218";
-    //$numero = "+527773750925";
+    $numero = "+527773750925";
     //$numero = '+527775681612';
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
@@ -6939,8 +7001,8 @@ function facturar($folio, $claveSae, $noEmpresa)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -7050,7 +7112,7 @@ function obtenerNombreCliente($cliente, $conexionData, $claveSae)
 
     return $nombre;
 }
-function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey)
+function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $envioData)
 {
     date_default_timezone_set('America/Mexico_City');
 
@@ -7061,10 +7123,12 @@ function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexio
     $producto = obtenerProductosComanda($formularioData['numero'], $conexionData, $claveSae);
     $vendedor = obtenerNombreVendedor($formularioData['claveVendedor'], $conexionData, $claveSae);
     $nombreCliente = obtenerNombreCliente($formularioData['cliente'], $conexionData, $claveSae);
+    $id = $envioData['idDocumento'];
     // Preparar datos para Firebase
     $comanda = [
         "fields" => [
             "idComanda" => ["stringValue" => uniqid()],
+            "idDatos" => ["stringValue" => $id],
             "folio" => ["stringValue" => $folio],
             "nombreCliente" => ["stringValue" => $nombreCliente],
             "claveCliente" => ["stringValue" => $formularioData['cliente']],
@@ -7848,8 +7912,8 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
 
@@ -8185,17 +8249,17 @@ switch ($funcion) {
                             $FOLIO = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito); //ROLLBACK
                             //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
                             //actualizarFolio($conexionData, $claveSae, $conn); //ROLLBACK
-                            actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
+                            //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $FOLIO); //ROLLBACK
                             actualizarInventario($conexionData, $partidasData, $conn); //ROLLBACK
                             if ($validarSaldo == 0 && $credito == 0) {
                                 $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
-                                validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO);
+                                validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO, $envioData);
                                 sqlsrv_commit($conn);
                                 sqlsrv_close($conn);
                                 exit();
                             } else {
-                                guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO);
+                                guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO, $envioData);
                                 $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn, $FOLIO);
                                 header('Content-Type: application/json; charset=UTF-8');
                                 echo json_encode([
@@ -8250,10 +8314,10 @@ switch ($funcion) {
                             if ($anticipo['success']) {
                                 eliminarCxc($conexionData, $anticipo, $claveSae, $conn);
                                 $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
-                                actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
+                                //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
                                 actualizarInventario($conexionData, $partidasData, $conn);
-                                comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $folio);
+                                comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $folio, $envioData);
                                 remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio);
                                 //eliminarCxCBanco($anticipo, $claveSae, $formularioData, $conn);
                                 // Respuesta de éxito
@@ -8268,11 +8332,11 @@ switch ($funcion) {
                             } elseif ($anticipo['sinFondo']) {
                                 //No tiene fondos
                                 $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
-                                actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
+                                //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
                                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
                                 actualizarInventario($conexionData, $partidasData, $conn);
                                 $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio, $conn);
-                                guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn);
+                                guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn, $envioData);
                                 validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn);
                                 //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
                                 sqlsrv_commit($conn);
