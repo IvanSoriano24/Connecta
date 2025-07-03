@@ -5029,6 +5029,7 @@ function buscarAnticipo($conexionData, $formularioData, $claveSae, $totalPedido)
     $params = [$cliente];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
+
     if ($stmt === false) {
         die(json_encode([
             'success' => false,
