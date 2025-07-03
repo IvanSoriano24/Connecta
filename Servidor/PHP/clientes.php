@@ -943,7 +943,7 @@ function obtenerClientes($conexionData, $claveSae)
             FROM $nombreTabla
             WHERE STATUS = 'A'
             ORDER BY CLAVE ASC";
- $stmt = sqlsrv_query($conn, $sql);
+    $stmt = sqlsrv_query($conn, $sql);
     $clientes = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         foreach ($row as $key => $value) {
@@ -1172,6 +1172,75 @@ function guardarDatosEnvio($datosEnvio, $firebaseProjectId, $firebaseApiKey, $fo
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
+function actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $firebaseApiKey){
+    // 1) Define los campos a actualizar
+    $fieldsToSave = [
+        'tituloEnvio'     => ['stringValue' => $datosEnvio['tituloEnvio']    ?? ''],
+        'nombreContacto'  => ['stringValue' => $datosEnvio['nombreContacto'] ?? ''],
+        'compania'        => ['stringValue' => $datosEnvio['compania']       ?? ''],
+        'telefonoContacto'=> ['stringValue' => $datosEnvio['telefonoContacto'] ?? ''],
+        'correoContacto'  => ['stringValue' => $datosEnvio['correoContacto'] ?? ''],
+        'linea1'          => ['stringValue' => $datosEnvio['linea1']         ?? ''],
+        'linea2'          => ['stringValue' => $datosEnvio['linea2']         ?? ''],
+        'codigoPostal'    => ['stringValue' => $datosEnvio['codigoPostal']   ?? ''],
+        'estado'          => ['stringValue' => $datosEnvio['estado']         ?? ''],
+        'municipio'       => ['stringValue' => $datosEnvio['municipio']      ?? ''],
+    ];
+
+    // 2) Construye manualmente la parte de updateMask
+    $url = "https://firestore.googleapis.com/v1/projects/{$firebaseProjectId}"
+         . "/databases/(default)/documents/ENVIOS/{$id}"
+         . "?updateMask.fieldPaths=tituloEnvio"
+         . "&updateMask.fieldPaths=nombreContacto"
+         . "&updateMask.fieldPaths=compania"
+         . "&updateMask.fieldPaths=telefonoContacto"
+         . "&updateMask.fieldPaths=correoContacto"
+         . "&updateMask.fieldPaths=linea1"
+         . "&updateMask.fieldPaths=linea2"
+         . "&updateMask.fieldPaths=codigoPostal"
+         . "&updateMask.fieldPaths=estado"
+         . "&updateMask.fieldPaths=municipio"
+         . "&key={$firebaseApiKey}";
+
+    // 3) Prepara el payload
+    $payload = json_encode(['fields' => $fieldsToSave]);
+
+    // 4) Lanza el PATCH
+    $opts = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'PATCH',
+            'content' => $payload,
+            'timeout' => 10,
+        ]
+    ];
+    $ctx  = stream_context_create($opts);
+    $resp = @file_get_contents($url, false, $ctx);
+
+    if ($resp === false) {
+        $err = error_get_last();
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con Firestore.',
+            'error'   => $err['message']
+        ]);
+        return;
+    }
+
+    $result = json_decode($resp, true);
+    if (isset($result['error'])) {
+        echo json_encode([
+            'success' => false,
+            'message' => $result['error']['message']
+        ]);
+        return;
+    }
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Datos actualizados correctamente.'
+    ]);
+}
 function actualizarFolio($firebaseProjectId, $firebaseApiKey, $folio)
 {
     $id = $folio['documentId'];
@@ -1199,8 +1268,10 @@ function actualizarFolio($firebaseProjectId, $firebaseApiKey, $folio)
         echo json_encode(['success' => true, 'message' => 'Datos de Envio Guardados']);
     }
 }
-function llenarDatosEnvio($id, $firebaseProjectId, $firebaseApiKey){
+function llenarDatosEnvio($id, $firebaseProjectId, $firebaseApiKey)
+{
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS/$id?key=$firebaseApiKey";
 
@@ -1441,7 +1512,8 @@ function obtenerDatosClienteE($conexionData, $claveUsuario, $claveSae)
     exit();
 }
 
-function datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae){
+function datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -1816,6 +1888,22 @@ switch ($funcion) {
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
         obtenerClientes($conexionData, $claveSae);
+        break;
+    case 17:
+        $id = $_POST["idDocumento"];
+        $datosEnvio = [
+            'tituloEnvio'      => $_POST['tituloEnvio']       ?? '',
+            'nombreContacto'   => $_POST['nombreContacto']    ?? '',
+            'compania'         => $_POST['compañia']          ?? '',
+            'telefonoContacto' => $_POST['telefonoContacto']  ?? '',
+            'correoContacto'   => $_POST['correoContacto']    ?? '',
+            'linea1'           => $_POST['linea1Contacto']    ?? '',
+            'linea2'           => $_POST['linea2Contacto']    ?? '',
+            'codigoPostal'     => $_POST['codigoContacto']    ?? '',
+            'estado'           => $_POST['estadoContacto']    ?? '',
+            'municipio'        => $_POST['municipioContacto'] ?? '',
+        ];
+        actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $firebaseApiKey);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

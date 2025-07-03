@@ -1051,26 +1051,24 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           title: "Error al guardar el pedido",
           //Creacion de Mensaje con los productos, exitencias y apartados de estos
           html: `
-            <p>${
-              data.message ||
-              "No hay suficientes existencias para algunos productos."
+            <p>${data.message ||
+            "No hay suficientes existencias para algunos productos."
             }</p>
             <p><strong>Productos sin existencias:</strong></p>
             <ul>
               ${data.productosSinExistencia
-                .map(
-                  (producto) => `
+              .map(
+                (producto) => `
                   <li>
                     <strong>Producto:</strong> ${producto.producto}, 
-                    <strong>Existencias Totales:</strong> ${
-                      producto.existencias || 0
-                    }, 
+                    <strong>Existencias Totales:</strong> ${producto.existencias || 0
+                  }, 
                     <strong>Apartados:</strong> ${producto.apartados || 0}, 
                     <strong>Disponibles:</strong> ${producto.disponible || 0}
                   </li>
                 `
-                )
-                .join("")}
+              )
+              .join("")}
             </ul>
           `,
           icon: "error",
@@ -1499,7 +1497,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   await completarPrecioProducto(producto.CVE_ART, filaProd); // Pasar el nodo DOM, no jQuery
 }
 
-function llenarDatosProducto(producto) {}
+function llenarDatosProducto(producto) { }
 function desbloquearCampos() {
   $(
     "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio"
@@ -1840,9 +1838,20 @@ function obtenerDatosEnvio() {
   });
 }
 function actualizarDatos() {
-  const idDocumento = document.getElementById("idDatos").value;
-  const nombreContacto = document.getElementById("nombreContacto").value;
-  $.ajax({
+  /*const idDocumento = document.getElementById("idDatos").value;
+  const nombreContacto = document.getElementById("nombreContacto").value;*/
+  Swal.fire({
+    icon: "success",
+    title: "Exito",
+    text: "Se Establecieron los Datos de Envio.",
+    confirmButtonText: "Aceptar",
+  }).then(() => {
+    const titulo = document.getElementById("titutoDatos").value;
+    $("#enviar").val(titulo);
+    //alert(titulo);
+    $("#modalEnvio").modal("hide");
+  });
+  /*$.ajax({
     url: "../Servidor/PHP/clientes.php",
     method: "POST",
     data: {
@@ -1853,17 +1862,7 @@ function actualizarDatos() {
     dataType: "json",
     success: function (envios) {
       if (envios.success) {
-        Swal.fire({
-          icon: "success",
-          title: "Exito",
-          text: "Se Establecieron los Datos de Envio.",
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          const titulo = document.getElementById("titutoDatos").value;
-          $("#enviar").val(titulo);
-          //alert(titulo);
-          $("#modalEnvio").modal("hide");
-        });
+        
       } else {
         Swal.fire({
           icon: "warning",
@@ -1879,7 +1878,7 @@ function actualizarDatos() {
         text: "Error al obtener los datos de envio.",
       });
     },
-  });
+  });*/
 }
 function guardarDatosEnvio() {
   // 1. Obtener el ID del cliente seleccionado
