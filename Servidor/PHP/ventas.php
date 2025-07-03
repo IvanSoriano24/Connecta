@@ -8304,13 +8304,14 @@ switch ($funcion) {
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $FOLIO); //ROLLBACK
                             actualizarInventario($conexionData, $partidasData, $conn); //ROLLBACK
                             if ($validarSaldo == 0 && $credito == 0) {
-                                guardarDatosPedido($envioData, $noEmpresa);
+                                $idEnvios = guardarDatosPedido($envioData, $noEmpresa);
                                 $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
                                 validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO, $envioData);
                                 sqlsrv_commit($conn);
                                 sqlsrv_close($conn);
                                 exit();
                             } else {
+                                $idEnvios = guardarDatosPedido($envioData, $noEmpresa);
                                 guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO, $envioData);
                                 $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn, $FOLIO);
                                 header('Content-Type: application/json; charset=UTF-8');
@@ -8382,6 +8383,7 @@ switch ($funcion) {
                                 sqlsrv_close($conn);
                                 exit();
                             } elseif ($anticipo['sinFondo']) {
+                                $idEnvios = guardarDatosPedido($envioData, $noEmpresa);
                                 //No tiene fondos
                                 $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
                                 //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
