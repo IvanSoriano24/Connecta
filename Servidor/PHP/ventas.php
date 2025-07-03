@@ -8486,13 +8486,16 @@ switch ($funcion) {
                     $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus, $DAT_ENVIO); //ROLLBACK
 
                     if ($resultadoActualizacion['success']) {
-                        actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
+                        //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                         if ($validarSaldo === 0 && $credito == 0) {
                             $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero']);
                             validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito);
+                            $id = guardarDatosPedido($envioData, $formularioData['numero'], $noEmpresa);
                             exit();
                         } else {
-                            actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
+                            //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
+                            $id = guardarDatosPedido($envioData, $formularioData['numero'], $noEmpresa);
+
                             guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData);
                             $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito);
                             header('Content-Type: application/json; charset=UTF-8');
