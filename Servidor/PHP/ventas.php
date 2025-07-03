@@ -786,8 +786,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
             // Si la partida ya existe, realizar un UPDATE
             $sql = "UPDATE $nombreTabla SET 
                 CANT = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
-                TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ?,
-                WHERE NUM_PAR = ? AND CVE_ART = ? AND CVE_DOC = ?";
+                TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ? WHERE NUM_PAR = ? AND CVE_ART = ? AND CVE_DOC = ?";
             $params = [
                 $CANT,
                 $PREC,
@@ -2513,15 +2512,15 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
     $IMPORTE = 0;
     $IMP_TOT4 = 0;
     foreach ($partidasData as $partida) {
-        $producto = $partida['producto'];
-        $cantidad = $partida['cantidad'];
-        $precioUnitario = $partida['precioUnitario'];
+        $producto = $partida['producto'] ?? $partida['CVE_ART'];
+        $cantidad = $partida['cantidad'] ?? $partida['CANT'];
+        $precioUnitario = $partida['precioUnitario'] ?? $partida['PREC'];
         $totalPartida = $cantidad * $precioUnitario;
         $total += $totalPartida;
         $IMPORTE = $total;
         $productosStr .= "$producto - $cantidad unidades, ";
 
-        $IMPU4 = $partida['iva'];
+        $IMPU4 = $partida['iva'] ?? $partida['IMPU4'];
         $desc1 = $partida['descuento'] ?? 0;
         $desProcentaje = ($desc1 / 100);
         $DES = $totalPartida * $desProcentaje;
@@ -7795,7 +7794,7 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
         }
 
         if ($numeroBandera === 0) {
-            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -7817,7 +7816,7 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
             $emailPred = $_SESSION['usuario']['correo'];
             $numeroWhatsApp = $_SESSION['usuario']['telefono'];
             enviarCorreoPedido($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Enviado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
             //die();
         }
