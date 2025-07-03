@@ -194,6 +194,24 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
             ];
         }
 
+        $envioData = [];
+        if (isset($fields['envio']['mapValue']['fields'])) {
+            $e = $fields['envio']['mapValue']['fields'];
+            $envioData = [
+                'codigoContacto'     => $e['codigoContacto']['stringValue']     ?? '',
+                'companiaContacto'   => $e['companiaContacto']['stringValue']   ?? '',
+                'correoContacto'     => $e['correoContacto']['stringValue']     ?? '',
+                'direccion1Contacto' => $e['direccion1Contacto']['stringValue'] ?? '',
+                'direccion2Contacto' => $e['direccion2Contacto']['stringValue'] ?? '',
+                'estadoContacto'     => $e['estadoContacto']['stringValue']     ?? '',
+                'idPedido'           => $e['idPedido']['integerValue']          ?? 0,
+                'municipioContacto'  => $e['municipioContacto']['stringValue']  ?? '',
+                'noEmpresa'          => $e['noEmpresa']['integerValue']         ?? 0,
+                'nombreContacto'     => $e['nombreContacto']['stringValue']     ?? '',
+                'telefonoContacto'   => $e['telefonoContacto']['stringValue']   ?? '',
+            ];
+        }
+
         echo json_encode([
             'success' => true,
             'data' => [
@@ -206,6 +224,7 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
                 'hora' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[1],
                 'numGuia' => $fields['numGuia']['stringValue'] ?? "",
                 'productos' => $productos,
+                'envioData' => $envioData,
                 'activada' => $fields['activada']['booleanValue'] ?? false
             ]
         ]);
@@ -850,45 +869,46 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         }
     } else {
         $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
-            // Consultar Firebase para obtener los datos del vendedor
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'GET',
-                    'header' => "Content-Type: application/json\r\n"
-                ]
-            ]);
+        // Consultar Firebase para obtener los datos del vendedor
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Content-Type: application/json\r\n"
+            ]
+        ]);
 
-            $response = @file_get_contents($firebaseUrl, false, $context);
+        $response = @file_get_contents($firebaseUrl, false, $context);
 
-            $usuariosData = json_decode($response, true);
-            $telefonoVendedor = null;
-            $correoVendedor = null;
-            $vendedor = formatearClaveVendedor($vend);
-            //var_dump($vendedor);
-            // Buscar al vendedor por clave
-            if (isset($usuariosData['documents'])) {
-                foreach ($usuariosData['documents'] as $document) {
-                    $fields = $document['fields'];
-                    if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
-                        if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
-                            if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
-                                $telefonoVendedor = $fields['telefono']['stringValue'];
-                                $correoVendedor = $fields['correo']['stringValue'];
-                                break;
-                            }
+        $usuariosData = json_decode($response, true);
+        $telefonoVendedor = null;
+        $correoVendedor = null;
+        $vendedor = formatearClaveVendedor($vend);
+        //var_dump($vendedor);
+        // Buscar al vendedor por clave
+        if (isset($usuariosData['documents'])) {
+            foreach ($usuariosData['documents'] as $document) {
+                $fields = $document['fields'];
+                if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                    if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                            $telefonoVendedor = $fields['telefono']['stringValue'];
+                            $correoVendedor = $fields['correo']['stringValue'];
+                            break;
                         }
                     }
                 }
             }
-            enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
-            $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
+        }
+        enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
+        $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
         echo json_encode(['success' => false, 'datos' => false, 'message' => 'El cliente no tiene un correo y telefono válido registrado.']);
         die();
     }
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente) {
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente)
+{
     // Obtener el id de Firestore del pedido buscado
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -910,7 +930,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
                             "fieldFilter" => [
                                 "field" => ["fieldPath" => "idPedido"],
                                 "op" => "EQUAL",
-                                "value" => ["stringValue" => $noPedido]
+                                "value" => ["integerValue" => (int)$noPedido]
                             ]
                         ],
                         [
@@ -949,6 +969,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
             $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
         }
     }
+   
 
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -979,7 +1000,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios" . urlencode($idFirebasePedido);
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idFirebasePedido);
 
     $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 
@@ -1066,10 +1087,68 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         error_log("Error: noPedido o noEmpresa están vacíos.");
         return false;
     }
-    $productosJson = urlencode(json_encode($partidasData));
+   global $firebaseProjectId, $firebaseApiKey;
+
+    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
+    $collection = "DATOS_PEDIDO";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    // Payload para hacer un where compuesto (idPedido y noEmpresa)
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "idPedido"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noPedido]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    // Inicializa la variable donde guardarás el id
+    $idFirebasePedido = null;
+
+    if ($response !== false) {
+        $resultArray = json_decode($response, true);
+        if (isset($resultArray[0]['document']['name'])) {
+            $name = $resultArray[0]['document']['name']; // p.ej. projects/proj/databases/(default)/documents/DATOS_PEDIDO/{id}
+            $parts = explode('/', $name);
+            $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
+        }
+    }
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente);
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idFirebasePedido);
     //$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido  
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 

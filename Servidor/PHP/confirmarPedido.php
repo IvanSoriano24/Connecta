@@ -65,7 +65,7 @@ function obtenerProductos($pedidoId, $conexionData, $claveSae)
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
     //Formateamos la clave para coincidir con SAE
-    $CVE_DOC = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); 
+    $CVE_DOC = str_pad($pedidoId, 10, '0', STR_PAD_LEFT);
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     //Creamos el nombre de la tabla de forma dinamica con respecto a la claveSAE
     $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -95,7 +95,7 @@ function obtenerProductos($pedidoId, $conexionData, $claveSae)
 }
 function obtenerDescripcion($producto, $conexionData, $claveSae)
 {
-     //Creamos la conexion
+    //Creamos la conexion
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -143,6 +143,37 @@ function formatearClaveVendedor($clave)
     $clave = str_pad($clave, 5, ' ', STR_PAD_LEFT);
     return $clave;
 }
+use Google\Cloud\Firestore\FirestoreClient;
+function datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey) {
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO/$idEnvios?key=$firebaseApiKey";
+
+    $json = @file_get_contents($url);
+    $response = json_decode($json, true);
+
+    if (!isset($response['fields'])) {
+        echo "<div class='container'>
+                <div class='title'>Error</div>
+                <div class='message'>No se encontró el documento con ID: $idEnvios en la colección DATOS_PEDIDO.</div>
+              </div>";
+        return [];
+    }
+
+    $fields = $response['fields'];
+
+    return [
+        'codigoContacto' => $fields['codigoContacto']['stringValue'] ?? '',
+        'companiaContacto' => $fields['companiaContacto']['stringValue'] ?? '',
+        'correoContacto' => $fields['correoContacto']['stringValue'] ?? '',
+        'direccion1Contacto' => $fields['direccion1Contacto']['stringValue'] ?? '',
+        'direccion2Contacto' => $fields['direccion2Contacto']['stringValue'] ?? '',
+        'estadoContacto' => $fields['estadoContacto']['stringValue'] ?? '',
+        'idPedido' => $fields['idPedido']['integerValue'] ?? 0,
+        'municipioContacto' => $fields['municipioContacto']['stringValue'] ?? '',
+        'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? 0,
+        'nombreContacto' => $fields['nombreContacto']['stringValue'] ?? '',
+        'telefonoContacto' => $fields['telefonoContacto']['stringValue'] ?? ''
+    ];
+}
 //Verificamos si se recibe los datos
 if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     //Guardamos los datos recibidos en variables
@@ -157,20 +188,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $clave            = $_GET['clave'] ?? "";
     $conCredito       = $_GET['conCredito'] ?? "";
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
-    // --- aquí decodificamos el envío completo ---
-    $envioData = [];
-    if (!empty($_GET['envioData'])) {
-        // primero deshacemos el urlencode y luego json_decode
-        $raw = urldecode($_GET['envioData']);
-        $decoded = json_decode($raw, true);
-        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-            $envioData = $decoded;
-        } else {
-            // JSON inválido, podrías loguearlo o asignar valores por default
-            $envioData = [];
-        }
-    }
-
+    $idEnvios = $_GET['idEnvios'] ?? "";
     //Verificamos si el pedido ya fue aceptado
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
     if ($resultado) {
@@ -199,11 +217,12 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 //$estadoComanda = $horaActual >= 15 ? "Pendiente" : "Abierta"; // "Pendiente" después de 3:00 PM
                 //Obtenemos los productos
                 $producto = obtenerProductos($pedidoId, $conexionData, $claveSae);
+                $envioData = datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey);
                 // Preparar datos para Firebase
                 $comanda = [
                     "fields" => [
                         "idComanda" => ["stringValue" => uniqid()],
-                        "idDatos" => ["stringValue" => $idDatos],
+
                         "folio" => ["stringValue" => $pedidoId],
                         "claveCliente" => ["stringValue" => $claveCliente],
                         "nombreCliente" => ["stringValue" => $nombreCliente],
@@ -224,6 +243,21 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                                     ];
                                 }, $producto)
                             ]
+                        ],
+                        "envio" => [
+                            'mapValue' => ['fields' => [
+                                'codigoContacto' => ['stringValue' => $envioData['codigoContacto']],
+                                'companiaContacto' => ['stringValue' => $envioData['companiaContacto']],
+                                'correoContacto' => ['stringValue' => $envioData['correoContacto']],
+                                'direccion1Contacto' => ['stringValue' => $envioData['direccion1Contacto']],
+                                'direccion2Contacto' => ['stringValue' => $envioData['direccion2Contacto']],
+                                'estadoContacto' => ['stringValue' => $envioData['estadoContacto']],
+                                'idPedido' => ['integerValue' => $envioData['idPedido']],
+                                'municipioContacto' => ['stringValue' => $envioData['municipioContacto']],
+                                'noEmpresa' => ['integerValue' => $envioData['noEmpresa']],
+                                'nombreContacto' => ['stringValue' => $envioData['nombreContacto']],
+                                'telefonoContacto' => ['stringValue' => $envioData['telefonoContacto']],
+                            ]]
                         ],
                         "vendedor" => ["stringValue" => $vendedor],
                         "status" => ["stringValue" => $estadoComanda], // Establecer estado según la hora

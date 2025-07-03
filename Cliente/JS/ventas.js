@@ -650,36 +650,25 @@ function obtenerDatosEnvioEditar(pedidoID) {
     },
     function (response) {
       if (response.success) {
-        const pedido = response.data;
+        //const pedido = response.data;
+       const data = response.data.fields;
 
-        console.log("Datos de Envio:", pedido);
-        document.getElementById("enviar").value = pedido.CALLE || "";
-        document.getElementById("idDatos").value = pedido.idDocumento || "";
-        document.getElementById("folioDatos").value = pedido.id || "";
-        document.getElementById("nombreContacto").value = pedido.NOMBRE || "";
-        //document.getElementById("selectDatosEnvio").value = pedido.tituloEnvio || "";
-        $("#selectDatosEnvio").val(pedido.tituloEnvio);
-        /*document.getElementById("compañiaContacto").value =
-          pedido.compania || "";*/
-        /*document.getElementById("telefonoContacto").value =
-          pedido.telefonoContacto || "";*/
-        /*document.getElementById("correoContacto").value =
-          pedido.correoContacto || "";*/
-        document.getElementById("direccion1Contacto").value =
-          pedido.CALLE || "";
-        document.getElementById("direccion2Contacto").value =
-          pedido.COLONIA || "";
-        document.getElementById("codigoContacto").value = pedido.CODIGO || "";
-        //document.getElementById("estadoContacto").value = pedido.estado;
-        //document.getElementById("municipioContacto").value = pedido[0].municipio;
-
-        const edo = pedido.ESTADO;
-        const municipio = pedido.MUNICIPIO;
-        //console.log("Estado Crudo: ", edo);
-        obtenerEstadosEdit(edo, municipio);
-        obtenerMunicipiosEdit(edo, municipio);
-
-        $("#datosEnvio").prop("disabled", true);
+        // Verifica la estructura de los datos en el console.log
+        console.log("Datos Envio: ", data); // Esto te mostrará el objeto completo
+        //$("#idDatos").val(idDocumento);
+        //$("#folioDatos").val(data.id.integerValue);
+        $("#nombreContacto").val(data.nombreContacto.stringValue);
+        //$("#titutoDatos").val(data.tituloEnvio.stringValue);
+        $("#compañiaContacto").val(data.companiaContacto.stringValue);
+        $("#telefonoContacto").val(data.telefonoContacto.stringValue);
+        $("#correoContacto").val(data.correoContacto.stringValue);
+        $("#direccion1Contacto").val(data.linea1.stringValue);
+        $("#direccion2Contacto").val(data.linea2.stringValue);
+        $("#codigoContacto").val(data.codigoPostal.stringValue);
+        $("#estadoContacto").val(data.estado.stringValue);
+        const municipio = data.municipio.stringValue;
+        const edo = document.getElementById("estadoContacto").value;
+        obtenerMunicipios(edo, municipio);
       } else {
         Swal.fire({
           title: "Aviso",
@@ -701,6 +690,50 @@ function obtenerDatosEnvioEditar(pedidoID) {
     });
     //alert("Error al cargar el pedido: " + textStatus + " " + errorThrown);
     console.log("Error al cargar el pedido: " + textStatus + " " + errorThrown);
+  });
+}
+function obtenerMunicipios(edo, municipio) {
+  // Habilitamos el select
+  //$("#estadoContacto").prop("disabled", false);
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "23", estado: edo },
+    dataType: "json",
+    success: function (resMunicipio) {
+      if (resMunicipio.success && Array.isArray(resMunicipio.data)) {
+        const $municipioNuevoContacto = $("#municipioContacto");
+        $municipioNuevoContacto.empty();
+        $municipioNuevoContacto.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resMunicipio.data.forEach((municipio) => {
+          $municipioNuevoContacto.append(
+            `<option value="${municipio.Clave}" 
+                data-estado="${municipio.Estado}"
+                data-Descripcion="${municipio.Descripcion || ""}">
+                ${municipio.Descripcion}
+              </option>`
+          );
+        });
+        $("#municipioContacto").val(municipio);
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resMunicipio.message || "No se encontraron municipios.",
+        });
+        //$("#municipioNuevoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
   });
 }
 function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
@@ -739,7 +772,7 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
           });
           // Si además hay municipio, lo pasamos para poblar ese select
           if (municipioSeleccionado) {
-            //obtenerMunicipios(estadoSeleccionado, municipioSeleccionado);
+           
           }
         }
       } else {

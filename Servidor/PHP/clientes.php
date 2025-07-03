@@ -1172,13 +1172,14 @@ function guardarDatosEnvio($datosEnvio, $firebaseProjectId, $firebaseApiKey, $fo
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
-function actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $firebaseApiKey){
+function actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $firebaseApiKey)
+{
     // 1) Define los campos a actualizar
     $fieldsToSave = [
         'tituloEnvio'     => ['stringValue' => $datosEnvio['tituloEnvio']    ?? ''],
         'nombreContacto'  => ['stringValue' => $datosEnvio['nombreContacto'] ?? ''],
         'compania'        => ['stringValue' => $datosEnvio['compania']       ?? ''],
-        'telefonoContacto'=> ['stringValue' => $datosEnvio['telefonoContacto'] ?? ''],
+        'telefonoContacto' => ['stringValue' => $datosEnvio['telefonoContacto'] ?? ''],
         'correoContacto'  => ['stringValue' => $datosEnvio['correoContacto'] ?? ''],
         'linea1'          => ['stringValue' => $datosEnvio['linea1']         ?? ''],
         'linea2'          => ['stringValue' => $datosEnvio['linea2']         ?? ''],
@@ -1189,18 +1190,18 @@ function actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $fireb
 
     // 2) Construye manualmente la parte de updateMask
     $url = "https://firestore.googleapis.com/v1/projects/{$firebaseProjectId}"
-         . "/databases/(default)/documents/ENVIOS/{$id}"
-         . "?updateMask.fieldPaths=tituloEnvio"
-         . "&updateMask.fieldPaths=nombreContacto"
-         . "&updateMask.fieldPaths=compania"
-         . "&updateMask.fieldPaths=telefonoContacto"
-         . "&updateMask.fieldPaths=correoContacto"
-         . "&updateMask.fieldPaths=linea1"
-         . "&updateMask.fieldPaths=linea2"
-         . "&updateMask.fieldPaths=codigoPostal"
-         . "&updateMask.fieldPaths=estado"
-         . "&updateMask.fieldPaths=municipio"
-         . "&key={$firebaseApiKey}";
+        . "/databases/(default)/documents/ENVIOS/{$id}"
+        . "?updateMask.fieldPaths=tituloEnvio"
+        . "&updateMask.fieldPaths=nombreContacto"
+        . "&updateMask.fieldPaths=compania"
+        . "&updateMask.fieldPaths=telefonoContacto"
+        . "&updateMask.fieldPaths=correoContacto"
+        . "&updateMask.fieldPaths=linea1"
+        . "&updateMask.fieldPaths=linea2"
+        . "&updateMask.fieldPaths=codigoPostal"
+        . "&updateMask.fieldPaths=estado"
+        . "&updateMask.fieldPaths=municipio"
+        . "&key={$firebaseApiKey}";
 
     // 3) Prepara el payload
     $payload = json_encode(['fields' => $fieldsToSave]);
@@ -1271,7 +1272,7 @@ function actualizarFolio($firebaseProjectId, $firebaseApiKey, $folio)
 function llenarDatosEnvio($id, $firebaseProjectId, $firebaseApiKey)
 {
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    
+
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS/$id?key=$firebaseApiKey";
 
@@ -1353,11 +1354,10 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
     }
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $CVE_DOC = str_pad($pedidoID, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     // Construir la consulta SQL
-    $sql = "SELECT DAT_ENVIO FROM $nombreTabla WHERE CVE_DOC = ?";
+    $sql = "SELECT FOLIO FROM $nombreTabla WHERE CVE_DOC = ?";
     //$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
     $params = [$CVE_DOC];
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -1376,25 +1376,79 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
     }
     //var_dump($clienteData);
     // Limpiar y preparar los datos para la respuesta
-    $DAT_ENVIO = trim($envioData['DAT_ENVIO'] ?? "");
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    $sqlEnvio = "SELECT * FROM $nombreTabla2 WHERE CVE_INFO = ?";
-    $params2 = [$DAT_ENVIO];
-    $stmt2 = sqlsrv_query($conn, $sqlEnvio, $params2);
-    if ($stmt2 === false) {
-        throw new Exception('Error al ejecutar la consulta.');
+    $FOLIO = trim($envioData['FOLIO'] ?? "");
+
+
+    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
+    $collection = "DATOS_PEDIDO";
+    $urlId = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    // Payload para hacer un where compuesto (idPedido y noEmpresa)
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "idPedido"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$FOLIO]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($urlId, false, $context);
+
+    // Inicializa la variable donde guardarás el id
+    $idFirebasePedido = null;
+
+    if ($response !== false) {
+        $resultArray = json_decode($response, true);
+        if (isset($resultArray[0]['document']['name'])) {
+            $name = $resultArray[0]['document']['name']; // p.ej. projects/proj/databases/(default)/documents/DATOS_PEDIDO/{id}
+            $parts = explode('/', $name);
+            $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
+        }
     }
 
-    // Obtener los datos del cliente
-    $datos = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
 
-    if (!empty($datos)) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'data' => $datos]);
-        exit();
-    } else {
-        echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
+
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO/$idFirebasePedido?key=$firebaseApiKey";
+    $response = @file_get_contents($url);
+
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los datos de envio.']);
+        return;
     }
+
+    $envioData = json_decode($response, true);
+    echo json_encode(['success' => true, 'data' => $envioData]);
 }
 function obtenerDatosEnvioVisualizar($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
 {
@@ -1511,7 +1565,6 @@ function obtenerDatosClienteE($conexionData, $claveUsuario, $claveSae)
     echo json_encode(['success' => true, 'data' => $clientes]);
     exit();
 }
-
 function datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
 {
     $serverName = $conexionData['host'];

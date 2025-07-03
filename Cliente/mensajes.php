@@ -326,15 +326,11 @@ if (isset($_SESSION['usuario'])) {
                                             </div>
                                             <div class="mb-3">
                                                 <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>
-                                                <select id="estadoContacto" class="form-select" disabled>
-                                                    <option selected disabled>Selecciona un estado</option>
-                                                </select>
+                                                <input type="text" id="estadoContacto" class="form-control" disabled>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="municipioContacto" class="form-label">Municipio <span class="text-danger">*</span></label>
-                                                <select id="municipioContacto" class="form-select" disabled>
-                                                    <option selected disabled>Selecciona un municipio</option>
-                                                </select>
+                                                <input type="text" id="municipioContacto" class="form-control" disabled>
                                             </div>
                                         </div>
                                     </div>
