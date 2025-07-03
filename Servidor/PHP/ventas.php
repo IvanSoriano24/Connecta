@@ -5318,7 +5318,7 @@ function NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasDa
         'DOCTO'       => trim($anticipo['DOCTO'])
     ];
 }
-function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn, $envioData)
+function guardarPago($idEnvios, $conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn, $envioData)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -5346,16 +5346,18 @@ function guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $
     $id = $envioData['idDocumento'];
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
     $fields = [
-        'folio'     => ['stringValue' => (string)$folio],
-        'cliente'    => ['stringValue' => $formularioData['cliente']],
+        'buscar' => ['booleanValue' => false],
         'claveSae'   => ['stringValue' => $claveSae],
+        'cliente'    => ['stringValue' => $formularioData['cliente']],
+        'creacion' => ['stringValue' => $fechaCreacion],
+        'folio'     => ['stringValue' => (string)$folio],
+        'limite' => ['stringValue' => $fechaLimite],
         'noEmpresa'  => ['integerValue' => $noEmpresa],
         'status' => ['stringValue' => 'Sin Pagar'],
-        'creacion' => ['stringValue' => $fechaCreacion],
-        'limite' => ['stringValue' => $fechaLimite],
         'vendedor' => ['stringValue' => $vendedor],
-        'buscar' => ['booleanValue' => false],
-        'idDatos' => ['stringValue' => $id]
+        'idDatos' => ['stringValue' => $id],
+        //ID datos de envio
+        'idEnvios' => ['stringValue' => $idEnvios]
     ];
 
     $payload = json_encode(['fields' => $fields]);
@@ -8390,7 +8392,7 @@ switch ($funcion) {
                                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
                                 actualizarInventario($conexionData, $partidasData, $conn);
                                 $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio, $conn);
-                                guardarPago($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn, $envioData);
+                                guardarPago($idEnvios, $conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn, $envioData);
                                 validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn);
                                 //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
                                 sqlsrv_commit($conn);
