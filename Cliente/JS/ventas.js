@@ -131,6 +131,7 @@ function agregarEventosBotones() {
       console.log("Redirigiendo con pedidoID:", pedidoID);
       window.location.href = "altaPedido.php?pedidoID=" + pedidoID;*/
       const pedidoID = this.dataset.id; // Obtener el ID del pedido
+
       try {
         enviarConfirmacion(pedidoID);
       } catch (error) {
@@ -146,6 +147,15 @@ function agregarEventosBotones() {
   });
 }
 function enviarConfirmacion(pedidoID) {
+  Swal.fire({
+    title: "Enviando confirmación...",
+    text: "Por favor, espera mientras se envia la confirmación del cliente.",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
   $.post(
     "../Servidor/PHP/ventas.php",
     { numFuncion: "28", pedidoID: pedidoID },
@@ -510,8 +520,8 @@ function datosPedidos(limpiarTabla = true) {
                 btn.className = "btnEnviarPedido";
                 btn.textContent = "Enviar Pedido";
                 btn.style =
-                  "display: inline-flex; align-items: center; padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
-                btn.onclick = () => mostrarModalErrores(pedido.Clave);
+                    "display: inline-flex; align-items: center; padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
+                btn.dataset.id = pedido.Clave; // 👈 aquí se asigna el data-id
                 td.appendChild(btn);
                 row.appendChild(td);
               }
@@ -556,7 +566,6 @@ function datosPedidos(limpiarTabla = true) {
     console.log("Detalles de la respuesta JSON:", jqXHR.responseText);
   });
 }
-
 // Función para obtener el siguiente folio
 function obtenerDatosPedido(pedidoID) {
   $.post(
@@ -1331,7 +1340,6 @@ function doSearch(limpiarTabla = true) {
                   btn.textContent = "Enviar Pedido";
                   btn.style =
                     "display: inline-flex; align-items: center; padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
-                  btn.onclick = () => mostrarModalErrores(pedido.Clave);
                   td.appendChild(btn);
                   row.appendChild(td);
                 }
