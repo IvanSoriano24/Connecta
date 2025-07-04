@@ -462,15 +462,15 @@ function datosPedidos(limpiarTabla = true) {
               const row = document.createElement("tr");
               const subtotalText = pedido.Subtotal
                 ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`
                 : "Sin subtotal";
               const importeText = pedido.ImporteTotal
                 ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`
                 : "Sin importe";
 
               const tipoUsuario = document.getElementById("tipoUsuario").dataset.tipo;
@@ -520,7 +520,7 @@ function datosPedidos(limpiarTabla = true) {
                 btn.className = "btnEnviarPedido";
                 btn.textContent = "Enviar Pedido";
                 btn.style =
-                    "display: inline-flex; align-items: center; padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
+                  "display: inline-flex; align-items: center; padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
                 btn.dataset.id = pedido.Clave; // 👈 aquí se asigna el data-id
                 td.appendChild(btn);
                 row.appendChild(td);
@@ -640,7 +640,7 @@ function obtenerDatosPedido(pedidoID) {
 function obtenerDatosEnvioEditar(pedidoID) {
   //
   $("#datosEnvio").prop("disabled", false);
-  $("#selectDatosEnvio").prop("disabled", true);
+  $("#selectDatosEnvio").prop("disabled", false);
 
   $.post(
     "../Servidor/PHP/clientes.php",
@@ -651,24 +651,27 @@ function obtenerDatosEnvioEditar(pedidoID) {
     function (response) {
       if (response.success) {
         //const pedido = response.data;
-       const data = response.data.fields;
-
+        const data = response.data.fields;
+        const name = response.data.name;
+        const idDocumento = name.split('/').pop(); // Extrae el ID del documento
+        //alert(idDocumento);
         // Verifica la estructura de los datos en el console.log
         console.log("Datos Envio: ", data); // Esto te mostrará el objeto completo
-        //$("#idDatos").val(idDocumento);
+        $("#idDatos").val(idDocumento);
         //$("#folioDatos").val(data.id.integerValue);
         $("#nombreContacto").val(data.nombreContacto.stringValue);
         //$("#titutoDatos").val(data.tituloEnvio.stringValue);
         $("#compañiaContacto").val(data.companiaContacto.stringValue);
         $("#telefonoContacto").val(data.telefonoContacto.stringValue);
         $("#correoContacto").val(data.correoContacto.stringValue);
-        $("#direccion1Contacto").val(data.linea1.stringValue);
-        $("#direccion2Contacto").val(data.linea2.stringValue);
-        $("#codigoContacto").val(data.codigoPostal.stringValue);
-        $("#estadoContacto").val(data.estado.stringValue);
-        const municipio = data.municipio.stringValue;
-        const edo = document.getElementById("estadoContacto").value;
-        obtenerMunicipios(edo, municipio);
+        $("#direccion1Contacto").val(data.direccion1Contacto.stringValue);
+        $("#direccion2Contacto").val(data.direccion2Contacto.stringValue);
+        $("#codigoContacto").val(data.codigoContacto.stringValue);
+        //$("#estadoContacto").val(data.estado.stringValue);
+        const municipio = data.municipioContacto.stringValue;
+        const edo = data.estadoContacto.stringValue;
+        obtenerEstadosEdit(edo, municipio);
+        obtenerMunicipiosEdit(edo, municipio);
       } else {
         Swal.fire({
           title: "Aviso",
@@ -744,7 +747,6 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
     dataType: "json",
     success: function (resEstado) {
       const $sel = $("#estadoContacto")
-        .prop("disabled", true)
         .empty()
         .append("<option selected disabled>Selecciona un Estado</option>");
 
@@ -772,7 +774,7 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
           });
           // Si además hay municipio, lo pasamos para poblar ese select
           if (municipioSeleccionado) {
-           
+
           }
         }
       } else {
@@ -802,7 +804,6 @@ function obtenerMunicipiosEdit(edo, municipio) {
       const $sel = $("#municipioContacto");
       $sel
         .empty()
-        .prop("disabled", false)
         .append("<option selected disabled>Selecciona un municipio</option>");
 
       if (res.success && Array.isArray(res.data)) {
@@ -824,7 +825,7 @@ function obtenerMunicipiosEdit(edo, municipio) {
             .find("option")
             .filter((i, o) => $(o).text().trim() === municipio.trim())
             .prop("selected", true);
-          $sel.prop("disabled", true);
+          //$sel.prop("disabled", true);
 
           // Si `municipio` es la clave (value):
           //$sel.val(municipio);
@@ -835,7 +836,7 @@ function obtenerMunicipiosEdit(edo, municipio) {
           title: "Aviso",
           text: res.message || "No se encontraron municipios.",
         });
-        $sel.prop("disabled", true);
+        //$sel.prop("disabled", true);
       }
     },
     error: function () {
@@ -1265,15 +1266,15 @@ function doSearch(limpiarTabla = true) {
                 const row = document.createElement("tr");
                 const subtotalText = pedido.Subtotal
                   ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}`
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
                   : "Sin subtotal";
                 const importeText = pedido.ImporteTotal
                   ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}`
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
                   : "Sin importe";
 
                 row.innerHTML = `
@@ -1284,19 +1285,16 @@ function doSearch(limpiarTabla = true) {
                   <td>${pedido.Estatus || "0"}</td>
                   <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
                   <td style="text-align: right;">${subtotalText}</td>
-                  <!--<td style="text-align: right;">${
-                    pedido.TotalComisiones
-                      ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
-                      : "Sin Comisiones"
+                  <!--<td style="text-align: right;">${pedido.TotalComisiones
+                    ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
+                    : "Sin Comisiones"
                   }</td>-->
                   <td style="text-align: right;">${importeText}</td>
-                <td class="nombreVendedor">${
-                  pedido.NombreVendedor || "Sin vendedor"
-                }</td>
+                <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
+                  }</td>
                   <td>
-                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
-                        pedido.Clave
-                      }" style="
+                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
+                  }" style="
                           display: inline-flex;
                           align-items: center;
                           padding: 0.5rem 0.5rem;
@@ -1312,9 +1310,8 @@ function doSearch(limpiarTabla = true) {
                       </button>
                   </td>
                   <td>
-                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${
-                        pedido.Clave
-                      }" style="
+                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
+                  }" style="
                           display: inline-flex;
                           align-items: center;
                           padding: 0.5rem 0.5rem;
@@ -1330,9 +1327,8 @@ function doSearch(limpiarTabla = true) {
                       </button>
                   </td>
                   <td>
-                                <button class="btnVerPedido" name="btnVerPedido" data-id="${
-                                  pedido.Clave
-                                }" style="
+                                <button class="btnVerPedido" name="btnVerPedido" data-id="${pedido.Clave
+                  }" style="
                                         display: inline-flex;
                                         align-items: center;
                                         padding: 0.5rem 0.5rem;
@@ -1348,9 +1344,8 @@ function doSearch(limpiarTabla = true) {
                                     </button>
                                 </td>
                                 <td>
-                                <button class="btnDescargarPedido" name="btnDescargarPedido" data-id="${
-                                  pedido.Clave
-                                }" style="
+                                <button class="btnDescargarPedido" name="btnDescargarPedido" data-id="${pedido.Clave
+                  }" style="
                                         display: inline-flex;
                                         align-items: center;
                                         padding: 0.5rem 0.5rem;
