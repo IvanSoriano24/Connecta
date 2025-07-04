@@ -823,6 +823,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         }
         if ($numeroBandera === 0) {
             $result = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
+            var_dump("1: ", $result);
         }
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
@@ -865,6 +866,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
             }
             enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
             $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
+            var_dump("2: ", $result);
             echo json_encode(['success' => true, 'notificacion' => false, 'message' => 'Pedido Autorizado, pero no se pudo notificar al cliente.']);
         }
     } else {
@@ -901,6 +903,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         }
         enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
         $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
+        var_dump("3: ", $result);
         echo json_encode(['success' => false, 'datos' => false, 'message' => 'El cliente no tiene un correo y telefono válido registrado.']);
         die();
     }
@@ -969,7 +972,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
             $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
         }
     }
-   
+
 
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -1081,13 +1084,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-
-    // ✅ Verifica que los valores no estén vacíos
-    if (empty($noPedido) || empty($claveSae)) {
-        error_log("Error: noPedido o noEmpresa están vacíos.");
-        return false;
-    }
-   global $firebaseProjectId, $firebaseApiKey;
+    global $firebaseProjectId, $firebaseApiKey;
 
     // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
     $collection = "DATOS_PEDIDO";
@@ -1227,7 +1224,6 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
             ]
         ]
     ];
-
     // ✅ Verificar JSON antes de enviarlo
     $data_string = json_encode($data, JSON_PRETTY_PRINT);
     error_log("WhatsApp JSON: " . $data_string);
