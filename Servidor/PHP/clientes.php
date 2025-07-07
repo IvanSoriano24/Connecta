@@ -1663,6 +1663,67 @@ function datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $cone
     // Finalmente devolvemos
     echo json_encode(['success' => true, 'data' => $datosEnvio]);
 }
+function obtenerClientePedido($conexionData, $clienteInput, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $clienteInput = mb_convert_encoding(trim($clienteInput), 'UTF-8');
+
+    // Manejo de espacios para la clave
+    $clienteClave = str_pad($clienteInput, 10, " ", STR_PAD_LEFT);
+    $clienteNombre = '%' . $clienteInput . '%';
+
+    // Construir la consulta SQL
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    if (preg_match('/[a-zA-Z]/', $clienteInput)) {
+        // Búsqueda por nombre
+        $sql = "SELECT DISTINCT
+                    [CLAVE], [NOMBRE]
+                FROM $nombreTabla
+                WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') AND [STATUS] = 'A'";
+    } else {
+        // Búsqueda por clave
+        $sql = "SELECT DISTINCT
+                    [CLAVE], [NOMBRE]
+                FROM $nombreTabla
+                WHERE [CLAVE] = '$clienteClave' AND [STATUS] = 'A'";
+    }
+
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    $clientes = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $clientes[] = $row;
+    }
+
+    if (count($clientes) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'cliente' => $clientes
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes.']);
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
 
 /***********************************************************************************************************/
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -1957,6 +2018,20 @@ switch ($funcion) {
             'municipio'        => $_POST['municipioContacto'] ?? '',
         ];
         actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $firebaseApiKey);
+        break;
+    case 18:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        
+        $cliente = $_POST['cliente'];
+        obtenerClientePedido($conexionData, $cliente, $claveSae);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

@@ -193,7 +193,7 @@ function obtenerMunicipiosNuevos() {
 }
 function guardarDatosEnvio() {
   // 1. Obtener el ID del cliente seleccionado
-  const clienteId = document.getElementById("clienteId").value;
+  const clienteId = document.getElementById("cliente").value;
 
   // 2. Leer todos los campos del formulario de nuevo envío
   const tituloEnvio = document.getElementById("titutoContacto").value;
@@ -392,7 +392,9 @@ function visualizarDatos(id) {
 }
 function editarDatos(id) {
   // Abrir el modal
-  const modalEnvio = new bootstrap.Modal(document.getElementById("modalEnvioEditar"));
+  const modalEnvio = new bootstrap.Modal(
+    document.getElementById("modalEnvioEditar")
+  );
   obtenerEstados();
   obtenerDatosEnvioEditar(id);
   modalEnvio.show();
@@ -406,7 +408,7 @@ function obtenerEstados() {
   })
     .done(function (resEstado) {
       const $sel = $("#estadoContacto")
-        .prop("disabled", false)
+        .prop("disabled", true)
         .empty()
         .append("<option selected disabled>Selecciona un Estado</option>");
       if (resEstado.success && Array.isArray(resEstado.data)) {
@@ -468,7 +470,7 @@ function obtenerMunicipios(edo, municipio) {
         $municipioNuevoContacto.append(
           "<option selected disabled>Selecciona un Estado</option>"
         );
-       
+
         resMunicipio.data.forEach((municipio) => {
           $municipioNuevoContacto.append(
             `<option value="${municipio.Clave}" 
@@ -512,7 +514,7 @@ function obtenerMunicipiosEditar(edo, municipio) {
         $municipioNuevoContacto.append(
           "<option selected disabled>Selecciona un Estado</option>"
         );
-       
+
         resMunicipio.data.forEach((municipio) => {
           $municipioNuevoContacto.append(
             `<option value="${municipio.Clave}" 
@@ -575,8 +577,13 @@ function obtenerDatosEnvioVisualizar(id) {
         $("#direccion1Contacto").val(data.linea1.stringValue);
         $("#direccion2Contacto").val(data.linea2.stringValue);
         $("#codigoContacto").val(data.codigoPostal.stringValue);
+        
       } else {
-        Swal.fire("Error", response.message || "No se pudo obtener datos.", "error");
+        Swal.fire(
+          "Error",
+          response.message || "No se pudo obtener datos.",
+          "error"
+        );
       }
     },
     "json"
@@ -619,7 +626,11 @@ function obtenerDatosEnvioEditar(id) {
         $("#direccion2ContactoEditar").val(data.linea2.stringValue);
         $("#codigoContactoEditar").val(data.codigoPostal.stringValue);
       } else {
-        Swal.fire("Error", response.message || "No se pudo obtener datos.", "error");
+        Swal.fire(
+          "Error",
+          response.message || "No se pudo obtener datos.",
+          "error"
+        );
       }
     },
     "json"
@@ -627,6 +638,81 @@ function obtenerDatosEnvioEditar(id) {
     Swal.fire("Error", "Fallo la petición al servidor.", "error");
   });
 }
+
+const inputCliente = $("#cliente");
+const clearButton = $("#clearInput");
+const suggestionsList = $("#clientesSugeridos");
+// Mostrar/ocultar el botón "x"
+function toggleClearButton() {
+  if (inputCliente.val().trim() !== "") {
+    clearButton.show();
+  } else {
+    clearButton.hide();
+  }
+}
+function showCustomerSuggestions() {
+  const clienteInput = document.getElementById("cliente");
+  const clienteInputValue = clienteInput.value.trim();
+  const sugerencias = document.getElementById("clientesSugeridos");
+
+  sugerencias.classList.remove("d-none"); // Mostrar las sugerencias
+
+  // Generar las sugerencias en base al texto ingresado
+  const clientesFiltrados = clientesData.filter((cliente) =>
+    cliente.NOMBRE.toLowerCase().includes(clienteInputValue.toLowerCase())
+  );
+
+  sugerencias.innerHTML = ""; // Limpiar las sugerencias anteriores
+
+  if (clientesFiltrados.length === 0) {
+    sugerencias.innerHTML = "<li>No se encontraron coincidencias</li>";
+  } else {
+    clientesFiltrados.forEach((cliente) => {
+      const sugerencia = document.createElement("li");
+      sugerencia.textContent = `${cliente.CLAVE} - ${cliente.NOMBRE}`;
+      sugerencia.classList.add("suggestion-item");
+
+      // Evento para seleccionar cliente desde las sugerencias
+      sugerencia.addEventListener("click", (e) => {
+        e.stopPropagation(); // Evitar que el evento de clic global oculte las sugerencias
+        seleccionarClienteDesdeSugerencia(cliente);
+      });
+
+      sugerencias.appendChild(sugerencia);
+    });
+  }
+}
+// Función para seleccionar un cliente desde las sugerencias
+function seleccionarClienteDesdeSugerencia(cliente) {
+  const clienteInput = document.getElementById("cliente");
+  clienteInput.value = cliente.CLAVE; // Solo guarda la clave, sin el nombre
+  clienteId = cliente.CLAVE; // Guardar el ID del cliente
+
+  // Limpiar y ocultar sugerencias
+  const sugerencias = document.getElementById("clientesSugeridos");
+  sugerencias.innerHTML = ""; // Limpiar las sugerencias
+  sugerencias.classList.add("d-none"); // Ocultar las sugerencias
+}
+// Limpiar todos los campos
+function clearAllFields() {
+  // Limpiar valores de los inputs
+  $("#cliente").val("");
+
+  // Limpiar la lista de sugerencias
+  suggestionsList.empty().hide();
+
+  // Ocultar el botón "x"
+  clearButton.hide();
+}
+// Ocultar sugerencias al hacer clic fuera del input
+document.addEventListener("click", function (e) {
+  const sugerencias = document.getElementById("clientesSugeridos");
+  const clienteInput = document.getElementById("cliente");
+
+  if (!sugerencias.contains(e.target) && !clienteInput.contains(e.target)) {
+    sugerencias.classList.add("d-none");
+  }
+});
 document.getElementById("btnAgregar").addEventListener("click", function () {
   // Abrir el modal
   const modalNuevoEnvio = new bootstrap.Modal(

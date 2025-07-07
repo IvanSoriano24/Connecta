@@ -1726,6 +1726,50 @@ function obtenerMunicipiosNuevos() {
     },
   });
 }
+function obtenerMunicipiosPedido() {
+  // Habilitamos el select
+  $("#municipioContacto").prop("disabled", false);
+  const estado = document.getElementById("estadoContacto").value;
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "23", estado: estado },
+    dataType: "json",
+    success: function (resMunicipio) {
+      if (resMunicipio.success && Array.isArray(resMunicipio.data)) {
+        const $municipioNuevoContacto = $("#municipioContacto");
+        $municipioNuevoContacto.empty();
+        $municipioNuevoContacto.append(
+          "<option selected disabled>Selecciona un Municipio</option>"
+        );
+        // Filtrar según el largo del RFC
+        resMunicipio.data.forEach((municipio) => {
+          $municipioNuevoContacto.append(
+            `<option value="${municipio.Clave}" 
+                data-estado="${municipio.Estado}"
+                data-descripcion="${municipio.Descripcion || ""}">
+                ${municipio.Descripcion}
+              </option>`
+          );
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resMunicipio.message || "No se encontraron municipios.",
+        });
+        //$("#municipioNuevoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
 // Limpiar todos los campos
 function clearAllFields() {
   // Limpiar valores de los inputs
@@ -2255,6 +2299,9 @@ $("#nuevosDatosEnvio").click(function () {
 });
 $("#estadoNuevoContacto").on("change", function () {
   obtenerMunicipiosNuevos();
+});
+$("#estadoContacto").on("change", function () {
+  obtenerMunicipiosPedido();
 });
 $("#guardarDatosEnvio").click(function () {
   guardarDatosEnvio();
