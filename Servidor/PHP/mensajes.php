@@ -823,7 +823,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         }
         if ($numeroBandera === 0) {
             $result = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
-            var_dump("1: ", $result);
+            //var_dump("1: ", $result);
         }
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
@@ -866,7 +866,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
             }
             enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
             $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
-            var_dump("2: ", $result);
+            //var_dump("2: ", $result);
             echo json_encode(['success' => true, 'notificacion' => false, 'message' => 'Pedido Autorizado, pero no se pudo notificar al cliente.']);
         }
     } else {
@@ -903,7 +903,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
         }
         enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
         $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
-        var_dump("3: ", $result);
+        //var_dump("3: ", $result);
         echo json_encode(['success' => false, 'datos' => false, 'message' => 'El cliente no tiene un correo y telefono válido registrado.']);
         die();
     }
@@ -1079,11 +1079,6 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 }
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend)
 {
-    //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-
-    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
     global $firebaseProjectId, $firebaseApiKey;
 
     // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
@@ -1143,6 +1138,13 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
             $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
         }
     }
+    //var_dump($idFirebasePedido);
+    //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+    
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
     $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idFirebasePedido);
