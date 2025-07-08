@@ -6800,12 +6800,12 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
         ],
         'importe'    => ['doubleValue' => $IMPORTE ?? ''],
         'claveSae'   => ['stringValue' => $claveSae ?? ''],
-        'noEmpresa'  => ['integerValue' => (INT)$noEmpresa ?? ''],
+        'noEmpresa'  => ['integerValue' => (int)$noEmpresa ?? ''],
         'status'     => ['stringValue' => 'Sin Autorizar'],
         'idEnvios' => ['stringValue' => $idEnvios ?? ''],
     ];
     //var_dump($fields);
-    
+
     // Finalmente, enviamos todo a Firestore
     $url = "https://firestore.googleapis.com/v1/projects/"
         . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
@@ -7154,6 +7154,21 @@ function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexio
                     }, $producto)
                 ]
             ],
+            "envio" => [
+                'mapValue' => ['fields' => [
+                    'codigoContacto' => ['stringValue' => $envioData['codigoContacto']],
+                    'companiaContacto' => ['stringValue' => $envioData['companiaContacto']],
+                    'correoContacto' => ['stringValue' => $envioData['correoContacto']],
+                    'direccion1Contacto' => ['stringValue' => $envioData['direccion1Contacto']],
+                    'direccion2Contacto' => ['stringValue' => $envioData['direccion2Contacto']],
+                    'estadoContacto' => ['stringValue' => $envioData['estadoContacto']],
+                    'idPedido' => ['integerValue' => $envioData['idPedido']],
+                    'municipioContacto' => ['stringValue' => $envioData['municipioContacto']],
+                    'noEmpresa' => ['integerValue' => $envioData['noEmpresa']],
+                    'nombreContacto' => ['stringValue' => $envioData['nombreContacto']],
+                    'telefonoContacto' => ['stringValue' => $envioData['telefonoContacto']],
+                ]]
+            ],
             "vendedor" => ["stringValue" => $vendedor],
             "status" => ["stringValue" => $estadoComanda], // Establecer estado según la hora
             "claveSae" => ["stringValue" => $claveSae],
@@ -7163,7 +7178,6 @@ function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexio
             "facturado" => ["booleanValue" => false]
         ]
     ];
-
     // URL de Firebase
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 
@@ -7345,53 +7359,30 @@ function obtenerMunicipios($estadoSeleccionado)
         echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
     }
 }
-function obtenerMunicipiosEdit($estadoSeleccionado, $municipio)
+function obtenerMunicipiosPorEstado($estadoClave)
 {
     $filePath = "../../Complementos/CAT_MUNICIPIO.xml";
     if (!file_exists($filePath)) {
-        echo "El archivo no existe en la ruta: $filePath";
+        echo json_encode(['success' => false, 'message' => "No existe $filePath"]);
         return;
     }
-
-    $xmlContent = file_get_contents($filePath);
-    if ($xmlContent === false) {
-        echo "Error al leer el archivo XML en $filePath";
-        return;
-    }
-
-    try {
-        $municipios = new SimpleXMLElement($xmlContent);
-    } catch (Exception $e) {
-        echo "Error: " . $e->getMessage();
-        return;
-    }
-
-    $estado = [];
-
-    // Iterar sobre cada <row>
-    foreach ($municipios->row as $row) {
-        $Estado = (string)$row['Descripcion'];
-
-        // Sólo procesamos si País es 'MEX'
-        if ($Estado !== $municipio) {
-            continue;
+    $xml = simplexml_load_file($filePath);
+    $lista = [];
+    foreach ($xml->row as $row) {
+        // El atributo 'Estado' en el XML es la clave del estado
+        if ((string)$row['Estado'] === $estadoClave) {
+            $lista[] = [
+                'Clave'       => (string)$row['Clave'],
+                'Descripcion' => (string)$row['Descripcion']
+            ];
         }
-        $estado[] = [
-            'Clave' => (string)$row['Clave'],
-            'Estado' => (string)$row['Estado'],
-            'Descripcion' => (string)$row['Descripcion']
-        ];
     }
-
-    if (!empty($estado)) {
-        // Ordenar los vendedores por nombre alfabéticamente
-        usort($estado, function ($a, $b) {
-            return strcmp($a['Clave'] ?? '', $b['Clave'] ?? '');
-        });
-        echo json_encode(['success' => true, 'data' => $estado]);
-        exit();
+    // Orden alfabético opcional
+    usort($lista, fn($a, $b) => strcmp($a['Descripcion'], $b['Descripcion']));
+    if (empty($lista)) {
+        echo json_encode(['success' => false, 'message' => 'No hay municipios para ese estado.']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron ningun municipio.']);
+        echo json_encode(['success' => true, 'data' => $lista]);
     }
 }
 function obtenerEstadoPorClave($claveSeleccionada)
@@ -7822,7 +7813,7 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
     /*$emailPred = $_SESSION['usuario']['correo'];
     $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
 
-// Obtener el id de Firestore del pedido buscado
+    // Obtener el id de Firestore del pedido buscado
     global $firebaseProjectId, $firebaseApiKey;
 
     // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
@@ -8112,6 +8103,27 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
         error_log("Error al enviar el correo: $resultado");
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
+}
+function obtenerTodosEstados()
+{
+    $filePath = "../../Complementos/CAT_ESTADOS.xml";
+    if (!file_exists($filePath)) {
+        echo json_encode(['success' => false, 'message' => "No existe $filePath"]);
+        return;
+    }
+    $xml = simplexml_load_file($filePath);
+    $estados = [];
+    foreach ($xml->row as $row) {
+        if ((string)$row['Pais'] === 'MEX') {
+            $estados[] = [
+                'Clave'       => (string)$row['Clave'],
+                'Descripcion' => (string)$row['Descripcion']
+            ];
+        }
+    }
+    // opcional: ordenar alfabéticamente
+    usort($estados, fn($a, $b) => strcmp($a['Descripcion'], $b['Descripcion']));
+    echo json_encode(['success' => true, 'data' => $estados]);
 }
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -8983,7 +8995,7 @@ switch ($funcion) {
     case 27:
         $estadoSeleccionado = $_POST['estado'];
         $municipio = $_POST['municipio'];
-        obtenerMunicipiosEdit($estadoSeleccionado, $municipio);
+        obtenerMunicipiosPorEstado($estadoSeleccionado);
         break;
     case 28:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -8999,6 +9011,9 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $pedidoID = $_POST['pedidoID'];
         enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData);
+        break;
+    case 29:
+        obtenerTodosEstados();
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
