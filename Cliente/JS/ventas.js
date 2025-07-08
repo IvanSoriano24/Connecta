@@ -671,7 +671,7 @@ function obtenerDatosEnvioEditar(pedidoID) {
         const municipio = data.municipioContacto.stringValue;
         const edo = data.estadoContacto.stringValue;
         obtenerEstadosEdit(edo, municipio);
-        obtenerMunicipiosEdit(edo, municipio);
+        //obtenerMunicipiosEdit(edo, municipio);
       } else {
         Swal.fire({
           title: "Aviso",
@@ -739,7 +739,7 @@ function obtenerMunicipios(edo, municipio) {
     },
   });
 }
-function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
+/*function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
     method: "POST",
@@ -793,7 +793,50 @@ function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
       });
     },
   });
+}*/
+function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "29" },  // ahora pide TODOS
+    dataType: "json",
+    success: function(res) {
+      const $sel = $("#estadoContacto")
+        .empty()
+        .append('<option selected disabled>Selecciona un Estado</option>');
+
+      if (!res.success) {
+        return Swal.fire('Aviso', res.message||'Error cargando estados','warning');
+      }
+
+      // res.data es un array de { Clave, Descripcion }
+      res.data.forEach(e => {
+        $sel.append(
+          `<option value="${e.Clave}">${e.Descripcion}</option>`
+        );
+      });
+
+      // Si me pasaron uno para pre-seleccionar:
+      if (estadoSeleccionado) {
+        // buscar por texto (Descripción)
+        $sel.find('option').each(function(){
+          if ($(this).text().trim() === estadoSeleccionado.trim()) {
+            $(this).prop('selected', true);
+            return false; // rompe el each
+          }
+        });
+        // y luego cargar municipios de ese estado
+        if (municipioSeleccionado) {
+          obtenerMunicipiosEdit($sel.val(), municipioSeleccionado);
+        }
+      }
+    },
+    error: function(){
+      Swal.fire('Error','No pude cargar la lista de estados.','error');
+    }
+  });
 }
+
 function obtenerMunicipiosEdit(edo, municipio) {
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
@@ -1408,6 +1451,50 @@ function doSearch(limpiarTabla = true) {
     datosPedidos(true);
   }
 }
+function obtenerEstados() {
+  // Habilitamos el select
+  //$("#estadoContacto").prop("disabled", false);
+
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "POST",
+    data: { numFuncion: "22" },
+    dataType: "json",
+    success: function (resEstado) {
+      if (resEstado.success && Array.isArray(resEstado.data)) {
+        const $estadoNuevoContacto = $("#estadoContacto");
+        $estadoNuevoContacto.empty();
+        $estadoNuevoContacto.append(
+          "<option selected disabled>Selecciona un Estado</option>"
+        );
+        // Filtrar según el largo del RFC
+        resEstado.data.forEach((estado) => {
+          $estadoNuevoContacto.append(
+            `<option value="${estado.Clave}" 
+                data-Pais="${estado.Pais}"
+                data-Descripcion="${estado.Descripcion}">
+                ${estado.Descripcion}
+              </option>`
+          );
+        });
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: resEstado.message || "No se encontraron estados.",
+        });
+        //$("#estadoNuevoContacto").prop("disabled", true);
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener la lista de estados.",
+      });
+    },
+  });
+}
 document.addEventListener("DOMContentLoaded", function () {
   let clienteSeleccionado =
     sessionStorage.getItem("clienteSeleccionado") === "true";
@@ -1437,6 +1524,7 @@ document.addEventListener("DOMContentLoaded", function () {
       obtenerDatosPedido(pedidoID); // Función para cargar datos del pedido
       cargarPartidasPedido(pedidoID); // Función para cargar partidas del pedido
       $("#datosEnvio").prop("disabled", false);
+      obtenerEstados();
       obtenerDatosEnvioEditar(pedidoID); // Función para cargar partidas del pedido
     } else {
       sessionStorage.setItem("clienteSeleccionado", false);
