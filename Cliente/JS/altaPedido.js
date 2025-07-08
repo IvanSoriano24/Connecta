@@ -1051,24 +1051,26 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           title: "Error al guardar el pedido",
           //Creacion de Mensaje con los productos, exitencias y apartados de estos
           html: `
-            <p>${data.message ||
-            "No hay suficientes existencias para algunos productos."
+            <p>${
+              data.message ||
+              "No hay suficientes existencias para algunos productos."
             }</p>
             <p><strong>Productos sin existencias:</strong></p>
             <ul>
               ${data.productosSinExistencia
-              .map(
-                (producto) => `
+                .map(
+                  (producto) => `
                   <li>
                     <strong>Producto:</strong> ${producto.producto}, 
-                    <strong>Existencias Totales:</strong> ${producto.existencias || 0
-                  }, 
+                    <strong>Existencias Totales:</strong> ${
+                      producto.existencias || 0
+                    }, 
                     <strong>Apartados:</strong> ${producto.apartados || 0}, 
                     <strong>Disponibles:</strong> ${producto.disponible || 0}
                   </li>
                 `
-              )
-              .join("")}
+                )
+                .join("")}
             </ul>
           `,
           icon: "error",
@@ -1118,16 +1120,6 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-        /*} else if (data.datos) {
-        Swal.fire({
-          title: "Pedido Guardado",
-          text: data.message || "El cliente tiene una cuenta por pagar",
-          icon: "info",
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          // Redirigir al usuario o realizar otra acción
-          window.location.href = "Ventas.php";
-        });*/
       } else {
         Swal.fire({
           title: "Error al Guardar el Pedido",
@@ -1150,55 +1142,6 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
   return false;
 }
 
-/*function editarPedido(pedidoID) {
-  // Datos necesarios para la edición
-  const datos = {
-    numFuncion: "11", // Numero de funcion
-    pedidoID: pedidoID,
-    cliente: $("#cliente").val(), //C
-    // Otros datos del formulario
-  };
-
-  $.post("../Servidor/PHP/ventas.php", datos, function (response) {
-    try {
-      const data = JSON.parse(response);
-      if (data.success) {
-        Swal.fire({
-          title: "Editado",
-          text: "El pedido ha sido actualizado correctamente",
-          icon: "success",
-          confirmButtonText: "Entendido",
-        }).then(() => {
-          window.location.reload(); // Recargar la página para ver los cambios
-        });
-      } else {
-        Swal.fire({
-          title: "Aviso",
-          text: data.message || "No se pudo actualizar el pedido",
-          icon: "error",
-          confirmButtonText: "Entendido",
-        });
-      }
-    } catch (error) {
-      console.error("Error al procesar la respuesta:", error);
-    }
-  }).fail(function (xhr, status, error) {
-    console.error("Error de AJAX:", error);
-  });
-}*/
-/*function filtrarClientes() {
-  const criterio = document.getElementById("filtroCriterioClientes").value;
-  const busqueda = document
-    .getElementById("campoBusquedaClientes")
-    .value.toLowerCase();
-
-  const clientesFiltrados = clientesData.filter((cliente) => {
-    const valor = cliente[criterio]?.toLowerCase() || "";
-    return valor.includes(busqueda);
-  });
-
-  renderClientes(clientesFiltrados);
-}*/
 // MODAL MOSTRAR CLIENTES
 
 // Variables globales
@@ -1430,47 +1373,6 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
     console.error("Error: No se encontró la fila del producto.");
     return; // 🚨 Salir de la función si `filaProd` no es válido
   }
-  /*if (!producto.CVE_PRODSERV) {
-    Swal.fire({
-      title: "Datos Fiscales",
-      text: "Este producto no cuenta con CVE_PRODSERV",
-      icon: "warnig",
-      confirmButtonText: "Entendido",
-    });
-    const precioInput = filaProd.querySelector(".precioUnidad");
-    const cantidadInput = filaProd.querySelector(".cantidad");
-    const unidadInput = filaProd.querySelector(".unidad");
-    const descuentoInput = filaProd.querySelector(".descuento");
-    const totalInput = filaProd.querySelector(".subtotalPartida");
-    precioInput.value = parseFloat(0).toFixed(2);
-    cantidadInput.value = parseFloat(0).toFixed(2);
-    unidadInput.value = parseFloat(0).toFixed(2);
-    descuentoInput.value = parseFloat(0).toFixed(2);
-    totalInput.value = parseFloat(0).toFixed(2);
-
-    return; // 🚨 Salir de la función si `filaProd` no es válido
-  }
-  if (!producto.CVE_UNIDAD) {
-    Swal.fire({
-      title: "Datos Fiscales",
-      text: "Este producto no cuenta con CVE_UNIDAD",
-      icon: "warnig",
-      confirmButtonText: "Entendido",
-    });
-
-    const precioInput = filaProd.querySelector(".precioUnidad");
-    const cantidadInput = filaProd.querySelector(".cantidad");
-    const unidadInput = filaProd.querySelector(".unidad");
-    const descuentoInput = filaProd.querySelector(".descuento");
-    const totalInput = filaProd.querySelector(".subtotalPartida");
-    precioInput.value = parseFloat(0).toFixed(2);
-    cantidadInput.value = parseFloat(0).toFixed(2);
-    unidadInput.value = parseFloat(0).toFixed(2);
-    descuentoInput.value = parseFloat(0).toFixed(2);
-    totalInput.value = parseFloat(0).toFixed(2);
-
-    return; // 🚨 Salir de la función si `filaProd` no es válido
-  }*/
 
   // Convertir `filaProd` en un objeto jQuery para compatibilidad
   const $filaProd = $(filaProd);
@@ -1496,8 +1398,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   // Obtener precio del producto y actualizar la fila
   await completarPrecioProducto(producto.CVE_ART, filaProd); // Pasar el nodo DOM, no jQuery
 }
-
-function llenarDatosProducto(producto) { }
+function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
   $(
     "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio"
@@ -1521,7 +1422,6 @@ function llenarDatosCliente(cliente) {
   // Validar el crédito del cliente
   validarCreditoCliente(cliente.CLAVE);
 }
-
 // Filtrar clientes según la entrada de búsqueda en el modal
 function filtrarClientes() {
   const criterio = document.getElementById("filtroCriterioClientes").value;
@@ -1536,13 +1436,11 @@ function filtrarClientes() {
 
   renderClientes(clientesFiltrados);
 }
-
 // Boton eliminar campo INPUT
 const inputCliente = $("#cliente");
 const clearButton = $("#clearInput");
 const suggestionsList = $("#clientesSugeridos");
 const suggestionsListProductos = $("#productosSugeridos");
-
 // Mostrar/ocultar el botón "x"
 function toggleClearButton() {
   if (inputCliente.val().trim() !== "") {
@@ -1809,7 +1707,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
 // Ocultar sugerencias al hacer clic fuera del input
 document.addEventListener("click", function (e) {
   const sugerencias = document.getElementById("clientesSugeridos");
@@ -1819,7 +1716,6 @@ document.addEventListener("click", function (e) {
     sugerencias.classList.add("d-none");
   }
 });
-
 // Función para cerrar el modal
 function cerrarModalClientes() {
   const modalElement = document.getElementById("modalClientes");
@@ -2112,6 +2008,41 @@ function llenarDatosEnvio(idDocumento) {
     console.error("Error en la Petición:", textStatus, errorThrown);
   });
 }
+function obtenerTotales() {
+  const partidasData = obtenerDatosPartidas(); // debe devolver un array de objetos
+  const formularioData = obtenerDatosFormulario(); // idem
+
+  const form = new FormData();
+  form.append("numFuncion", "29");
+  form.append("formulario", JSON.stringify(formularioData));
+  form.append("partidas", JSON.stringify(partidasData));
+
+  fetch("../Servidor/PHP/ventas.php", {
+    method: "POST",
+    body: form,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (!data.success) {
+        return Swal.fire(
+          "Error",
+          data.message || "No se pudieron calcular totales",
+          "error"
+        );
+      }
+      const subtotalPedido = (data.subtotal.toFixed(2)) - (data.descuento.toFixed(2))
+      // ¡Ahora sí puedes leer data.subtotal, data.iva y data.importe!
+      $("#subtotal").val(data.subtotal.toFixed(2));
+      $("#descuento").val(data.descuento.toFixed(2));
+      $("#subtotalPedido").val(subtotalPedido.toFixed(2));
+      $("#iva").val(data.iva.toFixed(2));
+      $("#importe").val(data.importe.toFixed(2));
+    })
+    .catch((err) => {
+      console.error("Error al obtener los totales:", err);
+      Swal.fire("Error", "No se pudo contactar al servidor.", "error");
+    });
+}
 // // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 // document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
 
@@ -2296,6 +2227,10 @@ $("#nuevosDatosEnvio").click(function () {
   limpiarFormularioNuevo();
   obtenerEstadosNuevos();
   $("#modalNuevoEnvio").modal("show");
+});
+$("#verTotales").click(function () {
+  obtenerTotales();
+  $("#modalTotales").modal("show");
 });
 $("#estadoNuevoContacto").on("change", function () {
   obtenerMunicipiosNuevos();

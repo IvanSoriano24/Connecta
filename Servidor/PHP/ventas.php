@@ -6800,12 +6800,12 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
         ],
         'importe'    => ['doubleValue' => $IMPORTE ?? ''],
         'claveSae'   => ['stringValue' => $claveSae ?? ''],
-        'noEmpresa'  => ['integerValue' => (INT)$noEmpresa ?? ''],
+        'noEmpresa'  => ['integerValue' => (int)$noEmpresa ?? ''],
         'status'     => ['stringValue' => 'Sin Autorizar'],
         'idEnvios' => ['stringValue' => $idEnvios ?? ''],
     ];
     //var_dump($fields);
-    
+
     // Finalmente, enviamos todo a Firestore
     $url = "https://firestore.googleapis.com/v1/projects/"
         . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
@@ -7822,7 +7822,7 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
     /*$emailPred = $_SESSION['usuario']['correo'];
     $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
 
-// Obtener el id de Firestore del pedido buscado
+    // Obtener el id de Firestore del pedido buscado
     global $firebaseProjectId, $firebaseApiKey;
 
     // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
@@ -8112,6 +8112,32 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
         error_log("Error al enviar el correo: $resultado");
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
+}
+function calcularTotales($formularioData, $partidasData)
+{
+    $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $subTotal = 0;
+    $IMP_TOT4 = 0;
+    foreach ($partidasData as $partida) {
+        $clave = htmlspecialchars($partida['producto']);
+        $cantidad = htmlspecialchars($partida['cantidad']);
+        $totalPartida = $cantidad * $partida['precioUnitario'];
+        $total += $totalPartida;
+        $IMPORTE = $total;
+        $subTotal = $total;
+        $IMPU4 = $partida['iva'];
+        $desc1 = $partida['descuento'] ?? 0;
+        $desProcentaje = ($desc1 / 100);
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
+    }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+    echo json_encode(['success' => true, 'importe' => $IMPORTE, 'subtotal' => $subTotal, 'iva' => $IMP_TOT4, 'descuento' => $DES_TOT]);
+        return;
 }
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -8949,14 +8975,6 @@ switch ($funcion) {
         $estadoSeleccionado = $_POST['estadoSeleccionado'];
         obtenerEstadoPorClave($estadoSeleccionado);
         break;
-    /*case 26:
-        $pedidoID = $_POST['pedidoID'];
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $claveSae = $_SESSION['empresa']['claveSae'];
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
-        $conexionData = $conexionResult['data'];
-        descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
-        break;*/
     case 26:
         // Obtenemos el pedidoID por GET
         $pedidoID = isset($_GET['pedidoID']) ? $_GET['pedidoID'] : null;
@@ -8999,6 +9017,16 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $pedidoID = $_POST['pedidoID'];
         enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData);
+        break;
+    case 29:
+        $formularioData = json_decode($_POST['formulario'], true); // Datos del formulario desde JS
+        $partidasData = json_decode($_POST['partidas'], true); // Datos de las partidas desde JS
+
+        // Formatear los datos
+        $formularioData = formatearFormulario($formularioData);
+        $partidasData = formatearPartidas($partidasData);
+
+        calcularTotales($formularioData, $partidasData);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
