@@ -11,6 +11,7 @@ if (isset($_SESSION['usuario'])) {
     //Obtener valores del Usuario
     $nombreUsuario = $_SESSION['usuario']["nombre"];
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+    //$claveUsuario = $_SESSION['usuario']["claveUsuario"];
     $correo = $_SESSION['usuario']["correo"];
 
     //$mostrarModal = isset($_SESSION['empresa']) ? false : true;
@@ -1062,9 +1063,11 @@ if (isset($_SESSION['usuario'])) {
         });
     </script>
     <script>
-        /*if (tipoUsuario === "ADMINISTRADOR") {
-            obtenerVendedores(tipoUsuario);
-        }*/
+        const tipoUsuario = "<?php echo $tipoUsuario; ?>";
+        const claveUsuario = "<?php echo $claveUsuario; ?>";
+        if (tipoUsuario === "ADMINISTRADOR") {
+            obtenerVendedores(tipoUsuario, claveUsuario);
+        }
     </script>
     <!-- Funcion JS la sugerencia de Clientes y Productos-->
     <script>

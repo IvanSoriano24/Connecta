@@ -462,21 +462,22 @@ function datosPedidos(limpiarTabla = true) {
               const row = document.createElement("tr");
               const subtotalText = pedido.Subtotal
                 ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
                 : "Sin subtotal";
               const importeText = pedido.ImporteTotal
                 ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`
                 : "Sin importe";
 
-              const tipoUsuario = document.getElementById("tipoUsuario").dataset.tipo;
+              const tipoUsuario =
+                document.getElementById("tipoUsuario").dataset.tipo;
               const mostrarBotones = tipoUsuario !== "FACTURISTA";
-              console.log(tipoUsuario)
-              console.log(mostrarBotones)
+              console.log(tipoUsuario);
+              console.log(mostrarBotones);
 
               row.innerHTML = `
                 <td>${pedido.Tipo || "Sin tipo"}</td>
@@ -487,8 +488,12 @@ function datosPedidos(limpiarTabla = true) {
                 <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
                 <td style="text-align: right;">${subtotalText}</td>
                 <td style="text-align: right;">${importeText}</td>
-                <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"}</td>
-                ${mostrarBotones ? `
+                <td class="nombreVendedor">${
+                  pedido.NombreVendedor || "Sin vendedor"
+                }</td>
+                ${
+                  mostrarBotones
+                    ? `
                   <td>
                     <button class="btnEditarPedido" data-id="${pedido.Clave}" style="...">
                       <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
@@ -499,17 +504,23 @@ function datosPedidos(limpiarTabla = true) {
                       <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
                     </button>
                   </td>
-                ` : `
+                `
+                    : `
                   <td></td>
                   <td></td>
-                `}
+                `
+                }
                 <td>
-                  <button class="btnVerPedido" data-id="${pedido.Clave}" style="...">
+                  <button class="btnVerPedido" data-id="${
+                    pedido.Clave
+                  }" style="...">
                     <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar
                   </button>
                 </td>
                 <td>
-                  <button class="btnDescargarPedido" data-id="${pedido.Clave}" style="...">
+                  <button class="btnDescargarPedido" data-id="${
+                    pedido.Clave
+                  }" style="...">
                     <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Descargar
                   </button>
                 </td>
@@ -653,7 +664,7 @@ function obtenerDatosEnvioEditar(pedidoID) {
         //const pedido = response.data;
         const data = response.data.fields;
         const name = response.data.name;
-        const idDocumento = name.split('/').pop(); // Extrae el ID del documento
+        const idDocumento = name.split("/").pop(); // Extrae el ID del documento
         //alert(idDocumento);
         // Verifica la estructura de los datos en el console.log
         console.log("Datos Envio: ", data); // Esto te mostrará el objeto completo
@@ -739,104 +750,56 @@ function obtenerMunicipios(edo, municipio) {
     },
   });
 }
-/*function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
-  $.ajax({
-    url: "../Servidor/PHP/ventas.php",
-    method: "POST",
-    data: { numFuncion: "25", estadoSeleccionado: estadoSeleccionado },
-    dataType: "json",
-    success: function (resEstado) {
-      const $sel = $("#estadoContacto")
-        .empty()
-        .append("<option selected disabled>Selecciona un Estado</option>");
-
-      if (resEstado.success) {
-        // Normaliza a array aunque venga un solo objeto
-        const estados = Array.isArray(resEstado.data)
-          ? resEstado.data
-          : [resEstado.data];
-        console.log("Estado: ", estados);
-        estados.forEach((e) => {
-          $sel.append(
-            `<option value="${e.Clave}" 
-                data-Pais="${e.Pais}"
-                data-Descripcion="${e.Descripcion}">
-                ${e.Descripcion}
-              </option>`
-          );
-        });
-        if (estadoSeleccionado) {
-          $sel.find("option").each(function () {
-            if ($(this).text().trim() === estadoSeleccionado.trim()) {
-              $(this).prop("selected", true);
-              return false; // sale del each
-            }
-          });
-          // Si además hay municipio, lo pasamos para poblar ese select
-          if (municipioSeleccionado) {
-
-          }
-        }
-      } else {
-        Swal.fire({
-          icon: "warning",
-          title: "Aviso",
-          text: resEstado.message || "No se encontraron estados.",
-        });
-      }
-    },
-    error: function () {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No pude cargar la lista de estados.",
-      });
-    },
-  });
-}*/
 function obtenerEstadosEdit(estadoSeleccionado, municipioSeleccionado) {
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
     method: "POST",
-    data: { numFuncion: "29" },  // ahora pide TODOS
+    data: { numFuncion: "30" }, // ahora pide TODOS
     dataType: "json",
-    success: function(res) {
+    success: function (res) {
       const $sel = $("#estadoContacto")
         .empty()
-        .append('<option selected disabled>Selecciona un Estado</option>');
+        .append("<option selected disabled>Selecciona un Estado</option>");
 
       if (!res.success) {
-        return Swal.fire('Aviso', res.message||'Error cargando estados','warning');
+        return Swal.fire(
+          "Aviso",
+          res.message || "Error cargando estados",
+          "warning"
+        );
       }
 
       // res.data es un array de { Clave, Descripcion }
-      res.data.forEach(e => {
+      res.data.forEach((e) => {
         $sel.append(
-          `<option value="${e.Clave}">${e.Descripcion}</option>`
+          `<option 
+            value="${e.Clave}" 
+            data-descripcion="${e.Descripcion}"
+          >${e.Descripcion}</option>`
         );
       });
 
       // Si me pasaron uno para pre-seleccionar:
       if (estadoSeleccionado) {
         // buscar por texto (Descripción)
-        $sel.find('option').each(function(){
+        $sel.find("option").each(function () {
           if ($(this).text().trim() === estadoSeleccionado.trim()) {
-            $(this).prop('selected', true);
+            $(this).prop("selected", true);
             return false; // rompe el each
           }
         });
+        console.log($sel);
         // y luego cargar municipios de ese estado
         if (municipioSeleccionado) {
           obtenerMunicipiosEdit($sel.val(), municipioSeleccionado);
         }
       }
     },
-    error: function(){
-      Swal.fire('Error','No pude cargar la lista de estados.','error');
-    }
+    error: function () {
+      Swal.fire("Error", "No pude cargar la lista de estados.", "error");
+    },
   });
 }
-
 function obtenerMunicipiosEdit(edo, municipio) {
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
@@ -868,10 +831,6 @@ function obtenerMunicipiosEdit(edo, municipio) {
             .find("option")
             .filter((i, o) => $(o).text().trim() === municipio.trim())
             .prop("selected", true);
-          //$sel.prop("disabled", true);
-
-          // Si `municipio` es la clave (value):
-          //$sel.val(municipio);
         }
       } else {
         Swal.fire({
@@ -1309,15 +1268,15 @@ function doSearch(limpiarTabla = true) {
                 const row = document.createElement("tr");
                 const subtotalText = pedido.Subtotal
                   ? `$${Number(pedido.Subtotal).toLocaleString("es-MX", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
                   : "Sin subtotal";
                 const importeText = pedido.ImporteTotal
                   ? `$${Number(pedido.ImporteTotal).toLocaleString("es-MX", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
                   : "Sin importe";
 
                 row.innerHTML = `
@@ -1328,16 +1287,19 @@ function doSearch(limpiarTabla = true) {
                   <td>${pedido.Estatus || "0"}</td>
                   <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
                   <td style="text-align: right;">${subtotalText}</td>
-                  <!--<td style="text-align: right;">${pedido.TotalComisiones
-                    ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
-                    : "Sin Comisiones"
+                  <!--<td style="text-align: right;">${
+                    pedido.TotalComisiones
+                      ? `$${parseFloat(pedido.TotalComisiones).toFixed(2)}`
+                      : "Sin Comisiones"
                   }</td>-->
                   <td style="text-align: right;">${importeText}</td>
-                <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
-                  }</td>
+                <td class="nombreVendedor">${
+                  pedido.NombreVendedor || "Sin vendedor"
+                }</td>
                   <td>
-                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${pedido.Clave
-                  }" style="
+                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
+                        pedido.Clave
+                      }" style="
                           display: inline-flex;
                           align-items: center;
                           padding: 0.5rem 0.5rem;
@@ -1353,8 +1315,9 @@ function doSearch(limpiarTabla = true) {
                       </button>
                   </td>
                   <td>
-                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${pedido.Clave
-                  }" style="
+                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${
+                        pedido.Clave
+                      }" style="
                           display: inline-flex;
                           align-items: center;
                           padding: 0.5rem 0.5rem;
@@ -1370,8 +1333,9 @@ function doSearch(limpiarTabla = true) {
                       </button>
                   </td>
                   <td>
-                                <button class="btnVerPedido" name="btnVerPedido" data-id="${pedido.Clave
-                  }" style="
+                                <button class="btnVerPedido" name="btnVerPedido" data-id="${
+                                  pedido.Clave
+                                }" style="
                                         display: inline-flex;
                                         align-items: center;
                                         padding: 0.5rem 0.5rem;
@@ -1387,8 +1351,9 @@ function doSearch(limpiarTabla = true) {
                                     </button>
                                 </td>
                                 <td>
-                                <button class="btnDescargarPedido" name="btnDescargarPedido" data-id="${pedido.Clave
-                  }" style="
+                                <button class="btnDescargarPedido" name="btnDescargarPedido" data-id="${
+                                  pedido.Clave
+                                }" style="
                                         display: inline-flex;
                                         align-items: center;
                                         padding: 0.5rem 0.5rem;

@@ -825,6 +825,14 @@ function validarDatosEnvio() {
   );
   const tipoOperacion = document.getElementById("tipoOperacion").value;
 
+  console.log(tipoOperacion);
+  console.log(nombreContacto);
+  console.log(direccion1Contacto);
+  console.log(direccion2Contacto);
+  console.log(codigoContacto);
+  console.log(estadoContacto);
+  console.log(municipioContacto);
+
   if (tipoOperacion === "alta") {
     if (
       !nombreContacto ||
@@ -915,7 +923,7 @@ function obtenerDatosFormulario() {
     token: document.getElementById("csrf_token").value,
     ordenCompra: document.getElementById("supedido").value,
     tipoOperacion: document.getElementById("tipoOperacion").value,
-    CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value,// Mover
+    CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value, // Mover
   };
   return formularioData;
 }
@@ -1934,10 +1942,13 @@ function cerrarModalNuevoEnvio() {
 function mostrarMoldal() {
   //limpiarFormulario();
   let estadoSelect = document.getElementById("estadoContacto").value;
-  if (estadoSelect === "Selecciona un estado") {
-    obtenerEstados();
+  let tipoOperacion = document.getElementById("tipoOperacion").value;
+  if (tipoOperacion === "alta") {
+    if (estadoSelect === "Selecciona un estado") {
+      obtenerEstados();
+    }
+    obtenerDatosEnvio();
   }
-  obtenerDatosEnvio();
   $("#modalEnvio").modal("show");
 }
 function limpiarFormulario() {
@@ -2030,7 +2041,8 @@ function obtenerTotales() {
           "error"
         );
       }
-      const subtotalPedido = (data.subtotal.toFixed(2)) - (data.descuento.toFixed(2))
+      const subtotalPedido =
+        data.subtotal.toFixed(2) - data.descuento.toFixed(2);
       // ¡Ahora sí puedes leer data.subtotal, data.iva y data.importe!
       $("#subtotal").val(data.subtotal.toFixed(2));
       $("#descuento").val(data.descuento.toFixed(2));
@@ -2043,69 +2055,85 @@ function obtenerTotales() {
       Swal.fire("Error", "No se pudo contactar al servidor.", "error");
     });
 }
-function obtenerVendedores(tipoUsuario){
- // Hacemos petición AJAX para obtener la lista de vendedores desde el servidor
-      $.ajax({
-        url: "../Servidor/PHP/usuarios.php",
-        method: "GET",
-        data: { numFuncion: "13" }, // Parámetro que indica al PHP que devuelva vendedores
-        success: function (response) {
-          try {
-            // Asegurarnos de que la respuesta sea un objeto JSON
-            const res =
-              typeof response === "string" ? JSON.parse(response) : response;
+function obtenerVendedores(tipoUsuario, claveUsuario) {
+  const input = document.getElementById("vendedor");
+  if (!input) return;
 
-            if (res.success && Array.isArray(res.data)) {
-              // Si la respuesta es exitosa y trae un arreglo de vendedores...
-              const selectVendedor = $("#selectVendedor");
-              selectVendedor.empty(); // Limpiamos opciones previas
-              selectVendedor.append(
-                "<option selected disabled>Seleccione un vendedor</option>"
-              );
+  $.ajax({
+    url: "../Servidor/PHP/usuarios.php",
+    method: "GET",
+    data: {
+      numFuncion: "13",
+      tipoUsuario: tipoUsuario,
+    },
+    success(response) {
+      let res;
+      try {
+        res = typeof response === "string" ? JSON.parse(response) : response;
+      } catch (err) {
+        console.error("JSON inválido:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Respuesta inválida del servidor.",
+        });
+        return;
+      }
 
-              // Iteramos cada vendedor y agregamos una opción al select
-              res.data.forEach((vendedor) => {
-                selectVendedor.append(
-                  `<option value="${vendedor.clave}" data-nombre="${vendedor.nombre}">
-                  ${vendedor.nombre} || ${vendedor.clave}
-                </option>`
-                );
-              });
+      if (res.success && Array.isArray(res.data)) {
+        // 1. Creamos el <select> y copiamos atributos del <input>
+        const select = document.createElement("select");
+        select.id = input.id;
+        select.name = input.name;
+        select.style.cssText = input.style.cssText;
+        select.tabIndex = input.tabIndex;
 
-              // Habilitamos el select solo si hay vendedores disponibles
-              selectVendedor.prop("disabled", res.data.length === 0);
-            } else {
-              // Si no se encontraron vendedores o hay un mensaje de error...
-              Swal.fire({
-                icon: "warning",
-                title: "Aviso",
-                text: res.message || "No se encontraron vendedores.",
-              });
-              // Deshabilitamos el select para evitar selección
-              $("#selectVendedor").prop("disabled", true);
-            }
-          } catch (error) {
-            // Si ocurre un error al parsear o procesar la respuesta JSON
-            console.error("Error al procesar la respuesta:", error);
-            Swal.fire({
-              icon: "error",
-              title: "Error",
-              text: "Error al cargar vendedores.",
-            });
+        // 2. Opción placeholder
+        const ph = document.createElement("option");
+        ph.value = "";
+        ph.textContent = "Seleccione un vendedor";
+        ph.disabled = true;
+
+        if (!claveUsuario) {
+          // Si no hay clave, mostramos y seleccionamos placeholder
+          ph.selected = true;
+        } else {
+          // Si ya hay claveUsuario, lo oculta para no interferir
+          ph.hidden = true;
+          select.disabled = true;
+        }
+        select.append(ph);
+
+        // 3. Rellenamos con los datos del servidor
+        res.data.forEach((vendedor) => {
+          const opt = document.createElement("option");
+          opt.value = vendedor.clave;
+          opt.textContent = `${vendedor.nombre} || ${vendedor.clave}`;
+          if (vendedor.clave === claveUsuario) {
+            opt.selected = true;
           }
-        },
-        error: function () {
-          // Si la llamada AJAX falla (por ejemplo, error 500)
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Error al obtener la lista de vendedores.",
-          });
-        },
+          select.append(opt);
+        });
+
+        // 4. Reemplazamos el input por el select
+        input.parentNode.replaceChild(select, input);
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: res.message || "No se encontraron vendedores.",
+        });
+      }
+    },
+    error() {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo obtener la lista de vendedores.",
       });
+    },
+  });
 }
-// // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
-// document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);
 
 document.getElementById("añadirPartida").addEventListener("click", function () {
   agregarFilaPartidas();

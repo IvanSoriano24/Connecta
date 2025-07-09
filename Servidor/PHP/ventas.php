@@ -6804,14 +6804,43 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
         'status'     => ['stringValue' => 'Sin Autorizar'],
         'idEnvios' => ['stringValue' => $idEnvios ?? ''],
     ];
-    //var_dump($fields);
 
-    // Finalmente, enviamos todo a Firestore
-    $url = "https://firestore.googleapis.com/v1/projects/"
-        . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+    /****/
+    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
+    $collection = "PEDIDOS_AUTORIZAR";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
 
-    $payload = json_encode(['fields' => $fields]);
-    file_put_contents("debug_payload.json", $payload);
+    // Payload para hacer un where compuesto (idPedido y noEmpresa)
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "folio"],
+                                "op" => "EQUAL",
+                                "value" => ["stringValue" => $formularioData['numero']]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+
     $options = [
         'http' => [
             'header'  => "Content-Type: application/json\r\n",
@@ -6819,13 +6848,67 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
             'content' => $payload,
         ]
     ];
+
     $context  = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
 
-    if ($response === false) {
-        $error = error_get_last();
-        echo json_encode(['success' => false, 'message' => $error['message']]);
-        exit;
+    // Inicializa la variable donde guardarás el id
+    $idFirebasePedido = "";
+
+    if ($response !== false) {
+        $resultArray = json_decode($response, true);
+        if (isset($resultArray[0]['document']['name'])) {
+            $name = $resultArray[0]['document']['name']; // p.ej. projects/proj/databases/(default)/documents/DATOS_PEDIDO/{id}
+            $parts = explode('/', $name);
+            $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
+        }
+    }
+    /****/
+    if ($idFirebasePedido === "") {
+        // Finalmente, enviamos todo a Firestore
+        $url = "https://firestore.googleapis.com/v1/projects/"
+            . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+
+        $payload = json_encode(['fields' => $fields]);
+        file_put_contents("debug_payload.json", $payload);
+        $options = [
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => $payload,
+            ]
+        ];
+        $context  = stream_context_create($options);
+        $response = @file_get_contents($url, false, $context);
+
+        if ($response === false) {
+            $error = error_get_last();
+            echo json_encode(['success' => false, 'message' => $error['message']]);
+            exit;
+        }
+    } else {
+        // Finalmente, enviamos todo a Firestore
+        $url = "https://firestore.googleapis.com/v1/projects/"
+            . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/"
+            . "$idFirebasePedido?key=$firebaseApiKey";
+
+        $payload = json_encode(['fields' => $fields]);
+        file_put_contents("debug_payload.json", $payload);
+        $options = [
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'PATCH',
+                'content' => $payload,
+            ]
+        ];
+        $context  = stream_context_create($options);
+        $response = @file_get_contents($url, false, $context);
+
+        if ($response === false) {
+            $error = error_get_last();
+            echo json_encode(['success' => false, 'message' => $error['message']]);
+            exit;
+        }
     }
 }
 function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito)
@@ -8064,7 +8147,28 @@ function calcularTotales($formularioData, $partidasData)
     }
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     echo json_encode(['success' => true, 'importe' => $IMPORTE, 'subtotal' => $subTotal, 'iva' => $IMP_TOT4, 'descuento' => $DES_TOT]);
+    return;
+}
+function obtenerTodosEstados()
+{
+    $filePath = "../../Complementos/CAT_ESTADOS.xml";
+    if (!file_exists($filePath)) {
+        echo json_encode(['success' => false, 'message' => "No existe $filePath"]);
         return;
+    }
+    $xml = simplexml_load_file($filePath);
+    $estados = [];
+    foreach ($xml->row as $row) {
+        if ((string)$row['Pais'] === 'MEX') {
+            $estados[] = [
+                'Clave'       => (string)$row['Clave'],
+                'Descripcion' => (string)$row['Descripcion']
+            ];
+        }
+    }
+    // opcional: ordenar alfabéticamente
+    usort($estados, fn($a, $b) => strcmp($a['Descripcion'], $b['Descripcion']));
+    echo json_encode(['success' => true, 'data' => $estados]);
 }
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -8954,6 +9058,9 @@ switch ($funcion) {
         $partidasData = formatearPartidas($partidasData);
 
         calcularTotales($formularioData, $partidasData);
+        break;
+    case 30:
+        obtenerTodosEstados();
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
