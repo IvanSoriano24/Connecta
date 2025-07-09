@@ -476,9 +476,9 @@ if (isset($_SESSION['usuario'])) {
                 const numGuia = $("#numGuia").val().trim(); // Obtener y limpiar espacios en la guía
                 const token = $("#csrf_token_C").val().trim();
                 // Validar que el Número de Guía no esté vacío y tenga exactamente 9 dígitos
-                if (numGuia === "" || !/^\d{9}$/.test(numGuia)) {
+                if (numGuia === "" || !/^\d{12}$/.test(numGuia)) {
                     Swal.fire({
-                        text: "El Número de Guía debe contener exactamente 9 dígitos.",
+                        text: "El Número de Guía debe contener exactamente 12 dígitos.",
                         icon: "warning",
                     });
                     return; // Detener el proceso si la validación falla

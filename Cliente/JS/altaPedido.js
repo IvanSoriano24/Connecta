@@ -909,13 +909,13 @@ function obtenerDatosFormulario() {
     comision: document.getElementById("comision").value,
     enviar: document.getElementById("enviar").value,
     almacen: document.getElementById("almacen").value,
-    destinatario: document.getElementById("destinatario").value,
+    destinatario: document.getElementById("destinatario").value, //
     conCredito: document.getElementById("conCredito").value,
     //conCredito: "S",
     token: document.getElementById("csrf_token").value,
     ordenCompra: document.getElementById("supedido").value,
     tipoOperacion: document.getElementById("tipoOperacion").value,
-    CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value,
+    CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value,// Mover
   };
   return formularioData;
 }
@@ -2042,6 +2042,67 @@ function obtenerTotales() {
       console.error("Error al obtener los totales:", err);
       Swal.fire("Error", "No se pudo contactar al servidor.", "error");
     });
+}
+function obtenerVendedores(tipoUsuario){
+ // Hacemos petición AJAX para obtener la lista de vendedores desde el servidor
+      $.ajax({
+        url: "../Servidor/PHP/usuarios.php",
+        method: "GET",
+        data: { numFuncion: "13" }, // Parámetro que indica al PHP que devuelva vendedores
+        success: function (response) {
+          try {
+            // Asegurarnos de que la respuesta sea un objeto JSON
+            const res =
+              typeof response === "string" ? JSON.parse(response) : response;
+
+            if (res.success && Array.isArray(res.data)) {
+              // Si la respuesta es exitosa y trae un arreglo de vendedores...
+              const selectVendedor = $("#selectVendedor");
+              selectVendedor.empty(); // Limpiamos opciones previas
+              selectVendedor.append(
+                "<option selected disabled>Seleccione un vendedor</option>"
+              );
+
+              // Iteramos cada vendedor y agregamos una opción al select
+              res.data.forEach((vendedor) => {
+                selectVendedor.append(
+                  `<option value="${vendedor.clave}" data-nombre="${vendedor.nombre}">
+                  ${vendedor.nombre} || ${vendedor.clave}
+                </option>`
+                );
+              });
+
+              // Habilitamos el select solo si hay vendedores disponibles
+              selectVendedor.prop("disabled", res.data.length === 0);
+            } else {
+              // Si no se encontraron vendedores o hay un mensaje de error...
+              Swal.fire({
+                icon: "warning",
+                title: "Aviso",
+                text: res.message || "No se encontraron vendedores.",
+              });
+              // Deshabilitamos el select para evitar selección
+              $("#selectVendedor").prop("disabled", true);
+            }
+          } catch (error) {
+            // Si ocurre un error al parsear o procesar la respuesta JSON
+            console.error("Error al procesar la respuesta:", error);
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Error al cargar vendedores.",
+            });
+          }
+        },
+        error: function () {
+          // Si la llamada AJAX falla (por ejemplo, error 500)
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Error al obtener la lista de vendedores.",
+          });
+        },
+      });
 }
 // // Agrega la fila de partidas al hacer clic en la sección de partidas o tabulando hacia ella
 // document.getElementById("clientesSugeridos").addEventListener("click", showCustomerSuggestions);

@@ -1061,6 +1061,11 @@ if (isset($_SESSION['usuario'])) {
             document.getElementById("entrega").value = fechaActual;
         });
     </script>
+    <script>
+        /*if (tipoUsuario === "ADMINISTRADOR") {
+            obtenerVendedores(tipoUsuario);
+        }*/
+    </script>
     <!-- Funcion JS la sugerencia de Clientes y Productos-->
     <script>
         $(document).ready(function() {

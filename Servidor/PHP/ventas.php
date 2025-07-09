@@ -8104,7 +8104,6 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-<<<<<<< HEAD
 function calcularTotales($formularioData, $partidasData)
 {
     $total = 0;
@@ -8130,28 +8129,6 @@ function calcularTotales($formularioData, $partidasData)
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     echo json_encode(['success' => true, 'importe' => $IMPORTE, 'subtotal' => $subTotal, 'iva' => $IMP_TOT4, 'descuento' => $DES_TOT]);
         return;
-=======
-function obtenerTodosEstados()
-{
-    $filePath = "../../Complementos/CAT_ESTADOS.xml";
-    if (!file_exists($filePath)) {
-        echo json_encode(['success' => false, 'message' => "No existe $filePath"]);
-        return;
-    }
-    $xml = simplexml_load_file($filePath);
-    $estados = [];
-    foreach ($xml->row as $row) {
-        if ((string)$row['Pais'] === 'MEX') {
-            $estados[] = [
-                'Clave'       => (string)$row['Clave'],
-                'Descripcion' => (string)$row['Descripcion']
-            ];
-        }
-    }
-    // opcional: ordenar alfabéticamente
-    usort($estados, fn($a, $b) => strcmp($a['Descripcion'], $b['Descripcion']));
-    echo json_encode(['success' => true, 'data' => $estados]);
->>>>>>> 37b990e62c236ac50b809294622ebdcce799654c
 }
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -9033,7 +9010,6 @@ switch ($funcion) {
         enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData);
         break;
     case 29:
-<<<<<<< HEAD
         $formularioData = json_decode($_POST['formulario'], true); // Datos del formulario desde JS
         $partidasData = json_decode($_POST['partidas'], true); // Datos de las partidas desde JS
 
@@ -9042,9 +9018,6 @@ switch ($funcion) {
         $partidasData = formatearPartidas($partidasData);
 
         calcularTotales($formularioData, $partidasData);
-=======
-        obtenerTodosEstados();
->>>>>>> 37b990e62c236ac50b809294622ebdcce799654c
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);

@@ -3244,7 +3244,7 @@ function obtenerLotesDisponibles($conn, $conexionData, $claveProducto, $claveSae
 
     $sql = "SELECT REG_LTPD, CANTIDAD, LOTE
             FROM $tablaLotes
-            WHERE CVE_ART = ? AND STATUS = 'A' AND CANTIDAD > 0
+            WHERE CVE_ART = ? AND STATUS = 'A' AND CVE_ALM = 1 AND CANTIDAD > 0
             ORDER BY FCHCADUC ASC, REG_LTPD ASC";
 
     $params = [$claveProducto];

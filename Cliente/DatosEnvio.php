@@ -87,6 +87,34 @@ if (isset($_SESSION['usuario'])) {
             background-color: #007bff;
             color: white;
         }
+
+        .search-group .search-input,
+        .input-group .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            /* espacio a la izquierda para el icono */
+            padding-left: 2.5rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input-group .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: #888;
+            pointer-events: none;
+        }
+
+        .input-group .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
     </style>
 </head>
 
@@ -105,21 +133,34 @@ if (isset($_SESSION['usuario'])) {
                         <!-- Tabla de correos -->
                         <div class="table-data">
                             <div class="order">
-                                <div class="order d-flex align-items-start gap-2 mb-3">
-                                    <button class="btn btn-success" id="btnImportar">
-                                        <i class='bx bxs-file-import'></i> Importar
-                                    </button>
-                                    <input
-                                        type="file"
-                                        id="inputExcel"
-                                        accept=".xlsx,.xls"
-                                        style="display:none" />
+                                <div class="order mb-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <!-- Botones a la izquierda -->
+                                        <div class="btn-group">
+                                            <button class="btn btn-success" id="btnImportar">
+                                                <i class='bx bxs-file-import'></i> Importar
+                                            </button>
+                                            <button class="btn btn-primary" id="btnAgregar">
+                                                <i class='bx bxs-plus-circle'></i> Agregar Datos
+                                            </button>
+                                        </div>
 
-                                    <button class="btn btn-primary" id="btnAgregar">
-                                        <i class='bx bxs-plus-circle'></i> Agregar Datos
-                                    </button>
+                                        <!-- Buscador a la derecha -->
+                                        <div class="input-group" style="max-width: 300px;">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class='bx bx-search'></i>
+                                            </span>
+                                            <input
+                                                id="searchTerm"
+                                                class="form-control border-start-0"
+                                                type="text"
+                                                placeholder="Buscar Datos Envío..."
+                                                onkeyup="debouncedSearch()" />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="head">
+
                                     <table id="tablaDatos">
                                         <thead>
                                             <tr>
@@ -665,6 +706,40 @@ if (isset($_SESSION['usuario'])) {
             });
         });
     </script>
+    <script>
+        // 1) Función que recorre las filas y esconde las que no coincidan
+        function filterTable() {
+            const term = document
+                .getElementById('searchTerm')
+                .value
+                .trim()
+                .toLowerCase();
+
+            document
+                .querySelectorAll('#tablaDatos tbody tr')
+                .forEach(row => {
+                    // tomamos todo el texto de la fila
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(term) ? '' : 'none';
+                });
+        }
+
+        // 2) Un pequeño "debounce" para no disparar filterTable en cada pulsación
+        function debounce(fn, delay = 200) {
+            let timeoutId;
+            return function(...args) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+        // 3) Creamos la versión "debounced" de filterTable
+        const debouncedSearch = debounce(filterTable, 250);
+
+        // (Opcional) Si prefieres bindear con addEventListener en vez de onkeyup:
+        // document.getElementById('searchTerm')
+        //   .addEventListener('input', debouncedSearch);
+    </script>
+
 </body>
 
 </html>
