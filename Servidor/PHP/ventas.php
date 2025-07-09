@@ -2335,8 +2335,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6894,8 +6894,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6997,70 +6997,6 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
     return $result;
-}
-
-function facturar($folio, $claveSae, $noEmpresa)
-{
-    $numFuncion = '1';
-    $pedidoId = $folio;
-
-    // URL del servidor donde se ejecutará la remisión
-    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
-
-    // Datos a enviar a la API de remisión
-    $data = [
-        'numFuncion' => $numFuncion,
-        'pedidoId' => $pedidoId,
-        'claveSae' => $claveSae,
-        'noEmpresa' => $noEmpresa,
-    ];
-
-    // Inicializa cURL
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $facturanUrl);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/x-www-form-urlencoded'
-    ]);
-
-    // Ejecutar la petición y capturar la respuesta
-    $facturaResponse = curl_exec($ch);
-
-    // Verificar errores en cURL
-    if (curl_errno($ch)) {
-        echo 'Error cURL: ' . curl_error($ch);
-        curl_close($ch);
-        return;
-    }
-
-    // Obtener tipo de contenido antes de cerrar cURL
-    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-    curl_close($ch);
-
-    if ($facturaResponse) {
-        // Intenta decodificar como JSON
-        //$facturaData = json_decode($facturaResponse, true);
-
-        if (json_last_error() === JSON_ERROR_NONE && isset($facturaResponse)) {
-            return $facturaResponse;
-            // ✅ La respuesta es un JSON con cveDoc (Pedido procesado correctamente)
-            echo "<div class='container'>
-                    <div class='title'>Confirmación Exitosa</div>
-                    <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
-                    <a href='/Menu.php' class='button'>Regresar al inicio</a>
-                  </div>";
-        }
-    } else {
-        // ❌ No hubo respuesta
-        echo "<div class='container error'>
-                <div class='title'>Confirmación Fallida</div>
-                <div class='message'>El pedido falló. No se recibió respuesta del servidor.</div>
-                <a href='/Menu.php' class='button'>Regresar al inicio</a>
-              </div>";
-    }
 }
 function obtenerNombreVendedor($vendedor, $conexionData, $claveSae)
 {
@@ -8104,7 +8040,6 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-<<<<<<< HEAD
 function calcularTotales($formularioData, $partidasData)
 {
     $total = 0;
@@ -8130,28 +8065,6 @@ function calcularTotales($formularioData, $partidasData)
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
     echo json_encode(['success' => true, 'importe' => $IMPORTE, 'subtotal' => $subTotal, 'iva' => $IMP_TOT4, 'descuento' => $DES_TOT]);
         return;
-=======
-function obtenerTodosEstados()
-{
-    $filePath = "../../Complementos/CAT_ESTADOS.xml";
-    if (!file_exists($filePath)) {
-        echo json_encode(['success' => false, 'message' => "No existe $filePath"]);
-        return;
-    }
-    $xml = simplexml_load_file($filePath);
-    $estados = [];
-    foreach ($xml->row as $row) {
-        if ((string)$row['Pais'] === 'MEX') {
-            $estados[] = [
-                'Clave'       => (string)$row['Clave'],
-                'Descripcion' => (string)$row['Descripcion']
-            ];
-        }
-    }
-    // opcional: ordenar alfabéticamente
-    usort($estados, fn($a, $b) => strcmp($a['Descripcion'], $b['Descripcion']));
-    echo json_encode(['success' => true, 'data' => $estados]);
->>>>>>> 37b990e62c236ac50b809294622ebdcce799654c
 }
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -9033,7 +8946,6 @@ switch ($funcion) {
         enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData);
         break;
     case 29:
-<<<<<<< HEAD
         $formularioData = json_decode($_POST['formulario'], true); // Datos del formulario desde JS
         $partidasData = json_decode($_POST['partidas'], true); // Datos de las partidas desde JS
 
@@ -9042,9 +8954,6 @@ switch ($funcion) {
         $partidasData = formatearPartidas($partidasData);
 
         calcularTotales($formularioData, $partidasData);
-=======
-        obtenerTodosEstados();
->>>>>>> 37b990e62c236ac50b809294622ebdcce799654c
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
