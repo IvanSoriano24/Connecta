@@ -2335,8 +2335,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6977,8 +6977,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -8600,12 +8600,12 @@ switch ($funcion) {
 
                     $validarSaldo = validarSaldoE($conexionData, $clave, $claveSae);
 
-                    if ($validarSaldo == 0 && $credito == 0) {
+                    /*if ($validarSaldo == 0 && $credito == 0) {
                         $estatus = "E";
                     } else if ($validarSaldo == 1 || $credito == 1) {
                         $estatus = "C";
-                    }
-
+                    }*/
+                    $estatus = "E";
                     /*$estatus = "E";
                     $validarSaldo = 0;
                     $credito = 0;*/
