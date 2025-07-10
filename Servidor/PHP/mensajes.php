@@ -225,7 +225,8 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
                 'numGuia' => $fields['numGuia']['stringValue'] ?? "",
                 'productos' => $productos,
                 'envioData' => $envioData,
-                'activada' => $fields['activada']['booleanValue'] ?? false
+                'activada' => $fields['activada']['booleanValue'] ?? false,
+                'observaciones' => $fields['observaciones']['stringValue']
             ]
         ]);
     }

@@ -482,7 +482,8 @@ function crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fech
             "noEmpresa" => ["integerValue" => $noEmpresa],
             "pagada" => ["booleanValue" => true],
             "credito" => ["booleanValue" => false],
-            "facturado" => ["booleanValue" => false]
+            "facturado" => ["booleanValue" => false],
+            "observaciones" => ["stringValue" => $envioData['observaciones'] ?? ""]
         ]
     ];
 
@@ -726,7 +727,8 @@ function datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey) {
         'municipioContacto' => $fields['municipioContacto']['stringValue'] ?? '',
         'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? 0,
         'nombreContacto' => $fields['nombreContacto']['stringValue'] ?? '',
-        'telefonoContacto' => $fields['telefonoContacto']['stringValue'] ?? ''
+        'telefonoContacto' => $fields['telefonoContacto']['stringValue'] ?? '',
+        'observaciones' => $fields['observaciones']['stringValue'] ?? ''
     ];
 }
 
@@ -915,7 +917,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                         //Verificar si se realizo el pago
                         $pagado = verificarPago($conexionData, $cliente, $claveSae, $folio);
 
-                        $pagado['pagada'] = true;
+                        //$pagado['pagada'] = true;
                         if ($pagado['pagada']) {
                             var_dump($pagado);
                             //die();
@@ -923,13 +925,13 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                             //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
                             cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                             //var_dump($pagado);
-                            //eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
-                            //restarSaldo($conexionData, $claveSae, $pagado, $cliente);
+                            eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
+                            restarSaldo($conexionData, $claveSae, $pagado, $cliente);
                             //var_dump($cliente);
                             crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
 
                             // Eliminar el documento de DATOS_PEDIDO
-                            //eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios);
+                            eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios);
 
                             crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
                             //Remision y Demas

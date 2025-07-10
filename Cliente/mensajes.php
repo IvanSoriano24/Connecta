@@ -281,6 +281,10 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                     </div>
                                     <div class="row">
+                                        <div class="col-md-12 mb-6">
+                                            <label class="form-label">Observaciones</label>
+                                            <input type="text" class="form-control form-control-sm" id="observaciones" readonly>
+                                        </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">Datos de Envío</label>
                                             <button

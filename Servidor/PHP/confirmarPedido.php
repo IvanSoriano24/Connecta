@@ -171,7 +171,8 @@ function datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey) {
         'municipioContacto' => $fields['municipioContacto']['stringValue'] ?? '',
         'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? 0,
         'nombreContacto' => $fields['nombreContacto']['stringValue'] ?? '',
-        'telefonoContacto' => $fields['telefonoContacto']['stringValue'] ?? ''
+        'telefonoContacto' => $fields['telefonoContacto']['stringValue'] ?? '',
+        'observaciones' => $fields['observaciones']['stringValue'] ?? ''
     ];
 }
 //Verificamos si se recibe los datos
@@ -265,7 +266,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         "noEmpresa" => ["integerValue" => $noEmpresa],
                         "pagada" => ["booleanValue" => true],
                         "credito" => ["booleanValue" => true],
-                        "facturado" => ["booleanValue" => false]
+                        "facturado" => ["booleanValue" => false],
+                        "observaciones" => ["stringValue" => $envioData['observaciones'] ?? ""]
                     ]
                 ];
 

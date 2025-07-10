@@ -2335,8 +2335,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -4749,55 +4749,57 @@ function validarSaldo($conexionData, $clave, $claveSae, $conn)
 {
     try {
         // Montamos los nombres de tabla dinámicos
-        $db    = $conexionData['nombreBase'];
-        $s   = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
+        $db         = $conexionData['nombreBase'];
+        $s          = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
         $tablaCuenM = "[$db].[dbo].[CUEN_M{$s}]";
         $tablaCuenD = "[$db].[dbo].[CUEN_DET{$s}]";
         $tablaClie  = "[$db].[dbo].[CLIE{$s}]";
-        $tablaMon   = "[$db].[dbo].[MONED{$s}]";
-        // Consulta SQL para verificar saldo vencido
-        $sql = "
-        SELECT TOP 1 1
-        FROM $tablaCuenM CUENM
-        LEFT JOIN $tablaClie CLIENTES
-          ON CLIENTES.CLAVE = CUENM.CVE_CLIE
-        LEFT JOIN $tablaCuenD CUEND
-          ON CUEND.CVE_CLIE = CUENM.CVE_CLIE
-         AND CUEND.REFER    = CUENM.REFER
-         AND CUEND.NUM_CARGO= CUENM.NUM_CARGO
-        LEFT JOIN $tablaMon MON
-          ON CUENM.NUM_MONED = MON.NUM_MONED
-        WHERE CUENM.FECHA_VENC < GETDATE()
-          AND CLIENTES.STATUS <> 'B'
-          AND CLIENTES.CLAVE = ?
-          AND (
-             ISNULL((
-               SELECT SUM(IMPORTE)
-               FROM $tablaCuenD
-               WHERE CVE_CLIE = CUENM.CVE_CLIE
-                 AND REFER    = CUENM.REFER
-                 AND NUM_CARGO= CUENM.NUM_CARGO
-             ), 0) < CUENM.IMPORTE
-          )
-    ";
 
-        // Ejecutamos la consulta con sqlsrv_query
+        // Consulta que agrupa cada factura y sólo devuelve filas con saldo > 0 (redondeado a 2 decimales)
+        $sql = "
+            SELECT TOP 1 1
+            FROM $tablaCuenM CUENM
+            INNER JOIN $tablaClie CLIENTES
+              ON CLIENTES.CLAVE = CUENM.CVE_CLIE
+            LEFT JOIN $tablaCuenD CUEND
+              ON CUEND.CVE_CLIE  = CUENM.CVE_CLIE
+             AND CUEND.REFER     = CUENM.REFER
+             AND CUEND.NUM_CARGO = CUENM.NUM_CARGO
+            WHERE
+              CUENM.FECHA_VENC     < CAST(GETDATE() AS DATE)
+              AND CLIENTES.STATUS <> 'B'
+              AND CLIENTES.CLAVE   = ?
+              AND CUENM.REFER NOT LIKE '%NC%'
+            GROUP BY
+              CUENM.CVE_CLIE,
+              CUENM.REFER,
+              CUENM.NUM_CARGO,
+              CUENM.IMPORTE
+            HAVING
+              ROUND(
+                CUENM.IMPORTE
+                - COALESCE(SUM(CUEND.IMPORTE), 0),
+                2
+              ) > 0
+        ";
+
+        // Ejecutamos la consulta
         $params = [$clave];
-        $stmt = sqlsrv_query($conn, $sql, $params);
+        $stmt   = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
             $errors = print_r(sqlsrv_errors(), true);
             throw new Exception("Error al verificar saldo vencido:\n{$errors}");
         }
 
-        // Si devuelve fila => saldo vencido
+        // Si devuelve alguna fila => al menos una factura vencida con saldo pendiente
         $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_NUMERIC);
         sqlsrv_free_stmt($stmt);
 
         return ($row !== null) ? 1 : 0;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         // Manejo de errores
-        echo "Error de conexión: " . $e->getMessage();
-        return -1; // Código de error
+        error_log("validarSaldo error: " . $e->getMessage());
+        return -1;
     }
 }
 function validarSaldoE($conexionData, $clave, $claveSae)
@@ -4827,53 +4829,55 @@ function validarSaldoE($conexionData, $clave, $claveSae)
         $tablaCuenD = "[$db].[dbo].[CUEN_DET{$s}]";
         $tablaClie  = "[$db].[dbo].[CLIE{$s}]";
         $tablaMon   = "[$db].[dbo].[MONED{$s}]";
-        // Consulta SQL para verificar saldo vencido
+        // Consulta que agrupa cada factura y sólo devuelve filas con saldo > 0 (redondeado a 2 decimales)
         $sql = "
-        SELECT TOP 1 1
-        FROM $tablaCuenM CUENM
-        LEFT JOIN $tablaClie CLIENTES
-          ON CLIENTES.CLAVE = CUENM.CVE_CLIE
-        LEFT JOIN $tablaCuenD CUEND
-          ON CUEND.CVE_CLIE = CUENM.CVE_CLIE
-         AND CUEND.REFER    = CUENM.REFER
-         AND CUEND.NUM_CARGO= CUENM.NUM_CARGO
-        LEFT JOIN $tablaMon MON
-          ON CUENM.NUM_MONED = MON.NUM_MONED
-        WHERE CUENM.FECHA_VENC < GETDATE()
-          AND CLIENTES.STATUS <> 'B'
-          AND CLIENTES.CLAVE = ?
-          AND (
-             ISNULL((
-               SELECT SUM(IMPORTE)
-               FROM $tablaCuenD
-               WHERE CVE_CLIE = CUENM.CVE_CLIE
-                 AND REFER    = CUENM.REFER
-                 AND NUM_CARGO= CUENM.NUM_CARGO
-             ), 0) < CUENM.IMPORTE
-          )
-    ";
+            SELECT TOP 1 1
+            FROM $tablaCuenM CUENM
+            INNER JOIN $tablaClie CLIENTES
+              ON CLIENTES.CLAVE = CUENM.CVE_CLIE
+            LEFT JOIN $tablaCuenD CUEND
+              ON CUEND.CVE_CLIE  = CUENM.CVE_CLIE
+             AND CUEND.REFER     = CUENM.REFER
+             AND CUEND.NUM_CARGO = CUENM.NUM_CARGO
+            WHERE
+              CUENM.FECHA_VENC     < CAST(GETDATE() AS DATE)
+              AND CLIENTES.STATUS <> 'B'
+              AND CLIENTES.CLAVE   = ?
+              AND CUENM.REFER NOT LIKE '%NC%'
+            GROUP BY
+              CUENM.CVE_CLIE,
+              CUENM.REFER,
+              CUENM.NUM_CARGO,
+              CUENM.IMPORTE
+            HAVING
+              ROUND(
+                CUENM.IMPORTE
+                - COALESCE(SUM(CUEND.IMPORTE), 0),
+                2
+              ) > 0
+        ";
 
-        // Ejecutamos la consulta con sqlsrv_query
+        // Ejecutamos la consulta
         $params = [$clave];
-        $stmt = sqlsrv_query($conn, $sql, $params);
+        $stmt   = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
             $errors = print_r(sqlsrv_errors(), true);
             throw new Exception("Error al verificar saldo vencido:\n{$errors}");
         }
 
-        // Si devuelve fila => saldo vencido
+        // Si devuelve alguna fila => al menos una factura vencida con saldo pendiente
         $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_NUMERIC);
         sqlsrv_free_stmt($stmt);
 
         return ($row !== null) ? 1 : 0;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         // Manejo de errores
-        echo "Error de conexión: " . $e->getMessage();
-        return -1; // Código de error
+        error_log("validarSaldo error: " . $e->getMessage());
+        return -1;
     }
 }
 
-function guardarDatosPedido($envioData, $FOLIO, $noEmpresa)
+function guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -4889,7 +4893,9 @@ function guardarDatosPedido($envioData, $FOLIO, $noEmpresa)
         'direccion2Contacto'  => ['stringValue'  => $envioData['direccion2Contacto']],
         'codigoContacto'      => ['stringValue'  => $envioData['codigoContacto']],
         'estadoContacto'      => ['stringValue'  => $envioData['estadoContacto']],
-        'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']]
+        'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']],
+        //Datos adicionales
+        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""]
     ];
 
     // Prepara la URL de la colección
@@ -4940,7 +4946,9 @@ function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa)
         'direccion2Contacto'  => ['stringValue'  => $envioData['direccion2Contacto']],
         'codigoContacto'      => ['stringValue'  => $envioData['codigoContacto']],
         'estadoContacto'      => ['stringValue'  => $envioData['estadoContacto']],
-        'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']]
+        'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']],
+        //Datos adicionales
+        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""]
     ];
 
     // URL de actualización con ID del documento
@@ -6977,8 +6985,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -7194,7 +7202,8 @@ function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexio
             "noEmpresa" => ["integerValue" => $noEmpresa],
             "pagada" => ["booleanValue" => true],
             "credito" => ["booleanValue" => false],
-            "facturado" => ["booleanValue" => false]
+            "facturado" => ["booleanValue" => false],
+            "observaciones" => ["stringValue" => $formularioData['observaciones'] ?? ""]
         ]
     ];
     // URL de Firebase
@@ -8435,14 +8444,14 @@ switch ($funcion) {
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $FOLIO); //ROLLBACK
                             actualizarInventario($conexionData, $partidasData, $conn); //ROLLBACK
                             if ($validarSaldo == 0 && $credito == 0) {
-                                $idEnvios = guardarDatosPedido($envioData, $FOLIO, $noEmpresa);
+                                $idEnvios = guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData);
                                 $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
                                 validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO, $idEnvios);
                                 sqlsrv_commit($conn);
                                 sqlsrv_close($conn);
                                 exit();
                             } else {
-                                $idEnvios = guardarDatosPedido($envioData, $FOLIO, $noEmpresa);
+                                $idEnvios = guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData);
                                 guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO, $idEnvios);
                                 $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn, $FOLIO);
                                 header('Content-Type: application/json; charset=UTF-8');
@@ -8516,7 +8525,7 @@ switch ($funcion) {
                             } elseif ($anticipo['sinFondo']) {
                                 //No tiene fondos
                                 $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
-                                $idEnvios = guardarDatosPedido($envioData, $folio, $noEmpresa);
+                                $idEnvios = guardarDatosPedido($envioData, $folio, $noEmpresa, $formularioData);
                                 //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
                                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
                                 actualizarInventario($conexionData, $partidasData, $conn);

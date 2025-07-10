@@ -924,6 +924,7 @@ function obtenerDatosFormulario() {
     ordenCompra: document.getElementById("supedido").value,
     tipoOperacion: document.getElementById("tipoOperacion").value,
     CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value, // Mover
+    observaciones: document.getElementById("observaciones").value,
   };
   return formularioData;
 }
@@ -1409,7 +1410,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
 function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
   $(
-    "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio"
+    "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio, #observaciones"
   ).prop("disabled", false);
 }
 function llenarDatosCliente(cliente) {
@@ -2200,7 +2201,7 @@ $(document).ready(function () {
         Swal.fire({
           title: "Aviso",
           text: "Debes Crear una Partida Antes de Guardar.",
-          icon: "error",
+          icon: "warning",
           confirmButtonText: "Entendido",
         });
         return;
@@ -2218,7 +2219,7 @@ $(document).ready(function () {
         Swal.fire({
           title: "Aviso",
           text: "Debes seleccionar un producto y una cantidad mayor a 0 antes de guardar el pedido.",
-          icon: "error",
+          icon: "warning",
           confirmButtonText: "Entendido",
         });
         return;
@@ -2228,11 +2229,24 @@ $(document).ready(function () {
         Swal.fire({
           title: "Aviso",
           text: "No puedes realizar un pedido con costo 0.",
-          icon: "error",
+          icon: "warning",
           confirmButtonText: "Entendido",
         });
         return;
       }
+      const vendedor = document.getElementById("vendedor").value
+      if (vendedor === "" ) {
+        //Mensaje cuando se quiera guardar pero no hay producto seleccionado o su cantidad es 0
+        Swal.fire({
+          title: "Aviso",
+          text: "No tienes un Vendedor Seleccionado.",
+          icon: "warning",
+          confirmButtonText: "Entendido",
+        });
+        return;
+      }
+
+
       guardarPedido(id);
 
       return false; // Evita la recarga de la página

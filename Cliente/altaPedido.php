@@ -531,6 +531,10 @@ if (isset($_SESSION['usuario'])) {
                                     </button>
                                 </div>
                             </div>
+                            <div class="form-element">
+                                <label for="observaciones">Observaciones</label>
+                                <input type="text" name="observaciones" id="observaciones" style="width:250px;" disabled>
+                            </div>
                             <div class="form-element" style="display: none;">
                                 <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
                                 <input type="text" name="codigoPostal" id="codigoPostal"
@@ -1218,14 +1222,14 @@ if (isset($_SESSION['usuario'])) {
                                     const delta = (dropRect.bottom - contRect.bottom) + 5;
                                     //alert(1);
                                     containerEl.scrollTop += delta;
-                                    window.scrollBy(0,5);
+                                    window.scrollBy(0, 5);
                                 }
                                 // si la parte superior de la lista QUEDA por encima, la bajamos
                                 if (dropRect.top < contRect.top) {
                                     //alert(2);
                                     const delta = (contRect.top - dropRect.top) + 5;
                                     containerEl.scrollTop -= delta;
-                                    window.scrollBy(0,5);
+                                    window.scrollBy(0, 5);
                                 }
                             }
                             /***********************************************************************/

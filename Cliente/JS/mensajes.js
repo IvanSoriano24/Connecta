@@ -229,6 +229,7 @@ function obtenerDatosEnvioEditar(envioData) {
   document.getElementById("municipioContacto").value =
     envioData.municipioContacto || "";
 
+
   console.log("Datos de envio cargados correctamente.");
 }
 function obtenerEstadosComanda(estadoSeleccionado, municipioSeleccionado) {
@@ -302,7 +303,7 @@ function mostrarModal(comandaId) {
         $("#detalleHora").val(comanda.hora);
         $("#numGuia").val(comanda.numGuia);
         $("#numGuia").prop("disabled", false);
-
+        $("#observaciones").val(comanda.observaciones);
         //obtenerEstados();
         obtenerDatosEnvioEditar(comanda.envioData);
 
