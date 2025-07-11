@@ -2335,8 +2335,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -4929,7 +4929,7 @@ function guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData)
         exit;
     }
 }
-function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa)
+function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa, $observaciones)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
@@ -4948,7 +4948,7 @@ function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa)
         'estadoContacto'      => ['stringValue'  => $envioData['estadoContacto']],
         'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']],
         //Datos adicionales
-        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""]
+        'observaciones' => ['stringValue' => $observaciones ?? ""]
     ];
 
     // URL de actualización con ID del documento
@@ -6985,8 +6985,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -8630,11 +8630,11 @@ switch ($funcion) {
                         if ($validarSaldo === 0 && $credito == 0) {
                             $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero']);
                             validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito);
-                            $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa);
+                            $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa, $formularioData['observaciones']);
                             exit();
                         } else {
                             //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
-                            $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa);
+                            $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa, $formularioData['observaciones']);
                             guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData, $id);
                             $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito);
                             header('Content-Type: application/json; charset=UTF-8');

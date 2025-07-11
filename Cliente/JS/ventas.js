@@ -652,6 +652,7 @@ function obtenerDatosEnvioEditar(pedidoID) {
   //
   $("#datosEnvio").prop("disabled", false);
   $("#selectDatosEnvio").prop("disabled", false);
+  $("#observaciones").prop("disabled", false);
 
   $.post(
     "../Servidor/PHP/clientes.php",
@@ -682,6 +683,7 @@ function obtenerDatosEnvioEditar(pedidoID) {
         const municipio = data.municipioContacto.stringValue;
         const edo = data.estadoContacto.stringValue;
         obtenerEstadosEdit(edo, municipio);
+        $("#observaciones").val(data.observaciones.stringValue);
         //obtenerMunicipiosEdit(edo, municipio);
       } else {
         Swal.fire({
