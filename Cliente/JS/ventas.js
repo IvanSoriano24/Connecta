@@ -526,6 +526,7 @@ function datosPedidos(limpiarTabla = true) {
                 </td>
               `;
               const td = document.createElement("td");
+              //if (estadoPedido === "Vendidos") {
               if (estadoPedido === "Activos") {
                 const btn = document.createElement("button");
                 btn.className = "btnEnviarPedido";

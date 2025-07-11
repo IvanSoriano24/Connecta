@@ -1313,7 +1313,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $NUM_ALMA = $formularioData['almacen'];
     $FORMAENVIO = 'C';
     $COM_TOT = $formularioData['comision'];
-    $CVE_OBS = $datosCliente['CVE_OBS'];
+    $CVE_OBS = 0;
     $CVE_BITA = $datosCliente['CVE_BITA'];
     //$COM_TOT_PORC = $datosCliente['COM_TOT_PORC']; //VENDEDOR
     if ($conCredito === 'S') {
@@ -2335,8 +2335,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -2509,7 +2509,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $productosStr .= "$producto - $cantidad unidades, ";
 
         $IMPU4 = $partida['iva'] ?? $partida['IMPU4'];
-        $desc1 = $partida['descuento'] ?? 0;
+        $desc1 = $partida['descuento'] ?? $partida['DESC1'];
         $desProcentaje = ($desc1 / 100);
         $DES = $totalPartida * $desProcentaje;
         $DES_TOT += $DES;
@@ -6985,8 +6985,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -7840,7 +7840,8 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
     //$numeroWhatsApp = "";
     /*$emailPred = $_SESSION['usuario']['correo'];
     $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
-
+    /*$emailPred = 'ivan.soriano@mdcloud.mx';
+    $numeroWhatsApp = '+527773340218';*/
     // Obtener el id de Firestore del pedido buscado
     global $firebaseProjectId, $firebaseApiKey;
 
