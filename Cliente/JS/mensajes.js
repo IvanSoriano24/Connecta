@@ -29,6 +29,12 @@ function cargarComandas(tipoUsuario) {
               <i class="bi bi-eye"></i>
             </button>
           </td>
+          <td>
+            <button class="btn btn-secondary btn-sm" 
+                    onclick="verificarRemision('${comanda.noPedido}')">
+              <i class="bi bi-eye"></i>
+            </button>
+          </td>
         </tr>
       `);
 
@@ -418,6 +424,22 @@ function mostrarModalPedido(pedidoId) {
         }
         // Mostrar el modal
         $("#modalPedido").modal("show");
+      } else {
+        alert("Error al obtener los detalles del pedido.");
+      }
+    },
+    "json"
+  );
+}
+function verificarRemision(noPedido){
+  $.get(
+    "../Servidor/PHP/mensajes.php",
+    { numFuncion: "11", noPedido },
+    function (response) {
+      if (response.success) {
+        const comanda = response.data;
+        // Mostrar el modal
+        $("#modalDetalles").modal("show");
       } else {
         alert("Error al obtener los detalles del pedido.");
       }

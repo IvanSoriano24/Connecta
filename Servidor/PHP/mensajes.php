@@ -226,7 +226,7 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
                 'productos' => $productos,
                 'envioData' => $envioData,
                 'activada' => $fields['activada']['booleanValue'] ?? false,
-                'observaciones' => $fields['observaciones']['stringValue']
+                'observaciones' => $fields['observaciones']['stringValue'] ?? ""
             ]
         ]);
     }
@@ -1549,6 +1549,9 @@ switch ($funcion) {
     case 10:
         $estadoSeleccionado = $_POST['estadoSeleccionado'];
         obtenerEstadoComanda($estadoSeleccionado);
+        break;
+    case 11:
+        
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

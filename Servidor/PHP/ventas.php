@@ -8186,6 +8186,39 @@ function obtenerTodosEstados()
     usort($estados, fn($a, $b) => strcmp($a['Descripcion'], $b['Descripcion']));
     echo json_encode(['success' => true, 'data' => $estados]);
 }
+function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $noEmpresa){
+    // 1) Consultar todos los documentos de la colección PEDIDOS_AUTORIZAR
+    $url = "https://firestore.googleapis.com/v1/projects/"
+         . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+    $resp = @file_get_contents($url);
+    if ($resp === false) {
+        // Si falla la petición, consideramos que no hay un pedido "pendiente" => devolvemos true
+        return true;
+    }
+    $data = json_decode($resp, true);
+    if (!isset($data['documents']) || !is_array($data['documents'])) {
+        // Respuesta inesperada, asumimos que no hay pedido pendiente
+        return true;
+    }
+    // 2) Buscar el documento que coincida con folio y noEmpresa
+    foreach ($data['documents'] as $doc) {
+        $fields       = $doc['fields'] ?? [];
+        $folioField   = $fields['folio']['stringValue']    ?? '';
+        $empresaField = $fields['noEmpresa']['integerValue'] ?? null;
+
+        if ((string)$folioField === (string)$pedidoID
+         && (int)$empresaField === (int)$noEmpresa)
+        {
+            $status = $fields['status']['stringValue'] ?? '';
+            // Si está pendiente ("Sin Autorizar") => false; en caso contrario (incluye "Autorizado") => true
+            return $status !== 'Sin Autorizar';
+        }
+    }
+    // 3) Si no lo encontramos => devolvemos true
+    return true;
+}
+
+
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -9063,7 +9096,15 @@ switch ($funcion) {
         }
         $conexionData = $conexionResult['data'];
         $pedidoID = $_POST['pedidoID'];
-        enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData);
+        $pedidoIDFormato = ltrim($pedidoID, '0');
+        //var_dump($pedidoIDFormato);
+        $pedidoAutorisado = verificarStatusPedido($pedidoIDFormato, $firebaseProjectId, $firebaseApiKey, $noEmpresa, $conexionData);
+        if ($pedidoAutorisado) {
+            enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData);
+            //echo json_encode(['success' => true, 'message' => 'Pedido Autorizado.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Este pedido aun no ha sido autorizado.']);
+        }
         break;
     case 29:
         $formularioData = json_decode($_POST['formulario'], true); // Datos del formulario desde JS

@@ -206,6 +206,7 @@ if (isset($_SESSION['usuario'])) {
                                                     <th class="col-fecha">Fecha</th>
                                                     <th>Hora</th>
                                                     <th>Detalles</th>
+                                                    <th>Verificar Remision</th>
                                                     <?php if ($tipoUsuario === 'ADMINISTRADOR'): ?>
                                                         <th>Aurotizar Comanda</th>
                                                     <?php endif; ?>

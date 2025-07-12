@@ -1048,7 +1048,8 @@ class PDFPedidoAutoriza extends FPDF
         $this->Cell(15, 8, "Clave SAT", 1, 0, 'C', true); 
         $this->Cell(15, 8, "Clave", 1, 0, 'C', true);
         $this->Cell(60, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
-        $this->Cell(18, 8, "IVA", 1, 0, 'C', true);
+        //$this->Cell(18, 8, "IVA", 1, 0, 'C', true);
+        $this->Cell(18, 8, "Descuento", 1, 0, 'C', true);
         $this->Cell(18, 8, "Precio", 1, 0, 'C', true);
         $this->Cell(22, 8, "Subtotal", 1, 1, 'C', true);
     }
@@ -1577,15 +1578,16 @@ function generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noE
 
         // **Agregar fila de datos**
         $pdf->SetTextColor(39, 39, 51);
-        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
         $pdf->SetFont('Arial', '', 7);
+        $pdf->Cell(10, 7, $cantidad, 0, 0, 'C');
         $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
         $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
         $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
         //$pdf->SetFont('Arial', '', 6);
-        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->Cell(60, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0, 0, 'C');
         $pdf->SetFont('Arial', '', 9);
-        $pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
+        //$pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
+        $pdf->Cell(18, 7, $desc1 . "%", 0, 0, 'R');
         $pdf->Cell(18, 7,"$" . number_format($precioUnitario, 2), 0, 0, 'R');
         $pdf->Cell(22, 7,"$" . number_format($subtotalPartida, 2), 0, 1, 'R');
     }
@@ -1982,7 +1984,7 @@ function generarPDFPedido($conexionData, $claveSae, $noEmpresa, $folio) {
         $impuestoPartida = ($subtotalPartida - $descuentoPartida) * ($impuestos / 100);
         $totalImpuestos += $impuestoPartida;
         $pdf->SetTextColor(39, 39, 51);
-        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+        $pdf->Cell(10, 7, $cantidad, 0, 0, 'C');
         $pdf->SetFont('Arial', '', 7);
         $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
         $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
