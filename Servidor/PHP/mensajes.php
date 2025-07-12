@@ -509,7 +509,7 @@ function obtenerDetalles($firebaseProjectId, $firebaseApiKey, $pedidoId)
                 'ieps' => $producto['mapValue']['fields']['ieps']['stringValue'] ?? '',
                 'isr' => $producto['mapValue']['fields']['isr']['stringValue'] ?? '',
                 'impuesto2' => $producto['mapValue']['fields']['impuesto2']['stringValue'] ?? '',
-                'descuento' => $producto['mapValue']['fields']['']['stringValue'] ?? 'descuento',
+                'descuento' => $producto['mapValue']['fields']['descuento']['stringValue'] ?? 'descuento',
                 'cantidad' => $producto['mapValue']['fields']['cantidad']['stringValue'] ?? '',
                 'precioUnitario' => $producto['mapValue']['fields']['precioUnitario']['stringValue'] ?? '',
                 'subtotal' => $producto['mapValue']['fields']['subtotal']['stringValue'] ?? ''
@@ -1002,10 +1002,14 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
                       </tr>";
 
         //$IMPU4 = htmlspecialchars($partida['iva']);
-        $IMPU4 = intval(htmlspecialchars($partida['iva']));
+        //$IMPU4 = intval(htmlspecialchars($partida['iva']));
+        $IMPU4 = $partida['iva'];
         //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
-        $desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
-        $desProcentaje = ($desc1 / 100);
+        //$desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
+        $desc1 = isset($partida['descuento'])
+            ? (float) $partida['descuento']
+            : 0.0;
+        $desProcentaje = $desc1 / 100.0;
         $DES = $totalPartida * $desProcentaje;
         $DES_TOT += $DES;
         $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
@@ -1100,7 +1104,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-    
+
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
     $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idFirebasePedido);
@@ -1117,20 +1121,32 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $producto = $partida['producto'];
         $cantidad = $partida['cantidad'];
         $precioUnitario = $partida['precioUnitario'];
+     
         $totalPartida = $cantidad * $precioUnitario;
+   
         $total += $totalPartida;
-        $productosStr .= "$producto - $cantidad unidades, ";
         $IMPORTE = $total;
+        $productosStr .= "$producto - $cantidad unidades, ";
 
         //$IMPU4 = htmlspecialchars($partida['iva']);
-        $IMPU4 = intval(htmlspecialchars($partida['iva']));
+        //$IMPU4 = intval(htmlspecialchars($partida['iva']));
+        $IMPU4 = $partida['iva'];
+
         //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
-        $desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
-        $desProcentaje = ($desc1 / 100);
+        //$desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
+        $desc1 = isset($partida['descuento'])
+            ? (float) $partida['descuento']
+            : 0.0;
+        $desProcentaje = $desc1 / 100.0;
+
         $DES = $totalPartida * $desProcentaje;
+   
         $DES_TOT += $DES;
+    
         $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+     
         $IMP_TOT4 += $IMP_T4;
+        
     }
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 

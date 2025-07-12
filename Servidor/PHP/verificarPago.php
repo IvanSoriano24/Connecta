@@ -515,7 +515,8 @@ function crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fech
     }
 }
 
-function eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios) {
+function eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO/$idEnvios?key=$firebaseApiKey";
 
     $options = [
@@ -700,7 +701,8 @@ function datosProcuto($CVE_ART, $claveSae, $conexionData)
 
 use Google\Cloud\Firestore\FirestoreClient;
 
-function datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey) {
+function datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO/$idEnvios?key=$firebaseApiKey";
 
     $json = @file_get_contents($url);
@@ -930,10 +932,9 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                             //var_dump($cliente);
                             crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
 
+                            crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
                             // Eliminar el documento de DATOS_PEDIDO
                             eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios);
-
-                            crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
                             //Remision y Demas
                         }
                     } else if ($fechaPago > $fechaLimiteObj) {
