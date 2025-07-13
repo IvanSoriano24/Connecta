@@ -30,8 +30,8 @@ function cargarComandas(tipoUsuario) {
             </button>
           </td>
           <td>
-            <button class="btn btn-secondary btn-sm" 
-                    onclick="verificarRemision('${comanda.noPedido}')">
+            <button class="btn btn-secondary btn-sm"
+                    onclick="verificarRemision('${comanda.noPedido}', '${comanda.id}')">
               <i class="bi bi-eye"></i>
             </button>
           </td>
@@ -84,10 +84,10 @@ function cargarPedidos() {
             pedido.status === "Autorizado"
               ? "green"
               : pedido.status === "Rechazado"
-              ? "red"
-              : pedido.status === "Sin Autorizar"
-              ? "blue"
-              : "black";
+                ? "red"
+                : pedido.status === "Sin Autorizar"
+                  ? "blue"
+                  : "black";
 
           const row = `
                     <tr>
@@ -95,18 +95,15 @@ function cargarPedidos() {
                         <td>${pedido.cliente || "N/A"}</td>
                         <td>${pedido.diaAlta || "N/A"}</td>
                         <td>${pedido.vendedor || "N/A"}</td>
-                        <td style="color: ${color};">${
-            pedido.status || "N/A"
-          }</td>
-                        <td style="text-align: right;">${
-                          pedido.totalPedido
-                            ? `$${parseFloat(pedido.totalPedido).toFixed(2)}`
-                            : "N/A"
-                        }</td>
+                        <td style="color: ${color};">${pedido.status || "N/A"
+            }</td>
+                        <td style="text-align: right;">${pedido.totalPedido
+              ? `$${parseFloat(pedido.totalPedido).toFixed(2)}`
+              : "N/A"
+            }</td>
                         <td>
-                            <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${
-                              pedido.id
-                            }')">
+                            <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${pedido.id
+            }')">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </td>
@@ -431,22 +428,85 @@ function mostrarModalPedido(pedidoId) {
     "json"
   );
 }
-function verificarRemision(noPedido){
+function verificarRemision(noPedido, comanda) {
+  alert(comanda);
+  $.get("../Servidor/PHP/mensajes.php", {
+    numFuncion: "11",
+    noPedido: noPedido
+  }, function (response) {
+    if (response.success) {
+      const { statusCode, statusText, remisionDoc } = response.data;
+      console.log("Código status:", statusCode);
+      console.log("Texto de status:", statusText);
+
+      if (statusCode === 'E' || statusCode === 'O') {
+        // Remisión activa
+        Swal.fire({
+          icon: 'success',
+          title: 'Remisión Activa',
+          html: `La remisión <strong>${remisionDoc}</strong> está activa.<br/><em>(${statusText})</em>`
+        });
+      } else if (statusCode === 'C') {
+        
+        cancelarComanda(comanda);
+        // Remisión cancelada
+        Swal.fire({
+          icon: 'error',
+          title: 'Remisión Cancelada',
+          html: `La remisión <strong>${remisionDoc}</strong> ha sido cancelada.`
+        });
+        cargarComandas(tipoUsuario);
+      } else {
+        // Sin remisión
+        Swal.fire({
+          icon: 'warning',
+          title: 'Sin Remisión',
+          text: 'No se encontró ninguna remisión para este pedido.'
+        });
+      }
+
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error al verificar remisión: ' + response.message
+      });
+    }
+  }, "json")
+    .fail(function (jqXHR, textStatus) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de Red',
+        text: 'No se pudo conectar: ' + textStatus
+      });
+    });
+}
+function cancelarComanda(comanda) {
   $.get(
-    "../Servidor/PHP/mensajes.php",
-    { numFuncion: "11", noPedido },
+    "../Servidor/PHP/mensajes.php", {
+    numFuncion: "12",
+    comandaId: comanda,
+  },
     function (response) {
       if (response.success) {
-        const comanda = response.data;
-        // Mostrar el modal
-        $("#modalDetalles").modal("show");
+        /*Swal.fire({
+          text: "La comanda se Cancelo",
+          icon: "success",
+        });*/
+        /*$("#modalDetalles").modal("hide");
+        cargarComandas(tipoUsuario); // Recargar la tabla*/
       } else {
-        alert("Error al obtener los detalles del pedido.");
+        Swal.fire({
+          text: "Error al marcar la comanda como TERMINADA.",
+          icon: "error",
+        });
       }
     },
     "json"
   );
 }
+
+
 //Funcion para autorizar el pedido
 $("#btnAutorizar").click(function () {
   Swal.fire({

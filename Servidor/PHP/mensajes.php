@@ -1121,9 +1121,9 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $producto = $partida['producto'];
         $cantidad = $partida['cantidad'];
         $precioUnitario = $partida['precioUnitario'];
-     
+
         $totalPartida = $cantidad * $precioUnitario;
-   
+
         $total += $totalPartida;
         $IMPORTE = $total;
         $productosStr .= "$producto - $cantidad unidades, ";
@@ -1140,13 +1140,12 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $desProcentaje = $desc1 / 100.0;
 
         $DES = $totalPartida * $desProcentaje;
-   
+
         $DES_TOT += $DES;
-    
+
         $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
-     
+
         $IMP_TOT4 += $IMP_T4;
-        
     }
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
 
@@ -1438,6 +1437,131 @@ function obtenerEstadoComanda($claveSeleccionada)
         echo json_encode(['success' => false, 'message' => "No se encontró el estado con clave $claveSeleccionada"]);
     }
 }
+function verificarRemision($noPedido, $conexionData, $noEmpresa, $claveSae)
+{
+    // 1) Conectar
+    $connInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID"      => $conexionData['usuario'],
+        "PWD"      => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($conexionData['host'], $connInfo);
+    if ($conn === false) {
+        return ['success' => false, 'message' => 'Error DB: ' . print_r(sqlsrv_errors(), true)];
+    }
+
+    // 2) Formatear pedido
+    $CVE_PED = str_pad($noPedido, 10, '0', STR_PAD_LEFT);
+    $CVE_PED = str_pad($CVE_PED, 20, ' ', STR_PAD_LEFT);
+
+    // 3) Tablas dinámicas
+    $db = $conexionData['nombreBase'];
+    $s  = str_pad($claveSae, 2, '0', STR_PAD_LEFT);
+    $tblP = "[$db].[dbo].[FACTP{$s}]";
+    $tblR = "[$db].[dbo].[FACTR{$s}]";
+
+    // 4) Consulta
+    $sql = "
+      SELECT 
+        R.STATUS       AS statusRemision,
+        P.CVE_DOC      AS pedidoDoc,
+        R.CVE_DOC      AS remisionDoc
+      FROM $tblP P
+      INNER JOIN $tblR R
+        ON R.DOC_ANT = P.CVE_DOC
+      WHERE P.CVE_DOC = ?
+    ";
+    $params = [$CVE_PED];
+    $stmt   = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        return ['success' => false, 'message' => 'Error Query: ' . print_r(sqlsrv_errors(), true)];
+    }
+
+    // 5) Obtener resultado
+    if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        // Interpretar status
+        $st = $row['statusRemision'];
+        switch ($st) {
+            case 'E': // emitida
+            case 'O': // abierta
+                $interpret = 'ACTIVA';
+                break;
+            case 'C': // cancelada
+                $interpret = 'CANCELADA';
+                break;
+            default:
+                $interpret = 'DESCONOCIDO';
+        }
+        return [
+            'success' => true,
+            'data' => [
+                'statusCode' => $st,
+                'statusText' => $interpret,
+                'pedidoDoc'  => trim($row['pedidoDoc']),
+                'remisionDoc' => trim($row['remisionDoc'])
+            ]
+        ];
+    } else {
+        // No hay remisión vinculada
+        return [
+            'success' => true,
+            'data'    => [
+                'statusCode' => null,
+                'statusText' => 'SIN REMISIÓN'
+            ]
+        ];
+    }
+}
+function cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
+{
+    if (!$comandaId) {
+        echo json_encode(['success' => false, 'message' => 'Falta el ID de la comanda.']);
+        return;
+    }
+
+    // URL base del documento con updateMask para solo el campo status
+    $url = "https://firestore.googleapis.com/v1/projects/"
+         . "$firebaseProjectId/databases/(default)/documents/COMANDA/"
+         . "$comandaId?updateMask.fieldPaths=status&key=$firebaseApiKey";
+
+    // Solo vamos a cambiar el status
+    $data = [
+        'fields' => [
+            'status' => ['stringValue' => 'CANCELADO']
+        ]
+    ];
+
+    $opts = [
+        'http' => [
+            'method'  => 'PATCH',
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => json_encode($data),
+            'timeout' => 10
+        ]
+    ];
+
+    $ctx = stream_context_create($opts);
+    $resp = @file_get_contents($url, false, $ctx);
+
+    if ($resp === false) {
+        $err = error_get_last();
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al conectar con Firestore.',
+            'error'   => $err['message']
+        ]);
+    } else {
+        $result = json_decode($resp, true);
+        // si quieres puedes revisar $result['status'] o similar
+        echo json_encode([
+            'success' => true,
+            'message' => 'Comanda marcada como CANCELADA.',
+            'response'=> $result
+        ]);
+    }
+}
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -1551,7 +1675,24 @@ switch ($funcion) {
         obtenerEstadoComanda($estadoSeleccionado);
         break;
     case 11:
-        
+        $noPedido = $_GET['noPedido'];
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        //var_dump($noPedido);
+        $remision = verificarRemision($noPedido, $conexionData, $noEmpresa, $claveSae);
+        header('Content-Type: application/json');
+        echo json_encode($remision);
+        break;
+    case 12:
+        $comandaId = $_GET['comandaId'];
+        cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);
