@@ -1514,7 +1514,7 @@ function verificarRemision($noPedido, $conexionData, $noEmpresa, $claveSae)
         ];
     }
 }
-function cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
+function cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId, $mensajes)
 {
     if (!$comandaId) {
         echo json_encode(['success' => false, 'message' => 'Falta el ID de la comanda.']);
@@ -1523,8 +1523,8 @@ function cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
 
     // URL base del documento con updateMask para solo el campo status
     $url = "https://firestore.googleapis.com/v1/projects/"
-         . "$firebaseProjectId/databases/(default)/documents/COMANDA/"
-         . "$comandaId?updateMask.fieldPaths=status&key=$firebaseApiKey";
+        . "$firebaseProjectId/databases/(default)/documents/COMANDA/"
+        . "$comandaId?updateMask.fieldPaths=status&key=$firebaseApiKey";
 
     // Solo vamos a cambiar el status
     $data = [
@@ -1555,12 +1555,74 @@ function cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
     } else {
         $result = json_decode($resp, true);
         // si quieres puedes revisar $result['status'] o similar
-        echo json_encode([
-            'success' => true,
-            'message' => 'Comanda marcada como CANCELADA.',
-            'response'=> $result
-        ]);
+        if ($mensajes == 0) {
+            return json_encode([
+                'success' => true,
+                'message' => 'Comanda marcada como CANCELADA.',
+                'response' => $result
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Comanda marcada como CANCELADA.',
+                'response' => $result
+            ]);
+        }
     }
+}
+function verificarComandas($conexionData, $noEmpresa, $claveSae, $firebaseProjectId, $firebaseApiKey)
+{
+    //Variable para evitar los mensajes de las funciones
+    $mensajes = 0;
+    // 1) Traer todas las comandas
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+    $resp = @file_get_contents($url);
+    if ($resp === false) {
+        echo json_encode(['success' => false, 'message' => 'No se pudo conectar a Firestore.']);
+        return;
+    }
+    $docs = json_decode($resp, true)['documents'] ?? [];
+    $comandas = [];
+    foreach ($docs as $doc) {
+        $fields = $doc['fields'];
+        if ((int)$fields['noEmpresa']['integerValue'] !== (int)$noEmpresa) continue;
+        $comandas[] = [
+            'id'       => basename($doc['name']),
+            'noPedido' => $fields['folio']['stringValue'],
+            'status'   => $fields['status']['stringValue']
+        ];
+    }
+
+    $canceladas    = [];
+    $noCanceladas  = [];
+    // 2) Para cada comanda aún no CANCELADA, chequeamos remisión
+    foreach ($comandas as $c) {
+        if ($c['status'] === 'CANCELADO') {
+            $canceladas[] = $c;
+            continue;
+        }
+        $rem = verificarRemision($c['noPedido'], $conexionData, $noEmpresa, $claveSae);
+        if (!$rem['success']) {
+            // si hubo error DB, lo consideramos “no cancelada” 
+            $noCanceladas[] = $c;
+            continue;
+        }
+        $code = $rem['data']['statusCode'];
+        if ($code === 'C') {
+            // remisión cancelada → cancelamos la comanda
+            cancelarComanda($firebaseProjectId, $firebaseApiKey, $c['id'], $mensajes);
+            $canceladas[] = $c;
+        } else {
+            $noCanceladas[] = $c;
+        }
+    }
+
+    // 3) Emitimos JSON con ambos listados
+    echo json_encode([
+        'success'      => true,
+        'canceladas'   => $canceladas,
+        'noCanceladas' => $noCanceladas
+    ]);
 }
 
 
@@ -1692,7 +1754,20 @@ switch ($funcion) {
         break;
     case 12:
         $comandaId = $_GET['comandaId'];
-        cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
+        $mensajes = 1;
+        cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId, $mensajes);
+        break;
+    case 13:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+        verificarComandas($conexionData, $noEmpresa, $claveSae, $firebaseProjectId, $firebaseApiKey);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

@@ -187,10 +187,14 @@ if (isset($_SESSION['usuario'])) {
                             <label for="filtroStatus" class="form-label">Filtrar por Status:</label>
                             <select id="filtroStatus" class="form-select form-select-sm" style="width: 150px;">
                                 <option value="Abierta">Abiertas</option>
+                                <option value="CANCELADO">Canceladas</option>
                                 <option value="Pendiente">Pendientes</option>
                                 <option value="TERMINADA">Terminadas</option>
                                 <option value="">Todos</option>
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <button class="btn btn-secondary btn-sm" onclick="verificarComandas()"> Verificar remisiones </button> <!-- onclick="mostrarModal('${comanda.id}')" -->
                         </div>
                         <!-- Tabla de comandas -->
                         <div class="table-data">

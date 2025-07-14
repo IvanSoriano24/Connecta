@@ -31,16 +31,20 @@
                 <span class="text">Inicio</span>
             </a>
         </li>
-        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR" || $tipoUsuario == "FACTURISTA") { ?>
+        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR" || $tipoUsuario == "FACTURISTA" || $tipoUsuario == "ALMACENISTA") { ?>
             <li class="dropdown-manual">
                 <a href="#" class="dropdown-toggle dropdown-toggle-manual" tabindex="-1">
                     <i class='bx bxs-shopping-bag-alt'></i>
                     <span class="text">Ventas</span>
                 </a>
                 <ul class="dropdown-menu">
+                    <?php if ($tipoUsuario != "ALMACENISTA") { ?>
                     <li><a class="dropdown-item" href="Ventas.php" tabindex="-1">Pedidos</a></li>
+                    <?php } ?>
                     <li><a class="dropdown-item" href="Remisiones.php" tabindex="-1">Remisiones</a></li>
+                    <?php if ($tipoUsuario != "ALMACENISTA") { ?>
                     <li><a class="dropdown-item" href="Facturas.php" tabindex="-1">Facturas</a></li>
+                    <?php } ?>
                 </ul>
             </li>
         <?php } ?>
@@ -90,7 +94,7 @@
                 <ul class="dropdown-menu">
                     <!--
                     <li><a class="dropdown-item" href="Parametros.php" id="parametrosSistema" tabindex="-1">Parametros del Sistema</a></li>
-        -->
+                    -->
                     <li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa" tabindex="-1">Información Empresa</a></li>
                     <li><a class="dropdown-item" href="ConexioSAE.php" id="infoSae" tabindex="-1">Conexión SAE</a></li>
                     <!--<li><a class="dropdown-item" href="Correo.php" id="infoCorreo" tabindex="-1">Configuracion de Correo</a></li>-->

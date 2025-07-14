@@ -3506,7 +3506,7 @@ function mostrarRemisiones($conexionData, $filtroFecha, $estadoPedido, $filtroVe
         } else {
             $params = [];
         }*/
-        if ($tipoUsuario === 'ADMINISTRADOR') {
+        if ($tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario == "FACTURISTA" || $tipoUsuario == "ALMACENISTA") {
             if ($filtroVendedor !== '') {
                 $sql      .= " AND f.CVE_VEND = ?";
                 $params[]  = $filtroVendedor;

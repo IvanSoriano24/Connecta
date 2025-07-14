@@ -31,7 +31,9 @@ function cargarComandas(tipoUsuario) {
           </td>
           <td>
             <button class="btn btn-secondary btn-sm"
-                    onclick="verificarRemision('${comanda.noPedido}', '${comanda.id}')">
+                    onclick="verificarRemision('${comanda.noPedido}', '${
+          comanda.id
+        }')">
               <i class="bi bi-eye"></i>
             </button>
           </td>
@@ -84,10 +86,10 @@ function cargarPedidos() {
             pedido.status === "Autorizado"
               ? "green"
               : pedido.status === "Rechazado"
-                ? "red"
-                : pedido.status === "Sin Autorizar"
-                  ? "blue"
-                  : "black";
+              ? "red"
+              : pedido.status === "Sin Autorizar"
+              ? "blue"
+              : "black";
 
           const row = `
                     <tr>
@@ -95,15 +97,18 @@ function cargarPedidos() {
                         <td>${pedido.cliente || "N/A"}</td>
                         <td>${pedido.diaAlta || "N/A"}</td>
                         <td>${pedido.vendedor || "N/A"}</td>
-                        <td style="color: ${color};">${pedido.status || "N/A"
-            }</td>
-                        <td style="text-align: right;">${pedido.totalPedido
-              ? `$${parseFloat(pedido.totalPedido).toFixed(2)}`
-              : "N/A"
-            }</td>
+                        <td style="color: ${color};">${
+            pedido.status || "N/A"
+          }</td>
+                        <td style="text-align: right;">${
+                          pedido.totalPedido
+                            ? `$${parseFloat(pedido.totalPedido).toFixed(2)}`
+                            : "N/A"
+                        }</td>
                         <td>
-                            <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${pedido.id
-            }')">
+                            <button class="btn btn-secondary btn-sm" onclick="mostrarModalPedido('${
+                              pedido.id
+                            }')">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </td>
@@ -217,13 +222,16 @@ function obtenerDatosEnvioEditar(envioData) {
   document.getElementById("nombreContacto").value =
     envioData.nombreContacto || "";
   //document.getElementById("titutoDatos").value = pedido[0].tituloEnvio || "";
-  document.getElementById("compañiaContacto").value = envioData.companiaContacto || "";
+  document.getElementById("compañiaContacto").value =
+    envioData.companiaContacto || "";
   document.getElementById("telefonoContacto").value =
     envioData.telefonoContacto || "";
   document.getElementById("correoContacto").value =
     envioData.correoContacto || "";
-  document.getElementById("direccion1Contacto").value = envioData.direccion1Contacto || "";
-  document.getElementById("direccion2Contacto").value = envioData.direccion2Contacto || "";
+  document.getElementById("direccion1Contacto").value =
+    envioData.direccion1Contacto || "";
+  document.getElementById("direccion2Contacto").value =
+    envioData.direccion2Contacto || "";
   document.getElementById("codigoContacto").value =
     envioData.codigoContacto || "";
 
@@ -231,7 +239,6 @@ function obtenerDatosEnvioEditar(envioData) {
     envioData.estadoContacto || "";
   document.getElementById("municipioContacto").value =
     envioData.municipioContacto || "";
-
 
   console.log("Datos de envio cargados correctamente.");
 }
@@ -347,9 +354,9 @@ function mostrarModal(comandaId) {
           $("#btnTerminar").hide();
           $("#numGuia").prop("disabled", true);
         }
-        if (status == "Cancelada") {
-          $(".producto-check").prop("checked", true);
-          $(".producto-check").prop("disabled", false);
+        if (status == "CANCELADO") {
+          $(".producto-check").prop("checked", false);
+          $(".producto-check").prop("disabled", true);
           $("#divFechaEnvio").show();
           $("#fechaEnvio").val(comanda.fechaEnvio);
           $("#btnTerminar").hide();
@@ -429,64 +436,66 @@ function mostrarModalPedido(pedidoId) {
   );
 }
 function verificarRemision(noPedido, comanda) {
-  alert(comanda);
-  $.get("../Servidor/PHP/mensajes.php", {
-    numFuncion: "11",
-    noPedido: noPedido
-  }, function (response) {
-    if (response.success) {
-      const { statusCode, statusText, remisionDoc } = response.data;
-      console.log("Código status:", statusCode);
-      console.log("Texto de status:", statusText);
+  $.get(
+    "../Servidor/PHP/mensajes.php",
+    {
+      numFuncion: "11",
+      noPedido: noPedido,
+    },
+    function (response) {
+      if (response.success) {
+        const { statusCode, statusText, remisionDoc } = response.data;
+        console.log("Código status:", statusCode);
+        console.log("Texto de status:", statusText);
 
-      if (statusCode === 'E' || statusCode === 'O') {
-        // Remisión activa
-        Swal.fire({
-          icon: 'success',
-          title: 'Remisión Activa',
-          html: `La remisión <strong>${remisionDoc}</strong> está activa.<br/><em>(${statusText})</em>`
-        });
-      } else if (statusCode === 'C') {
-        
-        cancelarComanda(comanda);
-        // Remisión cancelada
-        Swal.fire({
-          icon: 'error',
-          title: 'Remisión Cancelada',
-          html: `La remisión <strong>${remisionDoc}</strong> ha sido cancelada.`
-        });
-        cargarComandas(tipoUsuario);
+        if (statusCode === "E" || statusCode === "O") {
+          // Remisión activa
+          Swal.fire({
+            icon: "success",
+            title: "Remisión Activa",
+            html: `La remisión <strong>${remisionDoc}</strong> está activa.<br/><em>(${statusText})</em>`,
+          });
+        } else if (statusCode === "C") {
+          cancelarComanda(comanda);
+          // Remisión cancelada
+          Swal.fire({
+            icon: "error",
+            title: "Remisión Cancelada",
+            html: `La remisión <strong>${remisionDoc}</strong> ha sido cancelada.`,
+          });
+          cargarComandas(tipoUsuario);
+        } else {
+          // Sin remisión
+          Swal.fire({
+            icon: "warning",
+            title: "Sin Remisión",
+            text: "No se encontró ninguna remisión para este pedido.",
+          });
+        }
       } else {
-        // Sin remisión
         Swal.fire({
-          icon: 'warning',
-          title: 'Sin Remisión',
-          text: 'No se encontró ninguna remisión para este pedido.'
+          icon: "error",
+          title: "Error",
+          text: "Error al verificar remisión: " + response.message,
         });
       }
-
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Error al verificar remisión: ' + response.message
-      });
-    }
-  }, "json")
-    .fail(function (jqXHR, textStatus) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error de Red',
-        text: 'No se pudo conectar: ' + textStatus
-      });
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus) {
+    Swal.fire({
+      icon: "error",
+      title: "Error de Red",
+      text: "No se pudo conectar: " + textStatus,
     });
+  });
 }
 function cancelarComanda(comanda) {
   $.get(
-    "../Servidor/PHP/mensajes.php", {
-    numFuncion: "12",
-    comandaId: comanda,
-  },
+    "../Servidor/PHP/mensajes.php",
+    {
+      numFuncion: "12",
+      comandaId: comanda,
+    },
     function (response) {
       if (response.success) {
         /*Swal.fire({
@@ -505,7 +514,46 @@ function cancelarComanda(comanda) {
     "json"
   );
 }
+function verificarComandas() {
+  $.get(
+    "../Servidor/PHP/mensajes.php",
+    { numFuncion: "13" },
+    function (resp) {
+      if (!resp.success) {
+        return Swal.fire("Error", " " + resp.message, "error");
+      }
+      const { canceladas, noCanceladas } = resp;
 
+      let texto = "";
+      if (canceladas.length > 0) {
+        texto +=
+          `✅ Comandas canceladas:<br>` +
+          canceladas.map((c) => c.noPedido).join(", ") +
+          "<br><br>";
+      }
+      if (canceladas.length < 0) {
+        texto +=
+          `No se cancelaron comandas`;
+      }
+      if (!texto) {
+        texto = "No había comandas que procesar.";
+      }
+
+      Swal.fire({
+        title: "Resultado de Verificación",
+        html: texto,
+        icon: "info",
+      });
+    },
+    "json"
+  ).fail(function (err) {
+    Swal.fire(
+      "Error de red",
+      "No se pudo conectar: " + err.statusText,
+      "error"
+    );
+  });
+}
 
 //Funcion para autorizar el pedido
 $("#btnAutorizar").click(function () {
