@@ -153,8 +153,8 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                 if ($filtroStatus === '' || $status === $filtroStatus) {
                     if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
                         $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
-                        $fecha = $fechaHora[0];
-                        $hora = $fechaHora[1];
+                        $fecha = $fechaHora[0] ?? "";
+                        $hora = $fechaHora[1] ?? "";
 
                         $comandas[] = [
                             'id' => basename($document['name']),
