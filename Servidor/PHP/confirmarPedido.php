@@ -228,7 +228,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         "claveCliente" => ["stringValue" => $claveCliente],
                         "nombreCliente" => ["stringValue" => $nombreCliente],
                         "enviarA" => ["stringValue" => $enviarA],
-                        "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion],
+                        "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion ?? ""],
                         "productos" => [
                             "arrayValue" => [
                                 "values" => array_map(function ($producto) use ($conexionData, $claveSae) {

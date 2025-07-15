@@ -770,7 +770,7 @@ function formatearClaveCliente($clave)
     // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
     return str_pad($clave, 10, ' ', STR_PAD_LEFT);
 }
-function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
+function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario, $noEmpresa)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
 
@@ -799,12 +799,14 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
         $fields = $document['fields'];
         $documentName = $document['name']; // Aquí obtienes el nombre completo del documento
         $documentId = basename($documentName);
+        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === (int)$noEmpresa) {
         if (isset($fields['claveCliente']['stringValue']) && $fields['claveCliente']['stringValue'] === $claveUsuario) {
             $datos[] = [
                 'idDocumento' => $documentId,
                 'id' => $fields['id']['integerValue'] ?? null,
                 'tituloEnvio' => $fields['tituloEnvio']['stringValue'] ?? null,
             ];
+        }
         }
     }
 
@@ -1837,7 +1839,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $clave = $_GET["clave"];
         $claveUsuario = formatearClaveCliente($clave);
-        obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario);
+        obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario, $noEmpresa);
         break;
     case 6:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];

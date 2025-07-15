@@ -154,7 +154,7 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                     if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
                         $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
                         $fecha = $fechaHora[0] ?? "";
-                        $hora = $fechaHora[1] ?? "";
+                        $hora = $fechaHora[1] ?? "00:00:00";
 
                         $comandas[] = [
                             'id' => basename($document['name']),
@@ -221,7 +221,7 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
                 'status' => $fields['status']['stringValue'] ?? "",
                 'fechaEnvio' => $fields['fechaEnvio']['stringValue'] ?? "",
                 'fecha' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[0] ?? "",
-                'hora' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[1] ?? "",
+                'hora' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[1] ?? "00:00:00",
                 'numGuia' => $fields['numGuia']['stringValue'] ?? "",
                 'productos' => $productos ?? "",
                 'envioData' => $envioData ?? "",
