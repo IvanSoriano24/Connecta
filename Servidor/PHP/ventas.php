@@ -1296,6 +1296,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
         $IMP_TOT1 += $IMP_T1;
     }
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+    
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
     $IMP_TOT2 = 0;
@@ -1314,6 +1315,10 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
     $FORMAENVIO = 'C';
     $COM_TOT = $formularioData['comision'];
     $CVE_OBS = 0;
+    //$IMPORTE = number_format($IMPORTE, 2);
+    // Toma el valor o 0 si no existe, lo casteas a float, y luego redondeas a 2 decimales
+    $IMPORTE = round(($IMPORTE), 2);
+
     $CVE_BITA = $datosCliente['CVE_BITA'];
     //$COM_TOT_PORC = $datosCliente['COM_TOT_PORC']; //VENDEDOR
     if ($conCredito === 'S') {
@@ -2335,8 +2340,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6991,8 +6996,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";

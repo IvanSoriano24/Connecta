@@ -218,13 +218,13 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
                 'id' => $comandaId,
                 'noPedido' => $fields['folio']['stringValue'],
                 'nombreCliente' => $fields['nombreCliente']['stringValue'],
-                'status' => $fields['status']['stringValue'],
+                'status' => $fields['status']['stringValue'] ?? "",
                 'fechaEnvio' => $fields['fechaEnvio']['stringValue'] ?? "",
-                'fecha' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[0],
-                'hora' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[1],
+                'fecha' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[0] ?? "",
+                'hora' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[1] ?? "",
                 'numGuia' => $fields['numGuia']['stringValue'] ?? "",
-                'productos' => $productos,
-                'envioData' => $envioData,
+                'productos' => $productos ?? "",
+                'envioData' => $envioData ?? "",
                 'activada' => $fields['activada']['booleanValue'] ?? false,
                 'observaciones' => $fields['observaciones']['stringValue'] ?? ""
             ]

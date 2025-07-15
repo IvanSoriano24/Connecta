@@ -97,7 +97,8 @@ function verificarPago($conexionData, $cliente, $claveSae, $folio)
                 NO_FACTURA
              FROM $tablaCuen
              WHERE CVE_CLIE = ?
-               AND NUM_CPTO = '9'";
+               AND NUM_CPTO = '9'
+               ORDER BY FECHA_APLI DESC";
     $stmt2 = sqlsrv_query($conn, $sql2, [$cliente]);
     if ($stmt2 === false) {
         die(json_encode([
@@ -113,9 +114,14 @@ function verificarPago($conexionData, $cliente, $claveSae, $folio)
     sqlsrv_close($conn);
 
     $importePagado = (float)$row2['importeAnticipo'] ?? 0;
+    // Toma el valor o 0 si no existe, lo casteas a float, y luego redondeas a 2 decimales
+    //$importePagado = round((float)($row2['importeAnticipo'] ?? 0), 2);
+
     var_dump("importePagado: ", $importePagado);
     $saldo = $importePedido - $importePagado;
+    var_dump("importePedido: ", $importePedido);
     var_dump("saldo: ", $saldo);
+    //$importePagado = 2668.3108799999995;
     $pagada = $importePagado >= $importePedido;
     var_dump("pagada: ", $pagada);
 
@@ -838,7 +844,7 @@ function restarSaldo($conexionData, $claveSae, $pagado, $cliente)
     $cliente = formatearClaveCliente($cliente);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "UPDATE $nombreTabla SET
-        [SALDO] = [SALDO] + (? * -1)
+        [SALDO] = [SALDO] - (? * -1)
         WHERE CLAVE = ?";
 
     $params = [$pagado['importePagado'], $cliente];
