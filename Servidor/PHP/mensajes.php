@@ -1113,6 +1113,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     // ✅ Construir la lista de productos
     $productosStr = "";
+    //$lineas = [];
     $total = 0;
     $DES_TOT = 0;
     $IMPORTE = 0;
@@ -1126,7 +1127,10 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
         $total += $totalPartida;
         $IMPORTE = $total;
-        $productosStr .= "$producto - $cantidad unidades, ";
+
+        //$productosStr .= "$producto - $cantidad unidades,";
+        $productosStr .= " • {$producto} - {$cantidad} unidades, ";
+        //$lineas[] = "• {$producto} - {$cantidad} unidades\nok";
 
         //$IMPU4 = htmlspecialchars($partida['iva']);
         //$IMPU4 = intval(htmlspecialchars($partida['iva']));
@@ -1151,6 +1155,8 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     // ✅ Eliminar la última coma y espacios
     $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
+    //$productosStr = implode($lineas);
+    //$productosStr = implode("\n", $lineas);
 
     // ✅ Datos para WhatsApp API con botones de Confirmar y Rechazar
     $data = [

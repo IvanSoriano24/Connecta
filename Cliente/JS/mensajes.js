@@ -532,8 +532,7 @@ function verificarComandas() {
           "<br><br>";
       }
       if (canceladas.length < 0) {
-        texto +=
-          `No se cancelaron comandas`;
+        texto += `No se cancelaron comandas`;
       }
       if (!texto) {
         texto = "No había comandas que procesar.";
@@ -629,7 +628,14 @@ $("#btnAutorizar").click(function () {
       }
     },
     "json"
-  );
+  ).fail(function (err) {
+    console.log(response)
+    Swal.fire(
+      "Error de red",
+      err.statusText,
+      "error"
+    );
+  });
 });
 //Funcion para rechazar el pedido
 $("#btnRechazar").click(function () {

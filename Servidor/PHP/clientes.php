@@ -799,14 +799,16 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario, $
         $fields = $document['fields'];
         $documentName = $document['name']; // Aquí obtienes el nombre completo del documento
         $documentId = basename($documentName);
-        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === (int)$noEmpresa) {
-        if (isset($fields['claveCliente']['stringValue']) && $fields['claveCliente']['stringValue'] === $claveUsuario) {
-            $datos[] = [
-                'idDocumento' => $documentId,
-                'id' => $fields['id']['integerValue'] ?? null,
-                'tituloEnvio' => $fields['tituloEnvio']['stringValue'] ?? null,
-            ];
-        }
+        $empFirebase = (int) $fields['noEmpresa']['integerValue'];
+        $empBuscada  = (int) $noEmpresa;
+        if ($empFirebase == $empBuscada) {
+            if (isset($fields['claveCliente']['stringValue']) && $fields['claveCliente']['stringValue'] === $claveUsuario) {
+                $datos[] = [
+                    'idDocumento' => $documentId,
+                    'id' => $fields['id']['integerValue'] ?? null,
+                    'tituloEnvio' => $fields['tituloEnvio']['stringValue'] ?? null,
+                ];
+            }
         }
     }
 
@@ -865,10 +867,9 @@ function obtenerDatosEnvioTabla($firebaseProjectId, $firebaseApiKey, $conexionDa
     $datos = [];
     foreach ($body['documents'] as $doc) {
         $f = $doc['fields'];
-        if (
-            isset($f['noEmpresa']['integerValue'])
-            && intval($f['noEmpresa']['integerValue']) === intval($noEmpresa)
-        ) {
+        $empFirebase = (int) $f['noEmpresa']['integerValue'];
+        $empBuscada  = (int) $noEmpresa;
+        if ($empFirebase == $empBuscada) {
             $datos[] = [
                 'idDocumento'   => basename($doc['name']),
                 'id'            => $f['id']['integerValue']       ?? null,
@@ -2031,7 +2032,7 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
-        
+
         $cliente = $_POST['cliente'];
         obtenerClientePedido($conexionData, $cliente, $claveSae);
         break;
