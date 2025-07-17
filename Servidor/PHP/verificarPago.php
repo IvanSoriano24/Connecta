@@ -225,8 +225,8 @@ function estadoSql($folio, $conexionData, $claveSae)
 function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
     //Construir la conexion
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     //Estructurar los datos nesesarios
     $data = [
@@ -255,7 +255,7 @@ function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
     curl_close($ch);
     echo "Respuesta de remision.php: " . $remisionResponse;
     $remisionData = json_decode($remisionResponse, true);
-    //echo "Respuesta de decodificada.php: " . $remisionData;
+    echo "Respuesta de decodificada.php: " . $remisionData;
     //$cveDoc = trim($remisionData['cveDoc']);
     // Verificar si la respuesta es un PDF
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);

@@ -111,7 +111,8 @@ function agregarFilaPartidas() {
       });
       cantidadInput.value = 0; // Restablecer el valor a 0
     } else {
-      calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
+      validarExistencias(nuevaFila, cantidadInput.value);
+      //calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
     }
   });
   const descuentoInput = nuevaFila.querySelector(".descuento");
@@ -146,6 +147,87 @@ function agregarFilaPartidas() {
 
   //console.log("Partidas actuales después de agregar:", partidasData);
 }
+function validarExistencias(nuevaFila, cantidad){
+  const cve_art = nuevaFila.querySelector(".producto");
+  $.ajax({
+    url: "../Servidor/PHP/ventas.php",
+    method: "GET",
+    data: {
+      numFuncion: "31",
+      cve_art: cve_art,
+      cantidad: cantidad,
+    },
+    success(response) {
+      let res;
+      try {
+        res = typeof response === "string" ? JSON.parse(response) : response;
+      } catch (err) {
+        console.error("JSON inválido:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Respuesta inválida del servidor.",
+        });
+        return;
+      }
+
+      if (res.success && Array.isArray(res.data)) {
+        // 1. Creamos el <select> y copiamos atributos del <input>
+        const select = document.createElement("select");
+        select.id = input.id;
+        select.name = input.name;
+        select.style.cssText = input.style.cssText;
+        select.tabIndex = input.tabIndex;
+
+        // 2. Opción placeholder
+        const ph = document.createElement("option");
+        ph.value = "";
+        ph.textContent = "Seleccione un vendedor";
+        ph.disabled = true;
+
+        if (!claveUsuario) {
+          // Si no hay clave, mostramos y seleccionamos placeholder
+          ph.selected = true;
+        } else {
+          // Si ya hay claveUsuario, lo oculta para no interferir
+          ph.hidden = true;
+          select.disabled = true;
+        }
+        select.append(ph);
+
+        // 3. Rellenamos con los datos del servidor
+        res.data.forEach((vendedor) => {
+          const opt = document.createElement("option");
+          opt.value = vendedor.clave;
+          opt.textContent = `${vendedor.nombre} || ${vendedor.clave}`;
+          if (vendedor.clave === claveUsuario) {
+            opt.selected = true;
+          }
+          select.append(opt);
+        });
+
+        // 4. Reemplazamos el input por el select
+        input.parentNode.replaceChild(select, input);
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: res.message || "No se encontraron vendedores.",
+        });
+      }
+    },
+    error() {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo obtener la lista de vendedores.",
+      });
+    },
+  });
+
+  calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
+}
+
 function eliminarPartidaFormulario(numPar, filaAEliminar) {
   //Mensaje para confirmar
   Swal.fire({

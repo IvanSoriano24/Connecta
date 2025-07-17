@@ -8234,7 +8234,25 @@ function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $
     // 3) Si no lo encontramos => devolvemos true
     return true;
 }
+function validarExistencia($cve_art, $cantidad, $conexionData, $noEmpresa, $claveSae){
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
 
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+}
 
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -9137,6 +9155,22 @@ switch ($funcion) {
         break;
     case 30:
         obtenerTodosEstados();
+        break;
+    case 31:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae  = $_SESSION['empresa']['claveSae'];
+
+        // Obtenemos la conexión
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            header("HTTP/1.1 500 Internal Server Error");
+            echo "Error al conectar a Firebase";
+            exit;
+        }
+        $conexionData = $conexionResult['data'];
+        $cve_art = $_GET['cve_art'];
+        $cantidad = $_GET['cantidad'];
+        validarExistencia($cve_art, $cantidad, $conexionData, $noEmpresa, $claveSae);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
