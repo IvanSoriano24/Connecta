@@ -1128,8 +1128,8 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         $total += $totalPartida;
         $IMPORTE = $total;
 
-        //$productosStr .= "$producto - $cantidad unidades,";
-        $productosStr .= " • {$producto} - {$cantidad} unidades, ";
+        $productosStr .= "$producto - $cantidad unidades,";
+        //$productosStr .= " • {$producto} - {$cantidad} unidades, ";
         //$lineas[] = "• {$producto} - {$cantidad} unidades\nok";
 
         //$IMPU4 = htmlspecialchars($partida['iva']);
