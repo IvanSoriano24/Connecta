@@ -147,14 +147,14 @@ function agregarFilaPartidas() {
 
   //console.log("Partidas actuales después de agregar:", partidasData);
 }
-function validarExistencias(nuevaFila, cantidad){
+function validarExistencias(nuevaFila, cantidad) {
   const cve_art = nuevaFila.querySelector(".producto");
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
     method: "GET",
     data: {
       numFuncion: "31",
-      cve_art: cve_art,
+      cve_art: cve_art.value,
       cantidad: cantidad,
     },
     success(response) {
@@ -171,48 +171,47 @@ function validarExistencias(nuevaFila, cantidad){
         return;
       }
 
-      if (res.success && Array.isArray(res.data)) {
-        // 1. Creamos el <select> y copiamos atributos del <input>
-        const select = document.createElement("select");
-        select.id = input.id;
-        select.name = input.name;
-        select.style.cssText = input.style.cssText;
-        select.tabIndex = input.tabIndex;
+      if (res.success) {
+        //console.log(res.data);
+        const datos = res.data;
+        let existenciasAlmacen = datos.ExistenciasAlmacen;
+        let existenciasTotales = datos.ExistenciasTotales;
+        let apartados = datos.APART;
 
-        // 2. Opción placeholder
-        const ph = document.createElement("option");
-        ph.value = "";
-        ph.textContent = "Seleccione un vendedor";
-        ph.disabled = true;
+        let existenciasReales = existenciasAlmacen - apartados;
+        if(existenciasReales < 0)
+          existenciasReales = 0;
 
-        if (!claveUsuario) {
-          // Si no hay clave, mostramos y seleccionamos placeholder
-          ph.selected = true;
+        let otrosAlmacenes = existenciasTotales - existenciasAlmacen;
+
+        if (existenciasReales < cantidad) {
+          const mensajeHtml = `
+            <p>No hay suficientes existencias para el producto <strong>${
+              cve_art.value
+            }</strong>.</p>
+            <ul style="text-align:left">
+              <li><strong>Solicitados:</strong> ${cantidad || 0}</li>
+              <li><strong>Existencias Totales:</strong> ${existenciasTotales || 0}</li>
+              <li><strong>Apartados:</strong> ${apartados || 0}</li>
+              <li><strong>Disponibles en Almacen:</strong> ${existenciasReales || 0}</li>
+              <li><strong>Otros almacenes:</strong> ${otrosAlmacenes || 0}</li>
+            </ul>
+          `;
+
+          Swal.fire({
+            title: "Advertencia sobre las existencias",
+            html: mensajeHtml,
+            icon: "warning",
+            confirmButtonText: "Aceptar",
+          });
         } else {
-          // Si ya hay claveUsuario, lo oculta para no interferir
-          ph.hidden = true;
-          select.disabled = true;
+          calcularSubtotal(nuevaFila);
         }
-        select.append(ph);
-
-        // 3. Rellenamos con los datos del servidor
-        res.data.forEach((vendedor) => {
-          const opt = document.createElement("option");
-          opt.value = vendedor.clave;
-          opt.textContent = `${vendedor.nombre} || ${vendedor.clave}`;
-          if (vendedor.clave === claveUsuario) {
-            opt.selected = true;
-          }
-          select.append(opt);
-        });
-
-        // 4. Reemplazamos el input por el select
-        input.parentNode.replaceChild(select, input);
       } else {
         Swal.fire({
           icon: "warning",
           title: "Aviso",
-          text: res.message || "No se encontraron vendedores.",
+          text: res.message || "No se encontraron productos.",
         });
       }
     },
@@ -220,12 +219,10 @@ function validarExistencias(nuevaFila, cantidad){
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo obtener la lista de vendedores.",
+        text: "No se pudo obtener el producto.",
       });
     },
   });
-
-  calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
 }
 
 function eliminarPartidaFormulario(numPar, filaAEliminar) {
@@ -2316,8 +2313,8 @@ $(document).ready(function () {
         });
         return;
       }
-      const vendedor = document.getElementById("vendedor").value
-      if (vendedor === "" ) {
+      const vendedor = document.getElementById("vendedor").value;
+      if (vendedor === "") {
         //Mensaje cuando se quiera guardar pero no hay producto seleccionado o su cantidad es 0
         Swal.fire({
           title: "Aviso",
@@ -2327,7 +2324,6 @@ $(document).ready(function () {
         });
         return;
       }
-
 
       guardarPedido(id);
 

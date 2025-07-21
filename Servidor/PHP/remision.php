@@ -2014,7 +2014,7 @@ function actualizarMulti($conexionData, $pedidoId, $claveSae)
     // ✅ 2. Actualizar MULTXX por cada producto
     while ($row = sqlsrv_fetch_array($stmtProductos, SQLSRV_FETCH_ASSOC)) {
         $cveArt = $row['CVE_ART'];
-        $numAlm = $row['NUM_ALM'];
+        $numAlm = 1;
         $cantidad = $row['TOTAL_CANT']; // Se suma la cantidad total por producto y almacén
 
         // ✅ Consulta basada en la traza

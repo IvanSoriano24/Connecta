@@ -341,6 +341,7 @@ session_destroy(); */
                                         <th>Visuzlizar</th>
                                         <th>Descargar</th>
                                         <th id="confirmacion">Enviar Confirmacion</th>
+                                        <th id="buscarAnticipo">Buscar Anticipo</th>
                                     </tr>
                                 </thead>
                                 <tbody id="datosPedidos">

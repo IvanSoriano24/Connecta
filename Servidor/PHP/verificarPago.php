@@ -630,7 +630,6 @@ function datosPedido($cve_doc, $claveSae, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-
 function datosPartida($cve_doc, $claveSae, $conexionData)
 {
     $serverName = $conexionData['host'];
@@ -667,7 +666,6 @@ function datosPartida($cve_doc, $claveSae, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-
 function datosProcuto($CVE_ART, $claveSae, $conexionData)
 {
     $serverName = $conexionData['host'];
@@ -849,9 +847,6 @@ function restarSaldo($conexionData, $claveSae, $pagado, $cliente)
 
     $params = [$pagado['importePagado'], $cliente];
     //$params = [$imp, $cliente];
-    var_dump($sql);
-    var_dump($params);
-
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {

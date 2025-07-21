@@ -145,6 +145,78 @@ function agregarEventosBotones() {
       }
     });
   });
+
+  const botonesBuscarAnticipo = document.querySelectorAll(".btnBuscarAnticpo");
+  botonesBuscarAnticipo.forEach((boton) => {
+    boton.addEventListener("click", async function () {
+      /*const pedidoID = this.dataset.id; // Obtener el ID del pedido
+      console.log("Redirigiendo con pedidoID:", pedidoID);
+      window.location.href = "altaPedido.php?pedidoID=" + pedidoID;*/
+      const pedidoID = this.dataset.id; // Obtener el ID del pedido
+
+      try {
+        buscarAnticipo(pedidoID);
+      } catch (error) {
+        console.error("Error al verificar el anticipo:", error);
+        Swal.fire({
+          title: "Aviso",
+          text: "Hubo un problema al verificar el anticipo",
+          icon: "error",
+          confirmButtonText: "Entendido",
+        });
+      }
+    });
+  });
+}
+function buscarAnticipo(pedidoID){
+  Swal.fire({
+    title: "Enviando confirmación...",
+    text: "Por favor, espera mientras se busca un anticipo.",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+  $.post(
+    "../Servidor/PHP/ventas.php",
+    { numFuncion: "32", pedidoID: pedidoID },
+    function (response) {
+      try {
+        if (typeof response === "string") {
+          response = JSON.parse(response);
+        }
+        if (response.success) {
+          Swal.fire({
+            title: "Enviado",
+            text: "Se ha Enviado la Confirmacion al Pedido",
+            icon: "success",
+            confirmButtonText: "Entendido",
+          }).then(() => {
+            datosPedidos(); // Actualizar la tabla
+          });
+        } else {
+          Swal.fire({
+            title: "Aviso",
+            text: response.message || "No se pudo cancelar el pedido",
+            icon: "warning",
+            confirmButtonText: "Entendido",
+          });
+        }
+      } catch (error) {
+        console.error("Error al procesar la respuesta JSON:", error);
+      }
+    }
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    Swal.fire({
+      title: "Aviso",
+      text: "Hubo un problema al intentar enviar el pedido",
+      icon: "error",
+      confirmButtonText: "Entendido",
+    });
+    console.log("Detalles del error:", jqXHR.responseText);
+  });
+
 }
 function enviarConfirmacion(pedidoID) {
   Swal.fire({
@@ -525,9 +597,10 @@ function datosPedidos(limpiarTabla = true) {
                   </button>
                 </td>
               `;
-              const td = document.createElement("td");
+
               //if (estadoPedido === "Vendidos") {
               if (estadoPedido === "Activos") {
+                const td = document.createElement("td");
                 const btn = document.createElement("button");
                 btn.className = "btnEnviarPedido";
                 btn.textContent = "Enviar Pedido";
@@ -536,6 +609,22 @@ function datosPedidos(limpiarTabla = true) {
                 btn.dataset.id = pedido.Clave; // 👈 aquí se asigna el data-id
                 td.appendChild(btn);
                 row.appendChild(td);
+                /****/
+                const td2 = document.createElement("td");
+                if (pedido.Credito != "S") {
+                  const btn = document.createElement("button");
+                  btn.className = "btnBuscarAnticpo";
+                  btn.textContent = "Buscar Anticipo";
+                  btn.style =
+                    "display: inline-flex; align-items: center; padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
+                  btn.dataset.id = pedido.Clave; // 👈 aquí se asigna el data-id
+                  td2.appendChild(btn);
+                  row.appendChild(td2);
+                } else {
+                  // Cuando Credito === 'S', ponemos un guión
+                  td2.textContent = "--";
+                  row.appendChild(td2);
+                }
               }
               fragment.appendChild(row);
             });
