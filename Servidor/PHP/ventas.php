@@ -1298,7 +1298,7 @@ function guardarPedido($conexionData, $formularioData, $partidasData, $claveSae,
         $IMP_TOT1 += $IMP_T1;
     }
     $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
-    
+
     $CVE_VEND = str_pad($formularioData['claveVendedor'], 5, ' ', STR_PAD_LEFT);
     // Asignación de otros valores del formulario
     $IMP_TOT2 = 0;
@@ -7959,13 +7959,22 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
         $numeroBandera = 0;
     }
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
+        if ($numeroBandera === 0) {
+            $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+
+            //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . urldecode($noPedido) . ".pdf";
+
+            //$filename = "Factura_" . urldecode($noPedido) . ".pdf";
+            $filename = "Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', trim(urlencode($noPedido))) . ".pdf";
+            //$filename = "Factura_18456.pdf";
+            enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename);
+
+            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
+        }
+
         // Enviar notificaciones solo si los datos son válidos
         if ($correoBandera === 0) {
             enviarCorreoPedido($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-        }
-
-        if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -7995,6 +8004,92 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
         echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y WhatsApp Válido Registrado.']);
         //die();
     }
+}
+function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido)
+{
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+    // ✅ Verifica que los valores no estén vacíos
+    if (empty($noPactura) || empty($claveSae)) {
+        error_log("Error: noPedido o noEmpresa están vacíos.");
+        return false;
+    }
+    $data = [
+        "messaging_product" => "whatsapp", // 📌 Campo obligatorio
+        "recipient_type" => "individual",
+        "to" => $numeroWhatsApp,
+        "type" => "template",
+        "template" => [
+            "name" => "pedido_factura", // 📌 Nombre EXACTO en Meta Business Manager
+            "language" => ["code" => "es_MX"], // 📌 Corregido a español España
+            "components" => [
+                [
+                    "type" => "header",
+                    "parameters" => [
+                        [
+                            "type" => "document",
+                            "document" => [
+                                "link" => $rutaPDF,
+                                "filename" => $filename
+                            ]
+                        ]
+                    ]
+
+                ],
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
+                        ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
+                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)] // 📌 Precio total
+                    ]
+                ],
+                // ✅ Botón Confirmar
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 0,
+                    "parameters" => [
+                        ["type" => "payload", "payload" => $urlConfirmar] // 📌 URL dinámica
+                    ]
+                ],
+                // ✅ Botón Rechazar
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 1,
+                    "parameters" => [
+                        ["type" => "payload", "payload" => $urlRechazar] // 📌 URL dinámica
+                    ]
+                ]
+            ]
+        ]
+    ];
+    // ✅ Verificar JSON antes de enviarlo
+    $data_string = json_encode($data, JSON_PRETTY_PRINT);
+    error_log("WhatsApp JSON: " . $data_string);;
+
+    // ✅ Revisar si el JSON contiene `messaging_product`
+    if (!isset($data['messaging_product'])) {
+        error_log("ERROR: 'messaging_product' no está en la solicitud.");
+        return false;
+    }
+    // ✅ Enviar solicitud a WhatsApp API con headers correctos
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer " . $token,
+        "Content-Type: application/json"
+    ]);
+    $result = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+    error_log("WhatsApp Response: " . $result);
+    error_log("HTTP Status Code: " . $http_code);
+    return $result;
 }
 function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData)
 {
@@ -8203,10 +8298,11 @@ function obtenerTodosEstados()
     usort($estados, fn($a, $b) => strcmp($a['Descripcion'], $b['Descripcion']));
     echo json_encode(['success' => true, 'data' => $estados]);
 }
-function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $noEmpresa){
+function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
+{
     // 1) Consultar todos los documentos de la colección PEDIDOS_AUTORIZAR
     $url = "https://firestore.googleapis.com/v1/projects/"
-         . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+        . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
     $resp = @file_get_contents($url);
     if ($resp === false) {
         // Si falla la petición, consideramos que no hay un pedido "pendiente" => devolvemos true
@@ -8223,9 +8319,10 @@ function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $
         $folioField   = $fields['folio']['stringValue']    ?? '';
         $empresaField = $fields['noEmpresa']['integerValue'] ?? null;
 
-        if ((string)$folioField === (string)$pedidoID
-         && (int)$empresaField === (int)$noEmpresa)
-        {
+        if (
+            (string)$folioField === (string)$pedidoID
+            && (int)$empresaField === (int)$noEmpresa
+        ) {
             $status = $fields['status']['stringValue'] ?? '';
             // Si está pendiente ("Sin Autorizar") => false; en caso contrario (incluye "Autorizado") => true
             return $status !== 'Sin Autorizar';
@@ -8687,9 +8784,9 @@ switch ($funcion) {
                         if ($validarSaldo === 0 && $credito == 0) {
                             $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero']);
                             $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa, $formularioData['observaciones']);
-                            
+
                             validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito, $id);
-                            
+
                             exit();
                         } else {
                             //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
