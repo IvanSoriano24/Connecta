@@ -610,7 +610,7 @@ function datosPedidos(limpiarTabla = true) {
                 td.appendChild(btn);
                 row.appendChild(td);
                 /****/
-                const td2 = document.createElement("td");
+                /*const td2 = document.createElement("td");
                 if (pedido.Credito != "S") {
                   const btn = document.createElement("button");
                   btn.className = "btnBuscarAnticpo";
@@ -624,7 +624,7 @@ function datosPedidos(limpiarTabla = true) {
                   // Cuando Credito === 'S', ponemos un guión
                   td2.textContent = "--";
                   row.appendChild(td2);
-                }
+                }*/
               }
               fragment.appendChild(row);
             });

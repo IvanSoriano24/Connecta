@@ -7919,13 +7919,19 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
 
     // Inicializa la variable donde guardarás el id
     $idFirebasePedido = null;
+    $direccion1Contacto = null;
 
     if ($response !== false) {
         $resultArray = json_decode($response, true);
-        if (isset($resultArray[0]['document']['name'])) {
-            $name = $resultArray[0]['document']['name']; // p.ej. projects/proj/databases/(default)/documents/DATOS_PEDIDO/{id}
-            $parts = explode('/', $name);
-            $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
+        // runQuery devuelve un array con un elemento por cada match
+        if (isset($resultArray[0]['document'])) {
+            $doc    = $resultArray[0]['document'];
+            // si quieres el ID:
+            $parts  = explode('/', $doc['name']);
+            $idFirebasePedido = end($parts);
+            // y para tomar tu campo direccion1Contacto:
+            $fields = $doc['fields'];
+            $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
         }
     }
     $rutaPDF = descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
@@ -7970,9 +7976,10 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
             //$filename = "Factura_" . urldecode($noPedido) . ".pdf";
             $filename = "Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$filename = "Factura_18456.pdf";
-            enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename);
+            //$resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
 
-            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
+            //var_dump($resultadoWhatsApp);
         }
 
         // Enviar notificaciones solo si los datos son válidos
@@ -8008,22 +8015,55 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
         //die();
     }
 }
-function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido)
+function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto)
 {
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-    // ✅ Verifica que los valores no estén vacíos
-    if (empty($noPactura) || empty($claveSae)) {
-        error_log("Error: noPedido o noEmpresa están vacíos.");
-        return false;
+
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idFirebasePedido);
+    $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
+
+    // ✅ Construir la lista de productos
+    $productosStr = "";
+    $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
+    foreach ($partidasData as $partida) {
+        $producto = $partida['producto'] ?? $partida['CVE_ART'];
+        $cantidad = $partida['cantidad'] ?? $partida['CANT'];
+        $precioUnitario = $partida['precioUnitario'] ?? $partida['PREC'];
+        $totalPartida = $cantidad * $precioUnitario;
+        $total += $totalPartida;
+        $IMPORTE = $total;
+        $productosStr .= "$producto - $cantidad unidades, ";
+
+        $IMPU4 = $partida['iva'] ?? $partida['IMPU4'];
+        $desc1 = $partida['descuento'] ?? $partida['DESC1'];
+
+        $desProcentaje = ($desc1 / 100);
+
+        $DES = $totalPartida * $desProcentaje;
+
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+
+        $IMP_TOT4 += $IMP_T4;
     }
+
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
+    // ✅ Eliminar la última coma y espacios
+    $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
+
     $data = [
         "messaging_product" => "whatsapp", // 📌 Campo obligatorio
         "recipient_type" => "individual",
         "to" => $numeroWhatsApp,
         "type" => "template",
         "template" => [
-            "name" => "pedido_factura", // 📌 Nombre EXACTO en Meta Business Manager
+            "name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
             "language" => ["code" => "es_MX"], // 📌 Corregido a español España
             "components" => [
                 [
@@ -8032,7 +8072,7 @@ function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae
                         [
                             "type" => "document",
                             "document" => [
-                                "link" => $rutaPDF,
+                                "link" => $rutaPDFW,
                                 "filename" => $filename
                             ]
                         ]
@@ -8042,9 +8082,13 @@ function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae
                 [
                     "type" => "body",
                     "parameters" => [
+                        ["type" => "text", "text" => $clienteNombre], // 📌 Confirmación del pedido
                         ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
                         ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
-                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)] // 📌 Precio total
+                        ["type" => "text", "text" => "$" . number_format($DES_TOT, 2)], // 📌 Lista de productos
+                        ["type" => "text", "text" => "$" . number_format($IMP_TOT4, 2)], // 📌 Lista de productos
+                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)], // 📌 Precio total
+                        ["type" => "text", "text" => $direccion1Contacto], // 📌 Lista de productos
                     ]
                 ],
                 // ✅ Botón Confirmar
@@ -8373,7 +8417,6 @@ function verificarStatusAnticipo($pedidoID, $firebaseProjectId, $firebaseApiKey,
     // si no lo encontramos
     return true;
 }
-
 function validarExistencia($cve_art, $cantidad, $conexionData, $noEmpresa, $claveSae)
 {
     $serverName = $conexionData['host'];
@@ -8454,7 +8497,7 @@ function buscarAnticipoPeido($pedidoID, $noEmpresa, $claveSae, $conexionData, $i
             $pagado = verificarPago($conexionData, $cliente, $claveSae, $folio);
 
             //$pagado['pagada'] = true;
-            
+
             if ($pagado['pagada']) {
                 /*var_dump($pagado);
                 die();*/
@@ -8774,8 +8817,8 @@ function crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fech
 function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
     //Construir la conexion
-    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     //Estructurar los datos nesesarios
     $data = [
@@ -9016,7 +9059,6 @@ function datosProcuto($CVE_ART, $claveSae, $conexionData)
     sqlsrv_close($conn);
 }
 use Google\Cloud\Firestore\FirestoreClient;
-
 function datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO/$idEnvios?key=$firebaseApiKey";

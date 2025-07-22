@@ -4245,7 +4245,8 @@ function obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpre
                             'status' =>  $fields['status']['stringValue'],
                             'folio' =>  $fields['folio']['stringValue'],
                             'claveCliente' =>  $fields['claveCliente']['stringValue'],
-                            'credito' =>  $fields['credito']['booleanValue']
+                            'credito' =>  $fields['credito']['booleanValue'],
+                            'numGuia' =>  $fields['numGuia']['stringValue']
                         ];
                     }
                 }
@@ -5303,9 +5304,8 @@ function obtenerEmpresa($noEmpresa)
 
     return false; // No se encontró la empresa
 }
-function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey)
+function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey, $numGuia)
 {
-
     // Establecer la conexión con SQL Server
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -5431,7 +5431,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
         $filename = "Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
         //$filename = "Factura_18456.pdf";
 
-        $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename);
+        $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename, $numGuia);
         //var_dump($resultadoWhatsApp);
         enviarCorreo($emailPred, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
     } else {
@@ -5526,7 +5526,7 @@ function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $envia
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDF, $filename)
+function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDF, $filename, $numGuia)
 {
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
@@ -5561,7 +5561,8 @@ function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $cla
                     "type" => "body",
                     "parameters" => [
                         ["type" => "text", "text" => $clienteNombre],
-                        ["type" => "text", "text" => $noPactura]
+                        ["type" => "text", "text" => $noPactura],
+                        ["type" => "text", "text" => $numGuia]
                     ]
                 ]
             ]
@@ -5629,6 +5630,7 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
     $credito = $datosComanda[0]['credito'];
     $docName = $datosComanda[0]['id'];
     $status = $datosComanda[0]['status'];
+    $numGuia = $datosComanda[0]['numGuia'];
     if ($status === 'TERMINADA') {
         $respuestaValidaciones = validaciones($folio, $noEmpresa, $claveSae, $conexionData);
 
@@ -5650,7 +5652,7 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
                 actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
                 $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
                 //var_dump("Ruta PDF: ", $rutaPDF);
-                validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey);
+                validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey, $numGuia);
                 if ($fallaId != "") {
                     eliminarErrores($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $remisionId, $claveCliente, $fallaId);
                 }

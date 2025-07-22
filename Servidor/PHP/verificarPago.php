@@ -176,57 +176,46 @@ function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio,
     } else {
         //echo "Comanda $pagoId actualizada a 'Pagada'.\n";
         //Cambiar el estado en base de datos SAE
-        estadoSql($folio, $conexionData, $claveSae);
     }
 }
-
-function estadoSql($folio, $conexionData, $claveSae)
+function cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae)
 {
-    //Crear la conexion a la base de datos
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
+    //Construir la URL con el id del documento y los updateMask para solo actualizar los campos requeridos
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=status&updateMask.fieldPaths=buscar&key=$firebaseApiKey";
 
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-    //Validar la conexion
-    if ($conn === false) {
-        echo "DEBUG: Error al conectar en estadoSql:\n";
-        var_dump(sqlsrv_errors());
-        exit;
+    //Estructurar los datos
+    $data = [
+        'fields' => [
+            'status' => ['stringValue' => 'No Pagada'],
+            'buscar' => ['booleanValue' => false]
+        ]
+    ];
+    //Crear la conexion
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'PATCH',
+            'header' => "Content-Type: application/json\r\n",
+            'content' => json_encode($data)
+        ]
+    ]);
+    //Realizar la conexion
+    $response = @file_get_contents($url, false, $context);
+
+    //Verificar la respuesta
+    if ($response === false) {
+        echo "Error al actualizar la comanda $pagoId.\n";
+    } else {
+        //echo "Comanda $pagoId actualizada a 'Pagada'.\n";
+        //Cambiar el estado en base de datos SAE
     }
-    //Formatear la clave del pedido
-    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-    //Crear la tabla dinamica
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    //Crear consulta
-    $sql = "UPDATE $nombreTabla SET 
-        STATUS = 'E'
-        WHERE CVE_DOC = ?";
-    //Realizar consulta
-    $stmt = sqlsrv_query($conn, $sql, [$CVE_DOC]);
-    //Verificar respuesta
-    if ($stmt === false) {
-        echo "DEBUG: Error al actualizar el pedido:\n";
-        var_dump(sqlsrv_errors());
-        exit;
-    }
-    // Cerrar la conexión
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
-    return ['success' => true, 'message' => 'Status actualizado'];
 }
+
 
 function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
     //Construir la conexion
-    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     //Estructurar los datos nesesarios
     $data = [
@@ -903,6 +892,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
         $buscar = $fields['buscar']['booleanValue'];
         $vendedor = $fields['vendedor']['stringValue'];
         $idEnvios = $fields['idEnvios']['stringValue'];
+        $pagoId = basename($document['name']);
         //Filtrar pagos que aun no esten pagados
         if ($status === 'Sin Pagar') {
             //$cliente = "878";
@@ -924,7 +914,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                         if ($pagado['pagada']) {
                             var_dump($pagado);
                             //die();
-                            $pagoId = basename($document['name']);
+                            
                             //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
                             cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                             //var_dump($pagado);
@@ -941,6 +931,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                     } else if ($fechaPago > $fechaLimiteObj) {
                         //Si ya pasaron, liberar existencias
                         liberarExistencias($conexionData, $folio, $claveSae);
+                        cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                         //Notificar
                     }
                 }
