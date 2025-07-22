@@ -722,7 +722,7 @@ if (isset($_SESSION['usuario'])) {
                                         <h6 class="fw-bold">Dirección</h6>
                                         <div class="mb-3">
                                             <label for="nombreContacto" class="form-label">Nombre del contacto <span class="text-danger">*</span></label>
-                                            <input type="text" id="nombreContacto" class="form-control" required>
+                                            <input type="text" id="nombreContacto" class="form-control" maxlength="254" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="compañiaContacto" class="form-label">Compañía <span class="text-danger">*</span></label>
@@ -742,15 +742,15 @@ if (isset($_SESSION['usuario'])) {
                                         <h6 class="fw-bold">Detalles de la dirección</h6>
                                         <div class="mb-3">
                                             <label for="direccion1Contacto" class="form-label">Línea 1 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion1Contacto" class="form-control" required>
+                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength = "80" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="direccion2Contacto" class="form-label">Línea 2 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion2Contacto" class="form-control" required>
+                                            <input type="text" id="direccion2Contacto" class="form-control" maxlength = "50" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="codigoContacto" class="form-label">Código Postal <span class="text-danger">*</span></label>
-                                            <input type="text" id="codigoContacto" class="form-control" required>
+                                            <input type="text" id="codigoContacto" class="form-control" maxlength = "5" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>

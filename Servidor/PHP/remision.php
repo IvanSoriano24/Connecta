@@ -2448,7 +2448,7 @@ function actualizarFactp($conexionData, $pedidoId, $claveSae)
     $fechaSinc = date('Y-m-d H:i:s');
 
     // ✅ 1. Consulta para actualizar FACTRXX
-    $sqlUpdate = "UPDATE $tablaFactp 
+    /*$sqlUpdate = "UPDATE $tablaFactp 
                   SET TIP_DOC_E = ?, 
                       VERSION_SINC = ?, 
                       ENLAZADO = (CASE 
@@ -2456,6 +2456,16 @@ function actualizarFactp($conexionData, $pedidoId, $claveSae)
                                           WHERE P.CVE_DOC = ? AND $tablaFactp.CVE_DOC = P.CVE_DOC) = 0 THEN 'T'
                                     WHEN (SELECT SUM(P.PXS) FROM $tablaParFactp P 
                                           WHERE P.CVE_DOC = ? AND $tablaFactp.CVE_DOC = P.CVE_DOC) > 0 THEN 'P' 
+                                    ELSE ENLAZADO END)
+                  WHERE CVE_DOC = ?";*/
+    $sqlUpdate = "UPDATE $tablaFactp 
+                  SET TIP_DOC_E = ?, 
+                      VERSION_SINC = ?, 
+                      ENLAZADO = (CASE 
+                                    WHEN (SELECT SUM(P.PXS) FROM $tablaParFactp P 
+                                          WHERE P.CVE_DOC = ? AND $tablaFactp.CVE_DOC = P.CVE_DOC) = 0 THEN 'P'
+                                    WHEN (SELECT SUM(P.PXS) FROM $tablaParFactp P 
+                                          WHERE P.CVE_DOC = ? AND $tablaFactp.CVE_DOC = P.CVE_DOC) > 0 THEN 'T' 
                                     ELSE ENLAZADO END)
                   WHERE CVE_DOC = ?";
 
