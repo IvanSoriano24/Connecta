@@ -209,8 +209,6 @@ function cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, 
         //Cambiar el estado en base de datos SAE
     }
 }
-
-
 function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
     //Construir la conexion
@@ -914,19 +912,70 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                         if ($pagado['pagada']) {
                             var_dump($pagado);
                             //die();
-                            
+
                             //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
                             cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                             //var_dump($pagado);
                             eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
                             restarSaldo($conexionData, $claveSae, $pagado, $cliente);
                             //var_dump($cliente);
+                            //Inicia validacion
+                            //$exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae);
+                            //if ($exsitencias['success']) {
                             crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
 
                             crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
                             // Eliminar el documento de DATOS_PEDIDO
                             eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios);
                             //Remision y Demas
+                            /*} else {
+                                if ($conCredito === 'S') {
+                                    $result = notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiKey, $vendedor, $pedidoId, $nombreCliente, $noEmpresa, $claveSae);
+                                    //var_dump($result);
+                                    echo "<div class='container'>
+                                            <div class='title'>Confirmación Exitosa</div>
+                                            <!--<div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>-->
+                                            <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+                                        </div>";
+                                } else {
+                                    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
+
+                                    $response = @file_get_contents($url);
+                                    if ($response === false) {
+                                        echo "Error al obtener los ...\n";
+                                        return;
+                                    }
+                                    $data = json_decode($response, true);
+                                    if (!isset($data['documents'])) {
+                                        echo "No se encontraron ...\n";
+                                        return;
+                                    }
+
+                                    // Recorrer todas las comandas y verificar si el folio ya está en la base de datos
+                                    foreach ($data['documents'] as $document) {
+                                        $fields = $document['fields'];
+                                        if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
+                                            $pagoId = basename($document['name']);
+                                            $status = $fields['status'];
+                                            $buscar = $fields['buscar'];
+                                        }
+                                    }
+                                    if ($buscar['booleanValue']) {
+                                        echo "<div class='container'>
+                                        <div class='title'>Pedido aceptado</div>
+                                        <div class='message'>El pedido fue aceptado y esperando el pago.</div>
+                                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
+                                    </div>";
+                                    } else if ($status['stringValue'] === 'Pagada') {
+                                        echo "<div class='container'>
+                                        <div class='title'>Pedido pagado</div>
+                                        <div class='message'>El pedido ya fue pagado.</div>
+                                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
+                                    </div>";
+                                    }
+                                }
+                            }*/
+                            //Termina validacion
                         }
                     } else if ($fechaPago > $fechaLimiteObj) {
                         //Si ya pasaron, liberar existencias

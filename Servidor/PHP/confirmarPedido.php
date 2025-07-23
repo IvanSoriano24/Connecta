@@ -203,7 +203,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             <!--<a href='/index.php' class='button'>Volver al inicio</a>-->
           </div>";
     } else {
-        //Inicia validacion
+        
         //Obtenemos los datos de conexion
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
         if (!$conexionResult['success']) {
@@ -213,8 +213,9 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
         $conexionData = $conexionResult['data'];
         //Verifcamos que accion realizara
         if ($accion === 'confirmar') {
-            /*$exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae);
-            if ($exsitencias['success']) {*/
+            //Inicia validacion
+            //$exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae);
+            //if ($exsitencias['success']) {
                 //Verificamos si es un pedido realizado con credito o sin credito
                 if ($conCredito === 'S') {
                     // Obtener la hora actual
@@ -430,11 +431,12 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 }
             /*} else {
                 if ($conCredito === 'S') {
-                    notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiKey);
+                    $result = notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiKey, $vendedor, $pedidoId, $nombreCliente, $noEmpresa, $claveSae);
+                    //var_dump($result);
                     echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
+                            <!--<div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>-->
                             <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
-                            <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
                           </div>";
                 } else {
                     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
@@ -610,7 +612,9 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae)
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -628,11 +632,12 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae)
 
         // Consultar existencias reales considerando apartados
         $sqlCheck = "SELECT 
-                        COALESCE([EXIST], 0) AS EXIST, 
-                        COALESCE([APART], 0) AS APART, 
-                        (COALESCE([EXIST], 0) - COALESCE([APART], 0)) AS DISPONIBLE 
-                     FROM $nombreTabla 
-                     WHERE [CVE_ART] = ? AND CVE_ALM = 1";
+                        COALESCE(M.[EXIST], 0) AS EXIST, 
+                        COALESCE(I.[APART], 0) AS APART, 
+                        (COALESCE(M.[EXIST], 0) - COALESCE(I.[APART], 0)) AS DISPONIBLE 
+                     FROM $nombreTabla I
+                     INNER JOIN $nombreTabla2 M ON M.[CVE_ART] = I.CVE_ART
+                     WHERE I.[CVE_ART] = ? AND M.[CVE_ALM] = 1";
         $stmtCheck = sqlsrv_query($conn, $sqlCheck, [$CVE_ART]);
 
         if ($stmtCheck === false) {
@@ -752,6 +757,99 @@ function bitacora($claveCliente, $firebaseProjectId, $firebaseApiKey, $pedidoId,
         die(json_encode(['success' => false, 'message' => 'Error al guardar el pedido autorizado en Firebase.', 'error' => $error]));
         //return;
     }
+}
+function notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiKey, $vendedor, $pedidoId, $nombreCliente, $noEmpresa, $claveSae)
+{
+    $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+    // Consultar Firebase para obtener los datos del vendedor
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+
+    $response = @file_get_contents($firebaseUrl, false, $context);
+
+    $usuariosData = json_decode($response, true);
+    $telefonoVendedor = null;
+    $nombreVendedor = null;
+    $vendedor = formatearClaveVendedor($vendedor);
+    //var_dump($vendedor);
+    // Buscar al vendedor por clave
+    if (isset($usuariosData['documents'])) {
+        foreach ($usuariosData['documents'] as $document) {
+            $fields = $document['fields'];
+            //if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                    if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                        $telefonoVendedor = $fields['telefono']['stringValue'];
+                        $nombreVendedor = $fields['nombre']['stringValue'];
+                        break;
+                    }
+                }
+            //}
+        }
+    }
+
+    //$telefonoVendedor = "+527773750925";
+
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+
+    $productosStr = "";
+    foreach ($exsitencias['productosSinExistencia'] as $esxist) {
+        $producto = $esxist['producto'];
+        $existencias = $esxist['existencias'];
+
+        $productosStr .= " $producto - $existencias, ";
+    }
+
+    $data = [
+        "messaging_product" => "whatsapp", // 📌 Campo obligatorio
+        "recipient_type" => "individual",
+        "to" => $telefonoVendedor,
+        "type" => "template",
+        "template" => [
+            "name" => "pedidos_sin_existencias", // 📌 Nombre EXACTO en Meta Business Manager
+            "language" => ["code" => "es_MX"], // 📌 Corregido a español España
+            "components" => [
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        ["type" => "text", "text" => $nombreVendedor], // 📌 Confirmación del pedido
+                        ["type" => "text", "text" => $pedidoId], // 📌 Lista de productos
+                        ["type" => "text", "text" => $nombreCliente],
+                        ["type" => "text", "text" => $productosStr]
+                    ]
+                ],
+            ]
+        ]
+    ];
+    //var_dump($data);
+    // Convertir los datos a JSON
+    $data_string = json_encode($data);
+
+    // Configurar cURL para enviar la solicitud
+    $curl = curl_init($url);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $token,
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($data_string)
+    ]);
+
+    // Ejecutar la solicitud y cerrar cURL
+    $result = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    error_log("WhatsApp Response: " . $result);
+    error_log("HTTP Status Code: " . $http_code);
+
+    return $result;
 }
 
 ?>

@@ -168,7 +168,7 @@ function agregarEventosBotones() {
     });
   });
 }
-function buscarAnticipo(pedidoID){
+function buscarAnticipo(pedidoID) {
   Swal.fire({
     title: "Enviando confirmación...",
     text: "Por favor, espera mientras se busca un anticipo.",
@@ -216,7 +216,6 @@ function buscarAnticipo(pedidoID){
     });
     console.log("Detalles del error:", jqXHR.responseText);
   });
-
 }
 function enviarConfirmacion(pedidoID) {
   Swal.fire({
@@ -773,15 +772,36 @@ function obtenerDatosEnvioEditar(pedidoID) {
         const municipio = data.municipioContacto.stringValue;
         const edo = data.estadoContacto.stringValue;
         obtenerEstadosEdit(edo, municipio);
-        $("#observaciones").val(data.observaciones.stringValue);
+        $("#observaciones").val(data.observaciones?.stringValue || "");
         //obtenerMunicipiosEdit(edo, municipio);
+      } else if(response.datos){
+        const data = response.data;
+        console.log("Data: ", data);
+        $("#nombreContacto").val(data.nombreContacto);
+        //$("#titutoDatos").val(data.tituloEnvio.stringValue);
+        $("#compañiaContacto").val(data.companiaContacto);
+        $("#telefonoContacto").val(data.telefonoContacto);
+        $("#correoContacto").val(data.correoContacto);
+        $("#direccion1Contacto").val(data.direccion1Contacto);
+        $("#direccion2Contacto").val(data.direccion2Contacto);
+        $("#codigoContacto").val(data.codigoContacto);
+        //$("#estadoContacto").val(data.estado);
+        const municipio = data.municipioContacto;
+        const edo = data.estadoContacto;
+        obtenerEstadosEdit(edo, municipio);
+        $("#observaciones").val(data.observaciones || "");
       } else {
-        Swal.fire({
+        /*Swal.fire({
           title: "Aviso",
           text: "No se pudo cargar el pedido.",
           icon: "warning",
           confirmButtonText: "Aceptar",
-        });
+        });*/
+        $(
+          "#idDatos, #nombreContacto, #compañiaContacto, #telefonoContacto, #correoContacto, #direccion1Contacto, #direccion2Contacto, #codigoContacto, #observaciones"
+        )
+          .val("")
+          .prop("disabled", true);
         //alert("No se pudo cargar el pedido: " + response.message);
       }
     },

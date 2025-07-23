@@ -1417,6 +1417,7 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
         ]
     ]);
 
+
     $options = [
         'http' => [
             'header'  => "Content-Type: application/json\r\n",
@@ -1427,31 +1428,118 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
 
     $context  = stream_context_create($options);
     $response = @file_get_contents($urlId, false, $context);
+    $resultArray = $response ? json_decode($response, true) : null;
 
-    // Inicializa la variable donde guardarás el id
-    $idFirebasePedido = null;
+    // ¿Encontré un documento en DATOS_PEDIDO?
+    if (
+        is_array($resultArray) &&
+        isset($resultArray[0]['document']['name'])
+    ) {
+        // —> SÍ estaba en DATOS_PEDIDO: leo ese único doc y devuelvo.
+        $name = $resultArray[0]['document']['name'];
+        $idFirebasePedido = basename($name);
+        $url = "https://firestore.googleapis.com/v1/projects/"
+            . "$firebaseProjectId/databases/(default)/documents/"
+            . "DATOS_PEDIDO/$idFirebasePedido?key=$firebaseApiKey";
 
-    if ($response !== false) {
-        $resultArray = json_decode($response, true);
-        if (isset($resultArray[0]['document']['name'])) {
-            $name = $resultArray[0]['document']['name']; // p.ej. projects/proj/databases/(default)/documents/DATOS_PEDIDO/{id}
-            $parts = explode('/', $name);
-            $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
+        $docJson = file_get_contents($url);
+        if (!$docJson) {
+            echo json_encode(['success' => false, 'message' => 'No pude leer el documento.']);
+            exit;
         }
+        $envioData = json_decode($docJson, true);
+        echo json_encode(['success' => true, 'origen' => 'DATOS_PEDIDO', 'data' => $envioData]);
+        exit;
+    } else {
+        // —> NO estaba en DATOS_PEDIDO, buscamos en COMANDA:
+        $collection = "COMANDA";
+        $payload = json_encode([
+            "structuredQuery" => [
+                "from" => [["collectionId" => $collection]],
+                "where" => [
+                    "compositeFilter" => [
+                        "op" => "AND",
+                        "filters" => [
+                            ["fieldFilter" => [
+                                "field" => ["fieldPath" => "folio"],
+                                "op" => "EQUAL",
+                                "value" => ["stringValue" => (string)$FOLIO]
+                            ]],
+                            ["fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]]
+                        ]
+                    ]
+                ],
+                "limit" => 1
+            ]
+        ]);
+        $options = ['http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
+            'content' => $payload
+        ]];
+        $ctx = stream_context_create($options);
+        $resp2 = @file_get_contents($urlId, false, $ctx);
+        $arr2 = $resp2 ? json_decode($resp2, true) : null;
+
+        if (
+            is_array($arr2) &&
+            isset($arr2[0]['document']['name'])
+        ) {
+            $idComanda = basename($arr2[0]['document']['name']);
+            $url2 = "https://firestore.googleapis.com/v1/projects/"
+                . "$firebaseProjectId/databases/(default)/documents/"
+                . "COMANDA/$idComanda?key=$firebaseApiKey";
+
+            $docJson2 = file_get_contents($url2);
+            if (!$docJson2) {
+                echo json_encode(['success' => false, 'message' => 'No pude leer la comanda.']);
+                exit;
+            }
+            $comandaData = json_decode($docJson2, true);
+            // extraigo solo los campos del mapa de envío
+            $fieldss = $comandaData['fields'];
+            $observaciones = $fieldss['observaciones']['stringValue'] ?? "";
+            $fields = $comandaData['fields']['envio']['mapValue']['fields'] ?? [];
+            
+            $envioDataComanda = [
+                'codigoContacto'     => $fields['codigoContacto']['stringValue']     ?? '',
+                'companiaContacto'     => $fields['companiaContacto']['stringValue']     ?? '',
+                'correoContacto'     => $fields['correoContacto']['stringValue']     ?? '',
+                'direccion1Contacto'     => $fields['direccion1Contacto']['stringValue']     ?? '',
+                'direccion2Contacto'     => $fields['direccion2Contacto']['stringValue']     ?? '',
+                'estadoContacto'     => $fields['estadoContacto']['stringValue']     ?? '',
+                'municipioContacto'     => $fields['municipioContacto']['stringValue']     ?? '',
+                'nombreContacto'     => $fields['nombreContacto']['stringValue']     ?? '',
+                'telefonoContacto'     => $fields['telefonoContacto']['stringValue']     ?? '',
+                'observaciones' => $observaciones,
+                // … el resto de los campos …
+            ];
+            echo json_encode([
+                'success' => false,
+                'datos' => true,
+                'origen' => 'COMANDA',
+                'data' => $envioDataComanda
+            ]);
+            exit;
+        }
+
+        // Si llegamos aquí, no había en ninguna:
+        echo json_encode([
+            'success' => false,
+            'message' => 'No encontré ni un DATOS_PEDIDO ni una COMANDA para ese folio.'
+        ]);
+        exit;
     }
-
-
-
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO/$idFirebasePedido?key=$firebaseApiKey";
-    $response = @file_get_contents($url);
-
-    if ($response === FALSE) {
-        echo json_encode(['success' => false, 'message' => 'Error al obtener los datos de envio.']);
-        return;
-    }
-
-    $envioData = json_decode($response, true);
-    echo json_encode(['success' => true, 'data' => $envioData]);
+    // Si llegamos aquí, no había en ninguna:
+    echo json_encode([
+        'success' => false,
+        'message' => 'No encontré ni un DATOS_PEDIDO ni una COMANDA para ese folio.'
+    ]);
+    exit;
 }
 function obtenerDatosEnvioVisualizar($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
 {

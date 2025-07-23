@@ -43,6 +43,602 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
+function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa, $vend)
+{
+    // Establecer la conexión con SQL Server
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $detallesPedido = obtenerDetalles($firebaseProjectId, $firebaseApiKey, $pedidoId);
+
+    if (!$detallesPedido['success']) {
+        die(json_encode(['success' => false, 'message' => 'Error al obtener detalles del pedido.']));
+    }
+
+    $pedidoInfo = $detallesPedido['data'];
+
+    $partidasData = $pedidoInfo['productos'];
+    // Extraer 'enviar a' y 'vendedor' del formulario
+    $enviarA = $pedidoInfo['enviar']; // Dirección de envío
+    $vendedor = $pedidoInfo['vendedor']; // Número de vendedor
+    $claveCliente = $pedidoInfo['claveCliente'];
+
+    $clave = formatearClaveCliente($claveCliente);
+    $noPedido = $folio; // Número de pedido
+    /*$claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
+    $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);*/
+
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Consulta SQL para obtener MAIL y EMAILPRED
+    $sql = "SELECT MAIL, EMAILPRED, NOMBRE, TELEFONO FROM $nombreTabla WHERE [CLAVE] = ?";
+    $params = [$clave];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
+    }
+
+    $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+    if (!$clienteData) {
+        echo json_encode(['success' => false, 'message' => 'El cliente no tiene datos registrados.']);
+        sqlsrv_close($conn);
+        return;
+    }
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    foreach ($partidasData as &$partida) {
+        $claveProducto = $partida['producto'];
+
+        // Consulta SQL para obtener la descripción del producto
+        $sqlProducto = "SELECT DESCR FROM $nombreTabla2 WHERE CVE_ART = ?";
+        $stmtProducto = sqlsrv_query($conn, $sqlProducto, [$claveProducto]);
+
+        if ($stmtProducto && $rowProducto = sqlsrv_fetch_array($stmtProducto, SQLSRV_FETCH_ASSOC)) {
+            $partida['descripcion'] = $rowProducto['DESCR'];
+        } else {
+            $partida['descripcion'] = 'Descripción no encontrada'; // Manejo de error
+        }
+
+        sqlsrv_free_stmt($stmtProducto);
+    }
+
+    $fechaElaboracion = $pedidoInfo['diaAlta'];
+    $correo = trim($clienteData['MAIL']);
+    $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    // Si hay múltiples correos separados por `;`, tomar solo el primero
+    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
+    $clienteNombre = trim($clienteData['NOMBRE']);
+
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
+    $claveCliente = $clave;
+    /*$emailPred = 'marcos.luna@mdcloud.mx';
+    $numeroWhatsApp = '+527775681612';*/
+    /*$emailPred = 'amartinez@grupointerzenda.com';
+    $numeroWhatsApp = '+527772127123';*/ // Interzenda
+    //$emailPred = "";
+    //$numeroWhatsApp = "";
+    /*$emailPred = $_SESSION['usuario']['correo'];
+    $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
+
+    if ($emailPred === "") {
+        $correoBandera = 1;
+    } else {
+        $correoBandera = 0;
+    }
+    if ($numeroWhatsApp === "") {
+        $numeroBandera = 1;
+    } else {
+        $numeroBandera = 0;
+    }
+
+    $dataCredito = validarCreditos($conexionData, $clave);
+    $credito = json_decode($dataCredito, true);
+    if ($credito['success']) {
+        if ($credito['conCredito'] === 'S') {
+            $conCredito = "S";
+        } else {
+            $conCredito = "N";
+        }
+    }
+
+    //var_dump($dataCredito['success']);
+
+    if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
+        // Enviar notificaciones solo si los datos son válidos
+        if ($correoBandera === 0) {
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
+        }
+        if ($numeroBandera === 0) {
+            //$result = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
+            $result = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
+            //var_dump("1: ", $result);
+        }
+        // Determinar la respuesta JSON según las notificaciones enviadas
+        if ($correoBandera === 0 && $numeroBandera === 0) {
+            echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
+        } elseif ($correoBandera === 1 && $numeroBandera === 0) {
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
+        } elseif ($correoBandera === 0 && $numeroBandera === 1) {
+            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo.']);
+        } else {
+            $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+            // Consultar Firebase para obtener los datos del vendedor
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'header' => "Content-Type: application/json\r\n"
+                ]
+            ]);
+
+            $response = @file_get_contents($firebaseUrl, false, $context);
+
+            $usuariosData = json_decode($response, true);
+            $telefonoVendedor = null;
+            $correoVendedor = null;
+            $vendedor = formatearClaveVendedor($vend);
+            //var_dump($vendedor);
+            // Buscar al vendedor por clave
+            if (isset($usuariosData['documents'])) {
+                foreach ($usuariosData['documents'] as $document) {
+                    $fields = $document['fields'];
+                    if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                        if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                            if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                                $telefonoVendedor = $fields['telefono']['stringValue'];
+                                $correoVendedor = $fields['correo']['stringValue'];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
+            $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
+            //var_dump("2: ", $result);
+            echo json_encode(['success' => true, 'notificacion' => false, 'message' => 'Pedido Autorizado, pero no se pudo notificar al cliente.']);
+        }
+    } else {
+        $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+        // Consultar Firebase para obtener los datos del vendedor
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Content-Type: application/json\r\n"
+            ]
+        ]);
+
+        $response = @file_get_contents($firebaseUrl, false, $context);
+
+        $usuariosData = json_decode($response, true);
+        $telefonoVendedor = null;
+        $correoVendedor = null;
+        $vendedor = formatearClaveVendedor($vend);
+        //var_dump($vendedor);
+        // Buscar al vendedor por clave
+        if (isset($usuariosData['documents'])) {
+            foreach ($usuariosData['documents'] as $document) {
+                $fields = $document['fields'];
+                if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                    if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                            $telefonoVendedor = $fields['telefono']['stringValue'];
+                            $correoVendedor = $fields['correo']['stringValue'];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
+        $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
+        //var_dump("3: ", $result);
+        echo json_encode(['success' => false, 'datos' => false, 'message' => 'El cliente no tiene un correo y telefono válido registrado.']);
+        die();
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+}
+function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend)
+{
+    global $firebaseProjectId, $firebaseApiKey;
+
+    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
+    $collection = "DATOS_PEDIDO";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    // Payload para hacer un where compuesto (idPedido y noEmpresa)
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "idPedido"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noPedido]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    // Inicializa la variable donde guardarás el id
+    $idFirebasePedido = null;
+    $direccion1Contacto = null;
+
+    if ($response !== false) {
+        $resultArray = json_decode($response, true);
+        // runQuery devuelve un array con un elemento por cada match
+        if (isset($resultArray[0]['document'])) {
+            $doc    = $resultArray[0]['document'];
+            // si quieres el ID:
+            $parts  = explode('/', $doc['name']);
+            $idFirebasePedido = end($parts);
+            // y para tomar tu campo direccion1Contacto:
+            $fields = $doc['fields'];
+            $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
+        }
+    }
+    
+    // ✅ Generar URLs dinámicas correctamente
+    // ✅ Generar solo el ID del pedido en la URL del botón
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idFirebasePedido);
+    $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
+
+    // ✅ Construir la lista de productos
+    $productosStr = "";
+    //$lineas = [];
+    $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
+    foreach ($partidasData as $partida) {
+        $producto = $partida['producto'];
+        $cantidad = $partida['cantidad'];
+        $precioUnitario = $partida['precioUnitario'];
+
+        $totalPartida = $cantidad * $precioUnitario;
+
+        $total += $totalPartida;
+        $IMPORTE = $total;
+
+        $productosStr .= "$producto - $cantidad unidades,";
+        //$productosStr .= " • {$producto} - {$cantidad} unidades, ";
+        //$lineas[] = "• {$producto} - {$cantidad} unidades\nok";
+
+        //$IMPU4 = htmlspecialchars($partida['iva']);
+        //$IMPU4 = intval(htmlspecialchars($partida['iva']));
+        $IMPU4 = $partida['iva'];
+
+        //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
+        //$desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
+        $desc1 = isset($partida['descuento'])
+            ? (float) $partida['descuento']
+            : 0.0;
+        $desProcentaje = $desc1 / 100.0;
+
+        $DES = $totalPartida * $desProcentaje;
+
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+
+        $IMP_TOT4 += $IMP_T4;
+    }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
+
+    // ✅ Eliminar la última coma y espacios
+    $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
+
+
+    $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+
+    //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+
+    //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
+    $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+    //$filename = "Pedido_18456.pdf";
+
+    $data = [
+        "messaging_product" => "whatsapp", // 📌 Campo obligatorio
+        "recipient_type" => "individual",
+        "to" => $numeroWhatsApp,
+        "type" => "template",
+        "template" => [
+            "name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            "language" => ["code" => "es_MX"], // 📌 Corregido a español España
+            "components" => [
+                [
+                    "type" => "header",
+                    "parameters" => [
+                        [
+                            "type" => "document",
+                            "document" => [
+                                "link" => $rutaPDFW,
+                                "filename" => $filename
+                            ]
+                        ]
+                    ]
+                ],
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        ["type" => "text", "text" => $clienteNombre], // 📌 Confirmación del pedido
+                        ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
+                        ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
+                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)], // 📌 Lista de productos
+                        ["type" => "text", "text" => $direccion1Contacto], // 📌 Lista de productos
+                        ["type" => "text", "text" => "$" . number_format($DES_TOT, 2)], // 📌 Precio total
+                        ["type" => "text", "text" => "$" . number_format($IMP_TOT4, 2)], // 📌 Lista de productos
+                    ]
+                ],
+                // ✅ Botón Confirmar
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 0,
+                    "parameters" => [
+                        ["type" => "payload", "payload" => $urlConfirmar] // 📌 URL dinámica
+                    ]
+                ],
+                // ✅ Botón Rechazar
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 1,
+                    "parameters" => [
+                        ["type" => "payload", "payload" => $urlRechazar] // 📌 URL dinámica
+                    ]
+                ]
+            ]
+        ]
+    ];
+    // ✅ Verificar JSON antes de enviarlo
+    $data_string = json_encode($data, JSON_PRETTY_PRINT);
+    error_log("WhatsApp JSON: " . $data_string);
+
+    // ✅ Revisar si el JSON contiene `messaging_product`
+    if (!isset($data['messaging_product'])) {
+        error_log("ERROR: 'messaging_product' no está en la solicitud.");
+        return false;
+    }
+
+    // ✅ Enviar solicitud a WhatsApp API con headers correctos
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer " . $token,
+        "Content-Type: application/json"
+    ]);
+
+    $result = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    error_log("WhatsApp Response: " . $result);
+    error_log("HTTP Status Code: " . $http_code);
+
+    return $result;
+}
+function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente)
+{
+    // Obtener el id de Firestore del pedido buscado
+    global $firebaseProjectId, $firebaseApiKey;
+
+    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
+    $collection = "DATOS_PEDIDO";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    // Payload para hacer un where compuesto (idPedido y noEmpresa)
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "idPedido"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noPedido]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    // Inicializa la variable donde guardarás el id
+    $idFirebasePedido = null;
+
+    if ($response !== false) {
+        $resultArray = json_decode($response, true);
+        if (isset($resultArray[0]['document']['name'])) {
+            $name = $resultArray[0]['document']['name']; // p.ej. projects/proj/databases/(default)/documents/DATOS_PEDIDO/{id}
+            $parts = explode('/', $name);
+            $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
+        }
+    }
+
+    // Crear una instancia de la clase clsMail
+    $mail = new clsMail();
+
+    // Definir el remitente (si no está definido, se usa uno por defecto)
+    $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
+    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
+    if ($correoRemitente == "" || $contraseñaRemitente == "") {
+        $correoRemitente = "";
+        $contraseñaRemitente = "";
+    }
+    /*$correoRemitente = "";
+    $contraseñaRemitente = "";*/
+    // Definir el correo de destino (puedes cambiarlo si es necesario)
+    $correoDestino = $correo;
+
+    // Obtener el nombre de la empresa desde la sesión
+    $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
+
+    // Asunto del correo
+    $asunto = 'Detalles del Pedido #' . $noPedido;
+
+    // Convertir productos a JSON para la URL
+    $productosJson = urlencode(json_encode($partidasData));
+
+    // URL base del servidor
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+
+    // URLs para confirmar o rechazar el pedido
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idFirebasePedido);
+
+    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
+
+    // Construcción del cuerpo del correo
+    $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
+    $bodyHTML .= "<p>Por este medio enviamos los detalles de su pedido <b>$noPedido</b>. Por favor, revíselos, confirme el pedido y despues páguelo:</p>";
+    $bodyHTML .= "<p><b>Fecha y Hora de Elaboración:</b> $fechaElaboracion</p>";
+    $bodyHTML .= "<p><b>Dirección de Envío:</b> $enviarA</p>";
+    $bodyHTML .= "<p><b>Vendedor:</b> $vendedor</p>";
+
+    // Agregar tabla con detalles del pedido
+    $bodyHTML .= "<table style='border-collapse: collapse; width: 100%;' border='1'>
+                    <thead>
+                        <tr>
+                            <th>Clave</th>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                            <th>Total Partida</th>
+                        </tr>
+                    </thead>
+                    <tbody>";
+
+    $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
+    foreach ($partidasData as $partida) {
+        $clave = htmlspecialchars($partida['producto']);
+        $descripcion = htmlspecialchars($partida['descripcion']);
+        $cantidad = htmlspecialchars($partida['cantidad']);
+        $totalPartida = $cantidad * $partida['precioUnitario'];
+        $total += $totalPartida;
+        $IMPORTE = $total;
+
+        $bodyHTML .= "<tr>
+                        <td style='text-align: center;'>$clave</td>
+                        <td>$descripcion</td>
+                        <td style='text-align: right;'>$cantidad</td>
+                        <td style='text-align: right;'>$" . number_format($totalPartida, 2) . "</td>
+                      </tr>";
+
+        //$IMPU4 = htmlspecialchars($partida['iva']);
+        //$IMPU4 = intval(htmlspecialchars($partida['iva']));
+        $IMPU4 = $partida['iva'];
+        //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
+        //$desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
+        $desc1 = isset($partida['descuento'])
+            ? (float) $partida['descuento']
+            : 0.0;
+        $desProcentaje = $desc1 / 100.0;
+        $DES = $totalPartida * $desProcentaje;
+        $DES_TOT += $DES;
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+        $IMP_TOT4 += $IMP_T4;
+    }
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
+    $bodyHTML .= "</tbody></table>";
+    $bodyHTML .= "<p><b><h2>Total:</h2></b> $" . number_format($IMPORTE, 2) . "</p>";
+
+    // Botones para confirmar o rechazar el pedido
+    $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
+                  <a href='$urlConfirmar' style='background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Confirmar</a>
+                  <a href='$urlRechazar' style='background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;'>Rechazar</a>";
+
+    $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
+
+    // Enviar el correo con el remitente dinámico
+    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correoDestino, $asunto, $bodyHTML, $rutaPDF, $correoRemitente, $contraseñaRemitente);
+
+    if ($resultado === "Correo enviado exitosamente.") {
+        // En caso de éxito, puedes registrar logs o realizar alguna otra acción
+    } else {
+        error_log("Error al enviar el correo: $resultado");
+        echo json_encode(['success' => false, 'message' => $resultado]);
+    }
+}
+
 function obtenerDatosCliente($conexionData, $claveCliente, $claveSae, $claveVendedor)
 {
     $clave = formatearClaveCliente($claveCliente);
@@ -655,386 +1251,6 @@ function validarCreditos($conexionData, $clienteId)
         if (isset($conn)) {
             sqlsrv_close($conn);
         }
-    }
-}
-function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa, $vend)
-{
-    // Establecer la conexión con SQL Server
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
-    if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
-    }
-
-    $detallesPedido = obtenerDetalles($firebaseProjectId, $firebaseApiKey, $pedidoId);
-
-    if (!$detallesPedido['success']) {
-        die(json_encode(['success' => false, 'message' => 'Error al obtener detalles del pedido.']));
-    }
-
-    $pedidoInfo = $detallesPedido['data'];
-
-    $partidasData = $pedidoInfo['productos'];
-    // Extraer 'enviar a' y 'vendedor' del formulario
-    $enviarA = $pedidoInfo['enviar']; // Dirección de envío
-    $vendedor = $pedidoInfo['vendedor']; // Número de vendedor
-    $claveCliente = $pedidoInfo['claveCliente'];
-
-    $clave = formatearClaveCliente($claveCliente);
-    $noPedido = $folio; // Número de pedido
-    /*$claveArray = explode(' ', $claveCliente, 2); // Obtener clave del cliente
-    $clave = str_pad($claveArray[0], 10, ' ', STR_PAD_LEFT);*/
-
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
-    // Consulta SQL para obtener MAIL y EMAILPRED
-    $sql = "SELECT MAIL, EMAILPRED, NOMBRE, TELEFONO FROM $nombreTabla WHERE [CLAVE] = ?";
-    $params = [$clave];
-    $stmt = sqlsrv_query($conn, $sql, $params);
-
-    if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al consultar el cliente', 'errors' => sqlsrv_errors()]));
-    }
-
-    $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-
-    if (!$clienteData) {
-        echo json_encode(['success' => false, 'message' => 'El cliente no tiene datos registrados.']);
-        sqlsrv_close($conn);
-        return;
-    }
-    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    foreach ($partidasData as &$partida) {
-        $claveProducto = $partida['producto'];
-
-        // Consulta SQL para obtener la descripción del producto
-        $sqlProducto = "SELECT DESCR FROM $nombreTabla2 WHERE CVE_ART = ?";
-        $stmtProducto = sqlsrv_query($conn, $sqlProducto, [$claveProducto]);
-
-        if ($stmtProducto && $rowProducto = sqlsrv_fetch_array($stmtProducto, SQLSRV_FETCH_ASSOC)) {
-            $partida['descripcion'] = $rowProducto['DESCR'];
-        } else {
-            $partida['descripcion'] = 'Descripción no encontrada'; // Manejo de error
-        }
-
-        sqlsrv_free_stmt($stmtProducto);
-    }
-
-    $fechaElaboracion = $pedidoInfo['diaAlta'];
-    $correo = trim($clienteData['MAIL']);
-    $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
-    // Si hay múltiples correos separados por `;`, tomar solo el primero
-    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
-    $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
-    $clienteNombre = trim($clienteData['NOMBRE']);
-
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
-    $claveCliente = $clave;
-    /*$emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';*/
-    /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/ // Interzenda
-    //$emailPred = "";
-    //$numeroWhatsApp = "";
-    /*$emailPred = $_SESSION['usuario']['correo'];
-    $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
-
-    if ($emailPred === "") {
-        $correoBandera = 1;
-    } else {
-        $correoBandera = 0;
-    }
-    if ($numeroWhatsApp === "") {
-        $numeroBandera = 1;
-    } else {
-        $numeroBandera = 0;
-    }
-
-    $dataCredito = validarCreditos($conexionData, $clave);
-    $credito = json_decode($dataCredito, true);
-    if ($credito['success']) {
-        if ($credito['conCredito'] === 'S') {
-            $conCredito = "S";
-        } else {
-            $conCredito = "N";
-        }
-    }
-
-    //var_dump($dataCredito['success']);
-
-    if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
-        // Enviar notificaciones solo si los datos son válidos
-        if ($correoBandera === 0) {
-            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
-        }
-        if ($numeroBandera === 0) {
-            $result = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
-            //var_dump("1: ", $result);
-        }
-        // Determinar la respuesta JSON según las notificaciones enviadas
-        if ($correoBandera === 0 && $numeroBandera === 0) {
-            echo json_encode(['success' => true, 'notificacion' => true, 'message' => 'Pedido Autorizado y notificado por correo y WhatsApp.']);
-        } elseif ($correoBandera === 1 && $numeroBandera === 0) {
-            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
-        } elseif ($correoBandera === 0 && $numeroBandera === 1) {
-            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo.']);
-        } else {
-            $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
-            // Consultar Firebase para obtener los datos del vendedor
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'GET',
-                    'header' => "Content-Type: application/json\r\n"
-                ]
-            ]);
-
-            $response = @file_get_contents($firebaseUrl, false, $context);
-
-            $usuariosData = json_decode($response, true);
-            $telefonoVendedor = null;
-            $correoVendedor = null;
-            $vendedor = formatearClaveVendedor($vend);
-            //var_dump($vendedor);
-            // Buscar al vendedor por clave
-            if (isset($usuariosData['documents'])) {
-                foreach ($usuariosData['documents'] as $document) {
-                    $fields = $document['fields'];
-                    if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
-                        if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
-                            if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
-                                $telefonoVendedor = $fields['telefono']['stringValue'];
-                                $correoVendedor = $fields['correo']['stringValue'];
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
-            $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
-            //var_dump("2: ", $result);
-            echo json_encode(['success' => true, 'notificacion' => false, 'message' => 'Pedido Autorizado, pero no se pudo notificar al cliente.']);
-        }
-    } else {
-        $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
-        // Consultar Firebase para obtener los datos del vendedor
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => "Content-Type: application/json\r\n"
-            ]
-        ]);
-
-        $response = @file_get_contents($firebaseUrl, false, $context);
-
-        $usuariosData = json_decode($response, true);
-        $telefonoVendedor = null;
-        $correoVendedor = null;
-        $vendedor = formatearClaveVendedor($vend);
-        //var_dump($vendedor);
-        // Buscar al vendedor por clave
-        if (isset($usuariosData['documents'])) {
-            foreach ($usuariosData['documents'] as $document) {
-                $fields = $document['fields'];
-                if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
-                    if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
-                        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
-                            $telefonoVendedor = $fields['telefono']['stringValue'];
-                            $correoVendedor = $fields['correo']['stringValue'];
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        enviarCorreo($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente);
-        $result = enviarWhatsAppConPlantilla($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend);
-        //var_dump("3: ", $result);
-        echo json_encode(['success' => false, 'datos' => false, 'message' => 'El cliente no tiene un correo y telefono válido registrado.']);
-        die();
-    }
-    sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
-}
-function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente)
-{
-    // Obtener el id de Firestore del pedido buscado
-    global $firebaseProjectId, $firebaseApiKey;
-
-    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
-    $collection = "DATOS_PEDIDO";
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
-
-    // Payload para hacer un where compuesto (idPedido y noEmpresa)
-    $payload = json_encode([
-        "structuredQuery" => [
-            "from" => [
-                ["collectionId" => $collection]
-            ],
-            "where" => [
-                "compositeFilter" => [
-                    "op" => "AND",
-                    "filters" => [
-                        [
-                            "fieldFilter" => [
-                                "field" => ["fieldPath" => "idPedido"],
-                                "op" => "EQUAL",
-                                "value" => ["integerValue" => (int)$noPedido]
-                            ]
-                        ],
-                        [
-                            "fieldFilter" => [
-                                "field" => ["fieldPath" => "noEmpresa"],
-                                "op" => "EQUAL",
-                                "value" => ["integerValue" => (int)$noEmpresa]
-                            ]
-                        ]
-                    ]
-                ]
-            ],
-            "limit" => 1
-        ]
-    ]);
-
-    $options = [
-        'http' => [
-            'header'  => "Content-Type: application/json\r\n",
-            'method'  => 'POST',
-            'content' => $payload,
-        ]
-    ];
-
-    $context  = stream_context_create($options);
-    $response = @file_get_contents($url, false, $context);
-
-    // Inicializa la variable donde guardarás el id
-    $idFirebasePedido = null;
-
-    if ($response !== false) {
-        $resultArray = json_decode($response, true);
-        if (isset($resultArray[0]['document']['name'])) {
-            $name = $resultArray[0]['document']['name']; // p.ej. projects/proj/databases/(default)/documents/DATOS_PEDIDO/{id}
-            $parts = explode('/', $name);
-            $idFirebasePedido = end($parts); // <--- ESTE ES EL ID DEL DOCUMENTO CREADO EN FIREBASE
-        }
-    }
-
-
-    // Crear una instancia de la clase clsMail
-    $mail = new clsMail();
-
-    // Definir el remitente (si no está definido, se usa uno por defecto)
-    $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
-    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
-    if ($correoRemitente == "" || $contraseñaRemitente == "") {
-        $correoRemitente = "";
-        $contraseñaRemitente = "";
-    }
-    /*$correoRemitente = "";
-    $contraseñaRemitente = "";*/
-    // Definir el correo de destino (puedes cambiarlo si es necesario)
-    $correoDestino = $correo;
-
-    // Obtener el nombre de la empresa desde la sesión
-    $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
-
-    // Asunto del correo
-    $asunto = 'Detalles del Pedido #' . $noPedido;
-
-    // Convertir productos a JSON para la URL
-    $productosJson = urlencode(json_encode($partidasData));
-
-    // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
-
-    // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idFirebasePedido);
-
-    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vend) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
-
-    // Construcción del cuerpo del correo
-    $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
-    $bodyHTML .= "<p>Por este medio enviamos los detalles de su pedido <b>$noPedido</b>. Por favor, revíselos, confirme el pedido y despues páguelo:</p>";
-    $bodyHTML .= "<p><b>Fecha y Hora de Elaboración:</b> $fechaElaboracion</p>";
-    $bodyHTML .= "<p><b>Dirección de Envío:</b> $enviarA</p>";
-    $bodyHTML .= "<p><b>Vendedor:</b> $vendedor</p>";
-
-    // Agregar tabla con detalles del pedido
-    $bodyHTML .= "<table style='border-collapse: collapse; width: 100%;' border='1'>
-                    <thead>
-                        <tr>
-                            <th>Clave</th>
-                            <th>Descripción</th>
-                            <th>Cantidad</th>
-                            <th>Total Partida</th>
-                        </tr>
-                    </thead>
-                    <tbody>";
-
-    $total = 0;
-    $DES_TOT = 0;
-    $IMPORTE = 0;
-    $IMP_TOT4 = 0;
-    foreach ($partidasData as $partida) {
-        $clave = htmlspecialchars($partida['producto']);
-        $descripcion = htmlspecialchars($partida['descripcion']);
-        $cantidad = htmlspecialchars($partida['cantidad']);
-        $totalPartida = $cantidad * $partida['precioUnitario'];
-        $total += $totalPartida;
-        $IMPORTE = $total;
-
-        $bodyHTML .= "<tr>
-                        <td style='text-align: center;'>$clave</td>
-                        <td>$descripcion</td>
-                        <td style='text-align: right;'>$cantidad</td>
-                        <td style='text-align: right;'>$" . number_format($totalPartida, 2) . "</td>
-                      </tr>";
-
-        //$IMPU4 = htmlspecialchars($partida['iva']);
-        //$IMPU4 = intval(htmlspecialchars($partida['iva']));
-        $IMPU4 = $partida['iva'];
-        //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
-        //$desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
-        $desc1 = isset($partida['descuento'])
-            ? (float) $partida['descuento']
-            : 0.0;
-        $desProcentaje = $desc1 / 100.0;
-        $DES = $totalPartida * $desProcentaje;
-        $DES_TOT += $DES;
-        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
-        $IMP_TOT4 += $IMP_T4;
-    }
-    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
-
-    $bodyHTML .= "</tbody></table>";
-    $bodyHTML .= "<p><b><h2>Total:</h2></b> $" . number_format($IMPORTE, 2) . "</p>";
-
-    // Botones para confirmar o rechazar el pedido
-    $bodyHTML .= "<p>Confirme su pedido seleccionando una opción:</p>
-                  <a href='$urlConfirmar' style='background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Confirmar</a>
-                  <a href='$urlRechazar' style='background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;'>Rechazar</a>";
-
-    $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
-
-    // Enviar el correo con el remitente dinámico
-    $resultado = $mail->metEnviar($titulo, $clienteNombre, $correoDestino, $asunto, $bodyHTML, $rutaPDF, $correoRemitente, $contraseñaRemitente);
-
-    if ($resultado === "Correo enviado exitosamente.") {
-        // En caso de éxito, puedes registrar logs o realizar alguna otra acción
-    } else {
-        error_log("Error al enviar el correo: $resultado");
-        echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend)
