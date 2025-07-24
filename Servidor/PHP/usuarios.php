@@ -446,8 +446,9 @@ function guardarAsociacion()
 
     $empresa = $_POST['empresa'] ?? null;
     $id = $_POST['id'] ?? null;
-    //$noEmpresa = $_POST['noEmpresa'] ?? null;
-    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+
+    $noEmpresa = $_POST['noEmpresa'] ?? null;
+    //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $usuario = $_POST['usuario'] ?? null;
     $claveUsuario = $_POST['claveUsuario'] ?? null;
 

@@ -1024,7 +1024,7 @@ function actualizarTablaPartidas(pedidoID) {
     </td>
     <td><input type="number" class="cantidad" value="${partida.CANT}" style="text-align: right;" /></td>
     <td><input type="text" class="unidad" value="${partida.UNI_VENTA}" readonly /></td>
-    <td><input type="number" class="descuento" value="${partida.DESC1}" style="text-align: right;" /></td>
+    <td><input type="number" class="descuento" value="${partida.DESC1}" style="text-align: right;" readonly/></td>
     <td><input type="number" class="iva" value="${partida.IMPU4}" style="text-align: right;" readonly /></td>
     
     <td><input type="number" class="precioUnidad" value="${partida.PREC}" style="text-align: right;" readonly /></td>

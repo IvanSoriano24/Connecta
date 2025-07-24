@@ -112,57 +112,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'saveFac') {
         try {
-            $idDocumento = $_POST['idDocumentoFac'];
-            $noEmpresa = $_SESSION['empresa']['noEmpresa'];;
-            $idFat     = $_POST['idFat'];
-            $keyPass   = $_POST['keyPassword'];
+            // Recoge inputs
+            $idDocumento = $_POST['idDocumentoFac'] ?? '';
+            $idFat       = $_POST['idFat']        ?? '0';
+            $noEmpresa   = $_SESSION['empresa']['noEmpresa'];
+
+            // Directorio destino
             $baseDir = "../XML/sdk2/certificados/{$noEmpresa}/";
-            if (!is_dir($baseDir)) {
-                mkdir($baseDir, 0755, true);
-            }
-            $response = ['success' => true];
-            $result = probarCsd($keyPass, $baseDir);
-            if (!$result) {
-                echo json_encode(['success' => false, 'message' => "No se pudo abrir los CSD"]);
-            }
-            // procesar .cer
-            if (isset($_FILES['cerFile']) && $_FILES['cerFile']['error'] === UPLOAD_ERR_OK) {
-                $dest = $baseDir . basename($_FILES['cerFile']['name']);
-                if (!move_uploaded_file($_FILES['cerFile']['tmp_name'], $dest)) {
-                    $response = ['success' => false, 'message' => "No pude mover el .cer"];
-                }
-            } else {
-                $response = ['success' => false, 'message' => "Error al subir el .cer"];
-            }
-            // procesar .key
-            if ($response['success'] && isset($_FILES['permFile']) && $_FILES['permFile']['error'] === UPLOAD_ERR_OK) {
-                $dest = $baseDir . basename($_FILES['permFile']['name']);
-                if (!move_uploaded_file($_FILES['permFile']['tmp_name'], $dest)) {
-                    $response = ['success' => false, 'message' => "No pude mover el .key"];
-                }
-            } else {
-                if ($response['success'])
-                    $response = ['success' => false, 'message' => "Error al subir el .key"];
+            if (!is_dir($baseDir)) mkdir($baseDir, 0755, true);
+
+            // Verifico que hayan llegado los dos archivos
+            if (
+                !isset($_FILES['cerFile']) || $_FILES['cerFile']['error'] !== UPLOAD_ERR_OK ||
+                !isset($_FILES['permFile']) || $_FILES['permFile']['error'] !== UPLOAD_ERR_OK
+            ) {
+                throw new Exception("Debes subir ambos archivos (.cer y .key).");
             }
 
-            if ($response['success']) {
-                // aquí guardas en Firebase o BD la ruta y la contraseña
-                guardarDatosFactura([
-                    'idFat'      => $idFat,
-                    'noEmpresa'  => $noEmpresa,
-                    'cerPath'    => $baseDir . $_FILES['cerFile']['name'],
-                    'keyPath'    => $baseDir . $_FILES['permFile']['name'],
-                    'keyPassword' => $keyPass,
-                    'idDocumento' => $idDocumento
-                ]);
-                echo json_encode(['success' => true]);
-            } else {
-                echo json_encode($response);
+            // Muevo antes de probar
+            $cerDest = $baseDir . basename($_FILES['cerFile']['name']);
+            $keyDest = $baseDir . basename($_FILES['permFile']['name']);
+            if (
+                !move_uploaded_file($_FILES['cerFile']['tmp_name'], $cerDest) ||
+                !move_uploaded_file($_FILES['permFile']['tmp_name'], $keyDest)
+            ) {
+                throw new Exception("No pude mover los archivos de CSD.");
             }
-            exit;
+
+            // Ahora pruebo validez
+            $keyPass = $_POST['keyPassword'] ?? '';
+            $prueba  = probarCsd($cerDest, $keyDest, $keyPass);
+            if (!$prueba['ok']) {
+                throw new Exception("CSD inválidos: " . $prueba['error']);
+            }
+
+            // Si todo bien, guardo en tu BD ó Firebase
+            guardarDatosFactura([
+                'idFat'        => $idFat,
+                'idDocumento'  => $idDocumento,
+                'noEmpresa'    => $noEmpresa,
+                'cerPath'      => $cerDest,
+                'keyPath'      => $keyDest,
+                'keyPassword'  => $keyPass,
+                // opcional: guardo también fechas
+                'validFrom'    => $prueba['desde']->format('Y-m-d'),
+                'validTo'      => $prueba['hasta']->format('Y-m-d'),
+            ]);
+
+            // Le devuelvo al front las fechas y el estado de vigencia
+            echo json_encode([
+                'success' => true,
+                'desde'   => $prueba['desde']->format('Y-m-d'),
+                'hasta'   => $prueba['hasta']->format('Y-m-d'),
+                'vigente' => $prueba['vigente']
+            ]);
         } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
         }
+        exit;
     } elseif ($action === 'update') {
         try {
             $data = [
@@ -199,21 +209,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
     } elseif ($action === 'pruebaFac') {
+        // 1) Verifico que hayan llegado ambos archivos
+        if (
+            !isset($_FILES['cerFile']) || $_FILES['cerFile']['error'] !== UPLOAD_ERR_OK ||
+            !isset($_FILES['permFile']) || $_FILES['permFile']['error'] !== UPLOAD_ERR_OK
+        ) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Debes seleccionar ambos archivos .cer y .key'
+            ]);
+            exit;
+        }
+
+        $noEmpresa    = $_SESSION['empresa']['noEmpresa'];
+        $baseDir      = "../XML/sdk2/certificados/{$noEmpresa}/";
+
+        // aseguro que exista el directorio
+        if (!is_dir($baseDir)) {
+            mkdir($baseDir, 0777, true);
+        }
+
+        // 2) muevo los archivos desde tmp a mi carpeta
+        $cerDest  = $baseDir . basename($_FILES['cerFile']['name']);
+        $keyDest  = $baseDir . basename($_FILES['permFile']['name']);
+
+        if (
+            !move_uploaded_file($_FILES['cerFile']['tmp_name'], $cerDest) ||
+            !move_uploaded_file($_FILES['permFile']['tmp_name'], $keyDest)
+        ) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al guardar temporalmente los archivos de CSD.'
+            ]);
+            exit;
+        }
+
+        // 3) pruebo la validez
+        $keyPass = $_POST['keyPassword'];
         try {
-            $idDocumento = $_POST['idDocumentoFac'];
-            $noEmpresa = $_SESSION['empresa']['noEmpresa'];;
-            $idFat     = $_POST['idFat'];
-            $keyPass   = $_POST['keyPassword'];
-            $baseDir = "../XML/sdk2/certificados/{$noEmpresa}/";
-            $result = probarCsd($keyPass, $baseDir);
-            if (!$result) {
-                echo json_encode(['success' => false, 'message' => "No se pudo abrir los CSD"]);
+            $result = probarCsd($cerDest, $keyDest, $keyPass);
+            if (!$result['ok']) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Los CSD no son válidos: ' . $result['error']
+                ]);
             } else {
-                echo json_encode(['success' => true, 'message' => "CSD correctos"]);
+                echo json_encode([
+                    'success' => true,
+                    // fechas en formato ISO o dd/mm/yyyy según prefieras
+                    'desde' => $result['desde']->format('Y-m-d'),
+                    'hasta' => $result['hasta']->format('Y-m-d'),
+                    'vigente' => $result['vigente']
+                ]);
             }
         } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Excepción: ' . $e->getMessage()
+            ]);
         }
+        exit;
     } elseif ($action === 'regimen') {
         try {
             obtenerRegimenes();
@@ -688,30 +743,33 @@ function guardarEmpresa($data)
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
-function probarCsd($keyPass, $baseDir)
+function probarCsd(string $cerPath, string $keyPath, string $passPhrase): array
 {
-    //$fechaActual = date();
-    $cerFile    = $baseDir . basename($_FILES['cerFile']['name']);
-    $keyFile    = $baseDir . basename($_FILES['permFile']['name']);
-    $passPhrase = $keyPass;
-
     try {
-        // Abrimos los archivos .cer y .key
-        $credential  = Credential::openFiles($cerFile, $keyFile, $passPhrase);
+        // cargo directamente desde la ruta que ya moví
+        $credential  = Credential::openFiles($cerPath, $keyPath, $passPhrase);
         $certificate = $credential->certificate();
-        //var_dump(get_class($certificate), get_class_methods($certificate));
-        // Obtenemos fechas de vigencia como DateTimeImmutable
-        $notBefore = $certificate->validFromDateTime();  // inicio de vigencia
-        $notAfter  = $certificate->validToDateTime();
-        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-        return ($notBefore <= $now && $now <= $notAfter);
 
-        //return true;
+        $notBefore = $certificate->validFromDateTime();   // DateTimeImmutable
+        $notAfter  = $certificate->validToDateTime();     // DateTimeImmutable
+        $now       = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+
+        $vigente   = ($notBefore <= $now && $now <= $notAfter);
+
+        return [
+            'ok'      => true,
+            'desde'   => $notBefore,
+            'hasta'   => $notAfter,
+            'vigente' => $vigente
+        ];
     } catch (\Exception $e) {
-        // Cualquier error (contraseña, archivos mal formados, etc.)
-        return false;
+        return [
+            'ok'    => false,
+            'error' => $e->getMessage()
+        ];
     }
 }
+
 function guardarDatosFactura($data)
 {
     global $firebaseProjectId, $firebaseApiKey;
