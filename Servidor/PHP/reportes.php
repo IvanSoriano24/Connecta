@@ -960,89 +960,65 @@ class PDFPedidoAutoriza extends FPDF
         $this->Cell(120, 10, "PEDIDO", 0, 0, 'L');
         $this->Ln(10);
 
-        // Información del Cliente y Empresa en la misma línea
+        // Información del Cliente y Empresa en dos columnas alineadas
         if ($this->datosClientePedidoAutoriza && $this->datosEmpresaPedidoAutoriza) {
-            $this->SetFont('Arial', 'B', 14);
+            $this->SetFont('Arial', '', 10);
+            $this->SetTextColor(39, 39, 51);
+
+            // Posición inicial
+            $yInicial = $this->GetY();
+            $xCliente = 10;
+            $xEmpresa = 110;
+            $anchoCol = 90;
+
+            // ======= Texto del cliente
+            $clienteTexto = '';
+            $clienteTexto .= "RFC: " . $this->datosClientePedidoAutoriza['rfc'] . "\n";
+            $clienteTexto .= "Dirección: " . $this->datosClientePedidoAutoriza['direccion'] . ", " . $this->datosClientePedidoAutoriza['colonia'] . "\n";
+            $clienteTexto .= "Ubicación: " . $this->datosClientePedidoAutoriza['ubicacion'] . "\n";
+            $clienteTexto .= "Código Postal: " . $this->datosClientePedidoAutoriza['codigoPostal'] . "\n";
+            $clienteTexto .= "Teléfono: " . $this->datosClientePedidoAutoriza['telefono'] . "\n";
+            $clienteTexto .= "Email: " . $this->emailPred;
+
+            // ======= Texto de la empresa
+            $empresaTexto = '';
+            $empresaTexto .= "RFC: " . $this->datosEmpresaPedidoAutoriza['rfc'] . "\n";
+            $empresaTexto .= "Dirección: " . $this->datosEmpresaPedidoAutoriza['calle'] . " " . $this->datosEmpresaPedidoAutoriza['numExterior'] . ", " . $this->datosEmpresaPedidoAutoriza['colonia'] . "\n";
+            $empresaTexto .= "Ubicación: " . $this->datosEmpresaPedidoAutoriza['municipio'] . ", " . $this->datosEmpresaPedidoAutoriza['estado'] . ", " . $this->datosEmpresaPedidoAutoriza['pais'] . "\n";
+            $empresaTexto .= "Código Postal: " . $this->datosEmpresaPedidoAutoriza['codigoPostal'] . "\n";
+            $empresaTexto .= "Pedido Nro: " . $this->datosPedidoAutoriza['FOLIO'] . "\n";
+            $empresaTexto .= "Fecha de emisión: " . $this->datosPedidoAutoriza['FECHA_DOC'];
+
+            // ======= Nombres (azul, grande)
+            $this->SetFont('Arial', 'B', 13);
             $this->SetTextColor(32, 100, 210);
+            $this->SetXY($xCliente, $yInicial);
+            $this->MultiCell($anchoCol, 6, iconv("UTF-8", "ISO-8859-1", strtoupper($this->datosClientePedidoAutoriza['nombre'])), 0, 'L');
+            $alturaNombreCliente = $this->GetY();
 
-            // Cliente - A la Izquierda
-            $this->SetX(10); // Inicia desde la izquierda
-            $this->Cell(90, 10, iconv("UTF-8", "ISO-8859-1", $this->datosClientePedidoAutoriza['nombre']), 0, 0, 'L');
+            $this->SetXY($xEmpresa, $yInicial);
+            $this->MultiCell($anchoCol, 6, iconv("UTF-8", "ISO-8859-1", strtoupper($this->datosEmpresaPedidoAutoriza['razonSocial'])), 0, 'L');
+            $alturaNombreEmpresa = $this->GetY();
 
-            // Empresa - A la Derecha
-            $this->SetX(140); // Posiciona la empresa en la parte derecha
-            $this->Cell(100, 10, iconv("UTF-8", "ISO-8859-1", strtoupper($this->datosEmpresaPedidoAutoriza['razonSocial'])), 0, 0, 'L');
-
-            $this->Ln(10);
-
+            // ======= Datos (ambos con MultiCell, alineados)
+            $yContenido = max($alturaNombreCliente, $alturaNombreEmpresa);
             $this->SetFont('Arial', '', 10);
             $this->SetTextColor(39, 39, 51);
 
-            // RFC - Cliente a la izquierda
-            $this->SetX(10);
-            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "RFC: " . $this->datosClientePedidoAutoriza['rfc']), 0, 0, 'L');
+            $this->SetXY($xCliente, $yContenido);
+            $this->MultiCell($anchoCol, 6, iconv("UTF-8", "ISO-8859-1", $clienteTexto), 0, 'L');
+            $alturaFinalCliente = $this->GetY();
 
-            // RFC - Empresa a la derecha
-            $this->SetX(140);
-            $this->Cell(100, 9, iconv("UTF-8", "ISO-8859-1", "RFC: " . $this->datosEmpresaPedidoAutoriza['rfc']), 0, 0, 'L');
+            $this->SetXY($xEmpresa, $yContenido);
+            $this->MultiCell($anchoCol, 6, iconv("UTF-8", "ISO-8859-1", $empresaTexto), 0, 'L');
+            $alturaFinalEmpresa = $this->GetY();
 
-            $this->Ln(5);
-
-            // Dirección - Cliente a la izquierda
-            $this->SetX(10);
-            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Dirección: " . $this->datosClientePedidoAutoriza['direccion'] . ", " . $this->datosClientePedidoAutoriza['colonia']), 0, 0, 'L');
-
-            // Dirección - Empresa a la derecha
-            $this->SetX(140);
-            $this->Cell(100, 9, iconv("UTF-8", "ISO-8859-1", "Dirección: " . $this->datosEmpresaPedidoAutoriza['calle'] . " " . $this->datosEmpresaPedidoAutoriza['numExterior'] . ", " . $this->datosEmpresaPedidoAutoriza['colonia']), 0, 0, 'L');
-
-            $this->Ln(5);
-
-            // Ubicación - Cliente a la izquierda
-            $this->SetX(10);
-            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", $this->datosClientePedidoAutoriza['ubicacion']), 0, 0, 'L');
-
-            // Ubicación - Empresa a la derecha
-            $this->SetX(140);
-            $this->Cell(100, 9, iconv("UTF-8", "ISO-8859-1", $this->datosEmpresaPedidoAutoriza['municipio'] . ", " . $this->datosEmpresaPedidoAutoriza['estado'] . ", " . $this->datosEmpresaPedidoAutoriza['pais']), 0, 0, 'L');
-
-            $this->Ln(5);
-
-            // Código Postal - Cliente a la izquierda
-            $this->SetX(10);
-            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Código Postal: " . $this->datosClientePedidoAutoriza['codigoPostal']), 0, 0, 'L');
-
-            // Código Postal - Empresa a la derecha
-            $this->SetX(140);
-            $this->Cell(100, 9, iconv("UTF-8", "ISO-8859-1", "Código Postal: " . $this->datosEmpresaPedidoAutoriza['codigoPostal']), 0, 0, 'L');
-
-            $this->Ln(5);
-
-            // Teléfono - Cliente a la izquierda
-            $this->SetX(10);
-            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Teléfono: " . $this->datosClientePedidoAutoriza['telefono']), 0, 0, 'L');
-
-            // Empresa: No tiene teléfono, dejamos espacio en blanco
-            $this->SetX(140);
-            $this->SetFont('Arial', '', 10);
-            $this->SetTextColor(39, 39, 51);
-            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1", "Pedido Nro: " . $this->datosPedidoAutoriza['FOLIO']), 0, 0, 'L');
-
-            $this->Ln(5);
-
-            $this->SetFont('Arial', '', 10);
-            $this->SetTextColor(39, 39, 51);
-            // Email - Cliente a la izquierda
-            $this->SetX(10);
-            $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->emailPred), 0, 0, 'L');
-
-            // Empresa: No tiene email, dejamos espacio en blanco
-            $this->SetX(140);
-            $this->SetFont('Arial', '', 10);
-            $this->SetTextColor(39, 39, 51);
-            $this->Cell(100, 12, iconv("UTF-8", "ISO-8859-1", "Fecha de emisión: " . $this->datosPedidoAutoriza['FECHA_DOC']), 0, 0, 'L');
-            $this->Ln(15);
+            // Saltamos a la siguiente línea
+            $this->SetY(max($alturaFinalCliente, $alturaFinalEmpresa) + 5);
         }
+
+
+
 
         // **Encabezado de la tabla de partidas**
         $this->SetFont('Arial', 'B', 8);
