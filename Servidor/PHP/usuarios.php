@@ -445,7 +445,7 @@ function guardarAsociacion()
     global $firebaseProjectId, $firebaseApiKey;
 
     $empresa = $_POST['empresa'] ?? null;
-    $id = $_POST['id'] ?? null;
+    $id = (int)$_POST['id'] ?? null;
 
     $noEmpresa = $_POST['noEmpresa'] ?? null;
     //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -478,9 +478,9 @@ function guardarAsociacion()
             $fields = $document['fields'];
 
             if (
-                isset($fields['usuario']['stringValue'], $fields['id']['stringValue']) &&
+                isset($fields['usuario']['stringValue'], $fields['id']['integerValue']) &&
                 $fields['usuario']['stringValue'] === $usuario &&
-                $fields['id']['stringValue'] === $id
+                $fields['id']['integerValue'] === $id
             ) {
                 echo json_encode(['success' => false, 'message' => 'La asociación ya existe.']);
                 return;
@@ -491,7 +491,7 @@ function guardarAsociacion()
     // Si no existe, guardar la nueva asociación
     $fields = [
         'empresa' => ['stringValue' => $empresa],
-        'id' => ['stringValue' => $id],
+        'id' => ['integerValue' => $id],
         'noEmpresa' => ['integerValue' => $noEmpresa],
         'usuario' => ['stringValue' => $usuario],
         'claveUsuario' => ['stringValue' => $claveUsuario],

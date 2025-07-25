@@ -139,6 +139,7 @@ if (isset($_SESSION['usuario'])) {
 				return;
 			}
 			const empresaOption = document.querySelector(`#empresaSelect option[value="${empresaSeleccionada}"]`);
+			
 
 			if (!empresaOption) {
 				//Mensaje cuando no cargan los datos de una empresa

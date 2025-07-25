@@ -3618,6 +3618,7 @@ function validarExistencias($conexionData, $partidasData, $claveSae)
         "TrustServerCertificate" => true
     ];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $conn = sqlsrv_connect($serverName, $connectionInfo);
 
     if ($conn === false) {
@@ -3634,11 +3635,12 @@ function validarExistencias($conexionData, $partidasData, $claveSae)
 
         // Consultar existencias reales considerando apartados
         $sqlCheck = "SELECT 
-                        COALESCE([EXIST], 0) AS EXIST, 
-                        COALESCE([APART], 0) AS APART, 
-                        (COALESCE([EXIST], 0) - COALESCE([APART], 0)) AS DISPONIBLE 
-                     FROM $nombreTabla 
-                     WHERE [CVE_ART] = ?";
+                        COALESCE(M.[EXIST], 0) AS EXIST, 
+                        COALESCE(I.[APART], 0) AS APART, 
+                        (COALESCE(M.[EXIST], 0) - COALESCE(I.[APART], 0)) AS DISPONIBLE 
+                     FROM $nombreTabla I
+                     INNER JOIN $nombreTabla2 M ON M.CVE_ART = I.CVE_ART
+                     WHERE I.[CVE_ART] = ? AND M.CVE_ALM = 1";
         $stmtCheck = sqlsrv_query($conn, $sqlCheck, [$CVE_ART]);
 
         if ($stmtCheck === false) {

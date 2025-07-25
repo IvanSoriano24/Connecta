@@ -253,7 +253,8 @@ function decryptValue(string $b64Cipher, string $b64Iv): string
     $cipher = base64_decode($b64Cipher);
     return openssl_decrypt($cipher, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
 }
-function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
+function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
+{
     if (empty($facturaID)) {
         header('Content-Type: application/json');
         echo json_encode([
@@ -359,7 +360,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
     }*/
 
     // Datos del Emisor
-    $datos['emisor']['rfc'] = trim($empresaData['rfc']); 
+    $datos['emisor']['rfc'] = trim($empresaData['rfc']);
     $datos['emisor']['nombre'] = trim($empresaData['razonSocial']);
     $regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
@@ -420,7 +421,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
             $concepto['Impuestos']['Traslados'][1]['TasaOCuota'] = sprintf('%.6f', $producto['IMPU1'] / 100);
             //$concepto['Impuestos']['Traslados'][1]['Importe'] = sprintf('%.2f', round($baseImpuesto * ($producto['IMPU4'] / 100), 2));        //Original
             $concepto['Impuestos']['Traslados'][1]['Importe'] = sprintf('%.3f', ($baseImpuesto * ($producto['IMPU1'] / 100)));
-        
+
             $IEPS = $IEPS + ($baseImpuesto * ($producto['IMPU1'] / 100));
             $porIEPS = $producto['IMPU1'];
         }
@@ -428,7 +429,6 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
         $DES = $DES + $precioDes;
         $Sum = $Sum + $precioDes;
         $datos['conceptos'][] = $concepto;
-        
     }
     // Se agregan los Impuestos
     $datos['impuestos']['translados'][0]['Base'] = sprintf('%.2f', $pedidoData['CAN_TOT'] - $DES);
@@ -456,7 +456,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
     /*$res = mf_default($datos);
     var_dump($res);*/
 
-    if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
+    /*if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
         header('Content-Type: application/json');
         echo json_encode([
             "success" => true
@@ -470,16 +470,19 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
             //"Problema" => $res['codigo_mf_texto']
         ]);
         return;
-    }
+    }*/
     ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
-    //echo "<h1>Respuesta Generar XML y Timbrado</h1>";
+    echo "<h1>Respuesta Generar XML y Timbrado</h1>";
     foreach ($res as $variable => $valor) {
         echo "<hr>";
         $valor = htmlentities($valor);
         $valor = str_replace('&lt;br/&gt;', '<br/>', $valor);
         echo "<b>[$variable]=</b>$valor<hr>";
     }
-    //return true;
+    echo json_encode([
+        "success" => true
+    ]);
+    return true;
 }
 //http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
 //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
