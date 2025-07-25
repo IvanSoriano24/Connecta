@@ -4256,7 +4256,7 @@ function obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpre
                             'folio' =>  $fields['folio']['stringValue'],
                             'claveCliente' =>  $fields['claveCliente']['stringValue'],
                             'credito' =>  $fields['credito']['booleanValue'],
-                            'numGuia' =>  $fields['numGuia']['stringValue']
+                            'numGuia' =>  $fields['numGuia']['stringValue'] ?? ""
                         ];
                     }
                 }
@@ -5659,9 +5659,10 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
                 $bandera = 1;
                 //var_dump("folio: ", $folio);
                 //var_dump("folioFactura: ", $folioFactura);
-                actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
+                //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
                 $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
                 //var_dump("Ruta PDF: ", $rutaPDF);
+                actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
                 validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey, $numGuia);
                 if ($fallaId != "") {
                     eliminarErrores($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $remisionId, $claveCliente, $fallaId);
