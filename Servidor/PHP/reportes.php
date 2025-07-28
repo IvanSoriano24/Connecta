@@ -1065,10 +1065,22 @@ class PDFPedidoAutoriza extends FPDF
 
 class PDFFactura extends FPDF
 {
-    function clipText($text, $maxChars = 100) {
+    private function clipText($text, $maxWidth)
+    {
+        $ellipsis = "...";
         $text = iconv("UTF-8", "ISO-8859-1//IGNORE", $text);
-        return (strlen($text) > $maxChars) ? substr($text, 0, $maxChars - 3) . "..." : $text;
+
+        if ($this->GetStringWidth($text) <= $maxWidth) {
+            return $text;
+        }
+
+        while ($this->GetStringWidth($text . $ellipsis) > $maxWidth && strlen($text) > 0) {
+            $text = substr($text, 0, -1);
+        }
+
+        return $text . $ellipsis;
     }
+
 
     function imprimirDatosFiscales(
         $noCertificado,
@@ -1097,39 +1109,45 @@ class PDFFactura extends FPDF
         // Filas con los datos fiscales
         $this->SetFont('Arial', '', 7);
 
-        // Celdas normales
-        $this->Cell(30, 5, "No. Certificado", 1, 0, 'L');
-        $this->Cell($cellWidth, 5, $this->clipText($noCertificado, $cellWidth), 1, 1, 'L');
+        $this->SetFont('Arial', '', 7);
+        $cellWidth = 110;
 
+        // --- Campos normales ---
+        $this->Cell(30, 5, "No. Certificado", 1, 0, 'L');
+        $this->Cell($cellWidth, 5, $noCertificado, 1, 1, 'L');
+
+        // --- Campo largo ---
         $this->Cell(30, 5, "Sello", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($sello, $cellWidth), 1, 1, 'L');
 
         $this->Cell(30, 5, "Metodo de Pago", 1, 0, 'L');
-        $this->Cell($cellWidth, 5, $this->clipText($MetodoPago, $cellWidth), 1, 1, 'L');
+        $this->Cell($cellWidth, 5, $MetodoPago, 1, 1, 'L');
 
         $this->Cell(30, 5, "Forma de Pago", 1, 0, 'L');
-        $this->Cell($cellWidth, 5, $this->clipText($FormaPago, $cellWidth), 1, 1, 'L');
+        $this->Cell($cellWidth, 5, $FormaPago, 1, 1, 'L');
 
         $this->Cell(30, 5, "Lugar Expedicion", 1, 0, 'L');
-        $this->Cell($cellWidth, 5, $this->clipText($LugarExpedicion, $cellWidth), 1, 1, 'L');
+        $this->Cell($cellWidth, 5, $LugarExpedicion, 1, 1, 'L');
 
         $this->Cell(30, 5, "Tipo Comprobante", 1, 0, 'L');
-        $this->Cell($cellWidth, 5, $this->clipText($TipoDeComprobante, $cellWidth), 1, 1, 'L');
+        $this->Cell($cellWidth, 5, $TipoDeComprobante, 1, 1, 'L');
 
         $this->Cell(30, 5, "Moneda", 1, 0, 'L');
-        $this->Cell($cellWidth, 5, $this->clipText($Moneda, $cellWidth), 1, 1, 'L');
+        $this->Cell($cellWidth, 5, $Moneda, 1, 1, 'L');
 
+        // --- Campo largo ---
         $this->Cell(30, 5, "SelloSAT (Timbre)", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($SelloSAT, $cellWidth), 1, 1, 'L');
 
+        // --- Campo largo ---
         $this->Cell(30, 5, "SelloCFD", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($SelloCFD, $cellWidth), 1, 1, 'L');
 
         $this->Cell(30, 5, "RfcProvCertif", 1, 0, 'L');
-        $this->Cell($cellWidth, 5, $this->clipText($RfcProvCertif, $cellWidth), 1, 1, 'L');
+        $this->Cell($cellWidth, 5, $RfcProvCertif, 1, 1, 'L');
 
         $this->Cell(30, 5, "Fecha Timbrado", 1, 0, 'L');
-        $this->Cell($cellWidth, 5, $this->clipText($fecha, $cellWidth), 1, 1, 'L');
+        $this->Cell($cellWidth, 5, $fecha, 1, 1, 'L');
 
 
         // Si se proporciona el QR y existe, se inserta en el encabezado, por ejemplo a la izquierda o a la derecha del texto
@@ -1274,15 +1292,16 @@ class PDFFactura extends FPDF
             $this->Cell(20, 8, "Descuento", 1, 0, 'C', true);
             $this->Cell(20, 8, "Impuestos", 1, 0, 'C', true);
             $this->Cell(30, 8, "Subtotal", 1, 1, 'C', true);*/
-            $this->Cell(10, 8, "Cant.", 1, 0, 'C', true);
-            $this->Cell(28, 8, "Unidad", 1, 0, 'C', true);
-            $this->Cell(15, 8, "Clave SAT", 1, 0, 'C', true);
-            $this->Cell(15, 8, "Clave", 1, 0, 'C', true);
-            $this->Cell(60, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true);
-            //$this->Cell(18, 8, "IVA", 1, 0, 'C', true);
-            $this->Cell(18, 8, "Descuento", 1, 0, 'C', true);
-            $this->Cell(18, 8, "Precio", 1, 0, 'C', true);
-            $this->Cell(22, 8, "Subtotal", 1, 1, 'C', true);
+            $this->Cell(10, 8, "Cant.", 1, 0, 'C', true);           // 10
+            $this->Cell(24, 8, "Unidad", 1, 0, 'C', true);          // 24
+            $this->Cell(20, 8, "Clave SAT", 1, 0, 'C', true);       // 20
+            $this->Cell(20, 8, "Clave", 1, 0, 'C', true);           // 20
+            $this->Cell(50, 8, iconv("UTF-8", "ISO-8859-1", "Descripción"), 1, 0, 'C', true); // 50
+            $this->Cell(20, 8, "Descuento", 1, 0, 'C', true);       // 20
+            $this->Cell(23, 8, "Precio", 1, 0, 'C', true);          // 23
+            $this->Cell(23, 8, "Subtotal", 1, 1, 'C', true);        // 23
+            // Total: 10+24+20+20+50+20+23+23 = **190 mm **
+
         }
     }
 
@@ -1870,17 +1889,18 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
         $pdf->Cell(20, 7, number_format($descuentos, 2) . "%", 0, 0, 'C');
         $pdf->Cell(20, 7, number_format($impuestos, 2) . "%", 0, 0, 'C');
         $pdf->Cell(30, 7, number_format($subtotalPartida, 2), 0, 1, 'R');*/
-        $pdf->Cell(8, 7, $cantidad, 0, 0, 'C');
+
+        $pdf->Cell(10, 7, $cantidad, 0, 0, 'C');
         $pdf->SetFont('Arial', '', 7);
-        $pdf->Cell(28, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C'); //Unidad
-        $pdf->Cell(15, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C'); //Clave SAT
-        $pdf->Cell(15, 7, $partida['CVE_ART'], 0, 0, 'C');
-        $pdf->Cell(65, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
+        $pdf->Cell(24, 7, $partida['UNI_VENTA'] . " " . $partida['CVE_UNIDAD'], 0, 0, 'C');
+        $pdf->Cell(20, 7, $productosData['CVE_PRODSERV'], 0, 0, 'C');
+        $pdf->Cell(20, 7, $partida['CVE_ART'], 0, 0, 'C');
+        $pdf->Cell(50, 7, iconv("UTF-8", "ISO-8859-1", $productosData['DESCR']), 0);
         $pdf->SetFont('Arial', '', 8);
-        //$pdf->Cell(18, 7,"$" . number_format($impuestoPartida, 2), 0, 0, 'R');
-        $pdf->Cell(18, 7, $desc1 . "%", 0, 0, 'R');
-        $pdf->Cell(18, 7, "$" . number_format($precioUnitario, 2), 0, 0, 'R');
-        $pdf->Cell(22, 7, "$" . number_format($subtotalPartida, 2), 0, 1, 'R');
+        $pdf->Cell(20, 7, $desc1 . "%", 0, 0, 'R');
+        $pdf->Cell(23, 7, "$" . number_format($precioUnitario, 2), 0, 0, 'R');
+        $pdf->Cell(23, 7, "$" . number_format($subtotalPartida, 2), 0, 1, 'R');
+
     }
 
     // **Calcular totales**
@@ -1888,7 +1908,7 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     $total = round($subtotalConDescuento + $totalImpuestos, 2);
 
     // **Mostrar totales en la factura**
-    $anchoEtiqueta = 132;
+    $anchoEtiqueta = 110;
     $anchoValor = 58;
 
     $pdf->SetFont('Arial', 'B', 10);
