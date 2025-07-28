@@ -1065,12 +1065,9 @@ class PDFPedidoAutoriza extends FPDF
 
 class PDFFactura extends FPDF
 {
-    private function clipText($text, $maxWidth)
-    {
-        while ($this->GetStringWidth($text) > $maxWidth && strlen($text) > 0) {
-            $text = substr($text, 0, -1);
-        }
-        return $text;
+    function clipText($text, $maxChars = 100) {
+        $text = iconv("UTF-8", "ISO-8859-1//IGNORE", $text);
+        return (strlen($text) > $maxChars) ? substr($text, 0, $maxChars - 3) . "..." : $text;
     }
 
     function imprimirDatosFiscales(
@@ -1104,6 +1101,9 @@ class PDFFactura extends FPDF
         $this->Cell(30, 5, "No. Certificado", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($noCertificado, $cellWidth), 1, 1, 'L');
 
+        $this->Cell(30, 5, "Sello", 1, 0, 'L');
+        $this->Cell($cellWidth, 5, $this->clipText($sello, $cellWidth), 1, 1, 'L');
+
         $this->Cell(30, 5, "Metodo de Pago", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($MetodoPago, $cellWidth), 1, 1, 'L');
 
@@ -1119,17 +1119,12 @@ class PDFFactura extends FPDF
         $this->Cell(30, 5, "Moneda", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($Moneda, $cellWidth), 1, 1, 'L');
 
-        // ---------- CAMPOS LARGOS CON MULTICELL ABAJO ---------- //
-        $this->Cell(30, 5, "Sello", 1, 1, 'L'); // Solo etiqueta
-        $this->MultiCell(180, 4, $sello, 1, 'L'); // Contenido en una celda completa
+        $this->Cell(30, 5, "SelloSAT (Timbre)", 1, 0, 'L');
+        $this->Cell($cellWidth, 5, $this->clipText($SelloSAT, $cellWidth), 1, 1, 'L');
 
-        $this->Cell(30, 5, "SelloSAT (Timbre)", 1, 1, 'L');
-        $this->MultiCell(180, 4, $SelloSAT, 1, 'L');
+        $this->Cell(30, 5, "SelloCFD", 1, 0, 'L');
+        $this->Cell($cellWidth, 5, $this->clipText($SelloCFD, $cellWidth), 1, 1, 'L');
 
-        $this->Cell(30, 5, "SelloCFD", 1, 1, 'L');
-        $this->MultiCell(180, 4, $SelloCFD, 1, 'L');
-
-        // ---------- CAMPOS FINALES ---------- //
         $this->Cell(30, 5, "RfcProvCertif", 1, 0, 'L');
         $this->Cell($cellWidth, 5, $this->clipText($RfcProvCertif, $cellWidth), 1, 1, 'L');
 
@@ -1214,16 +1209,16 @@ class PDFFactura extends FPDF
                 $this->Cell(95, 10, iconv("UTF-8", "ISO-8859-1", "Datos del Emisor"), 0, 0, 'L');
                 $this->Ln(5);
 
-// Nombre cliente
+                // Nombre cliente
                 $this->SetX(10);
                 $this->Cell(85, 10, iconv("UTF-8", "ISO-8859-1", $this->datosClientePedidoAutoriza['nombre']), 0, 0, 'L');
 
-// Nombre empresa
+                // Nombre empresa
                 $this->SetX(120);
                 $this->Cell(95, 10, iconv("UTF-8", "ISO-8859-1", strtoupper($this->datosEmpresaPedidoAutoriza['razonSocial'])), 0, 0, 'L');
                 $this->Ln(10);
 
-// Cuerpo de datos
+                // Cuerpo de datos
                 $this->SetFont('Arial', '', 10);
                 $this->SetTextColor(39, 39, 51);
 
@@ -1246,7 +1241,7 @@ class PDFFactura extends FPDF
                     "Numero de guia: " . $this->numGuia
                 ];
 
-// Imprimir líneas en paralelo
+                // Imprimir líneas en paralelo
                 for ($i = 0; $i < max(count($datosCliente), count($datosEmpresa)); $i++) {
                     $this->SetX(10);
                     if (isset($datosCliente[$i])) {
@@ -1485,32 +1480,21 @@ function generarReportePedidoE($formularioData, $partidasData, $conexionData, $c
 
     //$total = $subtotal - $subtotalConDescuento + $totalImpuestos;
 
-    $labelWidth = 130;
-    $valueWidth = 40;
-
     $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(155, 7, 'Importe:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotal, 2), 0, 1, 'R');
 
-    $pdf->Cell($labelWidth, 7, 'Importe:', 0, 0, 'R');
-    $pdf->Cell($valueWidth, 7, number_format($subtotal, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'Descuento:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
 
-    $pdf->Cell($labelWidth, 7, 'Descuento:', 0, 0, 'R');
-    $pdf->Cell($valueWidth, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'Subtotal:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
 
-    $pdf->Cell($labelWidth, 7, 'Subtotal:', 0, 0, 'R');
-    $pdf->Cell($valueWidth, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
+    $pdf->Cell(155, 7, 'IVA:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
 
-    $pdf->Cell($labelWidth, 7, 'IVA:', 0, 0, 'R');
-    $pdf->Cell($valueWidth, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
-
-    $pdf->SetFillColor(32, 100, 210); // azul
-    $pdf->SetTextColor(255); // blanco
-    $pdf->SetFont('Arial', 'B', 10);
-
-    $pdf->Cell($labelWidth, 7, 'Total MXN:', 0, 0, 'R', true);
-    $pdf->Cell($valueWidth, 7, number_format($total, 2), 0, 1, 'R', true);
-
-    $pdf->SetTextColor(0); // restablecer a negro para lo siguiente
-
+    $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
+    $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
 
     // **Generar el nombre del archivo correctamente**
     $nombreArchivo = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $FOLIO) . ".pdf";
@@ -1904,21 +1888,25 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     $total = round($subtotalConDescuento + $totalImpuestos, 2);
 
     // **Mostrar totales en la factura**
+    $anchoEtiqueta = 132;
+    $anchoValor = 58;
+
     $pdf->SetFont('Arial', 'B', 10);
-    $pdf->Cell(155, 7, 'Importe:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($subtotal, 2), 0, 1, 'R');
 
-    $pdf->Cell(155, 7, 'Descuento:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
+    $pdf->Cell($anchoEtiqueta, 7, 'Importe:', 0, 0, 'R');
+    $pdf->Cell($anchoValor, 7, number_format($subtotal, 2), 0, 1, 'R');
 
-    $pdf->Cell(155, 7, 'Subtotal:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
+    $pdf->Cell($anchoEtiqueta, 7, 'Descuento:', 0, 0, 'R');
+    $pdf->Cell($anchoValor, 7, number_format($totalDescuentos, 2), 0, 1, 'R');
 
-    $pdf->Cell(155, 7, 'IVA:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
+    $pdf->Cell($anchoEtiqueta, 7, 'Subtotal:', 0, 0, 'R');
+    $pdf->Cell($anchoValor, 7, number_format($subtotalConDescuento, 2), 0, 1, 'R');
 
-    $pdf->Cell(155, 7, 'Total MXN:', 0, 0, 'R');
-    $pdf->Cell(40, 7, number_format($total, 2), 0, 1, 'R');
+    $pdf->Cell($anchoEtiqueta, 7, 'IVA:', 0, 0, 'R');
+    $pdf->Cell($anchoValor, 7, number_format($totalImpuestos, 2), 0, 1, 'R');
+
+    $pdf->Cell($anchoEtiqueta, 7, 'Total MXN:', 0, 0, 'R');
+    $pdf->Cell($anchoValor, 7, number_format($total, 2), 0, 1, 'R');
 
     // Convertir números a letras ----------------------------------------------------------
     $totalLetraFormatter = new NumberFormatter("es", NumberFormatter::SPELLOUT);
