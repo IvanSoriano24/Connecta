@@ -1070,6 +1070,10 @@ class PDFFactura extends FPDF
         $ellipsis = "...";
         $text = iconv("UTF-8", "ISO-8859-1//IGNORE", $text);
 
+        // Recortar 5 caracteres extra desde el inicio
+        $text = substr($text, 0, max(0, strlen($text) - 5));
+
+        // Luego sigue el recorte normal por ancho
         if ($this->GetStringWidth($text) <= $maxWidth) {
             return $text;
         }
@@ -1080,6 +1084,7 @@ class PDFFactura extends FPDF
 
         return $text . $ellipsis;
     }
+
 
 
     function imprimirDatosFiscales(
@@ -1908,11 +1913,10 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     $total = round($subtotalConDescuento + $totalImpuestos, 2);
 
     // **Mostrar totales en la factura**
-    $anchoEtiqueta = 110;
+    $anchoEtiqueta = 80;
     $anchoValor = 58;
 
     $pdf->SetFont('Arial', 'B', 10);
-
     $pdf->Cell($anchoEtiqueta, 7, 'Importe:', 0, 0, 'R');
     $pdf->Cell($anchoValor, 7, number_format($subtotal, 2), 0, 1, 'R');
 
