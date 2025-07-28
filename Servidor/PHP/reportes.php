@@ -1913,8 +1913,8 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     $total = round($subtotalConDescuento + $totalImpuestos, 2);
 
     // **Mostrar totales en la factura**
-    $anchoEtiqueta = 80;
-    $anchoValor = 58;
+    $anchoEtiqueta = 160;
+    $anchoValor = 30;
 
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell($anchoEtiqueta, 7, 'Importe:', 0, 0, 'R');
