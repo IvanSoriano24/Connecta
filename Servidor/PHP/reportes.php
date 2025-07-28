@@ -1128,6 +1128,7 @@ class PDFFactura extends FPDF
     private $emailPred;
     private $regimen;
     private $fechaEmision;
+    private $numGuia;
 
     function __construct(
         $datosEmpresaPedidoAutoriza,
@@ -1136,7 +1137,8 @@ class PDFFactura extends FPDF
         $datosPedidoAutoriza,
         $emailPred,
         $regimen,
-        $fechaEmision
+        $fechaEmision,
+        $numGuia
     ) {
         parent::__construct();
         $this->datosEmpresaPedidoAutoriza = $datosEmpresaPedidoAutoriza;
@@ -1146,6 +1148,7 @@ class PDFFactura extends FPDF
         $this->emailPred = $emailPred;
         $this->regimen = $regimen;
         $this->fechaEmision = $fechaEmision;
+        $this->numGuia = $numGuia;
     }
     function Header()
     {
@@ -1252,12 +1255,17 @@ class PDFFactura extends FPDF
                 $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Teléfono: " . $this->datosClientePedidoAutoriza['telefono']), 0, 0, 'L');
                 $this->Ln(5);
 
+                // Regimen
+                $this->SetX(140);
+                $this->Cell(100, 9, iconv("UTF-8", "ISO-8859-1", "Numero de guia: " . $this->numGuia), 0, 0, 'L');
+                $this->Ln(5);
+
                 $this->SetFont('Arial', '', 10);
                 $this->SetTextColor(39, 39, 51);
                 // Email - Cliente a la izquierda
                 $this->SetX(10);
                 $this->Cell(90, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->emailPred), 0, 0, 'L');
-                $this->Ln(15);
+                $this->Ln(15);  
             }
 
             // **Encabezado de la tabla de partidas**
@@ -1719,7 +1727,7 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
     // **Generar el PDF**
     $pdf->Output("I");
 }
-function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura){
+function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura, $numGuia){
     $CVE_DOC = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     //$CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
 
@@ -1753,7 +1761,9 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
 
     // Ruta de los archivos (ajusta la ruta según corresponda)
     $nombreArchivoBase = "cfdi_" . urlencode($datosClientePedidoAutoriza['nombre']) . "_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura);
+    
     $xmlFile = "../XML/sdk2/timbrados/" . $nombreArchivoBase . ".xml";
+    
     $qrFile = "../XML/sdk2/timbrados/" . $nombreArchivoBase . ".png";
 
     // Extraer datos fiscales desde el XML 
@@ -1804,6 +1814,10 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
 
         $selloSat = (string)$xml['SelloSAT']; // Si fuese atributo de cfdi:Comprobante
     }
+    else {
+        echo json_encode(['success' => false, 'message' => "Hubo un problema al encontrar el XML"]);
+        die();
+    }
 
     // Crear el PDF
     $pdf = new PDFFactura(
@@ -1813,7 +1827,8 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
         $datosPedidoAutoriza,
         $emailPred,
         $regimen,
-        $fechaEmision
+        $fechaEmision,
+        $numGuia
     );
     $pdf->AddPage();
     //$pdf->SetFont('Arial', '', 9);

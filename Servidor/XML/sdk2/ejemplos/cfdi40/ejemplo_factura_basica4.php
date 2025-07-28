@@ -456,7 +456,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     /*$res = mf_default($datos);
     var_dump($res);*/
 
-    /*if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
+    if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
         header('Content-Type: application/json');
         echo json_encode([
             "success" => true
@@ -470,7 +470,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
             //"Problema" => $res['codigo_mf_texto']
         ]);
         return;
-    }*/
+    }
     ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
     echo "<h1>Respuesta Generar XML y Timbrado</h1>";
     foreach ($res as $variable => $valor) {

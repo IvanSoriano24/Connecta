@@ -4527,7 +4527,7 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     // Obtener tipo de contenido antes de cerrar cURL
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     curl_close($ch);
-    var_dump($facturaResponse);
+    //var_dump($facturaResponse);
     if ($facturaResponse) {
         // Intenta decodificar como JSON
         $facturaData = json_decode($facturaResponse, true);
@@ -5604,9 +5604,9 @@ function enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $cla
     error_log("HTTP Status Code: " . $http_code);
     return $result;
 }
-function crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura)
+function crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura, $numGuia)
 {
-    $rutaPDF = generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
+    $rutaPDF = generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura, $numGuia);
     return $rutaPDF;
 }
 function eliminarErrores($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $remisionId, $claveCliente, $fallaId)
@@ -5654,14 +5654,14 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
 
             $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
 
-            var_dump("Respuesta: ", $respuestaFactura);
+            //var_dump("Respuesta: ", $respuestaFactura);
             if ($respuestaFactura['success']) {
                 $bandera = 1;
                 //var_dump("folio: ", $folio);
                 //var_dump("folioFactura: ", $folioFactura);
                 //actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
-                $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura);
-                var_dump("Ruta PDF: ", $rutaPDF);
+                $rutaPDF = crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura, $numGuia);
+                //var_dump("Ruta PDF: ", $rutaPDF);
                 actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera);
                 validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey, $numGuia);
                 if ($fallaId != "") {
