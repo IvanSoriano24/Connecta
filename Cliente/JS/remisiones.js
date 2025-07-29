@@ -20,7 +20,7 @@ function agregarEventosBotones() {
       try {
         //Verifica si ya fue facturada
         const res = await verificarPedido(pedidoID);
-        /*if (res.success) {
+        if (res.success) {
           //Si ya fue facturada, muestra este mensaje
           Swal.fire({
             title: "Aviso",
@@ -37,9 +37,9 @@ function agregarEventosBotones() {
                         confirmButtonText: "Entendido",
                     });*/
           facturarRemision(pedidoID); // Llama a la función para facturar la remision
-       /* } else {
+        } else {
           console.error("Respuesta inesperada:", res);
-        }*/
+        }
       } catch (error) {
         console.error("Error al verificar el pedido:", error);
         Swal.fire({

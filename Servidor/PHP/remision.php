@@ -4491,8 +4491,8 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
     $pedidoId = $folio;
 
     // URL del servidor donde se ejecutará la remisión
-    //$facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
-    $facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
+    $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión
     // En tu JS/PHP cliente:
@@ -4578,8 +4578,8 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
 }
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
