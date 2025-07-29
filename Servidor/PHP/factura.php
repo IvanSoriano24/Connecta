@@ -963,7 +963,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
     //$IMPORTE = 0;
     $STRCVEVEND = $dataRemision['CVE_VEND'];
 
-    $AFEC_COI = 'A';
+    $AFEC_COI = '';
     $NUM_MONED = 1;
     $TCAMBIO = 1;
     $TIPO_MOV = 'A'; //Aqui

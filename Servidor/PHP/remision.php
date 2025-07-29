@@ -4373,7 +4373,7 @@ function datosFolios($claveSae, $conexionData)
 
     $sql = "SELECT TIP_DOC, SERIE, TIPO
         FROM $nombreTabla
-        WHERE TIP_DOC = 'F' AND TIPO = 'D'";
+        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'MD";
 
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
@@ -4578,8 +4578,8 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
 }
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,

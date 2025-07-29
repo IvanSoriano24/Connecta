@@ -186,7 +186,7 @@ function cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, 
     //Estructurar los datos
     $data = [
         'fields' => [
-            'status' => ['stringValue' => 'No Pagada'],
+            'status' => ['stringValue' => 'Vencida'],
             'buscar' => ['booleanValue' => false]
         ]
     ];
@@ -377,7 +377,39 @@ function liberarExistencias($conexionData, $folio, $claveSae)
         }
     }
 }
+function cancelarPedido($conexionData, $folio, $claveSae)
+{
+    //Crear conexion a based de datos
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
 
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+    //Crear tablas dinamicas
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    //Crear consulta para obtener los productos y la cantidad de estos
+    $sql = "SELECT [CVE_ART], [CANT] FROM $nombreTabla
+        WHERE [CVE_DOC] = ?";
+    $params = [$CVE_DOC];
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        echo "DEBUG: Error al actualizar el pedido:\n";
+        var_dump(sqlsrv_errors());
+        exit;
+    }
+}
 function obtenerFecha($conexionData, $cliente, $claveSae)
 {
     date_default_timezone_set('America/Mexico_City');
@@ -903,6 +935,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                     $conexionData = $conexionResult['data'];
                     $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
                     $fechaLimiteObj = new DateTime($fechaLimite);
+                    var_dump("folio: ", $folio);
                     //Validar que no hayan pasado las 24horas
                     if ($fechaPago <= $fechaLimiteObj) {
                         //Verificar si se realizo el pago
@@ -980,6 +1013,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                     } else if ($fechaPago > $fechaLimiteObj) {
                         //Si ya pasaron, liberar existencias
                         liberarExistencias($conexionData, $folio, $claveSae);
+                        cancelarPedido($conexionData, $folio, $claveSae);
                         cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
                         //Notificar
                     }
