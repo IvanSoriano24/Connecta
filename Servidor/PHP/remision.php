@@ -1,5 +1,4 @@
 <?php
-set_time_limit(0);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -4371,9 +4370,12 @@ function datosFolios($claveSae, $conexionData)
 
     $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    $sql = "SELECT TIP_DOC, SERIE, TIPO
+    /*$sql = "SELECT TIP_DOC, SERIE, TIPO
         FROM $nombreTabla
-        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'MD";
+        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'MD";*/
+        $sql = "SELECT TIP_DOC, SERIE, TIPO
+        FROM $nombreTabla
+        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'AM";
 
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
