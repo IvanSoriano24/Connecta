@@ -138,6 +138,7 @@ if (isset($_SESSION['usuario'])) {
                                         <!-- Botones a la izquierda -->
                                         <div class="btn-group">
                                             <button class="btn btn-success" id="btnImportar">
+                                                <input type="file" id="inputExcel" accept=".xlsx, .xls" style="display: none;">
                                                 <i class='bx bxs-file-import'></i> Importar
                                             </button>
                                             <button class="btn btn-primary" id="btnAgregar">

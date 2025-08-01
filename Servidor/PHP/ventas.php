@@ -134,7 +134,6 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         // Enviar notificaciones solo si los datos son válidos
         if ($numeroBandera === 0) {
-            //$numeroWhatsApp = 7773340218;
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
             //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
@@ -229,8 +228,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -5321,8 +5320,8 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
-    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -7828,8 +7827,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";

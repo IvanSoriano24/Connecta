@@ -42,7 +42,6 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-
 // Función para conectar a SQL Server y obtener los datos de clientes
 function mostrarClientes($conexionData, $claveSae)
 {
@@ -625,7 +624,6 @@ function mostrarClientesPedidos($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-
 function mostrarClienteEspecifico($clave, $conexionData)
 {
     // Establecer la conexión con SQL Server con UTF-8
@@ -683,7 +681,6 @@ function mostrarClienteEspecifico($clave, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-
 function validarCreditos($conexionData, $clienteId)
 {
     // Validar si el ID del cliente está proporcionado
