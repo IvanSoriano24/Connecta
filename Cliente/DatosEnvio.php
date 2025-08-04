@@ -138,6 +138,7 @@ if (isset($_SESSION['usuario'])) {
                                         <!-- Botones a la izquierda -->
                                         <div class="btn-group">
                                             <button class="btn btn-success" id="btnImportar">
+                                                <input type="file" id="inputExcel" accept=".xlsx, .xls" style="display: none;">
                                                 <i class='bx bxs-file-import'></i> Importar
                                             </button>
                                             <button class="btn btn-primary" id="btnAgregar">
@@ -544,8 +545,11 @@ if (isset($_SESSION['usuario'])) {
 
         // Al hacer click en el botón, disparamos el file picker
         btn.addEventListener('click', () => {
+
             input.value = null; // Limpiar cualquier selección anterior
             input.click();
+            /*btn.value = null; // Limpiar cualquier selección anterior
+            btn.click();*/
         });
         // Cuando el usuario selecciona archivo
         input.addEventListener('change', () => {

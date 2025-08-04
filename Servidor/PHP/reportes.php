@@ -505,17 +505,8 @@ function obtenerDescripcionProductoPedidoAutorizaE($CVE_ART, $conexionData, $cla
 }
 
 /****************************************************************************************************************/
-function obtenerDatosFactura($cveDoc, $conexionData, $claveSae)
+function obtenerDatosFactura($cveDoc, $conexionData, $claveSae, $conn)
 {
-    // Configuración de conexión a SQL Server
-    $conn = sqlsrv_connect($conexionData['host'], [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ]);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -552,7 +543,6 @@ function obtenerDatosFactura($cveDoc, $conexionData, $claveSae)
     }
 
     $datosPedidoAuto = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-    sqlsrv_close($conn);
 
     if (!$datosPedidoAuto) {
         return null; // Si no encuentra la remisión
@@ -568,17 +558,8 @@ function obtenerDatosFactura($cveDoc, $conexionData, $claveSae)
     ];
 }
 
-function obtenerDatosPartidasFactura($cveDoc, $conexionData, $claveSae)
+function obtenerDatosPartidasFactura($cveDoc, $conexionData, $claveSae, $conn)
 {
-    // Configuración de conexión a SQL Server
-    $conn = sqlsrv_connect($conexionData['host'], [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ]);
-
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -619,8 +600,6 @@ function obtenerDatosPartidasFactura($cveDoc, $conexionData, $claveSae)
             'CVE_UNIDAD' => $row['CVE_UNIDAD']
         ];
     }
-
-    sqlsrv_close($conn);
 
     return $partidas;
 }
@@ -1751,20 +1730,20 @@ function generarReporteRemision($conexionData, $cveDoc, $claveSae, $noEmpresa, $
     $pdf->Output("I");
 }
 
-function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura, $numGuia)
+function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura, $numGuia, $conn)
 {
     $CVE_DOC = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     //$CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
 
     // Obtener los datos de la empresa
     $datosEmpresaPedidoAutoriza = obtenerDatosEmpresaFire($noEmpresa);
-    $datosPedidoAutoriza = obtenerDatosFactura($CVE_DOC, $conexionData, $claveSae);
-    $datosPartidasPedido = obtenerDatosPartidasFactura($CVE_DOC, $conexionData, $claveSae);
+    $datosPedidoAutoriza = obtenerDatosFactura($CVE_DOC, $conexionData, $claveSae, $conn);
+    $datosPartidasPedido = obtenerDatosPartidasFactura($CVE_DOC, $conexionData, $claveSae, $conn);
 
     // Obtener datos del cliente
     $clienteId = str_pad(trim($datosPedidoAutoriza['CVE_CLPV']), 10, ' ', STR_PAD_LEFT);
     //var_dump($clienteId);
-    $datosClientePedidoAutoriza = obtenerDatosClienteReporteE($conexionData, $clienteId, $claveSae);
+    $datosClientePedidoAutoriza = obtenerDatosClienteReporte($conexionData, $clienteId, $claveSae, $conn);
     //var_dump($datosClientePedidoAutoriza);
     $emailPredArray = explode(';', $datosClientePedidoAutoriza['email']); // Divide los correos por `;`
     $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
@@ -1862,7 +1841,7 @@ function generarFactura($folio, $noEmpresa, $claveSae, $conexionData, $folioFact
     // **Agregar filas de la tabla con los datos de la remisión**
     foreach ($datosPartidasPedido as $partida) {
         // **Obtener la descripción del producto desde SQL Server**
-        $productosData = obtenerDescripcionProductoPedidoAutorizaE($partida['CVE_ART'], $conexionData, $claveSae);
+        $productosData = obtenerDescripcionProductoPedidoAutoriza($partida['CVE_ART'], $conexionData, $claveSae, $conn);
 
         // **Cálculos**
         $precioUnitario = $partida['PREC'];

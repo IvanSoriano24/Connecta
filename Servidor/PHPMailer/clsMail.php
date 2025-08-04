@@ -53,14 +53,14 @@ class clsMail
         string $rutaCfdi = null
     ) {
         try {
-            if ($correoRemitente === "" || $passwordRemitente === "") {
+            //if ($correoRemitente === "" || $passwordRemitente === "") {
                 $remitente = $this->defaultUser;
                 $password = $this->defaultPass;
-            } else {
+            /*} else {
                 // Usar remitente y contraseña por defecto si no se proporciona
                 $remitente = $correoRemitente;
                 $password = $passwordRemitente;
-            }
+            }*/
 
             $this->mail->Username = $remitente;
             $this->mail->Password = $password;
@@ -118,14 +118,14 @@ class clsMail
         string $rutaError = null
     ) {
         try {
-            if ($correoRemitente === "" || $passwordRemitente === "") {
+            //if ($correoRemitente === "" || $passwordRemitente === "") {
                 $remitente = $this->defaultUser;
                 $password = $this->defaultPass;
-            } else {
+            /*} else {
                 // Usar remitente y contraseña por defecto si no se proporciona
                 $remitente = $correoRemitente;
                 $password = $passwordRemitente;
-            }
+            }*/
 
             $this->mail->Username = $remitente;
             $this->mail->Password = $password;
