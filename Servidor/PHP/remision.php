@@ -1024,6 +1024,30 @@ function obtenerUltimoDato($conexionData, $claveSae)
 
     return $CVE_INFO;
 }
+function obtenerUltimoDatoF($conexionData, $claveSae, $conn)
+{
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $sql = "
+        SELECT TOP 1 [CVE_INFO] 
+        FROM $nombreTabla
+        ORDER BY [CVE_INFO] DESC
+    ";
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+    }
+
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    $CVE_INFO = $row ? $row['CVE_INFO'] : null;
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+
+    return $CVE_INFO;
+}
 function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
 {
     // Establecer la conexión con SQL Server con UTF-8
@@ -1167,6 +1191,140 @@ function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
     sqlsrv_free_stmt($stmPedido);
     sqlsrv_free_stmt($stmSelect);
     sqlsrv_close($conn);
+    return $CVE_INFO;
+}
+function gaurdarDatosEnvioF($conexionData, $pedidoId, $claveSae, $conn)
+{
+   if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $cve_doc = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
+    $cve_doc = str_pad($cve_doc, 20, ' ', STR_PAD_LEFT);
+
+    $sqlPedido = "SELECT DAT_ENVIO FROM $nombreTabla2 WHERE CVE_DOC = ?";
+    $paramsPedido = [$cve_doc];
+    $stmPedido = sqlsrv_query($conn, $sqlPedido, $paramsPedido);
+    $row = sqlsrv_fetch_array($stmPedido, SQLSRV_FETCH_ASSOC);
+    $DAT_ENVIO = $row ? $row['DAT_ENVIO'] : null;
+
+
+    $sqlSelect = "SELECT * FROM $nombreTabla WHERE CVE_INFO = ?";
+    $paramsSelect = [$DAT_ENVIO];
+    $stmSelect = sqlsrv_query($conn, $sqlSelect, $paramsSelect);
+    // Obtener los datos
+    $envioData = sqlsrv_fetch_array($stmSelect, SQLSRV_FETCH_ASSOC);
+
+
+    // Extraer los datos del formulario
+    $CVE_INFO = obtenerUltimoDatoF($conexionData, $claveSae, $conn);
+    $CVE_INFO = $CVE_INFO + 1;
+    $CVE_CONS = "";
+    $NOMBRE = $envioData['NOMBRE'];
+    $CALLE = $envioData['CALLE'];
+    $NUMINT = "";
+    $NUMEXT = "S/N";
+    $CRUZAMIENTOS = "";
+    $CRUZAMIENTOS2 = "";
+    $POB = "";
+    $CURP = "";
+    $REFERDIR = "";
+    $CVE_ZONA = "";
+    $CVE_OBS = "";
+    $STRNOGUIA = "";
+    $STRMODOENV = "";
+    $FECHA_ENV = $envioData['FECHA_ENV'];
+    $NOMBRE_RECEP = "";
+    $NO_RECEP = "";
+    $FECHA_RECEP = "";
+    //$COLONIA = "";
+    $COLONIA = $envioData['COLONIA'];
+    $CODIGO = $envioData['CODIGO'];
+    $ESTADO = $envioData['ESTADO'];
+    $PAIS = "MEXICO";
+    $MUNICIPIO = $envioData['MUNICIPIO'];
+    $PAQUETERIA = "";
+    $CVE_PED_TIEND = "";
+    $F_ENTREGA = "";
+    $R_FACTURA = "";
+    $R_EVIDENCIA = "";
+    $ID_GUIA = "";
+    $FAC_ENV = "";
+    $GUIA_ENV = "";
+    $REG_FISC = "";
+    $CVE_PAIS_SAT = "";
+    $FEEDDOCUMENT_GUIA = "";
+    // Crear la consulta SQL para insertar los datos en la base de datos
+    $sql = "INSERT INTO $nombreTabla
+    (CVE_INFO, CVE_CONS, NOMBRE, CALLE, NUMINT, NUMEXT,
+    CRUZAMIENTOS, CRUZAMIENTOS2, POB, CURP, REFERDIR, CVE_ZONA, CVE_OBS,
+    STRNOGUIA, STRMODOENV, FECHA_ENV, NOMBRE_RECEP, NO_RECEP,
+    FECHA_RECEP, COLONIA, CODIGO, ESTADO, PAIS, MUNICIPIO,
+    PAQUETERIA, CVE_PED_TIEND, F_ENTREGA, R_FACTURA, R_EVIDENCIA,
+    ID_GUIA, FAC_ENV, GUIA_ENV, REG_FISC,
+    CVE_PAIS_SAT, FEEDDOCUMENT_GUIA)
+    VALUES 
+    (?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?, ?,
+    ?, ?)";
+    // Preparar los parámetros para la consulta
+    $params = [
+        $CVE_INFO,
+        $CVE_CONS,
+        $NOMBRE,
+        $CALLE,
+        $NUMINT,
+        $NUMEXT,
+        $CRUZAMIENTOS,
+        $CRUZAMIENTOS2,
+        $POB,
+        $CURP,
+        $REFERDIR,
+        $CVE_ZONA,
+        $CVE_OBS,
+        $STRNOGUIA,
+        $STRMODOENV,
+        $FECHA_ENV,
+        $NOMBRE_RECEP,
+        $NO_RECEP,
+        $FECHA_RECEP,
+        $COLONIA,
+        $CODIGO,
+        $ESTADO,
+        $PAIS,
+        $MUNICIPIO,
+        $PAQUETERIA,
+        $CVE_PED_TIEND,
+        $F_ENTREGA,
+        $R_FACTURA,
+        $R_EVIDENCIA,
+        $ID_GUIA,
+        $FAC_ENV,
+        $GUIA_ENV,
+        $REG_FISC,
+        $CVE_PAIS_SAT,
+        $FEEDDOCUMENT_GUIA
+    ];
+    // Ejecutar la consulta
+    $stmt = sqlsrv_query($conn, $sql, $params);
+
+    if ($stmt === false) {
+        die(json_encode([
+            'success' => false,
+            'message' => 'Error al guardar los datos de envio',
+            'sql_error' => sqlsrv_errors() // Captura los errores de SQL Server
+        ]));
+    }
+    // Cerrar la conexión
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_free_stmt($stmPedido);
+    sqlsrv_free_stmt($stmSelect);
     return $CVE_INFO;
 }
 function insertarBita($conexionData, $pedidoId, $claveSae)
@@ -3093,7 +3251,7 @@ function obtenerDatosCliente($claveCliente, $conexionData, $claveSae)
 }
 function obtenerDatosClienteF($claveCliente, $conexionData, $claveSae, $conn)
 {
-   if ($conn === false) {
+    if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
@@ -4392,12 +4550,12 @@ function datosFolios($claveSae, $conexionData, $conn)
 
     $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
+    /*$sql = "SELECT TIP_DOC, SERIE, TIPO
+        FROM $nombreTabla
+        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'AV'";*/
     $sql = "SELECT TIP_DOC, SERIE, TIPO
         FROM $nombreTabla
-        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'AV'";
-        /*$sql = "SELECT TIP_DOC, SERIE, TIPO
-        FROM $nombreTabla
-        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'MD";*/
+        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'MD'";
 
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
@@ -4408,7 +4566,8 @@ function datosFolios($claveSae, $conexionData, $conn)
     if ($foliosData) {
         return $foliosData;
     } else {
-        echo json_encode(['success' => false, 'message' => "Folios no encontrados"]);
+        //echo json_encode(['success' => false, 'message' => "Folios no encontrados"]);
+        //throw new Exception("Folios no encontrados");
     }
     sqlsrv_free_stmt($stmt);
 }
@@ -4544,7 +4703,7 @@ function facturar($pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito, $co
 
     $DAT_MOSTR = insertatInfoClieF($conexionData, $claveSae, $claveCliente, $conn);
     actualizarControl2F($conexionData, $claveSae, $conn); //ROLLBACK
-    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $remision, $claveSae, $conn);
+    $DAT_ENVIO = gaurdarDatosEnvioF($conexionData, $remision, $claveSae, $conn);
     actualizarControl3F($conexionData, $claveSae, $conn);
 
     insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveSae, $DAT_MOSTR, $folioFactura, $SERIE, $DAT_ENVIO, $conn);
@@ -4635,17 +4794,8 @@ function facturar($pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito, $co
         return false;
     }*/
 }
-function datosRemision($conexionData, $claveSae, $remision)
+function datosRemision($conexionData, $claveSae, $remision, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -4673,20 +4823,9 @@ function datosRemision($conexionData, $claveSae, $remision)
         echo json_encode(['success' => false, 'message' => "Pedido no encontrado $cve_doc"]);
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
 function insertarBitaF($conexionData, $remision, $claveSae, $folioFactura, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         echo json_encode([
             'success' => false,
@@ -4744,7 +4883,7 @@ function insertarBitaF($conexionData, $remision, $claveSae, $folioFactura, $conn
 
     $cveClie = $remisionn['CVE_CLPV'];
     $totalPedido = $remisionn['CAN_TOT'] + $remisionn['IMP_TOT1'] + $remisionn['IMP_TOT2'] + $remisionn['IMP_TOT3'] + $remisionn['IMP_TOT4'];
-    
+
     /*$folioFactura = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $folioFactura = urldecode($folioFactura) . urldecode($SERIE);
     $folioFactura = str_pad($folioFactura, 20, ' ', STR_PAD_LEFT);*/
@@ -4991,8 +5130,8 @@ function obtenerFolioF($conexionData, $claveSae, $conn)
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta SQL para obtener el siguiente folio
-    //$sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
-    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'AV'";
+    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
+    //$sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'AV'";
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
@@ -5006,7 +5145,7 @@ function obtenerFolioF($conexionData, $claveSae, $conn)
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
     // Retornar el folio siguiente
-    
+
     //return $folioSiguiente;
     return [
         'folioSiguiente' => $folioSiguiente,
@@ -5015,16 +5154,6 @@ function obtenerFolioF($conexionData, $claveSae, $conn)
 }
 function actualizarFolio($conexionData, $claveSae, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -5032,12 +5161,12 @@ function actualizarFolio($conexionData, $claveSae, $conn)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // SQL para incrementar el valor de ULT_DOC en 1 donde TIP_DOC es 'P'
-    /*$sql = "UPDATE $nombreTabla
-            SET [ULT_DOC] = [ULT_DOC] + 1
-            WHERE TIP_DOC = 'F' AND SERIE = 'MD'";*/
     $sql = "UPDATE $nombreTabla
             SET [ULT_DOC] = [ULT_DOC] + 1
-            WHERE TIP_DOC = 'F' AND SERIE = 'AV'";
+            WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
+    /*$sql = "UPDATE $nombreTabla
+            SET [ULT_DOC] = [ULT_DOC] + 1
+            WHERE TIP_DOC = 'F' AND SERIE = 'AV'";*/
 
     // Ejecutar la consulta SQL
     $stmt = sqlsrv_query($conn, $sql);
@@ -5219,7 +5348,7 @@ function insertarAlerta_Usuario($conexionData, $claveSae)
 }
 function actualizarAlerta_Usuario1($conexionData, $claveSae, $conn)
 {
-   if ($conn === false) {
+    if ($conn === false) {
         echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
@@ -5256,7 +5385,7 @@ function actualizarAlerta_Usuario1($conexionData, $claveSae, $conn)
 }
 function actualizarAlerta_Usuario2($conexionData, $claveSae, $conn)
 {
-   if ($conn === false) {
+    if ($conn === false) {
         echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
@@ -5293,7 +5422,7 @@ function actualizarAlerta_Usuario2($conexionData, $claveSae, $conn)
 }
 function actualizarAlerta1($conexionData, $claveSae, $conn)
 {
- if ($conn === false) {
+    if ($conn === false) {
         echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
@@ -5329,7 +5458,7 @@ function actualizarAlerta1($conexionData, $claveSae, $conn)
 }
 function actualizarAlerta2($conexionData, $claveSae, $conn)
 {
-   if ($conn === false) {
+    if ($conn === false) {
         echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
@@ -5377,7 +5506,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura, $conn)
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     //Datos de la remision
-    $dataRemision = datosRemision($conexionData, $claveSae, $remision);
+    $dataRemision = datosRemision($conexionData, $claveSae, $remision, $conn);
     /*$folioFactura = urldecode($folioFactura) . urldecode($SERIE);
     $CVE_DOC = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     
@@ -5483,7 +5612,8 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura, $conn)
         'CVE_CLIE' => $CVE_CLIE
     ];
 }
-function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision, $conn){
+function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision, $conn)
+{
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
     if ($conn === false) {
         die(json_encode([
@@ -5579,7 +5709,6 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision,
     if ($stmt === false) {
         $errors = sqlsrv_errors();
         var_dump($errors);
-        sqlsrv_close($conn);
         return [
             'success' => false,
             'message' => 'Error al insertar en CUEN_DET',
@@ -5650,15 +5779,8 @@ function insertarDoctoSigF($conexionData, $remision, $folioFactura, $claveSae, $
         'message' => "DOCTOSIGFXX insertado correctamente para Remisión $remision y Factura $folioFactura"
     ]);*/
 }
-function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
+function obtenerDatosPreEnlace($conexionData, $claveSae, $remision, $conn)
 {
-    $conn = sqlsrv_connect($conexionData['host'], [
-        "Database" => $conexionData['nombreBase'],
-        "UID"      => $conexionData['usuario'],
-        "PWD"      => $conexionData['password'],
-        "CharacterSet"         => "UTF-8",
-        "TrustServerCertificate" => true
-    ]);
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -5713,7 +5835,6 @@ function obtenerDatosPreEnlace($conexionData, $claveSae, $remision)
     }
 
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
     //echo json_encode(['success' => true, 'datos' => $datos]);
     return $datos;
 }
@@ -5759,7 +5880,7 @@ function insertarEnlaceLTPDF($conn, $conexionData, array $lotesUtilizados, strin
 function validarLotesFactura($conexionData, $claveSae, $remision, $conn)
 {
     // 2) Obtengo todos los lotes de la remisión
-    $rows = obtenerDatosPreEnlace($conexionData, $claveSae, $remision);
+    $rows = obtenerDatosPreEnlace($conexionData, $claveSae, $remision, $conn);
 
     // 3) Agrupo y desduplico por producto y por REG_LTPD
     $porProducto = [];
@@ -5782,7 +5903,6 @@ function validarLotesFactura($conexionData, $claveSae, $remision, $conn)
         $res = insertarEnlaceLTPDF($conn, $conexionData, $lotes, $claveSae, $claveArt);
         $todos = array_merge($todos, $res);
     }
-    sqlsrv_commit($conn);
 
     return $todos;
 }
@@ -6367,7 +6487,8 @@ function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn)
         'message' => 'CLIE actualizado correctamente'
     ]);*/
 }
-function insertatInfoClieF($conexionData, $claveSae, $claveCliente, $conn){
+function insertatInfoClieF($conexionData, $claveSae, $claveCliente, $conn)
+{
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -6465,7 +6586,6 @@ function actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, array $enla
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
             // Si falla, hacemos rollback manual y cortamos
-            sqlsrv_close($conn);
             die(json_encode([
                 'success' => false,
                 'message' => "Error al actualizar PAR_FACTR para {$enlace['CVE_ART']}",
@@ -6521,7 +6641,6 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura, $conn)
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         // Si falla, hacemos rollback manual y cortamos
-        sqlsrv_close($conn);
         die(json_encode([
             'success' => false,
             'message' => "Error al insertar",
@@ -6531,7 +6650,8 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura, $conn)
     sqlsrv_free_stmt($stmt);
     //echo json_encode(['success' => true, 'facturaId' => $facturaId]);
 }
-function sumarSaldo($conexionData, $claveSae, $pagado, $conn){
+function sumarSaldo($conexionData, $claveSae, $pagado, $conn)
+{
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -6545,7 +6665,7 @@ function sumarSaldo($conexionData, $claveSae, $pagado, $conn){
         [SALDO] = [SALDO] + (? * 1)
         WHERE CLAVE = ?";
 
-    $params = [$pagado['IMPORTE'], $pagado['CVE_CLIE' ]];
+    $params = [$pagado['IMPORTE'], $pagado['CVE_CLIE']];
 
     $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -6562,7 +6682,7 @@ function sumarSaldo($conexionData, $claveSae, $pagado, $conn){
 
     // ✅ Liberar memoria y cerrar conexión
     sqlsrv_free_stmt($stmt);
-    $cliente = $pagado['CVE_CLIE' ];
+    $cliente = $pagado['CVE_CLIE'];
     return json_encode([
         'success' => true,
         'message' => "Saldo actualizado correctamente para el cliente: $cliente"
@@ -6639,10 +6759,10 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
     $res = @file_get_contents($url, false, $ctx);
     return $res !== false;
 }
-function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura, $conn)
+function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
@@ -6807,13 +6927,16 @@ function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera, $conn
                 ];
                 $stmt = sqlsrv_query($conn, $sql, $params);
                 if ($stmt === false) {
-                    return (json_encode(['success' => false, 'message' => 'Error al actualizar el CFDI', 'errors' => sqlsrv_errors()]));
+                    //return (json_encode(['success' => false, 'message' => 'Error al actualizar el CFDI', 'errors' => sqlsrv_errors()]));
+                    throw new Exception("Hubo un problema al actualizar el estado del CFDI en SAE");
                 }
             } else {
-                return (json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
+                //return (json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
+                throw new Exception("No se encontro ningun archivo XML para actualizar tabla");
             }
         } else {
-            return (json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
+            //return (json_encode(['success' => false, 'message' => 'No se encontro ningun archivo', 'errors' => sqlsrv_errors()]));
+            throw new Exception("No se encontro ningun archivo XML para actualizar tabla");
         }
     }
 }
@@ -7023,7 +7146,8 @@ function guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebasePr
 function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema, $folioFactura, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar con la base de datos");
+        //die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
     //$cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
@@ -7031,14 +7155,15 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
 
     $fechaActual = date("Y-m-d H:i:s");
 
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTR" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT CVE_VEND, CVE_CLPV FROM $nombreTabla
         WHERE CVE_DOC = ?";
 
     $stmt = sqlsrv_query($conn, $sql, [$folioFactura]);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
+        //die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al obtener la descripción del producto");
     }
 
     $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -7056,12 +7181,7 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
 
     $response = @file_get_contents($firebaseUrl, false, $context);
     if ($response === false) {
-        echo "<div class='container'>
-                        <div class='title'>Error al Obtener Información</div>
-                        <div class='message'>No se pudo obtener la información del vendedor.</div>
-                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
-                      </div>";
-        exit;
+        throw new Exception("No se pudo obtener la información del vendedor para enviar la falla");
     }
 
     $usuariosData = json_decode($response, true);
@@ -7119,19 +7239,11 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
 
     // Enviar el correo con el remitente dinámico
     $resultado = $mail->metEnviarError($titulo, $nombreVendedor, $correoDestino, $asunto, $bodyHTML, $correoRemitente, $contraseñaRemitente, $rutaXml, $rutaError);
-
-    if ($resultado === "Correo enviado exitosamente.") {
-        //var_dump('success' . true, 'message' . $resultado);
-        // En caso de éxito, puedes registrar logs o realizar alguna otra acción
-    } else {
-        //error_log("Error al enviar el correo: $resultado");
-        echo json_encode(['success' => false, 'message' => $resultado]);
-        //var_dump('success' . false, 'message' . $resultado);
-    }
+    return false;
 }
 function obtenerPedido($cveDoc, $conexionData, $claveSae, $conn)
 {
-   if ($conn === false) {
+    if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
 
@@ -7228,7 +7340,6 @@ function obtenerVendedor($clave, $conexionData, $claveSae, $conn)
         echo json_encode(['success' => false, 'message' => 'Vendedor no encontrado']);
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
 function obtenerEmpresa($noEmpresa)
 {
@@ -7401,7 +7512,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
         enviarCorreo($emailPred, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr); // Enviar correo
     } else {
         echo json_encode(['success' => false, 'message' => 'El vendedor no tiene un correo electrónico válido registrado.']);
-        die();
+        //die();
     }
 }
 function enviarCorreo($correo, $clienteNombre, $noPactura, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $titulo, $rutaCfdi, $rutaXml, $rutaQr)
@@ -7615,12 +7726,12 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
             //var_dump($respuestaValidaciones);
             if ($respuestaValidaciones['success']) {
                 /*var_dump($respuestaValidaciones);
-            die();*/
+                die();*/
                 $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito, $conn, $conexionData);
                 //var_dump("folioFactura: ", $folioFactura);
                 actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
 
-                $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura, $conn), true);
+                $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
 
                 //var_dump("Respuesta: ", $respuestaFactura);
                 if ($respuestaFactura['success']) {
@@ -7634,7 +7745,14 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
                     if ($fallaId != "") {
                         eliminarErrores($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $remisionId, $claveCliente, $fallaId, $conn);
                     }
-                    echo json_encode(['success' => true, 'message' => "Remision facturada"]);
+                    // Si llegamos aquí, TODO salió bien
+                    sqlsrv_commit($conn);
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode([
+                        'success' => true,
+                        'message' => "Remisión facturada"
+                    ]);
+                    return;  // Importante parar la ejecución tras el commit
                 } else {
                     enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaFactura['Problema'], $folioFactura, $conn);
                     throw new Exception("Error al crear el CFDI, consultar correo");
@@ -7642,7 +7760,8 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
             } else {
                 //enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message']);
                 guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $respuestaValidaciones['message'], $remisionId, $claveCliente, $fallaId, $conn);
-                echo json_encode(['success' => false, 'message' => 'Hubo un error al Facturar']);
+                //echo json_encode(['success' => false, 'message' => 'Hubo un error al Facturar']);
+                throw new Exception("No se pudo facturar debido a falta de datos");
             }
         } else {
             /*echo json_encode([
@@ -7651,11 +7770,15 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
             ]);*/
             throw new Exception("La Comanda debe de estar Terminada");
         }
-    } catch (Exception $e) {
-        // Si falla cualquiera, deshacemos TODO:
+    } catch (\Throwable $e) {
         sqlsrv_rollback($conn);
         sqlsrv_close($conn);
-        return ['success' => false, 'message' => $e->getMessage()];
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+        return;
     }
 }
 function visualizarFallasFactura($id, $firebaseProjectId, $firebaseApiKey)

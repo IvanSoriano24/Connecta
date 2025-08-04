@@ -1,5 +1,4 @@
 <?php
-set_time_limit(0);
 require '../../../../PHP/firebase.php';
 //ejemplo factura cfdi 4.0
 // Se desactivan los mensajes de debug
@@ -52,17 +51,8 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function datosCliente($clie, $claveSae, $conexionData)
+function datosCliente($clie, $claveSae, $conexionData, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -85,19 +75,9 @@ function datosCliente($clie, $claveSae, $conexionData)
         echo json_encode(['success' => false, 'message' => "Cliente no encontrado $clie"]);
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
-function datosPedido($cve_doc, $claveSae, $conexionData)
+function datosPedido($cve_doc, $claveSae, $conexionData, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -121,19 +101,9 @@ function datosPedido($cve_doc, $claveSae, $conexionData)
         echo json_encode(['success' => false, 'message' => "Pedido/Factura no encontrado $cve_doc"]);
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
-function datosPartida($cve_doc, $claveSae, $conexionData)
+function datosPartida($cve_doc, $claveSae, $conexionData, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -155,19 +125,9 @@ function datosPartida($cve_doc, $claveSae, $conexionData)
     }
     return $partidas;
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
-function datosProcuto($CVE_ART, $claveSae, $conexionData)
+function datosProcuto($CVE_ART, $claveSae, $conexionData, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -191,7 +151,6 @@ function datosProcuto($CVE_ART, $claveSae, $conexionData)
         echo json_encode(['success' => false, 'message' => 'Producto no encontrado']);
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
 function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
@@ -273,10 +232,18 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     $conexionData = $conexionResult['data'];
     /*$facturaID = str_pad($factura, 10, '0', STR_PAD_LEFT);
     $facturaID = str_pad($facturaID, 20, ' ', STR_PAD_LEFT);*/
-
-    $pedidoData = datosPedido($facturaID, $claveSae, $conexionData);
-    $productosData = datosPartida($facturaID, $claveSae, $conexionData);
-    $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    $pedidoData = datosPedido($facturaID, $claveSae, $conexionData, $conn);
+    $productosData = datosPartida($facturaID, $claveSae, $conexionData, $conn);
+    $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData, $conn);
     $empresaData = datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey);
     //var_dump($empresaData);
     $password = decryptValue($empresaData['keyEncValue'], $empresaData['keyEncIv']);
@@ -293,7 +260,8 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     // Credenciales de Timbrado
     $datos['PAC']['usuario'] = $empresaData['rfc'];
     $datos['PAC']['pass'] = $empresaData['rfc'];
-    $datos['PAC']['produccion'] = 'SI';
+    //$datos['PAC']['produccion'] = 'SI';
+    $datos['PAC']['produccion'] = 'NO';
 
     // Credenciales de Timbrado
     /*$datos['PAC']['usuario'] = 'DEMO700101XXX';
@@ -383,7 +351,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     $IEPS = 0;
     $porIEPS = 0;
     foreach ($productosData as $producto) {
-        $dataProduc = datosProcuto($producto['CVE_ART'], $claveSae, $conexionData);
+        $dataProduc = datosProcuto($producto['CVE_ART'], $claveSae, $conexionData, $conn);
         $concepto = [];
         // Calcular la base imponible restando el descuento, si lo hay
         $baseImpuesto = $producto['TOT_PARTIDA'];
@@ -457,12 +425,15 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID)
     var_dump($res);*/
 
     if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
+        sqlsrv_close($conn);
         header('Content-Type: application/json');
         echo json_encode([
             "success" => true
         ]);
+
         return;
     } else {
+        sqlsrv_close($conn);
         header('Content-Type: application/json');
         echo json_encode([
             "success" => false,

@@ -20,7 +20,7 @@ function agregarEventosBotones() {
       try {
         //Verifica si ya fue facturada
         const res = await verificarPedido(pedidoID);
-        if (res.success) {
+        /*if (res.success) {
           //Si ya fue facturada, muestra este mensaje
           Swal.fire({
             title: "Aviso",
@@ -28,12 +28,12 @@ function agregarEventosBotones() {
             icon: "warning",
             confirmButtonText: "Entendido",
           });
-        } else if (res.fail) {
-          //Si no esta facturada, realizara la facturacion
-          facturarRemision(pedidoID); // Llama a la función para facturar la remision
-        } else {
+        } else if (res.fail) {*/
+        //Si no esta facturada, realizara la facturacion
+        facturarRemision(pedidoID); // Llama a la función para facturar la remision
+        /*} else {
           console.error("Respuesta inesperada:", res);
-        }
+        }*/
       } catch (error) {
         console.error("Error al verificar el pedido:", error);
         Swal.fire({
@@ -46,7 +46,7 @@ function agregarEventosBotones() {
     });
   });
 }
-function facturarRemision(pedidoID) {
+/*function facturarRemision(pedidoID) {
   Swal.fire({
     title: "Procesando facturacion...",
     text: "Por favor, espera mientras se completa la facturacion.",
@@ -98,6 +98,7 @@ function facturarRemision(pedidoID) {
             datosPedidos(true);
           });
         }
+        
       } catch (error) {
         Swal.fire({
           title: "Aviso",
@@ -118,6 +119,62 @@ function facturarRemision(pedidoID) {
     });
     console.log("Detalles del error:", jqXHR.responseText);
   });
+}*/
+
+function facturarRemision(pedidoID) {
+  Swal.fire({
+    title: "Procesando facturacion...",
+    text: "Por favor, espera mientras se completa la facturacion.",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => Swal.showLoading(),
+  });
+
+  const $fila = $(`button.btnFacturar[data-id="${pedidoID}"]`).closest("tr");
+  const fallaId = $fila.find("button.btn-error").data("falla-id");
+
+  $.ajax({
+    url: "../Servidor/PHP/remision.php",
+    method: "POST",
+    data: { numFuncion: "9", pedidoID, fallaId },
+    dataType: "json",
+  })
+    .done(function (response) {
+      if (response.success) {
+        Swal.fire({
+          title: "Facturado",
+          text: "La remisión ha sido facturada correctamente",
+          icon: "success",
+          confirmButtonText: "Entendido",
+        }).then(() => datosPedidos());
+      } else {
+        Swal.fire({
+          title: "Aviso",
+          text: response.message || "No se pudo facturar la remisión",
+          icon: "warning",
+          confirmButtonText: "Entendido",
+        }).then(() => datosPedidos(true));
+      }
+    })
+    .fail(function (jqXHR) {
+      const defaultMsg = "Hubo un problema al intentar facturar la remisión";
+      let msg = defaultMsg;
+
+      try {
+        const err = JSON.parse(jqXHR.responseText);
+        if (err.message) msg = err.message;
+      } catch (e) {}
+
+      Swal.fire({
+        title: "Aviso",
+        text: msg,
+        icon: "warning",
+        confirmButtonText: "Entendido",
+      });
+    })
+    .always(function () {
+      Swal.hideLoading();
+    });
 }
 
 function mostrarModalErrores(id) {
@@ -1050,9 +1107,11 @@ function doSearch(limpiarTabla = true) {
     } else {
       pedidosTable.insertAdjacentHTML("beforeend", spinnerRow);
     }
-  
-    const displayButtons = ["FACTURISTA", "ADMINISTRADOR"].includes(tipoUsuario);
-    
+
+    const displayButtons = ["FACTURISTA", "ADMINISTRADOR"].includes(
+      tipoUsuario
+    );
+
     $.post(
       "../Servidor/PHP/remision.php",
       {
