@@ -4394,7 +4394,10 @@ function datosFolios($claveSae, $conexionData, $conn)
 
     $sql = "SELECT TIP_DOC, SERIE, TIPO
         FROM $nombreTabla
-        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'AM";
+        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'AV'";
+        /*$sql = "SELECT TIP_DOC, SERIE, TIPO
+        FROM $nombreTabla
+        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'MD";*/
 
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
@@ -4988,8 +4991,8 @@ function obtenerFolioF($conexionData, $claveSae, $conn)
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta SQL para obtener el siguiente folio
-    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
-    //$sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'AV'";
+    //$sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
+    $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'AV'";
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
@@ -5029,9 +5032,12 @@ function actualizarFolio($conexionData, $claveSae, $conn)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // SQL para incrementar el valor de ULT_DOC en 1 donde TIP_DOC es 'P'
+    /*$sql = "UPDATE $nombreTabla
+            SET [ULT_DOC] = [ULT_DOC] + 1
+            WHERE TIP_DOC = 'F' AND SERIE = 'MD'";*/
     $sql = "UPDATE $nombreTabla
             SET [ULT_DOC] = [ULT_DOC] + 1
-            WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
+            WHERE TIP_DOC = 'F' AND SERIE = 'AV'";
 
     // Ejecutar la consulta SQL
     $stmt = sqlsrv_query($conn, $sql);
