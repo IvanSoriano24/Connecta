@@ -377,9 +377,8 @@ function liberarExistencias($conexionData, $folio, $claveSae)
         }
     }
 }
-function cancelarPedido($conexionData, $folio, $claveSae)
+function cancelarPedido($conexionData, $pedidoID, $claveSae)
 {
-    //Crear conexion a based de datos
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -388,27 +387,48 @@ function cancelarPedido($conexionData, $folio, $claveSae)
         "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
-
     $conn = sqlsrv_connect($serverName, $connectionInfo);
+
     if ($conn === false) {
-        var_dump(sqlsrv_errors());
+        echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
-    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
-    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-    //Crear tablas dinamicas
-    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    //Crear consulta para obtener los productos y la cantidad de estos
-    $sql = "SELECT [CVE_ART], [CANT] FROM $nombreTabla
-        WHERE [CVE_DOC] = ?";
-    $params = [$CVE_DOC];
-    $stmt = sqlsrv_query($conn, $sql);
-    if ($stmt === false) {
-        echo "DEBUG: Error al actualizar el pedido:\n";
-        var_dump(sqlsrv_errors());
-        exit;
+    $pedidoID = str_pad($pedidoID, 10, '0', STR_PAD_LEFT);
+    $pedidoID = str_pad($pedidoID, 20, ' ', STR_PAD_LEFT);
+
+    $tablaPedidos   = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPedidosCLIB = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // Iniciar transacción
+    sqlsrv_begin_transaction($conn);
+
+    try {
+        // 1. Actualizar STATUS en FACTP##
+        $query1 = "UPDATE $tablaPedidos SET STATUS = 'C' WHERE CVE_DOC = ?";
+        $stmt1 = sqlsrv_prepare($conn, $query1, [$pedidoID]);
+        if (!$stmt1 || !sqlsrv_execute($stmt1)) {
+            throw new Exception('Error al cancelar el pedido en FACTP', 1);
+        }
+
+        // 2. Actualizar CAMPLIB3 en FACTP_CLIB##
+        $query2 = "UPDATE $tablaPedidosCLIB SET CAMPLIB3 = 'C' WHERE CLAVE_DOC = ?";
+        $stmt2 = sqlsrv_prepare($conn, $query2, [$pedidoID]);
+        if (!$stmt2 || !sqlsrv_execute($stmt2)) {
+            throw new Exception('Error al actualizar CAMPLIB3 en FACTP_CLIB', 2);
+        }
+
+        sqlsrv_commit($conn);
+        echo json_encode(['success' => true, 'pedido' => $pedidoID]);
+    } catch (Exception $e) {
+        sqlsrv_rollback($conn);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage(),
+            'errors' => sqlsrv_errors()
+        ]);
     }
+
+    sqlsrv_close($conn);
 }
 function obtenerFecha($conexionData, $cliente, $claveSae)
 {

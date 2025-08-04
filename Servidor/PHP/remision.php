@@ -4394,10 +4394,7 @@ function datosFolios($claveSae, $conexionData, $conn)
 
     $sql = "SELECT TIP_DOC, SERIE, TIPO
         FROM $nombreTabla
-        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'MD'";
-    /*$sql = "SELECT TIP_DOC, SERIE, TIPO
-        FROM $nombreTabla
-        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'AM'";*/
+        WHERE TIP_DOC = 'F' AND TIPO = 'D' AND SERIE = 'AM";
 
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
