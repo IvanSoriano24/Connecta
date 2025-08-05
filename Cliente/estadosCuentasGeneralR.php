@@ -228,6 +228,49 @@ session_destroy(); */
             white-space: nowrap; /* evita que se rompa el texto */
             top: -36px; /* sube 2px el sticky */
         }
+        #clientesSugeridos li {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        #clientesSugeridos li.highlighted {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .suggestions-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            border: 1px solid #ccc;
+            border-top: none;
+            background-color: white;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-sizing: border-box;
+        }
+
+        .suggestions-list li {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .suggestions-list li:hover {
+            background-color: #f0f0f0;
+        }
+        .input-group label {
+            width: 100%;
+            text-align: left;
+        }
+        .input-group select {
+            width: 180px;
+        }
     </style>
 </head>
 <body>
@@ -309,10 +352,25 @@ session_destroy(); */
                                 <?php } ?>
                             </div>
                             <div class="input-group">
-                                <label for="Clientes">Clientes: </label>
-                                <select id="filtroClientes"></select>
+                                <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
+                                <label for="cliente">Cliente:</label>
+                                <div class="input-container" style="position: relative;">
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        <input name="cliente" id="cliente" hidden/>
+                                        <input name="filtroClientes" id="filtroClientes" autocomplete="off"
+                                               oninput="toggleClearButton()" style="padding-right: 1rem; width: 170px;" />
+                                        <button id="clearInput" type="button" class="btn" onclick="clearAllFields()" tabindex="-1"
+                                                style="display: none; padding: 5px 10px;">
+                                            <i class="bx bx-x"></i>
+                                        </button>
+                                        <button type="button" class="btn" onclick="abrirModalClientes()" tabindex="-1"
+                                                style="padding: 5px 5px;">
+                                            <i class="bx bx-search"></i>
+                                        </button>
+                                    </div>
+                                    <ul id="clientesSugeridos" class="suggestions-list"></ul>
+                                </div>
                             </div>
-                            <h3></h3>
                             <div class="input-group">
                                 <i class='bx bx-search search-icon'></i>
                                 <input
@@ -350,6 +408,59 @@ session_destroy(); */
         <!-- MAIN -->
     </section>
     <!-- CONTENT -->
+</div>
+<!-- Modal clientes -->
+<div id="modalClientes" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">Ayuda Clientes</h5>
+                <button type="button" class="btn-close" onclick="cerrarModalClientes()"></button>
+            </div>
+            <!-- Filtro Estático -->
+            <div class="modal-static">
+                <div class="form-group row">
+                    <div class="col-4">
+                        <label for="filtroCriterioClientes" class="form-label">Filtrar por:</label>
+                        <select id="filtroCriterioClientes" class="form-control">
+                            <option value="CLAVE">Clave</option>
+                            <option value="NOMBRE">Nombre</option>
+                        </select>
+                    </div>
+                    <div class="col-8">
+                        <label for="campoBusquedaClientes" class="form-label">Buscar:</label>
+                        <input type="search" id="campoBusquedaClientes" class="form-control"
+                               placeholder="Escribe aquí...">
+                    </div>
+                </div>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Lista de Productos -->
+                <div id="">
+                    <table id="" name="tablalistaProductos" class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Clave</th>
+                            <th>Nombre</th>
+                            <th>Telefono</th>
+                            <th>Saldo</th>
+                        </tr>
+                        </thead>
+                        <tbody id="datosClientes">
+                        <!-- Contenido dinámico -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <!-- <button type="button" class=" btn-cancel" onclick="cerrarModal()">C</button> -->
+            </div>
+        </div>
+    </div>
 </div>
 <!-- CONTENT -->
 <!-- JS Para la confirmacion empresa -->
