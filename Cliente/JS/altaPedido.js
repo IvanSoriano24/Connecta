@@ -179,15 +179,14 @@ function validarExistencias(nuevaFila, cantidad) {
         let apartados = datos.APART;
 
         let existenciasReales = existenciasAlmacen - apartados;
-        if(existenciasReales < 0)
+        if (existenciasReales < 0)
           existenciasReales = 0;
 
         let otrosAlmacenes = existenciasTotales - existenciasAlmacen;
 
         if (existenciasReales < cantidad) {
           const mensajeHtml = `
-            <p>No hay suficientes existencias para el producto <strong>${
-              cve_art.value
+            <p>No hay suficientes existencias para el producto <strong>${cve_art.value
             }</strong>.</p>
             <ul style="text-align:left">
               <li><strong>Solicitados:</strong> ${cantidad || 0}</li>
@@ -1139,26 +1138,24 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           title: "Error al guardar el pedido",
           //Creacion de Mensaje con los productos, exitencias y apartados de estos
           html: `
-            <p>${
-              data.message ||
-              "No hay suficientes existencias para algunos productos."
+            <p>${data.message ||
+            "No hay suficientes existencias para algunos productos."
             }</p>
             <p><strong>Productos sin existencias:</strong></p>
             <ul>
               ${data.productosSinExistencia
-                .map(
-                  (producto) => `
+              .map(
+                (producto) => `
                   <li>
                     <strong>Producto:</strong> ${producto.producto}, 
-                    <strong>Existencias Totales:</strong> ${
-                      producto.existencias || 0
-                    }, 
+                    <strong>Existencias Totales:</strong> ${producto.existencias || 0
+                  }, 
                     <strong>Apartados:</strong> ${producto.apartados || 0}, 
                     <strong>Disponibles:</strong> ${producto.disponible || 0}
                   </li>
                 `
-                )
-                .join("")}
+              )
+              .join("")}
             </ul>
           `,
           icon: "error",
@@ -1486,7 +1483,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   // Obtener precio del producto y actualizar la fila
   await completarPrecioProducto(producto.CVE_ART, filaProd); // Pasar el nodo DOM, no jQuery
 }
-function llenarDatosProducto(producto) {}
+function llenarDatosProducto(producto) { }
 function desbloquearCampos() {
   $(
     "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio, #observaciones"
@@ -2240,6 +2237,9 @@ $(document).ready(function () {
   $("#guardarPedido").click(async function (event) {
     //Funcion que se activa al guardar el pedido
     event.preventDefault();
+    const $btn = $(this);
+    // Desactiva el botón al hacer clic
+    $btn.prop("disabled", true);
     const clienteSeleccionado =
       sessionStorage.getItem("clienteSeleccionado") === "true";
     // Obtener el ID actual del pedido desde el formulario
@@ -2326,9 +2326,10 @@ $(document).ready(function () {
       }
 
       guardarPedido(id);
-
+      $btn.prop("disabled", false); // ← Lo habilitas si hubo error inesperado
       return false; // Evita la recarga de la página
     } catch (error) {
+      $btn.prop("disabled", false); // ← Lo habilitas si hubo error inesperado
       console.error("Error al obtener el folio:", error);
       return false; // Previene la recarga en caso de error
     }

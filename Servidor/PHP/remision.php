@@ -300,7 +300,7 @@ function insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc, $enlace)
     // Tablas dinámicas
     $tablaPedidos = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaInventario = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMovimientos = "[{$conexionData['nombreBase']}].[dbo].[MINVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaControlMovimientos = "[{$conexionData['nombreBase']}].[dbo].[TBLCONTROL" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
@@ -426,7 +426,7 @@ function insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc, $enlace)
             $FECHAELAB,
             $cveFolio,
             -1,
-            'L',
+            'S',
             $costo,
             $costo,
             $costo,
@@ -1594,7 +1594,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVI
         $fechaDoc,
         $pedido['FORMADEPAGOSAT'],
         $pedido['USO_CFDI'],
-        $pedido['TIP_FAC'],
+        'R',
         $pedido['REG_FISC'],
         $pedido['IMP_TOT5'],
         $pedido['IMP_TOT6'],
@@ -1867,7 +1867,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
             APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, VERSION_SINC, UUID,
             IMPU5, IMPU6, IMPU7, IMPU8, IMP5APLA, IMP6APLA, IMP7APLA, IMP8APLA, TOTIMP5, 
             TOTIMP6, TOTIMP7, TOTIMP8,
-            CVE_PRODSERV, CVE_UNIDAD)
+            CVE_PRODSERV, CVE_UNIDAD, PREC_NETO)
         VALUES (
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?, ?, ?, 
@@ -1876,7 +1876,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
         ?, ?, ?, ?, ?, ?, ?, '',
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?,
-        ?, ?)";
+        ?, ?, ?)";
 
         $paramsInsert = [
             $cveDoc,
@@ -1902,7 +1902,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
             $row['DESC2'],
             $row['DESC3'],
             $row['COMI'],
-            $row['APAR'],
+            0,
             'S',
             $row['NUM_ALM'],
             $row['POLIT_APLI'],
@@ -1937,7 +1937,8 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
             $row['TOTIMP7'],
             $row['TOTIMP8'],
             $row['CVE_PRODSERV'],
-            $row['CVE_UNIDAD']
+            $row['CVE_UNIDAD'],
+            0
         ];
 
         $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
@@ -6761,8 +6762,8 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
 }
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
-    //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
-    $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
         'cve_doc' => $folio,
