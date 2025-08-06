@@ -4,8 +4,138 @@ let filtroFechaInicio = "";
 let filtroFechaFin = "";
 let filtroVendedor = "";
 let filtroCliente = 0;
+const inputCliente = $("#cliente");
+const clearButton = $("#clearInput");
+const suggestionsList = $("#clientesSugeridos");
 const token = document.getElementById("csrf_token").value;
+// Vincular los eventos de búsqueda y cambio de criterio
+document.addEventListener("DOMContentLoaded", () => {
+    document
+        .getElementById("campoBusquedaClientes")
+        .addEventListener("input", filtrarClientes);
+    document
+        .getElementById("filtroCriterioClientes")
+        .addEventListener("change", filtrarClientes);
 
+    const clienteInput = document.getElementById("filtroClientes");
+    clienteInput.addEventListener("input", () => {
+        if (!clienteSeleccionado) {
+            showCustomerSuggestions();
+        }
+    });
+});
+
+$(document).ready(function() {
+    // Referencias a los elementos UL donde se mostrarán las sugerencias
+    const suggestionsList = $('#clientesSugeridos');
+    let highlightedIndex = -1; // Índice del elemento actualmente resaltado
+
+    // Evento que se dispara al escribir en el campo de cliente
+    $('#filtroClientes').on('input', function() {
+        const clienteInput = $(this).val().trim(); // Valor ingresado
+        const claveUsuario = '<?php echo $claveUsuario ?>'; // Clave de usuario PHP inyectada
+        if (clienteInput.length >= 1) {
+            // Si hay al menos un carácter, solicitamos sugerencias al servidor
+            $.ajax({
+                url: '../Servidor/PHP/ventas.php',
+                type: 'POST',
+                data: {
+                    cliente: clienteInput, // Texto a buscar
+                    numFuncion: '4', // Código de función para "buscar cliente"
+                    clave: claveUsuario // Clave de usuario para filtrar resultados
+                },
+                success: function(response) {
+                    try {
+                        // Si la respuesta viene como string, intentamos parsear a JSON
+                        if (typeof response === 'string') {
+                            response = JSON.parse(response);
+                        }
+                    } catch (e) {
+                        console.error("Error al parsear la respuesta JSON", e);
+                        return;
+                    }
+
+                    // Si la búsqueda tuvo éxito y devolvió un arreglo con al menos un cliente...
+                    if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
+                        suggestionsList.empty().show(); // Limpiamos y mostramos el listado
+                        highlightedIndex = -1; // Reiniciamos índice resaltado
+
+                        // Iteramos sobre cada cliente encontrado y creamos un <li> para cada uno
+                        response.cliente.forEach((cliente, index) => {
+                            const listItem = $('<li></li>')
+                                .text(`${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`) // Texto visible
+                                .attr('data-index', index) // Índice en el arreglo
+                                .attr('data-cliente', JSON.stringify(cliente)) // Datos completos JSON en atributo
+                                .on('click', function() {
+                                    // Al hacer clic, seleccionamos ese cliente
+                                    seleccionarClienteDesdeSugerencia(cliente);
+                                });
+
+                            suggestionsList.append(listItem);
+                        });
+                    } else {
+                        // Si no hay coincidencias, ocultamos el listado
+                        suggestionsList.empty().hide();
+                    }
+                },
+                error: function() {
+                    console.error("Error en la solicitud AJAX para sugerencias");
+                    suggestionsList.empty().hide(); // Ocultamos ante fallo
+                }
+            });
+        } else {
+            // Si el input queda vacío, limpamos y ocultamos las sugerencias
+            suggestionsList.empty().hide();
+        }
+    });
+
+    // Manejo de navegación con teclado en el campo de cliente
+    $('#filtroClientes').on('keydown', function(e) {
+        const items = suggestionsList.find('li');
+        if (!items.length) return; // Si no hay sugerencias, nada que hacer
+
+        if (e.key === 'ArrowDown') {
+            // Flecha abajo: avanzamos índice (circular) y resaltamos
+            highlightedIndex = (highlightedIndex + 1) % items.length;
+            actualizarDestacado(items, highlightedIndex);
+            e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            // Flecha arriba: retrocedemos índice (circular) y resaltamos
+            highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+            actualizarDestacado(items, highlightedIndex);
+            e.preventDefault();
+        } else if (e.key === 'Tab' || e.key === 'Enter') {
+            // Tab o Enter: si hay elemento resaltado, lo seleccionamos
+            if (highlightedIndex >= 0) {
+                const clienteSeleccionado = JSON.parse(
+                    $(items[highlightedIndex]).attr('data-cliente')
+                );
+                seleccionarClienteDesdeSugerencia(clienteSeleccionado);
+                suggestionsList.empty().hide();
+            }
+            e.preventDefault();
+        }
+    });
+
+    // Función para aplicar/remover la clase "highlighted" al <li> correcto
+    function actualizarDestacado(items, index) {
+        items.removeClass('highlighted');
+        $(items[index]).addClass('highlighted');
+    }
+
+    // Si se hace clic fuera del campo #cliente, ocultamos la lista de sugerencias de clientes
+    $(document).on('click', function(event) {
+        if (!$(event.target).closest('#filtroClientes').length) {
+            $('#clientesSugeridos').empty().hide();
+        }
+    });
+
+    // Evento para el botón "X" que limpia el input de cliente y sus campos relacionados
+    $('#clearInput').on('click', function() {
+        $('#filtroClientes').val(''); // Limpia campo cliente
+        $(this).hide(); // Oculta el botón "X"
+    });
+});
 function datosReportes(limpiarTabla = true) {
 
     // --- Solicitud para llenar la tarjeta del cliente ---
@@ -152,7 +282,7 @@ $(document).on("change", "#filtroFechaInicio, #filtroFechaFin, #filtroVendedor, 
     filtroFechaInicio = $("#filtroFechaInicio").val();
     filtroFechaFin = $("#filtroFechaFin").val();
     filtroVendedor = $("#filtroVendedor").val();
-    filtroCliente = $("#filtroClientes").val();
+    filtroCliente = $("#cliente").val();
 
     datosReportes(true);
 });
@@ -297,7 +427,7 @@ function llenarFiltroCliente() {
                     : responseClientes;
 
                 if (res.success && Array.isArray(res.data)) {
-                    const selectCliente = $("#filtroClientes");
+                    const selectCliente = $("#cliente");
                     selectCliente.empty();
 
                     res.data.forEach((cliente, index) => {
@@ -328,7 +458,8 @@ function llenarFiltroCliente() {
                         $fechaFin.attr("max", hoyStr);
                         $fechaFin.val(hoyStr);
 
-                        $("#filtroClientes").val(res.data[0].CLAVE);
+                        $("#cliente").val(res.data[0].CLAVE);
+                        $("#filtroClientes").val(res.data[0].NOMBRE);
                         filtroCliente = res.data[0].CLAVE;
                     }
 
@@ -357,4 +488,144 @@ function llenarFiltroCliente() {
             });
         }
     });
+}
+// Mostrar/ocultar el botón "x"
+function toggleClearButton() {
+    if (inputCliente.val().trim() !== "") {
+        clearButton.show();
+    } else {
+        clearButton.hide();
+    }
+}
+// Limpiar todos los campos
+function clearAllFields() {
+    // Limpiar valores de los inputs
+    $("#filtroClientes").val("");
+
+    // Limpiar la lista de sugerencias
+    suggestionsList.empty().hide();
+
+    // Ocultar el botón "x"
+    clearButton.hide();
+}
+let clienteSeleccionado = false;
+let clienteId = null; // Variable para almacenar el ID del cliente
+let clientesData = []; // Para almacenar los datos originales de los clientes
+
+// Función para abrir el modal y cargar los clientes
+function abrirModalClientes() {
+    const modalElement = document.getElementById("modalClientes");
+    const modal = new bootstrap.Modal(modalElement);
+    const datosClientes = document.getElementById("datosClientes"); //Tbody de la tabla del modal
+    const token = document.getElementById("csrf_token").value; //Token de seguridad
+
+    // Solicitar datos al servidor
+    $.post(
+        "../Servidor/PHP/clientes.php",
+        { numFuncion: "9", token: token },
+        function (response) {
+            try {
+                if (response.success && response.data) {
+                    clientesData = response.data; // Guardar los datos originales
+                    datosClientes.innerHTML = ""; // Limpiar la tabla
+
+                    // Renderizar los datos en la tabla
+                    renderClientes(clientesData);
+                } else {
+                    datosClientes.innerHTML =
+                        '<tr><td colspan="4">No se encontraron clientes</td></tr>';
+                }
+            } catch (error) {
+                console.error("Error al cargar clientes:", error);
+            }
+        }
+    );
+    //Abrir modal
+    modal.show();
+}
+// Filtrar clientes según la entrada de búsqueda en el modal
+function filtrarClientes() {
+    const criterio = document.getElementById("filtroCriterioClientes").value;
+    const busqueda = document
+        .getElementById("campoBusquedaClientes")
+        .value.toLowerCase();
+
+    const clientesFiltrados = clientesData.filter((cliente) => {
+        const valor = cliente[criterio]?.toLowerCase() || "";
+        return valor.includes(busqueda);
+    });
+
+    renderClientes(clientesFiltrados);
+}
+// Función para renderizar los clientes en la tabla
+function renderClientes(clientes) {
+    const datosClientes = document.getElementById("datosClientes");
+    datosClientes.innerHTML = "";
+    clientes.forEach((cliente) => {
+        const fila = document.createElement("tr");
+        //Contruir fila con datos
+        fila.innerHTML = `
+            <td>${cliente.CLAVE}</td>
+            <td>${cliente.NOMBRE}</td>
+            <td>${cliente.TELEFONO || "Sin teléfono"}</td>
+            <td>$${parseFloat(cliente.SALDO || 0).toFixed(2)}</td>
+        `;
+
+        // Agregar evento de clic para seleccionar cliente desde el modal
+        fila.addEventListener("click", () => seleccionarClienteDesdeModal(cliente));
+
+        datosClientes.appendChild(fila);
+    });
+}
+// Función para cerrar el modal
+function cerrarModalClientes() {
+    const modalElement = document.getElementById("modalClientes");
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    modal.hide();
+}
+// Función para seleccionar un cliente desde el modal
+function seleccionarClienteDesdeModal(cliente) {
+    filtroCliente = cliente.CLAVE; // Guardar el ID del cliente
+    $("#filtroClientes").val(cliente.NOMBRE);
+    cerrarModalClientes(); // Cerrar el modal
+    datosReportes(true);
+}
+// Función para mostrar sugerencias de clientes
+function showCustomerSuggestions() {
+    const clienteInput = document.getElementById("filtroClientes");
+    const clienteInputValue = clienteInput.value.trim();
+    const sugerencias = document.getElementById("clientesSugeridos");
+
+    sugerencias.classList.remove("d-none"); // Mostrar las sugerencias
+
+    // Generar las sugerencias en base al texto ingresado
+    const clientesFiltrados = clientesData.filter((cliente) =>
+        cliente.NOMBRE.toLowerCase().includes(clienteInputValue.toLowerCase())
+    );
+
+    sugerencias.innerHTML = ""; // Limpiar las sugerencias anteriores
+
+    if (clientesFiltrados.length === 0) {
+        sugerencias.innerHTML = "<li>No se encontraron coincidencias</li>";
+    } else {
+        clientesFiltrados.forEach((cliente) => {
+            const sugerencia = document.createElement("li");
+            sugerencia.textContent = `${cliente.CLAVE} - ${cliente.NOMBRE}`;
+            sugerencia.classList.add("suggestion-item");
+
+            // Evento para seleccionar cliente desde las sugerencias
+            sugerencia.addEventListener("click", (e) => {
+                e.stopPropagation(); // Evitar que el evento de clic global oculte las sugerencias
+                seleccionarClienteDesdeSugerencia(cliente);
+            });
+
+            sugerencias.appendChild(sugerencia);
+        });
+    }
+}
+// Función para seleccionar un cliente desde las sugerencias
+function seleccionarClienteDesdeSugerencia(cliente) {
+    filtroCliente = cliente.CLAVE; // Guardar el ID del cliente
+    $("#filtroClientes").val(cliente.NOMBRE);
+    datosReportes(true);
 }
