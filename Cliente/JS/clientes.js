@@ -5,7 +5,7 @@ const formDatosGenerales = document.getElementById("formDatosGenerales");
 const formDatosVentas = document.getElementById("formDatosVentas");
 let paginaActual = 1;
 //const registrosPorPagina = 5; // Ajusta según convenga
-let registrosPorPagina = 10;
+let registrosPorPagina = 10; //10
 
 // Mostrar Datos Generales
 btnDatosGenerales.addEventListener("click", () => {
@@ -324,6 +324,7 @@ function obtenerClientes(limpiarTabla = true) {
                 ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
                 : ""; // Centrado de la palomita con display: block y margin: 0 auto
               const row = document.createElement("tr");
+              //cliente.CLAVE = (cliente.CLAVE + '').replace(/\D/g, '') || cliente.CLAVE;
               row.innerHTML = `
                             <td>${cliente.CLAVE || "Sin clave"}</td>
                             <td>${cliente.NOMBRE || "Sin nombre"}</td>

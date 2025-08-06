@@ -97,7 +97,7 @@
                     -->
                     <li><a class="dropdown-item" href="infoEmpresa.php" id="informaEmpresa" tabindex="-1">Información Empresa</a></li>
                     <li><a class="dropdown-item" href="ConexioSAE.php" id="infoSae" tabindex="-1">Conexión SAE</a></li>
-                    <!--<li><a class="dropdown-item" href="Correo.php" id="infoCorreo" tabindex="-1">Configuracion de Correo</a></li>-->
+                    <li><a class="dropdown-item" href="Correo.php" id="infoCorreo" tabindex="-1">Configuracion de Correo</a></li>
                 </ul>
             </li>
             <!--

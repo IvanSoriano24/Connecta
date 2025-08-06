@@ -46,6 +46,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
 function mostrarClientes($conexionData, $claveSae)
 {
     try {
+        header('Content-Type: application/json; charset=UTF-8');
         //session_start();
         // Validar si el número de empresa está definido en la sesión
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -143,6 +144,7 @@ function mostrarClientes($conexionData, $claveSae)
 
             $stmt = sqlsrv_query($conn, $sql, $params);
         }
+        //var_dump($sql);
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
@@ -174,6 +176,7 @@ function mostrarClientes($conexionData, $claveSae)
             }
             $clientes[] = $row;
         }
+
         $countSql  = "
             SELECT COUNT(DISTINCT CLAVE) AS total
             FROM $nombreTabla WHERE STATUS = 'A'
@@ -187,11 +190,11 @@ function mostrarClientes($conexionData, $claveSae)
         sqlsrv_close($conn);
         // Retornar los datos en formato JSON
         if (empty($clientes)) {
-            echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
+            echo json_encode(['success' => false, 'total' => 0, 'data' => [], 'message' => 'No se encontraron clientes']);
             exit;
         }
-        header('Content-Type: application/json; charset=UTF-8');
         echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
+        exit;
     } catch (Exception $e) {
         // Si hay algún error, devuelves un error en formato JSON
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -1066,6 +1069,10 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
             } elseif ($value === null) {
                 $value = ''; // Valor predeterminado si es null
             }
+            if ($key === 'CLAVE') {
+                // deja sólo dígitos
+                $value = preg_replace('/[^\d]/', '', $value);
+            }
             $row[$key] = $value;
         }
         $clientes[] = $row;
@@ -1501,7 +1508,7 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
             $fieldss = $comandaData['fields'];
             $observaciones = $fieldss['observaciones']['stringValue'] ?? "";
             $fields = $comandaData['fields']['envio']['mapValue']['fields'] ?? [];
-            
+
             $envioDataComanda = [
                 'codigoContacto'     => $fields['codigoContacto']['stringValue']     ?? '',
                 'companiaContacto'     => $fields['companiaContacto']['stringValue']     ?? '',

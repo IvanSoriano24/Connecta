@@ -1162,7 +1162,7 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           confirmButtonText: "Aceptar",
         });
       } else if (data.cxc) {
-        //Mensaje cuando no se encontro un anticipo y tiene 24/27 horas para pagar
+        //Mensaje cuando no se encontro un anticipo y tiene 72 horas para pagar
         Swal.fire({
           title: "Cuenta por pagar",
           text: data.message || "El cliente tiene una cuenta por pagar",
@@ -1221,7 +1221,10 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
         text: error.message,
         icon: "error",
         confirmButtonText: "Aceptar",
-      });
+      }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
     });
 
   return false;
@@ -2326,12 +2329,12 @@ $(document).ready(function () {
       }
 
       guardarPedido(id);
-      $btn.prop("disabled", false); // ← Lo habilitas si hubo error inesperado
       return false; // Evita la recarga de la página
     } catch (error) {
-      $btn.prop("disabled", false); // ← Lo habilitas si hubo error inesperado
       console.error("Error al obtener el folio:", error);
       return false; // Previene la recarga en caso de error
+    } finally {
+      $btn.prop("disabled", false); // ← Lo habilitas si hubo error inesperado
     }
   });
 });

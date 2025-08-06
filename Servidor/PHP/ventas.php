@@ -143,6 +143,10 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$filename = "Pedido_18456.pdf";
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
+            if(str_contains($resultadoWhatsApp, "error")){
+                throw new Exception("Problema al enviar mensaje de WhatsApp");
+            }
+            //var_dump($resultadoWhatsApp);
         }
         if ($correoBandera === 0) {
             enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $idEnvios); // Enviar correo
@@ -156,6 +160,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
                 'autorizacion' => false,
                 'message' => 'El pedido se completó correctamente.',
             ]);
+            exit();
         } elseif ($correoBandera === 1 && $numeroBandera === 0) {
             echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp.']);
             //die();
@@ -228,8 +233,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -522,18 +527,19 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
     }
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         if ($numeroBandera === 0) {
-            //$numeroWhatsApp = 7773340218;
-            $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-
-            //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+            //$numeroWhatsApp = 7773750925;
+            //$rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
-            $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-            //$filename = "Pedido_18456.pdf";
-            $resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
-
+            //$filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+            
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
             //var_dump($resultadoWhatsApp);
+            $resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
+            if(str_contains($resultadoWhatsApp, "error")){
+                throw new Exception("Problema al enviar mensaje de WhatsApp");
+            }
+            
         }
 
         // Enviar notificaciones solo si los datos son válidos
@@ -571,72 +577,6 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
 }
 function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto)
 {
-    /*global $firebaseProjectId, $firebaseApiKey;
-
-    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
-    $collection = "DATOS_PEDIDO";
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
-
-    // Payload para hacer un where compuesto (idPedido y noEmpresa)
-    $payload = json_encode([
-        "structuredQuery" => [
-            "from" => [
-                ["collectionId" => $collection]
-            ],
-            "where" => [
-                "compositeFilter" => [
-                    "op" => "AND",
-                    "filters" => [
-                        [
-                            "fieldFilter" => [
-                                "field" => ["fieldPath" => "idPedido"],
-                                "op" => "EQUAL",
-                                "value" => ["integerValue" => (int)$noPedido]
-                            ]
-                        ],
-                        [
-                            "fieldFilter" => [
-                                "field" => ["fieldPath" => "noEmpresa"],
-                                "op" => "EQUAL",
-                                "value" => ["integerValue" => (int)$noEmpresa]
-                            ]
-                        ]
-                    ]
-                ]
-            ],
-            "limit" => 1
-        ]
-    ]);
-
-    $options = [
-        'http' => [
-            'header'  => "Content-Type: application/json\r\n",
-            'method'  => 'POST',
-            'content' => $payload,
-        ]
-    ];
-
-    $context  = stream_context_create($options);
-    $response = @file_get_contents($url, false, $context);
-
-    // Inicializa la variable donde guardarás el id
-    $idFirebasePedido = null;
-    $direccion1Contacto = null;
-
-    if ($response !== false) {
-        $resultArray = json_decode($response, true);
-        // runQuery devuelve un array con un elemento por cada match
-        if (isset($resultArray[0]['document'])) {
-            $doc    = $resultArray[0]['document'];
-            // si quieres el ID:
-            $parts  = explode('/', $doc['name']);
-            $idFirebasePedido = end($parts);
-            // y para tomar tu campo direccion1Contacto:
-            $fields = $doc['fields'];
-            $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
-        }
-    }
-        */
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -916,7 +856,8 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
         // En caso de éxito, puedes registrar logs o realizar alguna otra acción
     } else {
         error_log("Error al enviar el correo: $resultado");
-        echo json_encode(['success' => false, 'message' => $resultado]);
+        //echo json_encode(['success' => false, 'message' => $resultado]);
+        throw new Exception("Error al enviar el correo");
     }
 }
 function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVendedor)
@@ -1036,7 +977,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
         $clavesRegistradas = [];
 
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            foreach ($row as $key => $value) {
+            /*foreach ($row as $key => $value) {
                 if ($value !== null && is_string($value)) {
                     $value = trim($value);
                     if (!empty($value)) {
@@ -1052,9 +993,9 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             }
 
             if (!in_array($row['Clave'], $clavesRegistradas)) {
-                $clavesRegistradas[] = $row['Clave'];
+                $clavesRegistradas[] = $row['Clave'];*/
                 $clientes[] = $row;
-            }
+            //}
         }
 
         // Consulta para total
@@ -3499,7 +3440,9 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         // En caso de éxito, puedes registrar logs o realizar alguna otra acción
     } else {
         error_log("Error al enviar el correo: $resultado");
-        echo json_encode(['success' => false, 'message' => $resultado]);
+        //echo json_encode(['success' => false, 'message' => $resultado]);
+        //die();
+        throw new Exception("Error al enviar el correo");
     }
 }
 function obtenerClientePedido($claveVendedor, $conexionData, $clienteInput, $claveSae)
@@ -7827,8 +7770,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -9711,12 +9654,14 @@ switch ($funcion) {
                                 ]);
                                 sqlsrv_commit($conn);
                                 sqlsrv_close($conn);
+                                exit();
                             }
                         } catch (Exception $e) {
                             // Si falla cualquiera, deshacemos TODO:
                             sqlsrv_rollback($conn);
                             sqlsrv_close($conn);
-                            return ['success' => false, 'message' => $e->getMessage()];
+                            //return ['success' => false, 'message' => $e->getMessage()];
+                            echo json_encode (['success' => false, 'message' => $e->getMessage()]);
                         }
                         ///Fin
                     } else {
