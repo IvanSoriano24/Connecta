@@ -1211,6 +1211,9 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           text: data.message || "Ocurrió un error inesperado.",
           icon: "warning",
           confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
         });
       }
     })
@@ -1226,7 +1229,6 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
           window.location.href = "Ventas.php";
         });
     });
-
   return false;
 }
 

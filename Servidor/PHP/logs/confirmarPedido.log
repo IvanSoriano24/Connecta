@@ -1,0 +1,21 @@
+[2025-08-06 14:43:02] Advertencia: Confirmacion Repetida → null
+[2025-08-06 14:47:36] Advertencia: Confirmacion Repetida → null
+[2025-08-06 14:47:44] Advertencia: Confirmacion Repetida → null
+[2025-08-06 14:53:05] Succes: Comanda Creada→ null
+[2025-08-06 14:54:15] ERROR: Error al crear la Comanda → null
+[2025-08-06 14:56:54] Succes: Comanda Creada→ null
+[2025-08-06 14:59:10] Succes: Comanda Creada→ null
+[2025-08-06 15:22:52] Advertencia: Pedido:  Rechazado → null
+[2025-08-06 15:22:52] Advertencia: Notificado a  del pedido rechazado → {"type":2,"message":"Undefined variable $pedidoID","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\confirmarPedido.php","line":586}
+[2025-08-06 15:24:19] Advertencia: Pedido:  Rechazado → null
+[2025-08-06 15:24:19] Advertencia: Notificado a  del pedido rechazado → {"type":2,"message":"Undefined variable $pedidoID","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\confirmarPedido.php","line":587}
+[2025-08-06 15:25:41] Advertencia: Pedido: 146 Rechazado → null
+[2025-08-06 15:25:41] Advertencia: Notificado a  del pedido rechazado → null
+[2025-08-06 15:29:05] Advertencia: Pedido: 146 Rechazado → null
+[2025-08-06 15:29:06] Advertencia: Notificado a  del pedido rechazado → null
+[2025-08-06 15:29:34] Advertencia: Pedido: 146 Rechazado → null
+[2025-08-06 15:29:35] Advertencia: Notificado a  del pedido rechazado → null
+[2025-08-06 15:50:55] Advertencia: Pedido: 146 Rechazado → null
+[2025-08-06 15:52:37] Advertencia: Pedido: 146 Rechazado → null
+[2025-08-06 15:53:21] Advertencia: Pedido: 146 Rechazado → null
+[2025-08-06 15:53:22] Advertencia: Se le notifico al vendedor sobre el pedido 146 → null
