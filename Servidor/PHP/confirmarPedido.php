@@ -197,13 +197,21 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     $conCredito       = $_GET['conCredito'] ?? "";
     $fechaElaboracion = urldecode($_GET['fechaElab'] ?? 'Sin fecha');
     $idEnvios = $_GET['idEnvios'] ?? "";
+
+    $error = error_get_last();
+    $msg = sprintf(
+        "[%s] INFO: El cliente $clave realizo la accion → %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($error, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     //Verificamos si el pedido ya fue aceptado
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
     if ($resultado) {
         //Si ya fue aceptado, mostrar este mensaje
         $err = error_get_last();
         $msg = sprintf(
-            "[%s] Advertencia: Confirmacion Repetida → %s\n",
+            "[%s] Advertencia: Confirmacion Repetida de  $pedidoId→ %s\n",
             date('Y-m-d H:i:s'),
             json_encode($err, JSON_UNESCAPED_UNICODE)
         );
@@ -214,7 +222,6 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             <!--<a href='/index.php' class='button'>Volver al inicio</a>-->
           </div>";
     } else {
-
         //Obtenemos los datos de conexion
         $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
         if (!$conexionResult['success']) {
@@ -225,10 +232,24 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
         //Verifcamos que accion realizara
         if ($accion === 'confirmar') {
             //Inicia validacion
-            $exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae);
+            $exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile);
             if ($exsitencias['success']) {
+                $error = error_get_last();
+                $msg = sprintf(
+                    "[%s] INFO: El pedido $pedidoId cuenta con las existencias necesarias → %s\n",
+                    date('Y-m-d H:i:s'),
+                    json_encode($error, JSON_UNESCAPED_UNICODE)
+                );
+                error_log($msg, 3, $logFile);
                 //Verificamos si es un pedido realizado con credito o sin credito
                 if ($conCredito === 'S') {
+                    $error = error_get_last();
+                    $msg = sprintf(
+                        "[%s] INFO: El cliente $clave maneja credico → %s\n",
+                        date('Y-m-d H:i:s'),
+                        json_encode($error, JSON_UNESCAPED_UNICODE)
+                    );
+                    error_log($msg, 3, $logFile);
                     // Obtener la hora actual
                     $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
                     // Determinar el estado según la hora
@@ -241,7 +262,6 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     $comanda = [
                         "fields" => [
                             "idComanda" => ["stringValue" => uniqid()],
-
                             "folio" => ["stringValue" => $pedidoId],
                             "claveCliente" => ["stringValue" => $claveCliente],
                             "nombreCliente" => ["stringValue" => $nombreCliente],
@@ -330,8 +350,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         $result = json_decode($response, true);
                         if (isset($result['name'])) {
 
-                            //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-                            $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+                            $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                            //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
                             $data = [
                                 'numFuncion' => 1,
@@ -377,7 +397,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                                 file_put_contents("remision.pdf", $remisionResponse);
                                 echo "<script>window.open('remision.pdf', '_blank');</script>";
                             }
-                            bitacora($claveCliente, $firebaseProjectId, $firebaseApiKey, $pedidoId, "aceptado", $noEmpresa);
+                            bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "aceptado", $noEmpresa);
                             echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
@@ -454,7 +474,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     if ($buscar['booleanValue']) {
                         $error = error_get_last();
                         $msg = sprintf(
-                            "[%s] Succes: Pedido aceptado y esperando el pago → %s\n",
+                            "[%s] Succes: Pedido $pedidoId aceptado y esperando el pago → %s\n",
                             date('Y-m-d H:i:s'),
                             json_encode($error, JSON_UNESCAPED_UNICODE)
                         );
@@ -467,7 +487,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     } else if ($status['stringValue'] === 'Pagada') {
                         $error = error_get_last();
                         $msg = sprintf(
-                            "[%s] Advertencia: El pago ya se confirmo → %s\n",
+                            "[%s] Advertencia: El pago del pedido $pedidoId ya se confirmo → %s\n",
                             date('Y-m-d H:i:s'),
                             json_encode($error, JSON_UNESCAPED_UNICODE)
                         );
@@ -502,7 +522,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                       </div>";
                         } else {
-                            //bitacora($claveCliente, $firebaseProjectId, $firebaseApiKey, $pedidoId, "anticipo", $noEmpresa);
+                            bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "anticipo", $noEmpresa);
                             echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <div class='message'>El pedido ha sido confirmado y tiene 72 horas para pagarlo.</div>
@@ -515,13 +535,14 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                 if ($conCredito === 'S') {
                     $result = notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiKey, $vendedor, $pedidoId, $nombreCliente, $noEmpresa, $claveSae);
                     //var_dump($result);
-                    $error = error_get_last();
+                    /*$error = error_get_last();
                     $msg = sprintf(
-                        "[%s] Advertencia: Pedido: $pedidoID sin existencias → %s\n",
+                        "[%s] Advertencia: Pedido: $pedidoId sin existencias → %s\n",
                         date('Y-m-d H:i:s'),
                         json_encode($error, JSON_UNESCAPED_UNICODE)
                     );
-                    error_log($msg, 3, $logFile);
+                    error_log($msg, 3, $logFile);*/
+                    //Hacer for de los pedidos sin existencias
                     echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <!--<div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>-->
@@ -626,12 +647,12 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             //$telefonoVendedor = '+527775681612';
             if (!$telefonoVendedor) {
                 $error = error_get_last();
-                            $msg = sprintf(
-                                "[%s] ERROR: No se notifico al vendedor sobre el pedido $pedidoId → %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($error, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
+                $msg = sprintf(
+                    "[%s] ERROR: No se notifico al vendedor sobre el pedido $pedidoId → %s\n",
+                    date('Y-m-d H:i:s'),
+                    json_encode($error, JSON_UNESCAPED_UNICODE)
+                );
+                error_log($msg, 3, $logFile);
                 echo "<div class='container'>
                         <div class='title'>Error al Encontrar Vendedor</div>
                         <div class='message'>No se encontró el número de teléfono del vendedor.</div>
@@ -643,12 +664,12 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             $resultadoWhatsApp = enviarWhatsApp($telefonoVendedor, $pedidoId, $nombreCliente);
             if ($resultadoWhatsApp) {
                 $error = error_get_last();
-                            $msg = sprintf(
-                                "[%s] Advertencia: Se le notifico al vendedor sobre el pedido $pedidoId → %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($error, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
+                $msg = sprintf(
+                    "[%s] Advertencia: Se le notifico al vendedor sobre el pedido $pedidoId → %s\n",
+                    date('Y-m-d H:i:s'),
+                    json_encode($error, JSON_UNESCAPED_UNICODE)
+                );
+                error_log($msg, 3, $logFile);
                 echo "<div class='container'>
                         <div class='title'>Pedido Rechazado</div>
                         <div class='message'>El pedido $pedidoId fue rechazado correctamente y se notificó al vendedor.</div>
@@ -723,7 +744,7 @@ function enviarWhatsApp($numero, $pedidoId, $nombreCliente)
 
     return $result;
 }
-function verificarExistencias($pedidoId, $conexionData, $claveSae)
+function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
 {
     //Creamos la conexion
     $serverName = $conexionData['host'];
@@ -781,6 +802,14 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae)
             var_dump($apartados);
             var_dump($disponible);*/
             if ($disponible >= $cantidad) {
+                // opcional: también loguear los que sí tienen existencia
+                $msg = sprintf(
+                    "[%s] Info: Pedido %s verificadas existencias correctamente → %s\n",
+                    date('Y-m-d H:i:s'),
+                    $pedidoId,
+                    json_encode($productosConExistencia, JSON_UNESCAPED_UNICODE)
+                );
+                error_log($msg, 3, $logFile);
                 $productosConExistencia[] = [
                     'producto' => $CVE_ART,
                     'existencias' => $existencias,
@@ -788,6 +817,14 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae)
                     'disponible' => $disponible
                 ];
             } else {
+                $msg = sprintf(
+                    "[%s] Advertencia: Pedido %s sin existencias → %s\n",
+                    date('Y-m-d H:i:s'),
+                    $pedidoId,
+                    json_encode($productosSinExistencia, JSON_UNESCAPED_UNICODE)
+                );
+                // escribe en el log (flag 3 = append a fichero)
+                error_log($msg, 3, $logFile);
                 $productosSinExistencia[] = [
                     'producto' => $CVE_ART,
                     'existencias' => $existencias,

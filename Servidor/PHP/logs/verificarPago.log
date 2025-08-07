@@ -1,0 +1,15 @@
+[2025-08-07 17:05:18] Succes: Buscando pago del pedido: 19358 null
+[2025-08-07 17:05:18] Succes: Pedido: 19358 en tiempo null
+[2025-08-07 17:05:18] Succes: Pedido: 19358 con importe 4978.75, con una cuenta de 0.01  null
+[2025-08-07 17:05:18] Succes: Pedido: 19358 no pagado null
+[2025-08-07 17:05:19] Succes: Buscando pago del pedido: 19366 null
+[2025-08-07 17:05:19] Succes: Pedido: 19366 en tiempo null
+[2025-08-07 17:05:19] Succes: Pedido: 19366 con importe 7850.32, con una cuenta de 0.01  null
+[2025-08-07 17:05:19] Succes: Pedido: 19366 no pagado null
+[2025-08-07 17:05:20] Succes: Buscando pago del pedido: 19399 null
+[2025-08-07 17:05:20] Succes: Pedido: 19399 en tiempo null
+[2025-08-07 17:05:20] Succes: Pedido: 19399 con importe 17290.12, con una cuenta de 0  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-07 17:05:20] Succes: Pedido: 19399 no pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-07 17:05:21] Succes: Buscando pago del pedido: 19383 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-07 17:05:21] ERROR:El pago del pedido: 19383 se vencio {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-07 17:05:21] Succes: Liberando existencias del pedido: 19383 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
