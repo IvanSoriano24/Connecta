@@ -1,4 +1,8 @@
 <?php
+//$logFile = '/var/log/confirmarPedido.log';
+// al inicio de tu script PHP
+$logDir  = __DIR__ . '/logs';
+$logFile = $logDir . '/verificarPago.log';
 require 'firebase.php';
 
 //Funcion para obtener los datos de conexion
@@ -41,7 +45,7 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 
-function verificarPago($conexionData, $cliente, $claveSae, $folio)
+function verificarPago($conexionData, $cliente, $claveSae, $folio, $logFile)
 {
     // 1) Conectar
     $serverName = $conexionData['host'];
@@ -125,6 +129,13 @@ function verificarPago($conexionData, $cliente, $claveSae, $folio)
     $pagada = $importePagado >= $importePedido;
     var_dump("pagada: ", $pagada);
 
+    $err = error_get_last();
+    $msg = sprintf(
+        "[%s] Succes: Pedido: $folio con importe $importePedido, con una cuenta de $importePagado  %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($err, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     // 6) Si no hay anticipo, devolvemos pagada=false
     if (!$row2) {
         return [
@@ -147,7 +158,7 @@ function verificarPago($conexionData, $cliente, $claveSae, $folio)
     ];
 }
 
-function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae)
+function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile)
 {
     //Construir la URL con el id del documento y los updateMask para solo actualizar los campos requeridos
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=status&updateMask.fieldPaths=buscar&key=$firebaseApiKey";
@@ -172,10 +183,22 @@ function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio,
 
     //Verificar la respuesta
     if ($response === false) {
+        $err = error_get_last();
+        $msg = sprintf(
+            "[%s] ERROR: Pago: $folio no cambio de estatus %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         echo "Error al actualizar la comanda $pagoId.\n";
     } else {
-        //echo "Comanda $pagoId actualizada a 'Pagada'.\n";
-        //Cambiar el estado en base de datos SAE
+        $err = error_get_last();
+        $msg = sprintf(
+            "[%s] Succes: Pago: $folio cambio de estatus %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
     }
 }
 function cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae)
@@ -209,8 +232,15 @@ function cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, 
         //Cambiar el estado en base de datos SAE
     }
 }
-function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
+function crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile)
 {
+    $err = error_get_last();
+    $msg = sprintf(
+        "[%s] Succes: Empezando la remision %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($err, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     //Construir la conexion
     $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
     //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
@@ -245,10 +275,17 @@ function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
     echo "Respuesta de decodificada.php: " . $remisionData;
     //$cveDoc = trim($remisionData['cveDoc']);
     // Verificar si la respuesta es un PDF
+    $err = error_get_last();
+    $msg = sprintf(
+        "[%s] Succes: Respuesta de la remision $remisionData, mas informacion revisar logs de la remision %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($err, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
 }
 
-function eliminarCxc($conexionData, $claveSae, $cliente, $pagado)
+function eliminarCxc($conexionData, $claveSae, $cliente, $pagado, $logFile)
 {
     // Configuración de conexión
     $serverName = $conexionData['host'];
@@ -284,6 +321,13 @@ function eliminarCxc($conexionData, $claveSae, $cliente, $pagado)
 
     // Iniciar una transacción
     sqlsrv_begin_transaction($conn);
+    $err = error_get_last();
+    $msg = sprintf(
+        "[%s] Succes: Iniciando aliminacion de pago %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($err, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
 
     try {
         // Eliminar de la tabla CUEN_M
@@ -299,7 +343,22 @@ function eliminarCxc($conexionData, $claveSae, $cliente, $pagado)
         }
         // Confirmar la transacción
         sqlsrv_commit($conn);
+        $err = error_get_last();
+        $msg = sprintf(
+            "[%s] Succes: CXC eliminada %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
     } catch (Exception $e) {
+        $err = error_get_last();
+        $mensaje = $e->getMessage();
+        $msg = sprintf(
+            "[%s] Error: Hubo un error al eliminar la CXC: $mensaje pagado %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         // Revertir la transacción en caso de error
         sqlsrv_rollback($conn);
         die(json_encode([
@@ -315,8 +374,9 @@ function eliminarCxc($conexionData, $claveSae, $cliente, $pagado)
     sqlsrv_close($conn);
 }
 
-function liberarExistencias($conexionData, $folio, $claveSae)
+function liberarExistencias($conexionData, $folio, $claveSae, $logFile)
 {
+
     //Crear conexion a based de datos
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -332,6 +392,13 @@ function liberarExistencias($conexionData, $folio, $claveSae)
         var_dump(sqlsrv_errors());
         exit;
     }
+    $err = error_get_last();
+    $msg = sprintf(
+        "[%s] Succes: Liberando existencias del pedido: $folio %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($err, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     //Crear tablas dinamicas
@@ -365,19 +432,40 @@ function liberarExistencias($conexionData, $folio, $claveSae)
         // Ejecutar la consulta SQL
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
+            $err = sqlsrv_errors();
+            $msg = sprintf(
+                "[%s] ERROR: Error al liberar las existencias %s\n",
+                date('Y-m-d H:i:s'),
+                json_encode($err, JSON_UNESCAPED_UNICODE)
+            );
+            error_log($msg, 3, $logFile);
             die(json_encode(['success' => false, 'message' => 'Error al actualizar el inventario', 'errors' => sqlsrv_errors()]));
         }
         // Verificar cuántas filas se han afectado
         $rowsAffected = sqlsrv_rows_affected($stmt);
         // Retornar el resultado
         if ($rowsAffected > 0) {
+            $err = sqlsrv_errors();
+            $msg = sprintf(
+                "[%s] Succes: Existencias liberadas exitosamente %s\n",
+                date('Y-m-d H:i:s'),
+                json_encode($err, JSON_UNESCAPED_UNICODE)
+            );
+            error_log($msg, 3, $logFile);
             // echo json_encode(['success' => true, 'message' => 'Inventario actualizado correctamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'No se encontró el producto para actualizar']);
+            $err = sqlsrv_errors();
+            $msg = sprintf(
+                "[%s] ERROR: No se encontro producto para liberar %s\n",
+                date('Y-m-d H:i:s'),
+                json_encode($err, JSON_UNESCAPED_UNICODE)
+            );
+            error_log($msg, 3, $logFile);
         }
     }
 }
-function cancelarPedido($conexionData, $pedidoID, $claveSae)
+function cancelarPedido($conexionData, $pedidoID, $claveSae, $logFile)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -393,6 +481,13 @@ function cancelarPedido($conexionData, $pedidoID, $claveSae)
         echo json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]);
         exit;
     }
+    $err = sqlsrv_errors();
+    $msg = sprintf(
+        "[%s] Succes: Cancelando pedido $pedidoID %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($err, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     $pedidoID = str_pad($pedidoID, 10, '0', STR_PAD_LEFT);
     $pedidoID = str_pad($pedidoID, 20, ' ', STR_PAD_LEFT);
 
@@ -419,8 +514,22 @@ function cancelarPedido($conexionData, $pedidoID, $claveSae)
 
         sqlsrv_commit($conn);
         echo json_encode(['success' => true, 'pedido' => $pedidoID]);
+        $err = sqlsrv_errors();
+        $msg = sprintf(
+            "[%s] Succes: Pedido $pedidoID cancelado %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
     } catch (Exception $e) {
         sqlsrv_rollback($conn);
+        $err = sqlsrv_errors();
+        $msg = sprintf(
+            "[%s] ERROR: Error al cancelar el  pedido $pedidoID %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         echo json_encode([
             'success' => false,
             'message' => $e->getMessage(),
@@ -466,8 +575,15 @@ function obtenerFecha($conexionData, $cliente, $claveSae)
     return $fechaPago;
 }
 
-function crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey)
+function crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey, $logFile)
 {
+    $err = error_get_last();
+    $msg = sprintf(
+        "[%s] Succes: Iniciando la creacion de la comanda %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($err, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     date_default_timezone_set('America/Mexico_City');
 
     $pedidoData = datosPedido($folio, $claveSae, $conexionData);
@@ -547,12 +663,26 @@ function crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fech
     $response = @file_get_contents($url, false, $context);
 
     if ($response === false) {
+
         $error = error_get_last();
+        $msg = sprintf(
+            "[%s] ERROR: Error al crear la comanda %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         echo "<div class='container'>
                         <div class='title'>Error al Conectarse</div>
                         <div class='message'>No se pudo conectar a Firebase: " . $error['message'] . "</div>
                       </div>";
     } else {
+        $err = error_get_last();
+        $msg = sprintf(
+            "[%s] Succes: Se creo la comanda %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
                             <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
@@ -560,7 +690,7 @@ function crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fech
     }
 }
 
-function eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios)
+function eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios, $logFile)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO/$idEnvios?key=$firebaseApiKey";
 
@@ -577,12 +707,25 @@ function eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEn
     // Verificar si fue exitoso o no
     if ($result === false) {
         $error = error_get_last();
+        $msg = sprintf(
+            "[%s] ERROR: No se elimino el documento de los datos del pedido %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($error, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         echo "<div class='container'>
                 <div class='title'>Error al eliminar</div>
                 <div class='message'>No se pudo eliminar el documento DATOS_PEDIDO/$idEnvios: {$error['message']}</div>
               </div>";
         return false;
     } else {
+        $err = error_get_last();
+        $msg = sprintf(
+            "[%s] Succes: Se elimino el documento de los datos del pedido %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         echo "<div class='container'>
                 <div class='title'>Documento Eliminado</div>
                 <div class='message'>Se eliminó correctamente DATOS_PEDIDO/$idEnvios</div>
@@ -859,7 +1002,7 @@ function datoEnvio($idEnvio, $claveSae, $conexionData)
     return $calleEnvio;
 }
 
-function restarSaldo($conexionData, $claveSae, $pagado, $cliente)
+function restarSaldo($conexionData, $claveSae, $pagado, $cliente, $logFile)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -878,6 +1021,13 @@ function restarSaldo($conexionData, $claveSae, $pagado, $cliente)
         ]));
     }
     //$imp = -6380.0;
+    $err = error_get_last();
+    $msg = sprintf(
+        "[%s] Succes: Iniciando resta de saldo %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($err, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     $cliente = formatearClaveCliente($cliente);
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sql = "UPDATE $nombreTabla SET
@@ -889,6 +1039,13 @@ function restarSaldo($conexionData, $claveSae, $pagado, $cliente)
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
+        $err = error_get_last();
+        $msg = sprintf(
+            "[%s] Succes: No se actualizo el saldo del cliente $cliente %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($err, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         die(json_encode([
             'success' => false,
             'message' => 'Error al actualizar el saldo',
@@ -911,9 +1068,16 @@ function restarSaldo($conexionData, $claveSae, $pagado, $cliente)
         'success' => true,
         'message' => "Saldo actualizado correctamente para el cliente: $cliente"
     ]);
+    $err = error_get_last();
+    $msg = sprintf(
+        "[%s] Succes: Saldo actualizado correctamente del cliente $cliente %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($err, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
 }
 
-function verificarPedidos($firebaseProjectId, $firebaseApiKey)
+function verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile)
 {
     //Obtener los pagos
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
@@ -955,31 +1119,54 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                     $conexionData = $conexionResult['data'];
                     $fechaPago = obtenerFecha($conexionData, $cliente, $claveSae);
                     $fechaLimiteObj = new DateTime($fechaLimite);
+                    $err = error_get_last();
+                    $msg = sprintf(
+                        "[%s] Succes: Buscando pago del pedido: $folio %s\n",
+                        date('Y-m-d H:i:s'),
+                        json_encode($err, JSON_UNESCAPED_UNICODE)
+                    );
+                    error_log($msg, 3, $logFile);
                     var_dump("folio: ", $folio);
                     //Validar que no hayan pasado las 24horas
+
                     if ($fechaPago <= $fechaLimiteObj) {
+                        $err = error_get_last();
+                        $msg = sprintf(
+                            "[%s] Succes: Pedido: $folio en tiempo %s\n",
+                            date('Y-m-d H:i:s'),
+                            json_encode($err, JSON_UNESCAPED_UNICODE)
+                        );
+                        error_log($msg, 3, $logFile);
                         //Verificar si se realizo el pago
-                        $pagado = verificarPago($conexionData, $cliente, $claveSae, $folio);
+                        $pagado = verificarPago($conexionData, $cliente, $claveSae, $folio, $logFile);
 
                         //$pagado['pagada'] = true;
                         if ($pagado['pagada']) {
                             var_dump($pagado);
+
+                            $err = error_get_last();
+                            $msg = sprintf(
+                                "[%s] Succes: Pedido: $folio pagado %s\n",
+                                date('Y-m-d H:i:s'),
+                                json_encode($err, JSON_UNESCAPED_UNICODE)
+                            );
+                            error_log($msg, 3, $logFile);
                             //die();
 
                             //echo "DEBUG: Pago encontrado, actualizando estado para pagoId: $pagoId, folio: $folio\n"; // Depuración
-                            cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
+                            cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile);
                             //var_dump($pagado);
-                            eliminarCxc($conexionData, $claveSae, $cliente, $pagado);
-                            restarSaldo($conexionData, $claveSae, $pagado, $cliente);
+                            eliminarCxc($conexionData, $claveSae, $cliente, $pagado, $logFile);
+                            restarSaldo($conexionData, $claveSae, $pagado, $cliente, $logFile);
                             //var_dump($cliente);
                             //Inicia validacion
                             //$exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae);
                             //if ($exsitencias['success']) {
-                            crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey);
+                            crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey, $logFile);
 
-                            crearRemision($folio, $claveSae, $noEmpresa, $vendedor);
+                            crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile);
                             // Eliminar el documento de DATOS_PEDIDO
-                            eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios);
+                            eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios, $logFile);
                             //Remision y Demas
                             /*} else {
                                 if ($conCredito === 'S') {
@@ -1029,12 +1216,27 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
                                 }
                             }*/
                             //Termina validacion
+                        } else {
+                            $err = error_get_last();
+                            $msg = sprintf(
+                                "[%s] Succes: Pedido: $folio no pagado %s\n",
+                                date('Y-m-d H:i:s'),
+                                json_encode($err, JSON_UNESCAPED_UNICODE)
+                            );
+                            error_log($msg, 3, $logFile);
                         }
                     } else if ($fechaPago > $fechaLimiteObj) {
+                        $err = error_get_last();
+                        $msg = sprintf(
+                            "[%s] ERROR:El pago del pedido: $folio se vencio %s\n",
+                            date('Y-m-d H:i:s'),
+                            json_encode($err, JSON_UNESCAPED_UNICODE)
+                        );
+                        error_log($msg, 3, $logFile);
                         //Si ya pasaron, liberar existencias
-                        liberarExistencias($conexionData, $folio, $claveSae);
-                        cancelarPedido($conexionData, $folio, $claveSae);
-                        cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae);
+                        liberarExistencias($conexionData, $folio, $claveSae, $logFile);
+                        cancelarPedido($conexionData, $folio, $claveSae, $logFile);
+                        cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile);
                         //Notificar
                     }
                 }
@@ -1044,4 +1246,4 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey)
 }
 
 //Funcion primaria para validar si se realizo el pago
-verificarPedidos($firebaseProjectId, $firebaseApiKey);
+verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile);

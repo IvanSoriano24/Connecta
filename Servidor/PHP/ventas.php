@@ -121,17 +121,20 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
     /*$emailPred = $_SESSION['usuario']['correo'];
     $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
 
-    if ($emailPred === "") {
+    if (empty($emailPred) || !filter_var($emailPred, FILTER_VALIDATE_EMAIL)) {
         $correoBandera = 1;
     } else {
         $correoBandera = 0;
     }
-    if ($numeroWhatsApp === "") {
+    if (empty($numeroWhatsApp) || !preg_match('/^\d{10,15}$/', $numeroWhatsApp)) {
         $numeroBandera = 1;
     } else {
         $numeroBandera = 0;
     }
-    if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
+    if (($correo === 'S')) {
+        if ($correoBandera === 0) {
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $idEnvios); // Enviar correo
+        }
         // Enviar notificaciones solo si los datos son válidos
         if ($numeroBandera === 0) {
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
@@ -148,9 +151,6 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             }
             //var_dump($resultadoWhatsApp);
         }
-        if ($correoBandera === 0) {
-            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $idEnvios); // Enviar correo
-        }
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
             /// Respuesta de éxito
@@ -160,24 +160,52 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
                 'autorizacion' => false,
                 'message' => 'El pedido se completó correctamente.',
             ]);
-            exit();
         } elseif ($correoBandera === 1 && $numeroBandera === 0) {
             echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp.']);
-            //die();
+
         } elseif ($correoBandera === 0 && $numeroBandera === 1) {
             echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo.']);
-            // die();
-        } else {
+
+        } else { //$correoBandera === 1 && $numeroBandera === 1
             $emailPred = $_SESSION['usuario']['correo'];
             $numeroWhatsApp = $_SESSION['usuario']['telefono'];
             enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $idEnvios); // Enviar correo
             $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
+            if(str_contains($resultadoWhatsApp, "error")){
+                throw new Exception("Problema al enviar mensaje de WhatsApp");
+            }
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
-            //die();
         }
     } else {
-        echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y WhatsApp Válido Registrado.']);
-        //die();
+        // Enviar notificaciones solo si los datos son válidos
+        if ($numeroBandera === 0) {
+            $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+
+            //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+
+            //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
+            $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+            //$filename = "Pedido_18456.pdf";
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
+            //$resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
+            if(str_contains($resultadoWhatsApp, "error")){
+                throw new Exception("Problema al enviar mensaje de WhatsApp");
+            }
+            /// Respuesta de éxito
+            header('Content-Type: application/json; charset=UTF-8');
+            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp.']);
+        } else {
+            //Enviar correo y whatsapp al vendedor y Sí realizar el pedido
+            // aunque no use correo y el numero este mal
+            $emailPred = $_SESSION['usuario']['correo'];
+            $numeroWhatsApp = $_SESSION['usuario']['telefono'];
+            enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $idEnvios); // Enviar correo
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
+            if(str_contains($resultadoWhatsApp, "error")){
+                throw new Exception("Problema al enviar mensaje de WhatsApp");
+            }
+            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no usa Correo y su WhatsApp no es válido.']);
+        }
     }
     /*******************************************/
 }
