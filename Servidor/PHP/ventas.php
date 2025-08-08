@@ -1607,7 +1607,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
         $IMPU2 = 0;
         $IMPU4 = $partida['iva']; // Impuesto 2
         // Agregar los cálculos para los demás impuestos...
-        $PXS = $CANT;
+        $PXS = 0;
         $DESC1 = $partida['descuento'];
         $DESC2 = 0;
         $COMI = $partida['comision'];
@@ -2531,7 +2531,7 @@ function guardarPartidas($conexionData, $formularioData, $partidasData, $claveSa
             $IMPU2 = 0;
             $IMPU4 = $partida['iva']; // Impuesto 2
             // Agregar los cálculos para los demás impuestos...
-            $PXS = $CANT;
+            $PXS = 0;
             $DESC1 = $partida['descuento'];
             $DESC2 = 0;
             //$COMI = $partida['comision'];
