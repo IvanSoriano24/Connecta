@@ -261,8 +261,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -809,8 +809,8 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&idEnvios=" . urlencode($idFirebasePedido);
 
@@ -3393,8 +3393,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&idEnvios=" . urlencode($idEnvios);
 
@@ -5289,8 +5289,8 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -5470,8 +5470,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -6125,7 +6125,7 @@ function guardarPago($idEnvios, $conexionData, $formularioData, $partidasData, $
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
     $vendedor = $formularioData['vendedor'];
     $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
-    $fechaLimite = date("Y-m-d H:i:s", strtotime($fechaCreacion . ' + 2 day')); // Suma 72 horas
+    $fechaLimite = date("Y-m-d H:i:s", strtotime($fechaCreacion . ' + 3 day')); // Suma 72 horas
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
     $fields = [
         'buscar' => ['booleanValue' => false],
@@ -6963,8 +6963,8 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     $productosJson = urlencode(json_encode($partidasData));
     $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
@@ -7473,8 +7473,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito)  . "&idEnvios=" . urlencode($idEnvios);
 
@@ -7796,8 +7796,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -9084,8 +9084,8 @@ function crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fech
 function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
     //Construir la conexion
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     //Estructurar los datos nesesarios
     $data = [
