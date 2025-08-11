@@ -742,13 +742,19 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
     } else {
         $data = json_decode($response, true);
         $comandas = [];
-
+        //var_dump($data);
         if (isset($data['documents'])) {
             foreach ($data['documents'] as $document) {
+                
                 $fields = $document['fields'];
                 $status = $fields['status']['stringValue'];
+                
+                /*if ($fields['folio']['stringValue'] === "19464") {
+                    var_dump("Folio", $fields['folio']['stringValue']);
+                }*/
                 // Aplicar el filtro de estado si está definido
                 if ($filtroStatus === '' || $status === $filtroStatus) {
+                    //var_dump($fields['folio']['stringValue']);
                     if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
                         $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
                         $fecha = $fechaHora[0] ?? "";
