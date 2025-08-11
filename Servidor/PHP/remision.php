@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 require 'firebase.php'; // Archivo de configuración de Firebase
 include 'reportes.php';
 require_once '../PHPMailer/clsMail.php';
-
+require_once '../XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php';
 
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
 {
@@ -4386,7 +4386,7 @@ function obtenerFolio($remisionId, $claveSae, $conexionData, $conn)
     $params = [$remisionId];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error en la consulta" . sqlsrv_errors());
     }
 
     if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
@@ -4468,7 +4468,7 @@ function datosCliente($clie, $claveSae, $conexionData, $conn)
 function datosClienteFactura($clie, $claveSae, $conexionData, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar a la base de datos" . sqlsrv_errors());
     }
 
     $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -4479,7 +4479,7 @@ function datosClienteFactura($clie, $claveSae, $conexionData, $conn)
 
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
     }
     // Obtener los resultados
     $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -4546,7 +4546,7 @@ function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 function datosFolios($claveSae, $conexionData, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar a la base de datos" . sqlsrv_errors());
     }
 
     $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -4560,7 +4560,8 @@ function datosFolios($claveSae, $conexionData, $conn)
 
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
+
     }
     // Obtener los resultados
     $foliosData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -4828,12 +4829,7 @@ function datosRemision($conexionData, $claveSae, $remision, $conn)
 function insertarBitaF($conexionData, $remision, $claveSae, $folioFactura, $conn)
 {
     if ($conn === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Tablas dinámicas
@@ -4845,12 +4841,7 @@ function insertarBitaF($conexionData, $remision, $claveSae, $folioFactura, $conn
     $stmtUltimaBita = sqlsrv_query($conn, $sqlUltimaBita);
 
     if ($stmtUltimaBita === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al obtener el último CVE_BITA',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al obtener el último CVE_BITA" . sqlsrv_errors());
     }
 
     $bitaData = sqlsrv_fetch_array($stmtUltimaBita, SQLSRV_FETCH_ASSOC);
@@ -4865,21 +4856,12 @@ function insertarBitaF($conexionData, $remision, $claveSae, $folioFactura, $conn
 
     $stmtRemision = sqlsrv_query($conn, $sqlRemision, $paramsPedido);
     if ($stmtRemision === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al obtener los datos del pedido',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al obtener los datos del pedido" . sqlsrv_errors());
     }
 
     $remisionn = sqlsrv_fetch_array($stmtRemision, SQLSRV_FETCH_ASSOC);
     if (!$remisionn) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se encontraron datos del remision'
-        ]);
-        die();
+        throw new Exception("No se encontraron datos del remision" . sqlsrv_errors());
     }
 
     $cveClie = $remisionn['CVE_CLPV'];
@@ -4911,12 +4893,7 @@ function insertarBitaF($conexionData, $remision, $claveSae, $folioFactura, $conn
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
     if ($stmtInsert === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => "Error al insertar en BITA01 con CVE_BITA $cveBita",
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al insertar en BITA01 con CVE_BITA $cveBita" . sqlsrv_errors());
     }
 
     // Cerrar conexión
@@ -4932,11 +4909,7 @@ function insertarBitaF($conexionData, $remision, $claveSae, $folioFactura, $conn
 function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveSae, $DAT_MOSTR, $folioFactura, $SERIE, $DAT_ENVIO, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $remision = str_pad($remision, 10, '0', STR_PAD_LEFT);
@@ -4954,21 +4927,12 @@ function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveS
     $paramsPedido = [$remision];
     $stmtPedido = sqlsrv_query($conn, $sqlPedido, $paramsPedido);
     if ($stmtPedido === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al obtener los datos del pedido',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al obtener los datos del pedido" . sqlsrv_errors());
     }
 
     $pedido = sqlsrv_fetch_array($stmtPedido, SQLSRV_FETCH_ASSOC);
     if (!$pedido) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se encontraron datos del pedido'
-        ]);
-        die();
+        throw new Exception("No se encontraron datos del pedido" . sqlsrv_errors());
     }
 
     $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
@@ -5052,24 +5016,12 @@ function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveS
     ];
 
     if (count($paramsInsert) !== 57) {
-        echo json_encode([
-            'success' => false,
-            'message' => "Error: La cantidad de valores en VALUES no coincide con las columnas en INSERT INTO",
-            'expected_columns' => 57,
-            'received_values' => count($paramsInsert),
-            'values' => $paramsInsert
-        ]);
-        die();
+        throw new Exception("Error: La cantidad de valores en VALUES no coincide con las columnas en INSERT INTO | columnas experadas: 57 | columnas recibidas: " . count($paramsInsert) . " | valores: " . $paramsInsert);
     }
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
     if ($stmtInsert === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => "Error al insertar en FACTRXX",
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al insertar en FACTRXX" . sqlsrv_errors());
     } else {
         /*echo json_encode([
             'success' => true,
@@ -5082,12 +5034,7 @@ function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveS
 function insertarFactf_Clib($conexionData, $folioFactura, $claveSae, $conn)
 {
     if ($conn === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Tablas dinámicas
@@ -5102,12 +5049,7 @@ function insertarFactf_Clib($conexionData, $folioFactura, $claveSae, $conn)
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
     if ($stmtInsert === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => "Error al insertar en FACTR_CLIBXX con CVE_DOC $claveDoc",
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al insertar en FACTR_CLIBXX con CVE_DOC $claveDoc" . sqlsrv_errors());
     }
 
     // Cerrar conexión
@@ -5122,11 +5064,7 @@ function insertarFactf_Clib($conexionData, $folioFactura, $claveSae, $conn)
 function obtenerFolioF($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -5135,7 +5073,7 @@ function obtenerFolioF($conexionData, $claveSae, $conn)
     //$sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'AV'";
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
     }
     // Obtener el siguiente folio
     $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -5156,7 +5094,7 @@ function obtenerFolioF($conexionData, $claveSae, $conn)
 function actualizarFolio($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar con la base de datos, error: " . sqlsrv_errors());
     }
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -5174,8 +5112,11 @@ function actualizarFolio($conexionData, $claveSae, $conn)
 
     if ($stmt === false) {
         // Si la consulta falla, liberar la conexión y retornar el error
-        sqlsrv_close($conn);
-        die(json_encode(['success' => false, 'message' => 'Error al actualizar el folio', 'errors' => sqlsrv_errors()]));
+        // --------------------------------------------------------------------- >
+        //sqlsrv_close($conn);
+        //die(json_encode(['success' => false, 'message' => 'Error al actualizar el folio', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al actualizar el folio");
+
     }
 
     // Verificar cuántas filas se han afectado
@@ -5194,11 +5135,7 @@ function actualizarFolio($conexionData, $claveSae, $conn)
 function obtenerRemision($conexionData, $pedidoId, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $folioAnterior = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
@@ -5228,11 +5165,7 @@ function obtenerRemision($conexionData, $pedidoId, $claveSae, $conn)
 function actualizarAfacF($conexionData, $remision, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
     $remision = str_pad($remision, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $remision = str_pad($remision, 20, ' ', STR_PAD_LEFT);
@@ -5246,19 +5179,12 @@ function actualizarAfacF($conexionData, $remision, $claveSae, $conn)
     $stmtRemision = sqlsrv_query($conn, $sqlRemision, $paramsPedido);
 
     if ($stmtRemision === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al obtener los datos del pedido',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al obtener los datos del pedido" . sqlsrv_errors());
     }
 
     $remisions = sqlsrv_fetch_array($stmtRemision, SQLSRV_FETCH_ASSOC);
     if (!$remisions) {
-        die(json_encode([
-            'success' => false,
-            'message' => "No se encontraron datos del pedido $remision"
-        ]));
+        throw new Exception("No se encontraron datos del pedido $remision" . sqlsrv_errors());
     }
 
     // 📌 Calcular valores a actualizar
@@ -5286,11 +5212,7 @@ function actualizarAfacF($conexionData, $remision, $claveSae, $conn)
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar AFACT02',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar AFACT02" . sqlsrv_errors());
     }
 
     sqlsrv_free_stmt($stmtRemision);
@@ -5350,12 +5272,7 @@ function insertarAlerta_Usuario($conexionData, $claveSae)
 function actualizarAlerta_Usuario1($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Tabla dinámica
@@ -5369,12 +5286,7 @@ function actualizarAlerta_Usuario1($conexionData, $claveSae, $conn)
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar ALERTA_USUARIOX1',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al actualizar ALERTA_USUARIOX1" . sqlsrv_errors());
     }
 
     sqlsrv_free_stmt($stmtUpdate);
@@ -5387,12 +5299,7 @@ function actualizarAlerta_Usuario1($conexionData, $claveSae, $conn)
 function actualizarAlerta_Usuario2($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Tabla dinámica
@@ -5406,12 +5313,7 @@ function actualizarAlerta_Usuario2($conexionData, $claveSae, $conn)
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar ALERTA_USUARIOX2',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al actualizar ALERTA_USUARIOX2" . sqlsrv_errors());
     }
 
     sqlsrv_free_stmt($stmtUpdate);
@@ -5424,12 +5326,7 @@ function actualizarAlerta_Usuario2($conexionData, $claveSae, $conn)
 function actualizarAlerta1($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Tabla dinámica
@@ -5443,12 +5340,7 @@ function actualizarAlerta1($conexionData, $claveSae, $conn)
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar ALERTAXX1',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al actualizar ALERTAXX1" . sqlsrv_errors());
     }
 
     sqlsrv_free_stmt($stmtUpdate);
@@ -5460,12 +5352,7 @@ function actualizarAlerta1($conexionData, $claveSae, $conn)
 function actualizarAlerta2($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Tabla dinámica
@@ -5479,12 +5366,7 @@ function actualizarAlerta2($conexionData, $claveSae, $conn)
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar ALERTAXX2',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al actualizar ALERTAXX2" . sqlsrv_errors());
     }
 
     sqlsrv_free_stmt($stmtUpdate);
@@ -5498,11 +5380,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura, $conn)
 {
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
     $tablaCunetM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
@@ -5595,7 +5473,6 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura, $conn)
     $stmt = sqlsrv_query($conn, $query, $params);
     if ($stmt === false) {
         $errors = sqlsrv_errors();
-        sqlsrv_close($conn);
         return [
             'success' => false,
             'message' => 'Error al insertar la cuenta por cobrar',
@@ -5617,11 +5494,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision,
 {
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
     $tablaCunetDet = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
@@ -5722,11 +5595,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision,
 function insertarDoctoSigF($conexionData, $remision, $folioFactura, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // ✅ Formatear los IDs para que sean de 10 caracteres con espacios a la izquierda
@@ -5748,11 +5617,7 @@ function insertarDoctoSigF($conexionData, $remision, $folioFactura, $claveSae, $
 
     $stmt1 = sqlsrv_query($conn, $sqlInsert1, $params1);
     if ($stmt1 === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => "Error al insertar relación Pedido -> Remisión en DOCTOSIGFXX",
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al insertar relación Pedido -> Remisión en DOCTOSIGFXX" . sqlsrv_errors());
     }
 
     // ✅ 2. Insertar relación: Factura -> Remision (A = Anterior)
@@ -5764,11 +5629,7 @@ function insertarDoctoSigF($conexionData, $remision, $folioFactura, $claveSae, $
 
     $stmt2 = sqlsrv_query($conn, $sqlInsert2, $params2);
     if ($stmt2 === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => "Error al insertar relación Remisión -> Pedido en DOCTOSIGFXX",
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al insertar relación Remisión -> Pedido en DOCTOSIGFXX" . sqlsrv_errors());
     }
 
     // ✅ Cerrar conexión
@@ -5783,11 +5644,7 @@ function insertarDoctoSigF($conexionData, $remision, $folioFactura, $claveSae, $
 function obtenerDatosPreEnlace($conexionData, $claveSae, $remision, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors'  => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Formatear remisión (20 chars, ceros y espacios a la izquierda)
@@ -5815,11 +5672,7 @@ function obtenerDatosPreEnlace($conexionData, $claveSae, $remision, $conn)
     ";
     $stmt = sqlsrv_query($conn, $sql, [$rem]);
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => "Error al obtener las partidas",
-            'errors'  => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al obtener las partidas" . sqlsrv_errors());
     }
 
     $datos = [];
@@ -5910,11 +5763,7 @@ function validarLotesFactura($conexionData, $claveSae, $remision, $conn)
 function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pedidoId, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Tablas dinámicas
@@ -5937,11 +5786,7 @@ function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pe
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => "Error al actualizar FACTPXX para el pedido $remisionId",
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar FACTPXX para el pedido $remisionId" . sqlsrv_errors());
     }
 
     // Cerrar conexión
@@ -5955,11 +5800,7 @@ function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pe
 function actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Tablas dinámicas
@@ -5987,11 +5828,7 @@ function actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId, $conn)
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => "Error al actualizar TIP_FAC en FACTPXX para el pedido $remisionId",
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar TIP_FAC en FACTPXX para el pedido $remisionId" . sqlsrv_errors());
     }
 
     // Cerrar conexión
@@ -6005,11 +5842,7 @@ function actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId, $conn)
 function actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // Tablas dinámicas
@@ -6039,11 +5872,7 @@ function actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId, $conn)
 
     $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
     if ($stmtUpdate === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => "Error al actualizar FACTPXX para el pedido $remisionId",
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar FACTPXX para el pedido $remisionId" . sqlsrv_errors());
     }
 
     // Cerrar conexión
@@ -6057,12 +5886,7 @@ function actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId, $conn)
 function insertarPar_FactrF($conexionData, $remision, $folioFactura, $claveSae, $conn)
 {
     if ($conn === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $remisionId = str_pad($remision, 10, '0', STR_PAD_LEFT);
@@ -6089,12 +5913,7 @@ function insertarPar_FactrF($conexionData, $remision, $folioFactura, $claveSae, 
 
     $stmtPartidas = sqlsrv_query($conn, $sqlPartidas, $paramsPartidas);
     if ($stmtPartidas === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al obtener las partidas del pedido',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al obtener las partidas del pedido" . sqlsrv_errors());
     }
 
     // Fecha de sincronización
@@ -6189,12 +6008,7 @@ function insertarPar_FactrF($conexionData, $remision, $folioFactura, $claveSae, 
 
         $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
         if ($stmtInsert === false) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Error al Insertar en Par_Factr',
-                'errors' => sqlsrv_errors()
-            ]);
-            die();
+            throw new Exception("Error al Insertar en Par_Factr" . sqlsrv_errors());
         }
     }
     //echo json_encode(['success' => true, 'folioFactura' => $folioFactura]);
@@ -6202,12 +6016,7 @@ function insertarPar_FactrF($conexionData, $remision, $folioFactura, $claveSae, 
 function insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveSae, $conn)
 {
     if ($conn === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
     $remisionId = str_pad($remision, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $remisionId = str_pad($remisionId, 20, ' ', STR_PAD_LEFT);
@@ -6224,21 +6033,12 @@ function insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveS
 
     $stmtContar = sqlsrv_query($conn, $sqlContarPartidas, $paramsContar);
     if ($stmtContar === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al contar las partidas del pedido',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al contar las partidas del pedido" . sqlsrv_errors());
     }
 
     $partidasData = sqlsrv_fetch_array($stmtContar, SQLSRV_FETCH_ASSOC);
     if (!$partidasData) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se encontraron partidas en el pedido'
-        ]);
-        die();
+        throw new Exception("No se encontraron partidas en el pedido" . sqlsrv_errors());
     }
 
     $numPartidas = $partidasData['TOTAL_PARTIDAS'];
@@ -6248,32 +6048,17 @@ function insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveS
 
     $stmtInsert = sqlsrv_query($conn, $sqlInsert, $paramsInsert);
     if ($stmtInsert === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => "Error al insertar en PAR_FACTR_CLIB01 con CVE_DOC $cveDoc",
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
+        throw new Exception("Error al insertar en PAR_FACTR_CLIB01 con CVE_DOC $cveDoc" . sqlsrv_errors());
     }
 
     // Cerrar conexión
-    //sqlsrv_free_stmt($stmtUltimaRemision);
     sqlsrv_free_stmt($stmtContar);
     sqlsrv_free_stmt($stmtInsert);
-
-    /*echo json_encode([
-        'success' => true,
-        'message' => "PAR_FACTF_CLIB01 insertado correctamente con CVE_DOC $cveDoc y $numPartidas partidas"
-    ]);*/
 }
 function actualizarControl1($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -6284,25 +6069,15 @@ function actualizarControl1($conexionData, $claveSae, $conn)
     $stmt = sqlsrv_query($conn, $sql);
 
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar TBLCONTROL01',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar TBLCONTROL01" . sqlsrv_errors());
     }
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
-
-    //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
 }
 function actualizarControl2F($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -6313,11 +6088,7 @@ function actualizarControl2F($conexionData, $claveSae, $conn)
     $stmt = sqlsrv_query($conn, $sql);
 
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar TBLCONTROL01',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar TBLCONTROL01" . sqlsrv_errors());
     }
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
@@ -6327,11 +6098,7 @@ function actualizarControl2F($conexionData, $claveSae, $conn)
 function actualizarControl3F($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -6342,11 +6109,7 @@ function actualizarControl3F($conexionData, $claveSae, $conn)
     $stmt = sqlsrv_query($conn, $sql);
 
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar TBLCONTROL01',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar TBLCONTROL01" . sqlsrv_errors());
     }
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
@@ -6356,11 +6119,7 @@ function actualizarControl3F($conexionData, $claveSae, $conn)
 function actualizarControl4F($conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     //$noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -6371,11 +6130,7 @@ function actualizarControl4F($conexionData, $claveSae, $conn)
     $stmt = sqlsrv_query($conn, $sql);
 
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar TBLCONTROL01',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar TBLCONTROL01" . sqlsrv_errors());
     }
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
@@ -6385,11 +6140,7 @@ function actualizarControl4F($conexionData, $claveSae, $conn)
 function actualizarInclie2($conexionData, $claveSae, $claveCliente, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $clave = formatearClaveCliente($claveCliente);
@@ -6405,29 +6156,16 @@ function actualizarInclie2($conexionData, $claveSae, $claveCliente, $conn)
     // Ejecutar la consulta
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar CLIE',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar CLIE" . sqlsrv_errors());
     }
 
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
-
-    /*echo json_encode([
-        'success' => true,
-        'message' => "CLIEXX actualizado correctamente "
-    ]);*/
 }
 function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors'  => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // 2) Preparar variables (igual que tus @P1…@P7)
@@ -6472,30 +6210,16 @@ function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn)
     // 6) Ejecutar
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al ejecutar UPDATE CLIE',
-            'errors'  => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al ejecutar UPDATE CLIE" . sqlsrv_errors());
     }
 
     // 7) Cerrar
     sqlsrv_free_stmt($stmt);
-
-    // 8) (Opcional) éxito
-    /*echo json_encode([
-        'success' => true,
-        'message' => 'CLIE actualizado correctamente'
-    ]);*/
 }
 function insertatInfoClieF($conexionData, $claveSae, $claveCliente, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors'  => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
     $dataCliente = obtenerDatosClienteF($claveCliente, $conexionData, $claveSae, $conn);
     $tablaClienteInfo = "[{$conexionData['nombreBase']}].[dbo].[INFCLI" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6503,11 +6227,7 @@ function insertatInfoClieF($conexionData, $claveSae, $claveCliente, $conn)
     $sqlUltimo = "SELECT ISNULL(MAX(CVE_INFO), 0) + 1 AS NUEVO_CVE FROM $tablaClienteInfo";
     $stmtUlt = sqlsrv_query($conn, $sqlUltimo);
     if ($stmtUlt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => "Error al obtener el último CVE",
-            'errors'  => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al obtener el último CVE" . sqlsrv_errors());
     }
     $rowUlt = sqlsrv_fetch_array($stmtUlt, SQLSRV_FETCH_ASSOC);
     $nuevo = $rowUlt['NUEVO_CVE'];
@@ -6541,11 +6261,7 @@ function insertatInfoClieF($conexionData, $claveSae, $claveCliente, $conn)
     ];
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => "Error al insertar en INFCLI",
-            'errors'  => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al insertar en INFCLI" . sqlsrv_errors());
     }
     //echo json_encode(['success' => true, 'cliente' => $claveCliente]);
 
@@ -6554,11 +6270,7 @@ function insertatInfoClieF($conexionData, $claveSae, $claveCliente, $conn)
 function actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, array $enlaces, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors'  => sqlsrv_errors(),
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // 2) Prepara el padding de la remisión igual que en PAR_FACTFxx
@@ -6587,11 +6299,7 @@ function actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, array $enla
         $stmt = sqlsrv_query($conn, $sql, $params);
         if ($stmt === false) {
             // Si falla, hacemos rollback manual y cortamos
-            die(json_encode([
-                'success' => false,
-                'message' => "Error al actualizar PAR_FACTR para {$enlace['CVE_ART']}",
-                'errors'  => sqlsrv_errors(),
-            ]));
+            throw new Exception("Error al actualizar PAR_FACTR para {$enlace['CVE_ART']}" . sqlsrv_errors());
         }
         sqlsrv_free_stmt($stmt);
     }
@@ -6604,11 +6312,7 @@ function actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, array $enla
 function insertarCFDI($conexionData, $claveSae, $folioFactura, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $facturaId = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
@@ -6642,11 +6346,7 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura, $conn)
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         // Si falla, hacemos rollback manual y cortamos
-        die(json_encode([
-            'success' => false,
-            'message' => "Error al insertar",
-            'errors'  => sqlsrv_errors(),
-        ]));
+        throw new Exception("Error al insertar" . sqlsrv_errors());
     }
     sqlsrv_free_stmt($stmt);
     //echo json_encode(['success' => true, 'facturaId' => $facturaId]);
@@ -6654,11 +6354,7 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura, $conn)
 function sumarSaldo($conexionData, $claveSae, $pagado, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
     //$importe = '1250.75';
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6671,11 +6367,7 @@ function sumarSaldo($conexionData, $claveSae, $pagado, $conn)
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar el saldo',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar el saldo" . sqlsrv_errors());
     }
 
     // ✅ Confirmar la transacción si es necesario (solo si se usa `BEGIN TRANSACTION`)
@@ -6692,11 +6384,7 @@ function sumarSaldo($conexionData, $claveSae, $pagado, $conn)
 function restarSaldo($conexionData, $claveSae, $pagado, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
     //$importe = '1250.75';
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6709,11 +6397,7 @@ function restarSaldo($conexionData, $claveSae, $pagado, $conn)
     $stmt = sqlsrv_query($conn, $sql, $params);
 
     if ($stmt === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al actualizar el saldo',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al actualizar el saldo" . sqlsrv_errors());
     }
 
     // ✅ Confirmar la transacción si es necesario (solo si se usa `BEGIN TRANSACTION`)
@@ -6762,6 +6446,8 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
 }
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
+    /*
+     *  TODO VERIFICAR FACTURA AUTOMATICA
     //$facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
     $facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
@@ -6778,6 +6464,8 @@ function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Content-Type: application/x-www-form-urlencoded'
     ]);
@@ -6790,6 +6478,8 @@ function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
     curl_close($ch);
     //var_dump("respuestaCfdi: ", $facturaResponse);
     return $facturaResponse;
+    */
+
 }
 function datosPedido($cve_doc, $claveSae, $conexionData, $conn)
 {
@@ -6820,7 +6510,7 @@ function datosPedido($cve_doc, $claveSae, $conexionData, $conn)
 function datosPedidoValidacion($cve_doc, $claveSae, $conexionData, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar a la base de datos" . sqlsrv_errors());
     }
 
     $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6831,7 +6521,7 @@ function datosPedidoValidacion($cve_doc, $claveSae, $conexionData, $conn)
 
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
     }
 
     // Obtener los resultados
@@ -6846,7 +6536,7 @@ function datosPedidoValidacion($cve_doc, $claveSae, $conexionData, $conn)
 function datosPartidasValidacion($cve_doc, $claveSae, $conexionData, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar a la base de datos" . sqlsrv_errors());
     }
 
     $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -6857,7 +6547,7 @@ function datosPartidasValidacion($cve_doc, $claveSae, $conexionData, $conn)
 
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
     }
 
     // Obtener los resultados
@@ -6872,11 +6562,7 @@ function datosPartidasValidacion($cve_doc, $claveSae, $conexionData, $conn)
 function actualizarCFDI($conexionData, $claveSae, $folioFactura, $bandera, $conn)
 {
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
     if ($bandera == 1) {
         $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
@@ -7245,7 +6931,8 @@ function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $fireba
 function obtenerPedido($cveDoc, $conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
+
     }
 
     $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -7256,7 +6943,7 @@ function obtenerPedido($cveDoc, $conexionData, $claveSae, $conn)
 
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
     }
 
     // Obtener los resultados
@@ -7271,7 +6958,7 @@ function obtenerPedido($cveDoc, $conexionData, $claveSae, $conn)
 function obtenerProductos($cveDoc, $conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -7282,7 +6969,7 @@ function obtenerProductos($cveDoc, $conexionData, $claveSae, $conn)
 
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
     }
 
     $partidas = [];
@@ -7295,7 +6982,7 @@ function obtenerProductos($cveDoc, $conexionData, $claveSae, $conn)
 function obtenerCliente($clave, $conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[CLIE"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -7306,7 +6993,7 @@ function obtenerCliente($clave, $conexionData, $claveSae, $conn)
 
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
     }
     // Obtener los resultados
     $clienteData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -7320,7 +7007,7 @@ function obtenerCliente($clave, $conexionData, $claveSae, $conn)
 function obtenerVendedor($clave, $conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $nombreTabla   = "[{$conexionData['nombreBase']}].[dbo].[VEND"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -7331,7 +7018,7 @@ function obtenerVendedor($clave, $conexionData, $claveSae, $conn)
 
     $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
     }
     // Obtener los resultados
     $vendData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -7395,7 +7082,7 @@ function obtenerEmpresa($noEmpresa)
 function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $folioFactura, $firebaseProjectId, $firebaseApiKey, $numGuia, $conn)
 {
     if ($conn === false) {
-        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     $cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
@@ -7732,7 +7419,7 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
                 //var_dump("folioFactura: ", $folioFactura);
                 actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
 
-                $respuestaFactura = json_decode(crearFactura($folio, $noEmpresa, $claveSae, $folioFactura), true);
+                $respuestaFactura = json_decode(cfdi($folio, $noEmpresa, $claveSae, $folioFactura, $conn, $conexionData, $firebaseProjectId, $firebaseApiKey), true);
 
                 //var_dump("Respuesta: ", $respuestaFactura);
                 if ($respuestaFactura['success']) {
@@ -7749,7 +7436,6 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
                     // Si llegamos aquí, TODO salió bien
                     sqlsrv_commit($conn);
 
-                    // Hola Erick
                     header('Content-Type: application/json; charset=utf-8');
                     echo json_encode([
                         'success' => true,
