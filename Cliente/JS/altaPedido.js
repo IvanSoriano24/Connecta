@@ -1070,7 +1070,27 @@ function obtenerDatosPartidas() {
   });
   return partidasData;
 }
-function enviarDatosBackend(formularioData, partidasData, envioData) {
+async function enviarDatosBackend(formularioData, partidasData, envioData) {
+  // 2) Ejecuta eliminaciones pendientes, una por una
+  for (const del of eliminacionesPendientes) {
+    const fdDel = new FormData();
+    fdDel.append("numFuncion", "9");
+    fdDel.append("clavePedido", String(del.clavePedido));
+    fdDel.append("numPar", String(del.numPar));
+
+    const r = await fetch("../Servidor/PHP/ventas.php", {method: "POST", body: fdDel});
+    const j = await r.json();
+    if (!j || j.success !== true) {
+      // Si falla una eliminación, avisa y conserva en cola para reintentar si quieres
+      console.error("Error al eliminar partida:", del, j);
+      Swal.fire({title: "Aviso", text: j?.message || "Fallo al eliminar una partida en SAE.", icon: "warning"});
+      // Opcional: vuelve a dejarla en la cola
+      // continue; // y no la vacíes
+    }
+  }
+
+  // 3) Si todo fue bien, limpia la cola
+  eliminacionesPendientes = [];
   //Se crear un FormData para enviar los datos
   const formData = new FormData();
   //Se agrega el numero de funcion
@@ -1086,149 +1106,149 @@ function enviarDatosBackend(formularioData, partidasData, envioData) {
     method: "POST",
     body: formData,
   })
-    .then((response) => {
-      console.log("Response completa:", response);
-      return response.text(); // Obtener la respuesta como texto para depuración
-    })
-    .then((text) => {
-      console.log("Texto recibido del servidor:", text);
+      .then((response) => {
+        console.log("Response completa:", response);
+        return response.text(); // Obtener la respuesta como texto para depuración
+      })
+      .then((text) => {
+        console.log("Texto recibido del servidor:", text);
 
-      try {
-        return JSON.parse(text); // Intentar convertir a JSON
-      } catch (error) {
-        console.error(
-          "Error al convertir a JSON:",
-          error,
-          "Texto recibido:",
-          text
-        );
-        throw new Error("El servidor no devolvió una respuesta inválida.");
-      }
-    })
-    .then((data) => {
-      if (!data) return;
-      console.log("Respuesta del servidor:", data);
+        try {
+          return JSON.parse(text); // Intentar convertir a JSON
+        } catch (error) {
+          console.error(
+              "Error al convertir a JSON:",
+              error,
+              "Texto recibido:",
+              text
+          );
+          throw new Error("El servidor no devolvió una respuesta inválida.");
+        }
+      })
+      .then((data) => {
+        if (!data) return;
+        console.log("Respuesta del servidor:", data);
 
-      if (data.success) {
-        //Mensaje cuando el pedido se realizo con exito
-        Swal.fire({
-          title: "¡Pedido guardado exitosamente!",
-          text: data.message || "El pedido se procesó correctamente.",
-          icon: "success",
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          // Redirigir al usuario o realizar otra acción
-          window.location.href = "Ventas.php";
-        });
-      } else if (data.autorizacion) {
-        //Mensaje cuando se tiene que autorizar el pedido por un administrador
-        Swal.fire({
-          title: "Saldo vencido",
-          text:
-            data.message || "El pedido se procesó pero debe ser autorizado.",
-          icon: "warning",
-          confirmButtonText: "Entendido",
-        }).then(() => {
-          // Redirigir al usuario o realizar otra acción
-          window.location.href = "Ventas.php";
-        });
-      } else if (data.exist) {
-        //Mensaje cuando no hay existencias para algunos productos
-        Swal.fire({
-          title: "Error al guardar el pedido",
-          //Creacion de Mensaje con los productos, exitencias y apartados de estos
-          html: `
+        if (data.success) {
+          //Mensaje cuando el pedido se realizo con exito
+          Swal.fire({
+            title: "¡Pedido guardado exitosamente!",
+            text: data.message || "El pedido se procesó correctamente.",
+            icon: "success",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        } else if (data.autorizacion) {
+          //Mensaje cuando se tiene que autorizar el pedido por un administrador
+          Swal.fire({
+            title: "Saldo vencido",
+            text:
+                data.message || "El pedido se procesó pero debe ser autorizado.",
+            icon: "warning",
+            confirmButtonText: "Entendido",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        } else if (data.exist) {
+          //Mensaje cuando no hay existencias para algunos productos
+          Swal.fire({
+            title: "Error al guardar el pedido",
+            //Creacion de Mensaje con los productos, exitencias y apartados de estos
+            html: `
             <p>${data.message ||
             "No hay suficientes existencias para algunos productos."
             }</p>
             <p><strong>Productos sin existencias:</strong></p>
             <ul>
               ${data.productosSinExistencia
-              .map(
-                (producto) => `
+                .map(
+                    (producto) => `
                   <li>
                     <strong>Producto:</strong> ${producto.producto}, 
                     <strong>Existencias Totales:</strong> ${producto.existencias || 0
-                  }, 
+                    }, 
                     <strong>Apartados:</strong> ${producto.apartados || 0}, 
                     <strong>Disponibles:</strong> ${producto.disponible || 0}
                   </li>
                 `
-              )
-              .join("")}
+                )
+                .join("")}
             </ul>
           `,
+            icon: "error",
+            confirmButtonText: "Aceptar",
+          });
+        } else if (data.cxc) {
+          //Mensaje cuando no se encontro un anticipo y tiene 72 horas para pagar
+          Swal.fire({
+            title: "Cuenta por pagar",
+            text: data.message || "El cliente tiene una cuenta por pagar",
+            icon: "warning",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        } else if (data.telefono) {
+          //Mensaje cuando solo se le pudo notificar al cliente por WhatsApp
+          Swal.fire({
+            title: "Pedido Guardado",
+            text: data.message || "",
+            icon: "info",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        } else if (data.correo) {
+          //Mensaje cuando solo se le pudo notificar al cliente por correo
+          Swal.fire({
+            title: "Pedido Guardado",
+            text: data.message || "",
+            icon: "info",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        } else if (data.notificacion) {
+          //Mensaje cuando no se pudo notificar al cliente y se le notifico al vendedor
+          Swal.fire({
+            title: "Pedido Guardado",
+            text: data.message || "",
+            icon: "info",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        } else {
+          Swal.fire({
+            title: "Error al Guardar el Pedido",
+            text: data.message || "Ocurrió un error inesperado.",
+            icon: "warning",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Redirigir al usuario o realizar otra acción
+            window.location.href = "Ventas.php";
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error al enviar los datos:", error);
+        Swal.fire({
+          title: "Error al enviar los datos",
+          text: error.message,
           icon: "error",
           confirmButtonText: "Aceptar",
-        });
-      } else if (data.cxc) {
-        //Mensaje cuando no se encontro un anticipo y tiene 72 horas para pagar
-        Swal.fire({
-          title: "Cuenta por pagar",
-          text: data.message || "El cliente tiene una cuenta por pagar",
-          icon: "warning",
-          confirmButtonText: "Aceptar",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else if (data.telefono) {
-        //Mensaje cuando solo se le pudo notificar al cliente por WhatsApp
-        Swal.fire({
-          title: "Pedido Guardado",
-          text: data.message || "",
-          icon: "info",
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          // Redirigir al usuario o realizar otra acción
-          window.location.href = "Ventas.php";
-        });
-      } else if (data.correo) {
-        //Mensaje cuando solo se le pudo notificar al cliente por correo
-        Swal.fire({
-          title: "Pedido Guardado",
-          text: data.message || "",
-          icon: "info",
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          // Redirigir al usuario o realizar otra acción
-          window.location.href = "Ventas.php";
-        });
-      } else if (data.notificacion) {
-        //Mensaje cuando no se pudo notificar al cliente y se le notifico al vendedor
-        Swal.fire({
-          title: "Pedido Guardado",
-          text: data.message || "",
-          icon: "info",
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          // Redirigir al usuario o realizar otra acción
-          window.location.href = "Ventas.php";
-        });
-      } else {
-        Swal.fire({
-          title: "Error al Guardar el Pedido",
-          text: data.message || "Ocurrió un error inesperado.",
-          icon: "warning",
-          confirmButtonText: "Aceptar",
-        }).then(() => {
-          // Redirigir al usuario o realizar otra acción
-          window.location.href = "Ventas.php";
-        });
-      }
-    })
-    .catch((error) => {
-      console.error("Error al enviar los datos:", error);
-      Swal.fire({
-        title: "Error al enviar los datos",
-        text: error.message,
-        icon: "error",
-        confirmButtonText: "Aceptar",
-      }).then(() => {
-          // Redirigir al usuario o realizar otra acción
-          window.location.href = "Ventas.php";
-        });
-    });
+      });
   return false;
 }
 
@@ -1393,26 +1413,8 @@ function seleccionarClienteDesdeSugerencia(cliente) {
   const sugerencias = document.getElementById("clientesSugeridos");
   sugerencias.innerHTML = ""; // Limpiar las sugerencias
   sugerencias.classList.add("d-none"); // Ocultar las sugerencias
-  llenarDatosClienteSugerencia(cliente);
+  llenarDatosCliente(cliente);
   desbloquearCampos();
-}
-function llenarDatosClienteSugerencia(cliente) {
-  $("#rfc").val(cliente.RFC || "");
-  $("#nombre").val(cliente.NOMBRE || "");
-  $("#calle").val(cliente.CALLE || "");
-  //$("#enviar").val(cliente.CALLE || "");
-  $("#numE").val(cliente.NUMEXT || "");
-  $("#numI").val(cliente.NUMINT || "");
-  $("#colonia").val(cliente.COLONIA || "");
-  $("#codigoPostal").val(cliente.CODIGO || "");
-  $("#poblacion").val(cliente.LOCALIDAD || "");
-  $("#pais").val(cliente.PAIS || "");
-  $("#regimenFiscal").val(cliente.REGIMEN_FISCAL || "");
-  $("#cliente").val(cliente.CLAVE || "");
-  $("#listaPrecios").val(cliente.LISTA_PREC || "");
-  $("#descuentoCliente").val(cliente.DESCUENTO || 0);
-  // Validar el crédito del cliente
-  validarCreditoCliente(cliente.CLAVE);
 }
 // Función para mostrar sugerencias de prodcuctos
 function showCustomerSuggestionsProductos() {

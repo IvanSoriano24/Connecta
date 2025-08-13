@@ -675,7 +675,6 @@ function obtenerDatosPedido(pedidoID) {
       pedidoID: pedidoID,
     },
     function (response) {
-      console.log("Respuesta cruda:", response); // 👈 Imprime lo que llega
       if (response.success) {
         const pedido = response.pedido;
         console.log("Datos del pedido:", pedido);
@@ -689,6 +688,7 @@ function obtenerDatosPedido(pedidoID) {
         document.getElementById("colonia").value = pedido.COLONIA || "";
         document.getElementById("codigoPostal").value = pedido.CODIGO || "";
         document.getElementById("pais").value = pedido.PAIS || "";
+        document.getElementById("listaPrecios").value = pedido.LISTA_PREC || "";
         document.getElementById("condicion").value = pedido.CONDICION || "";
         document.getElementById("almacen").value = pedido.NUM_ALMA || "";
         document.getElementById("comision").value = pedido.COM_TOT || "";
@@ -1009,7 +1009,7 @@ function actualizarTablaPartidas(pedidoID) {
 
     nuevaFila.innerHTML = `
     <td>
-        <button type="button" class="btn btn-danger btn-sm eliminarPartida" onclick="eliminarPartidaFormularioEditar(${partida.NUM_PAR}, ${pedidoID})">
+        <button type="button" class="btn btn-danger btn-sm eliminarPartida" onclick="eliminarPartidaFormularioEditar(${partida.NUM_PAR}, '${pedidoID}')">
             <i class="bx bx-trash"></i>
         </button>
     </td>
@@ -1056,6 +1056,8 @@ function actualizarTablaPartidas(pedidoID) {
     tablaProductos.appendChild(nuevaFila);
   });
 }
+let eliminacionesPendientes = [];
+
 function eliminarPartidaFormularioEditar(numPar, clavePedido) {
   Swal.fire({
     title: "¿Estás seguro?",
@@ -1065,62 +1067,38 @@ function eliminarPartidaFormularioEditar(numPar, clavePedido) {
     confirmButtonText: "Sí, eliminar",
     cancelButtonText: "Cancelar",
   }).then((result) => {
-    if (result.isConfirmed) {
-      // 🚀 Hacer la solicitud AJAX para eliminar en la base de datos
-      $.ajax({
-        url: "../Servidor/PHP/ventas.php",
-        type: "POST",
-        data: {
-          numFuncion: "9", // Llamar al case 9 en PHP
-          clavePedido: clavePedido, // ID del pedido
-          numPar: numPar, // Número de partida a eliminar
-        },
-        dataType: "json",
-        success: function (response) {
-          if (response.success) {
-            // 🔥 Eliminar la fila visualmente en el frontend
-            const filaAEliminar = document.querySelector(
-              `tr[data-num-par="${numPar}"]`
-            );
-            if (filaAEliminar) {
-              filaAEliminar.remove();
-            }
+    if (!result.isConfirmed) return;
 
-            // 🔥 Filtrar `partidasData` para excluir solo la partida eliminada
-            partidasData = partidasData.filter(
-              (partida) => partida.NUM_PAR !== numPar
-            );
+    // Ubica la partida en memoria
+    const idx = partidasData.findIndex(p => p.NUM_PAR === numPar);
+    if (idx === -1) return;
 
-            console.log("Partidas actuales después de eliminar:", partidasData);
+    const partida = partidasData[idx];
 
-            // ✅ Mensaje de éxito
-            Swal.fire({
-              title: "Eliminada",
-              text: response.message,
-              icon: "success",
-              confirmButtonText: "Entendido",
-            });
-          } else {
-            // ❌ Si hubo error en el servidor
-            Swal.fire({
-              title: "Aviso",
-              text: response.message,
-              icon: "error",
-              confirmButtonText: "Entendido",
-            });
-          }
-        },
-        error: function (xhr, status, error) {
-          console.error("Error en la solicitud AJAX:", error);
-          Swal.fire({
-            title: "Aviso",
-            text: "Hubo un problema al eliminar la partida.",
-            icon: "error",
-            confirmButtonText: "Entendido",
-          });
-        },
-      });
+    // 1) Si la partida es NUEVA (no existe aún en SAE) => solo quita UI/memoria
+    if (partida.__isNew === true) {
+      // Quitar de UI
+      const filaAEliminar = document.querySelector(`tr[data-num-par="${numPar}"]`);
+      if (filaAEliminar) filaAEliminar.remove();
+
+      // Quitar de memoria
+      partidasData.splice(idx, 1);
+
+      Swal.fire({ title: "Eliminada", text: "Se quitó del formulario.", icon: "success" });
+      return;
     }
+
+    // 2) Si la partida ya EXISTE en SAE => encola eliminación para el GUARDAR
+    eliminacionesPendientes.push({ numPar, clavePedido });
+
+    // Quitar visualmente de la tabla
+    const filaAEliminar = document.querySelector(`tr[data-num-par="${numPar}"]`);
+    if (filaAEliminar) filaAEliminar.remove();
+
+    // Quitar de memoria
+    partidasData.splice(idx, 1);
+
+    Swal.fire({ title: "Marcada para eliminar", text: "Se borrará en SAE al guardar.", icon: "info" });
   });
 }
 function calcularSubtotal(fila) {
