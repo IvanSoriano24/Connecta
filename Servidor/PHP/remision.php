@@ -4731,7 +4731,7 @@ function facturar($pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito, $co
     actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, $result, $conn);
 
     actualizarControl1($conexionData, $claveSae, $conn);
-    actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn); //Verificar la logica
+    actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn, $datosCxC); //Verificar la logica
     actualizarInclie2($conexionData, $claveSae, $claveCliente, $conn);
 
     insertarCFDI($conexionData, $claveSae, $folioUnido, $conn);
@@ -5407,7 +5407,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura, $conn)
     $AFEC_COI = '';
     $NUM_MONED = 1;
     $TCAMBIO = 1;
-    $TIPO_MOV = 'A'; //Aqui
+    $TIPO_MOV = 'C'; //Aqui
 
     $IMPORTE = $dataRemision['IMPORTE'];
 
@@ -6162,20 +6162,22 @@ function actualizarInclie2($conexionData, $claveSae, $claveCliente, $conn)
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
 }
-function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn)
+function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn, $datos)
 {
+    $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
+    $fechaSni = (new DateTime())->format('Y-m-d');
     if ($conn === false) {
         throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
     }
 
     // 2) Preparar variables (igual que tus @P1…@P7)
-    $incrementoSaldo   = 1.16;                              // @P1
-    $fechaComparacion  = '2025-05-13 00:00:00';             // @P2
-    $fechaUltCom       = '2025-05-13 00:00:00';             // @P3
-    $ultVentad         = 'PRUEBA0000000001';                // @P4
-    $ultCompm          = 1.16;                              // @P5
-    $versionSinc       = '2025-05-13 18:23:48.850';         // @P6
-    $claveCliente      = str_pad('1', 10, " ", STR_PAD_LEFT); // @P7 — igual que formatearClaveCliente
+    $incrementoSaldo   = $datos['IMPORTE'];                              // @P1
+    $fechaComparacion  = $fechaDoc;             // @P2
+    $fechaUltCom       = $fechaDoc;             // @P3
+    $ultVentad         = $datos['factura'];                // @P4
+    $ultCompm          = $datos['IMPORTE'];                              // @P5
+    $versionSinc       = $fechaSni;         // @P6
+    $claveCliente      = str_pad($datos['CVE_CLIE'], 10, " ", STR_PAD_LEFT); // @P7 — igual que formatearClaveCliente
 
     // 3) Nombre dinámico de la tabla CLIExx
     $tablaClie = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";

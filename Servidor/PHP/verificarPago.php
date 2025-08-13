@@ -1324,8 +1324,8 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile)
                     error_log($msg, 3, $logFile);
                     var_dump("folio: ", $folio);
                     //Validar que no hayan pasado las 24horas
-                    $resultadoValidacion = validarRemision($conexionData, $folio, $claveSae, $logFile);
-                    if (!$resultadoValidacion) {
+                    /*$resultadoValidacion = validarRemision($conexionData, $folio, $claveSae, $logFile);
+                    if (!$resultadoValidacion) {*/
                         if ($fechaPago <= $fechaLimiteObj) {
                             $err = error_get_last();
                             $msg = sprintf(
@@ -1389,7 +1389,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile)
                             cancelarPedido($conexionData, $folio, $claveSae, $logFile);
                             //Notificar
                         }
-                    } else {
+                    /*} else {
                         var_dump("Pedido remisionado: ", $folio);
                         $msg = sprintf(
                             "[%s] INFO:El pedido: $folio tiene una remision %s\n",
@@ -1399,7 +1399,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile)
                         error_log($msg, 3, $logFile);
                         $resultado = 'Pagada';
                         cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile, $resultado);
-                    }
+                    }*/
                 }
             }
         }

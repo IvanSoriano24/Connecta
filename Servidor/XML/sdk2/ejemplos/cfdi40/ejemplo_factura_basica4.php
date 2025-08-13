@@ -193,18 +193,19 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID, $conn, $conexionData,
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
     // Ruta del XML Timbrado
-    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
+    $datos['cfdi'] = __DIR__ . '/../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
+    //var_dump($datos['cfdi']);
 
     // Ruta del XML de Debug
-    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
+    $datos['xml_debug'] = __DIR__ . '/../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
     //$datos['xml_debug']='../../timbrados/sin_timbrar_ejemplo_factura4.xml';
 
 
     // Credenciales de Timbrado
     $datos['PAC']['usuario'] = $empresaData['rfc'];
     $datos['PAC']['pass'] = $empresaData['rfc'];
-    //$datos['PAC']['produccion'] = 'SI';
-    $datos['PAC']['produccion'] = 'NO';
+    $datos['PAC']['produccion'] = 'SI';
+    //$datos['PAC']['produccion'] = 'NO';
 
     // Credenciales de Timbrado
     /*$datos['PAC']['usuario'] = 'DEMO700101XXX';
