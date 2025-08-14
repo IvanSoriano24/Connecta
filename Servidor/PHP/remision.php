@@ -4699,6 +4699,7 @@ function facturar($pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito, $co
     if (!$credito) {
         pagarCxc($conexionData, $claveSae, $datosCxC, $folioUnido, $remision, $conn);
         restarSaldo($conexionData, $claveSae, $datosCxC, $conn);
+        actualizarInclie3($conexionData, $claveSae, $claveCliente, $conn, $datosCxC); //Verificar la logica
     }
 
     insertarDoctoSigF($conexionData, $remision, $folioUnido, $claveSae, $conn);
@@ -6162,8 +6163,7 @@ function actualizarInclie2($conexionData, $claveSae, $claveCliente, $conn)
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
 }
-function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn, $datos)
-{
+function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn, $datos){
     $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
     $fechaSni = (new DateTime())->format('Y-m-d');
     if ($conn === false) {
@@ -6205,6 +6205,61 @@ function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn, $dato
         $fechaUltCom,       // ?
         $ultVentad,         // ?
         $ultCompm,          // ?
+        $versionSinc,       // ?
+        $claveCliente       // ?
+    ];
+
+    // 6) Ejecutar
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        throw new Exception("Error al ejecutar UPDATE CLIE" . sqlsrv_errors());
+    }
+
+    // 7) Cerrar
+    sqlsrv_free_stmt($stmt);
+}
+function actualizarInclie3($conexionData, $claveSae, $claveCliente, $conn, $datos){
+    $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
+    $fechaSni = (new DateTime())->format('Y-m-d');
+    if ($conn === false) {
+        throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
+    }
+
+    // 2) Preparar variables (igual que tus @P1…@P7)
+    $incrementoSaldo   = $datos['IMPORTE'];                              // @P1
+    $fechaComparacion  = $fechaDoc;             // @P2
+    $fechaUltCom       = $fechaDoc;             // @P3
+    $ULT_PAGOD         = $datos['factura'];                // @P4
+    $ULT_PAGOM          = $datos['IMPORTE'];                              // @P5
+    $versionSinc       = $fechaSni;         // @P6
+    $claveCliente      = str_pad($datos['CVE_CLIE'], 10, " ", STR_PAD_LEFT); // @P7 — igual que formatearClaveCliente
+
+    // 3) Nombre dinámico de la tabla CLIExx
+    $tablaClie = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    // 4) Armar el UPDATE con CASE para ULT_PAGOF
+    $sql = "
+    UPDATE $tablaClie
+        SET SALDO       = SALDO + ?,
+          ULT_PAGOF  = CASE 
+                           WHEN ULT_PAGOF IS NULL
+                             OR ULT_PAGOF < ? 
+                           THEN ? 
+                           ELSE ULT_PAGOF
+                         END,
+          ULT_PAGOD  = ?,
+          ULT_PAGOM   = ?,
+          VERSION_SINC= ?
+    WHERE CLAVE = ?
+    ";
+
+    // 5) Mapear los parámetros en el mismo orden
+    $params = [
+        $incrementoSaldo,   // ?
+        $fechaComparacion,  // ?
+        $fechaUltCom,       // ?
+        $ULT_PAGOD,         // ?
+        $ULT_PAGOM,          // ?
         $versionSinc,       // ?
         $claveCliente       // ?
     ];

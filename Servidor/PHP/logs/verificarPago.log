@@ -91,3 +91,17 @@
 [2025-08-08 15:50:26] Succes: Empezando la remision null
 [2025-08-08 15:50:31] Succes: Respuesta de la remision , mas informacion revisar logs de la remision null
 [2025-08-08 15:50:31] Succes: Se elimino el documento de los datos del pedido null
+[2025-08-14 12:16:10] Succes: Buscando pago del pedido: 178 null
+[2025-08-14 12:16:10] Succes: Pedido: 178 en tiempo null
+[2025-08-14 12:16:10] Succes: Pedido: 178 con importe 69.6, con una cuenta de 69.6  null
+[2025-08-14 12:16:10] Succes: Pedido: 178 pagado null
+[2025-08-14 12:16:11] Succes: Pago: 178 cambio de estatus null
+[2025-08-14 12:16:11] Succes: Iniciando aliminacion de pago null
+[2025-08-14 12:16:11] Succes: CXC eliminada null
+[2025-08-14 12:16:11] Succes: Iniciando resta de saldo null
+[2025-08-14 12:16:11] Succes: Saldo actualizado correctamente del cliente          2 null
+[2025-08-14 12:16:11] Succes: Iniciando la creacion de la comanda null
+[2025-08-14 12:16:12] Succes: Se creo la comanda del pedido 178 null
+[2025-08-14 12:16:12] Succes: Empezando la remision null
+[2025-08-14 12:16:13] Succes: Respuesta de la remision , mas informacion revisar logs de la remision null
+[2025-08-14 12:16:14] Succes: Se elimino el documento de los datos del pedido null

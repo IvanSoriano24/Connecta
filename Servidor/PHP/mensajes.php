@@ -322,7 +322,7 @@ function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae
             $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
         }
     }
-    
+
     // ✅ Generar URLs dinámicas correctamente
     // ✅ Generar solo el ID del pedido en la URL del botón
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
@@ -726,6 +726,7 @@ function formatearClaveVendedor($clave)
 function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
 {
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    /*
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 
     $context = stream_context_create([
@@ -748,10 +749,7 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
                 
                 $fields = $document['fields'];
                 $status = $fields['status']['stringValue'];
-                
-                /*if ($fields['folio']['stringValue'] === "19464") {
-                    var_dump("Folio", $fields['folio']['stringValue']);
-                }*/
+            
                 // Aplicar el filtro de estado si está definido
                 if ($filtroStatus === '' || $status === $filtroStatus) {
                     //var_dump($fields['folio']['stringValue']);
@@ -776,7 +774,99 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
             return strcmp($b['noPedido'], $a['noPedido']);
         });
         echo json_encode(['success' => true, 'data' => $comandas]);
+    }*/
+    $collection = "COMANDA";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId"
+        . "/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    $filters = [];
+
+    // Filtro de status solo si no es cadena vacía
+    if (trim($filtroStatus) !== "") {
+        $filters[] = [
+            "fieldFilter" => [
+                "field" => ["fieldPath" => "status"],
+                "op"    => "EQUAL",
+                "value" => ["stringValue" => $filtroStatus]
+            ]
+        ];
     }
+
+    // Filtro obligatorio de noEmpresa
+    $filters[] = [
+        "fieldFilter" => [
+            "field" => ["fieldPath" => "noEmpresa"],
+            "op"    => "EQUAL",
+            "value" => ["integerValue" => (int)$noEmpresa]
+        ]
+    ];
+
+    // Decidir si usar simple o compositeFilter
+    if (count($filters) === 1) {
+        $where = $filters[0];
+    } else {
+        $where = [
+            "compositeFilter" => [
+                "op"      => "AND",
+                "filters" => $filters
+            ]
+        ];
+    }
+
+    // Opcional: ordenar por folio descendente en la propia consulta
+    $structuredQuery = [
+        "from"    => [["collectionId" => $collection]],
+        "where"   => $where
+    ];
+
+    $payload = json_encode(["structuredQuery" => $structuredQuery]);
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No se pudo conectar a la base de datos.'
+        ]);
+        exit;
+    }
+
+    $resultArray = json_decode($response, true);
+    $comandas    = [];
+
+    foreach ($resultArray as $item) {
+        if (!isset($item['document'])) {
+            continue;
+        }
+        $doc    = $item['document'];
+        $fields = $doc['fields'];
+
+        $fechaHoraStr = $fields['fechaHoraElaboracion']['stringValue'] ?? "";
+        list($fecha, $hora) = array_pad(explode(" ", $fechaHoraStr), 2, ["", "00:00:00"]);
+
+        $comandas[] = [
+            'id'            => basename($doc['name']),
+            'noPedido'      => $fields['folio']['stringValue']     ?? "",
+            'nombreCliente' => $fields['nombreCliente']['stringValue'] ?? "",
+            'status'        => $fields['status']['stringValue']    ?? "",
+            'fecha'         => $fecha,
+            'hora'          => $hora
+        ];
+    }
+
+    echo json_encode([
+        'success' => true,
+        'data'    => $comandas
+    ]);
 }
 function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
 {

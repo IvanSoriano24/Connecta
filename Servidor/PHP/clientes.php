@@ -98,7 +98,7 @@ function mostrarClientes($conexionData, $claveSae)
                 CLAVE,
                 NOMBRE,
                 RFC,
-                CALLE_ENVIO AS CALLE,
+                CALLE AS CALLE,
                 TELEFONO,
                 SALDO,
                 VAL_RFC AS EstadoDatosTimbrado,
@@ -125,7 +125,7 @@ function mostrarClientes($conexionData, $claveSae)
                 CLAVE,
                 NOMBRE,
                 RFC,
-                CALLE_ENVIO AS CALLE,
+                CALLE AS CALLE,
                 TELEFONO,
                 SALDO,
                 VAL_RFC AS EstadoDatosTimbrado,
@@ -1007,7 +1007,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     if ($tipoUsuario === "ADMINISTRADOR") {
         if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
                 FROM $nombreTabla
                 WHERE 
                 LOWER(LTRIM(RTRIM(CLAVE))) LIKE ? OR
@@ -1016,7 +1016,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
                 LOWER(LTRIM(RTRIM(CALLE))) LIKE ? AND [STATUS] = 'A'
                 ORDER BY CLAVE ASC;";
         } else {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
                 FROM $nombreTabla
                 WHERE 
                 CLAVE LIKE ? OR
@@ -1027,7 +1027,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
         }
     } else {
         if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
                 FROM $nombreTabla
                 WHERE 
                 LOWER(LTRIM(RTRIM(CLAVE))) LIKE ? OR
@@ -1036,7 +1036,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
                 LOWER(LTRIM(RTRIM(CALLE))) LIKE ? AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'
                 ORDER BY CLAVE ASC;";
         } else {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
                 FROM $nombreTabla
                 WHERE 
                 CLAVE LIKE ? OR
