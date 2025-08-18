@@ -6,6 +6,7 @@ error_reporting(E_ALL);
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
+//include 'funcionalidades.php';
 
 //session_start();
 
@@ -144,8 +145,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$filename = "Pedido_18456.pdf";
-            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
+            //$resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
             if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
@@ -175,8 +176,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$filename = "Pedido_18456.pdf";
-            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
+            //$resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
             if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
@@ -213,8 +214,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$filename = "Pedido_18456.pdf";
-            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
+            //$resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
             if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
@@ -573,9 +574,9 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
-            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
+            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
             //var_dump($resultadoWhatsApp);
-            $resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
+            //$resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
             if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
@@ -822,8 +823,8 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&idEnvios=" . urlencode($idFirebasePedido);
 
@@ -3415,8 +3416,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&idEnvios=" . urlencode($idEnvios);
 
@@ -6873,8 +6874,8 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     $productosJson = urlencode(json_encode($partidasData));
     $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
@@ -7383,8 +7384,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito)  . "&idEnvios=" . urlencode($idEnvios);
 
@@ -9028,7 +9029,7 @@ function crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fech
         //echo json_encode(['success' => true, 'message' => 'Funcion no valida Ventas.']);
     }
 }
-function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
+/*function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
 {
     //Construir la conexion
     $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
@@ -9065,7 +9066,7 @@ function crearRemision($folio, $claveSae, $noEmpresa, $vendedor)
     //$cveDoc = trim($remisionData['cveDoc']);
     // Verificar si la respuesta es un PDF
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-}
+}*/
 function eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO/$idEnvios?key=$firebaseApiKey";
@@ -9678,7 +9679,8 @@ switch ($funcion) {
                                 guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
                                 actualizarInventario($conexionData, $partidasData, $conn);
                                 comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $folio, $envioData, $conn);
-                                remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio);
+                                //remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio);
+                                crearRemision($conexionData, $folio, $claveSae, $noEmpresa, $formularioData['vendedor'], $conn);
                                 //eliminarCxCBanco($anticipo, $claveSae, $formularioData, $conn);
                                 // Respuesta de éxito
                                 header('Content-Type: application/json; charset=UTF-8');

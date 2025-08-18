@@ -207,11 +207,13 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     error_log($msg, 3, $logFile);
     //Verificamos si el pedido ya fue aceptado
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
-    if ($resultado) {
+    /*var_dump($resultado);
+    die();*/
+    if (!$resultado) {
         //Si ya fue aceptado, mostrar este mensaje
         $err = error_get_last();
         $msg = sprintf(
-            "[%s] Advertencia: Confirmacion Repetida de  $pedidoId→ %s\n",
+            "[%s] Advertencia: Confirmacion Repetida de  $pedidoId → %s\n",
             date('Y-m-d H:i:s'),
             json_encode($err, JSON_UNESCAPED_UNICODE)
         );
@@ -863,29 +865,80 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
 }
 function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId)
 {
-    // URL para obtener todas las comandas en Firebase
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+    //var_dump("Pedido: ", $pedidoId);
+    // Endpoint de runQuery
+    $url = sprintf(
+        'https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:runQuery?key=%s',
+        urlencode($firebaseProjectId),
+        urlencode($firebaseApiKey)
+    );
 
-    // Obtener la lista de comandas
-    $response = @file_get_contents($url);
-    if ($response === false) {
-        return false; // Si hay un error en la conexión, asumimos que no existe
+    // Estructura de la consulta
+    $payload = [
+        'structuredQuery' => [
+            'from'  => [
+                ['collectionId' => 'COMANDA']
+            ],
+            'where' => [
+                'fieldFilter' => [
+                    'field' => [
+                        'fieldPath' => 'folio'   // aquí va el nombre del campo
+                    ],
+                    'op'    => 'EQUAL',
+                    'value' => [
+                        'stringValue' => $pedidoId // aquí sí va stringValue
+                    ]
+                ]
+            ],
+            'limit' => 1
+        ]
+    ];
+    $jsonPayload = json_encode($payload);
+
+    // Crear contexto HTTP para POST JSON
+    $options = [
+        'http' => [
+            'method'        => 'POST',
+            'header'        => "Content-Type: application/json\r\n" .
+                "Accept: application/json\r\n",
+            'content'       => $jsonPayload,
+            'ignore_errors' => true  // Para capturar respuestas 4xx/5xx
+        ]
+    ];
+    $context  = stream_context_create($options);
+    $response = file_get_contents($url, false, $context);
+
+    // Si la petición falla o no devuelve nada, asumimos que no existe
+    if ($response === false || empty($response)) {
+        return true;
     }
+
+    // Opcional: verificar código HTTP
+    /*if (
+        !isset($http_response_header[0]) ||
+        stripos($http_response_header[0], '200') === false
+    ) {
+         var_dump("JA");
+        return false;
+    }*/
 
     $data = json_decode($response, true);
-    if (!isset($data['documents'])) {
-        return false; // Si no hay documentos en COMANDA, el pedido no existe
-    }
 
-    // Recorrer todas las comandas y verificar si el folio ya está en la base de datos
-    foreach ($data['documents'] as $document) {
-        $fields = $document['fields'];
-        if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
-            return true; // Pedido encontrado en Firebase
+    if (is_array($data)) {
+        foreach ($data as $item) {
+            if (isset($item['document']['name'])) {
+                // Documento encontrado
+                //var_dump($item['document']);
+                return false;
+            }
         }
     }
 
-    return false; // No se encontró el pedido en la colección
+    // Si llega aquí, no encontró nada
+    return true;
+
+
+    return true;  // No hubo coincidencias
 }
 function bitacora($claveCliente, $firebaseProjectId, $firebaseApiKey, $pedidoId, $accion, $noEmpresa)
 {

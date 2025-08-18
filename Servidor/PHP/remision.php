@@ -356,6 +356,7 @@ function insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc, $enlace)
     $folio = sqlsrv_fetch_array($stmtFolio, SQLSRV_FETCH_ASSOC);
 
     $numMov = $ultimos['NUM_MOV'];
+    
     $cveFolio = $folio['CVE_FOLIO'];
     $cantMov = 0;
     //$refer = $pedidoId;
@@ -1526,7 +1527,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVI
     $tipDoc = 'R';
     $status = 'E';
     $cvePedi = '';  // Vacío según la traza
-    $tipDocE = 'P';
+    $tipDocE = 'O';
     $docAnt = $pedidoId;
     $tipDocAnt = 'P';
 
@@ -1565,7 +1566,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVI
         $pedido['NUM_ALMA'],
         $pedido['ACT_CXC'],
         $pedido['ACT_COI'],
-        $pedido['ENLAZADO'],
+        'O',
         $pedido['NUM_MONED'],
         $pedido['TIPCAMB'],
         $pedido['NUM_PAGOS'],
