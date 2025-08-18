@@ -772,6 +772,88 @@ function formatearClaveCliente($clave)
 }
 function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario, $noEmpresa)
 {
+    $url = "https://firestore.googleapis.com/v1/projects/"
+         . "$firebaseProjectId/databases/(default)/documents:runQuery"
+         . "?key=$firebaseApiKey";
+    
+    // Filtros combinados: claveCliente y noEmpresa
+    $whereNode = [
+        'compositeFilter' => [
+            'op' => 'AND',
+            'filters' => [
+                [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'claveCliente'],
+                        'op'    => 'EQUAL',
+                        'value' => ['stringValue' => $claveUsuario]
+                    ]
+                ],
+                [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'noEmpresa'],
+                        'op'    => 'EQUAL',
+                        'value' => ['integerValue' => (int)$noEmpresa]
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    // Construir la consulta
+    $payload = json_encode([
+        'structuredQuery' => [
+            'from'  => [['collectionId' => 'ENVIOS']],
+            'where' => $whereNode
+        ]
+    ]);
+
+    // Contexto con timeout
+    $context = stream_context_create([
+        'http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'timeout' => 10,
+            'content' => $payload
+        ]
+    ]);
+
+    // Ejecutar consulta
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta a Firestore.']);
+        return;
+    }
+
+    $matches = json_decode($response, true);
+    $datos = [];
+    //var_dump($matches);
+
+    // Procesar resultados
+    foreach ($matches as $item) {
+        if (!isset($item['document'])) {
+            continue;
+        }
+
+        $doc = $item['document'];
+        $fields = $doc['fields'] ?? [];
+        $documentId = basename($doc['name']);
+
+        $datos[] = [
+            'idDocumento' => $documentId,
+            'id'          => $fields['id']['integerValue'] ?? null,
+            'tituloEnvio' => $fields['tituloEnvio']['stringValue'] ?? null,
+        ];
+    }
+
+    if (!empty($datos)) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => $datos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envío.']);
+    }
+}
+
+/*function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario, $noEmpresa){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
 
     // Configura el contexto de la solicitud para manejar errores y tiempo de espera
@@ -824,7 +906,7 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario, $
     } else {
         echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
     }
-}
+}*/
 function obtenerDatosEnvioTabla($firebaseProjectId, $firebaseApiKey, $conexionData, $noEmpresa)
 {
     // 1) Conexión a SQL Server

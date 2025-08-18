@@ -146,7 +146,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$filename = "Pedido_18456.pdf";
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
-            if(str_contains($resultadoWhatsApp, "error")){
+            if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             //var_dump($resultadoWhatsApp);
@@ -162,10 +162,8 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             ]);
         } elseif ($correoBandera === 1 && $numeroBandera === 0) {
             echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp.']);
-
         } elseif ($correoBandera === 0 && $numeroBandera === 1) {
             echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo.']);
-
         } else { //$correoBandera === 1 && $numeroBandera === 1
             $emailPred = $_SESSION['usuario']['correo'];
             $numeroWhatsApp = $_SESSION['usuario']['telefono'];
@@ -179,7 +177,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$filename = "Pedido_18456.pdf";
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
-            if(str_contains($resultadoWhatsApp, "error")){
+            if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
@@ -196,7 +194,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$filename = "Pedido_18456.pdf";
             $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             //$resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
-            if(str_contains($resultadoWhatsApp, "error")){
+            if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             /// Respuesta de éxito
@@ -217,7 +215,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$filename = "Pedido_18456.pdf";
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
-            if(str_contains($resultadoWhatsApp, "error")){
+            if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no usa Correo y su WhatsApp no es válido.']);
@@ -574,14 +572,13 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
             //$numeroWhatsApp = 7773750925;
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-            
+
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
             //var_dump($resultadoWhatsApp);
             $resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
-            if(str_contains($resultadoWhatsApp, "error")){
+            if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
-            
         }
 
         // Enviar notificaciones solo si los datos son válidos
@@ -1036,7 +1033,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
 
             if (!in_array($row['Clave'], $clavesRegistradas)) {
                 $clavesRegistradas[] = $row['Clave'];*/
-                $clientes[] = $row;
+            $clientes[] = $row;
             //}
         }
 
@@ -4281,7 +4278,7 @@ function pedidoRemitido($conexionData, $pedidoID, $claveSae)
         die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
     }
 
-    if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+    /*if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $DOC_SIG = $row['DOC_SIG'];
         $TIP_DOC_SIG = $row['TIP_DOC_SIG'];
     }
@@ -4290,8 +4287,8 @@ function pedidoRemitido($conexionData, $pedidoID, $claveSae)
         return true;
     } else if ($DOC_SIG === NULL && $TIP_DOC_SIG !== 'R') {
         return false;
-    }
-    /*$sql = "SELECT P.DOC_SIG, P.TIP_DOC_SIG, R.STATUS
+    }*/
+    $sql = "SELECT P.DOC_SIG, P.TIP_DOC_SIG, R.STATUS
     FROM $nombreTabla P 
     INNER JOIN $nombreTabla2 R ON R.CVE_DOC = P.DOC_SIG
     WHERE P.CVE_DOC = ?";
@@ -4302,21 +4299,26 @@ function pedidoRemitido($conexionData, $pedidoID, $claveSae)
         die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
     }
 
+    $DOC_SIG     = NULL;
+    $TIP_DOC_SIG = NULL;
+    $STATUS      = NULL;
+
+
     if ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $DOC_SIG = $row['DOC_SIG'];
-        $TIP_DOC_SIG = $row['TIP_DOC_SIG'];
-        $STATUS = $row['STATUS'];
+        $DOC_SIG = $row['DOC_SIG'] ?? NULL;
+        $TIP_DOC_SIG = $row['TIP_DOC_SIG'] ?? NULL;
+        $STATUS = $row['STATUS'] ?? NULL;
     }
 
     if ($DOC_SIG !== NULL && $TIP_DOC_SIG === "R") {
-        if($STATUS != 'C'){
+        if ($STATUS != 'C') {
             return true;
         } else {
             return false;
         }
     } else if ($DOC_SIG === NULL && $TIP_DOC_SIG !== 'R') {
         return false;
-    }*/
+    }
     // Liberar recursos y cerrar la conexión
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
@@ -7862,7 +7864,8 @@ function obtenerNombreCliente($cliente, $conexionData, $claveSae)
 
     return $nombre;
 }
-function comanda($formularioData,$partidasData,$claveSae,$noEmpresa,$conexionData,$firebaseProjectId,$firebaseApiKey,$folio,$envioData,$conn) {
+function comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $folio, $envioData, $conn)
+{
     date_default_timezone_set('America/Mexico_City');
     $horaActual    = (int) date('H');
     $estadoComanda = $horaActual >= 13 ? 'Pendiente' : 'Abierta';
@@ -7983,7 +7986,7 @@ function obtenerDescripcionComanda($producto, $conexionData, $claveSae, $conn)
         $errorInfo = sqlsrv_errors();
         if ($stmt) {
             sqlsrv_free_stmt($stmt);
-        }else{
+        } else {
             sqlsrv_close($conn);
         }
 
@@ -8522,35 +8525,71 @@ function obtenerTodosEstados()
 }
 function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
 {
-    // 1) Consultar todos los documentos de la colección PEDIDOS_AUTORIZAR
     $url = "https://firestore.googleapis.com/v1/projects/"
-        . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
-    $resp = @file_get_contents($url);
-    if ($resp === false) {
-        // Si falla la petición, consideramos que no hay un pedido "pendiente" => devolvemos true
-        return true;
-    }
-    $data = json_decode($resp, true);
-    if (!isset($data['documents']) || !is_array($data['documents'])) {
-        // Respuesta inesperada, asumimos que no hay pedido pendiente
-        return true;
-    }
-    // 2) Buscar el documento que coincida con folio y noEmpresa
-    foreach ($data['documents'] as $doc) {
-        $fields       = $doc['fields'] ?? [];
-        $folioField   = $fields['folio']['stringValue']    ?? '';
-        $empresaField = $fields['noEmpresa']['integerValue'] ?? null;
+        . "$firebaseProjectId/databases/(default)/documents:runQuery"
+        . "?key=$firebaseApiKey";
 
-        if (
-            (string)$folioField === (string)$pedidoID
-            && (int)$empresaField === (int)$noEmpresa
-        ) {
-            $status = $fields['status']['stringValue'] ?? '';
-            // Si está pendiente ("Sin Autorizar") => false; en caso contrario (incluye "Autorizado") => true
-            return $status !== 'Sin Autorizar';
-        }
+    // Filtros combinados
+    $whereNode = [
+        'compositeFilter' => [
+            'op' => 'AND',
+            'filters' => [
+                [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'folio'],
+                        'op'    => 'EQUAL',
+                        'value' => ['stringValue' => (string)$pedidoID]
+                    ]
+                ],
+                [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'noEmpresa'],
+                        'op'    => 'EQUAL',
+                        'value' => ['integerValue' => (int)$noEmpresa]
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    $payload = json_encode([
+        'structuredQuery' => [
+            'from'  => [['collectionId' => 'PEDIDOS_AUTORIZAR']],
+            'where' => $whereNode,
+            'limit' => 1 // Solo necesitamos un resultado
+        ]
+    ]);
+
+    $ctx = stream_context_create([
+        'http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => $payload
+        ]
+    ]);
+
+    $resp = @file_get_contents($url, false, $ctx);
+
+    // Si falla la consulta, asumimos "true" (no está pendiente)
+    if ($resp === false) {
+        return true;
     }
-    // 3) Si no lo encontramos => devolvemos true
+
+    $results = json_decode($resp, true);
+
+    foreach ($results as $item) {
+        if (!isset($item['document'])) {
+            continue;
+        }
+
+        $fields = $item['document']['fields'] ?? [];
+        $status = $fields['status']['stringValue'] ?? '';
+        $folio = $fields['folio']['stringValue'] ?? '';
+        // Si el status es "Sin Autorizar" → false, de lo contrario → true
+        return $status !== 'Sin Autorizar';
+    }
+    //var_dump("No");
+    // Si no hay documento que coincida, devolvemos true
     return true;
 }
 function verificarStatusAnticipo($pedidoID, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
@@ -9595,7 +9634,7 @@ switch ($funcion) {
                             sqlsrv_rollback($conn);
                             sqlsrv_close($conn);
                             //return ['success' => false, 'message' => $e->getMessage()];
-                            echo json_encode (['success' => false, 'message' => $e->getMessage()]);
+                            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
                         }
                         ///Fin
                     } else {
@@ -10185,9 +10224,14 @@ switch ($funcion) {
         }
         $conexionData = $conexionResult['data'];
         $pedidoID = $_POST['pedidoID'];
-        $pedidoIDFormato = ltrim($pedidoID, '0');
-        //var_dump($pedidoIDFormato);
+        $pedidoID = trim($pedidoID); // Elimina espacios en blanco al inicio y al final
+        //var_dump("Pedido: ", $pedidoID);
+
+        $pedidoIDFormato = ltrim($pedidoID, '0'); // Ahora sí elimina los ceros iniciales
+        //var_dump("Pedido Formateado", $pedidoIDFormato);
+
         $pedidoAutorisado = verificarStatusPedido($pedidoIDFormato, $firebaseProjectId, $firebaseApiKey, $noEmpresa, $conexionData);
+        //die();
         if ($pedidoAutorisado) {
             enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData);
             //echo json_encode(['success' => true, 'message' => 'Pedido Autorizado.']);

@@ -1,5 +1,5 @@
 <?php
-set_time_limit(0);
+/*set_time_limit(0);
 require 'firebase.php'; // Archivo con las credenciales de Firebase
 
 function actualizarComandasPendientes($firebaseProjectId, $firebaseApiKey) {
@@ -59,28 +59,51 @@ function cambiarEstadoComanda($firebaseProjectId, $firebaseApiKey, $comandaId) {
 
 // Ejecutar la función
 actualizarComandasPendientes($firebaseProjectId, $firebaseApiKey);
-
+*/
 /***********************************************************************************/
-/*
-<?php
 set_time_limit(0);
 require 'firebase.php';   // Define $firebaseProjectId y $firebaseApiKey
 
-function actualizarComandasPendientes(string $firebaseProjectId, string $firebaseApiKey, string $noEmpresa = null)
+date_default_timezone_set('America/Mexico_City'); // Ajusta según tu zona
+
+function buildPendingQueryFilters(string $fechaHoy): array
+{
+    return [
+        'compositeFilter' => [
+            'op' => 'AND',
+            'filters' => [
+                [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'status'],
+                        'op'    => 'EQUAL',
+                        'value' => ['stringValue' => 'Pendiente']
+                    ]
+                ],
+                [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'fechaHoraElaboracion'],
+                        'op'    => 'LESS_THAN',
+                        'value' => ['stringValue' => $fechaHoy] 
+                    ]
+                ]
+            ]
+        ]
+    ];
+}
+
+function actualizarComandasPendientes(string $firebaseProjectId, string $firebaseApiKey)
 {
     $fechaHoy = date('Y-m-d'); 
     $urlRun   = "https://firestore.googleapis.com/v1/projects/"
               . "$firebaseProjectId/databases/(default)/documents:runQuery"
               . "?key=$firebaseApiKey";
 
-    // Construir el filtro para runQuery
-    $whereNode = buildPendingQueryFilters($fechaHoy, $noEmpresa);
+    $whereNode = buildPendingQueryFilters($fechaHoy);
 
     $payload = json_encode([
         'structuredQuery' => [
             'from'  => [['collectionId' => 'COMANDA']],
             'where' => $whereNode,
-            // Opcional: ordenar por folio/fecha
             'orderBy' => [[
                 'field'     => ['fieldPath' => 'fechaHoraElaboracion'],
                 'direction' => 'ASCENDING'
@@ -88,7 +111,6 @@ function actualizarComandasPendientes(string $firebaseProjectId, string $firebas
         ]
     ]);
 
-    // Enviar runQuery
     $ctx = stream_context_create([
         'http' => [
             'method'  => 'POST',
@@ -105,16 +127,23 @@ function actualizarComandasPendientes(string $firebaseProjectId, string $firebas
 
     $matches = json_decode($raw, true);
 
-    // Recorrer los documentos que coinciden con el filtro
     foreach ($matches as $item) {
         if (!isset($item['document'])) {
             continue;
         }
 
-        $doc      = $item['document'];
+        $doc       = $item['document'];
         $comandaId = basename($doc['name']);
-        echo "[INFO] Reabriendo comanda ID=$comandaId\n";
-        cambiarEstadoComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
+
+        // Sanitizar y extraer fecha pura
+        $fechaCampo = trim($doc['fields']['fechaHoraElaboracion']['stringValue']);
+        $soloFecha  = explode(' ', $fechaCampo)[0];
+
+        // Reabrir solo si efectivamente es de un día anterior
+        if ($soloFecha < $fechaHoy) {
+            echo "[INFO] Reabriendo comanda ID=$comandaId\n";
+            cambiarEstadoComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
+        }
     }
 }
 
@@ -147,7 +176,5 @@ function cambiarEstadoComanda(string $firebaseProjectId, string $firebaseApiKey,
     }
 }
 
-// Ejecutar todo (puedes pasarle $noEmpresa o dejarlo null si no aplica)
-actualizarComandasPendientes($firebaseProjectId, $firebaseApiKey, $noEmpresa ?? null);
-
-*/
+// Ejecutar
+actualizarComandasPendientes($firebaseProjectId, $firebaseApiKey);

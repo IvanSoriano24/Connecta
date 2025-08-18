@@ -131,7 +131,6 @@ function agregarEventosBotones() {
       console.log("Redirigiendo con pedidoID:", pedidoID);
       window.location.href = "altaPedido.php?pedidoID=" + pedidoID;*/
       const pedidoID = this.dataset.id; // Obtener el ID del pedido
-
       try {
         enviarConfirmacion(pedidoID);
       } catch (error) {
