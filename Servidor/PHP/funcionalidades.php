@@ -1516,7 +1516,7 @@ function insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVI
     $tipDoc = 'R';
     $status = 'E';
     $cvePedi = '';  // Vacío según la traza
-    $tipDocE = 'O';
+    $tipDocE = 'P';
     $docAnt = $pedidoId;
     $tipDocAnt = 'P';
 

@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
-//include 'funcionalidades.php';
+include 'funcionalidades.php';
 
 //session_start();
 
