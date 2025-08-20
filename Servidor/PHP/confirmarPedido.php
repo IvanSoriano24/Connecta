@@ -865,7 +865,7 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
         $sqlCheck = "SELECT 
                         COALESCE(M.[EXIST], 0) AS EXIST, 
                         COALESCE(I.[APART], 0) AS APART, 
-                        (COALESCE(M.[EXIST], 0) - COALESCE(I.[APART], 0)) AS DISPONIBLE 
+                        (COALESCE(M.[EXIST], 0) - COALESCE(I.[APART], 0)) AS DISPONIBLE ##QUITAR
                      FROM $nombreTabla I
                      INNER JOIN $nombreTabla2 M ON M.[CVE_ART] = I.CVE_ART
                      WHERE I.[CVE_ART] = ? AND M.[CVE_ALM] = 1";
@@ -880,7 +880,7 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
         if ($row) {
             $existencias = (float)$row['EXIST'];
             $apartados = (float)$row['APART'];
-            $disponible = (float)$row['DISPONIBLE'];
+            $disponible = (float)$row['DISPONIBLE']; //$disponible = $existencias - ($apartados - $cantidad)
             /*var_dump($existencias);
             var_dump($apartados);
             var_dump($disponible);*/

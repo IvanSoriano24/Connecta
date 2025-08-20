@@ -5651,6 +5651,119 @@ function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa, $observaciones)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
+    $idDocumento = $envioData['idDocumento'] ?? null;
+    if (!$idDocumento) {
+        echo json_encode(['success' => false, 'message' => 'Falta idDocumento']);
+        exit;
+    }
+
+    // Normaliza datos y evita undefined index
+    $fields = [
+        'idPedido'           => ['integerValue' => (int)$FOLIO],
+        'noEmpresa'          => ['integerValue' => (int)$noEmpresa],
+        'nombreContacto'     => ['stringValue'  => (string)($envioData['nombreContacto']     ?? '')],
+        'companiaContacto'   => ['stringValue'  => (string)($envioData['compañiaContacto']    ?? $envioData['companiaContacto'] ?? '')],
+        'telefonoContacto'   => ['stringValue'  => (string)($envioData['telefonoContacto']    ?? '')],
+        'correoContacto'     => ['stringValue'  => (string)($envioData['correoContacto']      ?? '')],
+        'direccion1Contacto' => ['stringValue'  => (string)($envioData['direccion1Contacto']  ?? '')],
+        'direccion2Contacto' => ['stringValue'  => (string)($envioData['direccion2Contacto']  ?? '')],
+        'codigoContacto'     => ['stringValue'  => (string)($envioData['codigoContacto']      ?? '')],
+        'estadoContacto'     => ['stringValue'  => (string)($envioData['estadoContacto']      ?? '')],
+        'municipioContacto'  => ['stringValue'  => (string)($envioData['municipioContacto']   ?? '')],
+        // Datos adicionales
+        'observaciones'      => ['stringValue'  => (string)($observaciones ?? '')],
+    ];
+
+    $payload = json_encode(['fields' => $fields], JSON_UNESCAPED_UNICODE);
+
+    // 1) Intentar PATCH (upsert). Si devuelve 404, crear con POST y documentId.
+    $docIdPath = rawurlencode($idDocumento);
+    $urlPatch  = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO/$docIdPath?key=$firebaseApiKey";
+
+    $res = httpRequestJson($urlPatch, 'PATCH', $payload);
+
+    if ($res['status'] === 200) {
+        $docId = extractDocId($res['body']);
+        if ($docId) return $docId;
+        echo json_encode(['success' => false, 'message' => 'No se pudo obtener el id del documento tras actualizar']);
+        exit;
+    }
+
+    if ($res['status'] === 404) {
+        // 2) Crear documento con ID específico
+        $urlCreate = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/DATOS_PEDIDO?documentId=" . urlencode($idDocumento) . "&key=$firebaseApiKey";
+        $resCreate = httpRequestJson($urlCreate, 'POST', $payload);
+
+        if ($resCreate['status'] === 200) {
+            $docId = extractDocId($resCreate['body']);
+            if ($docId) return $docId;
+            echo json_encode(['success' => false, 'message' => 'No se pudo obtener el id del documento tras crear']);
+            exit;
+        }
+
+        // Error al crear
+        $msg = parseFirestoreError($resCreate['body']) ?? 'Error al crear el documento';
+        echo json_encode(['success' => false, 'message' => $msg, 'status' => $resCreate['status']]);
+        exit;
+    }
+
+    // Otros errores (401/403/5xx, etc.)
+    $msg = parseFirestoreError($res['body']) ?? 'Error al actualizar';
+    echo json_encode(['success' => false, 'message' => $msg, 'status' => $res['status']]);
+    exit;
+}
+
+/**
+ * Realiza una petición HTTP y devuelve status, headers y body.
+ */
+function httpRequestJson($url, $method, $payload)
+{
+    $options = [
+        'http' => [
+            'header'        => "Content-Type: application/json\r\n",
+            'method'        => $method,
+            'content'       => $payload,
+            'ignore_errors' => true, // Permite leer el body incluso con 4xx/5xx
+            'timeout'       => 20
+        ]
+    ];
+    $context  = stream_context_create($options);
+    $body     = @file_get_contents($url, false, $context);
+    $headers  = isset($http_response_header) ? $http_response_header : [];
+    $status   = parseHttpStatus($headers);
+    return ['status' => $status, 'headers' => $headers, 'body' => $body];
+}
+
+function parseHttpStatus($headers)
+{
+    if (!$headers || !isset($headers[0])) return 0;
+    if (preg_match('#HTTP/\d\.\d\s+(\d{3})#', $headers[0], $m)) {
+        return (int)$m[1];
+    }
+    return 0;
+}
+
+function extractDocId($responseBody)
+{
+    $data = json_decode($responseBody, true);
+    if (isset($data['name'])) {
+        $parts = explode('/', $data['name']);
+        return end($parts);
+    }
+    return null;
+}
+
+function parseFirestoreError($responseBody)
+{
+    $data = json_decode($responseBody, true);
+    if (isset($data['error']['message'])) return $data['error']['message'];
+    return null;
+}
+
+/*
+function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa, $observaciones){
+    global $firebaseProjectId, $firebaseApiKey;
+
     $idDocumento = $envioData['idDocumento']; // ← ID del documento a actualizar
 
     $fields = [
@@ -5686,7 +5799,8 @@ function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa, $observaciones)
 
     if ($response === false) {
         $error = error_get_last();
-        echo json_encode(['success' => false, 'message' => 'Error al actualizar: ' . $error['message']]);
+        //echo json_encode(['success' => false, 'message' => 'Error al actualizar: ' . $error['message']]);
+        echo json_encode(['success' => false, 'message' => 'Error al actualizar']);
         exit;
     }
 
@@ -5702,6 +5816,7 @@ function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa, $observaciones)
     }
     //echo json_encode(['success' => true, 'message' => 'Datos de envío actualizados']);
 }
+*/
 function guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO, $idEnvios)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -9814,8 +9929,13 @@ switch ($funcion) {
                         } else {
                             //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                             $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa, $formularioData['observaciones']);
-                            guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData, $id);
-                            $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito);
+                            if ($conCredito == "S") {
+                                guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData, $id);
+                                $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito);
+                            } else {
+                                $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero']);
+                                validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito, $id);
+                            }
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([
                                 'success' => false,
