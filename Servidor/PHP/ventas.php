@@ -574,9 +574,9 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
-            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
+            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
             //var_dump($resultadoWhatsApp);
-            //$resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
+            $resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
             if (str_contains($resultadoWhatsApp, "error")) {
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
@@ -606,7 +606,13 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData)
             $emailPred = $_SESSION['usuario']['correo'];
             $numeroWhatsApp = $_SESSION['usuario']['telefono'];
             enviarCorreoPedido($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-            $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
+            $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+            $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
+
+            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
+            //var_dump($resultadoWhatsApp);
+            $resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
+            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Enviado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
             //die();
         }
@@ -5200,8 +5206,8 @@ function remision($conexionData, $formularioData, $partidasData, $claveSae, $noE
     $vendedor = $formularioData['claveVendedor'];
 
     // URL del servidor donde se ejecutará la remisión
-    $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-    //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
     // Datos a enviar a la API de remisión
     $data = [
@@ -5381,8 +5387,8 @@ function enviarCorreoEcomers($correo, $clienteNombre, $noPedido, $partidasData, 
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave);
@@ -9659,7 +9665,7 @@ switch ($funcion) {
                             ]);
                             die();*/
                             //$anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
-                            $anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
+                            //$anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
 
                             /*$anticipo = [
                             'success' => $true,
@@ -9670,8 +9676,9 @@ switch ($funcion) {
                             'Referencia' => $REFER,
                             'NO_FACTURA' => $NO_FACTURA
                             ];*/
-                            //$anticipo['success'] = true;
-                            $estatus = "E";
+                            /* $anticipo['success'] = false;
+                            $anticipo['sinFondo'] = true;
+                            
                             if ($anticipo['success']) {
                                 eliminarCxc($conexionData, $anticipo, $claveSae, $conn);
                                 $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
@@ -9691,21 +9698,22 @@ switch ($funcion) {
                                 sqlsrv_commit($conn);
                                 sqlsrv_close($conn);
                                 exit();
-                            } elseif ($anticipo['sinFondo']) {
-                                //No tiene fondos
-                                $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
-                                $idEnvios = guardarDatosPedido($envioData, $folio, $noEmpresa, $formularioData);
-                                //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
-                                guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
-                                actualizarInventario($conexionData, $partidasData, $conn);
-                                $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio, $conn);
-                                guardarPago($idEnvios, $conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn);
-                                validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn);
-                                //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
-                                sqlsrv_commit($conn);
-                                sqlsrv_close($conn);
-                                exit();
-                            } elseif ($anticipo['fechaVencimiento']) {
+                            } elseif ($anticipo['sinFondo']) {*/
+                            //No tiene fondos
+                            $estatus = "E";
+                            $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
+                            $idEnvios = guardarDatosPedido($envioData, $folio, $noEmpresa, $formularioData);
+                            //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
+                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
+                            actualizarInventario($conexionData, $partidasData, $conn);
+                            $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio, $conn);
+                            guardarPago($idEnvios, $conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn);
+                            validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn);
+                            //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
+                            sqlsrv_commit($conn);
+                            sqlsrv_close($conn);
+                            exit();
+                            /*} elseif ($anticipo['fechaVencimiento']) {
                                 header('Content-Type: application/json; charset=UTF-8');
                                 echo json_encode([
                                     'success' => false,
@@ -9723,7 +9731,7 @@ switch ($funcion) {
                                 sqlsrv_commit($conn);
                                 sqlsrv_close($conn);
                                 exit();
-                            }
+                            }*/
                         } catch (Exception $e) {
                             // Si falla cualquiera, deshacemos TODO:
                             sqlsrv_rollback($conn);
