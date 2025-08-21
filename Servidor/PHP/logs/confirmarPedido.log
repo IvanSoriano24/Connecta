@@ -46,3 +46,26 @@
 [2025-08-20 10:52:47] INFO: El cliente          2 realizo la accion → null
 [2025-08-20 10:52:49] Advertencia: Pedido 208 sin existencias → []
 [2025-08-20 10:52:49] Advertencia: Pedido: 208 sin existencias → null
+[2025-08-20 20:29:05] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:29:07] Advertencia: El cliente:          3 acepto un pedido rechazado → null
+[2025-08-20 20:29:42] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:37:18] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:37:21] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:45:41] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:45:43] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:46:19] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:46:21] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:47:59] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:48:02] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:49:07] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:49:09] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:51:04] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:51:07] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:51:25] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:51:27] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:53:19] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:53:21] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:55:08] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:55:11] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:56:38] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:56:40] Advertencia: Pedido 206 sin existencias → []

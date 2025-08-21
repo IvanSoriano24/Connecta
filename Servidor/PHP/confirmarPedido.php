@@ -536,16 +536,18 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                         }
                     }
                 } else {
+                    bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "sin existencias", $noEmpresa);
                     if ($conCredito === 'S') {
+
                         $result = notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiKey, $vendedor, $pedidoId, $nombreCliente, $noEmpresa, $claveSae);
                         //var_dump($result);
-                        /*$error = error_get_last();
-                    $msg = sprintf(
-                        "[%s] Advertencia: Pedido: $pedidoId sin existencias → %s\n",
-                        date('Y-m-d H:i:s'),
-                        json_encode($error, JSON_UNESCAPED_UNICODE)
-                    );
-                    error_log($msg, 3, $logFile);*/
+                        $error = error_get_last();
+                        $msg = sprintf(
+                            "[%s] Advertencia: Pedido: $pedidoId sin existencias → %s\n",
+                            date('Y-m-d H:i:s'),
+                            json_encode($error, JSON_UNESCAPED_UNICODE)
+                        );
+                        error_log($msg, 3, $logFile);
                         //Hacer for de los pedidos sin existencias
                         echo "<div class='container'>
                             <div class='title'>Confirmación Exitosa</div>
@@ -860,12 +862,11 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
     foreach ($partidasData as $partida) {
         $CVE_ART = $partida['CVE_ART'];
         $cantidad = $partida['CANT'];
-
+        //(COALESCE(M.[EXIST], 0) - COALESCE(I.[APART], 0)) AS DISPONIBLE ##QUITAR
         // Consultar existencias reales considerando apartados
         $sqlCheck = "SELECT 
                         COALESCE(M.[EXIST], 0) AS EXIST, 
-                        COALESCE(I.[APART], 0) AS APART, 
-                        (COALESCE(M.[EXIST], 0) - COALESCE(I.[APART], 0)) AS DISPONIBLE ##QUITAR
+                        COALESCE(I.[APART], 0) AS APART 
                      FROM $nombreTabla I
                      INNER JOIN $nombreTabla2 M ON M.[CVE_ART] = I.CVE_ART
                      WHERE I.[CVE_ART] = ? AND M.[CVE_ALM] = 1";
@@ -879,8 +880,9 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
         $row = sqlsrv_fetch_array($stmtCheck, SQLSRV_FETCH_ASSOC);
         if ($row) {
             $existencias = (float)$row['EXIST'];
-            $apartados = (float)$row['APART'];
-            $disponible = (float)$row['DISPONIBLE']; //$disponible = $existencias - ($apartados - $cantidad)
+            $apartados = (float)$row['APART'] - $cantidad;
+            //$disponible = (float)$row['DISPONIBLE']; //$disponible = $existencias - ($apartados - $cantidad);
+            $disponible = $existencias - $apartados;
             /*var_dump($existencias);
             var_dump($apartados);
             var_dump($disponible);*/
@@ -1157,7 +1159,6 @@ function notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiK
     }
 
     //$telefonoVendedor = "+527773750925";
-
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -1165,8 +1166,10 @@ function notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiK
     foreach ($exsitencias['productosSinExistencia'] as $esxist) {
         $producto = $esxist['producto'];
         $existencias = $esxist['existencias'];
+        $disponible = $esxist['disponible'];
+        $apartados = $esxist['apartados'];
 
-        $productosStr .= " $producto - $existencias, ";
+        $productosStr .= " $producto - Existencias: $existencias - Apartados: $apartados - Disponible: $disponible, ";
     }
 
     $data = [
