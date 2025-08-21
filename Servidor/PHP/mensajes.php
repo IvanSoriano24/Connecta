@@ -1043,6 +1043,7 @@ function notificaciones($firebaseProjectId, $firebaseApiKey)
 
 function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionData)
 {
+    /*
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
 
     $context = stream_context_create([
@@ -1116,7 +1117,120 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
         });
     }
 
-    echo json_encode(['success' => true, 'data' => $pedidos]);
+    echo json_encode(['success' => true, 'data' => $pedidos]);*/
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+    $collection = "PEDIDOS_AUTORIZAR";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId"
+        . "/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    $filters = [];
+
+    // Filtro de status solo si no es cadena vacía
+    if (trim($filtroStatus) !== "") {
+        $filters[] = [
+            "fieldFilter" => [
+                "field" => ["fieldPath" => "status"],
+                "op"    => "EQUAL",
+                "value" => ["stringValue" => $filtroStatus]
+            ]
+        ];
+    }
+
+    // Filtro obligatorio de noEmpresa
+    $filters[] = [
+        "fieldFilter" => [
+            "field" => ["fieldPath" => "noEmpresa"],
+            "op"    => "EQUAL",
+            "value" => ["integerValue" => (int)$noEmpresa]
+        ]
+    ];
+
+    // Decidir si usar simple o compositeFilter
+    if (count($filters) === 1) {
+        $where = $filters[0];
+    } else {
+        $where = [
+            "compositeFilter" => [
+                "op"      => "AND",
+                "filters" => $filters
+            ]
+        ];
+    }
+
+    // Opcional: ordenar por folio descendente en la propia consulta
+    $structuredQuery = [
+        "from"    => [["collectionId" => $collection]],
+        "where"   => $where
+    ];
+
+    $payload = json_encode(["structuredQuery" => $structuredQuery]);
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No se pudo conectar a la base de datos.'
+        ]);
+        exit;
+    }
+
+    $resultArray = json_decode($response, true);
+    $pedidos    = [];
+
+    foreach ($resultArray as $item) {
+        if (!isset($item['document'])) {
+            continue;
+        }
+        $doc    = $item['document'];
+        $fields = $doc['fields'];
+
+        $fechaHoraStr = $fields['fechaHoraElaboracion']['stringValue'] ?? "";
+        list($fecha, $hora) = array_pad(explode(" ", $fechaHoraStr), 2, ["", "00:00:00"]);
+
+        /*$pedidos[] = [
+            'id'            => basename($doc['name']),
+            'noPedido'      => $fields['folio']['stringValue']     ?? "",
+            'nombreCliente' => $fields['nombreCliente']['stringValue'] ?? "",
+            'status'        => $fields['status']['stringValue']    ?? "",
+            'fecha'         => $fecha,
+            'hora'          => $hora
+        ];*/
+        $claveSae = $fields['claveSae']['stringValue'] ?? '';
+        $claveCliente = $fields['cliente']['stringValue'] ?? '';
+        $claveVendedor = $fields['vendedor']['stringValue'] ?? '';
+        $status = $fields['status']['stringValue'] ?? 'Desconocido';
+        // Obtener datos del cliente
+        $dataCliente = obtenerDatosCliente($conexionData, $claveCliente, $claveSae, $claveVendedor);
+        $clienteNombre = $dataCliente['cliente'] ?? 'Cliente Desconocido';
+        $vendedorNombre = $dataCliente['vendedor'] ?? 'Vendedor Desconocido';
+        $pedidos[] = [
+            'id' => basename($doc['name']),
+            'folio' => $fields['folio']['stringValue'] ?? 'N/A',
+            'cliente' => $clienteNombre,
+            'enviar' => $fields['enviar']['stringValue'] ?? 'N/A',
+            'vendedor' => $vendedorNombre,
+            'diaAlta' => $fields['diaAlta']['stringValue'] ?? 'N/A',
+            'claveSae' => $fields['claveSae']['stringValue'] ?? 'N/A',
+            'noEmpresa' => $noEmpresa,
+            'status' => $status,
+            'totalPedido' => number_format(floatval($fields['importe']['doubleValue']), 2, '.', '') ?? "0.0", // 🔹 Total formateado con 2 decimales
+        ];
+    }
+
+    echo json_encode([
+        'success' => true,
+        'data'    => $pedidos
+    ]);
 }
 function obtenerDetallesPedido($firebaseProjectId, $firebaseApiKey, $pedidoId)
 {

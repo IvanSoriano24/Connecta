@@ -354,8 +354,8 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                             $result = json_decode($response, true);
                             if (isset($result['name'])) {
 
-                                $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-                                //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+                                //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                                $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
                                 $data = [
                                     'numFuncion' => 1,
@@ -886,10 +886,10 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
             /*var_dump($existencias);
             var_dump($apartados);
             var_dump($disponible);*/
-            if ($disponible >= $cantidad) {
+            if ($disponible >= $cantidad && $disponible != 0) {
                 // opcional: también loguear los que sí tienen existencia
                 $msg = sprintf(
-                    "[%s] Info: Pedido %s verificadas existencias correctamente → %s\n",
+                    "[%s] Info: Pedido $pedidoId %s verificadas existencias correctamente → %s\n",
                     date('Y-m-d H:i:s'),
                     $pedidoId,
                     json_encode($productosConExistencia, JSON_UNESCAPED_UNICODE)
@@ -903,7 +903,7 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
                 ];
             } else {
                 $msg = sprintf(
-                    "[%s] Advertencia: Pedido %s sin existencias → %s\n",
+                    "[%s] Advertencia: Pedido $pedidoId %s sin existencias $productosSinExistencia → %s\n",
                     date('Y-m-d H:i:s'),
                     $pedidoId,
                     json_encode($productosSinExistencia, JSON_UNESCAPED_UNICODE)
