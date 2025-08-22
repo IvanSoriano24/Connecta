@@ -829,8 +829,7 @@ function enviarWhatsApp($numero, $pedidoId, $nombreCliente)
 
     return $result;
 }
-function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
-{
+function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile){
     //Creamos la conexion
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -903,7 +902,7 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
                 ];
             } else {
                 $msg = sprintf(
-                    "[%s] Advertencia: Pedido $pedidoId %s sin existencias $productosSinExistencia → %s\n",
+                    "[%s] Advertencia: Pedido $pedidoId %s sin existencias $CVE_ART → %s\n",
                     date('Y-m-d H:i:s'),
                     $pedidoId,
                     json_encode($productosSinExistencia, JSON_UNESCAPED_UNICODE)
@@ -946,8 +945,7 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
         ];
     }
 }
-function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId)
-{
+function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId){
     //var_dump("Pedido: ", $pedidoId);
     // Endpoint de runQuery
     $url = sprintf(
@@ -1019,9 +1017,6 @@ function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId)
 
     // Si llega aquí, no encontró nada
     return true;
-
-
-    return true;  // No hubo coincidencias
 }
 function buscarRechazo($firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa)
 {
