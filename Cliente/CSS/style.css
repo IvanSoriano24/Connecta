@@ -170,16 +170,23 @@ body {
 /* CONTENT */
 #content {
 	position: relative;
-	width: calc(100% - 280px);
-	left: 280px;
+	width: calc(100% - 230px);
+	left: 230px;
 	transition: .3s ease;
 }
+
+/* Este no se si se ocupe @JOSE
 #sidebar.hide ~ #content {
 	width: calc(100% - 60px);
 	left: 60px;
 }
+*/
 
 
+#sidebar.collapsed ~ #content {
+	width: calc(100% - 60px);
+	left: 60px;
+}
 
 
 /* NAVBAR */
@@ -206,7 +213,7 @@ body {
     position: sticky;
     top: 0;
     left: 0;
-    z-index: 2000; /* Asegura que esté por encima del sidebar */
+    z-index: 1000; /* Asegura que esté por encima del sidebar */
     height: 60px;
 }
 
@@ -355,7 +362,7 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	grid-gap: 16px;
+	grid-gap: 0;
 	flex-wrap: wrap;
 }
 #content main .head-title .left h1 {
@@ -488,6 +495,34 @@ body {
 
 
 
+/* Botones nuevos sin texto para (Pedidos, Remisiones, Cancelados, etc) */
+
+.btn-iconNuevos {
+	border-radius: 36px;
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	width: 36px;
+	height: 36px;
+	border: none;
+	cursor: pointer;
+	transition: transform .08s ease, filter .15s ease;
+	color: #fff;
+}
+.btn-icon:active { transform: scale(0.95); }
+.btn-icon:hover { filter: brightness(0.9); }
+
+.btn-editar    { background: #0d6efd; }  /* azul */
+.btn-cancelar  { background: #dc3545; }  /* rojo */
+.btn-visualizar    { background: #20c997; }  /* verde-agua */
+.btn-downloadP{ background: #3c91e6; }  /* azul cielo*/
+.btn-enviarWhatsapp    { background: #198754; }  /* verde */
+.btn-enviarCorreo { background: #fd7e14; }  /* naranja */
+
+.td-btn{
+	padding: 16px 8px;
+}
+/* ----------------------------------------------------------------------------- */
 
 
 .form-buttons {
@@ -535,7 +570,7 @@ input[readonly1] {
 	display: flex;
 	flex-wrap: wrap;
 	grid-gap: 24px;
-	margin-top: 24px;
+	margin-top: 0;
 	width: 100%;
 	color: var(--dark);
 }
@@ -576,7 +611,7 @@ input[readonly1] {
 	border-bottom: 1px solid var(--grey);
 }
 #content main .table-data .order table td {
-	padding: 16px 12px; /* Aumenta el padding */
+	padding: 16px 9px; /* Aumenta el padding */
 	text-align: left;
 }
 #content main .table-data .order table tr td:first-child {

@@ -44,6 +44,8 @@ session_destroy(); */
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+
+    <script src="JS/sideBar.js"></script>
     <!-- Ionicons v5 -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
@@ -103,29 +105,6 @@ session_destroy(); */
             }
         }
 
-        /* BOTON MOSTRAR MAS */
-        /* From Uiverse.io by felipesntr */
-        button {
-            border: 2px solid #24b4fb;
-            background-color: #24b4fb;
-            border-radius: 0.9em;
-            cursor: pointer;
-            padding: 0.8em 1.2em 0.8em 1em;
-            transition: all ease-in-out 0.2s;
-            font-size: 16px;
-        }
-
-        button span {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-weight: 600;
-        }
-
-        button:hover {
-            background-color: #0071e2;
-        }
     </style>
     <style>
         /* CSS */

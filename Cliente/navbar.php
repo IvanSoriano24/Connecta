@@ -5,7 +5,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20 30px; /* Hacer el navbar más amplio */
+        padding: 20px 30px; /* Hacer el navbar más amplio */
         background-color: #f8f9fa;
         border-bottom: 1px solid #ddd;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -76,6 +76,31 @@
         background-color: #3583bf;
     }
 
+    .btn-usuario {
+        display: flex;
+        align-items: center;
+        background-color: #3c91e6;
+        color: white !important;
+        border: none;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-usuario i {
+        margin-right: 8px;
+        font-size: 18px;
+    }
+
+    .btn-usuario:hover {
+        background-color: #0d6efd;
+    }
+
+
     @media (max-width: 768px) {
         .navbar {
             flex-direction: column;
@@ -102,7 +127,7 @@
         </h6>
     </div>
     <div class="right-section">
-        <a href="Usuarios.php" class="btn btn-secondary" tabindex="-1">
+        <a href="Usuarios.php" class="btn btn-usuario" tabindex="-1">
             <i class='bx bxs-user'></i> Usuario
         </a>
     </div>

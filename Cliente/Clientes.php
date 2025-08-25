@@ -51,6 +51,7 @@ if (isset($_SESSION['usuario'])) {
 	<!-- Boxicons -->
 	<link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
+    <script src="JS/sideBar.js"></script>
 	<!-- My CSS -->
 	<link rel="stylesheet" href="CSS/style.css">
 

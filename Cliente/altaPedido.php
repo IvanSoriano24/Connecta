@@ -47,6 +47,8 @@ if (isset($_SESSION['usuario'])) {
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
+    <script src="JS/sideBar.js"></script>
+
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -424,7 +426,7 @@ if (isset($_SESSION['usuario'])) {
                             <input type="text" name="tipoOperacion" id="tipoOperacion" hidden readonly value="alta" tabindex="-1">
 
                             <div class="form-element">
-                                <label for="fecha">Fecha </label>
+                                <label for="diaAlta">Fecha </label>
                                 <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;"
                                     readonly1 tabindex="-1">
                             </div>

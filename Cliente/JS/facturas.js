@@ -237,11 +237,9 @@ function datosPedidos(limpiarTabla = true) {
                                 : "Sin importe";
 
                             row.innerHTML = `
-                                <td>${pedido.Tipo || "Sin tipo"}</td>
                                 <td>${pedido.Clave || "Sin nombre"}</td>
                                 <td >${pedido.Cliente || "Sin cliente"}</td>
                                 <td>${pedido.Nombre || "Sin nombre"}</td>
-                                <td>${pedido.Estatus || "0"}</td>
                                 <td>${pedido.FechaElaboracion || "Sin fecha"
                             }</td>
                                 <td style="text-align: right;">${subtotalText}</td>

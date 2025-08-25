@@ -40,6 +40,8 @@ if (isset($_SESSION['usuario'])) {
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+
+    <script src="JS/sideBar.js"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -114,7 +116,7 @@ if (isset($_SESSION['usuario'])) {
             <!-- MAIN -->
             <main class="text-center">
                 <div class="modal-header">
-                    <h2 class="modal-title" id="clientes">Gestión de Usuarios</h5>
+                    <h2 class="modal-title" id="clientes">Gestión de Usuarios</h2>
                 </div>
 
                 <!-- Botones de acciones principales -->
