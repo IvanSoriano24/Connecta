@@ -5651,10 +5651,10 @@ function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa, $observaciones)
     global $firebaseProjectId, $firebaseApiKey;
 
     $idDocumento = $envioData['idDocumento'] ?? null;
-    if (!$idDocumento) {
+    /*if (!$idDocumento) {
         echo json_encode(['success' => false, 'message' => 'Falta idDocumento']);
         exit;
-    }
+    }*/
 
     // Normaliza datos y evita undefined index
     $fields = [
