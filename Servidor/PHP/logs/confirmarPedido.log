@@ -69,3 +69,8 @@
 [2025-08-20 20:55:11] Advertencia: Pedido 206 sin existencias → []
 [2025-08-20 20:56:38] INFO: El cliente          3 realizo la accion → null
 [2025-08-20 20:56:40] Advertencia: Pedido 206 sin existencias → []
+[2025-08-26 09:19:44] INFO: El cliente          3 realizo la accion → null
+[2025-08-26 09:19:46] Info: Pedido 211 211 verificadas existencias correctamente → []
+[2025-08-26 09:19:46] INFO: El pedido 211 cuenta con las existencias necesarias → null
+[2025-08-26 09:19:46] INFO: El cliente          3 maneja credico → null
+[2025-08-26 09:19:47] Succes: Comanda Creada→ null

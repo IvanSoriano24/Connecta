@@ -569,15 +569,16 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData){
     }
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         if ($numeroBandera === 0) {
-            //$numeroWhatsApp = 7773750925;
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
             $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
-            //var_dump($resultadoWhatsApp);
+            var_dump($resultadoWhatsApp);
+            die();
             //$resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
             if (str_contains($resultadoWhatsApp, "error")) {
-                throw new Exception("Problema al enviar mensaje de WhatsApp");
+                //throw new Exception("Problema al enviar mensaje de WhatsApp");
+                echo json_encode(['success' => false, 'message' => 'Problema al enviar mensaje de WhatsApp.', 'error' => $resultadoWhatsApp]);
             }
         }
 
@@ -613,7 +614,8 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData){
             //$resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
             $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
             if (str_contains($resultadoWhatsApp, "error")) {
-                throw new Exception("Problema al enviar mensaje de WhatsApp");
+                //throw new Exception("Problema al enviar mensaje de WhatsApp");
+                echo json_encode(['success' => false, 'message' => 'Problema al enviar mensaje de WhatsApp.', 'error' => $resultadoWhatsApp]);
             }
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Enviado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
             //die();

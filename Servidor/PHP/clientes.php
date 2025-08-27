@@ -551,7 +551,8 @@ function mostrarClientesPedidos($conexionData, $claveSae)
                 SALDO,
                 VAL_RFC AS EstadoDatosTimbrado,
                 NOMBRECOMERCIAL,
-                DESCUENTO
+                DESCUENTO,
+                LISTA_PREC
             FROM $nombreTabla
             WHERE STATUS = 'A'
             ORDER BY CLAVE ASC
@@ -573,7 +574,8 @@ function mostrarClientesPedidos($conexionData, $claveSae)
                 SALDO,
                 VAL_RFC AS EstadoDatosTimbrado,
                 NOMBRECOMERCIAL,
-                DESCUENTO
+                DESCUENTO,
+                LISTA_PREC
             FROM $nombreTabla
             WHERE STATUS = 'A'
                 AND CVE_VEND = ?
