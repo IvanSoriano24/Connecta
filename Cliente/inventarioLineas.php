@@ -489,8 +489,7 @@ session_destroy(); */
                     <div class="form-buttons">
                         <button type="button" class="btn btn-primary" id="generararPDF">Generar PDF</button>
                         <button type="button" class="btn btn-save" id="exportarExcel">Exportar Excel</button>
-                        <button type="button" class="btn btn-primary" id="otroConteo">Otro Conte</button>
-                        <button type="button" class="btn btn-primary" id="finalizarInventario">Finalizar Inventario</button>
+                        <button type="button" class="btn btn-primary" id="finalizarInventarioLinea">Finalizar Inventario</button>
                     </div>
                 </form>
             </div>

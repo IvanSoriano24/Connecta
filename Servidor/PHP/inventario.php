@@ -135,7 +135,7 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea){
     }
 }
 function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey){
-    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
+    // Construir la URL para filtrar (usa el campo inventarioFisico y noEmpresa)
     $collection = "FOLIOS";
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
 
@@ -201,6 +201,142 @@ function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     echo json_encode(['success' => true, 'noInventario' => $noInventario]);
 }
 
+function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
+    $collection = "INVENTARIO"; // corregido
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    // Helpers
+    $postJson = function(array $body) use ($url) {
+        $options = [
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($body),
+                'timeout' => 15,
+            ]
+        ];
+        $ctx = stream_context_create($options);
+        $resp = @file_get_contents($url, false, $ctx);
+        if ($resp === false) { return null; }
+        $arr = json_decode($resp, true);
+        return is_array($arr) ? $arr : null;
+    };
+
+    $pickDoc = function(?array $runQueryResponse) {
+        // runQuery devuelve un array, cada elemento puede o no traer 'document'
+        if (!$runQueryResponse || !is_array($runQueryResponse)) return null;
+        foreach ($runQueryResponse as $row) {
+            if (isset($row['document'])) return $row['document'];
+        }
+        return null;
+    };
+
+    $getIdFromName = function(string $name) {
+        // name: projects/.../databases/(default)/documents/INVENTARIO/{docId}
+        $parts = explode('/', $name);
+        return end($parts);
+    };
+
+    $getField = function(array $fields, string $key) {
+        if (!isset($fields[$key])) return null;
+        $v = $fields[$key];
+        // soporta tipos comunes
+        if (isset($v['integerValue'])) return (int)$v['integerValue'];
+        if (isset($v['doubleValue']))  return (float)$v['doubleValue'];
+        if (isset($v['stringValue']))  return (string)$v['stringValue'];
+        if (isset($v['booleanValue'])) return (bool)$v['booleanValue'];
+        if (isset($v['nullValue']))    return null;
+        return $v; // fallback
+    };
+
+    // ------------------------------
+    // A) Buscar inventario ACTIVO
+    // ------------------------------
+    $queryActive = [
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "status"],
+                                "op" => "EQUAL",
+                                "value" => ["booleanValue" => true]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ];
+
+    $respActive = $postJson($queryActive);
+    $docActive  = $pickDoc($respActive);
+
+    $result = [
+        "success"       => true,
+        "foundActive"   => false,
+        "existsAny"     => false,
+        "docId"         => null,
+        "raw"           => null // opcional: para depurar, puedes quitarlo en producción
+    ];
+
+    if ($docActive) {
+        $fields = $docActive['fields'] ?? [];
+        $result["noInventario"] = $getField($fields, 'noInventario');
+        $result["foundActive"]    = true;
+        $result["existsAny"]      = true; // si hay activo, por ende existe
+        $result["docId"]          = $getIdFromName($docActive['name']);
+        $result["raw"]            = null; // o guarda $docActive si quieres
+        echo json_encode($result);
+        return;
+    }
+
+    // ---------------------------------------------
+    // B) No hay activo: ¿existe algún inventario?
+    // ---------------------------------------------
+    $queryAny = [
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "fieldFilter" => [
+                    "field" => ["fieldPath" => "noEmpresa"],
+                    "op" => "EQUAL",
+                    "value" => ["integerValue" => (int)$noEmpresa]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ];
+
+    $respAny = $postJson($queryAny);
+    $docAny  = $pickDoc($respAny);
+
+    if ($docAny) {
+        $fields = $docAny['fields'] ?? [];
+        $result["noInventario"] = $getField($fields, 'noInventario');
+        $result["existsAny"]      = true;
+        $result["docId"]          = $getIdFromName($docAny['name']);
+    }
+
+    echo json_encode($result);
+}
+
+
 
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -217,7 +353,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 }
 switch ($funcion) {
     case 1: 
-
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        break;
         break;
     case 2:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];

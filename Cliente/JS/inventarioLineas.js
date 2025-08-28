@@ -96,9 +96,94 @@ function abrirModal(){
   $("#resumenInventario").modal("show");
 }
 //Funcion para saber si hay un inventario activo
-function buscarInventario(){
+function buscarInventario() {
+  const csrfToken = $('#csrf_token').val();
+  const $noInv    = $('#noInventario');
+  const $linea    = $('#lineaSelect');
+  const $btnNext  = $('#btnNext');
+
+  // Estado inicial (opcional)
+  $btnNext.prop('disabled', true);
+
+  return $.ajax({
+    url: "../Servidor/PHP/inventario.php",
+    method: "GET",
+    data: { numFuncion: "1" },
+    dataType: "json",
+    headers: { 'X-CSRF-Token': csrfToken }
+  })
+  .done(function(res) {
+    // Esperado: { success: true, foundActive: bool, existsAny: bool, docId: string|null, folioSiguiente: int|null }
+    if (!res || res.success !== true) {
+      Swal.fire({ icon: "error", title: "Error", text: "Respuesta inválida del servidor." });
+      return;
+    }
+
+    // Presentación/estado
+    const { foundActive, existsAny, noInventario, docId } = res;
+
+    if (foundActive) {
+      // Hay inventario ACTIVO
+      $noInv.val(noInventario ?? '').prop('readonly', true).addClass('is-valid');
+      $linea.prop('disabled', false);
+      $btnNext.prop('disabled', false);
+
+      Swal.fire({
+        icon: "info",
+        title: "Inventario activo",
+        html: `
+          <div style="text-align:left">
+            <div><b>Numero de Inventario:</b> ${noInventario ?? '—'}</div>
+            <!--<div><b>Documento:</b> ${docId ?? '—'}</div>-->
+            <div class="mt-2">Puedes continuar con el conteo por líneas.</div>
+          </div>
+        `,
+        confirmButtonText: "Continuar"
+      });
+    } else if (existsAny) {
+      // No hay activo, pero sí existen inventarios (inactivos)
+      $noInv.val(noInventario ?? '').prop('readonly', false).removeClass('is-valid');
+      $linea.prop('disabled', true);
+      $btnNext.prop('disabled', true);
+
+      Swal.fire({
+        icon: "warning",
+        title: "No hay inventario activo",
+        html: `
+          <div style="text-align:left">
+            <div>Existen inventarios previos para esta empresa, pero ninguno activo.</div>
+            <div class="mt-2">Define o activa un inventario para continuar.</div>
+          </div>
+        `,
+        confirmButtonText: "Entendido"
+      });
+    } else {
+      // No existe ningún inventario para esa empresa
+      $noInv.val('').prop('readonly', false).removeClass('is-valid');
+      $linea.prop('disabled', true);
+      $btnNext.prop('disabled', true);
+
+      Swal.fire({
+        icon: "question",
+        title: "Sin inventarios",
+        text: "No existe ningún inventario registrado para esta empresa. Crea uno para continuar.",
+        confirmButtonText: "Ok"
+      });
+    }
+  })
+  .fail(function(jqXHR, textStatus, errorThrown) {
+    console.error("AJAX error:", textStatus, errorThrown);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo obtener el estado del inventario."
+    });
+  });
+}
+function guardarLinea(){
   
 }
+
 
 
 window.onload = function () {
@@ -124,4 +209,7 @@ $(document).ready(function () {
 // Escuchar el clic en el boton
 $("#btnNext").click(function () {
   abrirModal();
+});
+$("#finalizarInventarioLinea").click(function () {
+  guardarLinea();
 });
