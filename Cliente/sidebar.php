@@ -37,6 +37,7 @@
         align-items: center;
         gap: 10px;
     }
+
     #sidebar.collapsed ul li a {
         justify-content: center;
         gap: 0;
@@ -55,7 +56,7 @@
         z-index: 1100;
     }
 
-    #sidebar.collapsed ~ #mainContent {
+    #sidebar.collapsed~#mainContent {
         margin-left: 60px;
     }
 
@@ -66,6 +67,7 @@
     #sidebar.collapsed .dropdown-toggle::after {
         display: none !important;
     }
+
     #sidebar.collapsed .dropdown-toggle {
         padding-right: 0 !important;
     }
@@ -88,16 +90,20 @@
     #sidebar.collapsed #logoGrande {
         display: none;
     }
+
     #sidebar.collapsed #logoChico {
         display: block;
     }
 
 
     /* Deja cada li como ancla del menú (sirve para todos) */
-    .side-menu > li { position: relative; z-index: 1001; }
+    .side-menu>li {
+        position: relative;
+        z-index: 1001;
+    }
 
     /* SOLO Ventas (manual) a la derecha, no toques su HTML */
-    .dropdown-manual > .dropdown-menu {
+    .dropdown-manual>.dropdown-menu {
         position: absolute;
         top: 0;
         left: 100%;
@@ -107,25 +113,34 @@
     }
 
     /* Bootstrap ya posiciona .dropend a la derecha; solo ajusta espacio */
-    .dropend .dropdown-menu { margin-left: 8px; }
+    .dropend .dropdown-menu {
+        margin-left: 8px;
+    }
 
     /* En colapsado, caret y padding extra fuera para alinear iconos */
-    #sidebar.collapsed .dropdown-toggle::after { display: none !important; }
-    #sidebar.collapsed .dropdown-toggle { padding-right: 0 !important; }
+    #sidebar.collapsed .dropdown-toggle::after {
+        display: none !important;
+    }
+
+    #sidebar.collapsed .dropdown-toggle {
+        padding-right: 0 !important;
+    }
 
     #sidebar.collapsed {
         width: 65px;
     }
+
     #sidebar.collapsed .text {
         display: none;
     }
+
     #sidebar.collapsed #logoGrande {
         display: none;
     }
+
     #sidebar.collapsed #logoChico {
         display: block;
     }
-
 </style>
 
 <!-- sidebar.php -->
@@ -161,21 +176,38 @@
                 </a>
                 <ul class="dropdown-menu">
                     <?php if ($tipoUsuario != "ALMACENISTA") { ?>
-                    <li><a class="dropdown-item" href="Ventas.php" tabindex="-1">Pedidos</a></li>
+                        <li><a class="dropdown-item" href="Ventas.php" tabindex="-1">Pedidos</a></li>
                     <?php } ?>
                     <li><a class="dropdown-item" href="Remisiones.php" tabindex="-1">Remisiones</a></li>
                     <?php if ($tipoUsuario != "ALMACENISTA") { ?>
-                    <li><a class="dropdown-item" href="Facturas.php" tabindex="-1">Facturas</a></li>
+                        <li><a class="dropdown-item" href="Facturas.php" tabindex="-1">Facturas</a></li>
                     <?php } ?>
                 </ul>
             </li>
         <?php } ?>
 
-        <li>
+        <!--<li>
             <a href="Productos.php" title="Productos" tabindex="-1">
                 <i class='bx bxs-package'></i>
                 <span class="text">Productos</span>
             </a>
+        </li> -->
+        <li class="dropdown-manual">
+            <!--<a href="Productos.php" tabindex="-1">
+                <i class='bx bxs-package'></i>
+                <span class="text">Productos</span>
+            </a>-->
+            <a href="#" class="dropdown-toggle dropdown-toggle-manual" tabindex="-1">
+                <i class='bx bxs-package'></i>
+                <span class="text">Inventario</span>
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="Productos.php" tabindex="-1">Productos</a></li>
+                <?php if ($tipoUsuario == "ALMACENISTA" || $tipoUsuario == "ADMINISTRADOR") { ?>
+                    <li><a class="dropdown-item" href="inventarioFisico.php" tabindex="-1">Inventario Fisico</a></li>
+                <?php } ?>
+            </ul>
+
         </li>
         <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR") { ?>
 
@@ -200,12 +232,12 @@
             </a>
         </li>
         <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR") { ?>
-        <li>
-            <a href="Reportes.php" title="Reportes" tabindex="-1"> <!--  Dashboard -->
-                <i class='bx bxs-file'></i>
-                <span class="text">Reportes</span>
-            </a>
-        </li>
+            <li>
+                <a href="Reportes.php" title="Reportes" tabindex="-1"> <!--  Dashboard -->
+                    <i class='bx bxs-file'></i>
+                    <span class="text">Reportes</span>
+                </a>
+            </li>
         <?php } ?>
     </ul>
     <ul class="side-menu">
@@ -254,5 +286,4 @@
             localStorage.setItem("sidebar-collapsed", sidebar.classList.contains("collapsed"));
         });
     });
-
 </script>

@@ -426,7 +426,7 @@ session_destroy(); */
                             <div class="col-6 col-md-3 col-lg-2">
                                 <label for="noInventario" class="form-label m-0">No. Inventario:</label>
                                 <!-- <input type="text" id="noInventario" class="form-control inv-num" value="0001"> -->
-                                 <input type="text" id="noInventario" class="form-control inv-num" value="" disabled>
+                                <input type="text" id="noInventario" class="form-control inv-num" value="" disabled>
                             </div>
 
                             <div class="col-6 col-md-3 col-lg-2">

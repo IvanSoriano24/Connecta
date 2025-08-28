@@ -271,7 +271,7 @@ function enviarConfirmacion(pedidoID) {
                 } else {
                     Swal.fire({
                         title: "Aviso",
-                        text: response.message || "No se pudo cancelar el pedido",
+                        text: response.message || "No se pudo enviar el pedido",
                         icon: "warning",
                         confirmButtonText: "Entendido",
                     });

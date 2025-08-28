@@ -579,6 +579,7 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData){
             if (str_contains($resultadoWhatsApp, "error")) {
                 //throw new Exception("Problema al enviar mensaje de WhatsApp");
                 echo json_encode(['success' => false, 'message' => 'Problema al enviar mensaje de WhatsApp.', 'error' => $resultadoWhatsApp]);
+                die();
             }
         }
 

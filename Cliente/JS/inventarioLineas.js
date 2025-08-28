@@ -95,6 +95,10 @@ function abrirModal(){
   console.log(lineaSelect);
   $("#resumenInventario").modal("show");
 }
+//Funcion para saber si hay un inventario activo
+function buscarInventario(){
+  
+}
 
 
 window.onload = function () {
@@ -108,6 +112,7 @@ window.onload = function () {
   document.getElementById("fechaFin").value = ano + "-" + mes + "-" + dia;
 };
 $(document).ready(function () {
+  buscarInventario();
   obtenerLineas();
   noInventario();
 });
