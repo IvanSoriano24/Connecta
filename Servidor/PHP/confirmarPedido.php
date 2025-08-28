@@ -881,7 +881,8 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile){
             $existencias = (float)$row['EXIST'];
             $apartados = (float)$row['APART'] - $cantidad;
             //$disponible = (float)$row['DISPONIBLE']; //$disponible = $existencias - ($apartados - $cantidad);
-            $disponible = $existencias - $apartados;
+            //$disponible = $existencias - $apartados;
+            $disponible = $existencias - abs($apartados);
             /*var_dump($existencias);
             var_dump($apartados);
             var_dump($disponible);*/

@@ -63,12 +63,21 @@ if (isset($_SESSION['usuario'])) {
 
         <!-- CONTENT -->
         <!-- Seccion de los Campos Libres -->
-        <div id="invetarioFisico">
+        <div id="cambLib">
             <section id="content">
                 <!-- NAVBAR -->
                 <?php include 'navbar.php'; ?>
                 <!-- MAIN -->
                 <main class="text-center ">
+                    <!-- Botones para cambiar las secciones -->
+                    <div class="btn-group mb-4" role="group">
+                        <!-- Boton para cambiar a la seccion de campos libres -->
+                        <button type="button" class="btn btn-primary" id="btnCam">Campos Libres</button>
+                        <!-- Boton para cambiar a la seccion de configuracion de administrador -->
+                        <button type="button" class="btn btn-primary" id="btnAdmin">Configuracion de Administradores</button>
+                        <!-- Boton para cambiar a la seccion de series de folio -->
+                        <button type="button" class="btn btn-primary" id="btnSerie">Configuracion de Series</button>
+                    </div>
                     <div class="card-body">
                         <div class="container-fluid mt-10">
                             <div class="head-title">
@@ -82,12 +91,12 @@ if (isset($_SESSION['usuario'])) {
                                         <li><i class='bx bx-chevron-right'></i></li>
                                         <li>
                                             <!-- Seccion del modulo -->
-                                            <a href="#">Inventarios</a>
+                                            <a href="#">Campos Libres</a>
                                         </li>
                                     </ul>
                                 </div>
-                                <button class="btn btn-success" id="btnNuevoInventario">
-                                    <i class='bx bxs-briefcase'></i> Nuevo Inventario
+                                <button class="btn btn-success" id="btnAgregarCampo">
+                                    <i class='bx bxs-briefcase'></i> Seleccionar Campo Libre
                                 </button>
                             </div>
                             <!-- Tabla de campos -->
@@ -98,11 +107,12 @@ if (isset($_SESSION['usuario'])) {
                                         <table id="tablaParametros">
                                             <thead>
                                                 <tr>
-                                                    <th scope="col">No Inventario</th>
-                                                    <th scope="col">Fecha de Creacion</th>
+                                                    <th scope="col">Tabla</th>
+                                                    <th scope="col">Campo Usado</th>
+                                                    <th scope="col">Descripcion</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="inventarios">
+                                            <tbody id="parametros">
                                                 <!-- Las tablas junto a sus campos se agregarán aquí dinámicamente -->
                                             </tbody>
                                         </table>
@@ -115,6 +125,130 @@ if (isset($_SESSION['usuario'])) {
                 <!-- MAIN -->
             </section>
         </div>
+        <!-- Seccion de los los Administradores -->
+        <div id="admin" style="display:none">
+            <section id="content">
+                <!-- NAVBAR -->
+                <?php include 'navbar.php'; ?>
+                <!-- MAIN -->
+                <main class="text-center ">
+                    <!-- Botones para cambiar las secciones -->
+                    <div class="btn-group mb-4" role="group">
+                        <!-- Boton para cambiar a la seccion de los campos libres -->
+                        <button type="button" class="btn btn-primary" id="btnCamAdmin">Campos Libres</button>
+                        <!-- Boton para cambiar a la seccion de la configuracion de administrador -->
+                        <button type="button" class="btn btn-primary" id="btnAdminAdmin">Configuracion de Administradores</button>
+                        <!-- Boton para cambiar a la seccion de series de folios -->
+                        <button type="button" class="btn btn-primary" id="btnSerieAdmin">Configuracion de Series</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="container-fluid mt-10">
+                            <div class="head-title">
+                                <div class="left">
+                                    <!-- Titulo del Modulo -->
+                                    <h1>Parametros del Sistema</h1>
+                                    <ul class="breadcrumb">
+                                        <li>
+                                            <a href="Dashboard.php">Inicio</a>
+                                        </li>
+                                        <li><i class='bx bx-chevron-right'></i></li>
+                                        <li>
+                                            <!-- Seccion del Modulo -->
+                                            <a href="#">Administrador</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <!-- Tabla de administradores -->
+                            <div class="table-data">
+                                <div class="order">
+                                    <input type="hidden" id="idDocumentoAdmin">
+                                    <div class="head">
+                                        <table id="tablaAdministradores">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Administradores</th>
+                                                    <th scope="col">Clave</th>
+                                                    <th scope="col">Editar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="administradores">
+                                                <!-- Los administradores se agregarán aquí dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <!-- MAIN -->
+            </section>
+        </div>
+        <!-- Seccion de las Series de los Folios -->
+        <div id="serie" style="display:none">
+            <section id="content">
+                <!-- NAVBAR -->
+                <?php include 'navbar.php'; ?>
+                <!-- MAIN -->
+                <main class="text-center ">
+                    <!-- Botones para cambiar las secciones -->
+                    <div class="btn-group mb-4" role="group">
+                        <!-- Boton para cambiar a la seccion de los campos libres -->
+                        <button type="button" class="btn btn-primary" id="btnCamSerie">Campos Libres</button>
+                        <!-- Boton para cambiar a la seccion de los administradores -->
+                        <button type="button" class="btn btn-primary" id="btnAdminSerie">Configuracion de Administradores</button>
+                        <!-- Boton para cambiar a la seccion de las series de los folios -->
+                        <button type="button" class="btn btn-primary" id="btnSerieSerie">Configuracion de Series</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="container-fluid mt-10">
+                            <div class="head-title">
+                                <div class="left">
+                                    <!-- Titulo del modulo -->
+                                    <h1>Parametros del Sistema</h1>
+                                    <ul class="breadcrumb">
+                                        <li>
+                                            <a href="Dashboard.php">Inicio</a>
+                                        </li>
+                                        <li><i class='bx bx-chevron-right'></i></li>
+                                        <li>
+                                            <!-- Seccion del modulo -->
+                                            <a href="#">Series</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <button class="btn btn-success" id="btnAgregarSerie">
+                                    <i class='bx bxs-briefcase'></i> Seleccionar Serie
+                                </button>
+                            </div>
+                            <!-- Tabla de las series -->
+                            <div class="table-data">
+                                <div class="order">
+                                    <input type="hidden" id="idDocumentoVend">
+                                    <div class="head">
+                                        <table id="tablaSeries">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Tipo de Documento</th>
+                                                    <th scope="col">Serie</th>
+                                                    <th scope="col">Tipo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="series">
+                                                <!-- Las series se agregarán aquí dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <!-- MAIN -->
+            </section>
+        </div>
+
         <!-- Modales -->
         <!-- Modal Campos Libres-->
         <div id="seleccionarCampoLibre" class="modal fade" tabindex="-1" aria-hidden="true">

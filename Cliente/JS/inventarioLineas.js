@@ -183,8 +183,48 @@ function buscarInventario() {
 function guardarLinea(){
   //
 }
+function loadLinesStatus(){
+  const csrf = $('#csrf_token').val();
+  const noInv = $('#noInventario').val();
+  if(!noInv) return;
 
+  return $.ajax({
+    url: '../Servidor/PHP/inventario.php',
+    method: 'GET',
+    dataType: 'json',
+    headers: {'X-CSRF-Token': csrf},
+    data: { numFuncion: '6', noInventario: noInv }
+  })
+  .done(function(res){
+    if(!res || res.success!==true) return;
+    const lines = res.lines || {};
+    const $sel  = $('#lineaSelect');
 
+    // Deshabilita opciones bloqueadas
+    $sel.find('option').each(function(){
+      const val = $(this).val();
+      if(!val) return;
+      const locked = !!lines[val];
+      $(this).prop('disabled', locked);
+      // Estética: marca deshabilitadas
+      if(locked) $(this).text(`${$(this).text()} (bloqueada)`);
+    });
+
+    // Si la línea seleccionada quedó bloqueada, limpia la UI
+    const cur = $sel.val();
+    if(cur && lines[cur]){
+      $sel.val('');
+      // limpiar articulos:
+      $('#btnNext').prop('disabled', true);
+      $('#articulos').addClass('d-none').empty();
+      $('#msgArticulos').removeClass('d-none').text('Selecciona una línea disponible.');
+    }
+  });
+}
+async function initInventarioUI(){
+  await buscarInventario();       // ya la hicimos antes
+  await loadLinesStatus();        // nueva
+}
 
 window.onload = function () {
   var fecha = new Date(); //Fecha actual
@@ -200,6 +240,7 @@ $(document).ready(function () {
   //buscarInventario();
   obtenerLineas();
   noInventario();
+  initInventarioUI();
 });
 
 // Escuchar el cambio en el filtro

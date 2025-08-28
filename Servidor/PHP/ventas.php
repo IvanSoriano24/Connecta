@@ -4233,7 +4233,7 @@ function eliminarPartida($conexionData, $clavePedido, $numPar)
         sqlsrv_close($conn);
         die(json_encode(['success' => false, 'message' => 'Error al actualizar apartados en inventario', 'errors' => sqlsrv_errors()]));
     }
-
+    
     sqlsrv_free_stmt($stmtActualizarInve); // Liberar la consulta anterior
 
     // 🚨 3️⃣ Eliminar la partida

@@ -684,8 +684,59 @@ $(document).ready(function () {
       },
     });
   });
+  $("#btnNuevoInventario").on("click", function () {
+    $.ajax({
+      url: "../Servidor/PHP/inventario.php", // Ruta al PHP
+      method: "POST",
+      data: {
+        numFuncion: "6",
+      },
+      success: function (response) {
+        try {
+          const res = JSON.parse(response);
+          if (res.success) {
+            Swal.fire({
+              icon: "success",
+              title: "Éxito",
+              text: "Clave Actualizada.",
+              timer: 1000,
+              showConfirmButton: false,
+            }).then(() => {
+              //$("#selectUsuario").val("").change(); // Limpia el selector de usuarios
+              //$("#selectEmpresa").val(""); // Limpia el selector de empresas
+              $("#seleccionarClaveAdministrador").modal("hide"); // Cerrar el modal
+              obtenerAdministradores();
+              //location.reload();
+            });
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Error",
+              text: res.message || "Error al guardar la clave.",
+            });
+          }
+        } catch (error) {
+          console.error("Error al procesar la respuesta:", error);
+          Swal.fire({
+            icon: "warning",
+            title: "Error",
+            text: "Error al guardar la clave.",
+          });
+        }
+      },
+      error: function () {
+        Swal.fire({
+          icon: "warning",
+          title: "Error",
+          text: "Error al realizar la solicitud.",
+        });
+      },
+    });
+  });
+  
 });
 
+
 // Ejecutar las funcione cuando se cargue la pagina
-document.addEventListener("DOMContentLoaded", obtenerCamposTabla);
-document.addEventListener("DOMContentLoaded", obtenerAdministradores);
+/*document.addEventListener("DOMContentLoaded", obtenerCamposTabla);
+document.addEventListener("DOMContentLoaded", obtenerAdministradores);*/
