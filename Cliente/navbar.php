@@ -115,7 +115,7 @@
 
 
 <nav class="navbar">
-<i class="bx bx-menu"></i> <!-- Botón del menú -->
+    <!--  <i class="bx bx-menu"></i> -->
     <div class="left-section">
         <h6 class="empresa">
             <i class=""></i> 

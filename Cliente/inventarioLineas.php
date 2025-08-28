@@ -381,6 +381,51 @@ session_destroy(); */
                 /* etiqueta arriba, input abajo */
             }
         }
+
+        #resumenContenido {
+            max-height: 400px;   /* ajusta altura del área de scroll */
+            overflow-y: auto;
+        }
+
+        #resumenContenido thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #f8f9fa;
+        }
+
+        #resumenContenido tfoot td {
+            position: sticky;
+            bottom: 0;
+            z-index: 1;
+        }
+
+        .table-subtotal {
+            background-color: #ffeeba !important; /* amarillo suave */
+            font-weight: 600;
+            --bs-table-bg: #d5d5d5;
+            --bs-table-border-color: #d5d5d5;
+            border-color: var(--bs-table-border-color);
+        }
+
+        .btn-primaryNormal {
+            --bs-btn-color: #fff;
+            --bs-btn-bg: #0d6efd;
+            --bs-btn-border-color: #0d6efd;
+            --bs-btn-hover-color: #fff;
+            --bs-btn-hover-bg: #0b5ed7;
+            --bs-btn-hover-border-color: #0a58ca;
+            --bs-btn-focus-shadow-rgb: 49, 132, 253;
+            --bs-btn-active-color: #fff;
+            --bs-btn-active-bg: #0a58ca;
+            --bs-btn-active-border-color: #0a53be;
+            --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+            --bs-btn-disabled-color: #fff;
+            --bs-btn-disabled-bg: #0d6efd;
+            --bs-btn-disabled-border-color: #0d6efd;
+        }
+
+
     </style>
 </head>
 
@@ -455,48 +500,32 @@ session_destroy(); */
         </section>
         <!-- CONTENT -->
     </div>
-    </section>
-    <div id="resumenInventario" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal fade" id="resumenInventario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Resumen del Inventario Fisico</h5>
-                    <button type="button" class="btn-close custom-close" data-dismiss="modal" aria-label="Close"
-                        id="cerrarModalHeader">
-                        <span aria-hidden="true"></span><!-- &times; -->
-                    </button>
+                    <h5 class="modal-title">Resumen del Inventario Físico</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form>
-                    <div class="form-row">
-                        <input type="hidden" name="csrf_tokenModal" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
-                    </div>
-                    <div>
-                        <h5><input type="text" name="lineaSeleccionada" id="lineaSeleccionada" style="border: none;" readonly1></h5>
-                    </div>
 
-                    <table class="form-table">
-                        <thead>
-                            <tr>
-                                <th>Clave</th>
-                                <th>Articulo</th>
-                                <th>SAE</th>
-                                <th>Conteo</th>
-                                <th>Diferencia</th>
-                            </tr>
-                        </thead>
-                    </table>
+                <div class="modal-body">
+                    <h5 id="lineaSeleccionada" class="mb-3"></h5>
+                    <div id="resumenContenido"></div>
+                </div>
 
-                    <div class="form-buttons">
-                        <button type="button" class="btn btn-primary" id="generararPDF">Generar PDF</button>
-                        <button type="button" class="btn btn-save" id="exportarExcel">Exportar Excel</button>
-                        <button type="button" class="btn btn-primary" id="finalizarInventarioLinea">Finalizar Inventario</button>
-                    </div>
-                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" id="generararPDF">Generar PDF</button>
+                    <button type="button" class="btn btn-success" id="exportarExcel">Exportar Excel</button>
+                    <button type="button" class="btn btn-danger" id="finalizarInventarioLinea">Guardar Línea</button>
+                </div>
             </div>
         </div>
     </div>
+
+
     <!-- CONTENT -->
-    </div>
+
     <!-- JS Para la confirmacion empresa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/menu.js"></script>
@@ -955,9 +984,9 @@ session_destroy(); */
 </body>
 
 </html>
-<!-- 
+<!--
 				<script>
-			var empresa = '<?php // echo $nombreEmpresa 
+			var empresa = '<?php // echo $nombreEmpresa
                             ?>'
 			console.log(empresa);
 		</script>

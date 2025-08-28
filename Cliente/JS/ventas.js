@@ -271,7 +271,7 @@ function enviarConfirmacion(pedidoID) {
                 } else {
                     Swal.fire({
                         title: "Aviso",
-                        text: response.message || "No se pudo enviar el pedido",
+                        text: response.message || "No se pudo cancelar el pedido",
                         icon: "warning",
                         confirmButtonText: "Entendido",
                     });
@@ -1428,11 +1428,10 @@ function doSearch(limpiarTabla = true) {
                                     : "Sin importe";
 
                                 row.innerHTML = `
-                  <td>${pedido.Tipo || "Sin tipo"}</td>
+                  
                   <td>${pedido.Clave || "Sin nombre"}</td>
                   <td >${pedido.Cliente || "Sin cliente"}</td>
                   <td>${pedido.Nombre || "Sin nombre"}</td>
-                  <td>${pedido.Estatus || "0"}</td>
                   <td>${pedido.FechaElaboracion || "Sin fecha"}</td>
                   <td style="text-align: right;">${subtotalText}</td>
                   <!--<td style="text-align: right;">${
@@ -1444,78 +1443,39 @@ function doSearch(limpiarTabla = true) {
                 <td class="nombreVendedor">${
                                     pedido.NombreVendedor || "Sin vendedor"
                                 }</td>
+                
+                <!-- EDITAR -->
                   <td>
-                      <button class="btnEditarPedido" name="btnEditarPedido" data-id="${
-                                    pedido.Clave
-                                }" style="
-                          display: inline-flex;
-                          align-items: center;
-                          padding: 0.5rem 0.5rem;
-                          font-size: 1rem;
-                          font-family: Lato;
-                          color: #fff;
-                          background-color: #007bff;
-                          border: none;
-                          border-radius: 0.25rem;
-                          cursor: pointer;
-                          transition: background-color 0.3s ease;">
-                          <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Editar
-                      </button>
+                    <button class="btnEditarPedido btn-iconNuevos btn-editar" data-id="${pedido.Clave}" title="Editar">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
                   </td>
+                  
+                  
+                <!-- CANCELAR -->
                   <td>
-                      <button class="btnCancelarPedido" name="btnCancelarPedido" data-id="${
-                                    pedido.Clave
-                                }" style="
-                          display: inline-flex;
-                          align-items: center;
-                          padding: 0.5rem 0.5rem;
-                          font-size: 1rem;
-                          font-family: Lato;
-                          color: #fff;
-                          background-color: #dc3545;
-                          border: none;
-                          border-radius: 0.25rem;
-                          cursor: pointer;
-                          transition: background-color 0.3s ease;">
-                          <i class="fas fa-trash" style="margin-right: 0.5rem;"></i> Cancelar
-                      </button>
+                    <button class="btnCancelarPedido btn-iconNuevos btn-cancelar" data-id="${pedido.Clave}" title="Cancelar">
+                      <i class="fa-solid fa-ban"></i>
+                    </button>
                   </td>
+                  
+                  
+                <!-- VISUALIZAR -->
+                <td>
+                  <button class="btnVerPedido btn-iconNuevos btn-visualizar" data-id="${pedido.Clave}" title="Visualizar">
+                    <i class="fa-regular fa-eye"></i>
+                  </button>
+                </td>
                   <td>
-                                <button class="btnVerPedido" name="btnVerPedido" data-id="${
-                                    pedido.Clave
-                                }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 0.5rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #007bff;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visuzlizar
-                                    </button>
-                                </td>
-                                <td>
-                                <button class="btnDescargarPedido" name="btnDescargarPedido" data-id="${
-                                    pedido.Clave
-                                }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 0.5rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #007bff;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Descargar
-                                    </button>
-                                </td>
+                  
+                                
+                <!-- DESCARGAR -->
+                <td>
+                  <button class="btnDescargarPedido btn-iconNuevos btn-downloadP" data-id="${pedido.Clave}" title="Descargar">
+                    <i class="fa-solid fa-download"></i>
+                  </button>
+                </td>
+               
                 `;
                                 const td = document.createElement("td");
                                 if (estadoPedido === "Activos") {
@@ -1523,7 +1483,7 @@ function doSearch(limpiarTabla = true) {
                                     btn.className = "btnEnviarPedido";
                                     btn.textContent = "Enviar Pedido";
                                     btn.style =
-                                        "display: inline-flex; align-items: center; padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
+                                        "padding: 0.5rem 0.5rem; font-size: 1rem; font-family: Lato; color: #fff; background-color: #007bff; border: none; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.3s ease;";
                                     td.appendChild(btn);
                                     row.appendChild(td);
                                 }

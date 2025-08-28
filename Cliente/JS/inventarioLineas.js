@@ -87,14 +87,116 @@ function noInventario() {
     }
   });
 }
+
 function abrirModal(){
-  
-  const lineaSelect = document.getElementById("lineaSelect").value;
-  /*const lineaSelect = $('#lineaSelect').val;*/
-  document.getElementById("lineaSeleccionada").value = lineaSelect;
-  console.log(lineaSelect);
-  $("#resumenInventario").modal("show");
+  try {
+    const lineaTexto = $("#lineaSelect option:selected").text() || "—";
+    $("#lineaSeleccionada").text(`Línea seleccionada: ${lineaTexto}`);
+
+    let htmlResumen = `
+      <table class="table table-striped align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Clave</th>
+            <th>Artículo</th>
+            <th>Lote</th>
+            <th class="text-end">Corrugados</th>
+            <th class="text-end">Cajas</th>
+            <th class="text-end">Total piezas</th>
+            <th class="text-end">Suma total lotes</th>
+            <th class="text-end">Inventario SAE</th>
+            <th class="text-end">Diferencia</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    let totalLinea = 0;
+    let totalInventario = 0;
+
+    $("#articulos .article-card").each(function(){
+      const $card = $(this);
+      let codigo = $card.data("articulo") || "—";
+      let nombre = $card.find(".name").text() || "—";
+      const exist = parseInt($card.data("exist")) || 0;
+      const conteo = parseInt($card.find(".article-total").text()) || 0;
+      const diferencia = conteo - exist;
+
+      totalLinea += conteo;
+      totalInventario += exist;
+
+      const lotes = $card.find(".row-line");
+      let primeraFila = true;
+
+      // filas de lotes
+      lotes.each(function(){
+        const $row = $(this);
+        const lote = $row.find(".lote input").val() || $row.find(".lote").text() || "—";
+        const corr = parseInt($row.find(".qty-input-corrugado").val()) || 0;
+        const cajas = parseInt($row.find(".qty-input-cajas").val()) || 0;
+        const piezas = corr * cajas;
+
+        htmlResumen += `
+          <tr>
+            <td>${primeraFila ? codigo : ""}</td>
+            <td>${primeraFila ? nombre : ""}</td>
+            <td>${lote}</td>
+            <td class="text-end">${corr}</td>
+            <td class="text-end">${cajas}</td>
+            <td class="text-end">${piezas}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        `;
+        primeraFila = false;
+      });
+
+      // subtotal del producto con color diferente
+      const diffClass = diferencia < 0 ? "text-danger" : (diferencia > 0 ? "text-success" : "text-muted");
+
+      htmlResumen += `
+        <tr class="table-subtotal fw-semibold text-end">
+          <td></td>
+          <td colspan="5" class="text-end">Subtotal producto:</td>
+          <td>${conteo}</td>
+          <td>${exist}</td>
+          <td class="${diffClass}">${diferencia > 0 ? '+' : ''}${diferencia}</td>
+        </tr>
+        <!-- fila vacía para separación -->
+        <tr><td colspan="9" style="background:transparent; border:0; height:15px;"></td></tr>
+      `;
+    });
+
+    const diferenciaLinea = totalLinea - totalInventario;
+    const diffLineaClass = diferenciaLinea < 0 ? "text-danger" : (diferenciaLinea > 0 ? "text-success" : "text-muted");
+
+    htmlResumen += `
+        </tbody>
+        <tfoot>
+          <tr class="table-success fw-bold text-end">
+            <td></td>
+            <td colspan="5" class="text-end">TOTALES DE LA LÍNEA:</td>
+            <td>${totalLinea}</td>
+            <td>${totalInventario}</td>
+            <td class="${diffLineaClass}">${diferenciaLinea > 0 ? '+' : ''}${diferenciaLinea}</td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
+
+    $("#resumenContenido").html(htmlResumen);
+
+    const modal = new bootstrap.Modal(document.getElementById('resumenInventario'));
+    modal.show();
+
+  } catch (err) {
+    console.error("Error en abrirModal:", err);
+    Swal.fire("Error", "No se pudo generar el resumen.", "error");
+  }
 }
+
+
 //Funcion para saber si hay un inventario activo
 function buscarInventario() {
   const csrfToken = $('#csrf_token').val();
@@ -252,5 +354,25 @@ $("#btnNext").click(function () {
   abrirModal();
 });
 $("#finalizarInventarioLinea").click(function () {
-  guardarLinea();
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: "Si guardas esta línea ya no podrás editarla después.",
+    icon: "warning",
+    showCancelButton: true,
+    cancelButtonColor: '#888',
+    confirmButtonColor: '#6A58DD',
+    reverseButtons: true,
+    confirmButtonText: "Sí, guardar",
+    cancelButtonText: "Cancelar"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      guardarLinea(); // se llama solo si confirma
+      Swal.fire(
+          "Guardado",
+          "La línea ha sido finalizada y ya no se puede editar.",
+          "success"
+      );
+    }
+  });
 });
+

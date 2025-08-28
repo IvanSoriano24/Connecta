@@ -253,20 +253,9 @@ function datosPedidos(limpiarTabla = true) {
                                <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
                             }</td>
                                 <td>
-                                    <button class="btnVerPedido" name="btnVerPedido" data-id="${pedido.Clave
-                            }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 1rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #007bff;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver Factura
+                                    <button class=" btn-iconNuevos btn-visualizar" name="btnVerPedido" data-id="${pedido.Clave
+                            }" title="Visualizar Factura">
+                                        <i class="fa-regular fa-eye"></i>
                                     </button>
                                 </td>
                             `;
@@ -850,20 +839,9 @@ function doSearch(limpiarTabla = true) {
                 <td class="nombreVendedor">${pedido.NombreVendedor || "Sin vendedor"
                                 }</td>
                   <td>
-                      <button class="btnVerPedido" name="btnVerPedido" data-id="${pedido.Clave
-                                }" style="
-                          display: inline-flex;
-                          align-items: center;
-                          padding: 0.5rem 1rem;
-                          font-size: 1rem;
-                          font-family: Lato;
-                          color: #fff;
-                          background-color: #007bff;
-                          border: none;
-                          border-radius: 0.25rem;
-                          cursor: pointer;
-                          transition: background-color 0.3s ease;">
-                          <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver Factura
+                      <button class=" btn-iconNuevos btn-visualizar" name="btnVerPedido" data-id="${pedido.Clave
+                                }" title="Visualizar Factura">
+                          <i class="fa-regular fa-eye"></i>
                       </button>
                   </td>
                 `;

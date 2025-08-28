@@ -115,8 +115,8 @@ if (isset($_SESSION['usuario'])) {
      data-bs-backdrop="static" data-bs-keyboard="false" class="modal <?php echo $mostrarModal ? '' : 'd-none'; ?>">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="text-center mb-4">
-                <h1 class="display-4 text-primary txth1">Bienvenido</h1>
+            <div class="text-center mb-0">
+                <h1 class="display-4 text-primary txth1 mb-0">Bienvenido</h1>
                 <h2 class="card-title text-center txth2"><?php echo $nombreUsuario; ?></h2>
             </div>
             <div class="modal-body">

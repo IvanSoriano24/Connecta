@@ -540,30 +540,19 @@ function datosPedidos(limpiarTabla = true) {
                                  pedido.NombreVendedor || "Sin vendedor"
                                }
                                 </td>
-                                <td>
-                                    <button class="btnVerPedido" name="btnVerPedido" data-id="${
+                                <td class="d-flex align-items-center justify-content-center">
+                                    <button class="btn-iconNuevos btn-visualizar" name="btnVerPedido" data-id="${
                                       pedido.Clave
-                                    }" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        padding: 0.5rem 1rem;
-                                        font-size: 1rem;
-                                        font-family: Lato;
-                                        color: #fff;
-                                        background-color: #007bff;
-                                        border: none;
-                                        border-radius: 0.25rem;
-                                        cursor: pointer;
-                                        transition: background-color 0.3s ease;">
-                                        <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver Remisión
+                                    }" title="Ver Remisión">
+                                        <i class="fas fa-eye"></i>
                                     </button>
                                 </td>
                             `;
               // Celda “Facturar” (sólo para FACTURISTA y ADMINISTRADOR)
               if (displayButtons) {
                 const btnFact = `
-            <button class="btnFacturar" data-id="${pedido.Clave}" style="…">
-              Facturar
+            <button class="btn-iconNuevos btn-facturar" data-id="${pedido.Clave}" title="Facturar">
+              <i class="fas fa-dollar-sign"></i>
             </button>
           `;
                 row.innerHTML += `<td>${btnFact}</td>`;
@@ -1204,22 +1193,11 @@ function doSearch(limpiarTabla = true) {
                 <td class="nombreVendedor">${
                   pedido.NombreVendedor || "Sin vendedor"
                 }</td>
-                  <td>
-                      <button class="btnVerPedido" name="btnVerPedido" data-id="${
+                  <td class="d-flex align-items-center justify-content-center">
+                      <button class="btn-iconNuevos btn-visualizar" name="btnVerPedido" data-id="${
                         pedido.Clave
-                      }" style="
-                          display: inline-flex;
-                          align-items: center;
-                          padding: 0.5rem 1rem;
-                          font-size: 1rem;
-                          font-family: Lato;
-                          color: #fff;
-                          background-color: #007bff;
-                          border: none;
-                          border-radius: 0.25rem;
-                          cursor: pointer;
-                          transition: background-color 0.3s ease;">
-                          <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver Remisión
+                      }" title="Ver Remisión">
+                          <i class="fas fa-eye"></i>
                       </button>
                   </td>
                 `;
@@ -1227,8 +1205,8 @@ function doSearch(limpiarTabla = true) {
                 // Celda “Facturar” (sólo para FACTURISTA y ADMINISTRADOR)
                 if (displayButtons) {
                   const btnFact = `
-                  <button class="btnFacturar" data-id="${pedido.Clave}" style="…">
-                    Facturar
+                  <button class="btn-iconNuevos btn-facturar" data-id="${pedido.Clave}" title="Facturar">
+                    <i class="fas fa-dollar-sign"></i>
                   </button>
                 `;
                   row.innerHTML += `<td>${btnFact}</td>`;

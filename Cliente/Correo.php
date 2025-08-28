@@ -192,6 +192,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>
+    <script src="JS/script.js"></script>
     <script src="JS/correo.js"></script>
 </body>
 

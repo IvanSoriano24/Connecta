@@ -53,7 +53,7 @@
         font-size: 24px;
         color: #212529;
         cursor: pointer;
-        z-index: 1100;
+        z-index: 1010;
     }
 
     #sidebar.collapsed~#mainContent {
@@ -103,14 +103,14 @@
     }
 
     /* SOLO Ventas (manual) a la derecha, no toques su HTML */
-    .dropdown-manual>.dropdown-menu {
+    .dropdown-manual > .dropdown-menu {
         position: absolute;
-        top: 0;
+        top: -90px;   /* lo subes 50px */
         left: 100%;
         margin-left: 8px;
-        z-index: 1200;
         min-width: 180px;
     }
+
 
     /* Bootstrap ya posiciona .dropend a la derecha; solo ajusta espacio */
     .dropend .dropdown-menu {
@@ -156,18 +156,17 @@
 
     <ul class="side-menu top">
 
-        <br>
         <a href="Dashboard.php" class="brand" tabindex="-1">
             <img src="SRC/imagen.png" alt="Logo grande" id="logoGrande">
             <img src="SRC/imagen-small.png" alt="Logo pequeño" id="logoChico">
         </a>
-        <br>
         <li class="active">
             <a href="Dashboard.php" title="Dashboard" tabindex="-1">
                 <i class='bx bxs-dashboard'></i>
                 <span class="text">Inicio</span>
             </a>
         </li>
+
         <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR" || $tipoUsuario == "FACTURISTA" || $tipoUsuario == "ALMACENISTA") { ?>
             <li class="dropdown-manual">
                 <a href="#" class="dropdown-toggle dropdown-toggle-manual" title="Ventas" tabindex="-1">
@@ -239,8 +238,7 @@
                 </a>
             </li>
         <?php } ?>
-    </ul>
-    <ul class="side-menu">
+
         <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
             <li class="dropdown-manual">
                 <a href="#" class="dropdown-toggle dropdown-toggle-manual" title="Configuración" tabindex="-1">

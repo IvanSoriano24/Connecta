@@ -65,7 +65,6 @@ body {
 	font-family: var(--lato);
 	transition: .3s ease;
 	overflow-x: hidden;
-	scrollbar-width: none;
 }
 
 
@@ -188,21 +187,6 @@ body {
 	left: 60px;
 }
 
-
-/* NAVBAR */
-/* #content nav {
-	
-	background: var(--light);
-	padding: 0 24px;
-	display: flex;
-	align-items: center;
-	grid-gap: 24px;
-	font-family: var(--lato);
-	position: sticky;
-	top: 0;
-	left: 0;
-	z-index: 1000;
-} */
 #content nav {
     background: var(--light);
     padding: 10px 24px;
@@ -213,7 +197,7 @@ body {
     position: sticky;
     top: 0;
     left: 0;
-    z-index: 1000; /* Asegura que esté por encima del sidebar */
+    z-index: 1000;
     height: 60px;
 }
 
@@ -223,7 +207,7 @@ body {
     cursor: pointer;
     display: block;
     position: relative;
-    z-index: 3000; /* Lo pone por encima de otros elementos */
+    z-index: 3000;
 }
 
 /* Asegurar que en móviles sea más visible */
@@ -233,8 +217,6 @@ body {
         color: var(--dark);
     }
 }
-
-
 
 #content nav::before {
 	content: '';
@@ -518,6 +500,7 @@ body {
 .btn-downloadP{ background: #3c91e6; }  /* azul cielo*/
 .btn-enviarWhatsapp    { background: #198754; }  /* verde */
 .btn-enviarCorreo { background: #fd7e14; }  /* naranja */
+.btn-facturar    { background: #185c3c; }  /* verde fuerte */
 
 .td-btn{
 	padding: 16px 8px;
@@ -676,21 +659,8 @@ input[readonly1] {
 #content main .table-data .todo .todo-list li:last-child {
 	margin-bottom: 0;
 }
-/* MAIN */
-/* CONTENT */
 
-
-
-
-
-
-
-
-
-/* @media screen and (max-width: 768px) {
-	#sidebar {
-		width: 200px;
-	}
+@media screen and (max-width: 768px) {
 
 	#content {
 		width: calc(100% - 60px);
@@ -700,24 +670,7 @@ input[readonly1] {
 	#content nav .nav-link {
 		display: none;
 	}
-} */
-
-@media screen and (max-width: 768px) {
-    #sidebar {
-        left: -280px;
-        transition: left 0.3s ease-in-out;
-    }
-
-    #sidebar.show {
-        left: 0;
-    }
-
-    #content {
-        width: 100%;
-        left: 0;
-    }
 }
-
 
 @media screen and (min-width: 769px) {
     #content nav .bx.bx-menu {
