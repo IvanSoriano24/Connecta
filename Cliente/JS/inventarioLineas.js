@@ -181,7 +181,7 @@ function buscarInventario() {
   });
 }
 function guardarLinea(){
-  
+  //
 }
 
 
@@ -197,7 +197,7 @@ window.onload = function () {
   document.getElementById("fechaFin").value = ano + "-" + mes + "-" + dia;
 };
 $(document).ready(function () {
-  buscarInventario();
+  //buscarInventario();
   obtenerLineas();
   noInventario();
 });

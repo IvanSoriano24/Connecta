@@ -8,7 +8,8 @@ require 'firebase.php';
 session_start();
 
 /****************************************/
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae){
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -47,7 +48,8 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 /****************************************/
-function obtenerLineas($claveSae, $conexionData){
+function obtenerLineas($claveSae, $conexionData)
+{
     $conn = sqlsrv_connect($conexionData['host'], [
         "Database" => $conexionData['nombreBase'],
         "UID"      => $conexionData['usuario'],
@@ -88,7 +90,8 @@ function obtenerLineas($claveSae, $conexionData){
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function obtenerProductosPorLinea($claveSae, $conexionData, $linea){
+function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
+{
     $conn = sqlsrv_connect($conexionData['host'], [
         "Database" => $conexionData['nombreBase'],
         "UID"      => $conexionData['usuario'],
@@ -134,7 +137,8 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea){
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey){
+function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+{
     // Construir la URL para filtrar (usa el campo inventarioFisico y noEmpresa)
     $collection = "FOLIOS";
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
@@ -184,7 +188,7 @@ function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     // Inicializa la variable donde guardarás el id
     $noInventario = null;
     if ($response !== false) {
-        
+
         $resultArray = json_decode($response, true);
         // runQuery devuelve un array con un elemento por cada match
         if (isset($resultArray[0]['document'])) {
@@ -192,7 +196,7 @@ function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey){
             // si quieres el ID:
             $parts  = explode('/', $doc['name']);
             $fields = $doc['fields'];
-           //var_dump($doc);
+            //var_dump($doc);
             // y para tomar tu campo direccion1Contacto:
             $noInventario = $fields['folioSiguiente']['integerValue'] ?? null;
         }
@@ -201,12 +205,13 @@ function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     echo json_encode(['success' => true, 'noInventario' => $noInventario]);
 }
 
-function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
+function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+{
     $collection = "INVENTARIO"; // corregido
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
 
     // Helpers
-    $postJson = function(array $body) use ($url) {
+    $postJson = function (array $body) use ($url) {
         $options = [
             'http' => [
                 'header'  => "Content-Type: application/json\r\n",
@@ -217,12 +222,14 @@ function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
         ];
         $ctx = stream_context_create($options);
         $resp = @file_get_contents($url, false, $ctx);
-        if ($resp === false) { return null; }
+        if ($resp === false) {
+            return null;
+        }
         $arr = json_decode($resp, true);
         return is_array($arr) ? $arr : null;
     };
 
-    $pickDoc = function(?array $runQueryResponse) {
+    $pickDoc = function (?array $runQueryResponse) {
         // runQuery devuelve un array, cada elemento puede o no traer 'document'
         if (!$runQueryResponse || !is_array($runQueryResponse)) return null;
         foreach ($runQueryResponse as $row) {
@@ -231,13 +238,13 @@ function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
         return null;
     };
 
-    $getIdFromName = function(string $name) {
+    $getIdFromName = function (string $name) {
         // name: projects/.../databases/(default)/documents/INVENTARIO/{docId}
         $parts = explode('/', $name);
         return end($parts);
     };
 
-    $getField = function(array $fields, string $key) {
+    $getField = function (array $fields, string $key) {
         if (!isset($fields[$key])) return null;
         $v = $fields[$key];
         // soporta tipos comunes
@@ -335,6 +342,31 @@ function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
 
     echo json_encode($result);
 }
+function guardarProducto(){
+    $payload = json_decode($_POST['payload'] ?? 'null', true);
+    if (!$payload) {
+        echo json_encode(['success' => false, 'message' => 'Payload inválido']);
+        exit;
+    }
+
+    // Validaciones mínimas
+    $req = ['linea', 'noInventario', 'noEmpresa', 'cve_art'];
+    foreach ($req as $k) {
+        if (empty($payload[$k])) {
+            echo json_encode(['success' => false, 'message' => "Falta $k"]);
+            exit;
+        }
+    }
+
+    // Guardar en Firestore:
+    // - Colección: INVENTARIO_CAPTURA (o subcolección en INVENTARIO/{noInventario}/DETALLE)
+    // - Documento: por ejemplo INVENTARIO/{noInventario}/LINEAS/{linea}/PRODUCTOS/{cve_art}
+    // - Campos: lo del payload + serverTimestamp
+
+    // ... tu lógica Firestore ...
+
+    echo json_encode(['success' => true, 'docId' => 'AA-1625', 'updated' => true]);
+}
 
 
 
@@ -352,7 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     exit;
 }
 switch ($funcion) {
-    case 1: 
+    case 1:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey);
         break;
@@ -375,6 +407,11 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $linea = $_GET['linea'];
         obtenerProductosPorLinea($claveSae, $conexionData, $linea);
+        break;
+    case 5:
+        $noInventario = 1;
+        echo json_encode(['success' => true, 'noInventario' => $noInventario]);
+        //guardarProducto();
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);

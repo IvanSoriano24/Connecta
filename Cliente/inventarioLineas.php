@@ -677,9 +677,157 @@ session_destroy(); */
                     recalc();
                 });
             }
+            /****/
+            // Delegación: click en Guardar producto
+            $articulos.on('click', '.btn-save-article', async function() {
+                const $btn = $(this);
+                const $card = $btn.closest('.article-card');
+                const csrf = $('#csrf_token').val();
+                const linea = $('#lineaSelect').val();
+                const noInv = $('#noInventario').val();
+                //const noEmp = (window.empresaActivaId || ($('#empresaActivaId').val())) ?? null; // ajusta si usas sesión
 
+                // Validaciones rápidas
+                if (!linea) return Swal.fire({
+                    icon: 'warning',
+                    title: 'Selecciona una línea'
+                });
+                if (!noInv) return Swal.fire({
+                    icon: 'warning',
+                    title: 'Falta No. Inventario'
+                });
+                /*if (!noEmp) return Swal.fire({
+                    icon: 'warning',
+                    title: 'Falta noEmpresa'
+                });*/
+
+                // Serializar tarjeta → payload
+                const data = serializeArticleCard($card, {
+                    linea,
+                    noInventario: noInv,
+                });
+
+                // Validar que haya al menos 1 fila con piezas > 0
+                const piezasTot = data.conteoTotal;
+                if (piezasTot <= 0) {
+                    return Swal.fire({
+                        icon: 'info',
+                        title: 'Sin piezas',
+                        text: 'Captura corrugados/cajas antes de guardar.'
+                    });
+                }
+
+                // Estado de guardado
+                toggleSaving($btn, true);
+
+                try {
+                    const resp = await $.ajax({
+                        url: '../Servidor/PHP/inventario.php',
+                        method: 'POST',
+                        dataType: 'json',
+                        headers: {
+                            'X-CSRF-Token': csrf
+                        },
+                        data: {
+                            numFuncion: '5',
+                            payload: JSON.stringify(data)
+                        }
+                    });
+
+                    if (!resp || resp.success !== true) {
+                        throw new Error(resp?.message || 'Error de servidor');
+                    }
+
+                    markSaved($card, resp);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Guardado',
+                        text: 'Producto guardado correctamente.'
+                    });
+
+                } catch (err) {
+                    console.error('Guardar producto error:', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'No se pudo guardar',
+                        text: String(err.message || err)
+                    });
+
+                } finally {
+                    toggleSaving($btn, false);
+                }
+            });
+            // Serializa una tarjeta a objeto listo para guardar
+            function serializeArticleCard($card, meta) {
+                const codigo = $card.data('articulo');
+                const exist = Number($card.data('exist') || 0);
+                const nombre = $.trim($card.find('.name').text());
+                const totalTxt = $.trim($card.find('.article-total').text());
+                const conteo = Number(totalTxt || 0);
+
+                // Lotes
+                const lotes = [];
+                $card.find('.row-line').each((_, el) => {
+                    const $row = $(el);
+                    const loteI = $row.find('.lote input').val(); // si es input (nuevos)
+                    const loteT = $row.find('.lote').text().trim(); // si es texto (cargados)
+                    const lote = (loteI ?? '').trim() || loteT || null;
+
+                    const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
+                    const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
+                    const piezas = corr * cajas;
+
+                    // Solo guarda filas con algo de captura
+                    if ((corr > 0 && cajas > 0) || (lote && piezas >= 0)) {
+                        lotes.push({
+                            lote,
+                            corrugados: corr,
+                            cajasPorCorrugado: cajas,
+                            piezas
+                        });
+                    }
+                });
+
+                return {
+                    // Metadatos de cabecera
+                    linea: meta.linea,
+                    noInventario: String(meta.noInventario),
+                    noEmpresa: String(meta.noEmpresa),
+
+                    // Producto
+                    cve_art: String(codigo),
+                    descr: nombre,
+                    existSistema: exist,
+
+                    // Captura
+                    conteoTotal: conteo,
+                    diferencia: conteo - exist, // útil para ajustes
+                    lotes: lotes,
+
+                    // Opcional: timestamp local
+                    tsLocal: new Date().toISOString()
+                };
+            }
+            // UI helpers
+            function toggleSaving($btn, saving) {
+                const $status = $btn.closest('.rows').find('.save-status');
+                if (saving) {
+                    $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Guardando...');
+                    $status.text('Guardando…').show();
+                } else {
+                    $btn.prop('disabled', false).html('<i class="bx bx-save"></i> Guardar producto');
+                    $status.hide().text('');
+                }
+            }
+            function markSaved($card, resp) {
+                const $badge = $card.find('.article-total');
+                $badge.removeClass('text-primary').addClass('text-success');
+                const $status = $card.find('.save-status');
+                $status.text('Guardado ✓').show();
+            }
+            /****/
             // Tarjeta de un artículo (versión espaciosa)
-            function buildArticleCard(item) {
+            /*function buildArticleCard(item) {
                 const lotes = (item.lotes || []).map((r, i) => `
                     <div class="row-line row-line--spaced">
                     <div class="lote">${escapeHtml(r.LOTE ?? `Lote ${i+1}`)}</div>
@@ -718,8 +866,53 @@ session_destroy(); */
                     </div>
                     </section>
                 `;
-            }
+            }*/
+            function buildArticleCard(item) {
+                const lotes = (item.lotes || []).map((r, i) => `
+                    <div class="row-line row-line--spaced">
+                    <div class="lote">${escapeHtml(r.LOTE ?? `Lote ${i+1}`)}</div>
 
+                    <label class="field label">
+                        <span>Corrugado:</span>
+                        <input type="number" class="form-control qty-input-corrugado" value="0" min="0" step="1">
+                    </label>
+
+                    <label class="field label">
+                        <span>Cajas por Corrugado:</span>
+                        <input type="number" class="form-control qty-input-cajas" value="0" min="0" step="1">
+                    </label>
+                    </div>
+                `).join('');
+
+                return `
+                        <section class="article-card spacious" data-articulo="${escapeAttr(item.codigo)}" data-exist="${item.exist}">
+                        <header class="article-head article-head--spaced">
+                            <div class="code">${escapeHtml(item.codigo)}</div>
+                            <a class="name" href="javascript:void(0)">${escapeHtml(item.nombre)}</a>
+                            <div class="exist">Inventario: ${escapeHtml(item.exist)}</div>
+                            <div class="total">
+                            Conteo:
+                            <span class="badge bg-primary-subtle text-primary fw-semibold article-total">0</span>
+                            </div>
+                            <!-- Botón Guardar del producto -->
+                            <button type="button" class="btn btn-success btn-save-article">
+                                <i class="bx bx-save"></i> Guardar producto
+                            </button>
+                            <span class="save-status ms-2 text-muted" style="display:none;"></span>
+                            </div>
+                        </header>
+
+                        <div class="rows rows--spaced">
+                            ${lotes}
+                            <div class="row-add row-add--spaced">
+                            <button type="button" class="btn btn-outline-primary btn-add-row" title="Agregar lote">
+                                <i class="bx bx-plus"></i>
+                            </button>
+                            </div>
+                        </div>
+                        </section>
+                `;
+            }
 
             // Loader
             function skeleton() {
