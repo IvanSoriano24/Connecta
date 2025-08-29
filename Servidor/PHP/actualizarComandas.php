@@ -104,10 +104,6 @@ function actualizarComandasPendientes(string $firebaseProjectId, string $firebas
         'structuredQuery' => [
             'from'  => [['collectionId' => 'COMANDA']],
             'where' => $whereNode,
-            'orderBy' => [[
-                'field'     => ['fieldPath' => 'fechaHoraElaboracion'],
-                'direction' => 'ASCENDING'
-            ]]
         ]
     ]);
 

@@ -49,6 +49,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 /****************************************/
+
 function obtenerLineas($claveSae, $conexionData)
 {
     $conn = sqlsrv_connect($conexionData['host'], [
@@ -138,6 +139,115 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario){
+    // Validaciones rápidas
+    if (!$noEmpresa || !$linea || !$noInventario) {
+        return ['success' => false, 'message' => 'Parámetros incompletos'];
+    }
+
+    // 1) Resolver docId del inventario ACTIVO por empresa + folio
+    $inv = getInventarioDocByFolio((int)$noEmpresa, (int)$noInventario, $firebaseProjectId, $firebaseApiKey);
+    if (!$inv || empty($inv['docId'])) {
+        return ['success' => false, 'message' => 'Inventario activo no encontrado'];
+    }
+    $invDocId = $inv['docId'];
+
+    // 2) Leer el doc de la línea
+    $root      = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+    $lineUrl   = "$root/INVENTARIO/$invDocId/lineas/$linea?key=$firebaseApiKey";
+    $lineDoc   = http_get_json($lineUrl);
+
+    // Si no existe la línea aún, devolvemos vacío
+    if (!$lineDoc || !isset($lineDoc['fields'])) {
+        return [
+            'success' => true,
+            'linea'   => (string)$linea,
+            'locked'  => false,
+            'conteo'  => null,
+            'productos' => []   // no hay productos guardados
+        ];
+    }
+
+    $fields = $lineDoc['fields'];
+
+    // 3) Metadata de la línea (si existe)
+    $locked     = isset($fields['locked']['booleanValue']) ? (bool)$fields['locked']['booleanValue'] : false;
+    $status    = isset($fields['status']['booleanValue']) ? (bool)$fields['status']['booleanValue'] : false;
+    $conteo     = isset($fields['conteo']['integerValue']) ? (int)$fields['conteo']['integerValue'] : null;
+    $finishedAt = isset($fields['finishedAt']['timestampValue']) ? (string)$fields['finishedAt']['timestampValue'] : null;
+    $lockedBy   = isset($fields['lockedBy']['stringValue']) ? (string)$fields['lockedBy']['stringValue'] : null;
+
+    // 4) Campos "reservados" (no son productos)
+    $reservados = [
+        'locked','conteo','finishedAt','lockedBy',
+        'updatedAt','lastProduct','conteoTotal','diferencia',
+        'existSistema','descr','linesStatus'
+    ];
+
+    // 5) Transformar cada campo de producto (arrayValue de maps) -> PHP array
+    $productos = [];
+
+    foreach ($fields as $clave => $valor) {
+        if (in_array($clave, $reservados, true)) continue;
+
+        // Debe ser un array de maps (lotes)
+        if (!isset($valor['arrayValue']['values']) || !is_array($valor['arrayValue']['values'])) {
+            continue; // no es la estructura esperada para producto
+        }
+
+        $lotesVals = $valor['arrayValue']['values'];
+        $lotes = [];
+        $sumaTotal = 0;
+
+        foreach ($lotesVals as $entry) {
+            if (!isset($entry['mapValue']['fields'])) continue;
+            $f = $entry['mapValue']['fields'];
+
+            $corr   = isset($f['corrugados']['integerValue'])        ? (int)$f['corrugados']['integerValue']        : 0;
+            $cxc    = isset($f['corrugadosPorCaja']['integerValue']) ? (int)$f['corrugadosPorCaja']['integerValue'] : 0;
+            $lote   = isset($f['lote']['stringValue'])               ? (string)$f['lote']['stringValue']            : '';
+            $total  = isset($f['total']['integerValue'])             ? (int)$f['total']['integerValue']             : ($corr * $cxc);
+
+            $sumaTotal += (int)$total;
+
+            $lotes[] = [
+                'corrugados'        => $corr,
+                'corrugadosPorCaja' => $cxc,
+                'lote'              => $lote,
+                'total'             => (int)$total,
+            ];
+        }
+
+        // Nota: descr/existSistema si los guardaste a nivel línea son globales, no por producto.
+        // Si quisieras guardarlos por producto, tendrías que almacenarlos en otra ruta o map adicional.
+        $productos[] = [
+            'cve_art'     => $clave,
+            'conteoTotal' => $sumaTotal,
+            'lotes'       => $lotes
+        ];
+    }
+
+    // 6) Respuesta
+    /*return [
+        'success'    => true,
+        'linea'      => (string)$linea,
+        'locked'     => $locked,
+        'conteo'     => $conteo,
+        'finishedAt' => $finishedAt,
+        'lockedBy'   => $lockedBy,
+        'productos'  => $productos
+    ];*/
+    echo json_encode([
+        'success'    => true,
+        'linea'      => (string)$linea,
+        'locked'     => $locked,
+        'conteo'     => $conteo,
+        'finishedAt' => $finishedAt,
+        'lockedBy'   => $lockedBy,
+        'productos'  => $productos,
+        'terminada' => $status
+    ]);
+}
 function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
     // Construir la URL para filtrar (usa el campo inventarioFisico y noEmpresa)
@@ -204,7 +314,6 @@ function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     }
     return $noInventario;
 }
-
 function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
     $collection = "INVENTARIO"; // corregido
@@ -342,7 +451,7 @@ function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 
     echo json_encode($result);
 } 
-///////////////////////////////////////////////////////////////////////////////
+//////////////////////////GUARDAR PRODUCTO/////////////////////////////////////////
 function http_get_json($url) {
   $resp = @file_get_contents($url);
   if ($resp === false) return null;
@@ -525,7 +634,7 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
         'updated'  => true
     ]);
 }
-///////////////////////////////////////////////////////////////////////////////
+//////////////////////////GUARDAR PRODUCTO/////////////////////////////////////////
 function iniciarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noInventario)
 {
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
@@ -559,6 +668,67 @@ function iniciarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noI
         exit;
     }
 }
+function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
+    $collection = "INVENTARIO";
+    $url = "https://firestore.googleapis.com/v1/projects/"
+         . urlencode($firebaseProjectId)
+         . "/databases/(default)/documents:runQuery?key="
+         . urlencode($firebaseApiKey);
+
+    // Helper para POST JSON
+    $postJson = function(array $body) use ($url) {
+        $options = [
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($body),
+                'timeout' => 15,
+            ]
+        ];
+        $ctx  = stream_context_create($options);
+        $resp = @file_get_contents($url, false, $ctx);
+        return $resp ? json_decode($resp, true) : null;
+    };
+
+    // Construir el body de la consulta
+    $body = [
+        'structuredQuery' => [
+            'from' => [['collectionId' => $collection]],
+            'where' => [
+                'fieldFilter' => [
+                    'field' => ['fieldPath' => 'noEmpresa'],
+                    'op'    => 'EQUAL',
+                    'value' => ['integerValue' => $noEmpresa]
+                ]
+            ]
+        ]
+    ];
+
+    $respuesta = $postJson($body);
+    if (!is_array($respuesta)) {
+        return []; // error o sin datos
+    }
+
+    // Extraer campos deseados
+    $inventarios = [];
+    foreach ($respuesta as $item) {
+        if (isset($item['document']['fields'])) {
+            $f = $item['document']['fields'];
+            $inventarios[] = [
+                'conteo'      => isset($f['conteo']['integerValue'])      ? (int)$f['conteo']['integerValue']      : null,
+                'fechaInicio' => isset($f['fechaInicio']['stringValue'])   ? $f['fechaInicio']['stringValue']        : null,
+                'noEmpresa'   => isset($f['noEmpresa']['integerValue'])    ? (int)$f['noEmpresa']['integerValue']    : null,
+                'noInventario'=> isset($f['noInventario']['integerValue']) ? (int)$f['noInventario']['integerValue'] : null,
+                'status'      => isset($f['status']['booleanValue'])       ? (bool)$f['status']['booleanValue']      : null,
+            ];
+        }
+    }
+    //return $inventarios;
+    echo json_encode(['succes' => true, 'inventarios' => $inventarios]);
+}
+function bloquearLineasTerminadas($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noInventario){
+
+}
 
 
 
@@ -579,7 +749,6 @@ switch ($funcion) {
     case 1:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey);
-        break;
         break;
     case 2:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -614,7 +783,21 @@ switch ($funcion) {
         iniciarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noInventario);
         echo json_encode(['success' => true, 'message' => 'Inventario Iniciado']);
         break;
-
+    case 7:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        break;
+    case 8:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $linea = $_GET['linea'];
+        $noInventario = $_GET['noInventario'];
+        obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario);
+        break;
+    case 9:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $noInventario = $_GET['noInventario'];
+        bloquearLineasTerminadas($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noInventario);
+        break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
         //echo json_encode(['success' => false, 'message' => 'No hay funcion.']);

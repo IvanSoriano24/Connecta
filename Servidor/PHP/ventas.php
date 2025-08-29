@@ -455,8 +455,8 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData){
     $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
+    $emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';
     $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
@@ -573,9 +573,9 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData){
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
             $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
-            var_dump($resultadoWhatsApp);
-            die();
-            //$resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
+            /*var_dump($resultadoWhatsApp);
+            die();*/
+            $resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
             if (str_contains($resultadoWhatsApp, "error")) {
                 //throw new Exception("Problema al enviar mensaje de WhatsApp");
                 echo json_encode(['success' => false, 'message' => 'Problema al enviar mensaje de WhatsApp.', 'error' => $resultadoWhatsApp]);

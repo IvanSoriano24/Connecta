@@ -383,7 +383,8 @@ session_destroy(); */
         }
 
         #resumenContenido {
-            max-height: 400px;   /* ajusta altura del área de scroll */
+            max-height: 400px;
+            /* ajusta altura del área de scroll */
             overflow-y: auto;
         }
 
@@ -401,7 +402,8 @@ session_destroy(); */
         }
 
         .table-subtotal {
-            background-color: #ffeeba !important; /* amarillo suave */
+            background-color: #ffeeba !important;
+            /* amarillo suave */
             font-weight: 600;
             --bs-table-bg: #d5d5d5;
             --bs-table-border-color: #d5d5d5;
@@ -424,8 +426,6 @@ session_destroy(); */
             --bs-btn-disabled-bg: #0d6efd;
             --bs-btn-disabled-border-color: #0d6efd;
         }
-
-
     </style>
 </head>
 
@@ -549,6 +549,7 @@ session_destroy(); */
                     return;
                 }
                 loadArticulos(linea);
+                loadGuardados(linea);
             });
 
             function resetUI() {
@@ -612,6 +613,136 @@ session_destroy(); */
                     })
                     .fail(showError);
             }
+            //Mostar productos guardados de la linea
+            function loadGuardados(linea) {
+                const noInventario = document.getElementById("noInventario").value;
+
+                $.ajax({
+                        url: '../Servidor/PHP/inventario.php',
+                        method: 'GET',
+                        dataType: 'json',
+                        headers: {
+                            'X-CSRF-Token': csrfToken
+                        },
+                        data: {
+                            numFuncion: '8', // ← tu endpoint que ahora regresa los guardados
+                            linea: linea,
+                            noInventario: noInventario
+                        }
+                    })
+                    .done(function(res) {
+                        // Estructura esperada:
+                        // { success:true, linea:"002", locked:bool, productos:[{ cve_art, conteoTotal, lotes:[{corrugados,corrugadosPorCaja,lote,total}] }] }
+                        if (!res || res.success !== true) return;
+                        applyGuardadosToUI(res);
+                    })
+                    .fail(function(err) {
+                        console.error('loadGuardados error:', err);
+                    });
+            }
+
+            function applyGuardadosToUI(res) {
+                const {
+                    locked,
+                    productos
+                } = res;
+
+                // 1) Aplicar por producto
+                (productos || []).forEach(p => {
+                    const code = String(p.cve_art || '');
+                    if (!code) return;
+
+                    // Busca la tarjeta del producto ya renderizada por loadArticulos()
+                    const $card = $articulos.find(`.article-card[data-articulo="${cssEscape(code)}"]`);
+                    if ($card.length === 0) {
+                        // Si no vino en el catálogo actual, lo puedes ignorar o crear la tarjeta "huérfana"
+                        // Por simplicidad, lo ignoramos aquí.
+                        return;
+                    }
+
+                    // Construir filas desde lotes guardados
+                    const rowsHtml = (p.lotes || []).map((r, i) => rowHtml({
+                        lote: r.lote || `Lote ${i+1}`,
+                        corr: Number(r.corrugados || 0),
+                        cajas: Number(r.corrugadosPorCaja || 0)
+                    })).join('');
+
+                    // Reemplazar filas (dejando el bloque de "agregar fila" al final)
+                    const $rows = $card.find('.rows');
+                    $rows.find('.row-line').remove(); // limpia filas previas
+                    $rows.prepend(rowsHtml); // inserta guardados arriba
+
+                    // Badge total
+                    const sum = (p.lotes || []).reduce((acc, r) => acc + (Number(r.total || 0)), 0);
+                    $card.find('.article-total').text(sum).removeClass('text-primary').addClass('text-success');
+                    $card.attr('data-restored', '1');
+
+                    // Pintar "guardado" en el status
+                    $card.find('.save-status').text('Recuperado ✓').show();
+                });
+
+                // 2) Recalcular piezas por fila (para pintar la columna .pres)
+                $articulos.find('.article-card').each(function() {
+                    const $card = $(this);
+                    recalcCard($card);
+                });
+
+                // 3) Si la línea está bloqueada, deshabilita inputs y botones
+                if (locked === true) {
+                    $articulos.find('input, button.btn-add-row, button.btn-save-article, button.eliminarLote')
+                        .prop('disabled', true);
+                    $('#btnCerrarLinea').prop('disabled', true);
+                    // Opcional: aviso visual
+                    $('#msgArticulos').removeClass('d-none').text('Línea bloqueada. Solo lectura.');
+                }
+            }
+
+            // Utilidad para recalcular totales visuales en una tarjeta
+            function recalcCard($card) {
+                let sum = 0;
+                $card.find('.row-line').each((_, el) => {
+                    const $row = $(el);
+                    const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
+                    const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
+                    const piezas = corr * cajas;
+                    $row.find('.pres').text(piezas); // ← PINTA la columna "piezas"
+                    sum += piezas;
+                });
+                $card.find('.article-total').text(sum);
+            }
+
+            // Fila de lote (HTML) con valores
+            function rowHtml({
+                lote,
+                corr,
+                cajas
+            }) {
+                return `
+                    <div class="row-line row-line--spaced">
+                    <div class="lote">
+                        ${lote ? escapeHtml(lote) : ''}
+                    </div>
+
+                    <label class="field label">
+                        <span>Corrugado:</span>
+                        <input type="number" class="form-control qty-input-corrugado" value="${Number(corr)||0}" min="0" step="1">
+                    </label>
+
+                    <label class="field label">
+                        <span>Cajas por Corrugado:</span>
+                        <input type="number" class="form-control qty-input-cajas" value="${Number(cajas)||0}" min="0" step="1">
+                    </label>
+
+                    <div class="pres">0</div> <!-- piezas calculadas -->
+                    </div>
+                `;
+            }
+
+            // Para seleccionar claves con guiones en selectores de atributo (seguro)
+            function cssEscape(str) {
+                return String(str).replace(/("|'|\\)/g, '\\$1');
+            }
+
 
             // Agrupa filas planas en tarjetas con lotes
             // row esperado: {CVE_ART, DESCR, LIN_PROD, EXIST, ProductoLote, LOTE, CantidadLote}
@@ -666,36 +797,30 @@ session_destroy(); */
                     $card.on('click', '.btn-add-row', function() {
                         const idx = $card.find('.row-line').length + 1;
                         const row = `
-                            <div class="row-line row-line--spaced">
-                            <div class="lote">
-                                <input type="text" class="form-control" placeholder="Lote ${idx}">
-                            </div>
+                    <div class="row-line row-line--spaced">
+                        <div class="lote">
+                        <input type="text" class="form-control" placeholder="Lote ${idx}">
+                        </div>
 
-                            <label class="field label">
-                                <span>Corrugado:</span>
-                                <input type="number"
-                                    class="form-control qty-input-corrugado"
-                                    value="0" min="0" step="1">
-                            </label>
+                        <label class="field label">
+                        <span>Corrugado:</span>
+                        <input type="number" class="form-control qty-input-corrugado" value="0" min="0" step="1">
+                        </label>
 
-                            <label class="field label">
-                                <span>Cajas por Corrugado:</span>
-                                <input type="number"
-                                    class="form-control qty-input-cajas"
-                                    value="0" min="0" step="1">
-                            </label>
+                        <label class="field label">
+                        <span>Cajas por Corrugado:</span>
+                        <input type="number" class="form-control qty-input-cajas" value="0" min="0" step="1">
+                        </label>
 
-                            <!--<div class="pres">—</div>-->
+                        <div class="pres">0</div>
 
-                            <div class="eliminar">
-                                <button type="button"
-                                        class="btn btn-danger btn-sm eliminarLote"
-                                        title="Eliminar lote">
-                                <i class="bx bx-trash"></i>
-                                </button>
-                            </div>
-                            </div>
-                        `;
+                        <div class="eliminar">
+                        <button type="button" class="btn btn-danger btn-sm eliminarLote" title="Eliminar lote">
+                            <i class="bx bx-trash"></i>
+                        </button>
+                        </div>
+                    </div>
+                    `;
                         $card.find('.row-add').before(row);
                         recalc();
                     });
@@ -848,6 +973,7 @@ session_destroy(); */
                     $status.hide().text('');
                 }
             }
+
             function markSaved($card, resp) {
                 const $badge = $card.find('.article-total');
                 $badge.removeClass('text-primary').addClass('text-success');
@@ -856,62 +982,25 @@ session_destroy(); */
             }
             /****/
             // Tarjeta de un artículo (versión espaciosa)
-            /*function buildArticleCard(item) {
-                const lotes = (item.lotes || []).map((r, i) => `
-                    <div class="row-line row-line--spaced">
-                    <div class="lote">${escapeHtml(r.LOTE ?? `Lote ${i+1}`)}</div>
-
-                    <label class="field label">
-                        <span>Corrugado:</span>
-                        <input type="number" class="form-control qty-input-corrugado" value="" min="0" step="1">
-                    </label>
-
-                    <label class="field label">
-                        <span>Cajas por Corrugado:</span>
-                        <input type="number" class="form-control qty-input-cajas" value="" min="0" step="1">
-                    </label>
-                    </div>
-                `).join('');
-
-                return `
-                    <section class="article-card spacious" data-articulo="${escapeAttr(item.codigo)}" data-exist="${item.exist}">
-                    <header class="article-head article-head--spaced">
-                        <div class="code">${escapeHtml(item.codigo)}</div>
-                        <a class="name" href="javascript:void(0)">${escapeHtml(item.nombre)}</a>
-                        <div class="exist">Inventario: ${escapeHtml(item.exist)}</div>
-                        <div class="total">
-                        Conteo:
-                        <span class="badge bg-primary-subtle text-primary fw-semibold article-total">0</span>
-                        </div>
-                    </header>
-
-                    <div class="rows rows--spaced">
-                        ${lotes}
-                        <div class="row-add row-add--spaced">
-                        <button type="button" class="btn btn-outline-primary btn-add-row" title="Agregar lote">
-                            <i class="bx bx-plus"></i>
-                        </button>
-                        </div>
-                    </div>
-                    </section>
-                `;
-            }*/
             function buildArticleCard(item) {
                 const lotes = (item.lotes || []).map((r, i) => `
-                    <div class="row-line row-line--spaced">
+                <div class="row-line row-line--spaced">
                     <div class="lote">${escapeHtml(r.LOTE ?? `Lote ${i+1}`)}</div>
 
                     <label class="field label">
-                        <span>Corrugado:</span>
-                        <input type="number" class="form-control qty-input-corrugado" value="0" min="0" step="1">
+                    <span>Corrugado:</span>
+                    <input type="number" class="form-control qty-input-corrugado" value="0" min="0" step="1">
                     </label>
 
                     <label class="field label">
-                        <span>Cajas por Corrugado:</span>
-                        <input type="number" class="form-control qty-input-cajas" value="0" min="0" step="1">
+                    <span>Cajas por Corrugado:</span>
+                    <input type="number" class="form-control qty-input-cajas" value="0" min="0" step="1">
                     </label>
-                    </div>
+
+                    <div class="pres">0</div> <!-- ← piezas -->
+                </div>
                 `).join('');
+
 
                 return `
                         <section class="article-card spacious" data-articulo="${escapeAttr(item.codigo)}" data-exist="${item.exist}">
