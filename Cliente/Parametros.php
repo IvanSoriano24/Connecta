@@ -65,7 +65,6 @@ if (isset($_SESSION['usuario'])) {
          <section id="content">
         <!-- Seccion de los Campos Libres -->
         <div id="invetarioFisico">
-            <section id="content">
                 <!-- NAVBAR -->
                 <?php include 'navbar.php'; ?>
                 <!-- MAIN -->
@@ -114,7 +113,6 @@ if (isset($_SESSION['usuario'])) {
                     </div>
                 </main>
                 <!-- MAIN -->
-            </section>
         </div>
         </section>
         <!-- CONTENT -->
