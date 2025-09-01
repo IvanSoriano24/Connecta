@@ -704,7 +704,8 @@ session_destroy(); */
                     const $row = $(el);
                     const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
                     const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
-                    const piezas = corr * cajas;
+                    const sueltos = Number($row.find('.qty-input-sueltos').val()) || 0;
+                    const piezas = (corr * cajas) + sueltos;
                     $row.find('.pres').text(piezas); // ← PINTA la columna "piezas"
                     sum += piezas;
                 });
@@ -715,28 +716,33 @@ session_destroy(); */
             function rowHtml({
                 lote,
                 corr,
-                cajas
+                cajas,
+                sueltos
             }) {
                 return `
                     <div class="row-line row-line--spaced">
-                    <div class="lote">
-                        ${lote ? escapeHtml(lote) : ''}
-                    </div>
+                        <div class="lote">
+                            ${lote ? escapeHtml(lote) : ''}
+                        </div>
 
-                    <label class="field label">
-                        <span>Corrugado:</span>
-                        <input type="number" class="form-control qty-input-corrugado" value="${Number(corr)||0}" min="0" step="1">
-                    </label>
+                        <label class="field label">
+                            <span>Corrugado:</span>
+                            <input type="number" class="form-control qty-input-corrugado" value="${Number(corr)||0}" min="0" step="1">
+                        </label>
 
-                    <label class="field label">
-                        <span>Cajas por Corrugado:</span>
-                        <input type="number" class="form-control qty-input-cajas" value="${Number(cajas)||0}" min="0" step="1">
-                    </label>
+                        <label class="field label">
+                            <span>Cajas por Corrugado:</span>
+                            <input type="number" class="form-control qty-input-cajas" value="${Number(cajas)||0}" min="0" step="1">
+                        </label>
 
-                    <div class="pres">0</div> <!-- piezas calculadas -->
+                        <label class="field label">
+                            <span>Cajas sueltas:</span>
+                            <input type="number" class="form-control qty-input-sueltos" value="${Number(sueltos)||0}" min="0" step="1">
+                        </label>
                     </div>
                 `;
             }
+
 
             // Para seleccionar claves con guiones en selectores de atributo (seguro)
             function cssEscape(str) {
@@ -783,7 +789,8 @@ session_destroy(); */
                             const $row = $(el);
                             const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
                             const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
-                            const piezas = corr * cajas;
+                            const sueltos = Number($row.find('.qty-input-sueltos').val()) || 0;
+                            const piezas = (corr * cajas) + sueltos;
 
                             $row.find('.pres').text(piezas);
                             sum += piezas;
@@ -797,30 +804,33 @@ session_destroy(); */
                     $card.on('click', '.btn-add-row', function() {
                         const idx = $card.find('.row-line').length + 1;
                         const row = `
-                    <div class="row-line row-line--spaced">
-                        <div class="lote">
-                        <input type="text" class="form-control" placeholder="Lote ${idx}">
+                        <div class="row-line row-line--spaced">
+                            <div class="lote">
+                            <input type="text" class="form-control" placeholder="Lote ${idx}">
+                            </div>
+
+                            <label class="field label">
+                            <span>Corrugado:</span>
+                            <input type="number" class="form-control qty-input-corrugado" value="0" min="0" step="1">
+                            </label>
+
+                            <label class="field label">
+                            <span>Cajas por Corrugado:</span>
+                            <input type="number" class="form-control qty-input-cajas" value="0" min="0" step="1">
+                            </label>
+
+                            <label class="field label">
+                            <span>Cajas sueltas:</span>
+                            <input type="number" class="form-control qty-input-sueltos" value="0" min="0" step="1">
+                            </label>
+
+                            <div class="eliminar">
+                            <button type="button" class="btn btn-danger btn-sm eliminarLote" title="Eliminar lote">
+                                <i class="bx bx-trash"></i>
+                            </button>
+                            </div>
                         </div>
-
-                        <label class="field label">
-                        <span>Corrugado:</span>
-                        <input type="number" class="form-control qty-input-corrugado" value="0" min="0" step="1">
-                        </label>
-
-                        <label class="field label">
-                        <span>Cajas por Corrugado:</span>
-                        <input type="number" class="form-control qty-input-cajas" value="0" min="0" step="1">
-                        </label>
-
-                        <div class="pres">0</div>
-
-                        <div class="eliminar">
-                        <button type="button" class="btn btn-danger btn-sm eliminarLote" title="Eliminar lote">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                        </div>
-                    </div>
-                    `;
+                        `;
                         $card.find('.row-add').before(row);
                         recalc();
                     });
@@ -929,7 +939,8 @@ session_destroy(); */
 
                     const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
                     const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
-                    const piezas = corr * cajas;
+                    const sueltos = Number($row.find('.qty-input-sueltos').val()) || 0;
+                    const piezas = (corr * cajas) + sueltos;
 
                     // Solo guarda filas con algo de captura
                     if ((corr > 0 && cajas > 0) || (lote && piezas >= 0)) {
@@ -937,6 +948,7 @@ session_destroy(); */
                             lote,
                             corrugados: corr,
                             cajasPorCorrugado: cajas,
+                            sueltos,
                             piezas
                         });
                     }
@@ -997,7 +1009,10 @@ session_destroy(); */
                     <input type="number" class="form-control qty-input-cajas" value="0" min="0" step="1">
                     </label>
 
-                    <div class="pres">0</div> <!-- ← piezas -->
+                    <label class="field label">
+                    <span>Cajas sueltas:</span>
+                    <input type="number" class="form-control qty-input-sueltos" value="0" min="0" step="1">
+                    </label>
                 </div>
                 `).join('');
 
