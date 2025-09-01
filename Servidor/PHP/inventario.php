@@ -603,16 +603,19 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
 
     // 6) Preparar PATCH SOLO del campo del producto (y algunos metadatos útiles)
     $escapedProductField = escape_field_path($cveArt); // ej: `AA-1613`
-    $patchUrl = $lineDocUrl . '&updateMask.fieldPaths=' . rawurlencode($escapedProductField)
-        . '&updateMask.fieldPaths=updatedAt'
-        . '&updateMask.fieldPaths=lastProduct'
-        . '&updateMask.fieldPaths=conteoTotal'
-        . '&updateMask.fieldPaths=diferencia'
-        . '&updateMask.fieldPaths=existSistema'
-        . '&updateMask.fieldPaths=descr';
+    $patchUrl = $lineDocUrl 
+    . '&updateMask.fieldPaths=' . rawurlencode($escapedProductField)
+    . '&updateMask.fieldPaths=status'
+    . '&updateMask.fieldPaths=updatedAt'
+    . '&updateMask.fieldPaths=lastProduct'
+    . '&updateMask.fieldPaths=conteoTotal'
+    . '&updateMask.fieldPaths=diferencia'
+    . '&updateMask.fieldPaths=existSistema'
+    . '&updateMask.fieldPaths=descr';
 
     $payloadFirestore = [
         'fields' => [
+            'status' => ['booleanValue' => true],
             // Campo por clave de producto → array de maps
             $cveArt => [
                 'arrayValue' => ['values' => $existing]

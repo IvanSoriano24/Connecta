@@ -720,7 +720,7 @@ session_destroy(); */
                 sueltos
             }) {
                 return `
-                    <div class="row-line row-line--spaced">
+                    <div class="row-line row-line">
                         <div class="lote">
                             ${lote ? escapeHtml(lote) : ''}
                         </div>
@@ -790,21 +790,22 @@ session_destroy(); */
                             const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
                             const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
                             const sueltos = Number($row.find('.qty-input-sueltos').val()) || 0;
-                            const piezas = (corr * cajas) + sueltos;
 
-                            $row.find('.pres').text(piezas);
+                            const piezas = (corr * cajas) + sueltos;
                             sum += piezas;
+                            //alert(sum);
                         });
                         $card.find('.article-total').text(sum);
                     }
 
+
                     // Disparar recalc al cambiar cualquiera de los dos inputs
-                    $card.on('input change', '.qty-input-corrugado, .qty-input-cajas', recalc);
+                    $card.on('input change', '.qty-input-corrugado, .qty-input-cajas, .qty-input-sueltos', recalc);
 
                     $card.on('click', '.btn-add-row', function() {
                         const idx = $card.find('.row-line').length + 1;
                         const row = `
-                        <div class="row-line row-line--spaced">
+                        <div class="row-line row-line">
                             <div class="lote">
                             <input type="text" class="form-control" placeholder="Lote ${idx}">
                             </div>
@@ -996,7 +997,7 @@ session_destroy(); */
             // Tarjeta de un artículo (versión espaciosa)
             function buildArticleCard(item) {
                 const lotes = (item.lotes || []).map((r, i) => `
-                <div class="row-line row-line--spaced">
+                <div class="row-line row-line">
                     <div class="lote">${escapeHtml(r.LOTE ?? `Lote ${i+1}`)}</div>
 
                     <label class="field label">

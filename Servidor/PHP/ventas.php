@@ -413,7 +413,7 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData){
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     // Consulta SQL para obtener MAIL y EMAILPRED
-    $sql = "SELECT MAIL, EMAILPRED, NOMBRE, TELEFONO FROM $nombreTabla WHERE [CLAVE] = ?";
+    $sql = "SELECT MAIL, EMAILPRED, NOMBRE FROM $nombreTabla WHERE [CLAVE] = ?";
     $params = [$clave];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -455,8 +455,8 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData){
     $numeroWhatsApp = (is_null($clienteData['TELEFONO'])) ? "" : trim($clienteData['TELEFONO']);
     $clienteNombre = trim($clienteData['NOMBRE']);
 
-    $emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';
+    /*$emailPred = 'desarrollo01@mdcloud.mx';
+    $numeroWhatsApp = '+527773750925';*/
     $claveCliente = $clave;
     /*$emailPred = 'marcos.luna@mdcloud.mx';
     $numeroWhatsApp = '+527775681612';*/
@@ -575,7 +575,7 @@ function enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData){
             $resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido);
             /*var_dump($resultadoWhatsApp);
             die();*/
-            $resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
+            //$resultadoWhatsApp = enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto);
             if (str_contains($resultadoWhatsApp, "error")) {
                 //throw new Exception("Problema al enviar mensaje de WhatsApp");
                 echo json_encode(['success' => false, 'message' => 'Problema al enviar mensaje de WhatsApp.', 'error' => $resultadoWhatsApp]);
@@ -10355,6 +10355,7 @@ switch ($funcion) {
             exit;
         }
         $conexionData = $conexionResult['data'];
+
         $pedidoID = $_POST['pedidoID'];
         $pedidoID = trim($pedidoID); // Elimina espacios en blanco al inicio y al final
         //var_dump("Pedido: ", $pedidoID);
