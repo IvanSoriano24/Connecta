@@ -204,6 +204,7 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
             $f = $entry['mapValue']['fields'];
 
             $corr   = isset($f['corrugados']['integerValue'])        ? (int)$f['corrugados']['integerValue']        : 0;
+            $sul   = isset($f['sueltos']['integerValue'])        ? (int)$f['sueltos']['integerValue']        : 0;
             $cxc    = isset($f['corrugadosPorCaja']['integerValue']) ? (int)$f['corrugadosPorCaja']['integerValue'] : 0;
             $lote   = isset($f['lote']['stringValue'])               ? (string)$f['lote']['stringValue']            : '';
             $total  = isset($f['total']['integerValue'])             ? (int)$f['total']['integerValue']             : ($corr * $cxc);
@@ -215,6 +216,7 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
                 'corrugadosPorCaja' => $cxc,
                 'lote'              => $lote,
                 'total'             => (int)$total,
+                'sueltos' => $sul,
             ];
         }
 
@@ -593,6 +595,7 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
             'mapValue' => [
                 'fields' => [
                     'corrugados'       => ['integerValue' => (int)($row['corrugados'] ?? 0)],
+                    'sueltos'       => ['integerValue' => (int)($row['sueltos'] ?? 0)],
                     'corrugadosPorCaja' => ['integerValue' => (int)($row['cajasPorCorrugado'] ?? $row['corrugadosPorCaja'] ?? 0)],
                     'lote'             => ['stringValue'  => (string)($row['lote'] ?? '')],
                     'total'            => ['integerValue' => (int)($row['total'] ?? $row['piezas'] ?? 0)],
@@ -729,8 +732,73 @@ function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
     //return $inventarios;
     echo json_encode(['succes' => true, 'inventarios' => $inventarios]);
 }
-function bloquearLineasTerminadas($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noInventario){
+function obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey){
+    $collection = "USUARIOS";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
 
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "tipoUsuario"],
+                                "op" => "EQUAL",
+                                "value" => ["stringValue" => "ALMACENISTA"]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+            // ← sin limit para traer todos; si te preocupa volumen, usa un límite alto p.ej. 500
+        ]
+    ]);
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+            'timeout' => 20
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    $items = [];
+    if ($response !== false) {
+        $resultArray = json_decode($response, true);
+        if (is_array($resultArray)) {
+            foreach ($resultArray as $row) {
+                if (!isset($row['document'])) continue;
+                $doc    = $row['document'];
+                $fields = $doc['fields'] ?? [];
+                $parts  = explode('/', $doc['name']);
+                $id     = end($parts);
+
+                $items[] = [
+                    'idUsuario' => $id,
+                    'usuario'   => $fields['usuario']['stringValue'] ?? null,
+                    'nombre'    => $fields['nombre']['stringValue'] ?? null,
+                    // agrega lo que necesites (email, activo, etc.)
+                ];
+            }
+        }
+    }
+    return $items;
 }
 
 
@@ -798,8 +866,8 @@ switch ($funcion) {
         break;
     case 9:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $noInventario = $_GET['noInventario'];
-        bloquearLineasTerminadas($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noInventario);
+        $items = obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        echo json_encode(['success' => true, 'data' => $items]);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);

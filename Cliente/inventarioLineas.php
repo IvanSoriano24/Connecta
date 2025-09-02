@@ -644,7 +644,8 @@ session_destroy(); */
             function applyGuardadosToUI(res) {
                 const {
                     locked,
-                    productos
+                    productos,
+                    terminada
                 } = res;
 
                 // 1) Aplicar por producto
@@ -664,7 +665,9 @@ session_destroy(); */
                     const rowsHtml = (p.lotes || []).map((r, i) => rowHtml({
                         lote: r.lote || `Lote ${i+1}`,
                         corr: Number(r.corrugados || 0),
-                        cajas: Number(r.corrugadosPorCaja || 0)
+                        cajas: Number(r.corrugadosPorCaja || 0),
+                        sueltos: Number(r.sueltos || 0),
+                        terminada: terminada
                     })).join('');
 
                     // Reemplazar filas (dejando el bloque de "agregar fila" al final)
@@ -717,28 +720,47 @@ session_destroy(); */
                 lote,
                 corr,
                 cajas,
-                sueltos
+                sueltos,
+                terminada
             }) {
+                const bloqueado = !terminada;
+                const disabledAttr = bloqueado ? 'disabled' : '';
+
                 return `
-                    <div class="row-line row-line">
-                        <div class="lote">
-                            ${lote ? escapeHtml(lote) : ''}
-                        </div>
+                    <div class="row-line">
+                    <div class="lote">
+                        ${lote ? escapeHtml(lote) : ''}
+                    </div>
 
-                        <label class="field label">
-                            <span>Corrugado:</span>
-                            <input type="number" class="form-control qty-input-corrugado" value="${Number(corr)||0}" min="0" step="1">
-                        </label>
+                    <label class="field label">
+                        <span>Corrugado:</span>
+                        <input type="number"
+                            class="form-control qty-input-corrugado"
+                            value="${Number(corr) || 0}"
+                            min="0"
+                            step="1"
+                            ${disabledAttr}>
+                    </label>
 
-                        <label class="field label">
-                            <span>Cajas por Corrugado:</span>
-                            <input type="number" class="form-control qty-input-cajas" value="${Number(cajas)||0}" min="0" step="1">
-                        </label>
+                    <label class="field label">
+                        <span>Cajas por Corrugado:</span>
+                        <input type="number"
+                            class="form-control qty-input-cajas"
+                            value="${Number(cajas) || 0}"
+                            min="0"
+                            step="1"
+                            ${disabledAttr}>
+                    </label>
 
-                        <label class="field label">
-                            <span>Cajas sueltas:</span>
-                            <input type="number" class="form-control qty-input-sueltos" value="${Number(sueltos)||0}" min="0" step="1">
-                        </label>
+                    <label class="field label">
+                        <span>Cajas sueltas:</span>
+                        <input type="number"
+                            class="form-control qty-input-sueltos"
+                            value="${Number(sueltos) || 0}"
+                            min="0"
+                            step="1"
+                            ${disabledAttr}>
+                    </label>
                     </div>
                 `;
             }

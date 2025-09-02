@@ -54,38 +54,6 @@ function obtenerLineas() {
     },
   });
 }
-function bloquearLineasTerminadas(){
-  const noInventario = document.getElementById("noInventario").value;
-  $.ajax({
-    url: "../Servidor/PHP/inventario.php",
-    method: "GET",
-    data: {
-      numFuncion: "9",
-      noInventario: noInventario,
-    },
-    success: function (response) {
-      try {
-        const res =
-          typeof response === "string" ? JSON.parse(response) : response;
-
-      } catch (error) {
-        console.error("Error al Procesar la Respuesta:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Error al Cargar las Lineas.",
-        });
-      }
-    },
-    error: function () {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Error al Obtener las Lineas.",
-      });
-    },
-  });
-}
 /*function cargarProductos(){
     const filtroLinea = $("#lineaSelect").val(); // Obtener el filtro seleccionado
 }*/

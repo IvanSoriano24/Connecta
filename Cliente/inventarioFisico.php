@@ -134,6 +134,12 @@ session_destroy(); */
                         Selecciona la manera en la que deseas realizar el inventario
                     </p>
 
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalInventarios" id="btnModalInventarios">
+                            <i class='bx bx-clipboard'></i> Ver Inventarios
+                        </button>
+                    </div>
+
                     <div class="row justify-content-center g-4 mt-3">
                         <!-- Opción: Almacén -->
                         <div class="col-12 col-md-6 col-xl-4 d-flex justify-content-center">
@@ -153,6 +159,78 @@ session_destroy(); */
                         </div>
                     </div>
                 </div>
+                <!-- Modal de Inventarios -->
+                <div class="modal fade" id="modalInventarios" tabindex="-1" aria-labelledby="modalInventariosLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content">
+
+                            <!-- Encabezado -->
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="modalInventariosLabel">
+                                    <i class='bx bx-clipboard'></i> Inventarios Realizados
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+
+                            <!-- Cuerpo con la tabla -->
+                            <div class="modal-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover align-middle">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Fecha</th>
+                                                <th>Estado</th>
+                                                <!--         <th>Acciones</th> -->
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaInventarios">
+                                            <!-- Aquí se insertan dinámicamente los inventarios -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Footer con botón de crear nuevo -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-success" id="btnNuevoInventario">
+                                    <i class='bx bx-plus-circle'></i> Crear Nuevo Inventario
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="button" class="btn btn-primary" id="btnGuardarAsignacion">Asignar</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal de Asignacion -->
+                <div id="asociarLineas" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Asignar Lineas</h5>
+                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <table class="table table-striped" id="tablaAsignacion">
+                                    <thead>
+                                        <tr>
+                                            <th>Lineas</th>
+                                            <th>Almacenistas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaAsociaciones">
+                                        <!-- Aquí se cargarán dinámicamente las asociaciones -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" id="cerrarModalAsignacion"
+                                    data-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </main>
 
             <!-- MAIN -->
@@ -168,6 +246,7 @@ session_destroy(); */
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
     <script src="JS/productos.js"></script>
+    <script src="JS/inventarioMenu.js"></script>
 </body>
 
 </html>
