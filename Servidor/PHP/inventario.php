@@ -426,8 +426,9 @@ function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey){
         $result["existsAny"]      = true; // si hay activo, por ende existe
         $result["docId"]          = $getIdFromName($docActive['name']);
         $result["raw"]            = null; // o guarda $docActive si quieres
-        echo json_encode($result);
-        return;
+        //echo json_encode($result);
+        return $result;
+        //return;
     }
 
     // ---------------------------------------------
@@ -942,7 +943,7 @@ switch ($funcion) {
     case 1:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $result = buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey);
-        //echo json_encode($result);
+        echo json_encode($result);
         break;
     case 2:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
