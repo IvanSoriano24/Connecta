@@ -139,7 +139,8 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario){
+function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario)
+{
     // Validaciones rápidas
     if (!$noEmpresa || !$linea || !$noInventario) {
         return ['success' => false, 'message' => 'Parámetros incompletos'];
@@ -179,9 +180,17 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
 
     // 4) Campos "reservados" (no son productos)
     $reservados = [
-        'locked','conteo','finishedAt','lockedBy',
-        'updatedAt','lastProduct','conteoTotal','diferencia',
-        'existSistema','descr','linesStatus'
+        'locked',
+        'conteo',
+        'finishedAt',
+        'lockedBy',
+        'updatedAt',
+        'lastProduct',
+        'conteoTotal',
+        'diferencia',
+        'existSistema',
+        'descr',
+        'linesStatus'
     ];
 
     // 5) Transformar cada campo de producto (arrayValue de maps) -> PHP array
@@ -316,8 +325,7 @@ function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     }
     return $noInventario;
 }
-function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
-{
+function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     $collection = "INVENTARIO"; // corregido
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
 
@@ -451,82 +459,87 @@ function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
         $result["docId"]          = $getIdFromName($docAny['name']);
     }
 
-    echo json_encode($result);
-} 
+    return $result;
+    //echo json_encode($result);
+}
 //////////////////////////GUARDAR PRODUCTO/////////////////////////////////////////
-function http_get_json($url) {
-  $resp = @file_get_contents($url);
-  if ($resp === false) return null;
-  return json_decode($resp, true);
+function http_get_json($url)
+{
+    $resp = @file_get_contents($url);
+    if ($resp === false) return null;
+    return json_decode($resp, true);
 }
-function http_patch_json($url, $bodyArr) {
-  $opts = [
-    'http' => [
-      'header'  => "Content-Type: application/json\r\n",
-      'method'  => 'PATCH',
-      'content' => json_encode($bodyArr),
-      'timeout' => 20
-    ]
-  ];
-  $ctx  = stream_context_create($opts);
-  $resp = @file_get_contents($url, false, $ctx);
-  return $resp !== false ? json_decode($resp, true) : null;
-}
-function firestore_runQuery($projectId, $apiKey, $structuredQuery) {
-  $url = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents:runQuery?key=$apiKey";
-  $opts = [
-    'http' => [
-      'header'  => "Content-Type: application/json\r\n",
-      'method'  => 'POST',
-      'content' => json_encode(['structuredQuery' => $structuredQuery]),
-      'timeout' => 20
-    ]
-  ];
-  $ctx = stream_context_create($opts);
-  $resp = @file_get_contents($url, false, $ctx);
-  if ($resp === false) return null;
-  return json_decode($resp, true);
-}
-function getInventarioDocByFolio($noEmpresa, $noInventario, $projectId, $apiKey) {
-  // Busca inventario ACTIVO por empresa + folio
-  $q = [
-    "from" => [ ["collectionId" => "INVENTARIO"] ],
-    "where" => [
-      "compositeFilter" => [
-        "op" => "AND",
-        "filters" => [
-          ["fieldFilter" => [
-            "field" => ["fieldPath" => "status"],
-            "op" => "EQUAL",
-            "value" => ["booleanValue" => true]
-          ]],
-          ["fieldFilter" => [
-            "field" => ["fieldPath" => "noEmpresa"],
-            "op" => "EQUAL",
-            "value" => ["integerValue" => (int)$noEmpresa]
-          ]],
-          ["fieldFilter" => [
-            "field" => ["fieldPath" => "noInventario"],
-            "op" => "EQUAL",
-            "value" => ["integerValue" => (int)$noInventario]
-          ]]
+function http_patch_json($url, $bodyArr)
+{
+    $opts = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'PATCH',
+            'content' => json_encode($bodyArr),
+            'timeout' => 20
         ]
-      ]
-    ],
-    "limit" => 1
-  ];
-  $res = firestore_runQuery($projectId, $apiKey, $q);
-  if (!$res || !isset($res[0]['document'])) return null;
-  $doc = $res[0]['document'];
-  $nameParts = explode('/', $doc['name']);
-  $docId = end($nameParts);
-  $fields = $doc['fields'] ?? [];
-  $conteo = isset($fields['conteo']['integerValue']) ? (int)$fields['conteo']['integerValue'] : null;
-  return ['docId' => $docId, 'conteo' => $conteo];
+    ];
+    $ctx  = stream_context_create($opts);
+    $resp = @file_get_contents($url, false, $ctx);
+    return $resp !== false ? json_decode($resp, true) : null;
 }
-function escape_field_path($name) {
-  // Para claves con guiones u otros caracteres (p.ej. "AA-1613") hay que usar backticks en updateMask.fieldPaths
-  return '`' . str_replace('`','\\`', $name) . '`';
+function firestore_runQuery($projectId, $apiKey, $structuredQuery)
+{
+    $url = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents:runQuery?key=$apiKey";
+    $opts = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => json_encode(['structuredQuery' => $structuredQuery]),
+            'timeout' => 20
+        ]
+    ];
+    $ctx = stream_context_create($opts);
+    $resp = @file_get_contents($url, false, $ctx);
+    if ($resp === false) return null;
+    return json_decode($resp, true);
+}
+function getInventarioDocByFolio($noEmpresa, $noInventario, $projectId, $apiKey){
+    // Busca inventario ACTIVO por empresa + folio
+    $q = [
+        "from" => [["collectionId" => "INVENTARIO"]],
+        "where" => [
+            "compositeFilter" => [
+                "op" => "AND",
+                "filters" => [
+                    ["fieldFilter" => [
+                        "field" => ["fieldPath" => "status"],
+                        "op" => "EQUAL",
+                        "value" => ["booleanValue" => true]
+                    ]],
+                    ["fieldFilter" => [
+                        "field" => ["fieldPath" => "noEmpresa"],
+                        "op" => "EQUAL",
+                        "value" => ["integerValue" => (int)$noEmpresa]
+                    ]],
+                    ["fieldFilter" => [
+                        "field" => ["fieldPath" => "noInventario"],
+                        "op" => "EQUAL",
+                        "value" => ["integerValue" => (int)$noInventario]
+                    ]]
+                ]
+            ]
+        ],
+        "limit" => 1
+    ];
+    $res = firestore_runQuery($projectId, $apiKey, $q);
+    if (!$res || !isset($res[0]['document'])) return null;
+    $doc = $res[0]['document'];
+    $nameParts = explode('/', $doc['name']);
+    $docId = end($nameParts);
+    $fields = $doc['fields'] ?? [];
+    $conteo = isset($fields['conteo']['integerValue']) ? (int)$fields['conteo']['integerValue'] : null;
+    return ['docId' => $docId, 'conteo' => $conteo];
+}
+function escape_field_path($name)
+{
+    // Para claves con guiones u otros caracteres (p.ej. "AA-1613") hay que usar backticks en updateMask.fieldPaths
+    return '`' . str_replace('`', '\\`', $name) . '`';
 }
 function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebaseApiKey){
     // 1) Parseo del payload
@@ -606,15 +619,15 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
 
     // 6) Preparar PATCH SOLO del campo del producto (y algunos metadatos útiles)
     $escapedProductField = escape_field_path($cveArt); // ej: `AA-1613`
-    $patchUrl = $lineDocUrl 
-    . '&updateMask.fieldPaths=' . rawurlencode($escapedProductField)
-    . '&updateMask.fieldPaths=status'
-    . '&updateMask.fieldPaths=updatedAt'
-    . '&updateMask.fieldPaths=lastProduct'
-    . '&updateMask.fieldPaths=conteoTotal'
-    . '&updateMask.fieldPaths=diferencia'
-    . '&updateMask.fieldPaths=existSistema'
-    . '&updateMask.fieldPaths=descr';
+    $patchUrl = $lineDocUrl
+        . '&updateMask.fieldPaths=' . rawurlencode($escapedProductField)
+        . '&updateMask.fieldPaths=status'
+        . '&updateMask.fieldPaths=updatedAt'
+        . '&updateMask.fieldPaths=lastProduct'
+        . '&updateMask.fieldPaths=conteoTotal'
+        . '&updateMask.fieldPaths=diferencia'
+        . '&updateMask.fieldPaths=existSistema'
+        . '&updateMask.fieldPaths=descr';
 
     $payloadFirestore = [
         'fields' => [
@@ -674,15 +687,16 @@ function iniciarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noI
         exit;
     }
 }
-function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
+function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+{
     $collection = "INVENTARIO";
     $url = "https://firestore.googleapis.com/v1/projects/"
-         . urlencode($firebaseProjectId)
-         . "/databases/(default)/documents:runQuery?key="
-         . urlencode($firebaseApiKey);
+        . urlencode($firebaseProjectId)
+        . "/databases/(default)/documents:runQuery?key="
+        . urlencode($firebaseApiKey);
 
     // Helper para POST JSON
-    $postJson = function(array $body) use ($url) {
+    $postJson = function (array $body) use ($url) {
         $options = [
             'http' => [
                 'header'  => "Content-Type: application/json\r\n",
@@ -724,7 +738,7 @@ function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
                 'conteo'      => isset($f['conteo']['integerValue'])      ? (int)$f['conteo']['integerValue']      : null,
                 'fechaInicio' => isset($f['fechaInicio']['stringValue'])   ? $f['fechaInicio']['stringValue']        : null,
                 'noEmpresa'   => isset($f['noEmpresa']['integerValue'])    ? (int)$f['noEmpresa']['integerValue']    : null,
-                'noInventario'=> isset($f['noInventario']['integerValue']) ? (int)$f['noInventario']['integerValue'] : null,
+                'noInventario' => isset($f['noInventario']['integerValue']) ? (int)$f['noInventario']['integerValue'] : null,
                 'status'      => isset($f['status']['booleanValue'])       ? (bool)$f['status']['booleanValue']      : null,
             ];
         }
@@ -732,7 +746,8 @@ function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey) {
     //return $inventarios;
     echo json_encode(['succes' => true, 'inventarios' => $inventarios]);
 }
-function obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey){
+function obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+{
     $collection = "USUARIOS";
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
 
@@ -800,6 +815,113 @@ function obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     }
     return $items;
 }
+//////////////////////////GUARDAR ASIGNACION/////////////////////////////////////////
+function http_patch_jsonAsignacion($url, $bodyArr)
+{
+    $opts = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'PATCH',
+            'content' => json_encode($bodyArr),
+            'timeout' => 20
+        ]
+    ];
+    $ctx  = stream_context_create($opts);
+    $resp = @file_get_contents($url, false, $ctx);
+    return $resp !== false ? json_decode($resp, true) : null;
+}
+function firestore_runQueryAsignacion($projectId, $apiKey, $structuredQuery)
+{
+    $url = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents:runQuery?key=$apiKey";
+    $opts = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => json_encode(['structuredQuery' => $structuredQuery]),
+            'timeout' => 20
+        ]
+    ];
+    $ctx = stream_context_create($opts);
+    $resp = @file_get_contents($url, false, $ctx);
+    if ($resp === false) return null;
+    return json_decode($resp, true);
+}
+function getInventarioDocByFolioAsignacion($noEmpresa, $noInventario, $projectId, $apiKey)
+{
+    $q = [
+        "from" => [["collectionId" => "INVENTARIO"]],
+        "where" => [
+            "compositeFilter" => [
+                "op" => "AND",
+                "filters" => [
+                    ["fieldFilter" => [
+                        "field" => ["fieldPath" => "status"],
+                        "op" => "EQUAL",
+                        "value" => ["booleanValue" => true]
+                    ]],
+                    ["fieldFilter" => [
+                        "field" => ["fieldPath" => "noEmpresa"],
+                        "op" => "EQUAL",
+                        "value" => ["integerValue" => (int)$noEmpresa]
+                    ]],
+                    ["fieldFilter" => [
+                        "field" => ["fieldPath" => "noInventario"],
+                        "op" => "EQUAL",
+                        "value" => ["integerValue" => (int)$noInventario]
+                    ]]
+                ]
+            ]
+        ],
+        "limit" => 1
+    ];
+    $res = firestore_runQueryAsignacion($projectId, $apiKey, $q);
+    if (!$res || !isset($res[0]['document'])) return null;
+    $doc = $res[0]['document'];
+    $nameParts = explode('/', $doc['name']);
+    $docId = end($nameParts);
+    return ['docId' => $docId];
+}
+function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $projectId, $apiKey)
+{
+    // 1) Resolver inventario activo por empresa + folio
+    $inv = getInventarioDocByFolioAsignacion((int)$noEmpresa, (int)$noInventario, $projectId, $apiKey);
+    if (!$inv || empty($inv['docId'])) {
+        return ['success' => false, 'message' => 'Inventario activo no encontrado'];
+    }
+    $invDocId = $inv['docId'];
+
+    // 2) Construir mapValue para "asignaciones"
+    //    Estructura: asignaciones: { "001": {stringValue: "usuarioId"}, "002": {stringValue: "usuarioId2"} }
+    $mapFields = [];
+    foreach ($asignaciones as $lineaId => $idUsuario) {
+        if ($lineaId === '' || $idUsuario === '' || $idUsuario === null) continue;
+        $mapFields[(string)$lineaId] = ['stringValue' => (string)$idUsuario];
+    }
+
+    // Si quieres sobreescribir COMPLETAMENTE el map con lo enviado (y eliminar no enviados):
+    // -> Parchamos con el map que traemos (aunque sea vacío).
+    // Si prefieres *fusionar* con lo existente, primero trae el doc, mezcla, y luego parchea.
+    $root  = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents";
+    $url   = "$root/INVENTARIO/$invDocId?key=$apiKey&updateMask.fieldPaths=asignaciones";
+
+    $body = [
+        'fields' => [
+            'asignaciones' => [
+                'mapValue' => [
+                    'fields' => $mapFields  // puede ser []
+                ]
+            ]
+        ]
+    ];
+
+    $resp = http_patch_jsonAsignacion($url, $body);
+    if (!$resp) {
+        return ['success' => false, 'message' => 'No se pudo guardar asignaciones'];
+    }
+
+    return ['success' => true];
+}
+//////////////////////////GUARDAR ASIGNACION/////////////////////////////////////////
 
 
 
@@ -819,7 +941,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
 switch ($funcion) {
     case 1:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $result = buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        //echo json_encode($result);
         break;
     case 2:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -848,12 +971,33 @@ switch ($funcion) {
         guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebaseApiKey);
         break;
     case 6:
-        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-        $claveSae = $_SESSION['empresa']['claveSae'];
-        $noInventario = noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey);
-        iniciarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noInventario);
-        echo json_encode(['success' => true, 'message' => 'Inventario Iniciado']);
-        break;
+    $noEmpresa       = $_SESSION['empresa']['noEmpresa'];
+    $firebaseProject = $firebaseProjectId;
+    $apiKey          = $firebaseApiKey;
+
+    // Guardamos el array de respuesta en una variable
+    $inventario = buscarInventario($noEmpresa, $firebaseProject, $apiKey);
+
+    // Accedemos a las propiedades del array
+    if ($inventario['success'] && $inventario['foundActive']) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Hay un inventario activo',
+            'docId'   => $inventario['docId']
+        ]);
+    } else {
+        // No había activo, iniciamos uno nuevo
+        $noInventario = noInventario($noEmpresa, $firebaseProject, $apiKey);
+        iniciarInventario($noEmpresa, $firebaseProject, $apiKey, $noInventario);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Inventario Iniciado',
+            'newNoInventario' => $noInventario
+        ]);
+    }
+    break;
+
     case 7:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey);
@@ -869,6 +1013,19 @@ switch ($funcion) {
         $items = obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey);
         echo json_encode(['success' => true, 'data' => $items]);
         break;
+    case '10': // Guardar asignaciones de líneas -> campo "asignaciones" en INVENTARIO
+        $noEmpresa    = (int)$_SESSION['empresa']['noEmpresa'];
+        $payload = json_decode($_POST['payload'] ?? 'null', true);
+        $noInventario = 1;
+        if (!$noInventario || !$payload || !isset($payload['asignaciones']) || !is_array($payload['asignaciones'])) {
+            echo json_encode(['success' => false, 'message' => 'Parámetros inválidos']);
+            exit;
+        }
+
+        $resp = guardarAsignaciones($noEmpresa, $noInventario, $payload['asignaciones'], $firebaseProjectId, $firebaseApiKey);
+        echo json_encode($resp);
+        break;
+
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
         //echo json_encode(['success' => false, 'message' => 'No hay funcion.']);

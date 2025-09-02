@@ -374,13 +374,13 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="col-md-6">
                                 <h6>Seleccionar Empresa</h6>
-                                <select id="selectEmpresa" class="form-select">
+                                <select id="selectLinea" class="form-select">
                                     <option selected disabled>Seleccione una empresa</option>
                                 </select>
                             </div>
-                            <div id="empresasAsociadas" class="mt-4">
+                            <div id="lineasAsignadas" class="mt-4">
                                 <h6>Empresas Asociadas</h6>
-                                <ul id="listaEmpresasAsociadas" class="list-group">
+                                <ul id="listaLienasAsignadas" class="list-group">
                                     <!-- Las empresas asociadas se cargarán dinámicamente aquí -->
                                 </ul>
                             </div>

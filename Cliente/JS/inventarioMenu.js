@@ -121,86 +121,79 @@ function mostrarInventarios() {
       );
     });
 }*/
-function cargarLineasYAlmacenistas(){
-    const $tbody = $('#tablaAsociaciones');
-    $tbody.html(`<tr><td colspan="3" class="text-center text-muted">Cargando…</td></tr>`);
+//lineaSelect
+function obtenerLineas() {
+  $.ajax({
+    url: "../Servidor/PHP/inventario.php",
+    method: "GET",
+    data: {
+      numFuncion: "3",
+    },
+    success: function (response) {
+      try {
+        const res =
+          typeof response === "string" ? JSON.parse(response) : response;
 
-    // Requests en paralelo
-    const reqLineas = $.ajax({
-      url: "../Servidor/PHP/inventario.php",
-      method: "GET",
-      data: { numFuncion: "3" },
-      dataType: "json"
-    });
+        if (res.success && Array.isArray(res.data)) {
+          const lineaSelect = $("#lineaSelect");
+          lineaSelect.empty();
+          lineaSelect.append(
+            "<option selected disabled>Seleccione una linea</option>"
+          );
 
-    const reqUsers = $.ajax({
-      url: "../Servidor/PHP/inventario.php",
-      method: "GET",
-      data: { numFuncion: "9" }, // ← almacenistas
-      dataType: "json"
-    });
+          res.data.forEach((dato) => {
+            lineaSelect.append(
+              `<option value="${dato.CVE_LIN}" data-id="${dato.CVE_LIN}" data-descripcion="${dato.DESC_LIN}">
+                ${dato.DESC_LIN}
+              </option>`
+            );
+          });
 
-    $.when(reqLineas, reqUsers)
-      .done(function(r1, r2){
-        // jQuery when devuelve [data, textStatus, jqXHR] por request
-        const resLin = r1 && r1[0] ? r1[0] : null;
-        const resUsr = r2 && r2[0] ? r2[0] : null;
-
-        const lineas = (resLin && resLin.success && Array.isArray(resLin.data)) ? resLin.data : [];
-        const users  = (resUsr && resUsr.success && Array.isArray(resUsr.data)) ? resUsr.data : [];
-
-        if (lineas.length === 0) {
-          $tbody.html(`<tr><td colspan="3" class="text-center text-muted">No hay líneas disponibles.</td></tr>`);
-          return;
+          // Habilitar el select si hay vendedores disponibles
+          //lineaSelect.prop("disabled", res.data.length === 0);
+        } else {
+          /*Swal.fire({
+            icon: "warning",
+            title: "Aviso",
+            text: res.message || "No se Encontraron Datos de Envio.",
+          });*/
+          //$("#lineaSelect").prop("disabled", true);
         }
-
-        const hasUsers = users.length > 0;
-        const optionsHtml = [
-          `<option value="">-- Sin asignar --</option>`,
-          ...users.map(u => `<option value="${escapeAttr(u.idUsuario)}" data-usuario="${escapeAttr(u.usuario||'')}">${escapeHtml(u.nombre || u.usuario || u.idUsuario)}</option>`)
-        ].join('');
-
-        const rows = lineas.map(li => {
-          const cve  = (li.CVE_LIN ?? '').toString();
-          const desc = (li.DESC_LIN ?? '').toString();
-
-          return `
-            <tr data-linea="${escapeAttr(cve)}">
-              <td class="align-middle">
-                <div class="fw-semibold">${escapeHtml(desc)}</div>
-                <small class="text-muted">Código: ${escapeHtml(cve)}</small>
-              </td>
-              <td class="align-middle" style="min-width:260px;">
-                ${hasUsers ? `
-                  <select class="form-control sel-almacenista" data-linea="${escapeAttr(cve)}">
-                    ${optionsHtml}
-                  </select>
-                ` : `
-                  <span class="badge badge-warning">No hay almacenistas</span>
-                `}
-              </td>
-            </tr>
-          `;
-        }).join('');
-
-        $tbody.html(rows);
-
-        // TODO (siguiente paso): si ya tienes asignaciones guardadas, aquí puedes preseleccionar
-        // la opción correspondiente haciendo otro GET (e.g., numFuncion=13) y luego setear .val(idUsuario)
-      })
-      .fail(function(){
-        $tbody.html(`<tr><td colspan="3" class="text-center text-danger">Error al cargar datos.</td></tr>`);
+      } catch (error) {
+        console.error("Error al Procesar la Respuesta:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Error al Cargar las Lineas.",
+        });
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al Obtener las Lineas.",
       });
-  }
-  // Helpers
-  function escapeHtml(str){
-    return String(str ?? '').replace(/[&<>"']/g, m => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[m]));
-  }
-  function escapeAttr(str){
-    return escapeHtml(str).replace(/"/g, '&quot;');
-  }
+    },
+  });
+}
+// Helpers
+function escapeHtml(str) {
+  return String(str ?? "").replace(
+    /[&<>"']/g,
+    (m) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[m])
+  );
+}
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/"/g, "&quot;");
+}
 // Helper para escapar HTML
 function escapeHtml(str) {
   return String(str ?? "").replace(
@@ -239,14 +232,13 @@ $("#btnNuevoInventario").click(function () {
           }).then(() => {
             //abrirModalAsignacion();
             $("#modalInventarios").modal("hide");
-            //cargarLineasEnModal();
-            cargarLineasYAlmacenistas();
+            obtenerLineas();
             $("#asociarLineas").modal("show");
           });
         } else {
           Swal.fire({
             icon: "warning",
-            title: "Error",
+            title: "Info",
             text: res.message || "Error al guardar la clave.",
           });
         }
@@ -268,31 +260,68 @@ $("#btnNuevoInventario").click(function () {
     },
   });
 });
-$("#btnGuardarAsignacion").click(function () {
-  $.ajax({
-    url: "../Servidor/PHP/inventario.php", // Ruta al PHP
-    method: "POST",
-    data: {
-      numFuncion: "",
-    },
-    success: function (response) {
-      try {
-        const res = JSON.parse(response);
-      } catch (error) {
-        console.error("Error al procesar la respuesta:", error);
-        Swal.fire({
-          icon: "warning",
-          title: "Error",
-          text: "Error al guardar la clave.",
-        });
-      }
-    },
-    error: function () {
-      Swal.fire({
-        icon: "warning",
-        title: "Error",
-        text: "Error al realizar la solicitud.",
-      });
-    },
+$("#btnGuardarAsignacion").on("click", function () {
+  const $btn = $(this);
+  const csrf = $("#csrf_token").val();
+
+  // Recolectar asignaciones desde el modal
+  const asignaciones = {}; // { lineaId: idUsuario }
+  $("#tablaAsociaciones .sel-almacenista").each(function () {
+    const lineaId = $(this).data("linea");
+    const userId = $(this).val();
+    if (lineaId && userId) {
+      asignaciones[String(lineaId)] = String(userId);
+    }
+    // Si está vacío, NO lo incluimos; en el servidor sobreescribiremos el map
+    // con solo las claves presentes (esto "desasigna" líneas no enviadas).
   });
+
+  // (Opcional) Validación: al menos 1 asignación
+  if (Object.keys(asignaciones).length === 0) {
+    return Swal.fire({
+      icon: "info",
+      title: "Sin asignaciones",
+      text: "Selecciona al menos un almacenista.",
+    });
+  }
+
+  // Estado guardando
+  $btn
+    .prop("disabled", true)
+    .html('<i class="bx bx-loader-alt bx-spin"></i> Guardando…');
+
+  $.ajax({
+    url: "../Servidor/PHP/inventario.php",
+    method: "POST",
+    dataType: "json",
+    headers: { "X-CSRF-Token": csrf },
+    data: {
+      numFuncion: "10",
+      payload: JSON.stringify({ asignaciones }),
+    },
+  })
+    .done(function (res) {
+      if (!res || res.success !== true) {
+        throw new Error(res?.message || "Error al guardar asignaciones");
+      }
+      Swal.fire({
+        icon: "success",
+        title: "Asignaciones guardadas",
+        timer: 1400,
+        showConfirmButton: false,
+      });
+      // Cierra el modal si quieres:
+      $("#asociarLineas").modal("hide");
+    })
+    .fail(function (err) {
+      console.error("Guardar asignaciones error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo guardar",
+        text: "Intenta de nuevo.",
+      });
+    })
+    .always(function () {
+      $btn.prop("disabled", false).html("Guardar");
+    });
 });

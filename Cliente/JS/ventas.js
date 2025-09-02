@@ -233,7 +233,7 @@ function buscarAnticipo(pedidoID) {
     ).fail(function (jqXHR, textStatus, errorThrown) {
         Swal.fire({
             title: "Aviso",
-            text: "Hubo un problema al intentar enviar el pedido",
+            text: "Hubo un problema al intentar buscar el anticipo",
             icon: "error",
             confirmButtonText: "Entendido",
         });

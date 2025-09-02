@@ -197,7 +197,6 @@ session_destroy(); */
                                     <i class='bx bx-plus-circle'></i> Crear Nuevo Inventario
                                 </button>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" class="btn btn-primary" id="btnGuardarAsignacion">Asignar</button>
                             </div>
 
                         </div>
@@ -209,24 +208,38 @@ session_destroy(); */
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title">Asignar Lineas</h5>
-                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close custom-close" data-dismiss="modal"
+                                    id="cerrarModalAsociasionHeader" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <table class="table table-striped" id="tablaAsignacion">
-                                    <thead>
-                                        <tr>
-                                            <th>Lineas</th>
-                                            <th>Almacenistas</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tablaAsociaciones">
-                                        <!-- Aquí se cargarán dinámicamente las asociaciones -->
-                                    </tbody>
-                                </table>
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Seleccionar Usuario</h6>
+                                            <select id="selectUsuario" class="form-select">
+                                                <option selected disabled>Seleccione un usuario</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Seleccionar Linea</h6>
+                                            <select id="selectEmpresa" class="form-select">
+                                                <option selected disabled>Seleccione una linea</option>
+                                            </select>
+                                        </div>
+                                        <div id="empresasAsociadas" class="mt-4">
+                                            <h6>Lineas Asignadas</h6>
+                                            <ul id="listaEmpresasAsociadas" class="list-group">
+                                                <!-- Las empresas asociadas se cargarán dinámicamente aquí -->
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" id="cerrarModalAsignacion"
-                                    data-dismiss="modal">Cerrar</button>
+                                <button type="button" class="btn btn-secondary" id="cerrarModalAsociasionFooter"
+                                    data-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary custom-blue" id="btnGuardarAsociacion">Guardar
+                                    Asociación</button>
                             </div>
                         </div>
                     </div>
