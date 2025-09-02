@@ -181,7 +181,7 @@ function validarExistencias(nuevaFila, cantidad) {
         let existenciasReales = existenciasAlmacen - apartados;
         if (existenciasReales < 0)
           existenciasReales = 0;
-
+  
         let otrosAlmacenes = existenciasTotales - existenciasAlmacen;
 
         if (existenciasReales < cantidad) {
