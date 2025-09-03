@@ -6,6 +6,7 @@ if (isset($_SESSION['usuario'])) {
         exit();
     }
     $nombreUsuario = $_SESSION['usuario']["nombre"];
+    $nombreApellido = "{$_SESSION['usuario']['nombre']} {$_SESSION['usuario']['apellido']}";
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     $correo = $_SESSION['usuario']["correo"];
     if ($_SESSION['usuario']['tipoUsuario'] == 'ADMISTRADOR') {
@@ -41,6 +42,7 @@ session_destroy(); */
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
+    <script src="JS/sideBar.js"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
 
@@ -450,6 +452,7 @@ session_destroy(); */
                             <span class="status">Iniciado</span>
                             <span class="sep">|</span>
                             <a href="inventarioLineas.php" class="current">Por líneas</a>
+                            <span><?= $_SESSION['usuario']['idReal']; ?></span>
                         </div>
 
                         <div class="d-flex gap-2">
@@ -461,6 +464,7 @@ session_destroy(); */
                     <!-- Filtros superiores -->
                     <div class="inv-toolbar mt-3">
                         <div class="row g-3 align-items-end">
+
                             <div class="col-12 col-sm-6 col-md-3">
                                 <label for="lineaSelect" class="form-label m-0">Línea:</label>
                                 <select name="lineaSelect" id="lineaSelect" class="form-select">
@@ -470,21 +474,35 @@ session_destroy(); */
 
                             <div class="col-6 col-md-3 col-lg-2">
                                 <label for="noInventario" class="form-label m-0">No. Inventario:</label>
-                                <!-- <input type="text" id="noInventario" class="form-control inv-num" value="0001"> -->
-                                <input type="text" id="noInventario" class="form-control inv-num" value="" disabled>
+                                <input type="text" id="noInventario" class="form-control inv-num" disabled>
                             </div>
 
                             <div class="col-6 col-md-3 col-lg-2">
                                 <label for="fechaInicio" class="form-label m-0">Fecha inicio:</label>
-                                <input type="date" id="fechaInicio" class="form-control">
+                                <input type="date" id="fechaInicio" class="form-control" disabled>
+                            </div>
+
+                            <div class="col-6 col-md-3 col-lg-2" id="fechaFinContainer">
+                                <label for="fechaFin" class="form-label m-0">Fecha fin:</label>
+                                <input type="date" id="fechaFin" class="form-control" disabled>
                             </div>
 
                             <div class="col-6 col-md-3 col-lg-2">
-                                <label for="fechaFin" class="form-label m-0">Fecha fin:</label>
-                                <input type="date" id="fechaFin" class="form-control">
+                                <label class="form-label m-0">Conteo:</label>
+                                <input id="conteoInput" class="form-control" disabled>
+                            </div>
+
+                            <div class="col-6 col-md-3 col-lg-2">
+                                <label class="form-label m-0">Sub-Conteo:</label>
+                                <input id="subconteoInput" class="form-control" disabled>
+                            </div>
+
+                            <div class="col-12 col-md-3 mt-2">
+                                <span class="text-muted">Autoguardado desactivado</span>
                             </div>
                         </div>
                     </div>
+
 
                     <!-- Título de listado -->
                     <h5 class="text-center fw-semibold mt-4">Artículos:</h5>
@@ -522,7 +540,7 @@ session_destroy(); */
             </div>
         </div>
     </div>
-
+    <img id="logoInventario" src="SRC/imagen-small.png" style="display:none;">
 
     <!-- CONTENT -->
 
@@ -532,6 +550,14 @@ session_destroy(); */
     <script src="JS/app.js"></script>
     <script src="JS/script.js"></script>
     <script src="JS/inventarioLineas.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        const nombreUsuario = "<?php echo $_SESSION['usuario']['nombre'] . ' ' . $_SESSION['usuario']['apellido']; ?>";
+        const usuarioId = "<?php echo $_SESSION['usuario']['id']; ?>";
+    </script>
+
     <script>
         (function() {
             const $linea = $('#lineaSelect');

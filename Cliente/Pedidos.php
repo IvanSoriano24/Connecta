@@ -21,12 +21,13 @@ if (isset($_SESSION['usuario'])) {
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+    <title>Pedidos</title>
     <!-- bootstrap css -->
 
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
     <link rel="stylesheet" href="CSS/tablas.css">
-    <link href="css/style1.css" rel="stylesheet" />
+    <link href="CSS/style1.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Lato" />
     <link rel="stylesheet" href="CSS/selec.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -49,6 +50,7 @@ if (isset($_SESSION['usuario'])) {
 
     <!-- Main CSS File -->
     <link href="assets/css/main.css" rel="stylesheet">
+
 </head>
 
 <style>

@@ -96,6 +96,7 @@ function login($funcion)
                     // Si las credenciales coinciden y el usuario está activo, guardar datos en sesión
                     $_SESSION['usuario'] = [
                         'id' => $document['name'], // ID del documento
+                        'idReal' => basename($document['name']),
                         'apellido' => $fields['apellido']['stringValue'],
                         'correo' => $fields['correo']['stringValue'],
                         'descripcionUsuario' => $fields['descripcionUsuario']['stringValue'],
