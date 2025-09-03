@@ -130,8 +130,10 @@ function agregarEventosBotones() {
         boton.addEventListener("click", async function () {
             const pedidoID = this.dataset.id;
             try {
+                //("#whatsappModal").modal("show");
+                $("#whatsappModal").modal("show");
                 // Aquí llamas tu flujo de envío por WhatsApp
-                enviarConfirmacionWhats(pedidoID);
+                //enviarConfirmacionWhats(pedidoID);
             } catch (error) {
                 console.error("Error al enviar por WhatsApp:", error);
                 Swal.fire({
@@ -151,10 +153,10 @@ function agregarEventosBotones() {
             const pedidoID = this.dataset.id;
             try {
                 // Aquí llamas tu flujo de envío por Correo
-                //enviarConfirmacionMail(pedidoID);
+                enviarConfirmacionMail(pedidoID);
 
                 // Funcion antigua que hay que dividir
-                enviarConfirmacion(pedidoID);
+                //enviarConfirmacion(pedidoID);
             } catch (error) {
                 console.error("Error al enviar por Correo:", error);
                 Swal.fire({
@@ -254,6 +256,104 @@ function enviarConfirmacion(pedidoID) {
     $.post(
         "../Servidor/PHP/ventas.php",
         {numFuncion: "28", pedidoID: pedidoID},
+        function (response) {
+            try {
+                if (typeof response === "string") {
+                    response = JSON.parse(response);
+                }
+                if (response.success) {
+                    Swal.fire({
+                        title: "Enviado",
+                        text: "Se ha Enviado la Confirmacion al Pedido",
+                        icon: "success",
+                        confirmButtonText: "Entendido",
+                    }).then(() => {
+                        datosPedidos(); // Actualizar la tabla
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Aviso",
+                        text: response.message || "No se pudo cancelar el pedido",
+                        icon: "warning",
+                        confirmButtonText: "Entendido",
+                    });
+                }
+            } catch (error) {
+                console.error("Error al procesar la respuesta JSON:", error);
+            }
+        }
+    ).fail(function (jqXHR, textStatus, errorThrown) {
+        Swal.fire({
+            title: "Aviso",
+            text: "Hubo un problema al intentar enviar el pedido",
+            icon: "error",
+            confirmButtonText: "Entendido",
+        });
+        console.log("Detalles del error:", jqXHR.responseText);
+    });
+}
+function enviarConfirmacionMail(pedidoID) {
+     Swal.fire({
+        title: "Enviando confirmación...",
+        text: "Por favor, espera mientras se envia la confirmación del cliente.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+    });
+    $.post(
+        "../Servidor/PHP/enviosConfirmacion.php",
+        {numFuncion: "1", pedidoID: pedidoID},
+        function (response) {
+            try {
+                if (typeof response === "string") {
+                    response = JSON.parse(response);
+                }
+                if (response.success) {
+                    Swal.fire({
+                        title: "Enviado",
+                        text: "Se ha Enviado la Confirmacion al Pedido por Correo Electronico",
+                        icon: "success",
+                        confirmButtonText: "Entendido",
+                    }).then(() => {
+                        datosPedidos(); // Actualizar la tabla
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Aviso",
+                        text: response.message || "No se pudo cancelar el pedido",
+                        icon: "warning",
+                        confirmButtonText: "Entendido",
+                    });
+                }
+            } catch (error) {
+                console.error("Error al procesar la respuesta JSON:", error);
+            }
+        }
+    ).fail(function (jqXHR, textStatus, errorThrown) {
+        Swal.fire({
+            title: "Aviso",
+            text: "Hubo un problema al intentar enviar el pedido",
+            icon: "error",
+            confirmButtonText: "Entendido",
+        });
+        console.log("Detalles del error:", jqXHR.responseText);
+    });
+}
+function enviarConfirmacionWhats(pedidoID) {
+     Swal.fire({
+        title: "Enviando confirmación...",
+        text: "Por favor, espera mientras se envia la confirmación del cliente.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+    });
+    $.post(
+        "../Servidor/PHP/enviosConfirmacion.php",
+        {numFuncion: "2", pedidoID: pedidoID},
         function (response) {
             try {
                 if (typeof response === "string") {

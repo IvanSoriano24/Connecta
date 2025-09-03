@@ -884,6 +884,9 @@ function getInventarioDocByFolioAsignacion($noEmpresa, $noInventario, $projectId
 }
 function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $projectId, $apiKey)
 {
+    // Helpers mínimos (usa los tuyos si ya existen)
+    $root = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents";
+
     // 1) Resolver inventario activo por empresa + folio
     $inv = getInventarioDocByFolioAsignacion((int)$noEmpresa, (int)$noInventario, $projectId, $apiKey);
     if (!$inv || empty($inv['docId'])) {
@@ -891,36 +894,83 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
     }
     $invDocId = $inv['docId'];
 
-    // 2) Construir mapValue para "asignaciones"
-    //    Estructura: asignaciones: { "001": {stringValue: "usuarioId"}, "002": {stringValue: "usuarioId2"} }
+    // 2) Construir mapValue para "asignaciones" con arrays
+    //    asignaciones: { "001": ["uidA","uidB"], "002": ["uidC"] }
     $mapFields = [];
-    foreach ($asignaciones as $lineaId => $idUsuario) {
-        if ($lineaId === '' || $idUsuario === '' || $idUsuario === null) continue;
-        $mapFields[(string)$lineaId] = ['stringValue' => (string)$idUsuario];
+    foreach ($asignaciones as $lineaId => $uids) {
+        if ($lineaId === '' || !is_array($uids)) continue;
+
+        // limitar a 2
+        $uids = array_values(array_filter($uids, fn($u) => is_string($u) && $u !== ''));
+        $uids = array_slice($uids, 0, 2);
+
+        // arrayValue de stringValue
+        $arrVals = array_map(fn($u) => ['stringValue' => $u], $uids);
+        $mapFields[(string)$lineaId] = [
+            'arrayValue' => ['values' => $arrVals]
+        ];
     }
 
-    // Si quieres sobreescribir COMPLETAMENTE el map con lo enviado (y eliminar no enviados):
-    // -> Parchamos con el map que traemos (aunque sea vacío).
-    // Si prefieres *fusionar* con lo existente, primero trae el doc, mezcla, y luego parchea.
-    $root  = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents";
-    $url   = "$root/INVENTARIO/$invDocId?key=$apiKey&updateMask.fieldPaths=asignaciones";
-
-    $body = [
+    // 3) PATCH campo "asignaciones" (sobrescribe con lo enviado)
+    $urlAsign = "$root/INVENTARIO/$invDocId?key=$apiKey&updateMask.fieldPaths=asignaciones";
+    $bodyAsign = [
         'fields' => [
             'asignaciones' => [
-                'mapValue' => [
-                    'fields' => $mapFields  // puede ser []
-                ]
+                'mapValue' => [ 'fields' => $mapFields ]
             ]
         ]
     ];
+    $resp1 = http_patch_jsonAsignacion($urlAsign, $bodyAsign);
+    if (!$resp1) {
+        return ['success' => false, 'message' => 'No se pudo guardar asignaciones en el documento de inventario'];
+    }
 
-    $resp = http_patch_jsonAsignacion($url, $body);
-    if (!$resp) {
-        return ['success' => false, 'message' => 'No se pudo guardar asignaciones'];
+    // 4) Espejo por conteo: lineas (1er asignado) y lineas02 (2º asignado)
+    foreach ($asignaciones as $lineaId => $uids) {
+        $uids = array_values(array_filter($uids, fn($u) => is_string($u) && $u !== ''));
+        $uids = array_slice($uids, 0, 2);
+
+        $ts = gmdate('c');
+
+        // 4.1 Primer asignado -> lineas/{lineaId}
+        if (isset($uids[0])) {
+            $urlL1 = "$root/INVENTARIO/$invDocId/lineas/$lineaId?key=$apiKey&updateMask.fieldPaths=idAsignado&updateMask.fieldPaths=conteo&updateMask.fieldPaths=updatedAt";
+            $bodyL1 = [
+                'fields' => [
+                    'idAsignado' => ['stringValue'  => $uids[0]],
+                    'conteo'        => ['integerValue' => 1],
+                    'updatedAt'     => ['timestampValue' => $ts]
+                ]
+            ];
+            http_patch_jsonAsignacion($urlL1, $bodyL1); // ignorar error puntual
+        }
+
+        // 4.2 Segundo asignado -> lineas02/{lineaId}
+        if (isset($uids[1])) {
+            $urlL2 = "$root/INVENTARIO/$invDocId/lineas02/$lineaId?key=$apiKey&updateMask.fieldPaths=idAsignado&updateMask.fieldPaths=conteo&updateMask.fieldPaths=updatedAt";
+            $bodyL2 = [
+                'fields' => [
+                    'idAsignado' => ['stringValue'  => $uids[1]],
+                    'conteo'        => ['integerValue' => 2],
+                    'updatedAt'     => ['timestampValue' => $ts]
+                ]
+            ];
+            http_patch_jsonAsignacion($urlL2, $bodyL2);
+        } else {
+            // Si no hay segundo, elimina el doc en lineas02 para esta línea (opción recomendada)
+            $delUrl = "$root/INVENTARIO/$invDocId/lineas02/$lineaId?key=$apiKey";
+            http_delete_simple($delUrl);
+            // Alternativa: dejar doc vacío con PATCH si prefieres no borrar
+        }
     }
 
     return ['success' => true];
+}
+function http_delete_simple($url) {
+    $opts = ['http' => ['method' => 'DELETE', 'timeout' => 20]];
+    $ctx  = stream_context_create($opts);
+    $resp = @file_get_contents($url, false, $ctx);
+    return $resp !== false;
 }
 //////////////////////////GUARDAR ASIGNACION/////////////////////////////////////////
 
@@ -972,33 +1022,32 @@ switch ($funcion) {
         guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebaseApiKey);
         break;
     case 6:
-    $noEmpresa       = $_SESSION['empresa']['noEmpresa'];
-    $firebaseProject = $firebaseProjectId;
-    $apiKey          = $firebaseApiKey;
+        $noEmpresa       = $_SESSION['empresa']['noEmpresa'];
+        $firebaseProject = $firebaseProjectId;
+        $apiKey          = $firebaseApiKey;
 
-    // Guardamos el array de respuesta en una variable
-    $inventario = buscarInventario($noEmpresa, $firebaseProject, $apiKey);
+        // Guardamos el array de respuesta en una variable
+        $inventario = buscarInventario($noEmpresa, $firebaseProject, $apiKey);
 
-    // Accedemos a las propiedades del array
-    if ($inventario['success'] && $inventario['foundActive']) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Hay un inventario activo',
-            'docId'   => $inventario['docId']
-        ]);
-    } else {
-        // No había activo, iniciamos uno nuevo
-        $noInventario = noInventario($noEmpresa, $firebaseProject, $apiKey);
-        iniciarInventario($noEmpresa, $firebaseProject, $apiKey, $noInventario);
+        // Accedemos a las propiedades del array
+        if ($inventario['success'] && $inventario['foundActive']) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Hay un inventario activo',
+                'docId'   => $inventario['docId']
+            ]);
+        } else {
+            // No había activo, iniciamos uno nuevo
+            $noInventario = noInventario($noEmpresa, $firebaseProject, $apiKey);
+            iniciarInventario($noEmpresa, $firebaseProject, $apiKey, $noInventario);
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'Inventario Iniciado',
-            'newNoInventario' => $noInventario
-        ]);
-    }
-    break;
-
+            echo json_encode([
+                'success' => true,
+                'message' => 'Inventario Iniciado',
+                'newNoInventario' => $noInventario
+            ]);
+        }
+        break;
     case 7:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey);
@@ -1014,7 +1063,7 @@ switch ($funcion) {
         $items = obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey);
         echo json_encode(['success' => true, 'data' => $items]);
         break;
-    case '10': // Guardar asignaciones de líneas -> campo "asignaciones" en INVENTARIO
+    case 10: // Guardar asignaciones de líneas -> campo "asignaciones" en INVENTARIO
         $noEmpresa    = (int)$_SESSION['empresa']['noEmpresa'];
         $payload = json_decode($_POST['payload'] ?? 'null', true);
         $noInventario = 1;
@@ -1022,11 +1071,9 @@ switch ($funcion) {
             echo json_encode(['success' => false, 'message' => 'Parámetros inválidos']);
             exit;
         }
-
         $resp = guardarAsignaciones($noEmpresa, $noInventario, $payload['asignaciones'], $firebaseProjectId, $firebaseApiKey);
         echo json_encode($resp);
         break;
-
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
         //echo json_encode(['success' => false, 'message' => 'No hay funcion.']);

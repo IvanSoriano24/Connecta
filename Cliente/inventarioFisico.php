@@ -213,6 +213,7 @@ session_destroy(); */
                                     id="cerrarModalAsociasionHeader" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
+
                                 <div class="container">
                                     <div class="row">
                                         <div class="col-md-6">
@@ -223,9 +224,12 @@ session_destroy(); */
                                         </div>
                                         <div class="col-md-6">
                                             <h6>Seleccionar Linea</h6>
-                                            <select id="selectEmpresa" class="form-select">
+                                            <select id="lineaSelect" class="form-select">
                                                 <option selected disabled>Seleccione una linea</option>
                                             </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="button" value="Asignar" class="form-button" id="btnAsignar">
                                         </div>
                                         <div id="empresasAsociadas" class="mt-4">
                                             <h6>Lineas Asignadas</h6>
@@ -239,8 +243,8 @@ session_destroy(); */
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" id="cerrarModalAsociasionFooter"
                                     data-dismiss="modal">Cancelar</button>
-                                <button type="button" class="btn btn-primary custom-blue" id="btnGuardarAsociacion">Guardar
-                                    Asociación</button>
+                                <button type="button" class="btn btn-primary custom-blue" id="btnGuardarAsignacion">Guardar
+                                    Asignacion</button>
                             </div>
                         </div>
                     </div>

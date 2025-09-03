@@ -42,7 +42,7 @@ session_destroy(); */
     <!-- Bootsstrap  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
@@ -123,7 +123,6 @@ session_destroy(); */
             color: #fff;
             font-weight: 600;
         } */
-
     </style>
     <style>
         /* CSS */
@@ -252,16 +251,19 @@ session_destroy(); */
 
         .filtros-row {
             display: flex;
-            justify-content: center; /* centra horizontal */
+            justify-content: center;
+            /* centra horizontal */
             align-items: flex-end;
-            gap: 2rem;               /* espacio entre Periodo, Vendedor y Buscar */
+            gap: 2rem;
+            /* espacio entre Periodo, Vendedor y Buscar */
             flex-wrap: wrap;
         }
 
         .filtro-item {
             display: flex;
             flex-direction: column;
-            min-width: 200px; /* ancho fijo similar para todos */
+            min-width: 200px;
+            /* ancho fijo similar para todos */
             text-align: left;
         }
 
@@ -276,7 +278,8 @@ session_destroy(); */
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 0.9rem;
-            height: 38px; /* mismo alto */
+            height: 38px;
+            /* mismo alto */
         }
 
         /* buscador con ícono dentro */
@@ -294,10 +297,9 @@ session_destroy(); */
         }
 
         .search-wrapper input {
-            padding-left: 32px; /* espacio para el ícono */
+            padding-left: 32px;
+            /* espacio para el ícono */
         }
-
-
     </style>
 </head>
 
@@ -373,11 +375,11 @@ session_destroy(); */
                                         <div class="search-wrapper">
                                             <i class='bx bx-search search-icon'></i>
                                             <input
-                                                    id="searchTerm"
-                                                    class="form-control"
-                                                    type="text"
-                                                    placeholder="Buscar pedido..."
-                                                    onkeyup="debouncedSearch()" />
+                                                id="searchTerm"
+                                                class="form-control"
+                                                type="text"
+                                                placeholder="Buscar pedido..."
+                                                onkeyup="debouncedSearch()" />
                                         </div>
                                     </div>
                                 </div>
@@ -430,6 +432,16 @@ session_destroy(); */
                                     </span>
                                 </button>-->
                         </div>
+                    </div>
+                </div>
+                <!-- Modal para WhatsApp -->
+                <div id="whatsappModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3>Enviar confirmación por WhatsApp</h3>
+                        <p>Ingrese el número de WhatsApp para enviar la confirmación:</p>
+                        <input type="tel" id="whatsappNumber" placeholder="+521234567890">
+                        <button onclick="confirmarWhatsApp()">Enviar</button>
                     </div>
                 </div>
             </main>
