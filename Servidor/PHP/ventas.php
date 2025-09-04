@@ -379,7 +379,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     sqlsrv_free_stmt($stmt);
     return $result;
 }
-function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto){
+function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idFirebasePedido, $rutaPDFW, $filename, $direccion1Contacto)
+{
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -743,7 +744,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
         } else {
             $sql .= "clib.CAMPLIB3 = 'C' ";
         }
-        
+
 
         // Filtro por fecha
         if ($filtroFecha == 'Hoy') {
@@ -798,7 +799,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
 
             if (!in_array($row['Clave'], $clavesRegistradas)) {
                 $clavesRegistradas[] = $row['Clave'];
-            $clientes[] = $row;
+                $clientes[] = $row;
             }
         }
 
@@ -2626,6 +2627,38 @@ function actualizarInventario($conexionData, $partidasData, $conn)
     }
     sqlsrv_free_stmt($stmt);
 }
+function actualizarApartados($conexionData, $partidasData, $conn)
+{
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    foreach ($partidasData as $partida) {
+        $CVE_ART = $partida['producto'];
+        //$cantidad = "uno";
+        // SQL para actualizar los campos EXIST y PEND_SURT
+        $sql = "UPDATE $nombreTabla
+            SET    
+                [APART] = 0  
+            WHERE [CVE_ART] = '$CVE_ART' AND [APART] < 0";
+        // Preparar la consulta
+        // Ejecutar la consulta SQL
+        $stmt = sqlsrv_query($conn, $sql);
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al actualizar el inventario', 'errors' => sqlsrv_errors()]));
+        }
+        // Verificar cuántas filas se han afectado
+        $rowsAffected = sqlsrv_rows_affected($stmt);
+        // Retornar el resultado
+        if ($rowsAffected > 0) {
+            // echo json_encode(['success' => true, 'message' => 'Inventario actualizado correctamente']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No se encontró el producto para actualizar']);
+        }
+    }
+    sqlsrv_free_stmt($stmt);
+}
 function actualizarInventarioE($conexionData, $partidasData)
 {
     $serverName = $conexionData['host'];
@@ -2841,7 +2874,8 @@ function enviarRechazoWhatsApp($numero, $pedidoId, $nombreCliente)
 
     return $result;
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios){
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios)
+{
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -3225,18 +3259,20 @@ function obtenerProductos($conexionData, $chechk)
     }
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $chechk = ($chechk === 'true');
     //var_dump($chechk);
     if ($chechk) {
         //var_dump("True");
         // Consulta SQL
-        $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [CVE_PRODSERV], [COSTO_PROM], [UUID]
-        FROM $nombreTabla";
+        $sql = "SELECT TOP (1000) i.[CVE_ART], i.[DESCR], i.[APART], m.[EXIST], i.[LIN_PROD], i.[UNI_MED], i.[CVE_ESQIMPU], i.[CVE_UNIDAD], i.[CVE_PRODSERV], i.[COSTO_PROM], i.[UUID]
+        FROM $nombreTabla i INNER JOIN $nombreTabla2 m ON m.[CVE_ART] = i.[CVE_ART] WHERE m.[CVE_ALM] = 1";
     } else {
         //var_dump("False");
         // Consulta SQL
-        $sql = "SELECT TOP (1000) [CVE_ART], [DESCR], [EXIST], [LIN_PROD], [UNI_MED], [CVE_ESQIMPU], [CVE_UNIDAD], [CVE_PRODSERV], [COSTO_PROM], [UUID]
-        FROM $nombreTabla WHERE [EXIST] > 0";
+        $sql = "SELECT TOP (1000) i.[CVE_ART], i.[DESCR], i.[APART], m.[EXIST], i.[LIN_PROD], i.[UNI_MED], i.[CVE_ESQIMPU], i.[CVE_UNIDAD], i.[CVE_PRODSERV], i.[COSTO_PROM], i.[UUID]
+        FROM $nombreTabla i INNER JOIN $nombreTabla2 m ON m.[CVE_ART] = i.[CVE_ART]
+        WHERE m.[EXIST] > 0 AND m.[CVE_ALM] = 1";
     }
 
     $stmt = sqlsrv_query($conn, $sql);
@@ -3458,10 +3494,16 @@ function validarExistencias($conexionData, $partidasData, $claveSae)
         $cantidad = $partida['cantidad'];
 
         // Consultar existencias reales considerando apartados
-        $sqlCheck = "SELECT 
+        /*$sqlCheck = "SELECT 
                         COALESCE(M.[EXIST], 0) AS EXIST, 
                         COALESCE(I.[APART], 0) AS APART, 
                         (COALESCE(M.[EXIST], 0) - COALESCE(I.[APART], 0)) AS DISPONIBLE 
+                     FROM $nombreTabla I
+                     INNER JOIN $nombreTabla2 M ON M.CVE_ART = I.CVE_ART
+                     WHERE I.[CVE_ART] = ? AND M.CVE_ALM = 1";*/
+        $sqlCheck = "SELECT 
+                        COALESCE(M.[EXIST], 0) AS EXIST, 
+                        COALESCE(I.[APART], 0) AS APART 
                      FROM $nombreTabla I
                      INNER JOIN $nombreTabla2 M ON M.CVE_ART = I.CVE_ART
                      WHERE I.[CVE_ART] = ? AND M.CVE_ALM = 1";
@@ -3476,7 +3518,17 @@ function validarExistencias($conexionData, $partidasData, $claveSae)
         if ($row) {
             $existencias = (float)$row['EXIST'];
             $apartados = (float)$row['APART'];
-            $disponible = (float)$row['DISPONIBLE'];
+            if($apartados < 0){
+                $apartados = 0;
+            }
+            if($existencias <0){
+                $existencias = 0;
+            }
+            $disponible = $existencias - $apartados;
+            if($disponible <0){
+                $disponible = 0;
+            }
+            //$disponible = (float)$row['DISPONIBLE'];
             /*var_dump($existencias);
             var_dump($apartados);
             var_dump($disponible);*/
@@ -3793,7 +3845,7 @@ function eliminarPartida($conexionData, $clavePedido, $numPar)
         sqlsrv_close($conn);
         die(json_encode(['success' => false, 'message' => 'Error al actualizar apartados en inventario', 'errors' => sqlsrv_errors()]));
     }
-    
+
     sqlsrv_free_stmt($stmtActualizarInve); // Liberar la consulta anterior
 
     // 🚨 3️⃣ Eliminar la partida
@@ -4061,12 +4113,14 @@ function extraerProductos($conexionData, $claveSae)
         exit;
     }
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta directa a la tabla fija INVE02
     $sql = "
         SELECT 
-            f.[CVE_ART], f.[DESCR], f.[EXIST], f.[LIN_PROD], f.[UNI_MED], f.[APART]
+            f.[CVE_ART], f.[DESCR], m.[EXIST], f.[LIN_PROD], f.[UNI_MED], f.[APART]
         FROM {$nombreTabla} AS f        -- <-- alias aquí
-        WHERE f.[EXIST] > 0
+        INNER JOIN $nombreTabla2 AS m ON m.[CVE_ART] = f.[CVE_ART]
+        WHERE f.[EXIST] > 0 AND m.[CVE_ALM] = 1
         ORDER BY f.CVE_ART ASC
         OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
     ";
@@ -4079,14 +4133,14 @@ function extraerProductos($conexionData, $claveSae)
         exit;
     }
     // Obtener todas las imágenes de Firebase en un solo lote
-    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app";
-    $imagenesPorArticulo = listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket);
+    /*$firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app";
+    $imagenesPorArticulo = listarTodasLasImagenesDesdeFirebase($firebaseStorageBucket);*/
     $productos = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $cveArt = $row['CVE_ART'];
 
         // Asignar las imágenes correspondientes al producto
-        $row['IMAGEN_ML'] = $imagenesPorArticulo[$cveArt] ?? []; // Si no hay imágenes, asignar un array vacío
+        //$row['IMAGEN_ML'] = $imagenesPorArticulo[$cveArt] ?? []; // Si no hay imágenes, asignar un array vacío
 
         $productos[] = $row;
     }
@@ -9291,6 +9345,7 @@ switch ($funcion) {
                             //actualizarFolio($conexionData, $claveSae, $conn); //ROLLBACK
                             //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $FOLIO); //ROLLBACK
+                            actualizarApartados($conexionData, $partidasData, $conn);
                             actualizarInventario($conexionData, $partidasData, $conn); //ROLLBACK
                             if ($validarSaldo == 0 && $credito == 0) {
                                 $idEnvios = guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData);
@@ -9382,6 +9437,7 @@ switch ($funcion) {
                             $idEnvios = guardarDatosPedido($envioData, $folio, $noEmpresa, $formularioData);
                             //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
                             guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
+                            actualizarApartados($conexionData, $partidasData, $conn);
                             actualizarInventario($conexionData, $partidasData, $conn);
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio, $conn);
                             guardarPago($idEnvios, $conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn);

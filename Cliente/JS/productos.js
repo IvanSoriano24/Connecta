@@ -64,7 +64,16 @@ function mostrarProductosEnTabla(productos, total, limpiarTabla) {
 
   // Rellenar filas
   productos.forEach(prod => {
+    if(prod.EXIST < 0){
+      prod.EXIST = 0;
+    }
+    if(prod.APART < 0){
+      prod.APART = 0;
+    }
     const existencia = prod.EXIST - prod.APART;
+    if(existencia < 0){
+      existencia = 0;
+    }
     const fila = `
       <tr>
         <td>${prod.CVE_ART}</td>

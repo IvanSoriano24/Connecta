@@ -501,6 +501,7 @@ function liberarExistencias($conexionData, $folio, $claveSae, $logFile)
         var_dump(sqlsrv_errors());
         exit;
     }
+    
     $partidas = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $partidas[] = $row;

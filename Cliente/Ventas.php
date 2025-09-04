@@ -434,14 +434,24 @@ session_destroy(); */
                         </div>
                     </div>
                 </div>
-                <!-- Modal para WhatsApp -->
-                <div id="whatsappModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h3>Enviar confirmación por WhatsApp</h3>
-                        <p>Ingrese el número de WhatsApp para enviar la confirmación:</p>
-                        <input type="tel" id="whatsappNumber" placeholder="+521234567890">
-                        <button onclick="confirmarWhatsApp()">Enviar</button>
+                <!-- Modal para WhatsApp - Versión Bootstrap -->
+                <div class="modal" id="whatsappModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Enviar confirmación por WhatsApp</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Ingrese el número de WhatsApp para enviar la confirmación:</p>
+                                <input type="tel" id="whatsappNumber" class="form-control" placeholder="+521234567890">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <!-- Cambiado a confirmarWhatsApp() -->
+                                <button type="button" class="btn btn-primary">Enviar</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>

@@ -74,3 +74,8 @@
 [2025-08-26 09:19:46] INFO: El pedido 211 cuenta con las existencias necesarias → null
 [2025-08-26 09:19:46] INFO: El cliente          3 maneja credico → null
 [2025-08-26 09:19:47] Succes: Comanda Creada→ null
+[2025-09-04 15:08:56] INFO: El cliente        879 realizo la accion → null
+[2025-09-04 15:08:59] Info: Pedido 19141 19141 verificadas existencias correctamente → []
+[2025-09-04 15:08:59] INFO: El pedido 19141 cuenta con las existencias necesarias → null
+[2025-09-04 15:08:59] INFO: El cliente        879 maneja credico → null
+[2025-09-04 15:09:00] Succes: Comanda Creada→ null

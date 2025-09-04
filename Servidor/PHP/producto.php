@@ -9,7 +9,8 @@ require 'firebase.php';
 
 session_start();
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey){
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -44,7 +45,8 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
 
-function obtenerDetalleProducto($conexionData, $cveArt) {
+function obtenerDetalleProducto($conexionData, $cveArt)
+{
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -103,13 +105,14 @@ function obtenerDetalleProducto($conexionData, $cveArt) {
     ], JSON_PRETTY_PRINT);
 }
 
-function obtenerProductosFiltrados($conexionData, $filtroBusqueda, $claveSae) {
+function obtenerProductosFiltrados($conexionData, $filtroBusqueda, $claveSae)
+{
     // Parámetros de paginación
     $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
     $porPagina = isset($_GET['porPagina']) ? (int)$_GET['porPagina'] : 10;
     $offset = ($pagina - 1) * $porPagina;
 
-    
+
     $serverName = $conexionData['host'];
     $connectionInfo = [
         "Database" => $conexionData['nombreBase'],
@@ -126,29 +129,80 @@ function obtenerProductosFiltrados($conexionData, $filtroBusqueda, $claveSae) {
     }
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta directa a la tabla fija INVE02
 
-    if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
-        $sql = "SELECT f.[CVE_ART], f.[DESCR], f.[EXIST], f.[LIN_PROD], f.[UNI_MED], f.[APART] 
+    /*if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
+        $sql = "SELECT f.[CVE_ART], f.[DESCR], m.[EXIST], f.[LIN_PROD], f.[UNI_MED], f.[APART] 
             FROM {$nombreTabla} AS f
+            INNER JOIN $nombreTabla2 AS m ON m.[CVE_ART] = f.[CVE_ART]
             WHERE 
-            f.[EXIST] > 0 AND
+            f.[EXIST] > 0 AND m.[CVE_ALM] = 1 AND
             LOWER(LTRIM(RTRIM(CVE_ART))) LIKE ? OR
             LOWER(LTRIM(RTRIM(DESCR))) LIKE ? OR
             LOWER(LTRIM(RTRIM(EXIST))) LIKE ? AND [STATUS] = 'A'
             ORDER BY f.CVE_ART ASC 
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;";
     } else {
-        $sql = "SELECT f.[CVE_ART], f.[DESCR], f.[EXIST], f.[LIN_PROD], f.[UNI_MED], f.[APART] 
+        $sql = "SELECT f.[CVE_ART], f.[DESCR], m.[EXIST], f.[LIN_PROD], f.[UNI_MED], f.[APART] 
             FROM {$nombreTabla} AS f
+            INNER JOIN $nombreTabla2 AS m ON m.[CVE_ART] = f.[CVE_ART]
             WHERE 
-            f.[EXIST] > 0 AND
+            f.[EXIST] > 0 AND m.[CVE_ALM] = 1 AND
             CVE_ART LIKE ? OR
             DESCR LIKE ? OR
             EXIST LIKE ? AND [STATUS] = 'A'
             ORDER BY f.CVE_ART ASC 
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;";
+    }*/
+    if (preg_match('%[A-Za-z]%', $filtroBusqueda) > 0) {
+
+        $sql =  "SELECT
+        f.[CVE_ART],
+        f.[DESCR],
+        m.[EXIST],
+        f.[LIN_PROD],
+        f.[UNI_MED],
+        f.[APART]
+    FROM {$nombreTabla} AS f
+    INNER JOIN {$nombreTabla2} AS m
+        ON m.[CVE_ART] = f.[CVE_ART]
+    WHERE 
+        f.[EXIST]     > 0
+        AND m.[CVE_ALM] = 1
+        AND (
+            LOWER(LTRIM(RTRIM(f.[CVE_ART]))) LIKE ?
+            OR LOWER(LTRIM(RTRIM(f.[DESCR])))   LIKE ?
+            OR LOWER(LTRIM(RTRIM(CONVERT(VARCHAR(50), m.[EXIST])))) LIKE ?
+        )
+        AND f.[STATUS] = 'A'
+    ORDER BY f.[CVE_ART] ASC  
+    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    } else {
+
+        $sql = "SELECT
+        f.[CVE_ART],
+        f.[DESCR],
+        m.[EXIST],
+        f.[LIN_PROD],
+        f.[UNI_MED],
+        f.[APART]
+    FROM {$nombreTabla} AS f
+    INNER JOIN {$nombreTabla2} AS m
+        ON m.[CVE_ART] = f.[CVE_ART]
+    WHERE 
+        f.[EXIST]     > 0
+        AND m.[CVE_ALM] = 1
+        AND (
+            f.[CVE_ART] LIKE ?
+            OR f.[DESCR]   LIKE ?
+            OR CONVERT(VARCHAR(50), m.[EXIST]) LIKE ?
+        )
+        AND f.[STATUS] = 'A'
+    ORDER BY f.[CVE_ART] ASC  
+    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     }
+
 
     $likeFilter = '%' . $filtroBusqueda . '%';
     $params = [$likeFilter, $likeFilter, $likeFilter, $offset, $porPagina];
@@ -238,6 +292,6 @@ switch ($funcion) {
         obtenerProductosFiltrados($conexionData, $filtroBusqueda, $claveSae);
         break;
     default:
-    echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);
-    break;
+        echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);
+        break;
 }

@@ -149,6 +149,7 @@ function agregarFilaPartidas() {
 }
 function validarExistencias(nuevaFila, cantidad) {
   const cve_art = nuevaFila.querySelector(".producto");
+  const subtotal = nuevaFila.querySelector(".subtotalPartida");
   $.ajax({
     url: "../Servidor/PHP/ventas.php",
     method: "GET",
@@ -177,11 +178,18 @@ function validarExistencias(nuevaFila, cantidad) {
         let existenciasAlmacen = datos.ExistenciasAlmacen;
         let existenciasTotales = datos.ExistenciasTotales;
         let apartados = datos.APART;
-
+        if (apartados < 0){
+          apartados = 0;
+        }
+        if (existenciasAlmacen < 0){
+          existenciasAlmacen = 0;
+        }
+        console.log("apartados: ", apartados);
         let existenciasReales = existenciasAlmacen - apartados;
-        if (existenciasReales < 0)
+        console.log("existenciasReales: ", existenciasAlmacen  - apartados);
+        if (existenciasReales < 0){
           existenciasReales = 0;
-  
+        }
         let otrosAlmacenes = existenciasTotales - existenciasAlmacen;
 
         if (existenciasReales < cantidad) {
@@ -196,13 +204,13 @@ function validarExistencias(nuevaFila, cantidad) {
               <li><strong>Otros almacenes:</strong> ${otrosAlmacenes || 0}</li>
             </ul>
           `;
-
           Swal.fire({
             title: "Advertencia sobre las existencias",
             html: mensajeHtml,
             icon: "warning",
             confirmButtonText: "Aceptar",
           });
+          subtotal.value = 0;
         } else {
           calcularSubtotal(nuevaFila);
         }
@@ -389,6 +397,7 @@ function mostrarListaProductosCheck(productos) {
   const tablaProductos = document.querySelector("#tablalistaProductos tbody");
   const campoBusqueda = document.getElementById("campoBusqueda");
   const filtroCriterio = document.getElementById("filtroCriterio");
+  let existenciasReal = 0;
 
   // Función para renderizar productos
   function renderProductos(filtro = "") {
@@ -404,12 +413,24 @@ function mostrarListaProductosCheck(productos) {
       const celdaDescripcion = document.createElement("td");
       celdaDescripcion.textContent = producto.DESCR;
       const celdaExist = document.createElement("td");
-      celdaExist.textContent = producto.EXIST;
+      if(producto.EXIST < 0){
+        producto.EXIST = 0;
+      }
+      if(producto.APART < 0){
+        producto.APART = 0;
+      }
+      existenciasReal = producto.EXIST - producto.APART;
+      if(existenciasReal < 0){
+        existenciasReal = 0;
+      }
+      //celdaExist.textContent = producto.EXIST;
+      celdaExist.textContent = existenciasReal;
       fila.appendChild(celdaClave);
       fila.appendChild(celdaDescripcion);
       fila.appendChild(celdaExist);
       fila.onclick = async function () {
-        if (producto.EXIST > 0) {
+        //if (producto.EXIST > 0) {
+        if (existenciasReal > 0) {
           //input.value = producto.CVE_ART;
           const campoProducto = filaTabla.querySelector(".producto");
           campoProducto = producto.CVE_ART;
@@ -684,12 +705,24 @@ function mostrarListaProductos(productos, input) {
       const celdaDescripcion = document.createElement("td");
       celdaDescripcion.textContent = producto.DESCR;
       const celdaExist = document.createElement("td");
-      celdaExist.textContent = producto.EXIST;
+      if(producto.EXIST < 0){
+        producto.EXIST = 0;
+      }
+      if(producto.APART < 0){
+        producto.APART = 0;
+      }
+      existenciasReal = producto.EXIST - producto.APART;
+      if(existenciasReal < 0){
+        existenciasReal = 0;
+      }
+      //celdaExist.textContent = producto.EXIST;
+      celdaExist.textContent = existenciasReal;
       fila.appendChild(celdaClave);
       fila.appendChild(celdaDescripcion);
       fila.appendChild(celdaExist);
       fila.onclick = async function () {
-        if (producto.EXIST > 0) {
+        //if (producto.EXIST > 0) {
+        if (existenciasReal > 0) {
           input.value = producto.CVE_ART;
           $("#CVE_ESQIMPU").val(producto.CVE_ESQIMPU);
           const filaTabla = input.closest("tr");
@@ -790,6 +823,7 @@ function calcularSubtotal(fila) {
   const precio = parseFloat(precioInput.value) || 0; //Obtiene el valor del precio del producto
 
   const subtotal = cantidad * precio; //Realiza la operacion
+  console.log("subtotalInput: ", subtotal);
   subtotalInput.value = subtotal.toFixed(2); // Actualizar el subtotal con dos decimales
 }
 

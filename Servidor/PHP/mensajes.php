@@ -665,6 +665,7 @@ function obtenerDatosCliente($conexionData, $claveCliente, $claveSae, $claveVend
     $nombreTablaCliente = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $sqlCliente = "SELECT NOMBRE FROM $nombreTablaCliente WHERE CLAVE = ?";
     $stmtCliente = sqlsrv_query($conn, $sqlCliente, [$clave]);
+    var_dump($clave);
     if ($stmtCliente === false) {
         sqlsrv_close($conn);
         die(json_encode(['success' => false, 'message' => 'Error al obtener datos del cliente', 'errors' => sqlsrv_errors()]));

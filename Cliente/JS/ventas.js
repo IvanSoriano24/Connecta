@@ -1,6 +1,47 @@
 const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
 let partidasData = []; // Este contiene las partidas actuales del formulario
 
+// Agregar event listener después de que el DOM esté cargado
+$(document).ready(function() {
+    // Event listener para el botón de enviar
+    $(document).on('click', '#whatsappModal .btn-primary', function() {
+        confirmarWhatsApp();
+    });
+});
+
+// Función para confirmar envío por WhatsApp
+function confirmarWhatsApp() {
+    const numeroWhatsApp = $("#whatsappNumber").val();
+    const pedidoID = $("#whatsappModal").data("pedidoID");
+    
+    if (!numeroWhatsApp) {
+        Swal.fire({
+            title: "Error",
+            text: "Por favor ingrese un número de WhatsApp",
+            icon: "warning",
+            confirmButtonText: "Entendido",
+        });
+        return;
+    }
+
+    // Validar formato básico del número
+    if (!numeroWhatsApp.startsWith('+')) {
+        Swal.fire({
+            title: "Formato incorrecto",
+            text: "Por favor ingrese el número con formato internacional (ej: +521234567890)",
+            icon: "warning",
+            confirmButtonText: "Entendido",
+        });
+        return;
+    }
+
+    // Cerrar el modal
+    $("#whatsappModal").modal("hide");
+
+    // Llamar a tu función de envío
+    enviarConfirmacionWhats(pedidoID, numeroWhatsApp);
+}
+
 function agregarEventosBotones() {
     // Botones de editar
     const botonesEditar = document.querySelectorAll(".btnEditarPedido");
@@ -341,7 +382,7 @@ function enviarConfirmacionMail(pedidoID) {
         console.log("Detalles del error:", jqXHR.responseText);
     });
 }
-function enviarConfirmacionWhats(pedidoID) {
+function enviarConfirmacionWhats(pedidoID, telefono) {
      Swal.fire({
         title: "Enviando confirmación...",
         text: "Por favor, espera mientras se envia la confirmación del cliente.",
@@ -353,7 +394,8 @@ function enviarConfirmacionWhats(pedidoID) {
     });
     $.post(
         "../Servidor/PHP/enviosConfirmacion.php",
-        {numFuncion: "2", pedidoID: pedidoID},
+                {numFuncion: "2", pedidoID: pedidoID,telefono: telefono
+        },
         function (response) {
             try {
                 if (typeof response === "string") {
@@ -367,6 +409,9 @@ function enviarConfirmacionWhats(pedidoID) {
                         confirmButtonText: "Entendido",
                     }).then(() => {
                         datosPedidos(); // Actualizar la tabla
+
+                         // Limpiar el campo
+                        $("#whatsappNumber").val("");
                     });
                 } else {
                     Swal.fire({
