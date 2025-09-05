@@ -70,7 +70,8 @@ function mostrarProductosEnTabla(productos, total, limpiarTabla) {
     if(prod.APART < 0){
       prod.APART = 0;
     }
-    const existencia = prod.EXIST - prod.APART;
+    let existencia = prod.EXIST - prod.APART;
+    console.log("existencia: ", existencia);
     if(existencia < 0){
       existencia = 0;
     }
