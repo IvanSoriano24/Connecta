@@ -1412,7 +1412,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
             $NUM_PAR_EXISTENTE = $partidasExistentes[$CVE_ART];
             // Si la partida ya existe, realizar un UPDATE
             $sql = "UPDATE $nombreTabla SET 
-                CANT = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
+                CANT = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, APAR = ?,
                 TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ? WHERE NUM_PAR = ? AND CVE_ART = ? AND CVE_DOC = ?";
             $params = [
                 $CANT,
@@ -1421,6 +1421,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData)
                 $IMPU4,
                 $DESC1,
                 $DESC2,
+                $CANT,
                 $TOTIMP1,
                 $TOTIMP4,
                 $TOT_PARTIDA,
@@ -4391,8 +4392,7 @@ function extraerProductosCategoria($conexionData, $claveSae, $listaPrecioCliente
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function listarImagenesDesdeFirebase($cveArt, $firebaseStorageBucket)
-{
+function listarImagenesDesdeFirebase($cveArt, $firebaseStorageBucket){
     $url = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o?prefix=" . rawurlencode("imagenes/{$cveArt}/");
 
     $ch = curl_init();
@@ -4473,8 +4473,7 @@ function extraerProducto($conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function subirImagenArticulo($conexionData)
-{
+function subirImagenArticulo($conexionData){
     // Verifica que se haya enviado al menos un archivo
     if (!isset($_FILES['imagen']) || empty($_FILES['imagen']['name'])) {
         echo json_encode(['success' => false, 'message' => 'No se pudo subir ninguna imagen.']);
@@ -4528,8 +4527,7 @@ function subirImagenArticulo($conexionData)
 
     echo json_encode(['success' => true, 'message' => 'Imágenes subidas correctamente.', 'imagenes' => $rutasImagenes]);
 }
-function eliminarImagen($conexionData)
-{
+function eliminarImagen($conexionData){
     if (!isset($_POST['cveArt']) || !isset($_POST['imageUrl'])) {
         echo json_encode(['success' => false, 'message' => 'Datos incompletos.']);
         return;

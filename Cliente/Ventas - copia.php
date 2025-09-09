@@ -300,40 +300,6 @@ session_destroy(); */
             padding-left: 32px;
             /* espacio para el ícono */
         }
-
-        .modal-backdrop {
-    display: none !important;
-}
-
-/*centrar modal*/
-        .input-group-centered {
-            width: 80%;
-            margin: 0 auto;
-        }
-        .input-group-prepend .input-group-text {
-            background-color: #f8f9fa;
-            border-right: none;
-        }
-        #whatsappNumber {
-            border-left: none;
-            padding-left: 0;
-        }
-        #whatsappNumber:focus {
-            border-color: #86b7fe;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-        .input-group:focus-within .input-group-prepend .input-group-text {
-            border-color: #86b7fe;
-        }
-        .modal-body p {
-            text-align: center;
-        }
-        .text-muted {
-            text-align: center;
-            display: block;
-            margin-top: 8px;
-        } 
-        
     </style>
 </head>
 
@@ -468,73 +434,27 @@ session_destroy(); */
                         </div>
                     </div>
                 </div>
-
- <!-- Modal Whats -->
-<div class="modal fade" id="whatsappModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Enviar confirmación por WhatsApp</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Ingrese el número de WhatsApp para enviar la confirmación:</p>
-                
-                <!-- Grupo de entrada centrado -->
-                <div class="input-group mb-3 input-group-centered">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text d-flex align-items-center">
-                            <span class="me-2">🇲🇽</span>
-                            <span>+52</span>
-                        </span>
+                <!-- Modal para WhatsApp - Versión Bootstrap -->
+                <div class="modal" id="whatsappModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Enviar confirmación por WhatsApp</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Ingrese el número de WhatsApp para enviar la confirmación:</p>
+                                <input type="tel" id="whatsappNumber" class="form-control" placeholder="+521234567890">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <!-- Cambiado a confirmarWhatsApp() -->
+                                <button type="button" class="btn btn-primary">Enviar</button>
+                            </div>
+                        </div>
                     </div>
-                    <input type="tel" 
-                           id="whatsappNumber" 
-                           class="form-control" 
-                           placeholder="1234567890"
-                           maxlength="10"
-                           pattern="[0-9]{10}"
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                 </div>
-                <small class="text-muted">Solo ingrese los 10 dígitos del número sin el prefijo.</small>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="enviarWhatsAppBtn">Enviar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para Correos Electrónicos -->
-<div class="modal fade" id="modalEnvioCorreos" tabindex="-1" aria-labelledby="modalEnvioCorreosLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalEnvioCorreosLabel">Enviar confirmación por correo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Ingrese las direcciones de correo electrónico (máximo 4)</p>
-                
-                <div id="emailContainer">
-                    <!-- Los campos de correo se agregarán aquí -->
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div id="contadorCorreos" class="text-muted">0/4 correos ingresados</div>
-                    <button type="button" class="btn btn-sm btn-outline-primary add-email-btn" id="btnAddEmail">
-                        <i class="bi bi-plus-circle"></i> Agregar otro correo
-                    </button>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnEnviarCorreos" disabled>Enviar</button>
-            </div>
-        </div>
-    </div>
-</div>
+            </main>
             <!-- MAIN -->
         </section>
         <!-- CONTENT -->

@@ -115,11 +115,8 @@ function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $
     // Si no hay documento que coincida, devolvemos true
     return true;
 }
-function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionData, $correosManuales = '')
+function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionData)
 {
-
-    // Capturar los correos enviados desde el frontend
-    $correosManuales = $_POST['correos'] ?? '';
 
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -152,8 +149,8 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    // Consulta SQL para obtener solo el NOMBRE (eliminamos MAIL y EMAILPRED)
-    $sql = "SELECT NOMBRE FROM $nombreTabla WHERE [CLAVE] = ?";
+    // Consulta SQL para obtener MAIL y EMAILPRED
+    $sql = "SELECT MAIL, EMAILPRED, NOMBRE FROM $nombreTabla WHERE [CLAVE] = ?";
     $params = [$clave];
     $stmt = sqlsrv_query($conn, $sql, $params);
 
@@ -187,11 +184,11 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
 
     $fecha = $detallesPedido['FECHAELAB'];
     $fechaElaboracion = $fecha->format('Y-m-d');
-    //$correo = trim($clienteData['MAIL']);
-    //$emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
+    $correo = trim($clienteData['MAIL']);
+    $emailPred = (is_null($clienteData['EMAILPRED'])) ? "" : trim($clienteData['EMAILPRED']); // Obtener el string completo de correos
     // Si hay múltiples correos separados por `;`, tomar solo el primero
-    //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
-    //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
+    $emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
+    $emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     $clienteNombre = trim($clienteData['NOMBRE']);
 
     /*$emailPred = 'desarrollo01@mdcloud.mx';
@@ -275,14 +272,13 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
     }
     $rutaPDF = descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
 
-    /*if ($emailPred === "") {
+    if ($emailPred === "") {
         $correoBandera = 1;
     } else {
         $correoBandera = 0;
     }
-    */
-    $dataCredito = validarCreditos($conexionData, $clave);
 
+    $dataCredito = validarCreditos($conexionData, $clave);
     $credito = json_decode($dataCredito, true);
     if ($credito['success']) {
         if ($credito['conCredito'] === 'S') {
@@ -291,14 +287,13 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
             $conCredito = "N";
         }
     }
-/*
+
     if ($emailPred === "") {
         $correoBandera = 1;
     } else {
         $correoBandera = 0;
     }
     if (($correo === 'S' && isset($emailPred))) {
-
 
         // Enviar notificaciones solo si los datos son válidos
         if ($correoBandera === 0) {
@@ -324,50 +319,6 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
         echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y WhatsApp Válido Registrado.']);
         //die();
     }
-
-    */
-if (!empty($correosManuales)) {
-        $correosArray = explode(';', $correosManuales);
-        $correosEnviados = [];
-        $correosInvalidos = [];
-        
-        foreach ($correosArray as $correo) {
-            $correo = trim($correo);
-            if (filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-                // Enviar correo a cada dirección válida
-                enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData);
-                $correosEnviados[] = $correo;
-            } else {
-                $correosInvalidos[] = $correo;
-            }
-        }
-        
-        if (!empty($correosEnviados)) {
-            echo json_encode([
-                'success' => true,
-                'message' => 'Pedido enviado correctamente a: ' . implode(', ', $correosEnviados),
-                'correosEnviados' => $correosEnviados,
-                'correosInvalidos' => $correosInvalidos
-            ]);
-        } else {
-            echo json_encode([
-                'success' => false,
-                'message' => 'No se pudo enviar el pedido. Todos los correos proporcionados son inválidos: ' . implode(', ', $correosInvalidos)
-            ]);
-        }
-    } else {
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se proporcionaron direcciones de correo electrónico.'
-        ]);
-    }
-    
-    sqlsrv_close($conn);
-
-
-
-
-    
 }
 function descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID)
 {
@@ -945,7 +896,6 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
         //die();
     }
 }
-
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios){
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
@@ -1277,9 +1227,6 @@ switch ($funcion) {
     case 1:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae  = $_SESSION['empresa']['claveSae'];
-
-        // Obtener correos del POST
-        $correosManuales = $_POST['correos'] ?? '';
 
         // Obtenemos la conexión
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);

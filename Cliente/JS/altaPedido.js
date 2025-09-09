@@ -147,6 +147,7 @@ function agregarFilaPartidas() {
 
   //console.log("Partidas actuales después de agregar:", partidasData);
 }
+// Funcion para validar las exisencias de un producto
 function validarExistencias(nuevaFila, cantidad) {
   const cve_art = nuevaFila.querySelector(".producto");
   const subtotal = nuevaFila.querySelector(".subtotalPartida");
@@ -175,18 +176,25 @@ function validarExistencias(nuevaFila, cantidad) {
       if (res.success) {
         //console.log(res.data);
         const datos = res.data;
+        //Se obtienen las existencias del almacen 1 (MULT)
         let existenciasAlmacen = datos.ExistenciasAlmacen;
+        //Se optienen las existencias en general (INVE)
         let existenciasTotales = datos.ExistenciasTotales;
+        //Obtenemos los apartados del priducto
         let apartados = datos.APART;
+        //Si los apartados son negativos, se vuelven 0
         if (apartados < 0){
           apartados = 0;
         }
+        //Si las existencias del almacen 1 son negativas, se vuelven 0
         if (existenciasAlmacen < 0){
           existenciasAlmacen = 0;
         }
         console.log("apartados: ", apartados);
+        //Se obtienen las existencias reales
         let existenciasReales = existenciasAlmacen - apartados;
         console.log("existenciasReales: ", existenciasAlmacen  - apartados);
+        //Si las existencias reales son negativas, se vuelven 0
         if (existenciasReales < 0){
           existenciasReales = 0;
         }

@@ -11,8 +11,7 @@ $(document).ready(function() {
 
 // Función para confirmar envío por WhatsApp
 function confirmarWhatsApp() {
-    const numeroIngresado = $("#whatsappNumber").val();
-    const numeroWhatsApp = "+52" + numeroIngresado;
+    const numeroWhatsApp = $("#whatsappNumber").val();
     const pedidoID = $("#whatsappModal").data("pedidoID");
     
     if (!numeroWhatsApp) {
@@ -25,10 +24,11 @@ function confirmarWhatsApp() {
         return;
     }
 
-   if (!numeroIngresado || numeroIngresado.length !== 10) {
+    // Validar formato básico del número
+    if (!numeroWhatsApp.startsWith('+')) {
         Swal.fire({
-            title: "Error",
-            text: "Por favor ingrese un número de 10 dígitos",
+            title: "Formato incorrecto",
+            text: "Por favor ingrese el número con formato internacional (ej: +521234567890)",
             icon: "warning",
             confirmButtonText: "Entendido",
         });
@@ -41,176 +41,6 @@ function confirmarWhatsApp() {
     // Llamar a tu función de envío
     enviarConfirmacionWhats(pedidoID, numeroWhatsApp);
 }
-
-    // Variable global para almacenar el pedidoID actual
-    let pedidoIDActual = null;
-    
-    // Función para inicializar el modal con un campo de correo
-    function inicializarCamposCorreo() {
-        const emailContainer = document.getElementById('emailContainer');
-        emailContainer.innerHTML = ''; // Limpiar contenedor
-        
-        // Agregar primer campo de correo
-        agregarCampoCorreo();
-        
-        // Actualizar contador
-        actualizarContador();
-    }
-    
-    // Función para agregar un nuevo campo de correo
-    function agregarCampoCorreo() {
-        const emailContainer = document.getElementById('emailContainer');
-        const correoCount = emailContainer.querySelectorAll('.email-input-group').length;
-        
-        // Verificar máximo de 4 correos
-        if (correoCount >= 4) {
-            alert("Solo se permiten 4 direcciones de correo como máximo");
-            return;
-        }
-        
-        const nuevoId = `correo-${correoCount + 1}`;
-        const emailGroup = document.createElement('div');
-        emailGroup.className = 'email-input-group';
-        emailGroup.innerHTML = `
-            <div class="mb-2">
-                <label for="${nuevoId}" class="form-label">Correo electrónico ${correoCount + 1}</label>
-                <div class="input-group">
-                    <input type="email" class="form-control" id="${nuevoId}" placeholder="correo@ejemplo.com">
-                    ${correoCount > 0 ? '<button class="btn btn-outline-danger remove-email" type="button"><i class="bi bi-trash"></i></button>' : ''}
-                </div>
-            </div>
-        `;
-        
-        emailContainer.appendChild(emailGroup);
-        
-        // Agregar evento para eliminar campo
-        const removeBtn = emailGroup.querySelector('.remove-email');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', function() {
-                emailGroup.remove();
-                actualizarContador();
-                validarCorreos();
-            });
-        }
-        
-        // Agregar evento de validación en tiempo real
-        const input = emailGroup.querySelector('input');
-        input.addEventListener('input', function() {
-            validarCorreos();
-            actualizarContador();
-        });
-        
-        actualizarContador();
-    }
-    
-    // Función para actualizar el contador de correos
-    function actualizarContador() {
-        const correos = obtenerCorreosIngresados();
-        const contador = document.getElementById('contadorCorreos');
-        contador.textContent = `${correos.length}/4 correos ingresados`;
-        
-        // Habilitar o deshabilitar botón de agregar
-        const btnAdd = document.getElementById('btnAddEmail');
-        btnAdd.disabled = correos.length >= 4;
-    }
-    
-    // Función para obtener los correos ingresados
-    function obtenerCorreosIngresados() {
-        const inputs = document.querySelectorAll('#emailContainer input');
-        const correos = [];
-        
-        inputs.forEach(input => {
-            const correo = input.value.trim();
-            if (correo !== '') {
-                correos.push(correo);
-            }
-        });
-        
-        return correos;
-    }
-    
-    // Función para validar los correos ingresados
-    function validarCorreos() {
-        const inputs = document.querySelectorAll('#emailContainer input');
-        let todosValidos = true;
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        
-        inputs.forEach(input => {
-            const correo = input.value.trim();
-            if (correo !== '' && !emailRegex.test(correo)) {
-                input.classList.add('is-invalid');
-                todosValidos = false;
-            } else {
-                input.classList.remove('is-invalid');
-                if (correo !== '') {
-                    input.classList.add('is-valid');
-                } else {
-                    input.classList.remove('is-valid');
-                }
-            }
-        });
-        
-        // Habilitar o deshabilitar botón de enviar
-        const btnEnviar = document.getElementById('btnEnviarCorreos');
-        const correos = obtenerCorreosIngresados();
-        btnEnviar.disabled = !todosValidos || correos.length === 0;
-        
-        return todosValidos;
-    }
-    
-    // Función para abrir el modal
-    function abrirModalCorreos(pedidoID) {
-        pedidoIDActual = pedidoID;
-        
-        // Inicializar los campos de correo
-        inicializarCamposCorreo();
-        
-        // Mostrar el modal
-        const modalElement = document.getElementById('modalEnvioCorreos');
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-    }
-    
-    // Configurar eventos cuando el documento esté listo
-    $(document).ready(function() {
-        // Evento para el botón de agregar correo
-        $('#btnAddEmail').on('click', function() {
-            agregarCampoCorreo();
-        });
-        
-        // Evento para el botón de enviar correos
-        $('#btnEnviarCorreos').on('click', function() {
-            if (!validarCorreos()) {
-                alert("Por favor, ingrese direcciones de correo válidas");
-                return;
-            }
-            
-            const correos = obtenerCorreosIngresados();
-            if (correos.length === 0) {
-                alert("Debe ingresar al menos una dirección de correo electrónico");
-                return;
-            }
-            
-            // Cerrar el modal y enviar los correos
-            $('#modalEnvioCorreos').modal('hide');
-            enviarConfirmacionMail(pedidoIDActual, correos);
-        });
-        
-        // Inicializar campos cuando se muestra el modal
-        $('#modalEnvioCorreos').on('show.bs.modal', function() {
-            inicializarCamposCorreo();
-        });
-    });
-    
-    // Función de ejemplo para enviar correos
-    function enviarConfirmacionMail(pedidoID, correos = []) {
-        console.log("Enviando correo para pedido:", pedidoID, "a los correos:", correos);
-        alert("Correos enviados: " + correos.join(", "));
-    }
-
-
-
-
 
 function agregarEventosBotones() {
     // Botones de editar
@@ -335,31 +165,6 @@ function agregarEventosBotones() {
         });
     });
 
-
-    function abrirModalSinBackdrop() {
-    // Limpiar primero
-    $('.modal-backdrop').remove();
-    $('body').removeClass('modal-open');
-    $('body').css('padding-right', '');
-    
-    // Abrir modal
-    $("#whatsappModal").modal({
-        backdrop: false
-    });
-    
-    // Eliminar continuamente por si se recrea
-    var interval = setInterval(function() {
-        $('.modal-backdrop').remove();
-        $('body').removeClass('modal-open');
-        $('body').css('padding-right', '');
-    }, 100);
-    
-    // Limpiar intervalo cuando se cierre el modal
-    $('#whatsappModal').one('hidden.bs.modal', function() {
-        clearInterval(interval);
-    });
-}
-
     // Botones de WhatsApp
     const botonesWhats = document.querySelectorAll(".btnSendWhats");
     botonesWhats.forEach((boton) => {
@@ -367,13 +172,9 @@ function agregarEventosBotones() {
             const pedidoID = this.dataset.id;
             try {
                 //("#whatsappModal").modal("show");
-                //$("#whatsappModal").modal("show");
+                $("#whatsappModal").modal("show");
                 // Aquí llamas tu flujo de envío por WhatsApp
                 //enviarConfirmacionWhats(pedidoID);
-                // Guardar el pedidoID en el modal para usarlo después
-            $("#whatsappModal").data("pedidoID", pedidoID);
-            $("#whatsappModal").modal("show")
-            abrirModalSinBackdrop();
             } catch (error) {
                 console.error("Error al enviar por WhatsApp:", error);
                 Swal.fire({
@@ -385,62 +186,29 @@ function agregarEventosBotones() {
             }
         });
     });
-      
-    // Función para confirmar envío por WhatsApp
-function confirmarWhatsApp() {
-    const numeroWhatsApp = $("#whatsappNumber").val();
-    const pedidoID = $("#whatsappModal").data("pedidoID");
-    
-    if (!numeroWhatsApp) {
-        Swal.fire({
-            title: "Error",
-            text: "Por favor ingrese un número de WhatsApp",
-            icon: "warning",
-            confirmButtonText: "Entendido",
+
+    // Botones de Correo
+    const botonesMail = document.querySelectorAll(".btnSendMail");
+    botonesMail.forEach((boton) => {
+        boton.addEventListener("click", async function () {
+            const pedidoID = this.dataset.id;
+            try {
+                // Aquí llamas tu flujo de envío por Correo
+                enviarConfirmacionMail(pedidoID);
+
+                // Funcion antigua que hay que dividir
+                //enviarConfirmacion(pedidoID);
+            } catch (error) {
+                console.error("Error al enviar por Correo:", error);
+                Swal.fire({
+                    title: "Aviso",
+                    text: "Hubo un problema al enviar por Correo",
+                    icon: "error",
+                    confirmButtonText: "Entendido",
+                });
+            }
         });
-        return;
-    }
-
-        // Validar formato básico del número
-    if (!numeroWhatsApp.startsWith('+')) {
-        Swal.fire({
-            title: "Formato incorrecto",
-            text: "Por favor ingrese el número con formato internacional (ej: +521234567890)",
-            icon: "warning",
-            confirmButtonText: "Entendido",
-        });
-        return;
-    }
-
-    // Cerrar el modal
-    $("#whatsappModal").modal("hide");
-
-    // Llamar a tu función de envío
-    enviarConfirmacionWhats(pedidoID, numeroWhatsApp);
-}
-
-
- const botonesMail = document.querySelectorAll(".btnSendMail");
-botonesMail.forEach((boton) => {
-    boton.addEventListener("click", function () {
-        const pedidoID = this.dataset.id;
-        try {
-            // Solo abrimos el modal, sin la función adicional
-            $("#modalEnvioCorreos").data("pedidoID", pedidoID);
-            $("#modalEnvioCorreos").modal("show")
-            abrirModalSinBackdrop();
-            pedidoIDActual = pedidoID;
-        } catch (error) {
-            console.error("Error al enviar por Correo:", error);
-            Swal.fire({
-                title: "Aviso",
-                text: "Hubo un problema al enviar por Correo",
-                icon: "error",
-                confirmButtonText: "Entendido",
-            });
-        }
     });
-});
 
 
     const botonesBuscarAnticipo = document.querySelectorAll(".btnBuscarAnticpo");
@@ -565,7 +333,7 @@ function enviarConfirmacion(pedidoID) {
         console.log("Detalles del error:", jqXHR.responseText);
     });
 }
-function enviarConfirmacionMail(pedidoID, correos = []) {
+function enviarConfirmacionMail(pedidoID) {
      Swal.fire({
         title: "Enviando confirmación...",
         text: "Por favor, espera mientras se envia la confirmación del cliente.",
@@ -575,68 +343,45 @@ function enviarConfirmacionMail(pedidoID, correos = []) {
             Swal.showLoading();
         },
     });
-
-    // Preparar los datos para enviar 
-    const params = new URLSearchParams();
-    params.append('numFuncion', '1');
-    params.append('pedidoID', pedidoID);
-    params.append('correos', correos.join(';'));
-
-    console.log("Enviando datos:", {
-        numFuncion: '1',
-        pedidoID: pedidoID,
-        correos: correos.join(';')
-    });
-
-
-    // jQuery 5 - enviar como string codificado
-    $.post({
-        url: "../Servidor/PHP/enviosConfirmacion.php",
-        data: params.toString(),
-        contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-        dataType: 'json'
-    })
-    .done(function(response) {
-        if (response.success) {
-            let mensaje = response.message;
-            
-            if (response.correosInvalidos && response.correosInvalidos.length > 0) {
-                mensaje += "\nCorreos inválidos: " + response.correosInvalidos.join(', ');
-            }
-            
-            Swal.fire({
-                title: "Enviado",
-                text: mensaje,
-                icon: "success",
-                confirmButtonText: "Entendido",
-            }).then(() => {
-                if (typeof datosPedidos === 'function') {
-                    datosPedidos();
+    $.post(
+        "../Servidor/PHP/enviosConfirmacion.php",
+        {numFuncion: "1", pedidoID: pedidoID},
+        function (response) {
+            try {
+                if (typeof response === "string") {
+                    response = JSON.parse(response);
                 }
-            });
-        } else {
-            Swal.fire({
-                title: "Error",
-                text: response.message || "No se pudo enviar el correo",
-                icon: "error",
-                confirmButtonText: "Entendido",
-            });
+                if (response.success) {
+                    Swal.fire({
+                        title: "Enviado",
+                        text: "Se ha Enviado la Confirmacion al Pedido por Correo Electronico",
+                        icon: "success",
+                        confirmButtonText: "Entendido",
+                    }).then(() => {
+                        datosPedidos(); // Actualizar la tabla
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Aviso",
+                        text: response.message || "No se pudo cancelar el pedido",
+                        icon: "warning",
+                        confirmButtonText: "Entendido",
+                    });
+                }
+            } catch (error) {
+                console.error("Error al procesar la respuesta JSON:", error);
+            }
         }
-    })
-    .fail(function(jqXHR, textStatus, errorThrown) {
-        console.error("Error en la petición:", textStatus, errorThrown);
+    ).fail(function (jqXHR, textStatus, errorThrown) {
         Swal.fire({
-            title: "Error",
-            text: "Hubo un problema al intentar enviar el correo: " + textStatus,
+            title: "Aviso",
+            text: "Hubo un problema al intentar enviar el pedido",
             icon: "error",
             confirmButtonText: "Entendido",
         });
+        console.log("Detalles del error:", jqXHR.responseText);
     });
 }
-
-
-
-
 function enviarConfirmacionWhats(pedidoID, telefono) {
      Swal.fire({
         title: "Enviando confirmación...",
@@ -649,7 +394,8 @@ function enviarConfirmacionWhats(pedidoID, telefono) {
     });
     $.post(
         "../Servidor/PHP/enviosConfirmacion.php",
-                {numFuncion: "2", pedidoID: pedidoID,telefono: telefono},
+                {numFuncion: "2", pedidoID: pedidoID,telefono: telefono
+        },
         function (response) {
             try {
                 if (typeof response === "string") {
@@ -689,16 +435,6 @@ function enviarConfirmacionWhats(pedidoID, telefono) {
         console.log("Detalles del error:", jqXHR.responseText);
     });
 }
-
-// Agregar event listener para enviar formulario
-$(document).ready(function() {
-    // Permitir enviar con la tecla Enter
-    $("#whatsappNumber").keypress(function(e) {
-        if (e.which === 13) {
-            confirmarWhatsApp();
-        }
-    });
-});
 
 function descargarPdf(pedidoID) {
     $.ajax({
