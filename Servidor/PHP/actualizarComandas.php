@@ -1,5 +1,5 @@
 <?php
-/*set_time_limit(0);
+set_time_limit(0);
 require 'firebase.php'; // Archivo con las credenciales de Firebase
 
 function actualizarComandasPendientes($firebaseProjectId, $firebaseApiKey) {
@@ -59,9 +59,9 @@ function cambiarEstadoComanda($firebaseProjectId, $firebaseApiKey, $comandaId) {
 
 // Ejecutar la función
 actualizarComandasPendientes($firebaseProjectId, $firebaseApiKey);
-*/
+
 /***********************************************************************************/
-set_time_limit(0);
+/*set_time_limit(0);
 require 'firebase.php';   // Define $firebaseProjectId y $firebaseApiKey
 
 date_default_timezone_set('America/Mexico_City'); // Ajusta según tu zona
@@ -174,3 +174,4 @@ function cambiarEstadoComanda(string $firebaseProjectId, string $firebaseApiKey,
 
 // Ejecutar
 actualizarComandasPendientes($firebaseProjectId, $firebaseApiKey);
+*/
