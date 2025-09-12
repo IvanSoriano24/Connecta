@@ -2,7 +2,7 @@ const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
 let partidasData = []; // Este contiene las partidas actuales del formulario
 
 function agregarEventosBotones() {
-  const botonesVer = document.querySelectorAll(".btnVerPedido");
+  const botonesVer = document.querySelectorAll(".btn-visualizar");
   botonesVer.forEach((boton) => {
     boton.addEventListener("click", async function () {
       /*const pedidoID = this.dataset.id; // Obtener el ID del pedido
@@ -12,7 +12,7 @@ function agregarEventosBotones() {
       window.location.href = "verRemision.php?pedidoID=" + pedidoID;
     });
   });
-  const botonesFacturar = document.querySelectorAll(".btnFacturar");
+  const botonesFacturar = document.querySelectorAll(".btn-facturar");
   //const rowActual = this.dataset.row;
   botonesFacturar.forEach((boton) => {
     boton.addEventListener("click", async function () {

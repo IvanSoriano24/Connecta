@@ -43,28 +43,29 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function validarUsuario($datosUsuario){
+function validarUsuario($datosUsuario)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
-        $response = @file_get_contents($url);
+    $response = @file_get_contents($url);
 
-        if ($response === FALSE) {
-            echo json_encode(['success' => false, 'message' => 'Error al obtener los usuarios.']);
-            return;
+    if ($response === FALSE) {
+        echo json_encode(['success' => false, 'message' => 'Error al obtener los usuarios.']);
+        return;
+    }
+    $data = json_decode($response, true);
+    if (!isset($data['documents'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron usuarios.']);
+        return;
+    }
+    foreach ($data['documents'] as $document) {
+        $fields = $document['fields'];
+        if ($fields['usuario']['stringValue'] === $datosUsuario['usuario']) {
+            return false;
         }
-        $data = json_decode($response, true);
-        if (!isset($data['documents'])) {
-            echo json_encode(['success' => false, 'message' => 'No se encontraron usuarios.']);
-            return;
-        }
-        foreach ($data['documents'] as $document) {
-            $fields = $document['fields'];
-            if ($fields['usuario']['stringValue'] === $datosUsuario['usuario']) {
-                return false;
-            }
-        }
-        return true;
+    }
+    return true;
 }
 function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
 {
@@ -86,17 +87,18 @@ function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
     if ($idUsuario) {
         // Si existe el ID del usuario, actualizamos (PATCH)
         $url .= "/$idUsuario?updateMask.fieldPaths=usuario"
-      . "&updateMask.fieldPaths=nombre"
-      . "&updateMask.fieldPaths=apellido"
-      . "&updateMask.fieldPaths=correo"
-      . "&updateMask.fieldPaths=telefono"
-      . "&updateMask.fieldPaths=tipoUsuario"
-      . "&updateMask.fieldPaths=descripcionUsuario"
-      . "&updateMask.fieldPaths=status"
-      . "&updateMask.fieldPaths=claveUsuario"
-      . "&updateMask.fieldPaths=noEmpresa"
-      . "&updateMask.fieldPaths=claveSae"
-      . "&key=$firebaseApiKey";
+            //. "&updateMask.fieldPaths=password"
+            . "&updateMask.fieldPaths=nombre"
+            . "&updateMask.fieldPaths=apellido"
+            . "&updateMask.fieldPaths=correo"
+            . "&updateMask.fieldPaths=telefono"
+            . "&updateMask.fieldPaths=tipoUsuario"
+            . "&updateMask.fieldPaths=descripcionUsuario"
+            . "&updateMask.fieldPaths=status"
+            . "&updateMask.fieldPaths=claveUsuario"
+            . "&updateMask.fieldPaths=noEmpresa"
+            . "&updateMask.fieldPaths=claveSae"
+            . "&key=$firebaseApiKey";
         $method = "PATCH";
 
         // Determinar qué clave guardar según el tipo de usuario
@@ -107,6 +109,7 @@ function guardarUsuario($datosUsuario, $noEmpresa, $claveSae)
         // Formatear los datos para Firebase (estructura de "fields")
         $fields = [
             'usuario' => ['stringValue' => strip_tags($datosUsuario['usuario'])],
+            //'password' => ['stringValue' => strip_tags(password_hash("Connecta25.", PASSWORD_BCRYPT, $opciones))],
             'nombre' => ['stringValue' => strip_tags($datosUsuario['nombreUsuario'])],
             'apellido' => ['stringValue' => strip_tags($datosUsuario['apellidosUsuario'])],
             'correo' => ['stringValue' => strip_tags($datosUsuario['correoUsuario'])],
@@ -1327,23 +1330,23 @@ switch ($funcion) {
 
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
-        $validacion = validarUsuario($datosUsuario);
-        if($validacion){
-        if ($csrf_token === $csrf_token_form) {
-            // Guardar los datos en Firebase o la base de datos
-            guardarUsuario($datosUsuario, $noEmpresa, $claveSae);
-        } else {
+        //$validacion = validarUsuario($datosUsuario);
+        //if ($validacion) {
+            if ($csrf_token === $csrf_token_form) {
+                // Guardar los datos en Firebase o la base de datos
+                guardarUsuario($datosUsuario, $noEmpresa, $claveSae);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error en la sesion.',
+                ]);
+            }
+        /*} else {
             echo json_encode([
-                'success' => false,
-                'message' => 'Error en la sesion.',
-            ]);
-        }
-        } else{
-             echo json_encode([
                 'success' => false,
                 'message' => 'Usuario ya Existe.',
             ]);
-        }
+        }*/
         break;
 
     case 2: // Editar pedido

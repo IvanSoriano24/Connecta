@@ -4395,8 +4395,7 @@ function obtenerFolio($remisionId, $claveSae, $conexionData, $conn)
     }
     return $FOLIO;
 }
-function obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpresa)
-{
+function obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpresa){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 
     $context = stream_context_create([
@@ -4437,7 +4436,6 @@ function obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpre
                 }
             }
         }
-
         return $comandas;
     }
 }
