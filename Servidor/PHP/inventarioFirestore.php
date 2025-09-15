@@ -3,6 +3,46 @@ require_once "firebase.php";
 session_start();
 header("Content-Type: application/json");
 
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
+{
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'header' => "Content-Type: application/json\r\n"
+        ]
+    ]);
+    $result = file_get_contents($url, false, $context);
+    if ($result === FALSE) {
+        return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
+    }
+    $documents = json_decode($result, true);
+    if (!isset($documents['documents'])) {
+        return ['success' => false, 'message' => 'No se encontraron documentos'];
+    }
+    // Busca el documento donde coincida el campo `noEmpresa`
+    foreach ($documents['documents'] as $document) {
+        $fields = $document['fields'];
+        /*var_dump($fields['noEmpresa']['integerValue']);
+        var_dump($noEmpresa);*/
+        if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
+            return [
+                'success' => true,
+                'data' => [
+                    'host' => $fields['host']['stringValue'],
+                    'puerto' => $fields['puerto']['stringValue'],
+                    'usuario' => $fields['usuario']['stringValue'],
+                    'password' => $fields['password']['stringValue'],
+                    'nombreBase' => $fields['nombreBase']['stringValue'],
+                    'nombreBanco'
+                    => $fields['nombreBanco']['stringValue'] ?? "",
+                    'claveSae' => $fields['claveSae']['stringValue'],
+                ]
+            ];
+        }
+    }
+    return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
+}
 // Función auxiliar para GET a Firestore
 function http_get_json($url)
 {
@@ -78,6 +118,54 @@ function detectar_subcol_por_existencia(string $root, string $invDocId, string $
     }
 
     return null;
+}
+
+function obtenerProductos($articulos, $conexionData, $claveSae)
+{
+    $conn = sqlsrv_connect($conexionData['host'], [
+        "Database" => $conexionData['nombreBase'],
+        "UID"      => $conexionData['usuario'],
+        "PWD"      => $conexionData['password'],
+        "CharacterSet"         => "UTF-8",
+        "TrustServerCertificate" => true
+    ]);
+    if (!$conn) {
+        throw new Exception("No pude conectar a la base de datos");
+    }
+    try {
+        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $data = [];
+        foreach ($articulos as $art) {
+            $sql = "SELECT CVE_ART, DESCR, EXIST
+            FROM $nombreTabla
+            WHERE CVE_ART = ?";
+            $param = [$art['cve_art']];
+            $stmt   = sqlsrv_query($conn, $sql, $param);
+            if ($stmt === false) {
+                $errors = print_r(sqlsrv_errors(), true);
+                throw new Exception("Problema al optener los productos:\n{$errors}");
+            }
+            // Procesar resultados
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $data[] = $row;
+            }
+        }
+
+        //var_dump($datos);
+
+        if (!empty($data)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'data' => $data]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No se Encontraron lineas.']);
+        }
+    } catch (Exception $e) {
+        // Si falla cualquiera, deshacemos TODO:
+        sqlsrv_rollback($conn);
+        sqlsrv_close($conn);
+        //return ['success' => false, 'message' => $e->getMessage()];
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
 }
 
 // Verificar sesión
@@ -218,8 +306,10 @@ switch ($accion) {
 
 
     case "obtenerLineas":
-        $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
-        $invDocs = http_get_json($invUrl);
+        $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+        $usuarioId   = $_SESSION['usuario']["idReal"]; // asegúrate que este campo existe en tu sesión
+        $invUrl      = "$root/INVENTARIO?key=$firebaseApiKey";
+        $invDocs     = http_get_json($invUrl);
 
         if (!isset($invDocs["documents"])) {
             echo json_encode(["success" => false, "message" => "No hay inventarios"]);
@@ -239,14 +329,14 @@ switch ($accion) {
             exit;
         }
 
-        $invDocId = basename($inventarioActivo["name"]);
-        $asignadas = [];
+        $invDocId   = basename($inventarioActivo["name"]);
+        $asignadas  = [];
 
         // 🔹 recorrer todas las posibles subcolecciones (lineas, lineas02, lineas03, ...)
         $subcolecciones = ["lineas", "lineas02", "lineas03", "lineas04", "lineas05", "lineas06"];
 
         foreach ($subcolecciones as $subcol) {
-            $lineasUrl = "$root/INVENTARIO/$invDocId/$subcol?key=$firebaseApiKey";
+            $lineasUrl  = "$root/INVENTARIO/$invDocId/$subcol?key=$firebaseApiKey";
             $lineasDocs = http_get_json($lineasUrl);
 
             if (!isset($lineasDocs["documents"])) continue;
@@ -262,17 +352,19 @@ switch ($accion) {
             // calcular subconteo (pares = mismo número)
             $subconteo = ($conteo === 1) ? 1 : ceil($conteo / 2);
 
-
             foreach ($lineasDocs["documents"] as $doc) {
                 $fields = $doc["fields"];
+
+                // ✅ Si es SUPER-ALMACENISTA, no filtramos
                 if (
+                    $tipoUsuario === "SUPER-ALMACENISTA" ||
                     (isset($fields["idAsignado"]["stringValue"]) && $fields["idAsignado"]["stringValue"] == $usuarioId) ||
                     (isset($fields["idAsignado"]["integerValue"]) && (string)$fields["idAsignado"]["integerValue"] == (string)$usuarioId)
                 ) {
                     $asignadas[] = [
                         "CVE_LIN"   => basename($doc["name"]),
                         "coleccion" => $subcol,
-                        "conteo" => $conteo,
+                        "conteo"    => $conteo,
                         "subconteo" => $subconteo
                     ];
                 }
@@ -322,7 +414,14 @@ switch ($accion) {
             'conteo2' => $doc2 && isset($doc2['fields']) ? $doc2 : null
         ]);
         exit;
-
+    case 'obtenerInventario':
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conexionData = $conexionResult['data'];
+        $articulos = $_GET['articulos'];
+        obtenerProductos($articulos, $conexionData, $claveSae);
+        break;
     default:
         echo json_encode(["success" => false, "message" => "Acción no válida"]);
         break;

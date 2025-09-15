@@ -134,12 +134,16 @@ session_destroy(); */
                     <p class="page-subtitle text-center">
                         Selecciona la manera en la que deseas realizar el inventario
                     </p>
-
-                    <div class="text-center mt-4">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalInventarios" id="btnModalInventarios">
-                            <i class='bx bx-clipboard'></i> Ver Inventarios
-                        </button>
-                    </div>
+                    <?php
+                    if ($tipoUsuario === "SUPER-ALMACENISTA") { ?>
+                        <div class="text-center mt-4">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalInventarios" id="btnModalInventarios">
+                                <i class='bx bx-clipboard'></i> Ver Inventarios
+                            </button>
+                        </div>
+                    <?php
+                    }
+                    ?>
 
                     <div class="row justify-content-center g-4 mt-3">
                         <!-- Opción: Almacén -->

@@ -577,29 +577,24 @@ session_destroy(); */
                 loadArticulos(linea);
                 loadGuardados(linea);
             });
-
             function resetUI() {
                 $btnNext.prop('disabled', true);
                 $articulos.addClass('d-none').empty();
                 $mensaje.removeClass('d-none').text('Selecciona una línea para ver sus artículos.');
             }
-
             function showLoading() {
                 $mensaje.addClass('d-none');
                 $articulos.removeClass('d-none').html(skeleton());
             }
-
             function showEmpty(text) {
                 $btnNext.prop('disabled', true);
                 $articulos.addClass('d-none').empty();
                 $mensaje.removeClass('d-none').text(text || 'No hay artículos para esta línea.');
             }
-
             function showError(xhr) {
                 console.error('Error AJAX inventario líneas:', xhr);
                 showEmpty('Ocurrió un error al cargar los artículos. Intenta de nuevo.');
             }
-
             // Carga por línea -> numFuncion=4
             function loadArticulos(linea) {
                 showLoading();
@@ -666,7 +661,6 @@ session_destroy(); */
                         console.error('loadGuardados error:', err);
                     });
             }
-
             function applyGuardadosToUI(res) {
                 const {
                     locked,
@@ -725,7 +719,6 @@ session_destroy(); */
                     $('#msgArticulos').removeClass('d-none').text('Línea bloqueada. Solo lectura.');
                 }
             }
-
             // Utilidad para recalcular totales visuales en una tarjeta
             function recalcCard($card) {
                 let sum = 0;
@@ -740,7 +733,6 @@ session_destroy(); */
                 });
                 $card.find('.article-total').text(sum);
             }
-
             // Fila de lote (HTML) con valores
             function rowHtml({
                 lote,
@@ -790,14 +782,10 @@ session_destroy(); */
                     </div>
                 `;
             }
-
-
             // Para seleccionar claves con guiones en selectores de atributo (seguro)
             function cssEscape(str) {
                 return String(str).replace(/("|'|\\)/g, '\\$1');
             }
-
-
             // Agrupa filas planas en tarjetas con lotes
             // row esperado: {CVE_ART, DESCR, LIN_PROD, EXIST, ProductoLote, LOTE, CantidadLote}
             function normalizeToArticles(rows) {
@@ -821,7 +809,6 @@ session_destroy(); */
                 });
                 return Object.values(map);
             }
-
             // Pinta tarjetas
             function renderArticulos(articulos) {
                 const html = articulos.map(buildArticleCard).join('');
@@ -1034,7 +1021,6 @@ session_destroy(); */
                     $status.hide().text('');
                 }
             }
-
             function markSaved($card, resp) {
                 const $badge = $card.find('.article-total');
                 $badge.removeClass('text-primary').addClass('text-success');
@@ -1095,7 +1081,6 @@ session_destroy(); */
                         </section>
                 `;
             }
-
             // Loader
             function skeleton() {
                 return `

@@ -3342,13 +3342,13 @@ function obtenerProductos($conexionData, $chechk)
         //var_dump("True");
         // Consulta SQL
         $sql = "SELECT TOP (1000) i.[CVE_ART], i.[DESCR], i.[APART], m.[EXIST], i.[LIN_PROD], i.[UNI_MED], i.[CVE_ESQIMPU], i.[CVE_UNIDAD], i.[CVE_PRODSERV], i.[COSTO_PROM], i.[UUID]
-        FROM $nombreTabla i INNER JOIN $nombreTabla2 m ON m.[CVE_ART] = i.[CVE_ART] WHERE m.[CVE_ALM] = 1";
+        FROM $nombreTabla i INNER JOIN $nombreTabla2 m ON m.[CVE_ART] = i.[CVE_ART] WHERE m.[CVE_ALM] = 1 ";
     } else {
         //var_dump("False");
         // Consulta SQL
         $sql = "SELECT TOP (1000) i.[CVE_ART], i.[DESCR], i.[APART], m.[EXIST], i.[LIN_PROD], i.[UNI_MED], i.[CVE_ESQIMPU], i.[CVE_UNIDAD], i.[CVE_PRODSERV], i.[COSTO_PROM], i.[UUID]
         FROM $nombreTabla i INNER JOIN $nombreTabla2 m ON m.[CVE_ART] = i.[CVE_ART]
-        WHERE m.[EXIST] > 0 AND m.[CVE_ALM] = 1";
+        WHERE i.[EXIST] > 0 AND m.[CVE_ALM] = 1 ";
     }
 
     $stmt = sqlsrv_query($conn, $sql);

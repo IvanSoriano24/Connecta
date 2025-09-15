@@ -202,7 +202,7 @@
             </a>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="Productos.php" tabindex="-1">Productos</a></li>
-                <?php if ($tipoUsuario == "ALMACENISTA" || $tipoUsuario == "ADMINISTRADOR") { ?>
+                <?php if ($tipoUsuario == "ALMACENISTA" || $tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "SUPER-ALMACENISTA") { ?>
                     <li><a class="dropdown-item" href="inventarioFisico.php" tabindex="-1">Inventario Fisico</a></li>
                 <?php } ?>
             </ul>

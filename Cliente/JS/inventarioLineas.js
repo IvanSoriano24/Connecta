@@ -367,7 +367,6 @@ function comparararConteos(claveLinea) {
         const msg = res?.message || "No fue posible obtener los conteos.";
         return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
       }
-
       // res.conteo1 y res.conteo2 ya pueden venir normalizados; si no, normalizamos aquí
       const c1 = Array.isArray(res.conteo1)
         ? res.conteo1
@@ -377,12 +376,49 @@ function comparararConteos(claveLinea) {
         : normalizeDocToProducts(res.conteo2);
 
       const cmp = compareProducts(c1, c2); // {rows, iguales, difs, solo1, solo2}
-
+      //console.log(cmp);
       // Render en un modal bonito
       const html = renderCompareTable(cmp, claveLinea);
       Swal.fire({
         width: Math.min(window.innerWidth - 40, 900),
         title: `Comparación de conteos — Línea ${claveLinea}`,
+        html,
+        confirmButtonText: "Cerrar",
+      }).then(() => {
+        if (cmp.rows.length == cmp.iguales) {
+          compararSae(cmp, claveLinea);
+        }
+      });
+    })
+    .fail(function (err) {
+      console.error("comparararConteos error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No fue posible comparar los conteos.",
+      });
+    });
+}
+function compararSae(cmp, claveLinea) {
+  $.ajax({
+    url: "../Servidor/PHP/inventarioFirestore.php",
+    method: "GET",
+    dataType: "json",
+    data: {
+      accion: "obtenerInventario", // ← endpoint PHP sugerido abajo
+      articulos: cmp.rows,
+    },
+  })
+    .done(function (res) {
+      if (!res || res.success !== true) {
+        const msg = res?.message || "No fue posible obtener los conteos.";
+        return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
+      }
+      //console.log(res);
+      const html = tablaComparativaSae(cmp, claveLinea, res.data);
+      Swal.fire({
+        width: Math.min(window.innerWidth - 40, 900),
+        title: `Comparación con SAE — Línea ${claveLinea}`,
         html,
         confirmButtonText: "Cerrar",
       });
@@ -514,8 +550,8 @@ function renderCompareTable(cmp, linea) {
     <thead>
       <tr>
         <th style="white-space:nowrap">Código</th>
-        <th>Conteo 1 (lineas)</th>
-        <th>Conteo 2 (lineas02)</th>
+        <th>Conteo 1 </th>
+        <th>Conteo 2 </th>
         <th>Diferencia</th>
       </tr>
     </thead>
@@ -558,6 +594,90 @@ function renderCompareTable(cmp, linea) {
   }
   function signed(n) {
     return (n > 0 ? "+" : "") + n;
+  }
+}
+function tablaComparativaSae(cmp, linea, saeList) {
+  // saeList viene como array [{CVE_ART, DESCR, EXIST}, ...]
+  // Indexamos por código para lookup O(1)
+  const saeIndex = new Map(
+    (Array.isArray(saeList) ? saeList : []).map((d) => [
+      String(d.CVE_ART),
+      Number(d.EXIST) || 0,
+    ])
+  );
+
+  const stats = `
+    <div class="mb-2">
+      <span class="badge bg-success me-2">Iguales: ${cmp.iguales}</span>
+      <span class="badge bg-warning text-dark me-2">Diferentes: ${cmp.difs}</span>
+      <span class="badge bg-secondary me-2">Solo en C1: ${cmp.solo1}</span>
+      <span class="badge bg-secondary">Solo en C2: ${cmp.solo2}</span>
+    </div>
+  `;
+
+  const head = `
+    <thead>
+      <tr>
+        <th style="white-space:nowrap">Código</th>
+        <th>Conteo 1</th>
+        <th>SAE</th>
+        <th>Diferencia</th>
+      </tr>
+    </thead>
+  `;
+
+  const body = `
+    <tbody>
+      ${cmp.rows
+        .map((r) => {
+          const saeExist = saeIndex.get(String(r.cve_art)) ?? 0;
+          const diff = (Number(r.total1) || 0) - saeExist;
+          const status = diff === 0 ? "ok" : diff > 0 ? "mayor" : "menor";
+          return `
+          <tr class="${rowClass(status)}">
+            <td><code>${escapeHtml(r.cve_art)}</code></td>
+            <td>${Number(r.total1) || 0}</td>
+            <td>${saeExist}</td>
+            <td>${signed(diff)}</td>
+          </tr>
+        `;
+        })
+        .join("")}
+    </tbody>
+  `;
+
+  return `
+    ${stats}
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered align-middle">
+        ${head}
+        ${body}
+      </table>
+    </div>
+    <small class="text-muted">
+      * Los valores corresponden a la suma de <strong>total</strong> por producto (suma de lotes).
+    </small>
+  `;
+
+  function rowClass(status) {
+    if (status === "ok") return "table-success";
+    return "table-warning"; // diferentes
+  }
+  function signed(n) {
+    return (n > 0 ? "+" : "") + n;
+  }
+  function escapeHtml(str) {
+    return String(str ?? "").replace(
+      /[&<>"']/g,
+      (m) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[m])
+    );
   }
 }
 // utilidades pequeñas
@@ -734,7 +854,11 @@ function guardarLinea(finalizar = false) {
           title: finalizar ? "Línea finalizada" : "Autoguardado",
           text: res.message,
         }).then(() => {
-          comparararConteos(res.claveLinea);
+          const modal = new bootstrap.Modal(
+            document.getElementById("resumenInventario")
+          );
+          modal.hide();
+          //comparararConteos(res.claveLinea);
         });
       } else {
         Swal.fire(
