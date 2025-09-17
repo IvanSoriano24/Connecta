@@ -665,7 +665,7 @@ session_destroy(); */
                 const {
                     locked,
                     productos,
-                    terminada
+                    activa
                 } = res;
 
                 // 1) Aplicar por producto
@@ -687,7 +687,7 @@ session_destroy(); */
                         corr: Number(r.corrugados || 0),
                         cajas: Number(r.corrugadosPorCaja || 0),
                         sueltos: Number(r.sueltos || 0),
-                        terminada: terminada
+                        activa: activa
                     })).join('');
 
                     // Reemplazar filas (dejando el bloque de "agregar fila" al final)
@@ -711,12 +711,14 @@ session_destroy(); */
                 });
 
                 // 3) Si la línea está bloqueada, deshabilita inputs y botones
-                if (locked === true) {
+                if (locked === false) {
                     $articulos.find('input, button.btn-add-row, button.btn-save-article, button.eliminarLote')
                         .prop('disabled', true);
                     $('#btnCerrarLinea').prop('disabled', true);
                     // Opcional: aviso visual
                     $('#msgArticulos').removeClass('d-none').text('Línea bloqueada. Solo lectura.');
+                    var tipoUsuario = '<?php echo $tipoUsuario ?>';
+                    comparararConteos(tipoUsuario);
                 }
             }
             // Utilidad para recalcular totales visuales en una tarjeta
@@ -739,9 +741,9 @@ session_destroy(); */
                 corr,
                 cajas,
                 sueltos,
-                terminada
+                activa
             }) {
-                const bloqueado = !terminada;
+                const bloqueado = !activa;
                 const disabledAttr = bloqueado ? 'disabled' : '';
 
                 return `

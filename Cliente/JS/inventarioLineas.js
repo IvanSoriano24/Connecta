@@ -346,12 +346,13 @@ function comparararConteos(claveLinea) {
 }
 */
 ///////////////////////////////////
-function comparararConteos(claveLinea) {
+function comparararConteos(tipoUsuario) {
+if(tipoUsuario === "SUPER-ALMACENISTA"){
   const noInv = $("#noInventario").val();
+   const claveLinea = $("#lineaSelect").val();
   if (!noInv || !claveLinea) {
     return Swal.fire({ icon: "warning", title: "Faltan datos para comparar" });
   }
-
   $.ajax({
     url: "../Servidor/PHP/inventarioFirestore.php",
     method: "GET",
@@ -398,6 +399,7 @@ function comparararConteos(claveLinea) {
         text: "No fue posible comparar los conteos.",
       });
     });
+    }
 }
 function compararSae(cmp, claveLinea) {
   $.ajax({

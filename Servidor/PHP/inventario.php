@@ -256,7 +256,7 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
         'finishedAt' => $finishedAt,
         'lockedBy'   => $lockedBy,
         'productos'  => $productos,
-        'terminada' => $status
+        'activa' => $status
     ]);
 }
 function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
