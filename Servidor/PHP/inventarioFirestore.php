@@ -120,8 +120,7 @@ function detectar_subcol_por_existencia(string $root, string $invDocId, string $
     return null;
 }
 
-function obtenerProductos($articulos, $conexionData, $claveSae)
-{
+function obtenerProductos($articulos, $conexionData, $claveSae){
     $conn = sqlsrv_connect($conexionData['host'], [
         "Database" => $conexionData['nombreBase'],
         "UID"      => $conexionData['usuario'],

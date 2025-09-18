@@ -181,7 +181,7 @@ if (isset($_SESSION['usuario'])) {
                 <?php endif; ?>
                 <br>
                 <!-- Solo los administradores y almacenistas pueden ver terminar las comandas -->
-                <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR'): ?>
+                <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario === 'SUPER-ALMACENISTA'): ?>
                     <div class="card-body">
                         <h2 class="text-center">Comandas</h2>
                         <div class="mb-3">

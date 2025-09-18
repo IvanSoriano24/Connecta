@@ -54,11 +54,9 @@ function obtenerLineas() {
     },
   });
 }
-
 /*function cargarProductos(){
     const filtroLinea = $("#lineaSelect").val(); // Obtener el filtro seleccionado
 }*/
-
 function noInventario() {
   $.ajax({
     url: "../Servidor/PHP/inventario.php",
@@ -89,7 +87,6 @@ function noInventario() {
     },
   });
 }
-
 function abrirModal() {
   try {
     const lineaTexto = $("#lineaSelect option:selected").text() || "—";
@@ -213,7 +210,6 @@ function abrirModal() {
     Swal.fire("Error", "No se pudo generar el resumen.", "error");
   }
 }
-
 //Funcion para saber si hay un inventario activo
 function buscarInventario() {
   const csrfToken = $("#csrf_token").val();
@@ -309,97 +305,68 @@ function buscarInventario() {
       });
     });
 }
-
 async function initInventarioUI() {
   await buscarInventario(); // ya la hicimos antes
   //await loadLinesStatus();        // nueva
 }
-
-/*
-function comparararConteos(claveLinea) {
-  $.ajax({
-    url: "../Servidor/PHP/inventarioFirestore.php?accion=compararLineas",
-    method: "POST",
-    contentType: "application/json",
-    data: claveLinea,
-    success: function (res) {
-      if (res.success) {
-        Swal.fire({
-          icon: "success",
-          title: finalizar ? "Línea finalizada" : "Autoguardado",
-          text: res.message,
-        }).then(() => {
-          //
-        });
-      } else {
-        Swal.fire(
-          "Error",
-          res.message || "No se pudo guardar la línea",
-          "error"
-        );
-      }
-    },
-    error: function () {
-      Swal.fire("Error", "Error de comunicación con el servidor", "error");
-    },
-  });
-}
-*/
 ///////////////////////////////////
 function comparararConteos(tipoUsuario) {
-if(tipoUsuario === "SUPER-ALMACENISTA"){
-  const noInv = $("#noInventario").val();
-   const claveLinea = $("#lineaSelect").val();
-  if (!noInv || !claveLinea) {
-    return Swal.fire({ icon: "warning", title: "Faltan datos para comparar" });
-  }
-  $.ajax({
-    url: "../Servidor/PHP/inventarioFirestore.php",
-    method: "GET",
-    dataType: "json",
-    data: {
-      accion: "obtenerLineaConteos", // ← endpoint PHP sugerido abajo
-      noInventario: noInv,
-      claveLinea: claveLinea,
-    },
-  })
-    .done(function (res) {
-      if (!res || res.success !== true) {
-        const msg = res?.message || "No fue posible obtener los conteos.";
-        return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
-      }
-      // res.conteo1 y res.conteo2 ya pueden venir normalizados; si no, normalizamos aquí
-      const c1 = Array.isArray(res.conteo1)
-        ? res.conteo1
-        : normalizeDocToProducts(res.conteo1);
-      const c2 = Array.isArray(res.conteo2)
-        ? res.conteo2
-        : normalizeDocToProducts(res.conteo2);
-
-      const cmp = compareProducts(c1, c2); // {rows, iguales, difs, solo1, solo2}
-      //console.log(cmp);
-      // Render en un modal bonito
-      const html = renderCompareTable(cmp, claveLinea);
-      Swal.fire({
-        width: Math.min(window.innerWidth - 40, 900),
-        title: `Comparación de conteos — Línea ${claveLinea}`,
-        html,
-        confirmButtonText: "Cerrar",
-      }).then(() => {
-        if (cmp.rows.length == cmp.iguales) {
-          compararSae(cmp, claveLinea);
-        }
+  if (tipoUsuario === "SUPER-ALMACENISTA") {
+    const noInv = $("#noInventario").val();
+    const claveLinea = $("#lineaSelect").val();
+    if (!noInv || !claveLinea) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Faltan datos para comparar",
       });
-    })
-    .fail(function (err) {
-      console.error("comparararConteos error:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No fue posible comparar los conteos.",
-      });
-    });
     }
+    $.ajax({
+      url: "../Servidor/PHP/inventarioFirestore.php",
+      method: "GET",
+      dataType: "json",
+      data: {
+        accion: "obtenerLineaConteos", // ← endpoint PHP sugerido abajo
+        noInventario: noInv,
+        claveLinea: claveLinea,
+      },
+    })
+      .done(function (res) {
+        if (!res || res.success !== true) {
+          const msg = res?.message || "No fue posible obtener los conteos.";
+          return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
+        }
+        // res.conteo1 y res.conteo2 ya pueden venir normalizados; si no, normalizamos aquí
+        const c1 = Array.isArray(res.conteo1)
+          ? res.conteo1
+          : normalizeDocToProducts(res.conteo1);
+        const c2 = Array.isArray(res.conteo2)
+          ? res.conteo2
+          : normalizeDocToProducts(res.conteo2);
+
+        const cmp = compareProducts(c1, c2); // {rows, iguales, difs, solo1, solo2}
+        //console.log(cmp);
+        // Render en un modal bonito
+        const html = renderCompareTable(cmp, claveLinea);
+        Swal.fire({
+          width: Math.min(window.innerWidth - 40, 900),
+          title: `Comparación de conteos — Línea ${claveLinea}`,
+          html,
+          confirmButtonText: "Cerrar",
+        }).then(() => {
+          if (cmp.rows.length == cmp.iguales) {
+            compararSae(cmp, claveLinea);
+          }
+        });
+      })
+      .fail(function (err) {
+        console.error("comparararConteos error:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No fue posible comparar los conteos.",
+        });
+      });
+  }
 }
 function compararSae(cmp, claveLinea) {
   $.ajax({
@@ -700,6 +667,7 @@ function escapeHtml(str) {
 
 $(document).ready(function () {
   initInventarioUI();
+  let noInventario = null;
   //buscarInventario();
   //obtenerLineas(); // ← ya no, ahora usamos Firestore
   //bloquearLineasTerminadas();
@@ -711,6 +679,7 @@ $(document).ready(function () {
   }).done(function (res) {
     if (res.success) {
       $("#noInventario").val(res.noInventario);
+      noInventario = res.noInventario;
 
       function toISODate(fechaDDMMYYYY) {
         if (!fechaDDMMYYYY) return "";
@@ -774,6 +743,25 @@ $(document).ready(function () {
           }
         }
       );
+    }
+  });
+
+  $.get("../Servidor/PHP/inventario.php", {
+    numFuncion: 11,
+    numInventario: noInventario,
+  }).done(function (res) {
+    console.log(res);
+    if (res) {
+      Swal.fire({
+        icon: "info",
+        title: "Lineas Finalizadas",
+        html: `
+          <div style="text-align:left">
+            <div class="mt-2">Todas las lineas estan finalizadas.</div>
+          </div>
+        `,
+        confirmButtonText: "Continuar",
+      });
     }
   });
 

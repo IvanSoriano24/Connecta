@@ -208,10 +208,6 @@ function confirmarWhatsApp() {
         alert("Correos enviados: " + correos.join(", "));
     }
 
-
-
-
-
 function agregarEventosBotones() {
     // Botones de editar
     const botonesEditar = document.querySelectorAll(".btnEditarPedido");
@@ -232,7 +228,7 @@ function agregarEventosBotones() {
                     });
                 } else if (res.fail) {
                     console.log("Redirigiendo con pedidoID:", pedidoID);
-                    window.location.href = "altaPedido.php?pedidoID=" + pedidoID;
+                    window.location.href = "edicionPedido.php?pedidoID=" + pedidoID;
                 } else {
                     console.error("Respuesta inesperada:", res);
                 }

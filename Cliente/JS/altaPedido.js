@@ -183,32 +183,37 @@ function validarExistencias(nuevaFila, cantidad) {
         //Obtenemos los apartados del priducto
         let apartados = datos.APART;
         //Si los apartados son negativos, se vuelven 0
-        if (apartados < 0){
+        if (apartados < 0) {
           apartados = 0;
         }
         //Si las existencias del almacen 1 son negativas, se vuelven 0
-        if (existenciasAlmacen < 0){
+        if (existenciasAlmacen < 0) {
           existenciasAlmacen = 0;
         }
         console.log("apartados: ", apartados);
         //Se obtienen las existencias reales
         let existenciasReales = existenciasAlmacen - apartados;
-        console.log("existenciasReales: ", existenciasAlmacen  - apartados);
+        console.log("existenciasReales: ", existenciasAlmacen - apartados);
         //Si las existencias reales son negativas, se vuelven 0
-        if (existenciasReales < 0){
+        if (existenciasReales < 0) {
           existenciasReales = 0;
         }
         let otrosAlmacenes = existenciasTotales - existenciasAlmacen;
 
         if (existenciasReales < cantidad) {
           const mensajeHtml = `
-            <p>No hay suficientes existencias para el producto <strong>${cve_art.value
+            <p>No hay suficientes existencias para el producto <strong>${
+              cve_art.value
             }</strong>.</p>
             <ul style="text-align:left">
               <li><strong>Solicitados:</strong> ${cantidad || 0}</li>
-              <li><strong>Existencias Totales:</strong> ${existenciasTotales || 0}</li>
+              <li><strong>Existencias Totales:</strong> ${
+                existenciasTotales || 0
+              }</li>
               <li><strong>Apartados:</strong> ${apartados || 0}</li>
-              <li><strong>Disponibles en Almacen:</strong> ${existenciasReales || 0}</li>
+              <li><strong>Disponibles en Almacen:</strong> ${
+                existenciasReales || 0
+              }</li>
               <li><strong>Otros almacenes:</strong> ${otrosAlmacenes || 0}</li>
             </ul>
           `;
@@ -421,14 +426,14 @@ function mostrarListaProductosCheck(productos) {
       const celdaDescripcion = document.createElement("td");
       celdaDescripcion.textContent = producto.DESCR;
       const celdaExist = document.createElement("td");
-      if(producto.EXIST < 0){
+      if (producto.EXIST < 0) {
         producto.EXIST = 0;
       }
-      if(producto.APART < 0){
+      if (producto.APART < 0) {
         producto.APART = 0;
       }
       existenciasReal = producto.EXIST - producto.APART;
-      if(existenciasReal < 0){
+      if (existenciasReal < 0) {
         existenciasReal = 0;
       }
       //celdaExist.textContent = producto.EXIST;
@@ -713,14 +718,14 @@ function mostrarListaProductos(productos, input) {
       const celdaDescripcion = document.createElement("td");
       celdaDescripcion.textContent = producto.DESCR;
       const celdaExist = document.createElement("td");
-      if(producto.EXIST < 0){
+      if (producto.EXIST < 0) {
         producto.EXIST = 0;
       }
-      if(producto.APART < 0){
+      if (producto.APART < 0) {
         producto.APART = 0;
       }
       existenciasReal = producto.EXIST - producto.APART;
-      if(existenciasReal < 0){
+      if (existenciasReal < 0) {
         existenciasReal = 0;
       }
       //celdaExist.textContent = producto.EXIST;
@@ -1120,12 +1125,19 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
     fdDel.append("clavePedido", String(del.clavePedido));
     fdDel.append("numPar", String(del.numPar));
 
-    const r = await fetch("../Servidor/PHP/ventas.php", {method: "POST", body: fdDel});
+    const r = await fetch("../Servidor/PHP/ventas.php", {
+      method: "POST",
+      body: fdDel,
+    });
     const j = await r.json();
     if (!j || j.success !== true) {
       // Si falla una eliminación, avisa y conserva en cola para reintentar si quieres
       console.error("Error al eliminar partida:", del, j);
-      Swal.fire({title: "Aviso", text: j?.message || "Fallo al eliminar una partida en SAE.", icon: "warning"});
+      Swal.fire({
+        title: "Aviso",
+        text: j?.message || "Fallo al eliminar una partida en SAE.",
+        icon: "warning",
+      });
       // Opcional: vuelve a dejarla en la cola
       // continue; // y no la vacíes
     }
@@ -1133,84 +1145,106 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
 
   // 3) Si todo fue bien, limpia la cola
   eliminacionesPendientes = [];
+
+  const creditoPedido = document.getElementById("conCredito").value;
+  const tipoOperacion = document.getElementById("tipoOperacion").value;
   //Se crear un FormData para enviar los datos
   const formData = new FormData();
+  let url = "";
   //Se agrega el numero de funcion
-  formData.append("numFuncion", "8");
-  //Se los datos del pedido
-  formData.append("formulario", JSON.stringify(formularioData));
-  //Se agrega las partidas
-  formData.append("partidas", JSON.stringify(partidasData));
-  //Se agrega los datos de envio
-  formData.append("envio", JSON.stringify(envioData));
+  if (creditoPedido == "S") {
+    formData.append("numFuncion", "1");
+    //Se los datos del pedido
+    formData.append("formulario", JSON.stringify(formularioData));
+    //Se agrega las partidas
+    formData.append("partidas", JSON.stringify(partidasData));
+    //Se agrega los datos de envio
+    formData.append("envio", JSON.stringify(envioData));
+    if (tipoOperacion == "alta") {
+      url = "../Servidor/PHP/pedidosCredito.php";
+    } else {
+      url = "../Servidor/PHP/editarPedido.php";
+    }
+  } else {
+    formData.append("numFuncion", "8");
+    //Se los datos del pedido
+    formData.append("formulario", JSON.stringify(formularioData));
+    //Se agrega las partidas
+    formData.append("partidas", JSON.stringify(partidasData));
+    //Se agrega los datos de envio
+    formData.append("envio", JSON.stringify(envioData));
 
-  fetch("../Servidor/PHP/ventas.php", {
+    url = "../Servidor/PHP/ventas.php";
+  }
+  fetch(url, {
     method: "POST",
     body: formData,
   })
-      .then((response) => {
-        console.log("Response completa:", response);
-        return response.text(); // Obtener la respuesta como texto para depuración
-      })
-      .then((text) => {
-        console.log("Texto recibido del servidor:", text);
+    .then((response) => {
+      console.log("Response completa:", response);
+      return response.text(); // Obtener la respuesta como texto para depuración
+    })
+    .then((text) => {
+      console.log("Texto recibido del servidor:", text);
 
-        try {
-          return JSON.parse(text); // Intentar convertir a JSON
-        } catch (error) {
-          console.error(
-              "Error al convertir a JSON:",
-              error,
-              "Texto recibido:",
-              text
-          );
-          throw new Error("El servidor no devolvió una respuesta inválida.");
-        }
-      })
-      .then((data) => {
-        if (!data) return;
-        console.log("Respuesta del servidor:", data);
+      try {
+        return JSON.parse(text); // Intentar convertir a JSON
+      } catch (error) {
+        console.error(
+          "Error al convertir a JSON:",
+          error,
+          "Texto recibido:",
+          text
+        );
+        throw new Error("El servidor no devolvió una respuesta inválida.");
+      }
+    })
+    .then((data) => {
+      if (!data) return;
+      console.log("Respuesta del servidor:", data);
 
-        if (data.success) {
-          //Mensaje cuando el pedido se realizo con exito
-          Swal.fire({
-            title: "¡Pedido guardado exitosamente!",
-            text: data.message || "El pedido se procesó correctamente.",
-            icon: "success",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        } else if (data.autorizacion) {
-          //Mensaje cuando se tiene que autorizar el pedido por un administrador
-          Swal.fire({
-            title: "Saldo vencido",
-            text:
-                data.message || "El pedido se procesó pero debe ser autorizado.",
-            icon: "warning",
-            confirmButtonText: "Entendido",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        } else if (data.exist) {
-          //Mensaje cuando no hay existencias para algunos productos
-          Swal.fire({
-            title: "Error al guardar el pedido",
-            //Creacion de Mensaje con los productos, exitencias y apartados de estos
-            html: `
-            <p>${data.message ||
-            "No hay suficientes existencias para algunos productos."
+      if (data.success) {
+        //Mensaje cuando el pedido se realizo con exito
+        Swal.fire({
+          title: "¡Pedido guardado exitosamente!",
+          text: data.message || "El pedido se procesó correctamente.",
+          icon: "success",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
+      } else if (data.autorizacion) {
+        //Mensaje cuando se tiene que autorizar el pedido por un administrador
+        Swal.fire({
+          title: "Saldo vencido",
+          text:
+            data.message || "El pedido se procesó pero debe ser autorizado.",
+          icon: "warning",
+          confirmButtonText: "Entendido",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
+      } else if (data.exist) {
+        //Mensaje cuando no hay existencias para algunos productos
+        Swal.fire({
+          title: "Error al guardar el pedido",
+          //Creacion de Mensaje con los productos, exitencias y apartados de estos
+          html: `
+            <p>${
+              data.message ||
+              "No hay suficientes existencias para algunos productos."
             }</p>
             <p><strong>Productos sin existencias:</strong></p>
             <ul>
               ${data.productosSinExistencia
                 .map(
-                    (producto) => `
+                  (producto) => `
                   <li>
                     <strong>Producto:</strong> ${producto.producto}, 
-                    <strong>Existencias Totales:</strong> ${producto.existencias || 0
+                    <strong>Existencias Totales:</strong> ${
+                      producto.existencias || 0
                     }, 
                     <strong>Apartados:</strong> ${producto.apartados || 0}, 
                     <strong>Disponibles:</strong> ${producto.disponible || 0}
@@ -1220,77 +1254,77 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
                 .join("")}
             </ul>
           `,
-            icon: "error",
-            confirmButtonText: "Aceptar",
-          });
-        } else if (data.cxc) {
-          //Mensaje cuando no se encontro un anticipo y tiene 72 horas para pagar
-          Swal.fire({
-            title: "Cuenta por pagar",
-            text: data.message || "El cliente tiene una cuenta por pagar",
-            icon: "warning",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        } else if (data.telefono) {
-          //Mensaje cuando solo se le pudo notificar al cliente por WhatsApp
-          Swal.fire({
-            title: "Pedido Guardado",
-            text: data.message || "",
-            icon: "info",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        } else if (data.correo) {
-          //Mensaje cuando solo se le pudo notificar al cliente por correo
-          Swal.fire({
-            title: "Pedido Guardado",
-            text: data.message || "",
-            icon: "info",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        } else if (data.notificacion) {
-          //Mensaje cuando no se pudo notificar al cliente y se le notifico al vendedor
-          Swal.fire({
-            title: "Pedido Guardado",
-            text: data.message || "",
-            icon: "info",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        } else {
-          Swal.fire({
-            title: "Error al Guardar el Pedido",
-            text: data.message || "Ocurrió un error inesperado.",
-            icon: "warning",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Redirigir al usuario o realizar otra acción
-            window.location.href = "Ventas.php";
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error al enviar los datos:", error);
-        Swal.fire({
-          title: "Error al enviar los datos",
-          text: error.message,
           icon: "error",
+          confirmButtonText: "Aceptar",
+        });
+      } else if (data.cxc) {
+        //Mensaje cuando no se encontro un anticipo y tiene 72 horas para pagar
+        Swal.fire({
+          title: "Cuenta por pagar",
+          text: data.message || "El cliente tiene una cuenta por pagar",
+          icon: "warning",
           confirmButtonText: "Aceptar",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
+      } else if (data.telefono) {
+        //Mensaje cuando solo se le pudo notificar al cliente por WhatsApp
+        Swal.fire({
+          title: "Pedido Guardado",
+          text: data.message || "",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
+      } else if (data.correo) {
+        //Mensaje cuando solo se le pudo notificar al cliente por correo
+        Swal.fire({
+          title: "Pedido Guardado",
+          text: data.message || "",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
+      } else if (data.notificacion) {
+        //Mensaje cuando no se pudo notificar al cliente y se le notifico al vendedor
+        Swal.fire({
+          title: "Pedido Guardado",
+          text: data.message || "",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
+      } else {
+        Swal.fire({
+          title: "Error al Guardar el Pedido",
+          text: data.message || "Ocurrió un error inesperado.",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          // Redirigir al usuario o realizar otra acción
+          window.location.href = "Ventas.php";
+        });
+      }
+    })
+    .catch((error) => {
+      console.error("Error al enviar los datos:", error);
+      Swal.fire({
+        title: "Error al enviar los datos",
+        text: error.message,
+        icon: "error",
+        confirmButtonText: "Aceptar",
+      }).then(() => {
+        // Redirigir al usuario o realizar otra acción
+        window.location.href = "Ventas.php";
       });
+    });
   return false;
 }
 
@@ -1532,7 +1566,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
   // Obtener precio del producto y actualizar la fila
   await completarPrecioProducto(producto.CVE_ART, filaProd); // Pasar el nodo DOM, no jQuery
 }
-function llenarDatosProducto(producto) { }
+function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
   $(
     "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio, #observaciones"
