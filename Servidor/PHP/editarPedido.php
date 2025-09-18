@@ -978,13 +978,21 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     }
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         // Enviar notificaciones solo si los datos son válidos
-        if ($correoBandera === 0) {
-            enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $id, $conn); // Enviar correo
+        if ($formularioData['enviarCorreo']) {
+            if ($correoBandera === 0) {
+                enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $id, $conn); // Enviar correo
+            }
+        } else {
+            $correoBandera = 1;
         }
-        if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $id, $conn);
+        if ($formularioData['enviarWhats']) {
+            if ($numeroBandera === 0) {
+                $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $id, $conn);
+            }
+        }else {
+            $numeroBandera = 1;
         }
-
+        //Respuestas
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
             echo json_encode([

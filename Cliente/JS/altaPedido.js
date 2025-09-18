@@ -923,7 +923,6 @@ function guardarPedido(id) {
     // Determinar si es alta o edición
     //formularioData.tipoOperacion = id === 0 ? "alta" : "editar";
     console.log("Datos preparados para enviar:", formularioData, partidasData);
-
     // Enviar los datos al backend
     enviarDatosBackend(formularioData, partidasData, envioData);
   } catch (error) {
@@ -1050,6 +1049,8 @@ function obtenerDatosFormulario() {
     tipoOperacion: document.getElementById("tipoOperacion").value,
     CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value, // Mover
     observaciones: document.getElementById("observaciones").value,
+    enviarWhats: document.getElementById("enviarWhats").checked,
+    enviarCorreo: document.getElementById("enviarCorreo").checked,
   };
   return formularioData;
 }
@@ -1569,7 +1570,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
 function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
   $(
-    "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio, #observaciones"
+    "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio, #observaciones, #enviarWhats, #enviarCorreo"
   ).prop("disabled", false);
 }
 function llenarDatosCliente(cliente) {

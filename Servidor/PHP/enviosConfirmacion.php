@@ -259,6 +259,7 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
     // Inicializa la variable donde guardarás el id
     $idFirebasePedido = null;
     $direccion1Contacto = null;
+    $envioCorreo = false;
 
     if ($response !== false) {
         $resultArray = json_decode($response, true);
@@ -271,16 +272,14 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
             // y para tomar tu campo direccion1Contacto:
             $fields = $doc['fields'];
             $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
+            $envioCorreo = $fields['enviarCorreo']['booleanValue'] ?? false;
         }
     }
-    $rutaPDF = descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
-
-    /*if ($emailPred === "") {
-        $correoBandera = 1;
-    } else {
-        $correoBandera = 0;
+    if(!$envioCorreo){
+        echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'No se le notifico al cliente debido a la restriccion del envio de confirmacion por este medio.']);
+        die();
     }
-    */
+    $rutaPDF = descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
     $dataCredito = validarCreditos($conexionData, $clave);
 
     $credito = json_decode($dataCredito, true);
@@ -291,42 +290,7 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
             $conCredito = "N";
         }
     }
-    /*
-        if ($emailPred === "") {
-            $correoBandera = 1;
-        } else {
-            $correoBandera = 0;
-        }
-        if (($correo === 'S' && isset($emailPred))) {
-
-
-            // Enviar notificaciones solo si los datos son válidos
-            if ($correoBandera === 0) {
-                enviarCorreoPedido($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-            }
-
-            // Determinar la respuesta JSON según las notificaciones enviadas
-            if ($correoBandera === 0) {
-                /// Respuesta de éxito
-                header('Content-Type: application/json; charset=UTF-8');
-                echo json_encode([
-                    'success' => true,
-                    'autorizacion' => false,
-                    'message' => 'El pedido se envio correctamente por correo electronico.',
-                ]);
-            } else {
-                $emailPred = $_SESSION['usuario']['correo'];
-                enviarCorreoPedido($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
-                echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Enviado, el Cliente no Tiene un Correo para notificar.']);
-                //die();
-            }
-        } else {
-            echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y WhatsApp Válido Registrado.']);
-            //die();
-        }
-
-        */
-if (!empty($correosManuales)) {
+    if (!empty($correosManuales)) {
         $correosArray = explode(';', $correosManuales);
         $correosEnviados = [];
         $correosInvalidos = [];
@@ -335,7 +299,7 @@ if (!empty($correosManuales)) {
             $correo = trim($correo);
             if (filter_var($correo, FILTER_VALIDATE_EMAIL)) {
                 // Enviar correo a cada dirección válida
-                enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData);
+                enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente);
                 $correosEnviados[] = $correo;
             } else {
                 $correosInvalidos[] = $correo;
@@ -362,12 +326,7 @@ if (!empty($correosManuales)) {
         ]);
     }
     
-    sqlsrv_close($conn);
-
-
-
-
-    
+    sqlsrv_close($conn);    
 }
 function descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID)
 {
@@ -567,7 +526,7 @@ function validarCreditos($conexionData, $clienteId)
         }
     }
 }
-function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData)
+function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente)
 {
     // Obtener el id de Firestore del pedido buscado
     global $firebaseProjectId, $firebaseApiKey;
@@ -654,9 +613,9 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
     $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
     //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&idEnvios=" . urlencode($idFirebasePedido);
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&idEnvios=" . urlencode($idFirebasePedido) . "&claveCliente=" . urlencode($claveCliente);
 
-    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa);
+    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&claveCliente=" . urlencode($claveCliente);
 
     // Construcción del cuerpo del correo
     $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
@@ -863,6 +822,7 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
     // Inicializa la variable donde guardarás el id
     $idFirebasePedido = null;
     $direccion1Contacto = null;
+    $envioWhats = false;
 
     if ($response !== false) {
         $resultArray = json_decode($response, true);
@@ -875,7 +835,12 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
             // y para tomar tu campo direccion1Contacto:
             $fields = $doc['fields'];
             $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
+            $envioWhats = $fields['enviarWhat']['booleanValue'] ?? false;
         }
+    }
+    if(!$envioWhats){
+        echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'No se le notifico al cliente debido a la restriccion del envio de confirmacion por este medio.']);
+        die();
     }
     $rutaPDF = descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
 
@@ -945,7 +910,6 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
         //die();
     }
 }
-
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios){
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';

@@ -2697,7 +2697,8 @@ function actualizarInventario($conexionData, $partidasData, $conn)
     }
     sqlsrv_free_stmt($stmt);
 }
-function actualizarApartados($conexionData, $partidasData, $conn){
+function actualizarApartados($conexionData, $partidasData, $conn)
+{
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     if ($conn === false) {
@@ -4549,7 +4550,8 @@ function extraerProducto($conexionData, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-function subirImagenArticulo($conexionData){
+function subirImagenArticulo($conexionData)
+{
     // Verifica que se haya enviado al menos un archivo
     if (!isset($_FILES['imagen']) || empty($_FILES['imagen']['name'])) {
         echo json_encode(['success' => false, 'message' => 'No se pudo subir ninguna imagen.']);
@@ -5304,7 +5306,9 @@ function guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData)
         'estadoContacto'      => ['stringValue'  => $envioData['estadoContacto']],
         'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']],
         //Datos adicionales
-        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""]
+        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""],
+        'enviarWhat' => ['booleanValue' => $formularioData['enviarWhats'] ?? ""],
+        'enviarCorreo' => ['booleanValue' => $formularioData['enviarCorreo'] ?? ""]
     ];
 
     // Prepara la URL de la colección
@@ -6492,12 +6496,15 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     }
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         // Enviar notificaciones solo si los datos son válidos
-        if ($correoBandera === 0) {
-            enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        if ($formularioData['enviarCorreo']) {
+            if ($correoBandera === 0) {
+                enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente); // Enviar correo
+            }
         }
-
-        if ($numeroBandera === 0) {
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+        if ($formularioData['enviarWhats']) {
+            if ($numeroBandera === 0) {
+                $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+            }
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -6518,7 +6525,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
         } else {
             $correoVendedor = $_SESSION['usuario']['correo'];
             $telefonoVendedor = $_SESSION['usuario']['telefono'];
-            enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+            enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente); // Enviar correo
             $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
 
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar. Se tiene 72 horas para saldar el pedido.']);
@@ -6527,7 +6534,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     } else {
         $correoVendedor = $_SESSION['usuario']['correo'];
         $telefonoVendedor = $_SESSION['usuario']['telefono'];
-        enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData); // Enviar correo
+        enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente); // Enviar correo
         $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
         echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y Telefono Válido Registrado. Se tiene 72 horas para saldar el pedido.']);
         //die();
@@ -6550,7 +6557,7 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
     // ✅ Generar solo el ID del pedido en la URL del botón
     $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente);
     //$urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae); // Solo pasamos el número de pedido  
-    $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
+    $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa) . "&claveCliente=" . urlencode($claveCliente);
 
 
     // ✅ Construir la lista de productos
@@ -6658,7 +6665,7 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
 
     return $result;
 }
-function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData)
+function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente)
 {
     // Crear una instancia de la clase clsMail
     $mail = new clsMail();
@@ -6690,9 +6697,9 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
     //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
-    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito);
+    $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente);
 
-    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae);
+    $urlRechazar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=rechazar&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&claveCliente=" . urlencode($claveCliente);
 
     // Construcción del cuerpo del correo
     $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
@@ -9370,296 +9377,69 @@ switch ($funcion) {
             // Formatear los datos
             $formularioData = formatearFormulario($formularioData);
             $partidasData = formatearPartidas($partidasData);
-            if ($tipoOperacion === 'alta') {
-                // Lógica para alta de pedido
-                $resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
-                if ($resultadoValidacion['success']) {
+            // Lógica para alta de pedido
+            $resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
+            if ($resultadoValidacion['success']) {
 
-                    $conCredito = $formularioData['conCredito'];
-                    // Calcular el total del pedido
-                    $totalPedido = calcularTotalPedido($partidasData);
-                    $clienteId = $formularioData['cliente'];
-                    $clave = formatearClaveCliente($clienteId);
-
-                    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae); //ROLLBACK
-                    actualizarControl2($conexionData, $claveSae); //ROLLBACK
-
-                    //$CVE_BITA = insertarBita($conexionData, $claveSae, $formularioData, $partidasData);
-                    //actualizarControl1($conexionData, $claveSae);
-
-                    if ($conCredito === 'S') {
-                        ///Inicio
-                        $conn = sqlsrv_connect($conexionData['host'], [
-                            "Database" => $conexionData['nombreBase'],
-                            "UID"      => $conexionData['usuario'],
-                            "PWD"      => $conexionData['password'],
-                            "CharacterSet"         => "UTF-8",
-                            "TrustServerCertificate" => true
-                        ]);
-                        if (!$conn) {
-                            throw new Exception("No pude conectar a la base de datos");
-                        }
-                        // Inicio transacción:
-                        sqlsrv_begin_transaction($conn);
-                        try {
-                            // Validar crédito del cliente
-                            $validacionCredito = validarCreditoCliente($conexionData, $clave, $totalPedido, $claveSae, $conn);
-                            if ($validacionCredito['success']) {
-                                $credito = '0';
-                            } else {
-                                $credito = '1';
-                            }
-                            $validarSaldo = validarSaldo($conexionData, $clave, $claveSae, $conn);
-                            //$validarSaldo = 1;
-                            $estatus = "E";
-                            /*$estatus = "E";
-                            $validarSaldo = 0;
-                            $credito = 0;*/
-                            $FOLIO = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito); //ROLLBACK
-                            //guardarPedidoClib($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO);
-                            //actualizarFolio($conexionData, $claveSae, $conn); //ROLLBACK
-                            //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
-                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $FOLIO); //ROLLBACK
-                            actualizarApartados($conexionData, $partidasData, $conn);
-                            actualizarInventario($conexionData, $partidasData, $conn); //ROLLBACK
-                            if ($validarSaldo == 0 && $credito == 0) {
-                                $idEnvios = guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData);
-                                $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
-                                validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO, $idEnvios);
-                                sqlsrv_commit($conn);
-                                sqlsrv_close($conn);
-                                exit();
-                            } else {
-                                $idEnvios = guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData);
-                                guardarPedidoAutorizado($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $conn, $FOLIO, $idEnvios);
-                                $resultado = enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn, $FOLIO);
-                                header('Content-Type: application/json; charset=UTF-8');
-                                echo json_encode([
-                                    'success' => false,
-                                    'autorizacion' => true,
-                                    'message' => 'El pedido se completó pero debe ser autorizado.',
-                                ]);
-                                sqlsrv_commit($conn);
-                                sqlsrv_close($conn);
-                                exit();
-                            }
-                        } catch (Exception $e) {
-                            // Si falla cualquiera, deshacemos TODO:
-                            sqlsrv_rollback($conn);
-                            sqlsrv_close($conn);
-                            //return ['success' => false, 'message' => $e->getMessage()];
-                            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-                        }
-                        ///Fin
-                    } else {
-                        ///Inicio
-                        $conn = sqlsrv_connect($conexionData['host'], [
-                            "Database" => $conexionData['nombreBase'],
-                            "UID"      => $conexionData['usuario'],
-                            "PWD"      => $conexionData['password'],
-                            "CharacterSet"         => "UTF-8",
-                            "TrustServerCertificate" => true
-                        ]);
-                        if (!$conn) {
-                            throw new Exception("No pude conectar a la base de datos");
-                        }
-                        // Inicio transacción:
-                        sqlsrv_begin_transaction($conn);
-                        try {
-                            /*echo json_encode([
-                            'success' => false,
-                            'message' => 'No se Puede Realizar Pedidos a Clientes sin Credito',
-                            ]);
-                            die();*/
-                            //$anticipo = buscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
-                            //$anticipo = NObuscarAnticipo($conexionData, $formularioData, $claveSae, $partidasData);
-
-                            /*$anticipo = [
-                            'success' => $true,
-                            'sinFondo' => $fondo,
-                            'IMPORTE' => $IMPORTE,
-                            'subTotal' => $totalPedido,
-                            'Vencimiento' => $fechaVencimiento,
-                            'Referencia' => $REFER,
-                            'NO_FACTURA' => $NO_FACTURA
-                            ];*/
-                            /* $anticipo['success'] = false;
-                            $anticipo['sinFondo'] = true;
-                            
-                            if ($anticipo['success']) {
-                                eliminarCxc($conexionData, $anticipo, $claveSae, $conn);
-                                $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
-                                //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
-                                guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
-                                actualizarInventario($conexionData, $partidasData, $conn);
-                                comanda($formularioData, $partidasData, $claveSae, $noEmpresa, $conexionData, $firebaseProjectId, $firebaseApiKey, $folio, $envioData, $conn);
-                                //remision($conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio);
-                                crearRemision($conexionData, $folio, $claveSae, $noEmpresa, $formularioData['vendedor'], $conn);
-                                //eliminarCxCBanco($anticipo, $claveSae, $formularioData, $conn);
-                                // Respuesta de éxito
-                                header('Content-Type: application/json; charset=UTF-8');
-                                echo json_encode([
-                                    'success' => true,
-                                    'message' => 'El pedido se completó correctamente. CXC eliminado.',
-                                ]);
-                                sqlsrv_commit($conn);
-                                sqlsrv_close($conn);
-                                exit();
-                            } elseif ($anticipo['sinFondo']) {*/
-                            //No tiene fondos
-                            $estatus = "E";
-                            $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
-                            $idEnvios = guardarDatosPedido($envioData, $folio, $noEmpresa, $formularioData);
-                            //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
-                            guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
-                            actualizarApartados($conexionData, $partidasData, $conn);
-                            actualizarInventario($conexionData, $partidasData, $conn);
-                            $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio, $conn);
-                            guardarPago($idEnvios, $conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn);
-                            validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn);
-                            //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
-                            sqlsrv_commit($conn);
-                            sqlsrv_close($conn);
-                            exit();
-                            /*} elseif ($anticipo['fechaVencimiento']) {
-                                header('Content-Type: application/json; charset=UTF-8');
-                                echo json_encode([
-                                    'success' => false,
-                                    'message' => 'Anticipo vencido.',
-                                ]);
-                                sqlsrv_commit($conn);
-                                sqlsrv_close($conn);
-                                exit();
-                            } else {
-                                header('Content-Type: application/json; charset=UTF-8');
-                                echo json_encode([
-                                    'success' => false,
-                                    'message' => 'Hubo un error inesperado.',
-                                ]);
-                                sqlsrv_commit($conn);
-                                sqlsrv_close($conn);
-                                exit();
-                            }*/
-                        } catch (Exception $e) {
-                            // Si falla cualquiera, deshacemos TODO:
-                            sqlsrv_rollback($conn);
-                            sqlsrv_close($conn);
-                            return ['success' => false, 'message' => $e->getMessage()];
-                        }
-                        //exit();
-                    }
-                } else {
-                    // Error de existencias
-                    echo json_encode([
-                        'success' => false,
-                        'exist' => true,
-                        'message' => $resultadoValidacion['message'],
-                        'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
-                    ]);
-                }
-                exit(); //borar
-            } elseif ($tipoOperacion === 'editar') {
-                /*echo json_encode([
-                            'success' => false,
-                            'message' => 'No se pudo actualizar el pedido.',
-                        ]);
-                die();*/
+                $conCredito = $formularioData['conCredito'];
+                // Calcular el total del pedido
+                $totalPedido = calcularTotalPedido($partidasData);
                 $clienteId = $formularioData['cliente'];
                 $clave = formatearClaveCliente($clienteId);
-                $dataCredito = json_decode(validarCreditos($conexionData, $clave), true);
 
-                if ($dataCredito['success']) {
-                    $conCredito = "S";
-                } else {
-                    $conCredito = "N";
+                $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae); //ROLLBACK
+                actualizarControl2($conexionData, $claveSae); //ROLLBACK
+
+                //$CVE_BITA = insertarBita($conexionData, $claveSae, $formularioData, $partidasData);
+                //actualizarControl1($conexionData, $claveSae);
+
+
+                ///Inicio
+                $conn = sqlsrv_connect($conexionData['host'], [
+                    "Database" => $conexionData['nombreBase'],
+                    "UID"      => $conexionData['usuario'],
+                    "PWD"      => $conexionData['password'],
+                    "CharacterSet"         => "UTF-8",
+                    "TrustServerCertificate" => true
+                ]);
+                if (!$conn) {
+                    throw new Exception("No pude conectar a la base de datos");
                 }
-                $pedidoId = $formularioData['numero'];
-                $resultadoValidacion = validarExistenciasEdicionPedido($pedidoId, $conexionData, $claveSae, $partidasData);
-                /*var_dump($resultadoValidacion);
-                die();*/
-                //$resultadoValidacion = validarExistencias($conexionData, $partidasData, $claveSae);
-                if ($resultadoValidacion['success']) {
-
-                    // Calcular el total del pedido
-                    $totalPedido = calcularTotalPedido($partidasData);
-
-                    // Validar crédito del cliente
-                    $validacionCredito = validarCreditoClienteE($conexionData, $clave, $totalPedido, $claveSae);
-
-                    if ($validacionCredito['success']) {
-                        $credito = '0';
-                    } else {
-                        $credito = '1';
-                    }
-
-                    $validarSaldo = validarSaldoE($conexionData, $clave, $claveSae);
-
-                    /*if ($validarSaldo == 0 && $credito == 0) {
-                        $estatus = "E";
-                    } else if ($validarSaldo == 1 || $credito == 1) {
-                        $estatus = "C";
-                    }*/
+                // Inicio transacción:
+                sqlsrv_begin_transaction($conn);
+                try {
                     $estatus = "E";
-                    /*$estatus = "E";
-                    $validarSaldo = 0;
-                    $credito = 0;*/
-
-                    // Lógica para edición de pedido
-                    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae); //ROLLBACK
-                    actualizarControl2($conexionData, $claveSae); //ROLLBACK
-
-                    $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus, $DAT_ENVIO); //ROLLBACK
-
-                    if ($resultadoActualizacion['success']) {
-                        //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
-                        if ($validarSaldo === 0 && $credito == 0) {
-                            $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero']);
-                            $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa, $formularioData['observaciones']);
-
-                            validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito, $id);
-
-                            exit();
-                        } else {
-                            //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
-                            $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa, $formularioData['observaciones']);
-                            if ($conCredito == "S") {
-                                guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData, $id);
-                                $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito);
-                            } else {
-                                $rutaPDF = generarPDFPE($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero']);
-                                validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito, $id);
-                            }
-                            header('Content-Type: application/json; charset=UTF-8');
-                            echo json_encode([
-                                'success' => false,
-                                'autorizacion' => true,
-                                'message' => 'El pedido se completó pero debe ser autorizado.',
-                            ]);
-                            exit();
-                        }
-                    } else {
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'No se pudo actualizar el pedido.',
-                        ]);
-                    }
-                } else {
-                    // Error de existencias
-                    echo json_encode([
-                        'success' => false,
-                        'exist' => true,
-                        'message' => $resultadoValidacion['message'],
-                        'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
-                    ]);
+                    $folio = guardarPedido($conexionData, $formularioData, $partidasData, $claveSae, $estatus, $DAT_ENVIO, $conn, $conCredito);
+                    $idEnvios = guardarDatosPedido($envioData, $folio, $noEmpresa, $formularioData);
+                    //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData); //ROLLBACK
+                    guardarPartidas($conexionData, $formularioData, $partidasData, $claveSae, $conn, $folio);
+                    actualizarApartados($conexionData, $partidasData, $conn);
+                    actualizarInventario($conexionData, $partidasData, $conn);
+                    $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio, $conn);
+                    guardarPago($idEnvios, $conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn);
+                    validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn);
+                    //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
+                    sqlsrv_commit($conn);
+                    sqlsrv_close($conn);
+                    exit();
+                } catch (Exception $e) {
+                    // Si falla cualquiera, deshacemos TODO:
+                    sqlsrv_rollback($conn);
+                    sqlsrv_close($conn);
+                    return ['success' => false, 'message' => $e->getMessage()];
                 }
-                //exit(); //borar
+                //exit();
+
             } else {
-                // Operación desconocida
+                // Error de existencias
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Operación no reconocida.',
+                    'exist' => true,
+                    'message' => $resultadoValidacion['message'],
+                    'productosSinExistencia' => $resultadoValidacion['productosSinExistencia'],
                 ]);
             }
+            exit(); //borar
         } else {
             echo json_encode([
                 'success' => false,
