@@ -993,6 +993,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
             $numeroBandera = 1;
         }
         //Respuestas
+
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
             echo json_encode([
@@ -1134,8 +1135,7 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios)
-{
+function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios){
     //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 

@@ -541,6 +541,21 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="enviarWhats">Enviar WhatsApp<input type="checkbox" name="enviarWhats" id="enviarWhats" style="width:250px;" checked disabled></label>
                                 <label for="enviarCorreo">Enviar Correo<input type="checkbox" name="enviarCorreo" id="enviarCorreo" style="width:250px;" checked disabled></label>
                             </div>
+                            <div class="container my-5">
+                                <!-- Campo de entrada principal (simulado) -->
+                                <input type="hidden" id="enviar">
+
+                                <!-- Botón para abrir el modal de PDFs -->
+                                <div class="pdf-button-container">
+                                    <label for="enviar" class="me-2">Agregar orden de compra</label>
+                                    <button type="button" id="btnSubirPDF" class="btn-like-subirpdf"
+                                        data-bs-toggle="modal" data-bs-target="#modalPDF" onclick="abrirModalPdf()">
+                                        <i class="bx bx-upload"></i> Subir PDF
+                                    </button>
+                                </div>
+                                <!-- cerca del botón "Subir PDF" -->
+                                <div id="resumenPDFs" class="mt-2 d-flex flex-wrap gap-2"></div>
+                            </div>
                             <div class="form-element" style="display: none;">
                                 <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
                                 <input type="text" name="codigoPostal" id="codigoPostal"
@@ -748,15 +763,15 @@ if (isset($_SESSION['usuario'])) {
                                         <h6 class="fw-bold">Detalles de la dirección</h6>
                                         <div class="mb-3">
                                             <label for="direccion1Contacto" class="form-label">Línea 1 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength = "80" required>
+                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength="80" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="direccion2Contacto" class="form-label">Línea 2 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion2Contacto" class="form-control" maxlength = "50" required>
+                                            <input type="text" id="direccion2Contacto" class="form-control" maxlength="50" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="codigoContacto" class="form-label">Código Postal <span class="text-danger">*</span></label>
-                                            <input type="text" id="codigoContacto" class="form-control" maxlength = "5" required>
+                                            <input type="text" id="codigoContacto" class="form-control" maxlength="5" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>
@@ -1051,8 +1066,64 @@ if (isset($_SESSION['usuario'])) {
                 <div class="modal-footer">
                     <!-- <button type="button" class=" btn-cancel" onclick="cerrarModal()">C</button> -->
                 </div>
+                <!-- Modal para subir PDFs -->
+                <div id="modalPDF" class="modal fade" tabindex="-1" aria-hidden="true"> <!-- data-bs-backdrop="false" -->
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content pdf-modal-content">
+                            <div class="modal-header pdf-modal-header-style">
+                                <h5 class="modal-title">Subir Archivos PDF</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="formPDF" enctype="multipart/form-data">
+                                    <!-- 🔹 NUEVO: el front (subirPDFs) leerá este valor -->
+                                    <input type="hidden" id="pedidoId" name="pedidoId"
+                                        value="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>">
+
+                                    <div class="pdf-mb-3">
+                                        <label class="form-label">Selecciona de 1 a 4 archivos PDF (Máximo 5MB cada uno)</label>
+                                        <div class="pdf-file-input-container">
+                                            <button type="button" class="btn pdf-btn-primary pdf-custom-file-btn" id="btnAgregarPDF">
+                                                <i class="bi bi-plus-circle"></i> Agregar PDF
+                                            </button>
+                                            <!-- 🔹 CORREGIDO: añadimos name="pdfs[]" para el fallback del JS/PHP -->
+                                            <input type="file" id="pdfFiles" name="pdfs[]" class="form-control d-none"
+                                                accept=".pdf,application/pdf" multiple>
+                                        </div>
+                                        <div class="pdf-instruction-text">
+                                            Puedes seleccionar múltiples archivos manteniendo presionada la tecla Ctrl
+                                        </div>
+                                    </div>
+                                    <!-- Sección de archivos seleccionados -->
+                                    <div class="pdf-selected-files" id="selectedFilesContainer">
+                                        <div class="pdf-header-info">
+                                            <h6>Archivos seleccionados</h6>
+                                            <span class="pdf-file-status" id="contadorPDFs">0/4</span>
+                                        </div>
+                                        <div id="selectedFilesList"><!-- Los archivos seleccionados aparecerán aquí --></div>
+                                    </div>
+                                    <!-- Previews (oculta) -->
+                                    <div id="pdfPreviews" class="pdf-mt-3 d-none">
+                                        <div class="pdf-empty-state" id="emptyState">
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                            <p>No hay archivos seleccionados</p>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <!-- 🔹 Respaldo opcional del pedidoId en el botón -->
+                                <button type="button" class="btn pdf-btn-primary" id="guardarPDFs"
+                                    data-pedido-id="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>"
+                                    disabled>Guardar PDFs</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Scripts de JS para el funcionamiento del sistema -->
@@ -1062,7 +1133,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/ventas.js"></script>
     <script src="JS/altaPedido.js"></script>
-    <!--<script src="JS/clientes.js"></script>-->
+    <script src="JS/pdfs.js"></script>
 
     <!-- Funcion JS para obtener la fecha actual-->
     <script>
@@ -1366,6 +1437,62 @@ if (isset($_SESSION['usuario'])) {
                 $(this).hide(); // Oculta el botón "X"
             });
         });
+    </script>
+    <script>
+        (function() {
+            const $btnGuardar = document.getElementById('guardarPedido'); // ← TU botón verde
+            const $formPedido = document.getElementById('formPedido') || document.querySelector('form');
+            const $metaPDFInput = document.getElementById('ordenCompraMeta');
+
+            // Usa la función global subirPDFs(selectedFiles) ya definida en pdfs.js
+            async function subirSeleccionSiAplica() {
+                const files = (window.MDPDFs && window.MDPDFs.getSelected) ? window.MDPDFs.getSelected() : [];
+                if (!files.length) return null; // no hay PDFs
+
+                // Sube AQUÍ (NO en el modal). Esto llama a tu enviarHistorico.php internamente.
+                const resp = await subirPDFs(files);
+                return resp || null;
+            }
+
+            $btnGuardar?.addEventListener('click', async function(e) {
+                // si hay form y lo envías por submit, bloquea mientras subimos
+                if ($formPedido) e.preventDefault();
+
+                try {
+                    Swal.fire({
+                        title: 'Guardando…',
+                        allowOutsideClick: false,
+                        didOpen: Swal.showLoading,
+                        returnFocus: false
+                    });
+
+                    // 1) Subir PDFs seleccionados (si hay)
+                    const resultadoPDFs = await subirSeleccionSiAplica();
+
+                    // 2) Pasa metadatos al backend (opcional: ajusta a lo que devuelva tu PHP)
+                    if ($metaPDFInput) {
+                        $metaPDFInput.value = JSON.stringify(resultadoPDFs || {});
+                    }
+
+                    // 3) Guardado general (tu flujo actual). Si es form normal:
+                    if ($formPedido) $formPedido.submit();
+                    // Si tú guardas por AJAX, llama aquí tu función que guarda en Firestore
+                    // await guardarEnFirestore(...);
+
+                    // 4) Limpia selección temporal del modal
+                    window.MDPDFs?.reset?.();
+
+                } catch (err) {
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al guardar',
+                        text: (err && err.message) || String(err),
+                        returnFocus: false
+                    });
+                }
+            });
+        })();
     </script>
 </body>
 

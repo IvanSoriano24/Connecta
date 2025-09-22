@@ -663,8 +663,50 @@ function escapeHtml(str) {
       }[m])
   );
 }
-//////////////////////////////////
+async function subirPendientesDespuesDeLinea(claveLinea) {
+  const files = (window.MDPDFs?.getSelected?.() || []);
+  if (!files.length) return null;
 
+  const res = await subirPDFsLineas(files); // <- ya arma FormData con noInventario
+  // Feedback al usuario:
+  Swal.fire({ icon:'success', title:'Archivos cargados', text:'Se adjuntaron correctamente a la línea.' });
+  return res;
+}
+function subirPDFsLineas(selectedFiles, meta = {}) {
+  const fd = new FormData();
+  fd.append('numFuncion', 11);
+
+  const noInventario =
+    document.getElementById('noInventario')?.value ||
+    document.querySelector('[name="noInventario"]')?.value ||
+    window.noInventario || '';
+
+  if (!noInventario) throw new Error('Falta el noInventario en el front.');
+  fd.append('noInventario', noInventario);
+
+  // meta opcional
+  if (meta.tipo)   fd.append('tipo', String(meta.tipo));         // 'linea' | 'producto'
+  if (meta.linea)  fd.append('linea', String(meta.linea));
+  if (meta.cve_art)fd.append('cve_art', String(meta.cve_art));
+
+  const files = Array.from(selectedFiles || []);
+  if (!files.length) throw new Error('No hay archivos seleccionados.');
+
+  for (const f of files) fd.append('pdfs[]', f, f.name);
+
+  return fetch("../Servidor/PHP/inventario.php", { method: 'POST', body: fd })
+    .then(async (r) => {
+      const text = await r.text();
+      let data = null; try { data = text ? JSON.parse(text) : null; } catch {}
+      if (!r.ok) {
+        const msg = (data && (data.message || data.error || data.msg)) || `HTTP ${r.status} ${r.statusText}`;
+        throw new Error(msg + (text && !data ? ` · body: ${text.slice(0,200)}` : ''));
+      }
+      if (data && (data.success === true || data.ok === true)) return data;
+      throw new Error((data && (data.message || data.error || data.msg)) || 'Respuesta JSON inesperada del servidor');
+    });
+}
+//////////////////////////////////
 $(document).ready(function () {
   initInventarioUI();
   let noInventario = null;
@@ -848,7 +890,8 @@ function guardarLinea(finalizar = false) {
             document.getElementById("resumenInventario")
           );
           modal.hide();
-          //comparararConteos(res.claveLinea);
+          subirPDFsLineas(window.MDPDFs.getSelected(), { tipo:'linea', linea: res.claveLinea });
+          window.MDPDFs.reset();
         });
       } else {
         Swal.fire(
@@ -872,6 +915,7 @@ function guardarLinea(finalizar = false) {
 $("#btnNext").click(function () {
   abrirModal();
 });
+
 /*$("#finalizarInventarioLinea").click(function () {
     Swal.fire({
         title: "¿Estás seguro?",

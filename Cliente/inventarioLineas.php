@@ -47,6 +47,7 @@ session_destroy(); */
     <link rel="stylesheet" href="CSS/style.css">
 
     <link rel="stylesheet" href="CSS/selec.css">
+    <link rel="stylesheet" href="CSS/subirInventario.css">
 
     <title>MDConnecta</title>
     <link rel="icon" href="SRC/logoMDConecta.png" />
@@ -540,11 +541,70 @@ session_destroy(); */
             </div>
         </div>
     </div>
+    <!-- Modal para subir PDFs -->
+    <div id="modalPDF" class="modal fade" tabindex="-1" aria-hidden="true"> <!-- data-bs-backdrop="false" -->
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content pdf-modal-content">
+                <div class="modal-header pdf-modal-header-style">
+                    <h5 class="modal-title">Subir Archivos PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formPDF" enctype="multipart/form-data">
+                        <!-- 🔹 NUEVO: el front (subirPDFs) leerá este valor -->
+                        <input type="hidden" id="pedidoId" name="pedidoId"
+                            value="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>">
+
+                        <div class="pdf-mb-3">
+                            <label class="form-label">Selecciona de 1 a 4 archivos PDF (Máximo 5MB cada uno)</label>
+                            <div class="pdf-file-input-container">
+                                <!-- Botón accesible que abre el input real -->
+                                <label for="pdfFiles" class="btn pdf-btn-primary pdf-custom-file-btn" id="btnAgregarPDF">
+                                    <i class="bi bi-plus-circle"></i> Agregar archivo(s)
+                                </label>
+
+                                <!-- Input REAL (oculto de forma accesible; no uses d-none) -->
+                                <input type="file" id="pdfFiles" name="pdfs[]" class="visually-hidden"
+                                    accept="image/*,.pdf,application/pdf" multiple>
+                            </div>
+
+                            <div class="pdf-instruction-text">
+                                Puedes seleccionar múltiples archivos manteniendo presionada la tecla Ctrl
+                            </div>
+                        </div>
+                        <!-- Sección de archivos seleccionados -->
+                        <div class="pdf-selected-files" id="selectedFilesContainer">
+                            <div class="pdf-header-info">
+                                <h6>Archivos seleccionados</h6>
+                                <span class="pdf-file-status" id="contadorPDFs">0/4</span>
+                            </div>
+                            <div id="selectedFilesList"><!-- Los archivos seleccionados aparecerán aquí --></div>
+                        </div>
+                        <!-- Previews (oculta) -->
+                        <div id="pdfPreviews" class="pdf-mt-3 d-none">
+                            <div class="pdf-empty-state" id="emptyState">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                                <p>No hay archivos seleccionados</p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <!-- 🔹 Respaldo opcional del pedidoId en el botón -->
+                    <button type="button" class="btn pdf-btn-primary" id="guardarPDFs"
+                        data-pedido-id="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>"
+                        disabled>Guardar PDFs</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <img id="logoInventario" src="SRC/imagen-small.png" style="display:none;">
 
     <!-- CONTENT -->
 
     <!-- JS Para la confirmacion empresa -->
+    <script src="JS/imagenesInventario.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>
@@ -557,7 +617,6 @@ session_destroy(); */
         const nombreUsuario = "<?php echo $_SESSION['usuario']['nombre'] . ' ' . $_SESSION['usuario']['apellido']; ?>";
         const usuarioId = "<?php echo $_SESSION['usuario']['id']; ?>";
     </script>
-
     <script>
         (function() {
             const $linea = $('#lineaSelect');
@@ -577,20 +636,24 @@ session_destroy(); */
                 loadArticulos(linea);
                 loadGuardados(linea);
             });
+
             function resetUI() {
                 $btnNext.prop('disabled', true);
                 $articulos.addClass('d-none').empty();
                 $mensaje.removeClass('d-none').text('Selecciona una línea para ver sus artículos.');
             }
+
             function showLoading() {
                 $mensaje.addClass('d-none');
                 $articulos.removeClass('d-none').html(skeleton());
             }
+
             function showEmpty(text) {
                 $btnNext.prop('disabled', true);
                 $articulos.addClass('d-none').empty();
                 $mensaje.removeClass('d-none').text(text || 'No hay artículos para esta línea.');
             }
+
             function showError(xhr) {
                 console.error('Error AJAX inventario líneas:', xhr);
                 showEmpty('Ocurrió un error al cargar los artículos. Intenta de nuevo.');
@@ -637,7 +700,6 @@ session_destroy(); */
             //Mostar productos guardados de la linea
             function loadGuardados(linea) {
                 const noInventario = document.getElementById("noInventario").value;
-
                 $.ajax({
                         url: '../Servidor/PHP/inventario.php',
                         method: 'GET',
@@ -661,6 +723,7 @@ session_destroy(); */
                         console.error('loadGuardados error:', err);
                     });
             }
+
             function applyGuardadosToUI(res) {
                 const {
                     locked,
@@ -834,11 +897,8 @@ session_destroy(); */
                         });
                         $card.find('.article-total').text(sum);
                     }
-
-
                     // Disparar recalc al cambiar cualquiera de los dos inputs
                     $card.on('input change', '.qty-input-corrugado, .qty-input-cajas, .qty-input-sueltos', recalc);
-
                     $card.on('click', '.btn-add-row', function() {
                         const idx = $card.find('.row-line').length + 1;
                         const row = `
@@ -879,7 +939,6 @@ session_destroy(); */
                     recalc();
                 });
             }
-            /****/
             // Delegación: click en Guardar producto
             $articulos.on('click', '.btn-save-article', async function() {
                 const $btn = $(this);
@@ -939,7 +998,17 @@ session_destroy(); */
                     if (!resp || resp.success !== true) {
                         throw new Error(resp?.message || 'Error de servidor');
                     }
-
+                    ////////////////////////////////////////////////////////////////
+                    const files = window.MDPDFs?.getSelected?.() || [];
+                    if (files.length) {
+                        await subirPDFsLineas(files, {
+                            tipo: 'producto',
+                            linea,
+                            cve_art: String(code)
+                        });
+                        window.MDPDFs?.reset?.();
+                    }
+                    ////////////////////////////////////////////////////////////////
                     markSaved($card, resp);
                     Swal.fire({
                         icon: 'success',
@@ -958,6 +1027,31 @@ session_destroy(); */
                 } finally {
                     toggleSaving($btn, false);
                 }
+            });
+            // Cuando el usuario pulsa "Guardar Imágenes" en una tarjeta
+            $articulos.on('click', '.btn-save-image', function() {
+                const $card = $(this).closest('.article-card');
+                const code = $card.data('articulo') || $.trim($card.find('.code').text());
+                const linea = $('#lineaSelect').val();
+
+                if (!linea) return Swal.fire({
+                    icon: 'warning',
+                    title: 'Selecciona una línea'
+                });
+                if (!code) return Swal.fire({
+                    icon: 'warning',
+                    title: 'No se detectó la clave del artículo'
+                });
+
+                // 1) Fija destino → esto limpia la selección si cambió de artículo
+                window.MDPDFs?.setTarget?.({
+                    tipo: 'producto',
+                    linea,
+                    cve_art: String(code)
+                });
+
+                // 2) Abre el modal
+                abrirModalPdf();
             });
             // Serializa una tarjeta a objeto listo para guardar
             function serializeArticleCard($card, meta) {
@@ -1023,6 +1117,18 @@ session_destroy(); */
                     $status.hide().text('');
                 }
             }
+
+            function toggleImage($btn, saving) {
+                const $status = $btn.closest('.rows').find('.save-status');
+                if (saving) {
+                    $btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Guardando...');
+                    $status.text('Guardando…').show();
+                } else {
+                    $btn.prop('disabled', false).html('<i class="bx bx-save"></i> Guardar producto');
+                    $status.hide().text('');
+                }
+            }
+
             function markSaved($card, resp) {
                 const $badge = $card.find('.article-total');
                 $badge.removeClass('text-primary').addClass('text-success');
@@ -1050,10 +1156,13 @@ session_destroy(); */
                     <span>Cajas sueltas:</span>
                     <input type="number" class="form-control qty-input-sueltos" value="0" min="0" step="1">
                     </label>
+
+                    <label class="field label">
+                    <span>Total:</span>
+                    <input type="number" class="form-control qty-input-total" value="0" min="0" step="1">
+                    </label>
                 </div>
                 `).join('');
-
-
                 return `
                         <section class="article-card spacious" data-articulo="${escapeAttr(item.codigo)}" data-exist="${item.exist}">
                         <header class="article-head article-head--spaced">
@@ -1069,6 +1178,9 @@ session_destroy(); */
                                 <i class="bx bx-save"></i> Guardar producto
                             </button>
                             <span class="save-status ms-2 text-muted" style="display:none;"></span>
+                            <button type="button" class="btn btn-success btn-save-image">
+                                <i class="bi bi-image"></i> Guardar Imagenes
+                            </button>
                             </div>
                         </header>
 
@@ -1104,7 +1216,6 @@ session_destroy(); */
                 </div>
                 `;
             }
-
             // Helpers
             function escapeHtml(str) {
                 return String(str ?? '').replace(/[&<>"']/g, m => ({
@@ -1119,6 +1230,63 @@ session_destroy(); */
             function escapeAttr(str) {
                 return escapeHtml(str).replace(/"/g, '&quot;');
             }
+        })();
+    </script>
+
+    <script>
+        (function() {
+            const $btnGuardar = document.getElementById('guardarPedido'); // ← TU botón verde
+            const $formPedido = document.getElementById('formPedido') || document.querySelector('form');
+            const $metaPDFInput = document.getElementById('ordenCompraMeta');
+
+            // Usa la función global subirPDFs(selectedFiles) ya definida en pdfs.js
+            async function subirSeleccionSiAplica() {
+                const files = (window.MDPDFs && window.MDPDFs.getSelected) ? window.MDPDFs.getSelected() : [];
+                if (!files.length) return null; // no hay PDFs
+
+                // Sube AQUÍ (NO en el modal). Esto llama a tu enviarHistorico.php internamente.
+                const resp = await subirPDFsLineas(files);
+                return resp || null;
+            }
+
+            $btnGuardar?.addEventListener('click', async function(e) {
+                // si hay form y lo envías por submit, bloquea mientras subimos
+                if ($formPedido) e.preventDefault();
+
+                try {
+                    Swal.fire({
+                        title: 'Guardando…',
+                        allowOutsideClick: false,
+                        didOpen: Swal.showLoading,
+                        returnFocus: false
+                    });
+
+                    // 1) Subir PDFs seleccionados (si hay)
+                    const resultadoPDFs = await subirSeleccionSiAplica();
+
+                    // 2) Pasa metadatos al backend (opcional: ajusta a lo que devuelva tu PHP)
+                    if ($metaPDFInput) {
+                        $metaPDFInput.value = JSON.stringify(resultadoPDFs || {});
+                    }
+
+                    // 3) Guardado general (tu flujo actual). Si es form normal:
+                    if ($formPedido) $formPedido.submit();
+                    // Si tú guardas por AJAX, llama aquí tu función que guarda en Firestore
+                    // await guardarEnFirestore(...);
+
+                    // 4) Limpia selección temporal del modal
+                    window.MDPDFs?.reset?.();
+
+                } catch (err) {
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al guardar',
+                        text: (err && err.message) || String(err),
+                        returnFocus: false
+                    });
+                }
+            });
         })();
     </script>
 </body>
