@@ -11,7 +11,7 @@ ini_set('display_errors', '0');
  * Igual que tu flujo actual (multipart con token de descarga), pero hace las subidas en PARARELO.
  * Usa curl_multi para disparar todas las peticiones a GCS a la vez (o casi a la vez).
  */
-function subirPDFsPorNumeroConcurrente(string $saPath, string $bucketName, ?array $filesArray, ?string $numero, int $maxConcurrent = 4): array
+function subirPDFsPorNumeroConcurrente(string $saPath, string $bucketName, ?array $filesArray, ?string $numero, int $maxConcurrent = 4, $cve_cliente): array
 {
     if (!extension_loaded('curl'))    throw new Exception('PHP sin extensión cURL');
     if (!extension_loaded('openssl')) throw new Exception('PHP sin extensión OpenSSL');
@@ -37,7 +37,8 @@ function subirPDFsPorNumeroConcurrente(string $saPath, string $bucketName, ?arra
 
         $origName   = $names[$i] ?? 'archivo.pdf';
         $safeName   = preg_replace('/[^A-Za-z0-9._-]/', '_', $origName);
-        $objectName = "Cliente/OrdenCompra/Folio/{$numero}/{$safeName}";
+        //$objectName = "Cliente/OrdenCompra/Folio/{$numero}/{$safeName}";
+        $objectName = "Cliente/OrdenCompra/{$cve_cliente}/{$numero}/{$safeName}";
         $dlTok      = uuidv4();
 
         $meta = [
@@ -176,7 +177,7 @@ function gcsUploadMultipart(string $bucket, string $objectName, string $filePath
  * Se ajusta a tu lógica: carpeta por **numero** (no pedidoId).
  * Retorna: ['success'=>true, 'count'=>N, 'files'=>[ {name,path,size,downloadURL,gcs} ]]
  */
-function subirPDFsPorNumero(string $saPath, string $bucketName, ?array $filesArray, ?string $numero): array
+function subirPDFsPorNumero(string $saPath, string $bucketName, ?array $filesArray, ?string $numero, $cve_cliente): array
 {
     if (!extension_loaded('curl'))    throw new Exception('PHP sin extensión cURL');
     if (!extension_loaded('openssl')) throw new Exception('PHP sin extensión OpenSSL');
@@ -199,7 +200,8 @@ function subirPDFsPorNumero(string $saPath, string $bucketName, ?array $filesArr
         $safeName   = preg_replace('/[^A-Za-z0-9._-]/', '_', $origName);
 
         // 👇 Directorio según tu lógica (usa "numero")
-        $objectName = "Cliente/OrdenCompra/Folio/{$numero}/{$safeName}";;
+        //$objectName = "Cliente/OrdenCompra/Folio/{$numero}/{$safeName}";
+        $objectName = "Cliente/OrdenCompra/{$cve_cliente}/{$numero}/{$safeName}";
 
         // Token para URL pública estilo Firebase
         $dlTok = uuidv4();
@@ -374,16 +376,18 @@ try {
                 error_reporting(E_ALL);
 
                 // 2) TU CONFIG
-                $saPath     = __DIR__ . '/keys/firebase-adminsdk.json';
+                //$saPath     = __DIR__ . '../../Cliente/JS/keys/firebase-adminsdk.json';
+                $saPath = __DIR__.'/../../Cliente/keys/firebase-adminsdk.json'; // <-- verifica la ruta
                 $bucketName = 'mdconnecta-4aeb4.firebasestorage.app';
 
                 try {
                     // 3) ENTRADA SEGÚN TU LÓGICA
                     $numero   = $_POST['numero'] ?? null;                  // tu front manda "numero"
+                    $cve_cliente   = $_POST['cliente'] ?? null;
                     $filesArr = $_FILES['pdfs'] ?? ($_FILES['pdfs[]'] ?? null);
 
                     // 4) LLAMADA A TU FUNCIÓN
-                    $res = subirPDFsPorNumero($saPath, $bucketName, $filesArr, $numero);
+                    $res = subirPDFsPorNumero($saPath, $bucketName, $filesArr, $numero, $cve_cliente);
 
                     // 5) RESPUESTA JSON + corte duro
                     http_response_code(200);
@@ -398,10 +402,11 @@ try {
                 try {
                     // Tu front manda "numero"
                     $numero   = $_POST['numero'] ?? null;
+                    $cve_cliente   = $_POST['cliente'] ?? null;
                     $filesArr = $_FILES['pdfs'] ?? ($_FILES['pdfs[]'] ?? null);
 
                     // ⬇️ ÚNICO CAMBIO: usa la versión concurrente
-                    $res = subirPDFsPorNumeroConcurrente($saPath, $bucketName, $filesArr, $numero);
+                    $res = subirPDFsPorNumeroConcurrente($saPath, $bucketName, $filesArr, $numero, 4, $cve_cliente);
 
                     http_response_code(200);
                     echo json_encode($res, JSON_UNESCAPED_UNICODE);
@@ -460,7 +465,7 @@ try {
 
                         $origName   = $names[$i] ?? 'archivo.pdf';
                         $safeName   = preg_replace('/[^A-Za-z0-9._-]/', '_', $origName);
-                        $objectName = "Cliente/OrdenCompra/Folio/{$numero}/{$safeName}";;
+                        $objectName = "Cliente/OrdenCompra/{$cve_cliente}/{$numero}/{$safeName}";
 
                         // (Opcional) token de descarga al estilo Firebase
                         $dlTok = uuidv4();

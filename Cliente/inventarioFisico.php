@@ -186,6 +186,7 @@ session_destroy(); */
                                                 <th>#</th>
                                                 <th>Fecha</th>
                                                 <th>Estado</th>
+                                                <th>Descargar Evidencia</th>
                                                 <!--         <th>Acciones</th> -->
                                             </tr>
                                         </thead>

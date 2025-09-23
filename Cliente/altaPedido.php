@@ -1066,8 +1066,11 @@ if (isset($_SESSION['usuario'])) {
                 <div class="modal-footer">
                     <!-- <button type="button" class=" btn-cancel" onclick="cerrarModal()">C</button> -->
                 </div>
-                <!-- Modal para subir PDFs -->
-                <div id="modalPDF" class="modal fade" tabindex="-1" aria-hidden="true"> <!-- data-bs-backdrop="false" -->
+            </div>
+        </div>
+    </div>
+    <!-- Modal para subir PDFs -->
+                <div id="modalPDF" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="false"> <!-- data-bs-backdrop="false" -->
                     <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content pdf-modal-content">
                             <div class="modal-header pdf-modal-header-style">
@@ -1121,9 +1124,6 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
     </div>
 
     <!-- Scripts de JS para el funcionamiento del sistema -->

@@ -48,7 +48,9 @@ function abrirModalPdf() {
   }
 }
 function subirPDFs(selectedFiles) {
+  const cliente = document.getElementById("cliente").value;
   const fd = new FormData();
+  fd.append("cliente", cliente); //clave cliente
   fd.append("numFuncion", 33);
 
   // === OBLIGATORIO: asegurar pedidoId ===

@@ -25,23 +25,22 @@ function mostrarInventarios() {
         inventarios.forEach((inv) => {
           const noInv = inv.noInventario ?? "-";
           const fecha = inv.fechaInicio ?? "-";
-          const estado = inv.estado ?? "Pendiente";
+          const estado = inv.status ?? "Pendiente";
 
           // Botones de acciones
           const $acciones = $("<td>").append(
             $("<button>")
-              .addClass("btn btn-sm btn-primary me-2")
-              .text("Ver")
+              .addClass("btn btn-sm btn-primary")
+              .text("Descargar")
               .on("click", function () {
                 // aquí llamas a tu función para ver el detalle
-                console.log("Ver inventario", noInv);
-              }),
-            $("<button>")
-              .addClass("btn btn-sm btn-danger")
-              .text("Eliminar")
-              .on("click", function () {
-                // aquí llamas a tu función de eliminar
-                console.log("Eliminar inventario", noInv);
+                //console.log("Descargar", noInv);
+                const resultado = buscarArchivos(noInv);
+                if(resultado){
+                  descargarEvidencia(noInv);
+                } else {
+                  alert("No hay archivos");
+                }
               })
           );
 
@@ -49,7 +48,7 @@ function mostrarInventarios() {
           $fila.append($("<td>").text(noInv));
           $fila.append($("<td>").text(fecha));
           $fila.append($("<td>").text(estado));
-          //$fila.append($acciones);
+          $fila.append($acciones);
 
           $tbody.append($fila);
         });
@@ -64,6 +63,33 @@ function mostrarInventarios() {
     },
   });
 }
+function descargarEvidencia(noInv){
+  // abre la descarga directa (stream del ZIP)
+  window.location = "../Servidor/PHP/descargarInventarios.php?numFuncion=1&noInv=" + encodeURIComponent(noInv);
+}
+function buscarArchivos(noInv) {
+  return new Promise(function(resolve, reject) {
+    $.ajax({
+      url: "../Servidor/PHP/descargarInventarios.php",
+      type: "POST",
+      dataType: "json",
+      data: { numFuncion: "2", noInv: noInv },
+      success: function(response) {
+        // Asegúrate del nombre correcto en la respuesta JSON
+        if (response && response.success) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.error("AJAX error:", textStatus, errorThrown);
+        reject(new Error("Error en la solicitud AJAX: " + textStatus));
+      }
+    });
+  });
+}
+
 //lineaSelect
 function obtenerLineas() {
   $.ajax({
