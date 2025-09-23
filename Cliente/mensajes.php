@@ -123,7 +123,17 @@ if (isset($_SESSION['usuario'])) {
         /* Mantener el encabezado sobre las filas */
     }
 </style>
+<style>
+    #buscarTexto,
+    #filtroFecha,
+    #filtroNoPedido,
+    #filtroStatus {
+        min-height: 38px;   /* un poco más alto que el default (~32px) */
+        font-size: 0.95rem; /* texto ligeramente más grande */
+        padding: 6px 10px;  /* más espacio interno */
+    }
 
+</style>
 <body>
     <div class="hero_area">
         <!-- SIDEBAR -->
@@ -184,16 +194,47 @@ if (isset($_SESSION['usuario'])) {
                 <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario === 'SUPER-ALMACENISTA'): ?>
                     <div class="card-body">
                         <h2 class="text-center">Comandas</h2>
-                        <div class="mb-3">
-                            <label for="filtroStatus" class="form-label">Filtrar por Status:</label>
-                            <select id="filtroStatus" class="form-select form-select-sm" style="width: 150px;">
-                                <option value="Abierta">Abiertas</option>
-                                <option value="CANCELADO">Canceladas</option>
-                                <option value="Pendiente">Pendientes</option>
-                                <option value="TERMINADA">Terminadas</option>
-                                <option value="">Todos</option>
-                            </select>
+
+                        <div class="mb-3 d-flex flex-wrap gap-2 align-items-end">
+                            <!-- Filtro de Status -->
+                            <div>
+                                <label for="filtroStatus" class="form-label">Status:</label>
+                                <select id="filtroStatus" class="form-select" style="width: 160px;">
+                                    <option value="Abierta">Abiertas</option>
+                                    <option value="CANCELADO">Canceladas</option>
+                                    <option value="Pendiente">Pendientes</option>
+                                    <option value="TERMINADA">Terminadas</option>
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+
+                            <!-- Buscador -->
+                            <div>
+                                <label for="buscarTexto" class="form-label">Buscar:</label>
+                                <input type="text" id="buscarTexto" class="form-control" placeholder="Cliente, status">
+                            </div>
+
+                            <!-- Filtro por fecha -->
+                            <div>
+                                <label for="filtroFecha" class="form-label">Fecha:</label>
+                                <input type="date" id="filtroFecha" class="form-control">
+                            </div>
+
+                            <!-- Filtro por número de pedido -->
+                            <div>
+                                <label for="filtroNoPedido" class="form-label">No. Pedido:</label>
+                                <input type="number" id="filtroNoPedido" class="form-control" placeholder="Ej: 19625">
+                            </div>
+
+                            <!-- Botón limpiar -->
+                            <div>
+                                <button id="btnLimpiarFiltros" class="btn btn-outline-danger">
+                                    Limpiar
+                                </button>
+                            </div>
                         </div>
+
+
                         <div class="mb-3">
                             <button class="btn btn-secondary btn-sm" onclick="verificarComandas()"> Verificar remisiones </button> <!-- onclick="mostrarModal('${comanda.id}')" -->
                         </div>

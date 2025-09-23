@@ -43,6 +43,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
+
 function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa, $vend)
 {
     // Establecer la conexión con SQL Server
@@ -255,6 +256,7 @@ function validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $fol
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+
 function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -296,13 +298,13 @@ function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae
 
     $options = [
         'http' => [
-            'header'  => "Content-Type: application/json\r\n",
-            'method'  => 'POST',
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
             'content' => $payload,
         ]
     ];
 
-    $context  = stream_context_create($options);
+    $context = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
 
     // Inicializa la variable donde guardarás el id
@@ -313,9 +315,9 @@ function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae
         $resultArray = json_decode($response, true);
         // runQuery devuelve un array con un elemento por cada match
         if (isset($resultArray[0]['document'])) {
-            $doc    = $resultArray[0]['document'];
+            $doc = $resultArray[0]['document'];
             // si quieres el ID:
-            $parts  = explode('/', $doc['name']);
+            $parts = explode('/', $doc['name']);
             $idFirebasePedido = end($parts);
             // y para tomar tu campo direccion1Contacto:
             $fields = $doc['fields'];
@@ -359,7 +361,7 @@ function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae
         //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
         //$desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
         $desc1 = isset($partida['descuento'])
-            ? (float) $partida['descuento']
+            ? (float)$partida['descuento']
             : 0.0;
         $desProcentaje = $desc1 / 100.0;
 
@@ -470,6 +472,7 @@ function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae
 
     return $result;
 }
+
 function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $vend, $conCredito, $claveCliente)
 {
     // Obtener el id de Firestore del pedido buscado
@@ -512,13 +515,13 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 
     $options = [
         'http' => [
-            'header'  => "Content-Type: application/json\r\n",
-            'method'  => 'POST',
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
             'content' => $payload,
         ]
     ];
 
-    $context  = stream_context_create($options);
+    $context = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
 
     // Inicializa la variable donde guardarás el id
@@ -610,7 +613,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
         //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
         //$desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
         $desc1 = isset($partida['descuento'])
-            ? (float) $partida['descuento']
+            ? (float)$partida['descuento']
             : 0.0;
         $desProcentaje = $desc1 / 100.0;
         $DES = $totalPartida * $desProcentaje;
@@ -696,10 +699,11 @@ function obtenerDatosCliente($conexionData, $claveCliente, $claveSae, $claveVend
 
     return $resultado;
 }
+
 function formatearClaveCliente($clave)
 {
     // Asegurar que la clave sea un string y eliminar espacios innecesarios
-    $clave = trim((string) $clave);
+    $clave = trim((string)$clave);
     $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
     // Si la clave ya tiene 10 caracteres, devolverla tal cual
     if (strlen($clave) === 10) {
@@ -710,10 +714,11 @@ function formatearClaveCliente($clave)
     $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
     return $clave;
 }
+
 function formatearClaveVendedor($clave)
 {
     // Asegurar que la clave sea un string y eliminar espacios innecesarios
-    $clave = trim((string) $clave);
+    $clave = trim((string)$clave);
     $clave = str_pad($clave, 5, ' ', STR_PAD_LEFT);
     // Si la clave ya tiene 10 caracteres, devolverla tal cual
     if (strlen($clave) === 5) {
@@ -724,6 +729,7 @@ function formatearClaveVendedor($clave)
     $clave = str_pad($clave, 5, ' ', STR_PAD_LEFT);
     return $clave;
 }
+
 function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
 {
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -787,7 +793,7 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
         $filters[] = [
             "fieldFilter" => [
                 "field" => ["fieldPath" => "status"],
-                "op"    => "EQUAL",
+                "op" => "EQUAL",
                 "value" => ["stringValue" => $filtroStatus]
             ]
         ];
@@ -797,7 +803,7 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
     $filters[] = [
         "fieldFilter" => [
             "field" => ["fieldPath" => "noEmpresa"],
-            "op"    => "EQUAL",
+            "op" => "EQUAL",
             "value" => ["integerValue" => (int)$noEmpresa]
         ]
     ];
@@ -808,7 +814,7 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
     } else {
         $where = [
             "compositeFilter" => [
-                "op"      => "AND",
+                "op" => "AND",
                 "filters" => $filters
             ]
         ];
@@ -816,21 +822,21 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
 
     // Opcional: ordenar por folio descendente en la propia consulta
     $structuredQuery = [
-        "from"    => [["collectionId" => $collection]],
-        "where"   => $where
+        "from" => [["collectionId" => $collection]],
+        "where" => $where
     ];
 
     $payload = json_encode(["structuredQuery" => $structuredQuery]);
 
     $options = [
         'http' => [
-            'header'  => "Content-Type: application/json\r\n",
-            'method'  => 'POST',
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
             'content' => $payload
         ]
     ];
 
-    $context  = stream_context_create($options);
+    $context = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
 
     if ($response === false) {
@@ -842,33 +848,40 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
     }
 
     $resultArray = json_decode($response, true);
-    $comandas    = [];
+    $comandas = [];
 
     foreach ($resultArray as $item) {
         if (!isset($item['document'])) {
             continue;
         }
-        $doc    = $item['document'];
+        $doc = $item['document'];
         $fields = $doc['fields'];
 
         $fechaHoraStr = $fields['fechaHoraElaboracion']['stringValue'] ?? "";
         list($fecha, $hora) = array_pad(explode(" ", $fechaHoraStr), 2, ["", "00:00:00"]);
 
         $comandas[] = [
-            'id'            => basename($doc['name']),
-            'noPedido'      => $fields['folio']['stringValue']     ?? "",
+            'id' => basename($doc['name']),
+            'noPedido' => $fields['folio']['stringValue'] ?? "",
             'nombreCliente' => $fields['nombreCliente']['stringValue'] ?? "",
-            'status'        => $fields['status']['stringValue']    ?? "",
-            'fecha'         => $fecha,
-            'hora'          => $hora
+            'status' => $fields['status']['stringValue'] ?? "",
+            'fecha' => $fecha,
+            'hora' => $hora
         ];
     }
 
+    // aquí haces el orden
+    usort($comandas, function ($a, $b) {
+        return (int)$b['noPedido'] <=> (int)$a['noPedido'];
+    });
+
     echo json_encode([
         'success' => true,
-        'data'    => $comandas
+        'data' => $comandas
     ]);
+
 }
+
 function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
@@ -893,17 +906,17 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
         if (isset($fields['envio']['mapValue']['fields'])) {
             $e = $fields['envio']['mapValue']['fields'];
             $envioData = [
-                'codigoContacto'     => $e['codigoContacto']['stringValue']     ?? '',
-                'companiaContacto'   => $e['companiaContacto']['stringValue']   ?? '',
-                'correoContacto'     => $e['correoContacto']['stringValue']     ?? '',
+                'codigoContacto' => $e['codigoContacto']['stringValue'] ?? '',
+                'companiaContacto' => $e['companiaContacto']['stringValue'] ?? '',
+                'correoContacto' => $e['correoContacto']['stringValue'] ?? '',
                 'direccion1Contacto' => $e['direccion1Contacto']['stringValue'] ?? '',
                 'direccion2Contacto' => $e['direccion2Contacto']['stringValue'] ?? '',
-                'estadoContacto'     => $e['estadoContacto']['stringValue']     ?? '',
-                'idPedido'           => $e['idPedido']['integerValue']          ?? 0,
-                'municipioContacto'  => $e['municipioContacto']['stringValue']  ?? '',
-                'noEmpresa'          => $e['noEmpresa']['integerValue']         ?? 0,
-                'nombreContacto'     => $e['nombreContacto']['stringValue']     ?? '',
-                'telefonoContacto'   => $e['telefonoContacto']['stringValue']   ?? '',
+                'estadoContacto' => $e['estadoContacto']['stringValue'] ?? '',
+                'idPedido' => $e['idPedido']['integerValue'] ?? 0,
+                'municipioContacto' => $e['municipioContacto']['stringValue'] ?? '',
+                'noEmpresa' => $e['noEmpresa']['integerValue'] ?? 0,
+                'nombreContacto' => $e['nombreContacto']['stringValue'] ?? '',
+                'telefonoContacto' => $e['telefonoContacto']['stringValue'] ?? '',
             ];
         }
 
@@ -926,6 +939,7 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
         ]);
     }
 }
+
 function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId, $numGuia, $enviarHoy)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
@@ -962,6 +976,7 @@ function marcarComandaTerminada($firebaseProjectId, $firebaseApiKey, $comandaId,
         echo json_encode(['success' => true, 'message' => 'Comanda marcada como TERMINADA.', 'response' => $result, 'data' => $data]);
     }
 }
+
 function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
@@ -993,6 +1008,7 @@ function activarComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
         echo json_encode(['success' => true, 'message' => 'Comanda activada.', 'response' => $result, 'data' => $data]);
     }
 }
+
 function notificaciones($firebaseProjectId, $firebaseApiKey)
 {
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
@@ -1131,7 +1147,7 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
         $filters[] = [
             "fieldFilter" => [
                 "field" => ["fieldPath" => "status"],
-                "op"    => "EQUAL",
+                "op" => "EQUAL",
                 "value" => ["stringValue" => $filtroStatus]
             ]
         ];
@@ -1141,7 +1157,7 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
     $filters[] = [
         "fieldFilter" => [
             "field" => ["fieldPath" => "noEmpresa"],
-            "op"    => "EQUAL",
+            "op" => "EQUAL",
             "value" => ["integerValue" => (int)$noEmpresa]
         ]
     ];
@@ -1152,7 +1168,7 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
     } else {
         $where = [
             "compositeFilter" => [
-                "op"      => "AND",
+                "op" => "AND",
                 "filters" => $filters
             ]
         ];
@@ -1160,21 +1176,21 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
 
     // Opcional: ordenar por folio descendente en la propia consulta
     $structuredQuery = [
-        "from"    => [["collectionId" => $collection]],
-        "where"   => $where
+        "from" => [["collectionId" => $collection]],
+        "where" => $where
     ];
 
     $payload = json_encode(["structuredQuery" => $structuredQuery]);
 
     $options = [
         'http' => [
-            'header'  => "Content-Type: application/json\r\n",
-            'method'  => 'POST',
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
             'content' => $payload
         ]
     ];
 
-    $context  = stream_context_create($options);
+    $context = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
 
     if ($response === false) {
@@ -1186,13 +1202,13 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
     }
 
     $resultArray = json_decode($response, true);
-    $pedidos    = [];
+    $pedidos = [];
 
     foreach ($resultArray as $item) {
         if (!isset($item['document'])) {
             continue;
         }
-        $doc    = $item['document'];
+        $doc = $item['document'];
         $fields = $doc['fields'];
 
         $fechaHoraStr = $fields['fechaHoraElaboracion']['stringValue'] ?? "";
@@ -1230,9 +1246,10 @@ function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionDa
 
     echo json_encode([
         'success' => true,
-        'data'    => $pedidos
+        'data' => $pedidos
     ]);
 }
+
 function obtenerDetallesPedido($firebaseProjectId, $firebaseApiKey, $pedidoId)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";
@@ -1287,6 +1304,7 @@ function obtenerDetallesPedido($firebaseProjectId, $firebaseApiKey, $pedidoId)
         ]);
     }
 }
+
 function obtenerDetalles($firebaseProjectId, $firebaseApiKey, $pedidoId)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";
@@ -1353,6 +1371,7 @@ function obtenerDetalles($firebaseProjectId, $firebaseApiKey, $pedidoId)
         ]
     ];
 }
+
 function pedidoAutorizado($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio, $claveSae, $noEmpresa, $vend, $conexionData)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$pedidoId?key=$firebaseApiKey";
@@ -1393,12 +1412,14 @@ function pedidoAutorizado($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio
         //echo json_encode(['success' => true, 'message' => 'Pedido Autorizado.']);
     }
 }
+
 function generarPDFP($CVE_DOC, $conexionData, $claveSae, $noEmpresa, $vend, $folio)
 {
 
     $rutaPDF = generarReportePedidoAutorizado($conexionData, $CVE_DOC, $claveSae, $noEmpresa, $vend, $folio);
     return $rutaPDF;
 }
+
 function validarCreditos($conexionData, $clienteId)
 {
     // Validar si el ID del cliente está proporcionado
@@ -1466,6 +1487,7 @@ function validarCreditos($conexionData, $clienteId)
         }
     }
 }
+
 function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $vend)
 {
     global $firebaseProjectId, $firebaseApiKey;
@@ -1507,13 +1529,13 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     $options = [
         'http' => [
-            'header'  => "Content-Type: application/json\r\n",
-            'method'  => 'POST',
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
             'content' => $payload,
         ]
     ];
 
-    $context  = stream_context_create($options);
+    $context = stream_context_create($options);
     $response = @file_get_contents($url, false, $context);
 
     // Inicializa la variable donde guardarás el id
@@ -1568,7 +1590,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
         //$desc1 = htmlspecialchars($partida['descuento']) ?? 0;
         //$desc1 = intval(htmlspecialchars($partida['descuento'] ?? 0));
         $desc1 = isset($partida['descuento'])
-            ? (float) $partida['descuento']
+            ? (float)$partida['descuento']
             : 0.0;
         $desProcentaje = $desc1 / 100.0;
 
@@ -1662,6 +1684,7 @@ function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSa
 
     return $result;
 }
+
 function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $claveSae, $conexionData, $noEmpresa)
 {
     $urlFire = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
@@ -1772,6 +1795,7 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
         return $result;
     }
 }
+
 function liberarExistencias($conexionData, $folio, $claveSae)
 {
     $serverName = $conexionData['host'];
@@ -1832,6 +1856,7 @@ function liberarExistencias($conexionData, $folio, $claveSae)
         }
     }
 }
+
 function obtenerEstadoComanda($claveSeleccionada)
 {
     $filePath = "../../Complementos/CAT_ESTADOS.xml";
@@ -1858,8 +1883,8 @@ function obtenerEstadoComanda($claveSeleccionada)
     foreach ($estados->row as $row) {
         if ((string)$row['Clave'] === $claveSeleccionada && (string)$row['Pais'] === 'MEX') {
             $encontrado = [
-                'Clave'       => (string)$row['Clave'],
-                'Pais'        => (string)$row['Pais'],
+                'Clave' => (string)$row['Clave'],
+                'Pais' => (string)$row['Pais'],
                 'Descripcion' => (string)$row['Descripcion']
             ];
             break;
@@ -1872,13 +1897,14 @@ function obtenerEstadoComanda($claveSeleccionada)
         echo json_encode(['success' => false, 'message' => "No se encontró el estado con clave $claveSeleccionada"]);
     }
 }
+
 function verificarRemision($noPedido, $conexionData, $noEmpresa, $claveSae)
 {
     // 1) Conectar
     $connInfo = [
         "Database" => $conexionData['nombreBase'],
-        "UID"      => $conexionData['usuario'],
-        "PWD"      => $conexionData['password'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
         "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
@@ -1893,7 +1919,7 @@ function verificarRemision($noPedido, $conexionData, $noEmpresa, $claveSae)
 
     // 3) Tablas dinámicas
     $db = $conexionData['nombreBase'];
-    $s  = str_pad($claveSae, 2, '0', STR_PAD_LEFT);
+    $s = str_pad($claveSae, 2, '0', STR_PAD_LEFT);
     $tblP = "[$db].[dbo].[FACTP{$s}]";
     $tblR = "[$db].[dbo].[FACTR{$s}]";
 
@@ -1909,7 +1935,7 @@ function verificarRemision($noPedido, $conexionData, $noEmpresa, $claveSae)
       WHERE P.CVE_DOC = ?
     ";
     $params = [$CVE_PED];
-    $stmt   = sqlsrv_query($conn, $sql, $params);
+    $stmt = sqlsrv_query($conn, $sql, $params);
     if ($stmt === false) {
         return ['success' => false, 'message' => 'Error Query: ' . print_r(sqlsrv_errors(), true)];
     }
@@ -1934,7 +1960,7 @@ function verificarRemision($noPedido, $conexionData, $noEmpresa, $claveSae)
             'data' => [
                 'statusCode' => $st,
                 'statusText' => $interpret,
-                'pedidoDoc'  => trim($row['pedidoDoc']),
+                'pedidoDoc' => trim($row['pedidoDoc']),
                 'remisionDoc' => trim($row['remisionDoc'])
             ]
         ];
@@ -1942,13 +1968,14 @@ function verificarRemision($noPedido, $conexionData, $noEmpresa, $claveSae)
         // No hay remisión vinculada
         return [
             'success' => true,
-            'data'    => [
+            'data' => [
                 'statusCode' => null,
                 'statusText' => 'SIN REMISIÓN'
             ]
         ];
     }
 }
+
 function cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId, $mensajes)
 {
     if (!$comandaId) {
@@ -1970,8 +1997,8 @@ function cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId, $mensa
 
     $opts = [
         'http' => [
-            'method'  => 'PATCH',
-            'header'  => "Content-Type: application/json\r\n",
+            'method' => 'PATCH',
+            'header' => "Content-Type: application/json\r\n",
             'content' => json_encode($data),
             'timeout' => 10
         ]
@@ -1985,7 +2012,7 @@ function cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId, $mensa
         echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con Firestore.',
-            'error'   => $err['message']
+            'error' => $err['message']
         ]);
     } else {
         $result = json_decode($resp, true);
@@ -2005,6 +2032,7 @@ function cancelarComanda($firebaseProjectId, $firebaseApiKey, $comandaId, $mensa
         }
     }
 }
+
 function verificarComandas($conexionData, $noEmpresa, $claveSae, $firebaseProjectId, $firebaseApiKey)
 {
     //Variable para evitar los mensajes de las funciones
@@ -2022,14 +2050,14 @@ function verificarComandas($conexionData, $noEmpresa, $claveSae, $firebaseProjec
         $fields = $doc['fields'];
         if ((int)$fields['noEmpresa']['integerValue'] !== (int)$noEmpresa) continue;
         $comandas[] = [
-            'id'       => basename($doc['name']),
+            'id' => basename($doc['name']),
             'noPedido' => $fields['folio']['stringValue'],
-            'status'   => $fields['status']['stringValue']
+            'status' => $fields['status']['stringValue']
         ];
     }
 
-    $canceladas    = [];
-    $noCanceladas  = [];
+    $canceladas = [];
+    $noCanceladas = [];
     // 2) Para cada comanda aún no CANCELADA, chequeamos remisión
     foreach ($comandas as $c) {
         if ($c['status'] === 'CANCELADO') {
@@ -2054,8 +2082,8 @@ function verificarComandas($conexionData, $noEmpresa, $claveSae, $firebaseProjec
 
     // 3) Emitimos JSON con ambos listados
     echo json_encode([
-        'success'      => true,
-        'canceladas'   => $canceladas,
+        'success' => true,
+        'canceladas' => $canceladas,
         'noCanceladas' => $noCanceladas
     ]);
 }
@@ -2084,7 +2112,7 @@ switch ($funcion) {
         obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId);
         break;
     case 3:
-        $csrf_token  = $_SESSION['csrf_token'];
+        $csrf_token = $_SESSION['csrf_token'];
         $csrf_token_form = $_POST['token'];
         if ($csrf_token === $csrf_token_form) {
             $comandaId = $_POST['comandaId'];
@@ -2125,7 +2153,7 @@ switch ($funcion) {
         obtenerDetallesPedido($firebaseProjectId, $firebaseApiKey, $pedidoId);
         break;
     case 7:
-        $csrf_token  = $_SESSION['csrf_token'];
+        $csrf_token = $_SESSION['csrf_token'];
         $csrf_token_form = $_POST['token'];
         if ($csrf_token === $csrf_token_form) {
             $noEmpresa = trim($_POST['noEmpresa']);
