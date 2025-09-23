@@ -149,7 +149,7 @@ session_destroy(); */
                         <!-- Opción: Almacén -->
                         <div class="col-12 col-md-6 col-xl-4 d-flex justify-content-center">
                             <!--<a href="inventarioAlmacen.php" class="inventory-option shadow-sm">-->
-                            <a href="#" class="inventory-option shadow-sm">
+                            <a href="#" class="inventory-option shadow-sm" style="background: #8f8f8f !important;">
                                 <i class='bx bx-package'></i>
                                 <span class="title">Almacén</span>
                             </a>
