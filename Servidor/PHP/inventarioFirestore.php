@@ -333,6 +333,14 @@ switch ($accion) {
 
         // 🔹 recorrer todas las posibles subcolecciones (lineas, lineas02, lineas03, ...)
         $subcolecciones = ["lineas", "lineas02", "lineas03", "lineas04", "lineas05", "lineas06"];
+        // 🔹 Tomar el campo "conteo" del documento padre
+        $conteo = isset($inventarioActivo["fields"]["conteo"]["integerValue"])
+            ? (int) $inventarioActivo["fields"]["conteo"]["integerValue"]
+            : 1;
+
+        // recorrer solo las subcolecciones que existen (lineas, lineas02)
+        $subcolecciones = ["lineas", "lineas02"];
+
         foreach ($subcolecciones as $subcol) {
             $lineasUrl  = "$root/INVENTARIO/$invDocId/$subcol?key=$firebaseApiKey";
             $lineasDocs = http_get_json($lineasUrl);
@@ -366,6 +374,7 @@ switch ($accion) {
 
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
+
     // inventarioFirestore.php
     case 'obtenerLineaConteos':
         $noInv      = (int)($_GET['noInventario'] ?? 0);

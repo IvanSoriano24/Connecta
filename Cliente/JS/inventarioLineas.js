@@ -229,6 +229,10 @@ function buscarInventario() {
   })
     .done(function (res) {
       // Esperado: { success: true, foundActive: bool, existsAny: bool, docId: string|null, folioSiguiente: int|null }
+      console.log("inventario?", res);
+      window.idInventario = res.docId;
+      console.log("ID guardado en window.idInventario:", window.idInventario);
+
       if (!res || res.success !== true) {
         Swal.fire({
           icon: "error",
@@ -761,20 +765,23 @@ $(document).ready(function () {
               "<option selected disabled>Seleccione una línea</option>"
             );
 
+            console.log("res: ", res);
             r.data.forEach((dato) => {
               const lineaAsignada = res.lineas.find(
                 (l) => l.CVE_LIN === dato.CVE_LIN
               );
+              console.log("linea: ", lineaAsignada);
               if (lineaAsignada) {
                 lineaSelect.append(
                   `<option value="${dato.CVE_LIN}"
                                                data-conteo="${lineaAsignada.conteo}"
                                                data-subconteo="${lineaAsignada.subconteo}">
-                                         ${dato.DESC_LIN} (Conteo ${lineaAsignada.conteo})
+                                         ${dato.DESC_LIN} (Subconteo ${lineaAsignada.subconteo})
                                        </option>`
                 );
               }
             });
+
 
             // Cuando seleccionas una línea, se pintan conteo y subconteo
             lineaSelect.on("change", function () {
@@ -791,6 +798,7 @@ $(document).ready(function () {
   
 
   // === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
+// === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
   $("#finalizarInventarioLinea").click(function () {
     Swal.fire({
       title: "¿Estás seguro?",
@@ -803,9 +811,30 @@ $(document).ready(function () {
     }).then((result) => {
       if (result.isConfirmed) {
         guardarLinea(true); // Guardar y bloquear edición
+
+        const idInventario = window.idInventario;
+
+        // Llamar al backend para verificar y generar conteos
+        $.post(
+            "../Servidor/PHP/inventario.php",
+            { numFuncion: "20", idInventario: idInventario },
+            function (response) {
+              console.log("📡 Respuesta verificación inventario:", response);
+              if (response.success) {
+                Swal.fire("Éxito", response.message, "success");
+              } else {
+                Swal.fire("Aviso", response.message, "warning");
+              }
+            },
+            "json"
+        ).fail((jqXHR, textStatus, errorThrown) => {
+          console.error("🚨 Error AJAX:", textStatus, errorThrown);
+          console.log("Respuesta cruda:", jqXHR.responseText);
+        });
       }
     });
   });
+
 
   // === AUTOGUARDADO cada 5 minutos ===
 
