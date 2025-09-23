@@ -1445,6 +1445,102 @@ switch ($funcion) {
         $usuarioId = $_SESSION['usuario']['idReal'];
         subirImagenes($usuarioId);
         break;
+
+    case 20: // Verificar finalización de inventario y crear nuevos conteos
+        $idInventario = $_POST['idInventario'] ?? null;
+        if (!$idInventario) {
+            echo json_encode(['success' => false, 'message' => 'Falta el ID de inventario']);
+            exit;
+        }
+
+        // Consultar documento INVENTARIOS/{idInventario}
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario?key=$firebaseApiKey";
+        $response = @file_get_contents($url);
+        if ($response === false) {
+            echo json_encode(['success' => false, 'message' => 'Error al obtener inventario']);
+            exit;
+        }
+        $docInventario = json_decode($response, true);
+
+        // Subcolecciones a verificar
+        $subcolecciones = ["lineas", "lineas02"];
+        $allFalse = true;
+
+        foreach ($subcolecciones as $subcol) {
+            $urlSub = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario/$subcol?key=$firebaseApiKey";
+            $resSub = @file_get_contents($urlSub);
+            if ($resSub === false) continue;
+
+            $docsSub = json_decode($resSub, true);
+            if (!isset($docsSub['documents'])) continue;
+
+            foreach ($docsSub['documents'] as $d) {
+                $status = $d['fields']['status']['booleanValue'] ?? true;
+                if ($status === true) {
+                    $allFalse = false;
+                    break 2; // salir de ambos loops
+                }
+            }
+        }
+
+        if (!$allFalse) {
+            echo json_encode(['success' => false, 'message' => 'Aún hay líneas activas con status=true']);
+            exit;
+        }
+
+        // ✅ Todas las líneas están en false
+        // Consultar CONFIG/inventarioFisico
+        $urlConfig = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONFIG/inventarioFisico?key=$firebaseApiKey";
+        $resConfig = @file_get_contents($urlConfig);
+        $docConfig = json_decode($resConfig, true);
+        $generacion = $docConfig['fields']['generacionConteos']['booleanValue'] ?? false;
+
+        if ($generacion) {
+            // Buscar cuántas subcolecciones ya existen
+            $subNames = ["lineas", "lineas02", "lineas03", "lineas04", "lineas05", "lineas06"];
+            $existing = [];
+            foreach ($subNames as $sn) {
+                $urlCheck = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario/$sn?key=$firebaseApiKey";
+                $resCheck = @file_get_contents($urlCheck);
+                $docsCheck = json_decode($resCheck, true);
+                if (isset($docsCheck['documents'])) {
+                    $existing[] = $sn;
+                }
+            }
+
+            // Crear el siguiente par
+            $nextIndex = floor(count($existing) / 2) + 1; // Conteo actual +1
+            $new1 = "lineas0" . ($nextIndex * 2 - 1);
+            $new2 = "lineas0" . ($nextIndex * 2);
+
+            // Crear documentos vacíos para inicializar las colecciones
+            $urlCreate1 = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario/$new1?documentId=initDoc";
+            $urlCreate2 = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario/$new2?documentId=initDoc";
+
+            $payload = json_encode(["fields" => ["status" => ["booleanValue" => false]]]);
+
+            file_get_contents($urlCreate1, false, stream_context_create([
+                'http' => [
+                    'method'  => 'POST',
+                    'header'  => "Content-Type: application/json\r\n",
+                    'content' => $payload
+                ]
+            ]));
+
+            file_get_contents($urlCreate2, false, stream_context_create([
+                'http' => [
+                    'method'  => 'POST',
+                    'header'  => "Content-Type: application/json\r\n",
+                    'content' => $payload
+                ]
+            ]));
+
+            echo json_encode(['success' => true, 'message' => "Todas las líneas finalizadas. Nuevos conteos creados: $new1 y $new2"]);
+        } else {
+            echo json_encode(['success' => true, 'message' => 'Todas las líneas finalizadas. No se generaron más conteos (generacionConteos = false)']);
+        }
+        break;
+
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
         //echo json_encode(['success' => false, 'message' => 'No hay funcion.']);

@@ -331,8 +331,13 @@ switch ($accion) {
         $invDocId   = basename($inventarioActivo["name"]);
         $asignadas  = [];
 
-        // 🔹 recorrer todas las posibles subcolecciones (lineas, lineas02, lineas03, ...)
-        $subcolecciones = ["lineas", "lineas02", "lineas03", "lineas04", "lineas05", "lineas06"];
+        // 🔹 Tomar el campo "conteo" del documento padre
+        $conteo = isset($inventarioActivo["fields"]["conteo"]["integerValue"])
+            ? (int) $inventarioActivo["fields"]["conteo"]["integerValue"]
+            : 1;
+
+        // recorrer solo las subcolecciones que existen (lineas, lineas02)
+        $subcolecciones = ["lineas", "lineas02"];
 
         foreach ($subcolecciones as $subcol) {
             $lineasUrl  = "$root/INVENTARIO/$invDocId/$subcol?key=$firebaseApiKey";
@@ -340,16 +345,8 @@ switch ($accion) {
 
             if (!isset($lineasDocs["documents"])) continue;
 
-            // calcular conteo (directo)
-            if ($subcol === "lineas") {
-                $conteo = 1;
-            } else {
-                $num = (int) filter_var($subcol, FILTER_SANITIZE_NUMBER_INT);
-                $conteo = $num > 0 ? $num : 1;
-            }
-
-            // calcular subconteo (pares = mismo número)
-            $subconteo = ($conteo === 1) ? 1 : ceil($conteo / 2);
+            // 🔹 Determinar subconteo según la colección
+            $subconteo = ($subcol === "lineas") ? 1 : 2;
 
             foreach ($lineasDocs["documents"] as $doc) {
                 $fields = $doc["fields"];
@@ -372,6 +369,7 @@ switch ($accion) {
 
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
+
     // inventarioFirestore.php
     case 'obtenerLineaConteos':
         $noInv      = (int)($_GET['noInventario'] ?? 0);
