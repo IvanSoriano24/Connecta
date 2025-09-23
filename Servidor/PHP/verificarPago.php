@@ -314,8 +314,7 @@ function cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, 
         //Cambiar el estado en base de datos SAE
     }
 }
-function crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile)
-{
+function crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile){
     $err = error_get_last();
     $msg = sprintf(
         "[%s] Succes: Empezando la remision %s\n",
@@ -335,7 +334,7 @@ function crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile)
         'noEmpresa' => $noEmpresa,
         'vendedor' => $vendedor
     ];
-
+    
     //Realizar la peticion
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $remisionUrl);
@@ -1361,7 +1360,6 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile)
                                 //$exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile);
                                 //if ($exsitencias['success']) {
                                 crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey, $logFile);
-
                                 crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile);
                                 // Eliminar el documento de DATOS_PEDIDO
                                 eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios, $logFile);
