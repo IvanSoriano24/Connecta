@@ -674,7 +674,7 @@ async function subirPendientesDespuesDeLinea(claveLinea) {
 }
 function subirPDFsLineas(selectedFiles, meta = {}) {
   const fd = new FormData();
-  fd.append('numFuncion', 11);
+  fd.append('numFuncion', 12);
 
   const noInventario =
     document.getElementById('noInventario')?.value ||

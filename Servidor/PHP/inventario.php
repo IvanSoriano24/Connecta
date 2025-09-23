@@ -939,43 +939,137 @@ function http_delete_simple($url)
     return $resp !== false;
 }
 //////////////////////////GUARDAR ASIGNACION/////////////////////////////////////////
-function obtenerEstadoLineas(){
+function obtenerEstadoLineas()
+{
     //
 }
 ////////////////////////////////////////////////////////////////////////////////////
-function subirImagenesPorProducto(string $saPath, string $bucketName, ?array $filesArray, ?string $numero, $noInventario, $CVE_ART): array
+function sa_project_id(string $saPath): string {
+    if (!is_file($saPath)) throw new Exception("No encuentro JSON en $saPath");
+    $sa = json_decode(file_get_contents($saPath), true, 512, JSON_THROW_ON_ERROR);
+    if (empty($sa['project_id'])) throw new Exception('El JSON no trae project_id');
+    return $sa['project_id'];
+}
+function gcs_bucket_exists(string $bucket, string $accessToken): array {
+    // Devuelve [ok(bool), http_code(int), raw(string)]
+    $url = "https://storage.googleapis.com/storage/v1/b/{$bucket}";
+    $ch  = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_HTTPHEADER     => ['Authorization: Bearer '.$accessToken],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 20,
+    ]);
+    $res  = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return [$code === 200, $code, $res ?: ''];
+}
+function send_json($arr, int $code = 200)
 {
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    http_response_code($code);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($arr, JSON_UNESCAPED_UNICODE);
+    exit; // <- IMPORTANTE: corta aquí
+}
+function gcsUploadMultipart(string $bucket, string $objectName, string $filePath, string $contentType, string $accessToken, array $extraMetadata = []): array
+{
+    if (!is_file($filePath)) throw new Exception("Archivo no encontrado: $filePath");
+
+    $meta = [
+        'name'        => $objectName,
+        'contentType' => $contentType,
+    ];
+    if ($extraMetadata) $meta['metadata'] = $extraMetadata;
+
+    $boundary  = 'gcs-' . bin2hex(random_bytes(8));
+    $fileBytes = file_get_contents($filePath);
+    if ($fileBytes === false) throw new Exception("No se pudo leer el archivo: $filePath");
+
+    $body  = "--$boundary\r\n";
+    $body .= "Content-Type: application/json; charset=UTF-8\r\n\r\n";
+    $body .= json_encode($meta, JSON_UNESCAPED_SLASHES) . "\r\n";
+    $body .= "--$boundary\r\n";
+    $body .= "Content-Type: $contentType\r\n\r\n";
+    $body .= $fileBytes . "\r\n";
+    $body .= "--$boundary--\r\n";
+
+    $url = "https://storage.googleapis.com/upload/storage/v1/b/{$bucket}/o?uploadType=multipart";
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_HTTPHEADER     => [
+            'Authorization: Bearer ' . $accessToken,
+            'Content-Type: multipart/related; boundary=' . $boundary,
+            'Content-Length: ' . strlen($body),
+        ],
+        CURLOPT_POSTFIELDS     => $body,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 60,
+    ]);
+    $res  = curl_exec($ch);
+    if ($res === false) throw new Exception('cURL multipart: ' . curl_error($ch));
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    if ($code !== 200) throw new Exception("Multipart HTTP $code: $res");
+
+    return json_decode($res, true);
+}
+function subirImagenesPorProducto(
+    string $saPath,
+    string $bucketName,
+    ?array $filesArray,
+    $linea,
+    $noInventario,
+    $CVE_ART
+): array {
     if (!extension_loaded('curl'))    throw new Exception('PHP sin extensión cURL');
     if (!extension_loaded('openssl')) throw new Exception('PHP sin extensión OpenSSL');
     if (!is_file($saPath))            throw new Exception('No encuentro JSON en ' . $saPath);
-    if (!$numero)                     throw new Exception('Falta numero');
+    if (!$linea)                     throw new Exception('Falta linea');
     if (empty($filesArray) || empty($filesArray['name'])) throw new Exception('No llegaron archivos');
 
-    // Tu helper existente para token
     $token = getAccessTokenFromServiceAccount($saPath);
     $names = (array)$filesArray['name'];
     $tmps  = (array)$filesArray['tmp_name'];
     $sizes = (array)$filesArray['size'];
+    $types = (array)$filesArray['type'];
 
     $subidos = [];
     foreach ($tmps as $i => $tmp) {
         if (!is_uploaded_file($tmp)) continue;
 
-        $origName   = $names[$i] ?? 'archivo.pdf';
+        $origName   = $names[$i] ?? 'archivo';
         $safeName   = preg_replace('/[^A-Za-z0-9._-]/', '_', $origName);
 
-        // 👇 Directorio según tu lógica (usa "numero")
-        $objectName = "Inventario/$noInventario/{$CVE_ART}";
+        // Detecta MIME simple (PDF o imagen)
+        $mime = $types[$i] ?? 'application/octet-stream';
+        $ext  = strtolower(pathinfo($safeName, PATHINFO_EXTENSION));
+        if ($ext === 'pdf') {
+            $mime = 'application/pdf';
+        } elseif (in_array($ext, ['jpg', 'jpeg'])) {
+            $mime = 'image/jpeg';
+        } elseif ($ext === 'png') {
+            $mime = 'image/png';
+        } elseif ($ext === 'webp') {
+            $mime = 'image/webp';
+        }
 
-        // Token para URL pública estilo Firebase
+        // Carpeta por tu lógica:
+        // Inventario/{noInventario}/{CVE_ART}/PED{numero}/{YYYY}/{mm}/{dd}/ts_rand_nombre.ext
+        $ts   = time();
+        $rand = bin2hex(random_bytes(4));
+        $objectName = "Inventario/{$noInventario}/{$linea}/{$CVE_ART}/{$safeName}";
+
         $dlTok = uuidv4();
 
-        // Subida MULTIPART (simple y segura para ≤5MB)
         $objInfo = gcsUploadMultipart(
             $bucketName,
             $objectName,
             $tmp,
-            'application/pdf',
+            $mime,
             $token,
             ['firebaseStorageDownloadTokens' => $dlTok]
         );
@@ -1022,7 +1116,7 @@ function getAccessTokenFromServiceAccount(string $saPath, string $scope = 'https
     if (!openssl_sign($jwtUnsigned, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
         throw new Exception('Fallo al firmar JWT');
     }
-    openssl_pkey_free($privateKey);
+    //openssl_pkey_free($privateKey);
     $jwt = $jwtUnsigned . '.' . b64url($signature);
 
     // Intercambiar el JWT por un access_token
@@ -1122,164 +1216,70 @@ function uuidv4(): string
     $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
-function subirImagenes($usuarioId){
-    // Limpia buffers y fija JSON
+function subirImagenes($usuarioId) {
     while (ob_get_level()) { ob_end_clean(); }
     header('Content-Type: application/json; charset=utf-8');
-    ini_set('display_errors', '0');
-    ini_set('log_errors', '1');
-    error_reporting(E_ALL);
 
     try {
-        // ==== CONFIG ====
-        $projectId   = 'mdconnecta-4aeb4';
-        // Para el cliente GCS usa el bucket estilo appspot.com
-        $bucketName  = $projectId . '.appspot.com';
-        $keyFilePath = __DIR__ . '/keys/firebase-adminsdk.json'; // ajusta ruta real
+        // 1) Localiza tu service account
+        $saPath = __DIR__.'/../../Cliente/keys/firebase-adminsdk.json'; // <-- verifica la ruta
 
-        if (!is_file($keyFilePath)) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'No encuentro credenciales en ' . $keyFilePath]);
+        // 2) Deriva project y bucket desde el SA (evita hardcodear)
+        $projectId  = sa_project_id($saPath);
+        $bucketName = $projectId . '.firebasestorage.app';           // p.ej. mdconnecta-4aeb4.appspot.com
+
+        // 3) Token OAuth con scope de GCS
+        $token = getAccessTokenFromServiceAccount($saPath);
+
+        // 4) Verifica existencia del bucket con el MISMO token (diagnóstico claro)
+        [$ok, $code, $raw] = gcs_bucket_exists($bucketName, $token);
+        if (!$ok) {
+            // 404 => el bucket no existe (o no hay permisos y GCS oculta con 404)
+            // 403 => tienes token pero sin permisos sobre ese bucket
+            $msg = ($code === 404)
+                ? "El bucket {$bucketName} no existe en el proyecto {$projectId}. Abre Firebase Console » Storage y crea/habilita el bucket por primera vez."
+                : "No hay acceso al bucket {$bucketName} (HTTP {$code}). Revisa que el SA pertenezca al MISMO proyecto y tenga permisos de Storage Admin.";
+            echo json_encode(['success'=>false, 'message'=>$msg, 'http'=>$code, 'raw'=>$raw], JSON_UNESCAPED_UNICODE);
             return;
         }
 
-        // ==== ENTRADAS ====
-        $numero      = $_POST['numero']      ?? null;   // folio / correlativo
-        $noEmpresa   = $_POST['noEmpresa']   ?? null;   // opcional
-        $claveSae    = $_POST['claveSae']    ?? null;   // opcional
-        $tipo        = $_POST['tipo']        ?? null;   // 'linea' | 'producto' (opcional)
-        $linea       = $_POST['linea']       ?? null;   // ej. '002'
-        $cve_art     = $_POST['cve_art']     ?? null;   // ej. 'AA-1625'
+        // === ENTRADAS ===
+        $linea        = $_POST['linea']        ?? null;
+        $noInventario = $_POST['noInventario'] ?? null;
+        $cve_art      = $_POST['cve_art']      ?? null;
+        $tipo         = $_POST['tipo']         ?? null;
+        $filesArr     = $_FILES['pdfs'] ?? ($_FILES['pdfs[]'] ?? null);
 
-        if (!$numero) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Falta parametro "numero".']);
-            return;
-        }
-        if (empty($_FILES['pdfs']['name'])) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'No se recibieron archivos (pdfs[]).']);
-            return;
-        }
+        if (!$linea)        throw new Exception('Falta "linea"');
+        if (!$filesArr || empty($filesArr['name'])) throw new Exception('No llegaron archivos (pdfs[])');
 
-        // ==== RESTRICCIONES ====
-        $maxFiles = 4;
-        $maxSize  = 5 * 1024 * 1024; // 5MB
+        // El resto de tu lógica: decide carpeta y llama a gcsUploadMultipart(...)
+        // Ejemplo (producto):
+        if ($tipo === 'producto') {
+            if (!$noInventario) throw new Exception('Falta "noInventario"');
+            if (!$cve_art)      throw new Exception('Falta "cve_art"');
 
-        $names = (array)$_FILES['pdfs']['name'];
-        $tmps  = (array)$_FILES['pdfs']['tmp_name'];
-        $errs  = (array)$_FILES['pdfs']['error'];
-        $sizes = (array)$_FILES['pdfs']['size'];
-        $types = (array)$_FILES['pdfs']['type'];
-
-        if (count($names) > $maxFiles) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => "Máximo {$maxFiles} archivos."]);
+            $res = subirImagenesPorProducto($saPath, $bucketName, $filesArr, $linea, $noInventario, $cve_art);
+            echo json_encode($res, JSON_UNESCAPED_UNICODE);
             return;
         }
 
-        // ==== CLIENTE GCS ====
-        $storage = new Google\Cloud\Storage\StorageClient([
-            'projectId'   => $projectId,
-            'keyFilePath' => $keyFilePath,
-        ]);
-        $bucket = $storage->bucket($bucketName);
-
-        // Carpeta destino (organiza como gustes)
-        $base = ['Clientes'];
-        if (!empty($noEmpresa)) $base[] = 'EMP' . preg_replace('/\D+/', '', (string)$noEmpresa);
-        if (!empty($claveSae))  $base[] = 'SAE' . preg_replace('/\D+/', '', (string)$claveSae);
-
-        // separa por tipo/linea/artículo si llegan
-        if ($tipo)      $base[] = 'TIPO_' . preg_replace('/[^A-Za-z0-9_-]/', '_', (string)$tipo);
-        if ($linea)     $base[] = 'LIN_'  . preg_replace('/[^A-Za-z0-9_-]/', '_', (string)$linea);
-        if ($cve_art)   $base[] = 'ART_'  . preg_replace('/[^A-Za-z0-9_.-]/', '_', (string)$cve_art);
-
-        $base[] = 'PED' . preg_replace('/\D+/', '', (string)$numero);
-        $base[] = date('Y/m/d');
-        $basePath = implode('/', $base);
-
-        // MIME detector opcional
-        $finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
-
-        $uploaded = [];
-        foreach ($tmps as $i => $tmp) {
-            if (!is_uploaded_file($tmp)) continue;
-
-            $name = $names[$i] ?? 'archivo.pdf';
-            $err  = $errs[$i]  ?? UPLOAD_ERR_NO_FILE;
-            $size = $sizes[$i] ?? 0;
-
-            if ($err !== UPLOAD_ERR_OK) {
-                throw new RuntimeException("Error al subir '{$name}' (código {$err}).");
-            }
-            if ($size > $maxSize) {
-                throw new RuntimeException("El archivo '{$name}' excede 5MB.");
-            }
-
-            // Acepta solo PDF (si quieres permitir imágenes, ajusta aquí)
-            $mime = $types[$i] ?? 'application/pdf';
-            if ($finfo) {
-                $detected = finfo_file($finfo, $tmp);
-                if ($detected) $mime = $detected;
-            }
-            if (stripos($mime, 'pdf') === false) {
-                throw new RuntimeException("El archivo '{$name}' no es PDF (MIME: {$mime}).");
-            }
-
-            // Normaliza nombre
-            $baseName = pathinfo($name, PATHINFO_FILENAME);
-            $baseName = iconv('UTF-8', 'ASCII//TRANSLIT', $baseName);
-            $baseName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $baseName) ?: 'archivo';
-
-            $uniq       = bin2hex(random_bytes(4));
-            $objectName = "{$basePath}/" . time() . "_{$uniq}_{$baseName}.pdf";
-
-            // Token de descarga “estilo Firebase”
-            $token = bin2hex(random_bytes(16));
-
-            // Sube el archivo
-            $bucket->upload(
-                fopen($tmp, 'r'),
-                [
-                    'name'     => $objectName,
-                    'metadata' => [
-                        'contentType' => 'application/pdf',
-                        'metadata'    => ['firebaseStorageDownloadTokens' => $token],
-                    ],
-                ]
-            );
-
-            // URL pública con token
-            $encoded = rawurlencode($objectName);
-            $url     = "https://firebasestorage.googleapis.com/v0/b/{$bucketName}/o/{$encoded}?alt=media&token={$token}";
-
-            $uploaded[] = [
-                'name' => $name,
-                'path' => $objectName,
-                'url'  => $url,
-                'size' => $size,
-            ];
+        // Por línea:
+        if ($tipo === 'linea') {
+            if (!$noInventario) throw new Exception('Falta "noInventario"');
+            $res = subirImagenesPorProducto($saPath, $bucketName, $filesArr, $linea, $noInventario, "LINEA-{$linea}");
+            echo json_encode($res, JSON_UNESCAPED_UNICODE);
+            return;
         }
 
-        if ($finfo) finfo_close($finfo);
-
-        echo json_encode([
-            'success'     => true,
-            'message'     => 'Archivo(s) subidos correctamente.',
-            'numero'      => $numero,
-            'noEmpresa'   => $noEmpresa,
-            'claveSae'    => $claveSae,
-            'tipo'        => $tipo,
-            'linea'       => $linea,
-            'cve_art'     => $cve_art,
-            'files'       => $uploaded
-        ], JSON_UNESCAPED_UNICODE);
+        // Default
+        if (!$noInventario) throw new Exception('Falta "noInventario"');
+        $res = subirImagenesPorProducto($saPath, $bucketName, $filesArr, $linea, $noInventario, $cve_art ?: "LINEA-{$linea}");
+        echo json_encode($res, JSON_UNESCAPED_UNICODE);
         return;
 
     } catch (Throwable $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success'=>false, 'message'=>$e->getMessage()]);
         return;
     }
 }
@@ -1438,7 +1438,7 @@ switch ($funcion) {
         $resp = guardarAsignaciones($noEmpresa, $noInventario, $payload['asignaciones'], $firebaseProjectId, $firebaseApiKey);
         echo json_encode($resp);
         break;
-         case 11:
+    case 11:
         obtenerEstadoLineas();
         break;
     case 12:

@@ -946,6 +946,7 @@ session_destroy(); */
                 const csrf = $('#csrf_token').val();
                 const linea = $('#lineaSelect').val();
                 const noInv = $('#noInventario').val();
+                const code = $card.data('articulo') || $.trim($card.find('.code').text());
                 //const noEmp = (window.empresaActivaId || ($('#empresaActivaId').val())) ?? null; // ajusta si usas sesión
 
                 // Validaciones rápidas
