@@ -788,24 +788,7 @@ $(document).ready(function () {
     }
   });
 
-  $.get("../Servidor/PHP/inventario.php", {
-    numFuncion: 11,
-    numInventario: noInventario,
-  }).done(function (res) {
-    console.log(res);
-    if (res) {
-      Swal.fire({
-        icon: "info",
-        title: "Lineas Finalizadas",
-        html: `
-          <div style="text-align:left">
-            <div class="mt-2">Todas las lineas estan finalizadas.</div>
-          </div>
-        `,
-        confirmButtonText: "Continuar",
-      });
-    }
-  });
+  
 
   // === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
   $("#finalizarInventarioLinea").click(function () {

@@ -333,7 +333,6 @@ switch ($accion) {
 
         // 🔹 recorrer todas las posibles subcolecciones (lineas, lineas02, lineas03, ...)
         $subcolecciones = ["lineas", "lineas02", "lineas03", "lineas04", "lineas05", "lineas06"];
-
         foreach ($subcolecciones as $subcol) {
             $lineasUrl  = "$root/INVENTARIO/$invDocId/$subcol?key=$firebaseApiKey";
             $lineasDocs = http_get_json($lineasUrl);
@@ -350,16 +349,11 @@ switch ($accion) {
 
             // calcular subconteo (pares = mismo número)
             $subconteo = ($conteo === 1) ? 1 : ceil($conteo / 2);
-
             foreach ($lineasDocs["documents"] as $doc) {
                 $fields = $doc["fields"];
 
                 // ✅ Si es SUPER-ALMACENISTA, no filtramos
-                if (
-                    $tipoUsuario === "SUPER-ALMACENISTA" ||
-                    (isset($fields["idAsignado"]["stringValue"]) && $fields["idAsignado"]["stringValue"] == $usuarioId) ||
-                    (isset($fields["idAsignado"]["integerValue"]) && (string)$fields["idAsignado"]["integerValue"] == (string)$usuarioId)
-                ) {
+                if ( $tipoUsuario === "SUPER-ALMACENISTA" || (isset($fields["idAsignado"]["stringValue"]) && $fields["idAsignado"]["stringValue"] == $usuarioId) || (isset($fields["idAsignado"]["integerValue"]) && (string)$fields["idAsignado"]["integerValue"] == (string)$usuarioId)) {
                     $asignadas[] = [
                         "CVE_LIN"   => basename($doc["name"]),
                         "coleccion" => $subcol,

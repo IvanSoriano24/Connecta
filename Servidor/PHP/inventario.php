@@ -1439,7 +1439,7 @@ switch ($funcion) {
         echo json_encode($resp);
         break;
     case 11:
-        obtenerEstadoLineas();
+        //obtenerEstadoLineas();
         break;
     case 12:
         $usuarioId = $_SESSION['usuario']['idReal'];
