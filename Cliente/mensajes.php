@@ -268,7 +268,8 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 <?php endif; ?>
-                <!-- MODAL -->
+
+
                 <!-- Modal para Ver Detalles -->
                 <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel"
                     aria-hidden="true">
@@ -422,6 +423,8 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
+
+
                 <!-- Modal Pedido -->
                 <div class="modal fade" id="modalPedido" tabindex="-1" aria-labelledby="modalDetallesLabel"
                     aria-hidden="true">

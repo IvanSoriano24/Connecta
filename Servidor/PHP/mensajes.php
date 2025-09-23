@@ -1,4 +1,7 @@
 <?php
+require __DIR__ . '/../../vendor/autoload.php';
+use Kreait\Firebase\Factory;
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -893,48 +896,52 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
         $data = json_decode($response, true);
         $fields = $data['fields'];
         $productos = [];
-        foreach ($fields['productos']['arrayValue']['values'] as $producto) {
-            $productos[] = [
-                'cantidad' => $producto['mapValue']['fields']['cantidad']['integerValue'],
-                'clave' => $producto['mapValue']['fields']['clave']['stringValue'],
-                'descripcion' => $producto['mapValue']['fields']['descripcion']['stringValue'],
-                'lote' => $producto['mapValue']['fields']['lote']['stringValue'] ?? "N/A"
-            ];
+
+        if (isset($fields['productos']['arrayValue']['values'])) {
+            foreach ($fields['productos']['arrayValue']['values'] as $p) {
+                $productos[] = [
+                    'cantidad'     => $p['mapValue']['fields']['cantidad']['integerValue'] ?? 0,
+                    'clave'        => $p['mapValue']['fields']['clave']['stringValue'] ?? '',
+                    'descripcion'  => $p['mapValue']['fields']['descripcion']['stringValue'] ?? '',
+                    'lote'         => $p['mapValue']['fields']['lote']['stringValue'] ?? 'N/A',
+                    'checked'      => $p['mapValue']['fields']['checked']['booleanValue'] ?? false
+                ];
+            }
         }
 
         $envioData = [];
         if (isset($fields['envio']['mapValue']['fields'])) {
             $e = $fields['envio']['mapValue']['fields'];
             $envioData = [
-                'codigoContacto' => $e['codigoContacto']['stringValue'] ?? '',
-                'companiaContacto' => $e['companiaContacto']['stringValue'] ?? '',
-                'correoContacto' => $e['correoContacto']['stringValue'] ?? '',
-                'direccion1Contacto' => $e['direccion1Contacto']['stringValue'] ?? '',
-                'direccion2Contacto' => $e['direccion2Contacto']['stringValue'] ?? '',
-                'estadoContacto' => $e['estadoContacto']['stringValue'] ?? '',
-                'idPedido' => $e['idPedido']['integerValue'] ?? 0,
+                'codigoContacto'    => $e['codigoContacto']['stringValue'] ?? '',
+                'companiaContacto'  => $e['companiaContacto']['stringValue'] ?? '',
+                'correoContacto'    => $e['correoContacto']['stringValue'] ?? '',
+                'direccion1Contacto'=> $e['direccion1Contacto']['stringValue'] ?? '',
+                'direccion2Contacto'=> $e['direccion2Contacto']['stringValue'] ?? '',
+                'estadoContacto'    => $e['estadoContacto']['stringValue'] ?? '',
+                'idPedido'          => $e['idPedido']['integerValue'] ?? 0,
                 'municipioContacto' => $e['municipioContacto']['stringValue'] ?? '',
-                'noEmpresa' => $e['noEmpresa']['integerValue'] ?? 0,
-                'nombreContacto' => $e['nombreContacto']['stringValue'] ?? '',
-                'telefonoContacto' => $e['telefonoContacto']['stringValue'] ?? '',
+                'noEmpresa'         => $e['noEmpresa']['integerValue'] ?? 0,
+                'nombreContacto'    => $e['nombreContacto']['stringValue'] ?? '',
+                'telefonoContacto'  => $e['telefonoContacto']['stringValue'] ?? '',
             ];
         }
 
         echo json_encode([
             'success' => true,
             'data' => [
-                'id' => $comandaId,
-                'noPedido' => $fields['folio']['stringValue'],
-                'nombreCliente' => $fields['nombreCliente']['stringValue'],
-                'status' => $fields['status']['stringValue'] ?? "",
-                'fechaEnvio' => $fields['fechaEnvio']['stringValue'] ?? "",
-                'fecha' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[0] ?? "",
-                'hora' => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[1] ?? "00:00:00",
-                'numGuia' => $fields['numGuia']['stringValue'] ?? "",
-                'productos' => $productos ?? "",
-                'envioData' => $envioData ?? "",
-                'activada' => $fields['activada']['booleanValue'] ?? false,
-                'observaciones' => $fields['observaciones']['stringValue'] ?? ""
+                'id'            => $comandaId,
+                'noPedido'      => $fields['folio']['stringValue'] ?? '',
+                'nombreCliente' => $fields['nombreCliente']['stringValue'] ?? '',
+                'status'        => $fields['status']['stringValue'] ?? '',
+                'fechaEnvio'    => $fields['fechaEnvio']['stringValue'] ?? '',
+                'fecha'         => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[0] ?? '',
+                'hora'          => explode(' ', $fields['fechaHoraElaboracion']['stringValue'])[1] ?? '00:00:00',
+                'numGuia'       => $fields['numGuia']['stringValue'] ?? '',
+                'productos'     => $productos,
+                'envioData'     => $envioData,
+                'activada'      => $fields['activada']['booleanValue'] ?? false,
+                'observaciones' => $fields['observaciones']['stringValue'] ?? ''
             ]
         ]);
     }
@@ -2232,6 +2239,91 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         verificarComandas($conexionData, $noEmpresa, $claveSae, $firebaseProjectId, $firebaseApiKey);
         break;
+
+        // Función para el autoguardadod e los checks de las comandas:
+    case "14": // Autoguardado de checkbox producto
+        $comandaId = $_POST['comandaId'] ?? null;
+        $index     = $_POST['index'] ?? null;
+        $checked   = $_POST['checked'] ?? null;
+
+        if (!$comandaId || $index === null || $checked === null) {
+            echo json_encode(["success" => false, "message" => "Datos incompletos"]);
+            exit;
+        }
+
+        try {
+            // 1) Obtener documento actual de la comanda
+            $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey";
+            $doc = @file_get_contents($url);
+
+            if ($doc === false) {
+                echo json_encode(["success" => false, "message" => "No se pudo obtener la comanda"]);
+                exit;
+            }
+
+            $docData = json_decode($doc, true);
+            if (!isset($docData['fields']['productos'])) {
+                echo json_encode(["success" => false, "message" => "Comanda sin productos"]);
+                exit;
+            }
+
+            // 2) Reconstruir productos como array normal
+            $productos = [];
+            foreach ($docData['fields']['productos']['arrayValue']['values'] as $p) {
+                $producto = [];
+                foreach ($p['mapValue']['fields'] as $k => $v) {
+                    // Convertir tipos Firestore a valores PHP
+                    if (isset($v['stringValue'])) $producto[$k] = $v['stringValue'];
+                    if (isset($v['integerValue'])) $producto[$k] = (int)$v['integerValue'];
+                    if (isset($v['booleanValue'])) $producto[$k] = (bool)$v['booleanValue'];
+                }
+                $productos[] = $producto;
+            }
+
+            // 3) Actualizar el producto específico
+            $productos[$index]['checked'] = ($checked === "true");
+
+            // 4) Preparar productos en formato Firestore
+            $productosFirestore = ['arrayValue' => ['values' => []]];
+            foreach ($productos as $p) {
+                $map = ['fields' => []];
+                foreach ($p as $k => $v) {
+                    if (is_string($v)) $map['fields'][$k] = ['stringValue' => $v];
+                    if (is_int($v))    $map['fields'][$k] = ['integerValue' => $v];
+                    if (is_bool($v))   $map['fields'][$k] = ['booleanValue' => $v];
+                }
+                $productosFirestore['arrayValue']['values'][] = ['mapValue' => $map];
+            }
+
+            // 5) Hacer PATCH a Firestore
+            $updateUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA/$comandaId?key=$firebaseApiKey&updateMask.fieldPaths=productos";
+            $payload = json_encode([
+                "fields" => [
+                    "productos" => $productosFirestore
+                ]
+            ]);
+
+            $opts = [
+                'http' => [
+                    'method'  => 'PATCH',
+                    'header'  => "Content-Type: application/json\r\n",
+                    'content' => $payload
+                ]
+            ];
+            $context = stream_context_create($opts);
+            $result  = @file_get_contents($updateUrl, false, $context);
+
+            if ($result === false) {
+                echo json_encode(["success" => false, "message" => "Error al actualizar la comanda"]);
+                exit;
+            }
+
+            echo json_encode(["success" => true]);
+        } catch (Exception $e) {
+            echo json_encode(["success" => false, "message" => $e->getMessage()]);
+        }
+        break;
+
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);
         break;

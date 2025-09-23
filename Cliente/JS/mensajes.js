@@ -143,7 +143,7 @@ $(document).on("click", "#btnLimpiarFiltros", function () {
 
     aplicarFiltros("ADMINISTRADOR"); // refrescar tabla
 });
-
+// =================================================================================================================
 
 
 
@@ -379,13 +379,13 @@ function obtenerEstadosComanda(estadoSeleccionado, municipioSeleccionado) {
 }
 
 function mostrarModal(comandaId) {
-    //Abilitar y/o desabilitar
-    $("#btnTerminar").show();
-    $("#btnTerminar").prop("disabled", true);
+    // Resetear controles
+    $("#btnTerminar").show().prop("disabled", true);
     $("#divFechaEnvio").hide();
+
     $.get(
         "../Servidor/PHP/mensajes.php",
-        {numFuncion: "2", comandaId},
+        { numFuncion: "2", comandaId },
         function (response) {
             if (response.success) {
                 const comanda = response.data;
@@ -400,68 +400,67 @@ function mostrarModal(comandaId) {
                 $("#detalleStatus").val(comanda.status);
                 $("#detalleFecha").val(comanda.fecha);
                 $("#detalleHora").val(comanda.hora);
-                $("#numGuia").val(comanda.numGuia);
-                $("#numGuia").prop("disabled", false);
+                $("#numGuia").val(comanda.numGuia).prop("disabled", false);
                 $("#observaciones").val(comanda.observaciones);
-                //obtenerEstados();
+
+                // Datos de envío
                 obtenerDatosEnvioEditar(comanda.envioData);
 
                 // Cargar los productos en la tabla
-                const productosList = $("#detalleProductos");
-                productosList.empty();
+                const productosList = $("#detalleProductos").empty();
                 comanda.productos.forEach((producto, index) => {
                     const fila = `
-                 <tr>
-                        <td style="display: table-cell !important;">${producto.clave}</td>
-                        <td>${producto.descripcion}</td>
-                        <td style="text-align: right;">${producto.cantidad}</td>
-                        <td style="text-align: right;">${producto.lote}</td>
-                        <td>
-                            <label class="container">
-                                <input type="checkbox" class="producto-check" data-index="${index}">
-                                <div class="checkmark"></div>
-                            </label>
-                        </td>
-                    </tr>`;
+                        <tr>
+                            <td style="display: table-cell !important;">${producto.clave}</td>
+                            <td>${producto.descripcion}</td>
+                            <td style="text-align: right;">${producto.cantidad}</td>
+                            <td style="text-align: right;">${producto.lote}</td>
+                            <td>
+                                <label class="container">
+                                    <input type="checkbox" 
+                                           class="producto-check" 
+                                           data-index="${index}" 
+                                           ${producto.checked ? "checked" : ""}>
+                                    <div class="checkmark"></div>
+                                </label>
+                            </td>
+                        </tr>`;
                     productosList.append(fila);
                 });
 
+                // Manejo de status
                 const status = comanda.status;
-                if (status == "TERMINADA") {
-                    $(".producto-check").prop("checked", true);
-                    $(".producto-check").prop("disabled", true);
+                if (status === "TERMINADA") {
+                    $(".producto-check").prop("checked", true).prop("disabled", true);
                     $("#divFechaEnvio").show();
                     $("#fechaEnvio").val(comanda.fechaEnvio);
                     $("#btnTerminar").hide();
                     $("#numGuia").prop("disabled", true);
-                }
-                if (status == "Pendiente") {
-                    $(".producto-check").prop("checked", false);
-                    $(".producto-check").prop("disabled", true);
+                } else if (status === "Pendiente") {
+                    $(".producto-check").prop("checked", false).prop("disabled", true);
                     $("#divFechaEnvio").show();
                     $("#fechaEnvio").prop("disabled", true);
                     $("#btnTerminar").hide();
                     $("#numGuia").prop("disabled", true);
-                }
-                if (status == "CANCELADO") {
-                    $(".producto-check").prop("checked", false);
-                    $(".producto-check").prop("disabled", true);
+                } else if (status === "CANCELADO") {
+                    $(".producto-check").prop("checked", false).prop("disabled", true);
                     $("#divFechaEnvio").show();
                     $("#fechaEnvio").val(comanda.fechaEnvio);
                     $("#btnTerminar").hide();
                     $("#numGuia").prop("disabled", true);
                 } else {
-                    // Deshabilitar el botón "Terminar" inicialmente
+                    // Botón terminar deshabilitado inicialmente
                     $("#btnTerminar").prop("disabled", true);
-                    // Listener para checkboxes
-                    $(".producto-check").change(function () {
+
+                    // Listener para habilitar el botón si todos están marcados
+                    $(".producto-check").off("change.enableFinish").on("change.enableFinish", function () {
                         const allChecked =
-                            $(".producto-check").length ===
-                            $(".producto-check:checked").length;
-                        $("#btnTerminar").prop("disabled", !allChecked); // Activar solo si todos están marcados
+                            $(".producto-check").length === $(".producto-check:checked").length;
+                        $("#btnTerminar").prop("disabled", !allChecked);
                     });
                 }
-                // Mostrar el modal
+
+                // Mostrar modal
                 $("#modalDetalles").modal("show");
             } else {
                 alert("Error al obtener los detalles del pedido.");
@@ -470,6 +469,32 @@ function mostrarModal(comandaId) {
         "json"
     );
 }
+
+// ====================== AUTOGUARDADO de checks ======================
+$(document).on("change", ".producto-check", function () {
+    const index = $(this).data("index");
+    const checked = $(this).is(":checked");
+    const comandaId = $("#detalleIdComanda").val();
+
+    //console.log("Autoguardado:", { index, checked, comandaId });
+
+    $.post("../Servidor/PHP/mensajes.php", {
+        numFuncion: "14",
+        comandaId: comandaId,
+        index: index,
+        checked: checked
+    }, function (response) {
+        //console.log("Respuesta del servidor:", response);
+        if (!response.success) {
+            Swal.fire("Error", "No se pudo guardar el avance", "error");
+        }
+    }, "json").fail((jqXHR, textStatus, errorThrown) => {
+        console.error("Error AJAX:", textStatus, errorThrown);
+        console.log("Respuesta cruda:", jqXHR.responseText);
+    });
+});
+
+// =================================================================================================================
 
 function mostrarModalPedido(pedidoId) {
     //Abilitar y/o desabilitar campos
