@@ -622,17 +622,17 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
 //////////////////////////GUARDAR PRODUCTO/////////////////////////////////////////
 function iniciarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noInventario)
 {
-    date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
-    $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
+    date_default_timezone_set('America/Mexico_City');
+    $fechaCreacion = date("Y-m-d H:i:s");
+
     $fields = [
         'conteo'       => ['integerValue' => 1],
-        'fechaInicio'     => ['stringValue' => $fechaCreacion],
-        'noEmpresa'  => ['integerValue' => $noEmpresa],
-        'noInventario'     => ['integerValue' => 2],
-        'status' => ['booleanValue' => true],
+        'fechaInicio'  => ['stringValue' => $fechaCreacion],
+        'noEmpresa'    => ['integerValue' => $noEmpresa],
+        'noInventario' => ['integerValue' => $noInventario],
+        'status'       => ['booleanValue' => true],
     ];
 
-    // Finalmente, enviamos todo a Firestore
     $url = "https://firestore.googleapis.com/v1/projects/"
         . "$firebaseProjectId/databases/(default)/documents/INVENTARIO?key=$firebaseApiKey";
 
@@ -649,10 +649,25 @@ function iniciarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noI
 
     if ($response === false) {
         $error = error_get_last();
-        echo json_encode(['success' => false, 'message' => $error['message']]);
-        exit;
+        return ['success' => false, 'message' => $error['message']];
+    }
+
+    $data = json_decode($response, true);
+    if (isset($data['name'])) {
+        // Extraer el docId del campo "name"
+        $parts = explode('/', $data['name']);
+        $docId = end($parts);
+
+        return [
+            'success' => true,
+            'docId'   => $docId,
+            'data'    => $data
+        ];
+    } else {
+        return ['success' => false, 'message' => 'No se pudo obtener ID de inventario'];
     }
 }
+
 function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
     $collection = "INVENTARIO";
@@ -710,7 +725,7 @@ function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey)
         }
     }
     //return $inventarios;
-    echo json_encode(['succes' => true, 'inventarios' => $inventarios]);
+    echo json_encode(['success' => true, 'inventarios' => $inventarios]);
 }
 function obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
@@ -1390,10 +1405,8 @@ switch ($funcion) {
         $firebaseProject = $firebaseProjectId;
         $apiKey          = $firebaseApiKey;
 
-        // Guardamos el array de respuesta en una variable
         $inventario = buscarInventario($noEmpresa, $firebaseProject, $apiKey);
 
-        // Accedemos a las propiedades del array
         if ($inventario['success'] && $inventario['foundActive']) {
             echo json_encode([
                 'success' => false,
@@ -1401,17 +1414,23 @@ switch ($funcion) {
                 'docId'   => $inventario['docId']
             ]);
         } else {
-            // No había activo, iniciamos uno nuevo
             $noInventario = noInventario($noEmpresa, $firebaseProject, $apiKey);
-            iniciarInventario($noEmpresa, $firebaseProject, $apiKey, $noInventario);
-            
-            echo json_encode([
-                'success' => true,
-                'message' => 'Inventario Iniciado',
-                'newNoInventario' => $noInventario
-            ]);
+
+            $nuevoInv = iniciarInventario($noEmpresa, $firebaseProject, $apiKey, $noInventario);
+
+            if ($nuevoInv['success']) {
+                echo json_encode([
+                    'success'        => true,
+                    'message'        => 'Inventario Iniciado',
+                    'newNoInventario'=> $noInventario,
+                    'idInventario'   => $nuevoInv['docId'] // aquí ya regresa el ID
+                ]);
+            } else {
+                echo json_encode($nuevoInv);
+            }
         }
         break;
+
     case 7:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey);
@@ -1455,24 +1474,73 @@ switch ($funcion) {
             exit;
         }
 
-        // Consultar documento INVENTARIOS/{idInventario}
-        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario?key=$firebaseApiKey";
-        $response = @file_get_contents($url);
-        if ($response === false) {
-            echo json_encode(['success' => false, 'message' => 'Error al obtener inventario']);
-            exit;
+        // Posibles subcolecciones en orden
+        $subNames = ["lineas", "lineas02", "lineas03", "lineas04", "lineas05", "lineas06"];
+        $existing = [];
+        foreach ($subNames as $sn) {
+            $urlCheck = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/$sn?key=$firebaseApiKey";
+            $resCheck = @file_get_contents($urlCheck);
+            $docsCheck = json_decode($resCheck, true);
+            if (isset($docsCheck['documents'])) {
+                $existing[] = $sn;
+            }
         }
-        $docInventario = json_decode($response, true);
 
-        // Subcolecciones a verificar
-        $subcolecciones = ["lineas", "lineas02"];
+        // Caso 1: no existe ninguna línea todavía → crear lineas y lineas02
+        if (empty($existing)) {
+            $payload = json_encode(["fields" => ["status" => ["booleanValue" => false]]]);
+
+            foreach (["lineas", "lineas02"] as $newSub) {
+                $urlCreate = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/$newSub?documentId=initDoc";
+                file_get_contents($urlCreate, false, stream_context_create([
+                    'http' => [
+                        'method'  => 'POST',
+                        'header'  => "Content-Type: application/json\r\n",
+                        'content' => $payload
+                    ]
+                ]));
+            }
+
+            echo json_encode(['success' => true, 'message' => 'Se crearon lineas y lineas02 como primer conteo']);
+            break;
+        }
+
+        // Armar pares de subcolecciones
+        $pairs = [
+            ["lineas", "lineas02"],
+            ["lineas03", "lineas04"],
+            ["lineas05", "lineas06"]
+        ];
+
+        $currentPair = null;
+
+        foreach ($pairs as $pair) {
+            $countExisting = count(array_intersect($pair, $existing));
+
+            if ($countExisting === 0) {
+                // Este par todavía no existe, el anterior fue el último
+                break;
+            } elseif ($countExisting === 1) {
+                // Existe solo una del par → par incompleto, no finalizado
+                //echo json_encode(['success' => false, 'message' => 'El par ' . implode(" y ", $pair) . ' está incompleto']);
+                echo json_encode(['success' => false, 'message' => 'Los subconteos aún no se han terminado para hacer la comparación']);
+                return;
+            } elseif ($countExisting === 2) {
+                // Ambos existen → este es el par actual
+                $currentPair = $pair;
+            }
+        }
+
+        if (!$currentPair) {
+            echo json_encode(['success' => false, 'message' => 'No se pudo determinar un par activo']);
+            break;
+        }
+
+        // Revisar si todas las del par actual tienen status=false
         $allFalse = true;
-
-        foreach ($subcolecciones as $subcol) {
-            $urlSub = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario/$subcol?key=$firebaseApiKey";
+        foreach ($currentPair as $subcol) {
+            $urlSub = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/$subcol?key=$firebaseApiKey";
             $resSub = @file_get_contents($urlSub);
-            if ($resSub === false) continue;
-
             $docsSub = json_decode($resSub, true);
             if (!isset($docsSub['documents'])) continue;
 
@@ -1480,68 +1548,87 @@ switch ($funcion) {
                 $status = $d['fields']['status']['booleanValue'] ?? true;
                 if ($status === true) {
                     $allFalse = false;
-                    break 2; // salir de ambos loops
+                    break 2;
                 }
             }
         }
 
         if (!$allFalse) {
-            echo json_encode(['success' => false, 'message' => 'Aún hay líneas activas con status=true']);
-            exit;
+            echo json_encode(['success' => false, 'message' => 'Aún hay líneas activas en ' . implode(", ", $currentPair)]);
+            break;
         }
 
-        // ✅ Todas las líneas están en false
-        // Consultar CONFIG/inventarioFisico
+        // Todas finalizadas → verificar si se deben crear nuevas
         $urlConfig = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONFIG/inventarioFisico?key=$firebaseApiKey";
         $resConfig = @file_get_contents($urlConfig);
         $docConfig = json_decode($resConfig, true);
         $generacion = $docConfig['fields']['generacionConteos']['booleanValue'] ?? false;
 
         if ($generacion) {
-            // Buscar cuántas subcolecciones ya existen
-            $subNames = ["lineas", "lineas02", "lineas03", "lineas04", "lineas05", "lineas06"];
-            $existing = [];
-            foreach ($subNames as $sn) {
-                $urlCheck = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario/$sn?key=$firebaseApiKey";
-                $resCheck = @file_get_contents($urlCheck);
-                $docsCheck = json_decode($resCheck, true);
-                if (isset($docsCheck['documents'])) {
-                    $existing[] = $sn;
+            // Buscar cuál par fue el último y crear el siguiente
+            $lastPair = end($pairs);
+            foreach ($pairs as $i => $p) {
+                if ($p === $currentPair && isset($pairs[$i+1])) {
+                    $lastPair = $pairs[$i+1];
+                    break;
                 }
             }
 
-            // Crear el siguiente par
-            $nextIndex = floor(count($existing) / 2) + 1; // Conteo actual +1
-            $new1 = "lineas0" . ($nextIndex * 2 - 1);
-            $new2 = "lineas0" . ($nextIndex * 2);
-
-            // Crear documentos vacíos para inicializar las colecciones
-            $urlCreate1 = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario/$new1?documentId=initDoc";
-            $urlCreate2 = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIOS/$idInventario/$new2?documentId=initDoc";
-
             $payload = json_encode(["fields" => ["status" => ["booleanValue" => false]]]);
 
-            file_get_contents($urlCreate1, false, stream_context_create([
-                'http' => [
-                    'method'  => 'POST',
-                    'header'  => "Content-Type: application/json\r\n",
-                    'content' => $payload
-                ]
-            ]));
+            foreach ($lastPair as $newSub) {
+                $urlCreate = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/$newSub?documentId=initDoc";
+                file_get_contents($urlCreate, false, stream_context_create([
+                    'http' => [
+                        'method'  => 'POST',
+                        'header'  => "Content-Type: application/json\r\n",
+                        'content' => $payload
+                    ]
+                ]));
+            }
 
-            file_get_contents($urlCreate2, false, stream_context_create([
-                'http' => [
-                    'method'  => 'POST',
-                    'header'  => "Content-Type: application/json\r\n",
-                    'content' => $payload
-                ]
-            ]));
-
-            echo json_encode(['success' => true, 'message' => "Todas las líneas finalizadas. Nuevos conteos creados: $new1 y $new2"]);
+            echo json_encode(['success' => true, 'message' => "Nuevos conteos creados: " . implode(" y ", $lastPair)]);
         } else {
             echo json_encode(['success' => true, 'message' => 'Todas las líneas finalizadas. No se generaron más conteos (generacionConteos = false)']);
         }
         break;
+
+
+
+    case 21: // Eliminar inventario
+        $noEmpresa    = (int)$_SESSION['empresa']['noEmpresa'];
+        $idInventario = $_POST['idInventario'] ?? null;
+
+        if (!$noEmpresa || !$idInventario) {
+            echo json_encode(['success' => false, 'message' => 'Faltan parámetros']);
+            exit;
+        }
+
+        try {
+            // Endpoint Firestore REST API
+            $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario?key=$firebaseApiKey";
+
+            $opts = [
+                'http' => [
+                    'method' => 'DELETE'
+                ]
+            ];
+            $context = stream_context_create($opts);
+            $result  = file_get_contents($url, false, $context);
+
+            if ($http_response_header && strpos($http_response_header[0], "200") !== false) {
+                echo json_encode(["success" => true, "message" => "Inventario eliminado"]);
+            } else {
+                echo json_encode(["success" => false, "message" => "No se pudo eliminar inventario"]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                "success" => false,
+                "message" => "Error: " . $e->getMessage()
+            ]);
+        }
+        break;
+
 
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);

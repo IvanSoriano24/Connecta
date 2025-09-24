@@ -212,6 +212,7 @@ function abrirModal() {
 }
 //Funcion para saber si hay un inventario activo
 function buscarInventario() {
+  mostrarLoader();
   const csrfToken = $("#csrf_token").val();
   const $noInv = $("#noInventario");
   const $linea = $("#lineaSelect");
@@ -227,13 +228,14 @@ function buscarInventario() {
     dataType: "json",
     headers: { "X-CSRF-Token": csrfToken },
   })
-    .done(function (res) {
+    .done(async function (res) {
       // Esperado: { success: true, foundActive: bool, existsAny: bool, docId: string|null, folioSiguiente: int|null }
       console.log("inventario?", res);
       window.idInventario = res.docId;
       console.log("ID guardado en window.idInventario:", window.idInventario);
 
       if (!res || res.success !== true) {
+        cerrarLoader();
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -243,16 +245,18 @@ function buscarInventario() {
       }
 
       // Presentación/estado
-      const { foundActive, existsAny, noInventario, docId } = res;
+      const {foundActive, existsAny, noInventario, docId} = res;
 
+      cerrarLoader();
       if (foundActive) {
         // Hay inventario ACTIVO
         $noInv
-          .val(noInventario ?? "")
-          .prop("readonly", true)
-          .addClass("is-valid");
+            .val(noInventario ?? "")
+            .prop("readonly", true)
+            .addClass("is-valid");
         $linea.prop("disabled", false);
         $btnNext.prop("disabled", false);
+
 
         Swal.fire({
           icon: "info",
@@ -269,13 +273,13 @@ function buscarInventario() {
       } else if (existsAny) {
         // No hay activo, pero sí existen inventarios (inactivos)
         $noInv
-          .val(noInventario ?? "")
-          .prop("readonly", false)
-          .removeClass("is-valid");
+            .val(noInventario ?? "")
+            .prop("readonly", false)
+            .removeClass("is-valid");
         $linea.prop("disabled", true);
         $btnNext.prop("disabled", true);
 
-        Swal.fire({
+        await Swal.fire({
           icon: "warning",
           title: "No hay inventario activo",
           html: `
@@ -286,6 +290,7 @@ function buscarInventario() {
         `,
           confirmButtonText: "Entendido",
         });
+        window.location.href = "inventarioFisico.php";
       } else {
         // No existe ningún inventario para esa empresa
         $noInv.val("").prop("readonly", false).removeClass("is-valid");
@@ -714,10 +719,6 @@ function subirPDFsLineas(selectedFiles, meta = {}) {
 $(document).ready(function () {
   initInventarioUI();
   let noInventario = null;
-  //buscarInventario();
-  //obtenerLineas(); // ← ya no, ahora usamos Firestore
-  //bloquearLineasTerminadas();
-  //noInventario();
 
   // Inventario activo
   $.get("../Servidor/PHP/inventarioFirestore.php", {
@@ -818,19 +819,23 @@ $(document).ready(function () {
         $.post(
             "../Servidor/PHP/inventario.php",
             { numFuncion: "20", idInventario: idInventario },
-            function (response) {
-              console.log("📡 Respuesta verificación inventario:", response);
+            async function (response) {
+              console.log("Respuesta verificación inventario:", response);
               if (response.success) {
-                Swal.fire("Éxito", response.message, "success");
+                await mostrarAlerta("Éxito", response.message, "success");
               } else {
-                Swal.fire("Aviso", response.message, "warning");
+                await mostrarAlerta("Aviso", response.message, "warning");
               }
+              window.location.href = "inventarioFisico.php";
             },
             "json"
-        ).fail((jqXHR, textStatus, errorThrown) => {
+        ).fail(async (jqXHR, textStatus, errorThrown) => {
+          await mostrarAlerta("Ocurrio un problema inesperado", "", "")
           console.error("🚨 Error AJAX:", textStatus, errorThrown);
           console.log("Respuesta cruda:", jqXHR.responseText);
+          window.location.href = "inventarioFisico.php";
         });
+
       }
     });
   });

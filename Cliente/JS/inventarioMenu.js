@@ -5,7 +5,7 @@ function mostrarInventarios() {
     dataType: "json",
     data: { numFuncion: "7" },
     success: function (response) {
-      if (response.succes) {
+      if (response.success) {
         const inventarios = response.inventarios || [];
         const $tbody = $("#tablaInventarios");
         $tbody.empty(); // limpiar antes de re-dibujar
@@ -25,7 +25,7 @@ function mostrarInventarios() {
         inventarios.forEach((inv) => {
           const noInv = inv.noInventario ?? "-";
           const fecha = inv.fechaInicio ?? "-";
-          const estado = inv.status ?? "Pendiente";
+          const estado = inv.status ? "Activo" : "Finalizado";
 
           // Botones de acciones
           const $acciones = $("<td>").append(
@@ -370,17 +370,23 @@ $("#listaEmpresasAsociadas").on("click", ".btnQuitar", function () {
 $("#btnModalInventarios").click(function () {
   mostrarInventarios();
 });
+
+let inventarioActualId = null; // variable global para guardar el ID
+
 $("#btnNuevoInventario").click(function () {
+  mostrarLoader();
   $.ajax({
-    url: "../Servidor/PHP/inventario.php", // Ruta al PHP
+    url: "../Servidor/PHP/inventario.php",
     method: "POST",
-    data: {
-      numFuncion: "6",
-    },
+    data: { numFuncion: "6" },
+
     success: function (response) {
+      cerrarLoader();
       try {
         const res = JSON.parse(response);
+        console.log("Crear inve: ", res);
         if (res.success) {
+          inventarioActualId = res.idInventario; // guardar el ID
           Swal.fire({
             icon: "success",
             title: "Éxito",
@@ -388,7 +394,6 @@ $("#btnNuevoInventario").click(function () {
             timer: 1000,
             showConfirmButton: false,
           }).then(() => {
-            //abrirModalAsignacion();
             $("#modalInventarios").modal("hide");
             obtenerLineas();
             obtenerAlmacenistas();
@@ -411,6 +416,7 @@ $("#btnNuevoInventario").click(function () {
       }
     },
     error: function () {
+      cerrarLoader();
       Swal.fire({
         icon: "warning",
         title: "Error",
@@ -419,7 +425,41 @@ $("#btnNuevoInventario").click(function () {
     },
   });
 });
+
+// Cancelar desde el header o footer
+$("#cerrarModalAsociasionHeader, #cerrarModalAsociasionFooter").click(function () {
+  if (inventarioActualId) {
+    $.ajax({
+      url: "../Servidor/PHP/inventario.php",
+      method: "POST",
+      data: {
+        numFuncion: "21",
+        idInventario: inventarioActualId,
+      },
+      success: function (response) {
+        try {
+          const res = JSON.parse(response);
+          if (res.success) {
+            console.log("Inventario eliminado:", inventarioActualId);
+          } else {
+            console.warn("Error al eliminar inventario:", res.message);
+          }
+        } catch (e) {
+          console.error("Error procesando eliminación:", e);
+        }
+      },
+      error: function () {
+        console.error("Error al eliminar inventario en backend.");
+      },
+    });
+  }
+  $("#asociarLineas").modal("hide");
+});
+
+
+
 $("#btnGuardarAsignacion").on("click", function () {
+
   const $btn = $(this);
   const csrf = $("#csrf_token").val();
   //const noInv = $("#noInventario").val();
@@ -434,6 +474,7 @@ $("#btnGuardarAsignacion").on("click", function () {
       text: "Agrega al menos una asignación.",
     });
   }
+  mostrarLoader();
   // Construir payload: { lineaId: userId }
   const asignaciones = {};
   Object.entries(lineIndex).forEach(([lin, set]) => {
@@ -454,11 +495,12 @@ $("#btnGuardarAsignacion").on("click", function () {
       payload: JSON.stringify({ asignaciones }), // { "001": "userId", ... }
     },
   })
-    .done(function (res) {
+    .done(async function (res) {
+      cerrarLoader();
       if (!res || res.success !== true) {
         throw new Error(res?.message || "No se pudo guardar");
       }
-      Swal.fire({
+      await Swal.fire({
         icon: "success",
         title: "Asignaciones guardadas",
         timer: 1400,
@@ -468,10 +510,12 @@ $("#btnGuardarAsignacion").on("click", function () {
       $("#asociarLineas").modal("hide");
     })
     .fail(function (err) {
+      cerrarLoader();
       console.error("Guardar asignaciones error:", err);
       Swal.fire({ icon: "error", title: "Error", text: "Intenta de nuevo." });
     })
     .always(function () {
+      cerrarLoader();
       $btn.prop("disabled", false).text("Guardar Asignacion");
     });
 });

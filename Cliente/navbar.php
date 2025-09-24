@@ -132,3 +132,5 @@
         </a>
     </div>
 </nav>
+
+<script src="JS/alerts.js"></script>

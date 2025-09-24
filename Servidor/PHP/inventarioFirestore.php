@@ -197,7 +197,7 @@ switch ($accion) {
         $conteoIn    = isset($payload["conteo"]) ? (int)$payload["conteo"] : null;
 
         // Usuario actual (quien guarda la línea)
-        $usuarioId = (string)($_SESSION['usuario']['idUsuario'] ?? $_SESSION['usuario']['email'] ?? $_SESSION['usuario']['id'] ?? '');
+        $usuarioId = (string)($_SESSION['usuario']['idReal']);
 
         // 1) Buscar inventario por folio (activo o el que tenga ese folio)
         $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
@@ -270,6 +270,7 @@ switch ($accion) {
             echo json_encode(["success" => false, "message" => "Error al guardar la línea"]);
         }
         break;
+
     case "obtenerInventarioActivo":
         $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
         $invDocs = http_get_json($invUrl);
@@ -302,7 +303,6 @@ switch ($accion) {
             "fechaInicio"  => $fechaInicio
         ]);
         break;
-
 
     case "obtenerLineas":
         $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
@@ -375,7 +375,6 @@ switch ($accion) {
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
 
-    // inventarioFirestore.php
     case 'obtenerLineaConteos':
         $noInv      = (int)($_GET['noInventario'] ?? 0);
         $claveLinea = (string)($_GET['claveLinea'] ?? '');
@@ -416,6 +415,7 @@ switch ($accion) {
             'conteo2' => $doc2 && isset($doc2['fields']) ? $doc2 : null
         ]);
         exit;
+
     case 'obtenerInventario':
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
