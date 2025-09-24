@@ -453,7 +453,7 @@ session_destroy(); */
                             <span class="status">Iniciado</span>
                             <span class="sep">|</span>
                             <a href="inventarioLineas.php" class="current">Por líneas</a>
-                            <span><?= $_SESSION['usuario']['idReal']; ?></span>
+                            <span>idUsuario: <?= $_SESSION['usuario']['idReal']; ?></span>
                         </div>
 
                         <div class="d-flex gap-2">
@@ -520,6 +520,7 @@ session_destroy(); */
         <!-- CONTENT -->
     </div>
 
+    <!-- Modal resumen inventario -->
     <div class="modal fade" id="resumenInventario" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
@@ -534,13 +535,14 @@ session_destroy(); */
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-dark" id="generararPDF">Generar PDF</button>
+                    <button type="button" class="btn btn-dark" id="generarPDF">Generar PDF</button>
                     <button type="button" class="btn btn-success" id="exportarExcel">Exportar Excel</button>
                     <button type="button" class="btn btn-danger" id="finalizarInventarioLinea">Guardar Línea</button>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- Modal para subir PDFs -->
     <div id="modalPDF" class="modal fade" tabindex="-1" aria-hidden="true"> <!-- data-bs-backdrop="false" -->
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -599,6 +601,7 @@ session_destroy(); */
             </div>
         </div>
     </div>
+
     <img id="logoInventario" src="SRC/imagen-small.png" style="display:none;">
 
     <!-- CONTENT -->

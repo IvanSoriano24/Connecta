@@ -126,7 +126,7 @@ session_destroy(); */
         <!-- NAVBAR -->
         <?php include 'navbar.php'; ?>
         <!-- MAIN -->
-        <main class="my-5 hero_area">
+        <main class=" hero_area">
             <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
 
             <div class="inventory-wrapper container py-4">

@@ -43,6 +43,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
+
 // Función auxiliar para GET a Firestore
 function http_get_json($url)
 {
@@ -120,12 +121,13 @@ function detectar_subcol_por_existencia(string $root, string $invDocId, string $
     return null;
 }
 
-function obtenerProductos($articulos, $conexionData, $claveSae){
+function obtenerProductos($articulos, $conexionData, $claveSae)
+{
     $conn = sqlsrv_connect($conexionData['host'], [
         "Database" => $conexionData['nombreBase'],
-        "UID"      => $conexionData['usuario'],
-        "PWD"      => $conexionData['password'],
-        "CharacterSet"         => "UTF-8",
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ]);
     if (!$conn) {
@@ -139,7 +141,7 @@ function obtenerProductos($articulos, $conexionData, $claveSae){
             FROM $nombreTabla
             WHERE CVE_ART = ?";
             $param = [$art['cve_art']];
-            $stmt   = sqlsrv_query($conn, $sql, $param);
+            $stmt = sqlsrv_query($conn, $sql, $param);
             if ($stmt === false) {
                 $errors = print_r(sqlsrv_errors(), true);
                 throw new Exception("Problema al optener los productos:\n{$errors}");
@@ -190,17 +192,17 @@ switch ($accion) {
             exit;
         }
 
-        $noInv       = (int)$payload["noInventario"];
-        $claveLinea  = (string)$payload["claveLinea"];
-        $articulos   = $payload["articulos"];
-        $status      = $payload["status"] ?? true; // true=editable, false=finalizada
-        $conteoIn    = isset($payload["conteo"]) ? (int)$payload["conteo"] : null;
+        $noInv = (int)$payload["noInventario"];
+        $claveLinea = (string)$payload["claveLinea"];
+        $articulos = $payload["articulos"];
+        $status = $payload["status"] ?? true; // true=editable, false=finalizada
+        $conteoIn = isset($payload["conteo"]) ? (int)$payload["conteo"] : null;
 
         // Usuario actual (quien guarda la línea)
         $usuarioId = (string)($_SESSION['usuario']['idReal']);
 
         // 1) Buscar inventario por folio (activo o el que tenga ese folio)
-        $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
+        $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
         $invDocs = http_get_json($invUrl);
 
         $invDocId = null;
@@ -234,8 +236,8 @@ switch ($accion) {
         $data = [
             "fields" => [
                 "idAsignado" => ["stringValue" => $usuarioId],
-                "status"     => ["booleanValue" => (bool)$status],
-                "updatedAt"  => ["timestampValue" => gmdate('c')],
+                "status" => ["booleanValue" => (bool)$status],
+                "updatedAt" => ["timestampValue" => gmdate('c')],
             ]
         ];
         foreach ($articulos as $cveArt => $lotes) {
@@ -244,10 +246,10 @@ switch ($accion) {
                 $arrLotes[] = [
                     "mapValue" => [
                         "fields" => [
-                            "corrugados"        => ["integerValue" => (int)($l["corrugados"] ?? 0)],
+                            "corrugados" => ["integerValue" => (int)($l["corrugados"] ?? 0)],
                             "corrugadosPorCaja" => ["integerValue" => (int)($l["corrugadosPorCaja"] ?? 0)],
-                            "lote"              => ["stringValue"  => (string)($l["lote"] ?? "")],
-                            "total"             => ["integerValue" => (int)($l["total"] ?? 0)],
+                            "lote" => ["stringValue" => (string)($l["lote"] ?? "")],
+                            "total" => ["integerValue" => (int)($l["total"] ?? 0)],
                         ]
                     ]
                 ];
@@ -261,8 +263,8 @@ switch ($accion) {
 
         if ($resp) {
             echo json_encode([
-                "success"      => true,
-                "message"      => "Línea guardada correctamente",
+                "success" => true,
+                "message" => "Línea guardada correctamente",
                 "subcoleccion" => $subcol,
                 'claveLinea' => $claveLinea
             ]);
@@ -295,20 +297,20 @@ switch ($accion) {
 
         $fields = $inventarioActivo["fields"];
         $noInventario = isset($fields["noInventario"]["integerValue"]) ? (int)$fields["noInventario"]["integerValue"] : null;
-        $fechaInicio  = isset($fields["fechaInicio"]["stringValue"]) ? $fields["fechaInicio"]["stringValue"] : null;
+        $fechaInicio = isset($fields["fechaInicio"]["stringValue"]) ? $fields["fechaInicio"]["stringValue"] : null;
 
         echo json_encode([
-            "success"      => true,
+            "success" => true,
             "noInventario" => $noInventario,
-            "fechaInicio"  => $fechaInicio
+            "fechaInicio" => $fechaInicio
         ]);
         break;
 
     case "obtenerLineas":
         $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
-        $usuarioId   = $_SESSION['usuario']["idReal"]; // asegúrate que este campo existe en tu sesión
-        $invUrl      = "$root/INVENTARIO?key=$firebaseApiKey";
-        $invDocs     = http_get_json($invUrl);
+        $usuarioId = $_SESSION['usuario']["idReal"]; // asegúrate que este campo existe en tu sesión
+        $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
+        $invDocs = http_get_json($invUrl);
 
         if (!isset($invDocs["documents"])) {
             echo json_encode(["success" => false, "message" => "No hay inventarios"]);
@@ -328,21 +330,21 @@ switch ($accion) {
             exit;
         }
 
-        $invDocId   = basename($inventarioActivo["name"]);
-        $asignadas  = [];
+        $invDocId = basename($inventarioActivo["name"]);
+        $asignadas = [];
 
         // 🔹 recorrer todas las posibles subcolecciones (lineas, lineas02, lineas03, ...)
         $subcolecciones = ["lineas", "lineas02", "lineas03", "lineas04", "lineas05", "lineas06"];
         // 🔹 Tomar el campo "conteo" del documento padre
         $conteo = isset($inventarioActivo["fields"]["conteo"]["integerValue"])
-            ? (int) $inventarioActivo["fields"]["conteo"]["integerValue"]
+            ? (int)$inventarioActivo["fields"]["conteo"]["integerValue"]
             : 1;
 
         // recorrer solo las subcolecciones que existen (lineas, lineas02)
         $subcolecciones = ["lineas", "lineas02"];
 
         foreach ($subcolecciones as $subcol) {
-            $lineasUrl  = "$root/INVENTARIO/$invDocId/$subcol?key=$firebaseApiKey";
+            $lineasUrl = "$root/INVENTARIO/$invDocId/$subcol?key=$firebaseApiKey";
             $lineasDocs = http_get_json($lineasUrl);
 
             if (!isset($lineasDocs["documents"])) continue;
@@ -351,7 +353,7 @@ switch ($accion) {
             if ($subcol === "lineas") {
                 $conteo = 1;
             } else {
-                $num = (int) filter_var($subcol, FILTER_SANITIZE_NUMBER_INT);
+                $num = (int)filter_var($subcol, FILTER_SANITIZE_NUMBER_INT);
                 $conteo = $num > 0 ? $num : 1;
             }
 
@@ -361,11 +363,11 @@ switch ($accion) {
                 $fields = $doc["fields"];
 
                 // ✅ Si es SUPER-ALMACENISTA, no filtramos
-                if ( $tipoUsuario === "SUPER-ALMACENISTA" || (isset($fields["idAsignado"]["stringValue"]) && $fields["idAsignado"]["stringValue"] == $usuarioId) || (isset($fields["idAsignado"]["integerValue"]) && (string)$fields["idAsignado"]["integerValue"] == (string)$usuarioId)) {
+                if ($tipoUsuario === "SUPER-ALMACENISTA" || (isset($fields["idAsignado"]["stringValue"]) && $fields["idAsignado"]["stringValue"] == $usuarioId) || (isset($fields["idAsignado"]["integerValue"]) && (string)$fields["idAsignado"]["integerValue"] == (string)$usuarioId)) {
                     $asignadas[] = [
-                        "CVE_LIN"   => basename($doc["name"]),
+                        "CVE_LIN" => basename($doc["name"]),
                         "coleccion" => $subcol,
-                        "conteo"    => $conteo,
+                        "conteo" => $conteo,
                         "subconteo" => $subconteo
                     ];
                 }
@@ -376,7 +378,7 @@ switch ($accion) {
         break;
 
     case 'obtenerLineaConteos':
-        $noInv      = (int)($_GET['noInventario'] ?? 0);
+        $noInv = (int)($_GET['noInventario'] ?? 0);
         $claveLinea = (string)($_GET['claveLinea'] ?? '');
         if (!$noInv || !$claveLinea) {
             echo json_encode(['success' => false, 'message' => 'Parámetros inválidos']);
@@ -384,7 +386,7 @@ switch ($accion) {
         }
 
         // 1) localizar inventario por folio
-        $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
+        $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
         $invDocs = http_get_json($invUrl);
         $invDocId = null;
         if (isset($invDocs['documents'])) {
@@ -428,6 +430,29 @@ switch ($accion) {
             echo json_encode(["success" => false, "message" => "Faltan Articulos"]);
         }
         break;
+
+    case "verificarLinea":
+        $idInventario = $_GET['idInventario'] ?? null;
+        $claveLinea = $_GET['claveLinea'] ?? null;
+        $subcol = $_GET['subcol'] ?? null;
+
+        if (!$idInventario || !$claveLinea || !$subcol) {
+            echo json_encode(['success' => false, 'message' => 'Faltan parámetros']);
+            exit;
+        }
+
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/$subcol/$claveLinea?key=$firebaseApiKey";
+        $res = @file_get_contents($url);
+        $doc = $res ? json_decode($res, true) : null;
+
+        $finalizada = false;
+        if ($doc && isset($doc['fields']['status']['booleanValue'])) {
+            $finalizada = ($doc['fields']['status']['booleanValue'] === false);
+        }
+
+        echo json_encode(['success' => true, 'finalizada' => $finalizada]);
+        break;
+
     default:
         echo json_encode(["success" => false, "message" => "Acción no válida"]);
         break;
