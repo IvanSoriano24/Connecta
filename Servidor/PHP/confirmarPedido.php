@@ -521,10 +521,10 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                             if ($response === false) {
                                 $error = error_get_last();
                                 echo "<div class='container'>
-                        <div class='title'>Error al actualizar el Pago</div>
-                        <div class='message'>No se pudo actualizar la información.</div>
-                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                      </div>";
+                            <div class='title'>Error al actualizar el Pago</div>
+                            <div class='message'>No se pudo actualizar la información.</div>
+                            <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
+                        </div>";
                             } else {
                                 bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "anticipo", $noEmpresa);
                                 echo "<div class='container'>

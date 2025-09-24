@@ -1,70 +1,92 @@
-function mostrarInventarios() {
+// ====== Estado global ======
+let asignByUser = {
+  // userId: { userName, userHandle, lineas: { lineaId: { lineaDesc } } }
+};
+let lineIndex = {
+  // lineaId: Set<userId>
+};
+
+async function mostrarInventarios() {
   $.ajax({
     url: "../Servidor/PHP/inventario.php",
     type: "POST",
     dataType: "json",
     data: { numFuncion: "7" },
   })
-  .done(async (response) => {
-    if (!response.success) {
-      console.warn("Inventarios:", response.message);
-      Swal.fire({ icon:"error", title:"Error", text: response.message || "No se pudieron cargar los inventarios" });
-      return;
-    }
+    .done(async (response) => {
+      if (!response.success) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: response.message || "No se pudieron cargar los inventarios",
+        });
+        return;
+      }
 
-    const inventarios = response.inventarios || [];
-    const $tbody = $("#tablaInventarios").empty();
+      const inventarios = response.inventarios || [];
+      const $tbody = $("#tablaInventarios").empty();
 
-    if (inventarios.length === 0) {
-      $tbody.append(
-        `<tr><td colspan="4" class="text-center text-muted">No hay inventarios disponibles</td></tr>`
-      );
-      return;
-    }
+      if (inventarios.length === 0) {
+        $tbody.append(
+          `<tr><td colspan="4" class="text-center text-muted">No hay inventarios disponibles</td></tr>`
+        );
+        return;
+      }
 
-    // 1) Pinta filas con botón oculto…
-    inventarios.forEach((inv) => {
-      const noInv = inv.noInventario ?? "-";
-      const fecha = inv.fechaInicio ?? "-";
-      const estado = inv.status ? "Activo" : "Finalizado";
+      // Pintado inicial
+      inventarios.forEach((inv) => {
+        const noInv = inv.noInventario ?? "-";
+        const fecha = inv.fechaInicio ?? "-";
+        const estado = inv.status ? "Activo" : "Finalizado";
 
-      const $btn = $(`<button class="btn btn-sm btn-primary d-none">Descargar</button>`)
-        .on("click", () => descargarEvidencia(noInv));
+        const $acciones = $(`<td class="acciones"></td>`);
 
-      const $fila = $(`
+        // Descargar (se mostrará tras comprobar archivos)
+        const $btnDesc = $(
+          `<button class="btn btn-sm btn-primary d-none me-2">Descargar</button>`
+        ).on("click", () => descargarEvidencia(noInv));
+        $acciones.append($btnDesc);
+
+        // Asignar líneas (solo activos)
+        if (inv.status === true) {
+          const $btnAsign = $(
+            `<button class="btn btn-sm btn-outline-secondary">Asignar líneas</button>`
+          ).on("click", () => abrirModalAsignacion(noInv));
+          $acciones.append($btnAsign);
+        } else {
+          //$acciones.append(`<span class="text-muted">Inventario cerrado</span>`);
+        }
+
+        const $fila = $(`
         <tr data-noinv="${noInv}">
           <td>${noInv}</td>
           <td>${fecha}</td>
           <td>${estado}</td>
-          <td class="acciones"></td>
         </tr>
       `);
-      $fila.find(".acciones").append($btn);
-      $tbody.append($fila);
+        $fila.append($acciones);
+        $tbody.append($fila);
+      });
+
+      // Comprobar archivos para mostrar/ocultar “Descargar”
+      const checks = inventarios.map((i) => buscarArchivos(i.noInventario));
+      const results = await Promise.allSettled(checks);
+      results.forEach((r, idx) => {
+        const noInv = inventarios[idx].noInventario;
+        const $row = $tbody.find(`tr[data-noinv="${noInv}"]`);
+        const $btnDesc = $row.find("button.btn.btn-sm.btn-primary");
+        const hasFiles = r.status === "fulfilled" && r.value === true;
+        if (hasFiles) $btnDesc.removeClass("d-none");
+        else $btnDesc.remove();
+      });
+    })
+    .fail(() => {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error en la solicitud AJAX.",
+      });
     });
-
-    // 2) …y ahora resolvemos, en paralelo, qué filas tienen archivos
-    const checks = inventarios.map(i => buscarArchivos(i.noInventario));
-    const results = await Promise.allSettled(checks);
-
-    results.forEach((r, idx) => {
-      const noInv = inventarios[idx].noInventario;
-      const $row = $tbody.find(`tr[data-noinv="${noInv}"]`);
-      const $btn = $row.find("button");
-
-      const hasFiles = (r.status === "fulfilled" && r.value === true);
-      if (hasFiles) {
-        $btn.removeClass("d-none"); // mostrar botón
-      } else {
-        // Sin archivos: pinta un texto “—” en lugar del botón
-        $btn.remove();
-        $row.find(".acciones").append('<span class="text-muted">Sin archivos</span>');
-      }
-    });
-  })
-  .fail(() => {
-    Swal.fire({ icon:"error", title:"Error", text:"Error en la solicitud AJAX." });
-  });
 }
 // Comprueba si existe evidencia (PROMISE -> boolean)
 function buscarArchivos(noInv) {
@@ -75,22 +97,108 @@ function buscarArchivos(noInv) {
       dataType: "json",
       data: { numFuncion: "2", noInv },
     })
-    .done((res) => resolve(!!(res && res.success)))
-    .fail((jqXHR, textStatus) => {
-      console.error("buscarArchivos AJAX error:", textStatus);
-      resolve(false); // tratamos error como “sin archivos”
-    });
+      .done((res) => resolve(!!(res && res.success)))
+      .fail((jqXHR, textStatus) => {
+        console.error("buscarArchivos AJAX error:", textStatus);
+        resolve(false); // tratamos error como “sin archivos”
+      });
   });
 }
 // Descarga el ZIP solo si el server devuelve URL
 function descargarEvidencia(noInv) {
   // Ir directo al endpoint que streamea el ZIP
-  const url = "../Servidor/PHP/descargarInventarios.php?numFuncion=1&noInv=" + encodeURIComponent(noInv);
+  const url =
+    "../Servidor/PHP/descargarInventarios.php?numFuncion=1&noInv=" +
+    encodeURIComponent(noInv);
   // nueva pestaña o misma, como prefieras:
   // window.open(url, "_blank");
   window.location = url;
 }
+///////////////////////////////////////////////////////////
+function abrirModalAsignacion(noInv) {
+  try {
+    // Cerrar modal de inventarios
+    // guarda el inventario actual en un hidden del modal
+    // (agrégalo al modal si no existe)
+     $("#modalInventarios").modal("hide");
+    let $hidden = $('#asociarLineas input[type="hidden"][name="noInventario"]');
+    if ($hidden.length === 0) {
+      $("#asociarLineas .modal-body").prepend(
+        '<input type="hidden" name="noInventario" id="noInventarioModal">'
+      );
+      $hidden = $("#noInventarioModal");
+    }
+    $hidden.val(noInv);
 
+    // limpiar estructuras / UI
+    asignByUser = {};
+    lineIndex = {};
+    $("#listaEmpresasAsociadas").html(
+      '<li class="list-group-item text-muted">Sin asignaciones</li>'
+    );
+    $("#selectUsuario").val("");
+    $("#lineaSelect").val("");
+
+    // cargar selects (reusa tus funciones ya implementadas)
+    obtenerLineas(); // llena #lineaSelect
+    obtenerAlmacenistas();
+    // obtenerAlmacenistas(...) -> si la tienes en JS; si viene de PHP, llama tu AJAX correspondiente
+    // por ejemplo: obtenerAlmacenistas(); // llenar #selectUsuario
+
+    // opcional: traer asignaciones existentes para no empezar vacío
+    cargarAsignacionesExistentes(noInv).then(() => {
+      // abrir modal
+      const el = document.getElementById("asociarLineas");
+      const modal = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+      modal.show();
+      //$("#btnAsignar").off("click").on("click", asignarLinea);
+    });
+  } catch (e) {
+    console.error(e);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo abrir el modal.",
+    });
+  }
+}
+// (Opcional) trae lo que haya guardado en Firestore y puebla asignByUser/lineIndex
+async function cargarAsignacionesExistentes(noInv) {
+  try {
+    const res = await $.ajax({
+      url: "../Servidor/PHP/inventario.php",
+      method: "GET",
+      dataType: "json",
+      data: { numFuncion: "11", noInventario: noInv }, // <-- crea este case 11 en PHP para devolver {asignaciones:{ lineaId:[userId1,userId2], ... }, usuarios:{userId:{nombre,usuario}}}
+    });
+
+    if (!res || res.success !== true || !res.asignaciones) return;
+
+    // Normaliza: res.asignaciones = { "001":["u1","u2"], "002":["u3"] ... }
+    // res.usuarios = { u1:{nombre:"..." , usuario:"@..."}, ... }  (sugerido para etiquetas)
+    Object.entries(res.asignaciones).forEach(([lin, users]) => {
+      if (!lineIndex[lin]) lineIndex[lin] = new Set();
+      (users || []).forEach((uid) => {
+        const u = (res.usuarios && res.usuarios[uid]) || {};
+        if (!asignByUser[uid])
+          asignByUser[uid] = {
+            userName: u.nombre || uid,
+            userHandle: u.usuario || "",
+            lineas: {},
+          };
+        asignByUser[uid].lineas[lin] = {
+          lineaDesc: res.lineasDesc?.[lin] || lin,
+        };
+        lineIndex[lin].add(uid);
+      });
+    });
+
+    renderLista($("#listaEmpresasAsociadas"));
+  } catch (e) {
+    console.warn("No se pudieron cargar asignaciones existentes:", e);
+  }
+}
+//////////////////////////////////////////////////////////
 
 //lineaSelect
 function obtenerLineas() {
@@ -235,39 +343,26 @@ function escapeHtml(str) {
   );
 }
 /**AsignarLinea**/
-// ====== Estado global ======
-const asignByUser = {
-  // userId: { userName, userHandle, lineas: { lineaId: { lineaDesc } } }
-};
-const lineIndex = {
-  // lineaId: Set<userId>
-};
-
 // ====== Asignar (click) ======
 function asignarLinea() {
   const $selUser = $("#selectUsuario");
   const $selLinea = $("#lineaSelect"); // o #selectLineaModal si renombraste
   const $lista = $("#listaEmpresasAsociadas");
-
   const userId = ($selUser.val() || "").toString();
   const userName = $selUser.find("option:selected").text().trim() || userId;
   const userHandle = $selUser.find("option:selected").data("usuario") || "";
   const lineaId = ($selLinea.val() || "").toString();
   const lineaDesc = $selLinea.find("option:selected").text().trim() || lineaId;
-
   if (!userId)
     return Swal.fire({ icon: "warning", title: "Selecciona un usuario" });
   if (!lineaId)
     return Swal.fire({ icon: "warning", title: "Selecciona una línea" });
-
   // Asegurar estructuras
   if (!asignByUser[userId])
     asignByUser[userId] = { userName, userHandle, lineas: {} };
   if (!lineIndex[lineaId]) lineIndex[lineaId] = new Set();
-
   // Si ya está asignado a este usuario, no hacemos nada
   const yaEsta = !!asignByUser[userId].lineas[lineaId];
-
   // Regla: máx. 2 almacenistas por línea (si no es el mismo usuario)
   if (!yaEsta && lineIndex[lineaId].size >= 2) {
     const actuales = Array.from(lineIndex[lineaId]).join(", ");
@@ -277,14 +372,11 @@ function asignarLinea() {
       text: `La línea ${lineaId} ya tiene 2 almacenistas asignados.`,
     });
   }
-
   // Asignar
   asignByUser[userId].lineas[lineaId] = { lineaDesc };
   lineIndex[lineaId].add(userId);
-
   renderLista($lista);
 }
-
 // ====== Render: agrupado por usuario, listando sus líneas ======
 function renderLista($lista) {
   const userIds = Object.keys(asignByUser);
@@ -369,6 +461,7 @@ $("#listaEmpresasAsociadas").on("click", ".btnQuitar", function () {
     renderLista(asignPend, $("#listaEmpresasAsociadas"));
   }
 });
+
 $("#btnModalInventarios").click(function () {
   mostrarInventarios();
 });
@@ -429,37 +522,38 @@ $("#btnNuevoInventario").click(function () {
 });
 
 // Cancelar desde el header o footer
-$("#cerrarModalAsociasionHeader, #cerrarModalAsociasionFooter").click(function () {
-  if (inventarioActualId) {
-    $.ajax({
-      url: "../Servidor/PHP/inventario.php",
-      method: "POST",
-      data: {
-        numFuncion: "21",
-        idInventario: inventarioActualId,
-      },
-      success: function (response) {
-        try {
-          const res = JSON.parse(response);
-          if (res.success) {
-            console.log("Inventario eliminado:", inventarioActualId);
-          } else {
-            console.warn("Error al eliminar inventario:", res.message);
+$("#cerrarModalAsociasionHeader, #cerrarModalAsociasionFooter").click(
+  function () {
+    if (inventarioActualId) {
+      $.ajax({
+        url: "../Servidor/PHP/inventario.php",
+        method: "POST",
+        data: {
+          numFuncion: "21",
+          idInventario: inventarioActualId,
+        },
+        success: function (response) {
+          try {
+            const res = JSON.parse(response);
+            if (res.success) {
+              console.log("Inventario eliminado:", inventarioActualId);
+            } else {
+              console.warn("Error al eliminar inventario:", res.message);
+            }
+          } catch (e) {
+            console.error("Error procesando eliminación:", e);
           }
-        } catch (e) {
-          console.error("Error procesando eliminación:", e);
-        }
-      },
-      error: function () {
-        console.error("Error al eliminar inventario en backend.");
-      },
-    });
+        },
+        error: function () {
+          console.error("Error al eliminar inventario en backend.");
+        },
+      });
+    }
+    $("#asociarLineas").modal("hide");
   }
-  $("#asociarLineas").modal("hide");
-});
+);
 
 $("#btnGuardarAsignacion").on("click", function () {
-
   const $btn = $(this);
   const csrf = $("#csrf_token").val();
   //const noInv = $("#noInventario").val();

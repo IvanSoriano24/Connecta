@@ -101,7 +101,8 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario, $usuarioId){
+function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario, $usuarioId)
+{
     if (!$noEmpresa || !$linea || !$noInventario) {
         return ['success' => false, 'message' => 'Parámetros incompletos'];
     }
@@ -149,7 +150,19 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
 
     // Si no encontramos un doc de esa línea asignado a este usuario:
     if (!$lineDoc) {
-        return [
+        echo json_encode([
+            'success'    => true,
+            'linea'      => (string)$linea,
+            'locked'     => false,           // si status=false, bloqueada
+            'conteo'     => null,
+            'finishedAt' => null,
+            'lockedBy'   => null,
+            'productos'  => null,
+            'activa'     => false,            // para tu UI
+            'coleccion'  => $subcolUsada        // útil para depurar
+        ]);
+        return;
+        /*return [
             'success'    => true,
             'linea'      => (string)$linea,
             'locked'     => true,     // bloquear edición
@@ -159,7 +172,7 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
             'productos'  => [],
             'activa'     => false,    // UI en solo lectura
             'coleccion'  => null
-        ];
+        ];*/
     }
 
     $fields = $lineDoc['fields'];
@@ -221,12 +234,13 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
             'lotes'       => $lotes
         ];
     }
+    //var_dump($productos);
 
     // 6) Respuesta
     echo json_encode([
         'success'    => true,
         'linea'      => (string)$linea,
-        'locked'     => !$status,           // si status=false, bloqueada
+        'locked'     => $status,           // si status=false, bloqueada
         'conteo'     => $conteo,
         'finishedAt' => $finishedAt,
         'lockedBy'   => $lockedBy,
@@ -634,7 +648,6 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
     $lineaId      = (string)$payload['linea'];
     $folioInv     = (int)$payload['noInventario'];
     $cveArt       = (string)$payload['cve_art'];
-    $descr        = (string)($payload['descr'] ?? '');
     $existSistema = (int)($payload['existSistema'] ?? 0);
     $conteoTotal  = (int)($payload['conteoTotal'] ?? 0);
     $diferencia   = (int)($payload['diferencia'] ?? ($conteoTotal - $existSistema));
@@ -1403,62 +1416,110 @@ function subirImagenes($usuarioId)
         return;
     }
 }
+function obtenerLineasAsignadas(int $noEmpresa, int $noInventario, string $projectId, string $apiKey): array
+{
+    try {
+        // 1) Resolver el doc del INVENTARIO (usa tu helper existente)
+        if (!function_exists('getInventarioDocByFolioAsignacion') && !function_exists('getInventarioDocByFolio')) {
+            return ['success'=>false, 'message'=>'No existe helper getInventarioDocByFolio*'];
+        }
+        $inv = function_exists('getInventarioDocByFolioAsignacion')
+            ? getInventarioDocByFolioAsignacion($noEmpresa, $noInventario, $projectId, $apiKey)
+            : getInventarioDocByFolio($noEmpresa, $noInventario, $projectId, $apiKey);
 
-/*function subirImagenes($usuarioId){
+        if (!$inv || empty($inv['docId'])) {
+            return ['success'=>false, 'message'=>'Inventario no encontrado'];
+        }
+        $invDocId = $inv['docId'];
 
-    // Verifica que se haya enviado al menos un archivo
-    if (!isset($_FILES['imagen']) || empty($_FILES['imagen']['name'])) {
-        echo json_encode(['success' => false, 'message' => 'No se pudo subir ninguna imagen.']);
-        exit;
-    }
+        // 2) Leer el documento de INVENTARIO para tomar el campo "asignaciones"
+        $root  = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents";
+        $url   = "$root/INVENTARIO/$invDocId?key=$apiKey";
+        $doc   = http_get_json($url);
 
-    // Verifica que se haya enviado la clave del artículo
-    if (!isset($_POST['cveArt'])) {
-        echo json_encode(['success' => false, 'message' => 'No se proporcionó la clave del artículo.']);
-        exit;
-    }
+        $asig = [];
+        $usuariosToFetch = [];
 
-    $cveArt = $_POST['cveArt'];
-    $imagenes = $_FILES['imagen'];
-    $firebaseStorageBucket = "mdconnecta-4aeb4.firebasestorage.app"; // Cambia esto por tu bucket 
+        if (isset($doc['fields']['asignaciones']['mapValue']['fields'])) {
+            $map = $doc['fields']['asignaciones']['mapValue']['fields'];
 
-    // Subir y procesar cada archivo
-    $rutasImagenes = [];
-    foreach ($imagenes['tmp_name'] as $index => $tmpName) {
-        if ($imagenes['error'][$index] === UPLOAD_ERR_OK) {
-            $nombreArchivo = $cveArt . "_" . uniqid() . "_" . basename($imagenes['name'][$index]);
-            $rutaFirebase = "imagenes/{$cveArt}/{$nombreArchivo}";
-            $url = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o?name=" . urlencode($rutaFirebase);
+            foreach ($map as $lineaId => $value) {
+                // Soporta formato viejo (string) y nuevo (array)
+                $uids = [];
 
-            // Leer el archivo
-            $archivo = file_get_contents($tmpName);
+                // stringValue → ["uid"]
+                if (isset($value['stringValue'])) {
+                    $uid = (string)$value['stringValue'];
+                    if ($uid !== '') $uids[] = $uid;
+                }
 
-            // Subir el archivo a Firebase Storage
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Content-Type: application/octet-stream"
-            ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $archivo);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec($ch);
-            curl_close($ch);
+                // arrayValue → ["uid1","uid2"]
+                if (isset($value['arrayValue']['values']) && is_array($value['arrayValue']['values'])) {
+                    foreach ($value['arrayValue']['values'] as $v) {
+                        if (!empty($v['stringValue'])) {
+                            $uids[] = (string)$v['stringValue'];
+                        }
+                    }
+                }
 
-            $resultado = json_decode($response, true);
+                // normaliza (máx. 2 por regla)
+                $uids = array_values(array_unique($uids));
+                if (count($uids) > 2) $uids = array_slice($uids, 0, 2);
 
-            if (isset($resultado['name'])) {
-                $urlPublica = "https://firebasestorage.googleapis.com/v0/b/{$firebaseStorageBucket}/o/{$resultado['name']}?alt=media";
-                $rutasImagenes[] = $urlPublica;
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error al subir una imagen.', 'response' => $response]);
-                exit;
+                if (!empty($uids)) {
+                    $asig[$lineaId] = $uids;
+                    foreach ($uids as $u) $usuariosToFetch[$u] = true;
+                }
             }
         }
-    }
 
-    echo json_encode(['success' => true, 'message' => 'Imágenes subidas correctamente.', 'imagenes' => $rutasImagenes]);
-}*/
+        // 3) (Opcional) Resuelve nombres de usuarios ya asignados
+        $usuarios = [];
+        foreach (array_keys($usuariosToFetch) as $uid) {
+            $u = leerUsuarioPorId($projectId, $apiKey, $uid); // devuelve ['nombre'=>..., 'usuario'=>...]
+            if ($u) $usuarios[$uid] = $u;
+        }
+
+        // 4) (Opcional) Si quieres, arma un diccionario de descripciones de líneas:
+        //    Si ya tienes catálogo de líneas en algún lado, úsalo; si no, lo dejas vacío.
+        $lineasDesc = []; // p.ej. ['001'=>'Línea 001', ...] si lo puedes resolver
+
+        return [
+            'success'      => true,
+            'noInventario' => $noInventario,
+            'asignaciones' => $asig,       // { lineaId: [uid, uid?], ... }
+            'usuarios'     => $usuarios,   // { uid: {nombre, usuario}, ... }
+            'lineasDesc'   => $lineasDesc,
+        ];
+
+    } catch (Throwable $e) {
+        return ['success'=>false, 'message'=>$e->getMessage()];
+    }
+}
+function leerUsuarioPorId(string $projectId, string $apiKey, string $userId): ?array
+{
+    if ($userId === '') return null;
+    $root = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents";
+    $url  = "$root/USUARIOS/" . rawurlencode($userId) . "?key=$apiKey";
+
+    $doc = http_get_jsonAsignaciones($url);
+    if (!isset($doc['fields'])) return null;
+
+    $f = $doc['fields'];
+    return [
+        'nombre'  => $f['nombre']['stringValue']  ?? '',
+        'usuario' => $f['usuario']['stringValue'] ?? '',
+        // agrega lo que necesites: tipoUsuario, noEmpresa, etc.
+    ];
+}
+function http_get_jsonAsignaciones(string $url): ?array {
+    $ctx = stream_context_create(['http'=>['method'=>'GET','timeout'=>30]]);
+    $res = @file_get_contents($url, false, $ctx);
+    if ($res === false) return null;
+    $j = json_decode($res, true);
+    return is_array($j) ? $j : null;
+}
+
 
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
@@ -1565,7 +1626,20 @@ switch ($funcion) {
         echo json_encode($resp);
         break;
     case 11:
-        //obtenerEstadoLineas();
+        $noInventario = $_GET['noInventario'] ?? null;
+        if (!$noInventario) {
+            echo json_encode(['success' => false, 'message' => 'Falta noInventario']);
+            exit;
+        }
+        $noEmpresa         = (int)($_SESSION['empresa']['noEmpresa'] ?? 0);
+
+        $res = obtenerLineasAsignadas(
+            $noEmpresa,
+            (int)$noInventario,
+            $firebaseProjectId,
+            $firebaseApiKey
+        );
+        echo json_encode($res, JSON_UNESCAPED_UNICODE);
         break;
     case 12:
         $usuarioId = $_SESSION['usuario']['idReal'];

@@ -753,7 +753,8 @@ session_destroy(); */
                         corr: Number(r.corrugados || 0),
                         cajas: Number(r.corrugadosPorCaja || 0),
                         sueltos: Number(r.sueltos || 0),
-                        activa: activa
+                        activa: activa,
+                        total: Number(r.total || 0)
                     })).join('');
 
                     // Reemplazar filas (dejando el bloque de "agregar fila" al final)
@@ -807,11 +808,16 @@ session_destroy(); */
                 corr,
                 cajas,
                 sueltos,
-                activa
+                activa,
+                total
             }) {
                 const bloqueado = !activa;
                 const disabledAttr = bloqueado ? 'disabled' : '';
-
+                /*console.log(lote);
+                console.log(corr);
+                console.log(cajas);
+                console.log(sueltos);
+                console.log(total);*/
                 return `
                     <div class="row-line">
                     <div class="lote">
@@ -846,6 +852,10 @@ session_destroy(); */
                             min="0"
                             step="1"
                             ${disabledAttr}>
+                    </label>
+                        <label class="field label">
+                        <span>Total:</span>
+                        <input type="text" class="form-control qty-input-total" value="${Number(total) || 0}" min="0" step="1" readonly ${disabledAttr}>
                     </label>
                     </div>
                 `;
@@ -924,6 +934,11 @@ session_destroy(); */
                             <label class="field label">
                             <span>Cajas sueltas:</span>
                             <input type="number" class="form-control qty-input-sueltos" value="0" min="0" step="1">
+                            </label>
+
+                            <label class="field label">
+                            <span>Total:</span>
+                            <input type="text" class="form-control qty-input-total" value="0" min="0" step="1" readonly>
                             </label>
 
                             <div class="eliminar">
@@ -1077,6 +1092,7 @@ session_destroy(); */
                     const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
                     const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
                     const sueltos = Number($row.find('.qty-input-sueltos').val()) || 0;
+                    const totales = Number($row.find('.qty-input-total').val()) || 0;
                     const piezas = (corr * cajas) + sueltos;
 
                     // Solo guarda filas con algo de captura
@@ -1086,7 +1102,8 @@ session_destroy(); */
                             corrugados: corr,
                             cajasPorCorrugado: cajas,
                             sueltos,
-                            piezas
+                            piezas,
+                            totales
                         });
                     }
                 });
@@ -1164,7 +1181,7 @@ session_destroy(); */
 
                     <label class="field label">
                     <span>Total:</span>
-                    <input type="number" class="form-control qty-input-total" value="0" min="0" step="1">
+                    <input type="text" class="form-control qty-input-total" value="0" min="0" step="1" readonly>
                     </label>
                 </div>
                 `).join('');
