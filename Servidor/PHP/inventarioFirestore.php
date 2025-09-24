@@ -421,8 +421,12 @@ switch ($accion) {
         $claveSae = $_SESSION['empresa']['claveSae'];
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
-        $articulos = $_GET['articulos'];
-        obtenerProductos($articulos, $conexionData, $claveSae);
+        if (isset($_GET['articulos'])) {
+            $articulos = $_GET['articulos'];
+            obtenerProductos($articulos, $conexionData, $claveSae);
+        } else {
+            echo json_encode(["success" => false, "message" => "Faltan Articulos"]);
+        }
         break;
     default:
         echo json_encode(["success" => false, "message" => "Acción no válida"]);

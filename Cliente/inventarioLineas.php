@@ -890,6 +890,7 @@ session_destroy(); */
                             const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
                             const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
                             const sueltos = Number($row.find('.qty-input-sueltos').val()) || 0;
+                            const totalLote = Number($row.find('.qty-input-total').val((corr * cajas) + sueltos)) || 0;
 
                             const piezas = (corr * cajas) + sueltos;
                             sum += piezas;

@@ -336,7 +336,7 @@ function subirPDFs(selectedFiles) {
     });
   }
 
-  (function () {
+  /*(function () {
     const $btnGuardar = document.getElementById("btnGuardar");
     const $formPedido =
       document.getElementById("formPedido") || document.querySelector("form"); // usa tu id real
@@ -390,7 +390,7 @@ function subirPDFs(selectedFiles) {
         });
       }
     });
-  })();
+  })();*/
 
   // Si algún día quieres limpiar todo manualmente
   function resetAll() {

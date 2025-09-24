@@ -4,91 +4,93 @@ function mostrarInventarios() {
     type: "POST",
     dataType: "json",
     data: { numFuncion: "7" },
-    success: function (response) {
-      if (response.success) {
-        const inventarios = response.inventarios || [];
-        const $tbody = $("#tablaInventarios");
-        $tbody.empty(); // limpiar antes de re-dibujar
+  })
+  .done(async (response) => {
+    if (!response.success) {
+      console.warn("Inventarios:", response.message);
+      Swal.fire({ icon:"error", title:"Error", text: response.message || "No se pudieron cargar los inventarios" });
+      return;
+    }
 
-        if (inventarios.length === 0) {
-          $tbody.append(
-            $("<tr>").append(
-              $("<td>")
-                .attr("colspan", 4)
-                .addClass("text-center text-muted")
-                .text("No hay inventarios disponibles")
-            )
-          );
-          return;
-        }
+    const inventarios = response.inventarios || [];
+    const $tbody = $("#tablaInventarios").empty();
 
-        inventarios.forEach((inv) => {
-          const noInv = inv.noInventario ?? "-";
-          const fecha = inv.fechaInicio ?? "-";
-          const estado = inv.status ? "Activo" : "Finalizado";
+    if (inventarios.length === 0) {
+      $tbody.append(
+        `<tr><td colspan="4" class="text-center text-muted">No hay inventarios disponibles</td></tr>`
+      );
+      return;
+    }
 
-          // Botones de acciones
-          const $acciones = $("<td>").append(
-            $("<button>")
-              .addClass("btn btn-sm btn-primary")
-              .text("Descargar")
-              .on("click", function () {
-                // aquí llamas a tu función para ver el detalle
-                //console.log("Descargar", noInv);
-                const resultado = buscarArchivos(noInv);
-                if(resultado){
-                  descargarEvidencia(noInv);
-                } else {
-                  alert("No hay archivos");
-                }
-              })
-          );
+    // 1) Pinta filas con botón oculto…
+    inventarios.forEach((inv) => {
+      const noInv = inv.noInventario ?? "-";
+      const fecha = inv.fechaInicio ?? "-";
+      const estado = inv.status ? "Activo" : "Finalizado";
 
-          const $fila = $("<tr>");
-          $fila.append($("<td>").text(noInv));
-          $fila.append($("<td>").text(fecha));
-          $fila.append($("<td>").text(estado));
-          $fila.append($acciones);
+      const $btn = $(`<button class="btn btn-sm btn-primary d-none">Descargar</button>`)
+        .on("click", () => descargarEvidencia(noInv));
 
-          $tbody.append($fila);
-        });
+      const $fila = $(`
+        <tr data-noinv="${noInv}">
+          <td>${noInv}</td>
+          <td>${fecha}</td>
+          <td>${estado}</td>
+          <td class="acciones"></td>
+        </tr>
+      `);
+      $fila.find(".acciones").append($btn);
+      $tbody.append($fila);
+    });
+
+    // 2) …y ahora resolvemos, en paralelo, qué filas tienen archivos
+    const checks = inventarios.map(i => buscarArchivos(i.noInventario));
+    const results = await Promise.allSettled(checks);
+
+    results.forEach((r, idx) => {
+      const noInv = inventarios[idx].noInventario;
+      const $row = $tbody.find(`tr[data-noinv="${noInv}"]`);
+      const $btn = $row.find("button");
+
+      const hasFiles = (r.status === "fulfilled" && r.value === true);
+      if (hasFiles) {
+        $btn.removeClass("d-none"); // mostrar botón
       } else {
-        console.warn("Inventarios:", response.message);
-        alert("Error al cargar inventarios: " + response.message);
+        // Sin archivos: pinta un texto “—” en lugar del botón
+        $btn.remove();
+        $row.find(".acciones").append('<span class="text-muted">Sin archivos</span>');
       }
-    },
-    error: function (jqXHR, textStatus, errorThrown) {
-      console.error("AJAX error:", textStatus, errorThrown);
-      alert("Error en la solicitud AJAX.");
-    },
+    });
+  })
+  .fail(() => {
+    Swal.fire({ icon:"error", title:"Error", text:"Error en la solicitud AJAX." });
   });
 }
-function descargarEvidencia(noInv){
-  // abre la descarga directa (stream del ZIP)
-  window.location = "../Servidor/PHP/descargarInventarios.php?numFuncion=1&noInv=" + encodeURIComponent(noInv);
-}
+// Comprueba si existe evidencia (PROMISE -> boolean)
 function buscarArchivos(noInv) {
-  return new Promise(function(resolve, reject) {
+  return new Promise((resolve, reject) => {
     $.ajax({
       url: "../Servidor/PHP/descargarInventarios.php",
       type: "POST",
       dataType: "json",
-      data: { numFuncion: "2", noInv: noInv },
-      success: function(response) {
-        // Asegúrate del nombre correcto en la respuesta JSON
-        if (response && response.success) {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        console.error("AJAX error:", textStatus, errorThrown);
-        reject(new Error("Error en la solicitud AJAX: " + textStatus));
-      }
+      data: { numFuncion: "2", noInv },
+    })
+    .done((res) => resolve(!!(res && res.success)))
+    .fail((jqXHR, textStatus) => {
+      console.error("buscarArchivos AJAX error:", textStatus);
+      resolve(false); // tratamos error como “sin archivos”
     });
   });
 }
+// Descarga el ZIP solo si el server devuelve URL
+function descargarEvidencia(noInv) {
+  // Ir directo al endpoint que streamea el ZIP
+  const url = "../Servidor/PHP/descargarInventarios.php?numFuncion=1&noInv=" + encodeURIComponent(noInv);
+  // nueva pestaña o misma, como prefieras:
+  // window.open(url, "_blank");
+  window.location = url;
+}
+
 
 //lineaSelect
 function obtenerLineas() {
@@ -455,8 +457,6 @@ $("#cerrarModalAsociasionHeader, #cerrarModalAsociasionFooter").click(function (
   }
   $("#asociarLineas").modal("hide");
 });
-
-
 
 $("#btnGuardarAsignacion").on("click", function () {
 

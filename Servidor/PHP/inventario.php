@@ -101,46 +101,76 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario)
-{
-    // Validaciones rápidas
+function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario, $usuarioId){
     if (!$noEmpresa || !$linea || !$noInventario) {
         return ['success' => false, 'message' => 'Parámetros incompletos'];
     }
 
-    // 1) Resolver docId del inventario ACTIVO por empresa + folio
+    // 1) Inventario activo por empresa+folio
     $inv = getInventarioDocByFolio((int)$noEmpresa, (int)$noInventario, $firebaseProjectId, $firebaseApiKey);
     if (!$inv || empty($inv['docId'])) {
         return ['success' => false, 'message' => 'Inventario activo no encontrado'];
     }
     $invDocId = $inv['docId'];
 
-    // 2) Leer el doc de la línea
-    $root      = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
-    $lineUrl   = "$root/INVENTARIO/$invDocId/lineas/$linea?key=$firebaseApiKey";
-    $lineDoc   = http_get_json($lineUrl);
+    $root = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+    // 2) Revisar posibles subcolecciones (por si hay 2 asignados / varios conteos)
+    $subcols = ['lineas', 'lineas02', 'lineas03', 'lineas04', 'lineas05', 'lineas06'];
 
-    // Si no existe la línea aún, devolvemos vacío
-    if (!$lineDoc || !isset($lineDoc['fields'])) {
+    $lineDoc = null;
+    $subcolUsada = null;
+    foreach ($subcols as $sc) {
+        $url = "$root/INVENTARIO/$invDocId/$sc/$linea?key=$firebaseApiKey";
+        $doc = http_get_json($url);
+        if (!isset($doc['fields'])) continue;
+
+        // Normalizar idAsignado: puede ser string/integer o array de strings
+        $assigned = [];
+        $f = $doc['fields'];
+        if (isset($f['idAsignado']['stringValue'])) {
+            $assigned[] = (string)$f['idAsignado']['stringValue'];
+        } elseif (isset($f['idAsignado']['integerValue'])) {
+            $assigned[] = (string)$f['idAsignado']['integerValue'];
+        } elseif (isset($f['idAsignado']['arrayValue']['values']) && is_array($f['idAsignado']['arrayValue']['values'])) {
+            foreach ($f['idAsignado']['arrayValue']['values'] as $v) {
+                if (isset($v['stringValue']))   $assigned[] = (string)$v['stringValue'];
+                if (isset($v['integerValue']))  $assigned[] = (string)$v['integerValue'];
+            }
+        }
+
+        $match = in_array((string)$usuarioId, $assigned, true);
+        if ($match) { // nos quedamos con el doc que pertenece a este usuario
+            $lineDoc = $doc;
+            $subcolUsada = $sc;
+            break;
+        }
+        // si no hay match, seguimos buscando en la siguiente subcolección
+    }
+
+    // Si no encontramos un doc de esa línea asignado a este usuario:
+    if (!$lineDoc) {
         return [
-            'success' => true,
-            'linea'   => (string)$linea,
-            'locked'  => false,
-            'conteo'  => null,
-            'productos' => []   // no hay productos guardados
+            'success'    => true,
+            'linea'      => (string)$linea,
+            'locked'     => true,     // bloquear edición
+            'conteo'     => null,
+            'finishedAt' => null,
+            'lockedBy'   => null,
+            'productos'  => [],
+            'activa'     => false,    // UI en solo lectura
+            'coleccion'  => null
         ];
     }
 
     $fields = $lineDoc['fields'];
 
-    // 3) Metadata de la línea (si existe)
-    $locked     = isset($fields['locked']['booleanValue']) ? (bool)$fields['locked']['booleanValue'] : false;
-    $status    = isset($fields['status']['booleanValue']) ? (bool)$fields['status']['booleanValue'] : false;
+    // 3) Metadata
+    $status     = isset($fields['status']['booleanValue']) ? (bool)$fields['status']['booleanValue'] : true; // true=editable
     $conteo     = isset($fields['conteo']['integerValue']) ? (int)$fields['conteo']['integerValue'] : null;
     $finishedAt = isset($fields['finishedAt']['timestampValue']) ? (string)$fields['finishedAt']['timestampValue'] : null;
     $lockedBy   = isset($fields['lockedBy']['stringValue']) ? (string)$fields['lockedBy']['stringValue'] : null;
 
-    // 4) Campos "reservados" (no son productos)
+    // 4) Campos reservados (no productos)
     $reservados = [
         'locked',
         'conteo',
@@ -152,47 +182,39 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
         'diferencia',
         'existSistema',
         'descr',
-        'linesStatus'
+        'linesStatus',
+        'idAsignado',
+        'status'
     ];
 
-    // 5) Transformar cada campo de producto (arrayValue de maps) -> PHP array
+    // 5) Transformar productos
     $productos = [];
-
     foreach ($fields as $clave => $valor) {
         if (in_array($clave, $reservados, true)) continue;
+        if (!isset($valor['arrayValue']['values']) || !is_array($valor['arrayValue']['values'])) continue;
 
-        // Debe ser un array de maps (lotes)
-        if (!isset($valor['arrayValue']['values']) || !is_array($valor['arrayValue']['values'])) {
-            continue; // no es la estructura esperada para producto
-        }
-
-        $lotesVals = $valor['arrayValue']['values'];
         $lotes = [];
         $sumaTotal = 0;
-
-        foreach ($lotesVals as $entry) {
+        foreach ($valor['arrayValue']['values'] as $entry) {
             if (!isset($entry['mapValue']['fields'])) continue;
             $f = $entry['mapValue']['fields'];
 
-            $corr   = isset($f['corrugados']['integerValue'])        ? (int)$f['corrugados']['integerValue']        : 0;
-            $sul   = isset($f['sueltos']['integerValue'])        ? (int)$f['sueltos']['integerValue']        : 0;
-            $cxc    = isset($f['corrugadosPorCaja']['integerValue']) ? (int)$f['corrugadosPorCaja']['integerValue'] : 0;
-            $lote   = isset($f['lote']['stringValue'])               ? (string)$f['lote']['stringValue']            : '';
-            $total  = isset($f['total']['integerValue'])             ? (int)$f['total']['integerValue']             : ($corr * $cxc);
+            $corr  = isset($f['corrugados']['integerValue'])        ? (int)$f['corrugados']['integerValue']        : 0;
+            $sult  = isset($f['sueltos']['integerValue'])           ? (int)$f['sueltos']['integerValue']           : 0;
+            $cxc   = isset($f['corrugadosPorCaja']['integerValue']) ? (int)$f['corrugadosPorCaja']['integerValue'] : 0;
+            $lote  = isset($f['lote']['stringValue'])               ? (string)$f['lote']['stringValue']            : '';
+            $total = isset($f['total']['integerValue'])             ? (int)$f['total']['integerValue']             : ($corr * $cxc + $sult);
 
-            $sumaTotal += (int)$total;
-
+            $sumaTotal += $total;
             $lotes[] = [
                 'corrugados'        => $corr,
                 'corrugadosPorCaja' => $cxc,
                 'lote'              => $lote,
-                'total'             => (int)$total,
-                'sueltos' => $sul,
+                'total'             => $total,
+                'sueltos'           => $sult,
             ];
         }
 
-        // Nota: descr/existSistema si los guardaste a nivel línea son globales, no por producto.
-        // Si quisieras guardarlos por producto, tendrías que almacenarlos en otra ruta o map adicional.
         $productos[] = [
             'cve_art'     => $clave,
             'conteoTotal' => $sumaTotal,
@@ -201,24 +223,16 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
     }
 
     // 6) Respuesta
-    /*return [
-        'success'    => true,
-        'linea'      => (string)$linea,
-        'locked'     => $locked,
-        'conteo'     => $conteo,
-        'finishedAt' => $finishedAt,
-        'lockedBy'   => $lockedBy,
-        'productos'  => $productos
-    ];*/
     echo json_encode([
         'success'    => true,
         'linea'      => (string)$linea,
-        'locked'     => $locked,
+        'locked'     => !$status,           // si status=false, bloqueada
         'conteo'     => $conteo,
         'finishedAt' => $finishedAt,
         'lockedBy'   => $lockedBy,
         'productos'  => $productos,
-        'activa' => $status
+        'activa'     => $status,            // para tu UI
+        'coleccion'  => $subcolUsada        // útil para depurar
     ]);
 }
 function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
@@ -286,6 +300,93 @@ function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
         }
     }
     return $noInventario;
+}
+function actualizarInventario($noEmpresa, $firebaseProject, $apiKey)
+{
+    $collection = "FOLIOS";
+
+    // Construimos la ruta del documento usando runQuery para obtener el nombre completo del doc
+    $queryUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProject/databases/(default)/documents:runQuery?key=$apiKey";
+    $payloadQuery = json_encode([
+        "structuredQuery" => [
+            "from" => [["collectionId" => $collection]],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "documento"],
+                                "op" => "EQUAL",
+                                "value" => ["stringValue" => 'inventarioFisico']
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+
+    $opts = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payloadQuery,
+        ]
+    ];
+    $ctx = stream_context_create($opts);
+    $resp = @file_get_contents($queryUrl, false, $ctx);
+    if ($resp === false) return false;
+
+    $arr = json_decode($resp, true);
+    if (!isset($arr[0]['document']['name'])) return false;
+
+    // Nombre completo del documento: projects/.../databases/(default)/documents/FOLIOS/{docId}
+    $documentName = $arr[0]['document']['name'];
+
+    // Usamos el endpoint commit para aplicar un fieldTransform increment atómico
+    $commitUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProject/databases/(default)/documents:commit?key=$apiKey";
+
+    $payloadCommit = json_encode([
+        "writes" => [
+            [
+                "transform" => [
+                    "document" => $documentName,
+                    "fieldTransforms" => [
+                        [
+                            "fieldPath" => "folioSiguiente",
+                            "increment" => ["integerValue" => "1"]
+                        ]
+                    ]
+                ]
+            ]
+        ],
+        // opcional: returnTransaction puede omitirse
+    ]);
+
+    $optsCommit = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payloadCommit,
+        ]
+    ];
+    $ctxCommit = stream_context_create($optsCommit);
+    $respCommit = @file_get_contents($commitUrl, false, $ctxCommit);
+    if ($respCommit === false) return false;
+
+    $resCommitArr = json_decode($respCommit, true);
+
+    // Si quieres devolver true/false:
+    return isset($resCommitArr['writeResults']) ? true : false;
 }
 function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
@@ -959,18 +1060,20 @@ function obtenerEstadoLineas()
     //
 }
 ////////////////////////////////////////////////////////////////////////////////////
-function sa_project_id(string $saPath): string {
+function sa_project_id(string $saPath): string
+{
     if (!is_file($saPath)) throw new Exception("No encuentro JSON en $saPath");
     $sa = json_decode(file_get_contents($saPath), true, 512, JSON_THROW_ON_ERROR);
     if (empty($sa['project_id'])) throw new Exception('El JSON no trae project_id');
     return $sa['project_id'];
 }
-function gcs_bucket_exists(string $bucket, string $accessToken): array {
+function gcs_bucket_exists(string $bucket, string $accessToken): array
+{
     // Devuelve [ok(bool), http_code(int), raw(string)]
     $url = "https://storage.googleapis.com/storage/v1/b/{$bucket}";
     $ch  = curl_init($url);
     curl_setopt_array($ch, [
-        CURLOPT_HTTPHEADER     => ['Authorization: Bearer '.$accessToken],
+        CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $accessToken],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 20,
     ]);
@@ -1231,13 +1334,16 @@ function uuidv4(): string
     $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
-function subirImagenes($usuarioId) {
-    while (ob_get_level()) { ob_end_clean(); }
+function subirImagenes($usuarioId)
+{
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
     header('Content-Type: application/json; charset=utf-8');
 
     try {
         // 1) Localiza tu service account
-        $saPath = __DIR__.'/../../Cliente/keys/firebase-adminsdk.json'; // <-- verifica la ruta
+        $saPath = __DIR__ . '/../../Cliente/keys/firebase-adminsdk.json'; // <-- verifica la ruta
 
         // 2) Deriva project y bucket desde el SA (evita hardcodear)
         $projectId  = sa_project_id($saPath);
@@ -1254,7 +1360,7 @@ function subirImagenes($usuarioId) {
             $msg = ($code === 404)
                 ? "El bucket {$bucketName} no existe en el proyecto {$projectId}. Abre Firebase Console » Storage y crea/habilita el bucket por primera vez."
                 : "No hay acceso al bucket {$bucketName} (HTTP {$code}). Revisa que el SA pertenezca al MISMO proyecto y tenga permisos de Storage Admin.";
-            echo json_encode(['success'=>false, 'message'=>$msg, 'http'=>$code, 'raw'=>$raw], JSON_UNESCAPED_UNICODE);
+            echo json_encode(['success' => false, 'message' => $msg, 'http' => $code, 'raw' => $raw], JSON_UNESCAPED_UNICODE);
             return;
         }
 
@@ -1292,9 +1398,8 @@ function subirImagenes($usuarioId) {
         $res = subirImagenesPorProducto($saPath, $bucketName, $filesArr, $linea, $noInventario, $cve_art ?: "LINEA-{$linea}");
         echo json_encode($res, JSON_UNESCAPED_UNICODE);
         return;
-
     } catch (Throwable $e) {
-        echo json_encode(['success'=>false, 'message'=>$e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         return;
     }
 }
@@ -1404,9 +1509,7 @@ switch ($funcion) {
         $noEmpresa       = $_SESSION['empresa']['noEmpresa'];
         $firebaseProject = $firebaseProjectId;
         $apiKey          = $firebaseApiKey;
-
         $inventario = buscarInventario($noEmpresa, $firebaseProject, $apiKey);
-
         if ($inventario['success'] && $inventario['foundActive']) {
             echo json_encode([
                 'success' => false,
@@ -1417,12 +1520,13 @@ switch ($funcion) {
             $noInventario = noInventario($noEmpresa, $firebaseProject, $apiKey);
 
             $nuevoInv = iniciarInventario($noEmpresa, $firebaseProject, $apiKey, $noInventario);
+            actualizarInventario($noEmpresa, $firebaseProject, $apiKey);
 
             if ($nuevoInv['success']) {
                 echo json_encode([
                     'success'        => true,
                     'message'        => 'Inventario Iniciado',
-                    'newNoInventario'=> $noInventario,
+                    'newNoInventario' => $noInventario,
                     'idInventario'   => $nuevoInv['docId'] // aquí ya regresa el ID
                 ]);
             } else {
@@ -1439,7 +1543,8 @@ switch ($funcion) {
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $linea = $_GET['linea'];
         $noInventario = $_GET['noInventario'];
-        obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario);
+        $usuarioId = $_SESSION['usuario']['idReal'];
+        obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario, $usuarioId);
         break;
     case 9:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -1568,8 +1673,8 @@ switch ($funcion) {
             // Buscar cuál par fue el último y crear el siguiente
             $lastPair = end($pairs);
             foreach ($pairs as $i => $p) {
-                if ($p === $currentPair && isset($pairs[$i+1])) {
-                    $lastPair = $pairs[$i+1];
+                if ($p === $currentPair && isset($pairs[$i + 1])) {
+                    $lastPair = $pairs[$i + 1];
                     break;
                 }
             }

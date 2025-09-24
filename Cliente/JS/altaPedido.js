@@ -683,7 +683,6 @@ async function obtenerPrecioProducto(claveProducto, listaPrecioCliente) {
     return null;
   }
 }
-
 // Boton para mostrar Productos
 function mostrarProductos(input) {
   // Abre el modal de productos automáticamente
@@ -697,7 +696,6 @@ function mostrarProductos(input) {
   // Llamar a la función AJAX para obtener los productos desde el servidor
   obtenerProductos(input);
 }
-
 // FUNCION PARA LISTAR Productos
 function mostrarListaProductos(productos, input) {
   const tablaProductos = document.querySelector("#tablalistaProductos tbody");
@@ -823,7 +821,6 @@ function mostrarListaProductos(productos, input) {
   // Renderizar productos inicialmente
   renderProductos();
 }
-
 function calcularSubtotal(fila) {
   //Obtiene el campo de la cantidad
   const cantidadInput = fila.querySelector(".cantidad");
@@ -839,7 +836,6 @@ function calcularSubtotal(fila) {
   console.log("subtotalInput: ", subtotal);
   subtotalInput.value = subtotal.toFixed(2); // Actualizar el subtotal con dos decimales
 }
-
 // Cierra el modal usando la API de Bootstrap
 function cerrarModal() {
   const modal = bootstrap.Modal.getInstance(
@@ -1212,6 +1208,7 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           icon: "success",
           confirmButtonText: "Aceptar",
         }).then(() => {
+          guardarOrden();
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
@@ -1225,6 +1222,7 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           confirmButtonText: "Entendido",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
+          guardarOrden();
           window.location.href = "Ventas.php";
         });
       } else if (data.exist) {
@@ -1267,6 +1265,7 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           confirmButtonText: "Aceptar",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
+          guardarOrden();
           window.location.href = "Ventas.php";
         });
       } else if (data.telefono) {
@@ -1277,6 +1276,7 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           icon: "info",
           confirmButtonText: "Aceptar",
         }).then(() => {
+          guardarOrden();
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
@@ -1289,6 +1289,7 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           confirmButtonText: "Aceptar",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
+          guardarOrden();
           window.location.href = "Ventas.php";
         });
       } else if (data.notificacion) {
@@ -1300,6 +1301,7 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           confirmButtonText: "Aceptar",
         }).then(() => {
           // Redirigir al usuario o realizar otra acción
+          guardarOrden();
           window.location.href = "Ventas.php";
         });
       } else {
@@ -1327,6 +1329,32 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
       });
     });
   return false;
+}
+
+function guardarOrden() {
+  const $metaPDFInput = document.getElementById("ordenCompraMeta");
+  // 1) Subir PDFs seleccionados (si hay)
+  const resultadoPDFs = subirSeleccionSiAplica();
+
+  // 2) Pasa metadatos al backend (opcional: ajusta a lo que devuelva tu PHP)
+  if ($metaPDFInput) {
+    $metaPDFInput.value = JSON.stringify(resultadoPDFs || {});
+  }
+  // Si tú guardas por AJAX, llama aquí tu función que guarda en Firestore
+  // await guardarEnFirestore(...);
+  // 4) Limpia selección temporal del modal
+  window.MDPDFs?.reset?.();
+}
+async function subirSeleccionSiAplica() {
+  const files =
+    window.MDPDFs && window.MDPDFs.getSelected
+      ? window.MDPDFs.getSelected()
+      : [];
+  if (!files.length) return null; // no hay PDFs
+
+  // Sube AQUÍ (NO en el modal). Esto llama a tu enviarHistorico.php internamente.
+  const resp = await subirPDFs(files);
+  return resp || null;
 }
 
 // MODAL MOSTRAR CLIENTES

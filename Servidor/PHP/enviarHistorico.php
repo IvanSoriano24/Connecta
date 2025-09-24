@@ -384,6 +384,7 @@ try {
                     // 3) ENTRADA SEGÚN TU LÓGICA
                     $numero   = $_POST['numero'] ?? null;                  // tu front manda "numero"
                     $cve_cliente   = $_POST['cliente'] ?? null;
+                    $cve_cliente = trim($cve_cliente);
                     $filesArr = $_FILES['pdfs'] ?? ($_FILES['pdfs[]'] ?? null);
 
                     // 4) LLAMADA A TU FUNCIÓN
@@ -403,6 +404,7 @@ try {
                     // Tu front manda "numero"
                     $numero   = $_POST['numero'] ?? null;
                     $cve_cliente   = $_POST['cliente'] ?? null;
+                    $cve_cliente = trim($cve_cliente);
                     $filesArr = $_FILES['pdfs'] ?? ($_FILES['pdfs[]'] ?? null);
 
                     // ⬇️ ÚNICO CAMBIO: usa la versión concurrente

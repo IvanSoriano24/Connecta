@@ -153,25 +153,6 @@ function descargarArchivos($noInv)
     exit;
 }
 
-// ===== Router simple =====
-$func = $_REQUEST['numFuncion'] ?? null;
-if ($func === '1') {
-    $noInv = $_REQUEST['noInv'] ?? '';
-    if ($noInv === '') send_json(['success' => false, 'message' => 'Falta noInv'], 400);
-
-    // Primero verifica
-    $check = buscarArchivos($noInv);
-    if (($check['count'] ?? 0) <= 0) {
-        send_json(['success' => false, 'message' => 'No hay archivos para este inventario.'], 404);
-    }
-
-    // Luego descarga (stream)
-    descargarArchivos($noInv);
-} else {
-    send_json(['success' => false, 'message' => 'Función no válida'], 400);
-}
-
-
 // -----------------------------------------------------------------------------------------------------//
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -186,26 +167,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     exit;
 }
 switch ($funcion) {
-    case 1:
-        $noInv = $_POST['noInv'];
-        /*$resultado = buscarArchivos($noInv);
-        if($resultado > 0){*/
-        descargarArchivos($noInv);
-        echo json_encode(['success' => true, 'message' => 'Archivos Encontrados.']);
-        /*} else{
-            echo json_encode(['success' => false, 'message' => 'No hay archivos para este inventario.']);
-        }*/
-        break;
-    case 2:
-        $noInv = $_POST['noInv'];
-        $resultado = buscarArchivos($noInv);
-        if ($resultado > 0) {
-        } else {
-            echo json_encode(['success' => false, 'message' => 'No hay archivos para este inventario.']);
+    case 1: { // streamear ZIP (GET o POST)
+        $noInv = $_REQUEST['noInv'] ?? null; // acepta GET o POST
+        if (!$noInv) {
+            // si quieres, puedes mandar un pequeño JSON de error
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'message' => 'Falta noInv']);
+            exit;
         }
-        break;
-    default:
-        echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
-        //echo json_encode(['success' => false, 'message' => 'No hay funcion.']);
-        break;
+        // Esta función debe ENVIAR el ZIP y hacer exit por dentro
+        descargarArchivos($noInv);
+        // No pongas ningún echo aquí; descargarArchivos ya terminó la respuesta
+        exit;
+    }
+
+    case 2: { // sólo verificar si hay archivos (JSON)
+        $noInv = $_POST['noInv'] ?? $_GET['noInv'] ?? null;
+        if (!$noInv) {
+            echo json_encode(['success' => false, 'message' => 'Falta noInv']);
+            exit;
+        }
+        $found = buscarArchivos($noInv);
+        $count = is_array($found) ? (int)($found['count'] ?? 0) : (int)$found;
+        echo json_encode(['success' => $count > 0, 'count' => $count]);
+        exit;
+    }
+
+    default: {
+        echo json_encode(['success' => false, 'message' => 'Función no válida']);
+        exit;
+    }
 }
+

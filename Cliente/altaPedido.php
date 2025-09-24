@@ -1438,62 +1438,6 @@ if (isset($_SESSION['usuario'])) {
             });
         });
     </script>
-    <script>
-        (function() {
-            const $btnGuardar = document.getElementById('guardarPedido'); // ← TU botón verde
-            const $formPedido = document.getElementById('formPedido') || document.querySelector('form');
-            const $metaPDFInput = document.getElementById('ordenCompraMeta');
-
-            // Usa la función global subirPDFs(selectedFiles) ya definida en pdfs.js
-            async function subirSeleccionSiAplica() {
-                const files = (window.MDPDFs && window.MDPDFs.getSelected) ? window.MDPDFs.getSelected() : [];
-                if (!files.length) return null; // no hay PDFs
-
-                // Sube AQUÍ (NO en el modal). Esto llama a tu enviarHistorico.php internamente.
-                const resp = await subirPDFs(files);
-                return resp || null;
-            }
-
-            $btnGuardar?.addEventListener('click', async function(e) {
-                // si hay form y lo envías por submit, bloquea mientras subimos
-                if ($formPedido) e.preventDefault();
-
-                try {
-                    Swal.fire({
-                        title: 'Guardando…',
-                        allowOutsideClick: false,
-                        didOpen: Swal.showLoading,
-                        returnFocus: false
-                    });
-
-                    // 1) Subir PDFs seleccionados (si hay)
-                    const resultadoPDFs = await subirSeleccionSiAplica();
-
-                    // 2) Pasa metadatos al backend (opcional: ajusta a lo que devuelva tu PHP)
-                    if ($metaPDFInput) {
-                        $metaPDFInput.value = JSON.stringify(resultadoPDFs || {});
-                    }
-
-                    // 3) Guardado general (tu flujo actual). Si es form normal:
-                    if ($formPedido) $formPedido.submit();
-                    // Si tú guardas por AJAX, llama aquí tu función que guarda en Firestore
-                    // await guardarEnFirestore(...);
-
-                    // 4) Limpia selección temporal del modal
-                    window.MDPDFs?.reset?.();
-
-                } catch (err) {
-                    Swal.close();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error al guardar',
-                        text: (err && err.message) || String(err),
-                        returnFocus: false
-                    });
-                }
-            });
-        })();
-    </script>
 </body>
 
 </html>
