@@ -1404,7 +1404,7 @@ switch ($funcion) {
             // No había activo, iniciamos uno nuevo
             $noInventario = noInventario($noEmpresa, $firebaseProject, $apiKey);
             iniciarInventario($noEmpresa, $firebaseProject, $apiKey, $noInventario);
-
+            
             echo json_encode([
                 'success' => true,
                 'message' => 'Inventario Iniciado',
@@ -1430,7 +1430,9 @@ switch ($funcion) {
     case 10: // Guardar asignaciones de líneas -> campo "asignaciones" en INVENTARIO
         $noEmpresa    = (int)$_SESSION['empresa']['noEmpresa'];
         $payload = json_decode($_POST['payload'] ?? 'null', true);
-        $noInventario = 1;
+        //$noInventario = 3;
+        $result = buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+        $noInventario = $result['noInventario'];
         if (!$noInventario || !$payload || !isset($payload['asignaciones']) || !is_array($payload['asignaciones'])) {
             echo json_encode(['success' => false, 'message' => 'Parámetros inválidos']);
             exit;
