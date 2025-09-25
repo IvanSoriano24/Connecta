@@ -488,14 +488,27 @@ switch ($accion) {
 
     case "verificarLinea":
         $idInventario = $_GET['idInventario'] ?? null;
-        $claveLinea = $_GET['claveLinea'] ?? null;
-        $subcol = $_GET['subcol'] ?? null;
+        $claveLinea   = $_GET['claveLinea'] ?? null;
+        $conteo       = isset($_GET['conteo']) ? (int)$_GET['conteo'] : null;
+        $subconteo    = isset($_GET['subconteo']) ? (int)$_GET['subconteo'] : null;
 
-        if (!$idInventario || !$claveLinea || !$subcol) {
+        if (!$idInventario || !$claveLinea || !$conteo || !$subconteo) {
             echo json_encode(['success' => false, 'message' => 'Faltan parámetros']);
             exit;
         }
 
+        // 🔹 Calcular nombre de subcolección
+        function getSubcol($conteo, $subconteo) {
+            if ($conteo === 1) {
+                return ($subconteo === 1) ? "lineas" : "lineas02";
+            } else {
+                $start = ($conteo - 1) * 2 + ($subconteo === 1 ? 1 : 2);
+                return "lineas" . str_pad($start, 2, "0", STR_PAD_LEFT);
+            }
+        }
+        $subcol = getSubcol($conteo, $subconteo);
+
+        // 🔹 Consultar documento en Firestore
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/$subcol/$claveLinea?key=$firebaseApiKey";
         $res = @file_get_contents($url);
         $doc = $res ? json_decode($res, true) : null;
@@ -507,6 +520,7 @@ switch ($accion) {
 
         echo json_encode(['success' => true, 'finalizada' => $finalizada]);
         break;
+
 
     default:
         echo json_encode(["success" => false, "message" => "Acción no válida"]);

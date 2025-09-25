@@ -772,19 +772,18 @@ function subirPDFsLineas(selectedFiles, meta = {}) {
   });
 }
 
-async function verificarLineaFinalizada(idInventario, claveLinea, subconteo) {
-  // Determinar subcolección con base en el subconteo
-  const subcol =
-    subconteo === 1
-      ? "lineas"
-      : `lineas${subconteo.toString().padStart(2, "0")}`;
+async function verificarLineaFinalizada(idInventario, claveLinea) {
+  const conteo = document.getElementById("conteoInput").value;
+  const subconteo = document.getElementById("subconteoInput").value;
 
   try {
     const res = await $.get("../Servidor/PHP/inventarioFirestore.php", {
       accion: "verificarLinea",
       idInventario: idInventario,
       claveLinea: claveLinea,
-      subcol: subcol,
+      conteo: conteo,
+      subconteo: subconteo,
+
     });
 
     if (res.success && res.finalizada) {
@@ -798,6 +797,10 @@ async function verificarLineaFinalizada(idInventario, claveLinea, subconteo) {
     $("#finalizarInventarioLinea").show(); // fallback
   }
 }
+
+
+
+
 
 //////////////////////////////////
 $(document).ready(function () {
@@ -1031,6 +1034,7 @@ function recolectarLinea() {
 
   return { noInventario: noInv, claveLinea, articulos };
 }
+
 // Envía datos al backend (autoguardado/finalizar)
 function guardarLinea(finalizar) {
   const payload = recolectarLinea();
