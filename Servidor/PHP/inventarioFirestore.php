@@ -329,6 +329,7 @@ switch ($accion) {
         ]);
         break;
 
+        
     case "obtenerLineas":
         $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
         $usuarioId   = $_SESSION['usuario']["idReal"];

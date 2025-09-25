@@ -337,7 +337,7 @@ async function initInventarioUI() {
 }
 
 ///////////////////////////////////
-function comparararConteos(tipoUsuario) {
+function comparararConteos(tipoUsuario, subconteo, conteoLinea) {
   if (tipoUsuario === "SUPER-ALMACENISTA") {
     const noInv = $("#noInventario").val();
     const claveLinea = $("#lineaSelect").val();

@@ -785,7 +785,9 @@ session_destroy(); */
                     // Opcional: aviso visual
                     $('#msgArticulos').removeClass('d-none').text('Línea bloqueada. Solo lectura.');
                     var tipoUsuario = '<?php echo $tipoUsuario ?>';
-                    comparararConteos(tipoUsuario);
+                    var subconteo = document.getElementById("subconteoInput").value;
+                    var conteoLinea = document.getElementById("conteoInput").value;
+                    comparararConteos(tipoUsuario, subconteo, conteoLinea);
                 }
             }
             // Utilidad para recalcular totales visuales en una tarjeta
