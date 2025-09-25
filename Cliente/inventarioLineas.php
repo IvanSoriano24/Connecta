@@ -1080,6 +1080,8 @@ session_destroy(); */
                 const nombre = $.trim($card.find('.name').text());
                 const totalTxt = $.trim($card.find('.article-total').text());
                 const conteo = Number(totalTxt || 0);
+                const subconteo = document.getElementById("subconteoInput").value;
+                const conteoLinea = document.getElementById("conteoInput").value;
 
                 // Lotes
                 const lotes = [];
@@ -1123,6 +1125,10 @@ session_destroy(); */
                     conteoTotal: conteo,
                     diferencia: conteo - exist, // útil para ajustes
                     lotes: lotes,
+
+                    // Conteo y subconteo
+                    conteo: conteoLinea,
+                    subconteo: subconteo,
 
                     // Opcional: timestamp local
                     tsLocal: new Date().toISOString()
