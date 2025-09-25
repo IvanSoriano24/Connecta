@@ -11,6 +11,7 @@ if (isset($_SESSION['usuario'])) {
     //Obtener valores del Usuario
     $nombreUsuario = $_SESSION['usuario']["nombre"];
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
+    //$claveUsuario = $_SESSION['usuario']["claveUsuario"];
     $correo = $_SESSION['usuario']["correo"];
 
     //$mostrarModal = isset($_SESSION['empresa']) ? false : true;
@@ -45,6 +46,8 @@ if (isset($_SESSION['usuario'])) {
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+
+    <script src="JS/sideBar.js"></script>
 
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
@@ -308,24 +311,38 @@ if (isset($_SESSION['usuario'])) {
 
     /**********************************************************/
     /* Asegurar que la lista de sugerencias esté posicionada debajo del input */
-    .suggestions-list-productos {
+    /*.suggestions-list-productos {
         position: absolute;
         top: 80%;
-        /* La lista aparece justo debajo del input */
+        // La lista aparece justo debajo del input 
         left: 0;
         width: 180%;
-        /* Se ajusta al ancho del input */
+        // Se ajusta al ancho del input 
         background: white;
         border: 1px solid #ccc;
         max-height: 200px;
-        /* Altura máxima para evitar que cubra todo */
+        // Altura máxima para evitar que cubra todo 
         overflow-y: auto;
-        /* Habilita el scroll si hay muchas sugerencias */
-        z-index: 1000;
-        /* Asegura que esté por encima de otros elementos */
+        // Habilita el scroll si hay muchas sugerencias 
+        z-index: 2000;
+        // Asegura que esté por encima de otros elementos 
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        /* Sombra para mejor visualización */
+        // Sombra para mejor visualización 
         border-radius: 5px;
+    }*/
+    .suggestions-list-productos {
+        position: absolute;
+        top: 100%;
+        /* justo debajo del input */
+        left: 0;
+        width: 100%;
+        background: #fff;
+        border: 1px solid #ccc;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 2000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
     }
 
     /* Diseño para cada ítem en la lista */
@@ -346,11 +363,20 @@ if (isset($_SESSION['usuario'])) {
 </style>
 <!-- Estilos para la tabla de partidas -->
 <style>
-    .tabla-scroll {
+    /*.tabla-scroll {
         height: 300px;
-        /* Altura fija para el área del scroll */
+        //Altura fija para el área del scroll 
         overflow-y: auto;
-        /* Activar scroll vertical */
+        //Activar scroll vertical 
+    }*/
+    .tabla-scroll {
+        position: relative;
+        /* para que los absolutos se anclen bien */
+        overflow: auto;
+        /* mantienes el scroll aquí */
+        max-height: 600px;
+        /* o lo que necesites */
+        height: 350px;
     }
 
     .tabla-productos {
@@ -367,6 +393,8 @@ if (isset($_SESSION['usuario'])) {
         z-index: 1;
         /* Mantener el encabezado sobre las filas */
     }
+
+    /********************************/
 </style>
 
 <body>
@@ -398,7 +426,7 @@ if (isset($_SESSION['usuario'])) {
                             <input type="text" name="tipoOperacion" id="tipoOperacion" hidden readonly value="alta" tabindex="-1">
 
                             <div class="form-element">
-                                <label for="fecha">Fecha </label>
+                                <label for="diaAlta">Fecha </label>
                                 <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;"
                                     readonly1 tabindex="-1">
                             </div>
@@ -505,6 +533,29 @@ if (isset($_SESSION['usuario'])) {
                                     </button>
                                 </div>
                             </div>
+                            <div class="form-element">
+                                <label for="observaciones">Observaciones</label>
+                                <input type="text" name="observaciones" id="observaciones" style="width:250px;" disabled>
+                            </div>
+                            <div class="form-element">
+                                <label for="enviarWhats">Enviar WhatsApp<input type="checkbox" name="enviarWhats" id="enviarWhats" style="width:250px;" checked disabled></label>
+                                <label for="enviarCorreo">Enviar Correo<input type="checkbox" name="enviarCorreo" id="enviarCorreo" style="width:250px;" checked disabled></label>
+                            </div>
+                            <div class="container my-5">
+                                <!-- Campo de entrada principal (simulado) -->
+                                <input type="hidden" id="enviar">
+
+                                <!-- Botón para abrir el modal de PDFs -->
+                                <div class="pdf-button-container">
+                                    <label for="enviar" class="me-2">Agregar orden de compra</label>
+                                    <button type="button" id="btnSubirPDF" class="btn-like-subirpdf"
+                                        data-bs-toggle="modal" data-bs-target="#modalPDF" onclick="abrirModalPdf()">
+                                        <i class="bx bx-upload"></i> Subir PDF
+                                    </button>
+                                </div>
+                                <!-- cerca del botón "Subir PDF" -->
+                                <div id="resumenPDFs" class="mt-2 d-flex flex-wrap gap-2"></div>
+                            </div>
                             <div class="form-element" style="display: none;">
                                 <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
                                 <input type="text" name="codigoPostal" id="codigoPostal"
@@ -516,16 +567,6 @@ if (isset($_SESSION['usuario'])) {
                                     value="" readonly>
                             </div>
                             <div class="form-element"></div>
-
-                            <!--<div class="form-element">
-                                <label for="descuentoFin">Descuento Fin </label>
-                                <div style="display: flex; align-items: center;">
-                                    <input type="text" name="descuentoFin" id="descuentoFin" style="width: 110px;" tabindex="-1" disabled>
-                                    <button type="button" class="btn ms-2" id="AyudaDescuentofin" tabindex="-1">
-                                        <i class="bx bx-help-circle"></i>
-                                    </button>
-                                </div>
-                            </div>-->
                         </div>
                         <div class="row" style="display: none;">
                             <div class="form-element">
@@ -560,13 +601,11 @@ if (isset($_SESSION['usuario'])) {
                             <input class="input-mt" type="text" name="conCredito" id="conCredito" readonly hidden>
                             <div class="form-element"></div>
                         </div>
-                        <!--<div class="row">
+                        <div class="row">
                             <div class="form-element"></div>
-                            <button type="button" class="btn-save" id="guardarPedido" tabindex="-1"
-                                style="width: 150px;">Guardar</button>
-                            <button type="button" class="btn-cancel" id="cancelarPedido" tabindex="-1"
-                                style="width: 150px;">Cancelar</button>
-                        </div>-->
+                            <button type="button" class="btn-primary" id="verTotales" tabindex="-1"
+                                style="width: 150px;">Ver Totales</button>
+                        </div>
                     </form>
                     <!-- 5th row: 2 buttons -->
                     <!-- Seccion de partidas  -->
@@ -704,7 +743,7 @@ if (isset($_SESSION['usuario'])) {
                                         <h6 class="fw-bold">Dirección</h6>
                                         <div class="mb-3">
                                             <label for="nombreContacto" class="form-label">Nombre del contacto <span class="text-danger">*</span></label>
-                                            <input type="text" id="nombreContacto" class="form-control" required>
+                                            <input type="text" id="nombreContacto" class="form-control" maxlength="254" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="compañiaContacto" class="form-label">Compañía <span class="text-danger">*</span></label>
@@ -724,15 +763,15 @@ if (isset($_SESSION['usuario'])) {
                                         <h6 class="fw-bold">Detalles de la dirección</h6>
                                         <div class="mb-3">
                                             <label for="direccion1Contacto" class="form-label">Línea 1 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion1Contacto" class="form-control" required>
+                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength="80" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="direccion2Contacto" class="form-label">Línea 2 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion2Contacto" class="form-control" required>
+                                            <input type="text" id="direccion2Contacto" class="form-control" maxlength="50" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="codigoContacto" class="form-label">Código Postal <span class="text-danger">*</span></label>
-                                            <input type="text" id="codigoContacto" class="form-control" required>
+                                            <input type="text" id="codigoContacto" class="form-control" maxlength="5" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>
@@ -910,7 +949,53 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
-
+                <!-- Modal Totales Pedido -->
+                <div id="modalTotales" class="modal fade" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title">Totales del Pedido</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form id="formularioTotales" class="px-4 pb-4">
+                                <!-- Sección: Datos de contacto -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="subtotal" class="form-label">Importe: <input type="text" id="subtotal"
+                                                    class="form-control border-0 bg-transparent text-end" readonly>
+                                            </label> <!-- class="form-control" -->
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="descuento" class="form-label">Descuento: <input type="text" id="descuento"
+                                                    class="form-control border-0 bg-transparent text-end" readonly>
+                                            </label>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="subtotalPedido" class="form-label">SubTotal: <input type="text" id="subtotalPedido"
+                                                    class="form-control border-0 bg-transparent text-end" readonly>
+                                            </label>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="iva" class="form-label">I.V.A: <input type="text" id="iva"
+                                                    class="form-control border-0 bg-transparent text-end" readonly>
+                                            </label>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="importe" class="form-label">Importe: <input type="tel" id="importe"
+                                                    class="form-control border-0 bg-transparent text-end" readonly>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- botones al pie -->
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
                 <!-- </div> -->
             </main>
             <!-- MAIN -->
@@ -984,6 +1069,62 @@ if (isset($_SESSION['usuario'])) {
             </div>
         </div>
     </div>
+    <!-- Modal para subir PDFs -->
+                <div id="modalPDF" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="false"> <!-- data-bs-backdrop="false" -->
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content pdf-modal-content">
+                            <div class="modal-header pdf-modal-header-style">
+                                <h5 class="modal-title">Subir Archivos PDF</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="formPDF" enctype="multipart/form-data">
+                                    <!-- 🔹 NUEVO: el front (subirPDFs) leerá este valor -->
+                                    <input type="hidden" id="pedidoId" name="pedidoId"
+                                        value="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>">
+
+                                    <div class="pdf-mb-3">
+                                        <label class="form-label">Selecciona de 1 a 4 archivos PDF (Máximo 5MB cada uno)</label>
+                                        <div class="pdf-file-input-container">
+                                            <button type="button" class="btn pdf-btn-primary pdf-custom-file-btn" id="btnAgregarPDF">
+                                                <i class="bi bi-plus-circle"></i> Agregar PDF
+                                            </button>
+                                            <!-- 🔹 CORREGIDO: añadimos name="pdfs[]" para el fallback del JS/PHP -->
+                                            <input type="file" id="pdfFiles" name="pdfs[]" class="form-control d-none"
+                                                accept=".pdf,application/pdf" multiple>
+                                        </div>
+                                        <div class="pdf-instruction-text">
+                                            Puedes seleccionar múltiples archivos manteniendo presionada la tecla Ctrl
+                                        </div>
+                                    </div>
+                                    <!-- Sección de archivos seleccionados -->
+                                    <div class="pdf-selected-files" id="selectedFilesContainer">
+                                        <div class="pdf-header-info">
+                                            <h6>Archivos seleccionados</h6>
+                                            <span class="pdf-file-status" id="contadorPDFs">0/4</span>
+                                        </div>
+                                        <div id="selectedFilesList"><!-- Los archivos seleccionados aparecerán aquí --></div>
+                                    </div>
+                                    <!-- Previews (oculta) -->
+                                    <div id="pdfPreviews" class="pdf-mt-3 d-none">
+                                        <div class="pdf-empty-state" id="emptyState">
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                            <p>No hay archivos seleccionados</p>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <!-- 🔹 Respaldo opcional del pedidoId en el botón -->
+                                <button type="button" class="btn pdf-btn-primary" id="guardarPDFs"
+                                    data-pedido-id="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>"
+                                    disabled>Guardar PDFs</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </div>
 
     <!-- Scripts de JS para el funcionamiento del sistema -->
     <script src="JS/menu.js"></script>
@@ -992,7 +1133,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/ventas.js"></script>
     <script src="JS/altaPedido.js"></script>
-    <!--<script src="JS/clientes.js"></script>-->
+    <script src="JS/pdfs.js"></script>
 
     <!-- Funcion JS para obtener la fecha actual-->
     <script>
@@ -1001,6 +1142,13 @@ if (isset($_SESSION['usuario'])) {
             const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DDTHH:MM
             document.getElementById("entrega").value = fechaActual;
         });
+    </script>
+    <script>
+        const tipoUsuario = "<?php echo $tipoUsuario; ?>";
+        const claveUsuario = "<?php echo $claveUsuario; ?>";
+        if (tipoUsuario === "ADMINISTRADOR") {
+            obtenerVendedores(tipoUsuario, claveUsuario);
+        }
     </script>
     <!-- Funcion JS la sugerencia de Clientes y Productos-->
     <script>
@@ -1138,6 +1286,31 @@ if (isset($_SESSION['usuario'])) {
                             // Limpiamos el <ul> y lo mostramos
                             suggestionsListProductos.empty().show();
 
+                            /***********************************************************************/
+                            const $scrollContainer = $productoInput.closest('.tabla-scroll');
+                            if ($scrollContainer.length) {
+                                const containerEl = $scrollContainer.get(0);
+                                const dropdownEl = suggestionsListProductos.get(0);
+                                const contRect = containerEl.getBoundingClientRect();
+                                const dropRect = dropdownEl.getBoundingClientRect();
+
+                                // si la parte inferior de la lista SALE del contenedor, la subimos
+                                if (dropRect.bottom > contRect.bottom) {
+                                    const delta = (dropRect.bottom - contRect.bottom) + 5;
+                                    //alert(1);
+                                    containerEl.scrollTop += delta;
+                                    window.scrollBy(0, 5);
+                                }
+                                // si la parte superior de la lista QUEDA por encima, la bajamos
+                                if (dropRect.top < contRect.top) {
+                                    //alert(2);
+                                    const delta = (contRect.top - dropRect.top) + 5;
+                                    containerEl.scrollTop -= delta;
+                                    window.scrollBy(0, 5);
+                                }
+                            }
+                            /***********************************************************************/
+
                             if (response.success && Array.isArray(response.productos) && response.productos.length > 0) {
                                 suggestionsListProductos.removeClass("d-none");
 
@@ -1180,12 +1353,15 @@ if (isset($_SESSION['usuario'])) {
             // Manejo de navegación con teclado en campo .producto
             $(document).on("keydown", ".producto", function(e) {
                 const $input = $(this);
-                // Obtenemos sólo los <li> que tienen la clase suggestion-item (coincidencias reales)
-                const $suggestions = $input.closest("tr").find(".suggestions-list-productos");
+                const $row = $input.closest("tr");
+                const $suggestions = $row.find(".suggestions-list-productos");
                 const items = $suggestions.find("li.suggestion-item");
+                const qty = $row.find(".unidad").val();
+                //console.log("unidad: ", qty);
 
                 // 1) Si se presiona Tab/Enter pero no hay sugerencias => mostrar aviso y bloquear
-                if ((e.key === "Tab" || e.key === "Enter") && items.length === 0) {
+                if ((e.key === "Tab" || e.key === "Enter") && items.length === 0 && (!qty || qty.trim() === "")) {
+                    //Validacion si ya hay un producto (.unidad)
                     e.preventDefault();
                     Swal.fire({
                         icon: 'warning',

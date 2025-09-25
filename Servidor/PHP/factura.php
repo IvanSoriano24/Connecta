@@ -133,7 +133,7 @@ function formatearClaveCliente($clave)
     $clave = str_pad($clave, 10, ' ', STR_PAD_LEFT);
     return $clave;
 }
-function insertarBita($conexionData, $remision, $claveSae, $folioFactura)
+function insertarBita($conexionData, $remision, $claveSae, $folioFactura, $conn)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -241,25 +241,14 @@ function insertarBita($conexionData, $remision, $claveSae, $folioFactura)
     sqlsrv_free_stmt($stmtUltimaBita);
     sqlsrv_free_stmt($stmtRemision);
     sqlsrv_free_stmt($stmtInsert);
-    sqlsrv_close($conn);
     return $cveBita;
     /*echo json_encode([
         'success' => true,
         'message' => "BITAXX insertado correctamente con CVE_BITA $cveBita y remisión $folioSiguiente"
     ]);*/
 }
-function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveSae, $DAT_MOSTR, $folioFactura, $SERIE, $DAT_ENVIO)
+function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveSae, $DAT_MOSTR, $folioFactura, $SERIE, $DAT_ENVIO, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -407,20 +396,9 @@ function insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveS
     }
 
     //echo json_encode(['success' => true, 'folioFactura' => $folioFactura]);
-    sqlsrv_close($conn);
 }
-function insertarFactf_Clib($conexionData, $folioFactura, $claveSae)
+function insertarFactf_Clib($conexionData, $folioFactura, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         echo json_encode([
             'success' => false,
@@ -453,25 +431,14 @@ function insertarFactf_Clib($conexionData, $folioFactura, $claveSae)
     // Cerrar conexión
     //sqlsrv_free_stmt($stmtUltimaRemision);
     sqlsrv_free_stmt($stmtInsert);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
         'success' => true,
         'message' => "FACTF_CLIBXX insertado correctamente con CVE_DOC $claveDoc"
     ]);*/
 }
-function obtenerFolio($conexionData, $claveSae)
+function obtenerFolio($conexionData, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -483,6 +450,7 @@ function obtenerFolio($conexionData, $claveSae)
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FOLIOSF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     // Consulta SQL para obtener el siguiente folio
     $sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'MD'";
+    //$sql = "SELECT (ULT_DOC + 1) AS FolioSiguiente, SERIE FROM $nombreTabla WHERE TIP_DOC = 'F' AND SERIE = 'AV'";
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
@@ -492,10 +460,9 @@ function obtenerFolio($conexionData, $claveSae)
     $folioSiguiente = $row ? $row['FolioSiguiente'] : null;
     $SERIE = $row ? $row['SERIE'] : null;
 
-    actualizarFolio($conexionData, $claveSae);
+    actualizarFolio($conexionData, $claveSae, $conn);
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
     // Retornar el folio siguiente
     
     //return $folioSiguiente;
@@ -504,7 +471,7 @@ function obtenerFolio($conexionData, $claveSae)
         'serie' => $SERIE
     ];
 }
-function actualizarFolio($conexionData, $claveSae)
+function actualizarFolio($conexionData, $claveSae, $conn)
 {
     // Establecer la conexión con SQL Server con UTF-8
     $serverName = $conexionData['host'];
@@ -541,7 +508,6 @@ function actualizarFolio($conexionData, $claveSae)
 
     // Liberar el recurso solo si la consulta fue exitosa
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     // Retornar el resultado
     if ($rowsAffected > 0) {
@@ -550,18 +516,8 @@ function actualizarFolio($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => 'No se encontraron folios para actualizar']);
     }
 }
-function obtenerRemision($conexionData, $pedidoId, $claveSae)
+function obtenerRemision($conexionData, $pedidoId, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -590,23 +546,12 @@ function obtenerRemision($conexionData, $pedidoId, $claveSae)
     $folio = $row ? $row['FOLIO'] : null;
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
     //echo json_encode(['success' => true, 'folio remision' => $folio]);
     // Retornar el folio siguiente
     return $folio;
 }
-function actualizarAfac($conexionData, $remision, $claveSae)
+function actualizarAfac($conexionData, $remision, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -675,8 +620,6 @@ function actualizarAfac($conexionData, $remision, $claveSae)
 
     sqlsrv_free_stmt($stmtRemision);
     sqlsrv_free_stmt($stmtUpdate);
-    sqlsrv_close($conn);
-
     /*echo json_encode([
         'success' => true,
         'message' => "AFACT02 actualizado correctamente para el período $perAcum"
@@ -729,19 +672,9 @@ function insertarAlerta_Usuario($conexionData, $claveSae)
         'message' => "ALERTA_USUARIOXX creada correctamente"
     ]);*/
 }
-function actualizarAlerta_Usuario1($conexionData, $claveSae)
+function actualizarAlerta_Usuario1($conexionData, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
-    if ($conn === false) {
+   if ($conn === false) {
         echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
@@ -770,26 +703,15 @@ function actualizarAlerta_Usuario1($conexionData, $claveSae)
     }
 
     sqlsrv_free_stmt($stmtUpdate);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
         'success' => true,
         'message' => "ALERTA_USUARIOX1 actualizada correctamente"
     ]);*/
 }
-function actualizarAlerta_Usuario2($conexionData, $claveSae)
+function actualizarAlerta_Usuario2($conexionData, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
-    if ($conn === false) {
+   if ($conn === false) {
         echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
@@ -818,26 +740,15 @@ function actualizarAlerta_Usuario2($conexionData, $claveSae)
     }
 
     sqlsrv_free_stmt($stmtUpdate);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
          'success' => true,
          'message' => "ALERTA_USUARIOX2 actualizada correctamente"
      ]);*/
 }
-function actualizarAlerta1($conexionData, $claveSae)
+function actualizarAlerta1($conexionData, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
-    if ($conn === false) {
+ if ($conn === false) {
         echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
@@ -866,26 +777,14 @@ function actualizarAlerta1($conexionData, $claveSae)
     }
 
     sqlsrv_free_stmt($stmtUpdate);
-    sqlsrv_close($conn);
-
     /*echo json_encode([
         'success' => true,
         'message' => "ALERTAXX1 actualizada correctamente"
     ]);*/
 }
-function actualizarAlerta2($conexionData, $claveSae)
+function actualizarAlerta2($conexionData, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
-    if ($conn === false) {
+   if ($conn === false) {
         echo json_encode([
             'success' => false,
             'message' => 'Error al conectar con la base de datos',
@@ -914,26 +813,15 @@ function actualizarAlerta2($conexionData, $claveSae)
     }
 
     sqlsrv_free_stmt($stmtUpdate);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
         'success' => true,
         'message' => "ALERTAXX2 actualizada correctamente"
     ]);*/
 }
-function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
+function crearCxc($conexionData, $claveSae, $remision, $folioFactura, $conn)
 {
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
-
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -963,7 +851,7 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
     //$IMPORTE = 0;
     $STRCVEVEND = $dataRemision['CVE_VEND'];
 
-    $AFEC_COI = 'A';
+    $AFEC_COI = '';
     $NUM_MONED = 1;
     $TCAMBIO = 1;
     $TIPO_MOV = 'A'; //Aqui
@@ -1040,8 +928,6 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
         ];
     }
 
-    sqlsrv_close($conn);
-
     //echo json_encode(['success' => true, 'no_facturaCuenM' => $no_factura]);
 
     return [
@@ -1052,18 +938,8 @@ function crearCxc($conexionData, $claveSae, $remision, $folioFactura)
         'CVE_CLIE' => $CVE_CLIE
     ];
 }
-function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision){
+function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision, $conn){
     date_default_timezone_set('America/Mexico_City'); // Ajusta la zona horaria a México
-
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1088,7 +964,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision)
 
     $STRCVEVEND = $datosCxC['STRCVEVEND'];
 
-    $AFEC_COI = 'A';
+    $AFEC_COI = '';
     $NUM_MONED = 1;
     $TCAMBIO = 1;
     $TIPO_MOV = 'A'; //Aqui
@@ -1143,7 +1019,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision)
         $fecha_apli,      // FECHA_APLI
         $fecha_venc,      // FECHA_VENC
         '0',              // USUARIO
-        'A',              // AFEC_COI
+        '',              // AFEC_COI
         1,                // NUM_MONED
         1,                // TCAMBIO
         'A',              // TIPO_MOV
@@ -1165,23 +1041,11 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $folioFactura, $remision)
             'errors' => $errors
         ];
     }
-    sqlsrv_close($conn);
     /*echo json_encode(['success' => true, 'message' => 'CxC creada y pagada.']);*/
     return;
 }
-function insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae)
+function insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1235,7 +1099,6 @@ function insertarDoctoSig($conexionData, $remision, $folioFactura, $claveSae)
     // ✅ Cerrar conexión
     sqlsrv_free_stmt($stmt1);
     sqlsrv_free_stmt($stmt2);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
         'success' => true,
@@ -1348,18 +1211,8 @@ function insertarEnlaceLTPD($conn, $conexionData, array $lotesUtilizados, string
 
     return $resultados;
 }
-function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pedidoId)
+function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pedidoId, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1397,25 +1250,14 @@ function actualizarFactr($conexionData, $remision, $folioFactura, $claveSae, $pe
 
     // Cerrar conexión
     sqlsrv_free_stmt($stmtUpdate);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
         'success' => true,
         'message' => "FACTPXX1 actualizado correctamente para el pedido $pedidoId con remision $cveDocFactura"
     ]);*/
 }
-function actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId)
+function actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1458,25 +1300,14 @@ function actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId)
 
     // Cerrar conexión
     sqlsrv_free_stmt($stmtUpdate);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
         'success' => true,
         'message' => "FACTPXX2 actualizado correctamente para el pedido $pedidoId"
     ]);*/
 }
-function actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId)
+function actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1521,25 +1352,14 @@ function actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId)
 
     // Cerrar conexión
     sqlsrv_free_stmt($stmtUpdate);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
         'success' => true,
         'message' => "FACTPXX3 actualizado correctamente para el pedido $pedidoId"
     ]);*/
 }
-function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
+function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         echo json_encode([
             'success' => false,
@@ -1580,22 +1400,6 @@ function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
         ]);
         die();
     }
-
-    // ✅ 3. Obtener el `NUM_MOV` de `MINVEXX`
-    $sqlNumMov = "SELECT ISNULL(MAX(NUM_MOV), 0) AS NUM_MOV FROM $tablaMovimientos";
-    $stmtNumMov = sqlsrv_query($conn, $sqlNumMov);
-
-    if ($stmtNumMov === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al obtener NUM_MOV desde MINVEXX',
-            'errors' => sqlsrv_errors()
-        ]);
-        die();
-    }
-
-    $numMovData = sqlsrv_fetch_array($stmtNumMov, SQLSRV_FETCH_ASSOC);
-    $numMov = $numMovData['NUM_MOV'];
 
     // Fecha de sincronización
     $fechaSinc = date('Y-m-d H:i:s');
@@ -1659,7 +1463,7 @@ function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
             $row['TIPO_ELEM'],
             $row['CVE_OBS'],
             $row['REG_SERIE'],
-            $numMov,
+            $row['NUM_MOV'],
             $TOT_PARTIDA,
             $row['IMPRIMIR'],
             $row['MAN_IEPS'],
@@ -1696,23 +1500,11 @@ function insertarPar_Factr($conexionData, $remision, $folioFactura, $claveSae)
             ]);
             die();
         }
-        $numMov++;
     }
-    sqlsrv_close($conn);
     //echo json_encode(['success' => true, 'folioFactura' => $folioFactura]);
 }
-function insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveSae)
+function insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveSae, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         echo json_encode([
             'success' => false,
@@ -1772,26 +1564,14 @@ function insertarPar_Factf_Clib($conexionData, $remision, $folioFactura, $claveS
     //sqlsrv_free_stmt($stmtUltimaRemision);
     sqlsrv_free_stmt($stmtContar);
     sqlsrv_free_stmt($stmtInsert);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
         'success' => true,
         'message' => "PAR_FACTF_CLIB01 insertado correctamente con CVE_DOC $cveDoc y $numPartidas partidas"
     ]);*/
 }
-function actualizarControl1($conexionData, $claveSae)
+function actualizarControl1($conexionData, $claveSae, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1816,23 +1596,11 @@ function actualizarControl1($conexionData, $claveSae)
     }
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
 }
-function actualizarControl2($conexionData, $claveSae)
+function actualizarControl2($conexionData, $claveSae, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1857,23 +1625,11 @@ function actualizarControl2($conexionData, $claveSae)
     }
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
 }
-function actualizarControl3($conexionData, $claveSae)
+function actualizarControl3($conexionData, $claveSae, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1898,23 +1654,11 @@ function actualizarControl3($conexionData, $claveSae)
     }
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
 }
-function actualizarControl4($conexionData, $claveSae)
+function actualizarControl4($conexionData, $claveSae, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8", // Aseguramos que todo sea manejado en UTF-8
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1939,22 +1683,11 @@ function actualizarControl4($conexionData, $claveSae)
     }
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     //echo json_encode(['success' => true, 'message' => 'TBLCONTROL01 actualizado correctamente']);
 }
-function actualizarInclie2($conexionData, $claveSae, $claveCliente)
+function actualizarInclie2($conexionData, $claveSae, $claveCliente, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -1985,25 +1718,14 @@ function actualizarInclie2($conexionData, $claveSae, $claveCliente)
 
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     /*echo json_encode([
         'success' => true,
         'message' => "CLIEXX actualizado correctamente "
     ]);*/
 }
-function actualizarInclie1($conexionData, $claveSae, $claveCliente)
+function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn)
 {
-    // 1) Conectar
-    $serverName   = $conexionData['host'];
-    $connectionInfo = [
-        "Database"            => $conexionData['nombreBase'],
-        "UID"                 => $conexionData['usuario'],
-        "PWD"                 => $conexionData['password'],
-        "CharacterSet"        => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -2063,7 +1785,6 @@ function actualizarInclie1($conexionData, $claveSae, $claveCliente)
 
     // 7) Cerrar
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     // 8) (Opcional) éxito
     /*echo json_encode([
@@ -2071,16 +1792,7 @@ function actualizarInclie1($conexionData, $claveSae, $claveCliente)
         'message' => 'CLIE actualizado correctamente'
     ]);*/
 }
-function insertatInfoClie($conexionData, $claveSae, $claveCliente){
-    $serverName   = $conexionData['host'];
-    $connectionInfo = [
-        "Database"  => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
+function insertatInfoClie($conexionData, $claveSae, $claveCliente, $conn){
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -2138,21 +1850,12 @@ function insertatInfoClie($conexionData, $claveSae, $claveCliente){
             'errors'  => sqlsrv_errors()
         ]));
     }
-    sqlsrv_close($conn);
     //echo json_encode(['success' => true, 'cliente' => $claveCliente]);
 
     return $nuevo;
 }
-function actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, array $enlaces)
+function actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, array $enlaces, $conn)
 {
-    // 1) Conectar
-    $conn = sqlsrv_connect($conexionData['host'], [
-        "Database"             => $conexionData['nombreBase'],
-        "UID"                  => $conexionData['usuario'],
-        "PWD"                  => $conexionData['password'],
-        "CharacterSet"         => "UTF-8",
-        "TrustServerCertificate" => true,
-    ]);
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -2197,26 +1900,13 @@ function actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, array $enla
         sqlsrv_free_stmt($stmt);
     }
 
-    // 6) Cerraremos la conexión y devolvemos éxito
-    sqlsrv_close($conn);
     return [
         'success' => true,
         'message' => "Se actualizaron " . count($enlaces) . " partidas con el nuevo E_LTPD.",
     ];
 }
-function insertarCFDI($conexionData, $claveSae, $folioFactura)
+function insertarCFDI($conexionData, $claveSae, $folioFactura, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
-
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -2266,16 +1956,7 @@ function insertarCFDI($conexionData, $claveSae, $folioFactura)
     sqlsrv_free_stmt($stmt);
     //echo json_encode(['success' => true, 'facturaId' => $facturaId]);
 }
-function sumarSaldo($conexionData, $claveSae, $pagado){
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
+function sumarSaldo($conexionData, $claveSae, $pagado, $conn){
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -2306,24 +1987,14 @@ function sumarSaldo($conexionData, $claveSae, $pagado){
 
     // ✅ Liberar memoria y cerrar conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
     $cliente = $pagado['CVE_CLIE' ];
     return json_encode([
         'success' => true,
         'message' => "Saldo actualizado correctamente para el cliente: $cliente"
     ]);
 }
-function restarSaldo($conexionData, $claveSae, $pagado)
+function restarSaldo($conexionData, $claveSae, $pagado, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode([
             'success' => false,
@@ -2354,7 +2025,6 @@ function restarSaldo($conexionData, $claveSae, $pagado)
 
     // ✅ Liberar memoria y cerrar conexión
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 
     return json_encode([
         'success' => true,
@@ -2362,17 +2032,8 @@ function restarSaldo($conexionData, $claveSae, $pagado)
     ]);
 }
 /*******************************************************************************************************/
-function validarLotesFactura($conexionData, $claveSae, $remision)
+function validarLotesFactura($conexionData, $claveSae, $remision, $conn)
 {
-    // 1) Conectar
-    $conn = sqlsrv_connect($conexionData['host'], [
-        "Database" => $conexionData['nombreBase'],
-        "UID"      => $conexionData['usuario'],
-        "PWD"      => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ]);
-
     // 2) Obtengo todos los lotes de la remisión
     $rows = obtenerDatosPreEnlace($conexionData, $claveSae, $remision);
 
@@ -2391,7 +2052,6 @@ function validarLotesFactura($conexionData, $claveSae, $remision)
 
     // 4) Por cada producto, insertamos sus lotes (ahora sin duplicados)
     $todos = [];
-    sqlsrv_begin_transaction($conn);
     foreach ($porProducto as $claveArt => $lotesByReg) {
         // reindexamos el array
         $lotes = array_values($lotesByReg);
@@ -2399,7 +2059,6 @@ function validarLotesFactura($conexionData, $claveSae, $remision)
         $todos = array_merge($todos, $res);
     }
     sqlsrv_commit($conn);
-    sqlsrv_close($conn);
 
     return $todos;
 }
@@ -2437,18 +2096,8 @@ function obtenerUltimoDato($conexionData, $claveSae)
 
     return $CVE_INFO;
 }
-function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
+function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae, $conn)
 {
-    // Establecer la conexión con SQL Server con UTF-8
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -2579,61 +2228,60 @@ function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
     sqlsrv_free_stmt($stmt);
     sqlsrv_free_stmt($stmPedido);
     sqlsrv_free_stmt($stmSelect);
-    sqlsrv_close($conn);
     return $CVE_INFO;
 }
 /****************************************** Funcion Principal ******************************************/
-function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito)
+function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito, $conn)
 {
     global $firebaseProjectId, $firebaseApiKey;
     /* 
     'folioSiguiente' => $folioSiguiente,
     'serie' => $SERIE
     */
-    $datFactura = obtenerFolio($conexionData, $claveSae);
+    $datFactura = obtenerFolio($conexionData, $claveSae, $conn);
     $folioFactura = $datFactura['folioSiguiente'];
     $SERIE = $datFactura['serie'];
     $folioFormateado = str_pad($folioFactura, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $folioUnido = urldecode($SERIE) . urldecode($folioFormateado);
     //$folioUnido = str_pad($folioUnido, 20, ' ', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
 
-    $remision = obtenerRemision($conexionData, $pedidoId, $claveSae);
-    $CVE_BITA = insertarBita($conexionData, $remision, $claveSae, $folioUnido);
+    $remision = obtenerRemision($conexionData, $pedidoId, $claveSae, $conn);
+    $CVE_BITA = insertarBita($conexionData, $remision, $claveSae, $folioUnido, $conn);
 
-    actualizarAfac($conexionData, $remision, $claveSae);
+    actualizarAfac($conexionData, $remision, $claveSae, $conn);
     //insertarAlerta_Usuario($conexionData, $claveSae); //Verifcar logica
-    actualizarAlerta_Usuario1($conexionData, $claveSae);
-    actualizarAlerta_Usuario2($conexionData, $claveSae);
-    actualizarAlerta1($conexionData, $claveSae);
-    actualizarAlerta2($conexionData, $claveSae);
+    actualizarAlerta_Usuario1($conexionData, $claveSae, $conn);
+    actualizarAlerta_Usuario2($conexionData, $claveSae, $conn);
+    actualizarAlerta1($conexionData, $claveSae, $conn);
+    actualizarAlerta2($conexionData, $claveSae, $conn);
 
-    $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioUnido); //No manipula saldo
-    sumarSaldo($conexionData, $claveSae, $datosCxC);
+    $datosCxC = crearCxc($conexionData, $claveSae, $remision, $folioUnido, $conn); //No manipula saldo
+    sumarSaldo($conexionData, $claveSae, $datosCxC, $conn);
     //Pagar solo si elimino anticipo (clientes sin Credito)
     if (!$credito) {
-        pagarCxc($conexionData, $claveSae, $datosCxC, $folioUnido, $remision);
-        //restarSaldo($conexionData, $claveSae, $datosCxC);
+        pagarCxc($conexionData, $claveSae, $datosCxC, $folioUnido, $remision, $conn);
+        restarSaldo($conexionData, $claveSae, $datosCxC, $conn);
     }
 
-    insertarDoctoSig($conexionData, $remision, $folioUnido, $claveSae);
+    insertarDoctoSig($conexionData, $remision, $folioUnido, $claveSae, $conn);
 
-    $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $claveCliente);
-    actualizarControl2($conexionData, $claveSae); //ROLLBACK
-    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $remision, $claveSae);
-    actualizarControl3($conexionData, $claveSae);
+    $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $claveCliente, $conn);
+    actualizarControl2($conexionData, $claveSae, $conn); //ROLLBACK
+    $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $remision, $claveSae, $conn);
+    actualizarControl3($conexionData, $claveSae, $conn);
 
-    insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveSae, $DAT_MOSTR, $folioFactura, $SERIE, $DAT_ENVIO);
-    insertarFactf_Clib($conexionData, $folioUnido, $claveSae);
+    insertarFactf($conexionData, $remision, $folioUnido, $CVE_BITA, $claveSae, $DAT_MOSTR, $folioFactura, $SERIE, $DAT_ENVIO, $conn);
+    insertarFactf_Clib($conexionData, $folioUnido, $claveSae, $conn);
 
-    actualizarFactr($conexionData, $remision, $folioUnido, $claveSae, $pedidoId);
-    actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId);
-    actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId);
+    actualizarFactr($conexionData, $remision, $folioUnido, $claveSae, $pedidoId, $conn);
+    actualizarFactr2($conexionData, $remision, $claveSae, $pedidoId, $conn, $conn);
+    actualizarFactr3($conexionData, $remision, $claveSae, $pedidoId, $conn, $conn);
 
-    insertarPar_Factr($conexionData, $remision, $folioUnido, $claveSae); //Volver a realizarlo con datos nuevos
-    insertarPar_Factf_Clib($conexionData, $remision, $folioUnido, $claveSae);
+    insertarPar_Factr($conexionData, $remision, $folioUnido, $claveSae, $conn); //Volver a realizarlo con datos nuevos
+    insertarPar_Factf_Clib($conexionData, $remision, $folioUnido, $claveSae, $conn);
 
-    $result = validarLotesFactura($conexionData, $claveSae, $remision);
-    actualizarControl4($conexionData, $claveSae);
+    $result = validarLotesFactura($conexionData, $claveSae, $remision, $conn);
+    actualizarControl4($conexionData, $claveSae, $conn);
 
     /*$datos = obtenerDatosPreEnlace($conexionData, $claveSae, $remision);    //No se pudo por falta de datos
     
@@ -2642,13 +2290,13 @@ function crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $clav
     }*/
     //var_dump($result);
 
-    actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, $result);
+    actualizarPar_Factf1($conexionData, $claveSae, $folioUnido, $result, $conn);
 
-    actualizarControl1($conexionData, $claveSae);
-    actualizarInclie1($conexionData, $claveSae, $claveCliente); //Verificar la logica
-    actualizarInclie2($conexionData, $claveSae, $claveCliente);
+    actualizarControl1($conexionData, $claveSae, $conn);
+    actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn); //Verificar la logica
+    actualizarInclie2($conexionData, $claveSae, $claveCliente, $conn);
 
-    insertarCFDI($conexionData, $claveSae, $folioUnido);
+    insertarCFDI($conexionData, $claveSae, $folioUnido, $conn);
 
     return $folioUnido;
     /*return [
@@ -3317,16 +2965,12 @@ switch ($funcion) {
         $noEmpresa = $_POST['noEmpresa'];
         $pedidoId = $_POST['pedidoId'];
         $claveCliente = $_POST['claveCliente'];
+        $claveCliente = $_POST['claveCliente'];
         $credito = $_POST['credito'] ?? false;
+        $conn = $_POST['conn'];
+        $conexionData = $_POST['conexionData'];
 
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
-        if (!$conexionResult['success']) {
-            echo json_encode($conexionResult);
-            break;
-        }
-        // Mostrar los clientes usando los datos de conexión obtenidos
-        $conexionData = $conexionResult['data'];
-        $folio = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito);
+        $folio = crearFacturacion($conexionData, $pedidoId, $claveSae, $noEmpresa, $claveCliente, $credito, $conn);
         header('Content-Type: application/json');
         //die( json_encode(['success' => true, 'folioFactura1' => $folioFactura]));
         echo json_encode(['success' => true, 'folioFactura1' => $folio]);

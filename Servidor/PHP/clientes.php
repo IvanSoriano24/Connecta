@@ -42,11 +42,11 @@ function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpr
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-
 // Función para conectar a SQL Server y obtener los datos de clientes
 function mostrarClientes($conexionData, $claveSae)
 {
     try {
+        header('Content-Type: application/json; charset=UTF-8');
         //session_start();
         // Validar si el número de empresa está definido en la sesión
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
@@ -98,7 +98,7 @@ function mostrarClientes($conexionData, $claveSae)
                 CLAVE,
                 NOMBRE,
                 RFC,
-                CALLE_ENVIO AS CALLE,
+                CALLE AS CALLE,
                 TELEFONO,
                 SALDO,
                 VAL_RFC AS EstadoDatosTimbrado,
@@ -125,7 +125,7 @@ function mostrarClientes($conexionData, $claveSae)
                 CLAVE,
                 NOMBRE,
                 RFC,
-                CALLE_ENVIO AS CALLE,
+                CALLE AS CALLE,
                 TELEFONO,
                 SALDO,
                 VAL_RFC AS EstadoDatosTimbrado,
@@ -144,6 +144,7 @@ function mostrarClientes($conexionData, $claveSae)
 
             $stmt = sqlsrv_query($conn, $sql, $params);
         }
+        //var_dump($sql);
         if ($stmt === false) {
             die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
         }
@@ -175,6 +176,7 @@ function mostrarClientes($conexionData, $claveSae)
             }
             $clientes[] = $row;
         }
+
         $countSql  = "
             SELECT COUNT(DISTINCT CLAVE) AS total
             FROM $nombreTabla WHERE STATUS = 'A'
@@ -188,11 +190,11 @@ function mostrarClientes($conexionData, $claveSae)
         sqlsrv_close($conn);
         // Retornar los datos en formato JSON
         if (empty($clientes)) {
-            echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
+            echo json_encode(['success' => false, 'total' => 0, 'data' => [], 'message' => 'No se encontraron clientes']);
             exit;
         }
-        header('Content-Type: application/json; charset=UTF-8');
         echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
+        exit;
     } catch (Exception $e) {
         // Si hay algún error, devuelves un error en formato JSON
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -549,7 +551,8 @@ function mostrarClientesPedidos($conexionData, $claveSae)
                 SALDO,
                 VAL_RFC AS EstadoDatosTimbrado,
                 NOMBRECOMERCIAL,
-                DESCUENTO
+                DESCUENTO,
+                LISTA_PREC
             FROM $nombreTabla
             WHERE STATUS = 'A'
             ORDER BY CLAVE ASC
@@ -571,7 +574,8 @@ function mostrarClientesPedidos($conexionData, $claveSae)
                 SALDO,
                 VAL_RFC AS EstadoDatosTimbrado,
                 NOMBRECOMERCIAL,
-                DESCUENTO
+                DESCUENTO,
+                LISTA_PREC
             FROM $nombreTabla
             WHERE STATUS = 'A'
                 AND CVE_VEND = ?
@@ -625,7 +629,6 @@ function mostrarClientesPedidos($conexionData, $claveSae)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-
 function mostrarClienteEspecifico($clave, $conexionData)
 {
     // Establecer la conexión con SQL Server con UTF-8
@@ -683,7 +686,6 @@ function mostrarClienteEspecifico($clave, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
-
 function validarCreditos($conexionData, $clienteId)
 {
     // Validar si el ID del cliente está proporcionado
@@ -770,8 +772,90 @@ function formatearClaveCliente($clave)
     // Si es menor a 10 caracteres, rellenar con espacios a la izquierda
     return str_pad($clave, 10, ' ', STR_PAD_LEFT);
 }
-function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
+function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario, $noEmpresa)
 {
+    $url = "https://firestore.googleapis.com/v1/projects/"
+         . "$firebaseProjectId/databases/(default)/documents:runQuery"
+         . "?key=$firebaseApiKey";
+    
+    // Filtros combinados: claveCliente y noEmpresa
+    $whereNode = [
+        'compositeFilter' => [
+            'op' => 'AND',
+            'filters' => [
+                [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'claveCliente'],
+                        'op'    => 'EQUAL',
+                        'value' => ['stringValue' => $claveUsuario]
+                    ]
+                ],
+                [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'noEmpresa'],
+                        'op'    => 'EQUAL',
+                        'value' => ['integerValue' => (int)$noEmpresa]
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    // Construir la consulta
+    $payload = json_encode([
+        'structuredQuery' => [
+            'from'  => [['collectionId' => 'ENVIOS']],
+            'where' => $whereNode
+        ]
+    ]);
+
+    // Contexto con timeout
+    $context = stream_context_create([
+        'http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'timeout' => 10,
+            'content' => $payload
+        ]
+    ]);
+
+    // Ejecutar consulta
+    $response = @file_get_contents($url, false, $context);
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'Error en la consulta a Firestore.']);
+        return;
+    }
+
+    $matches = json_decode($response, true);
+    $datos = [];
+    //var_dump($matches);
+
+    // Procesar resultados
+    foreach ($matches as $item) {
+        if (!isset($item['document'])) {
+            continue;
+        }
+
+        $doc = $item['document'];
+        $fields = $doc['fields'] ?? [];
+        $documentId = basename($doc['name']);
+
+        $datos[] = [
+            'idDocumento' => $documentId,
+            'id'          => $fields['id']['integerValue'] ?? null,
+            'tituloEnvio' => $fields['tituloEnvio']['stringValue'] ?? null,
+        ];
+    }
+
+    if (!empty($datos)) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => $datos]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envío.']);
+    }
+}
+
+/*function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario, $noEmpresa){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
 
     // Configura el contexto de la solicitud para manejar errores y tiempo de espera
@@ -799,12 +883,16 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
         $fields = $document['fields'];
         $documentName = $document['name']; // Aquí obtienes el nombre completo del documento
         $documentId = basename($documentName);
-        if (isset($fields['claveCliente']['stringValue']) && $fields['claveCliente']['stringValue'] === $claveUsuario) {
-            $datos[] = [
-                'idDocumento' => $documentId,
-                'id' => $fields['id']['integerValue'] ?? null,
-                'tituloEnvio' => $fields['tituloEnvio']['stringValue'] ?? null,
-            ];
+        $empFirebase = (int) $fields['noEmpresa']['integerValue'];
+        $empBuscada  = (int) $noEmpresa;
+        if ($empFirebase == $empBuscada) {
+            if (isset($fields['claveCliente']['stringValue']) && $fields['claveCliente']['stringValue'] === $claveUsuario) {
+                $datos[] = [
+                    'idDocumento' => $documentId,
+                    'id' => $fields['id']['integerValue'] ?? null,
+                    'tituloEnvio' => $fields['tituloEnvio']['stringValue'] ?? null,
+                ];
+            }
         }
     }
 
@@ -820,7 +908,7 @@ function obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario)
     } else {
         echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
     }
-}
+}*/
 function obtenerDatosEnvioTabla($firebaseProjectId, $firebaseApiKey, $conexionData, $noEmpresa)
 {
     // 1) Conexión a SQL Server
@@ -863,10 +951,9 @@ function obtenerDatosEnvioTabla($firebaseProjectId, $firebaseApiKey, $conexionDa
     $datos = [];
     foreach ($body['documents'] as $doc) {
         $f = $doc['fields'];
-        if (
-            isset($f['noEmpresa']['integerValue'])
-            && intval($f['noEmpresa']['integerValue']) === intval($noEmpresa)
-        ) {
+        $empFirebase = (int) $f['noEmpresa']['integerValue'];
+        $empBuscada  = (int) $noEmpresa;
+        if ($empFirebase == $empBuscada) {
             $datos[] = [
                 'idDocumento'   => basename($doc['name']),
                 'id'            => $f['id']['integerValue']       ?? null,
@@ -1004,7 +1091,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     if ($tipoUsuario === "ADMINISTRADOR") {
         if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
                 FROM $nombreTabla
                 WHERE 
                 LOWER(LTRIM(RTRIM(CLAVE))) LIKE ? OR
@@ -1013,7 +1100,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
                 LOWER(LTRIM(RTRIM(CALLE))) LIKE ? AND [STATUS] = 'A'
                 ORDER BY CLAVE ASC;";
         } else {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
                 FROM $nombreTabla
                 WHERE 
                 CLAVE LIKE ? OR
@@ -1024,7 +1111,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
         }
     } else {
         if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
                 FROM $nombreTabla
                 WHERE 
                 LOWER(LTRIM(RTRIM(CLAVE))) LIKE ? OR
@@ -1033,7 +1120,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
                 LOWER(LTRIM(RTRIM(CALLE))) LIKE ? AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'
                 ORDER BY CLAVE ASC;";
         } else {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
+            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
                 FROM $nombreTabla
                 WHERE 
                 CLAVE LIKE ? OR
@@ -1065,6 +1152,10 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
                 }
             } elseif ($value === null) {
                 $value = ''; // Valor predeterminado si es null
+            }
+            if ($key === 'CLAVE') {
+                // deja sólo dígitos
+                $value = preg_replace('/[^\d]/', '', $value);
             }
             $row[$key] = $value;
         }
@@ -1172,13 +1263,14 @@ function guardarDatosEnvio($datosEnvio, $firebaseProjectId, $firebaseApiKey, $fo
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
-function actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $firebaseApiKey){
+function actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $firebaseApiKey)
+{
     // 1) Define los campos a actualizar
     $fieldsToSave = [
         'tituloEnvio'     => ['stringValue' => $datosEnvio['tituloEnvio']    ?? ''],
         'nombreContacto'  => ['stringValue' => $datosEnvio['nombreContacto'] ?? ''],
         'compania'        => ['stringValue' => $datosEnvio['compania']       ?? ''],
-        'telefonoContacto'=> ['stringValue' => $datosEnvio['telefonoContacto'] ?? ''],
+        'telefonoContacto' => ['stringValue' => $datosEnvio['telefonoContacto'] ?? ''],
         'correoContacto'  => ['stringValue' => $datosEnvio['correoContacto'] ?? ''],
         'linea1'          => ['stringValue' => $datosEnvio['linea1']         ?? ''],
         'linea2'          => ['stringValue' => $datosEnvio['linea2']         ?? ''],
@@ -1189,18 +1281,18 @@ function actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $fireb
 
     // 2) Construye manualmente la parte de updateMask
     $url = "https://firestore.googleapis.com/v1/projects/{$firebaseProjectId}"
-         . "/databases/(default)/documents/ENVIOS/{$id}"
-         . "?updateMask.fieldPaths=tituloEnvio"
-         . "&updateMask.fieldPaths=nombreContacto"
-         . "&updateMask.fieldPaths=compania"
-         . "&updateMask.fieldPaths=telefonoContacto"
-         . "&updateMask.fieldPaths=correoContacto"
-         . "&updateMask.fieldPaths=linea1"
-         . "&updateMask.fieldPaths=linea2"
-         . "&updateMask.fieldPaths=codigoPostal"
-         . "&updateMask.fieldPaths=estado"
-         . "&updateMask.fieldPaths=municipio"
-         . "&key={$firebaseApiKey}";
+        . "/databases/(default)/documents/ENVIOS/{$id}"
+        . "?updateMask.fieldPaths=tituloEnvio"
+        . "&updateMask.fieldPaths=nombreContacto"
+        . "&updateMask.fieldPaths=compania"
+        . "&updateMask.fieldPaths=telefonoContacto"
+        . "&updateMask.fieldPaths=correoContacto"
+        . "&updateMask.fieldPaths=linea1"
+        . "&updateMask.fieldPaths=linea2"
+        . "&updateMask.fieldPaths=codigoPostal"
+        . "&updateMask.fieldPaths=estado"
+        . "&updateMask.fieldPaths=municipio"
+        . "&key={$firebaseApiKey}";
 
     // 3) Prepara el payload
     $payload = json_encode(['fields' => $fieldsToSave]);
@@ -1271,7 +1363,7 @@ function actualizarFolio($firebaseProjectId, $firebaseApiKey, $folio)
 function llenarDatosEnvio($id, $firebaseProjectId, $firebaseApiKey)
 {
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    
+
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS/$id?key=$firebaseApiKey";
 
@@ -1353,11 +1445,10 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
     }
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-    $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $CVE_DOC = str_pad($pedidoID, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
     // Construir la consulta SQL
-    $sql = "SELECT DAT_ENVIO FROM $nombreTabla WHERE CVE_DOC = ?";
+    $sql = "SELECT FOLIO FROM $nombreTabla WHERE CVE_DOC = ?";
     //$sql = "SELECT CAMPLIB8 FROM $nombreTabla WHERE CVE_CLIE = ?";
     $params = [$CVE_DOC];
     $stmt = sqlsrv_query($conn, $sql, $params);
@@ -1376,25 +1467,167 @@ function obtenerDatosEnvioEditar($firebaseProjectId, $firebaseApiKey, $pedidoID,
     }
     //var_dump($clienteData);
     // Limpiar y preparar los datos para la respuesta
-    $DAT_ENVIO = trim($envioData['DAT_ENVIO'] ?? "");
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    $sqlEnvio = "SELECT * FROM $nombreTabla2 WHERE CVE_INFO = ?";
-    $params2 = [$DAT_ENVIO];
-    $stmt2 = sqlsrv_query($conn, $sqlEnvio, $params2);
-    if ($stmt2 === false) {
-        throw new Exception('Error al ejecutar la consulta.');
-    }
+    $FOLIO = trim($envioData['FOLIO'] ?? "");
 
-    // Obtener los datos del cliente
-    $datos = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC);
 
-    if (!empty($datos)) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'data' => $datos]);
-        exit();
+    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
+    $collection = "DATOS_PEDIDO";
+    $urlId = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    // Payload para hacer un where compuesto (idPedido y noEmpresa)
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "idPedido"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$FOLIO]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($urlId, false, $context);
+    $resultArray = $response ? json_decode($response, true) : null;
+
+    // ¿Encontré un documento en DATOS_PEDIDO?
+    if (
+        is_array($resultArray) &&
+        isset($resultArray[0]['document']['name'])
+    ) {
+        // —> SÍ estaba en DATOS_PEDIDO: leo ese único doc y devuelvo.
+        $name = $resultArray[0]['document']['name'];
+        $idFirebasePedido = basename($name);
+        $url = "https://firestore.googleapis.com/v1/projects/"
+            . "$firebaseProjectId/databases/(default)/documents/"
+            . "DATOS_PEDIDO/$idFirebasePedido?key=$firebaseApiKey";
+
+        $docJson = file_get_contents($url);
+        if (!$docJson) {
+            echo json_encode(['success' => false, 'message' => 'No pude leer el documento.']);
+            exit;
+        }
+        $envioData = json_decode($docJson, true);
+        echo json_encode(['success' => true, 'origen' => 'DATOS_PEDIDO', 'data' => $envioData]);
+        exit;
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se Encontraron Datos de Envio.']);
+        // —> NO estaba en DATOS_PEDIDO, buscamos en COMANDA:
+        $collection = "COMANDA";
+        $payload = json_encode([
+            "structuredQuery" => [
+                "from" => [["collectionId" => $collection]],
+                "where" => [
+                    "compositeFilter" => [
+                        "op" => "AND",
+                        "filters" => [
+                            ["fieldFilter" => [
+                                "field" => ["fieldPath" => "folio"],
+                                "op" => "EQUAL",
+                                "value" => ["stringValue" => (string)$FOLIO]
+                            ]],
+                            ["fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]]
+                        ]
+                    ]
+                ],
+                "limit" => 1
+            ]
+        ]);
+        $options = ['http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
+            'content' => $payload
+        ]];
+        $ctx = stream_context_create($options);
+        $resp2 = @file_get_contents($urlId, false, $ctx);
+        $arr2 = $resp2 ? json_decode($resp2, true) : null;
+
+        if (
+            is_array($arr2) &&
+            isset($arr2[0]['document']['name'])
+        ) {
+            $idComanda = basename($arr2[0]['document']['name']);
+            $url2 = "https://firestore.googleapis.com/v1/projects/"
+                . "$firebaseProjectId/databases/(default)/documents/"
+                . "COMANDA/$idComanda?key=$firebaseApiKey";
+
+            $docJson2 = file_get_contents($url2);
+            if (!$docJson2) {
+                echo json_encode(['success' => false, 'message' => 'No pude leer la comanda.']);
+                exit;
+            }
+            $comandaData = json_decode($docJson2, true);
+            // extraigo solo los campos del mapa de envío
+            $fieldss = $comandaData['fields'];
+            $observaciones = $fieldss['observaciones']['stringValue'] ?? "";
+            $fields = $comandaData['fields']['envio']['mapValue']['fields'] ?? [];
+
+            $envioDataComanda = [
+                'codigoContacto'     => $fields['codigoContacto']['stringValue']     ?? '',
+                'companiaContacto'     => $fields['companiaContacto']['stringValue']     ?? '',
+                'correoContacto'     => $fields['correoContacto']['stringValue']     ?? '',
+                'direccion1Contacto'     => $fields['direccion1Contacto']['stringValue']     ?? '',
+                'direccion2Contacto'     => $fields['direccion2Contacto']['stringValue']     ?? '',
+                'estadoContacto'     => $fields['estadoContacto']['stringValue']     ?? '',
+                'municipioContacto'     => $fields['municipioContacto']['stringValue']     ?? '',
+                'nombreContacto'     => $fields['nombreContacto']['stringValue']     ?? '',
+                'telefonoContacto'     => $fields['telefonoContacto']['stringValue']     ?? '',
+                'observaciones' => $observaciones,
+                // … el resto de los campos …
+            ];
+            echo json_encode([
+                'success' => false,
+                'datos' => true,
+                'origen' => 'COMANDA',
+                'data' => $envioDataComanda
+            ]);
+            exit;
+        }
+
+        // Si llegamos aquí, no había en ninguna:
+        echo json_encode([
+            'success' => false,
+            'message' => 'No encontré ni un DATOS_PEDIDO ni una COMANDA para ese folio.'
+        ]);
+        exit;
     }
+    // Si llegamos aquí, no había en ninguna:
+    echo json_encode([
+        'success' => false,
+        'message' => 'No encontré ni un DATOS_PEDIDO ni una COMANDA para ese folio.'
+    ]);
+    exit;
 }
 function obtenerDatosEnvioVisualizar($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
 {
@@ -1511,7 +1744,6 @@ function obtenerDatosClienteE($conexionData, $claveUsuario, $claveSae)
     echo json_encode(['success' => true, 'data' => $clientes]);
     exit();
 }
-
 function datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $conexionData, $noEmpresa, $claveSae)
 {
     $serverName = $conexionData['host'];
@@ -1609,6 +1841,67 @@ function datosEnvioComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $cone
 
     // Finalmente devolvemos
     echo json_encode(['success' => true, 'data' => $datosEnvio]);
+}
+function obtenerClientePedido($conexionData, $clienteInput, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+
+    $clienteInput = mb_convert_encoding(trim($clienteInput), 'UTF-8');
+
+    // Manejo de espacios para la clave
+    $clienteClave = str_pad($clienteInput, 10, " ", STR_PAD_LEFT);
+    $clienteNombre = '%' . $clienteInput . '%';
+
+    // Construir la consulta SQL
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    if (preg_match('/[a-zA-Z]/', $clienteInput)) {
+        // Búsqueda por nombre
+        $sql = "SELECT DISTINCT
+                    [CLAVE], [NOMBRE]
+                FROM $nombreTabla
+                WHERE LOWER(LTRIM(RTRIM([NOMBRE]))) LIKE LOWER ('$clienteNombre') AND [STATUS] = 'A'";
+    } else {
+        // Búsqueda por clave
+        $sql = "SELECT DISTINCT
+                    [CLAVE], [NOMBRE]
+                FROM $nombreTabla
+                WHERE [CLAVE] = '$clienteClave' AND [STATUS] = 'A'";
+    }
+
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        die(json_encode(['success' => false, 'message' => 'Error en la consulta', 'errors' => sqlsrv_errors()]));
+    }
+    $clientes = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $clientes[] = $row;
+    }
+
+    if (count($clientes) > 0) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'cliente' => $clientes
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes.']);
+    }
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
 }
 
 /***********************************************************************************************************/
@@ -1723,7 +2016,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $clave = $_GET["clave"];
         $claveUsuario = formatearClaveCliente($clave);
-        obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario);
+        obtenerDatosEnvio($firebaseProjectId, $firebaseApiKey, $claveUsuario, $noEmpresa);
         break;
     case 6:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -1904,6 +2197,20 @@ switch ($funcion) {
             'municipio'        => $_POST['municipioContacto'] ?? '',
         ];
         actualizarDatosEnvioEditar($id, $datosEnvio, $firebaseProjectId, $firebaseApiKey);
+        break;
+    case 18:
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        // Mostrar los clientes usando los datos de conexión obtenidos
+        $conexionData = $conexionResult['data'];
+
+        $cliente = $_POST['cliente'];
+        obtenerClientePedido($conexionData, $cliente, $claveSae);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

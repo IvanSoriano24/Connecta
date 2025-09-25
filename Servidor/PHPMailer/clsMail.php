@@ -33,7 +33,7 @@ class clsMail
         $this->mail->SMTPAuth = true;
         $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Cifrado TLS
         //$this->mail->Host = 'smtp.gmail.com'; // Servidor SMTP de Gmail
-        $this->mail->Host = 'mail.grupointerzenda.com'; 
+        $this->mail->Host = 'mail.grupointerzenda.com';
         //$this->mail->Port = 587; // Puerto para TLS
         $this->mail->Port = 587; // Puerto para TLS
         $this->mail->CharSet = 'UTF-8'; // Codificación
@@ -53,14 +53,14 @@ class clsMail
         string $rutaCfdi = null
     ) {
         try {
-            if ($correoRemitente === "" || $passwordRemitente === "") {
-                $remitente = $this->defaultUser;
-                $password = $this->defaultPass;
-            } else {
+            //if ($correoRemitente === "" || $passwordRemitente === "") {
+            $remitente = $this->defaultUser;
+            $password = $this->defaultPass;
+            /*} else {
                 // Usar remitente y contraseña por defecto si no se proporciona
                 $remitente = $correoRemitente;
                 $password = $passwordRemitente;
-            }
+            }*/
 
             $this->mail->Username = $remitente;
             $this->mail->Password = $password;
@@ -83,6 +83,11 @@ class clsMail
             // Enviar el correo y manejar errores
             if (!$this->mail->send()) {
                 return "Error al enviar el correo: " . $this->mail->ErrorInfo;
+                /*echo json_encode([
+                    'success' => false,
+                    'message' => 'Error al enviar el correo.' . $this->mail->ErrorInfo,
+                ]);
+                exit();*/
             }
 
             // *Eliminar el archivo adjunto después del envío*
@@ -102,7 +107,12 @@ class clsMail
             }*/
             return "Correo enviado exitosamente.";
         } catch (Exception $e) {
-            return "Error al enviar el correo: {$this->mail->ErrorInfo}";
+            //return "Error al enviar el correo: {$this->mail->ErrorInfo}";
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al enviar el correo.' . $this->mail->ErrorInfo,
+            ]);
+            exit();
         }
     }
 
@@ -118,14 +128,14 @@ class clsMail
         string $rutaError = null
     ) {
         try {
-            if ($correoRemitente === "" || $passwordRemitente === "") {
-                $remitente = $this->defaultUser;
-                $password = $this->defaultPass;
-            } else {
+            //if ($correoRemitente === "" || $passwordRemitente === "") {
+            $remitente = $this->defaultUser;
+            $password = $this->defaultPass;
+            /*} else {
                 // Usar remitente y contraseña por defecto si no se proporciona
                 $remitente = $correoRemitente;
                 $password = $passwordRemitente;
-            }
+            }*/
 
             $this->mail->Username = $remitente;
             $this->mail->Password = $password;
@@ -189,7 +199,7 @@ class clsMail
             if (!$this->mail->send()) {
                 return "Error al enviar el correo: " . $this->mail->ErrorInfo;
             }
-            
+
             return "Correo enviado exitosamente.";
         } catch (Exception $e) {
             return "Error al enviar el correo: {$this->mail->ErrorInfo}";

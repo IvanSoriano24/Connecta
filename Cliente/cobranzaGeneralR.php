@@ -44,6 +44,8 @@ session_destroy(); */
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <script src="JS/sideBar.js"></script>
+
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -95,29 +97,6 @@ session_destroy(); */
             }
         }
 
-        /* BOTON MOSTRAR MAS */
-        /* From Uiverse.io by felipesntr */
-        button {
-            border: 2px solid #24b4fb;
-            background-color: #24b4fb;
-            border-radius: 0.9em;
-            cursor: pointer;
-            padding: 0.8em 1.2em 0.8em 1em;
-            transition: all ease-in-out 0.2s;
-            font-size: 16px;
-        }
-
-        button span {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-weight: 600;
-        }
-
-        button:hover {
-            background-color: #0071e2;
-        }
         .search-head h3 {
             margin: 0;
             font-size: 1.5rem;

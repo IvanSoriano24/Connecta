@@ -9,7 +9,6 @@
 	<row Clave="COA" Pais="MEX" Descripcion="Coahuila"/>
 	<row Clave="COL" Pais="MEX" Descripcion="Colima"/>
 	<row Clave="CMX" Pais="MEX" Descripcion="Ciudad de México"/>
-	<row Clave="DIF" Pais="MEX" Descripcion="Ciudad de México"/>
 	<row Clave="DUR" Pais="MEX" Descripcion="Durango"/>
 	<row Clave="GUA" Pais="MEX" Descripcion="Guanajuato"/>
 	<row Clave="GRO" Pais="MEX" Descripcion="Guerrero"/>

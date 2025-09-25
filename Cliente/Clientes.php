@@ -48,9 +48,12 @@ if (isset($_SESSION['usuario'])) {
 	<!-- Bootsstrap  -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-	<!-- Boxicons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+    <!-- Boxicons -->
 	<link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
+    <script src="JS/sideBar.js"></script>
 	<!-- My CSS -->
 	<link rel="stylesheet" href="CSS/style.css">
 
@@ -549,20 +552,13 @@ if (isset($_SESSION['usuario'])) {
 		});
 	</script>
 
-
+    <script src="JS/script.js"></script>
 	<!-- Scripts de JS para el funcionamiento del sistema -->
 	<script src="JS/menu.js"></script>
 	<script src="JS/app.js"></script>
-	<script src="JS/script.js"></script>
+
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="JS/clientes.js"></script>
 </body>
 
 </html>
-<!-- 
-			<script>
-			var empresa = '<?php //echo $noEmpresa 
-							?>'
-			console.log(empresa);
-		</script>	
-		-->

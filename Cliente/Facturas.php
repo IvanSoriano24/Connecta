@@ -42,8 +42,10 @@ session_destroy(); */
     <!-- Bootsstrap  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <script src="JS/sideBar.js"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -99,29 +101,6 @@ session_destroy(); */
             }
         }
 
-        /* BOTON MOSTRAR MAS */
-        /* From Uiverse.io by felipesntr */
-        button {
-            border: 2px solid #24b4fb;
-            background-color: #24b4fb;
-            border-radius: 0.9em;
-            cursor: pointer;
-            padding: 0.8em 1.2em 0.8em 1em;
-            transition: all ease-in-out 0.2s;
-            font-size: 16px;
-        }
-
-        button span {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-weight: 600;
-        }
-
-        button:hover {
-            background-color: #0071e2;
-        }
     </style>
     <style>
         /* CSS */
@@ -314,11 +293,9 @@ session_destroy(); */
                         <table id="pedidos">
                             <thead>
                             <tr>
-                                <th>Tipo</th>
                                 <th>Clave</th>
                                 <th>Cliente</th>
                                 <th>Nombre</th>
-                                <th>Estatus</th>
                                 <th>Fecha Elaboracion</th>
                                 <th>Subtotal</th>
                                 <!--<th>Total de Comisiones</th>-->

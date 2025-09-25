@@ -42,8 +42,11 @@ session_destroy(); */
     <!-- Bootsstrap  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <script src="JS/sideBar.js"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -97,8 +100,12 @@ session_destroy(); */
             }
         }
 
-        /* BOTON MOSTRAR MAS */
-        /* From Uiverse.io by felipesntr */
+        /*
+        /* BOTON MOSTRAR MAS ¿Ocupas esto Jose?
+        Este mismo codigo estaba en: Remisiones, estadosCuentaGeneralR,
+        Reportes, cobranzaGeneralR, ventasCantidadesR, Facturas, ventasCantidadesR
+        y estadosCuentasDetalladoR
+
         button {
             border: 2px solid #24b4fb;
             background-color: #24b4fb;
@@ -115,11 +122,7 @@ session_destroy(); */
             align-items: center;
             color: #fff;
             font-weight: 600;
-        }
-
-        button:hover {
-            background-color: #0071e2;
-        }
+        } */
     </style>
     <style>
         /* CSS */
@@ -232,6 +235,105 @@ session_destroy(); */
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
             color: #888;
         }
+
+
+
+
+        .filtros-container {
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .filtros-titulo {
+            margin-bottom: .5rem;
+            font-weight: 600;
+        }
+
+        .filtros-row {
+            display: flex;
+            justify-content: center;
+            /* centra horizontal */
+            align-items: flex-end;
+            gap: 2rem;
+            /* espacio entre Periodo, Vendedor y Buscar */
+            flex-wrap: wrap;
+        }
+
+        .filtro-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            /* ancho fijo similar para todos */
+            text-align: left;
+        }
+
+        .filtro-item label {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            height: 38px;
+            /* mismo alto */
+        }
+
+        /* buscador con ícono dentro */
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-wrapper .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .search-wrapper input {
+            padding-left: 32px;
+            /* espacio para el ícono */
+        }
+
+        .modal-backdrop {
+    display: none !important;
+}
+
+/*centrar modal*/
+        .input-group-centered {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .input-group-prepend .input-group-text {
+            background-color: #f8f9fa;
+            border-right: none;
+        }
+        #whatsappNumber {
+            border-left: none;
+            padding-left: 0;
+        }
+        #whatsappNumber:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .input-group:focus-within .input-group-prepend .input-group-text {
+            border-color: #86b7fe;
+        }
+        .modal-body p {
+            text-align: center;
+        }
+        .text-muted {
+            text-align: center;
+            display: block;
+            margin-top: 8px;
+        } 
+        
     </style>
 </head>
 
@@ -279,54 +381,52 @@ session_destroy(); */
                     <!-- TABLA PEDIDOS  -->
                     <div class="table-data" id="pedidosActivos">
                         <div class="order">
-                            <label for="filtros" style="margin-right: 94%;">Filtrar Por:</label>
-                            <div class="head">
-                                <div class="input-group">
-                                    <tr>
-                                        <td>
-                                            <label for="Periodo">Periodo: </label>
-                                            &nbsp; &nbsp;
-                                            <select id="filtroFecha">
-                                                <option value="Hoy">Hoy</option>
-                                                <option value="Mes">Este Mes</option>
-                                                <option value="Mes Anterior">Mes Anterior</option>
-                                                <option value="Todos">Todos</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </div>
-                                <div class="input-group">
+                            <div class="filtros-container">
+                                <h6 class="filtros-titulo">Filtrar por:</h6>
+
+                                <div class="filtros-row">
+                                    <div class="filtro-item">
+                                        <label for="filtroFecha">Periodo</label>
+                                        <select id="filtroFecha" class="form-control">
+                                            <option value="Hoy">Hoy</option>
+                                            <option value="Mes">Este Mes</option>
+                                            <option value="Mes Anterior">Mes Anterior</option>
+                                            <option value="Todos">Todos</option>
+                                        </select>
+                                    </div>
+
                                     <?php if ($tipoUsuario === "ADMINISTRADOR") { ?>
-                                        <tr>
-                                            <td>
-                                                <label for="Vendedor">Vendedor: </label>
-                                                &nbsp; &nbsp;
-                                                <select id="filtroVendedor">
-                                                </select>
-                                            </td>
-                                        </tr>
+                                        <div class="filtro-item">
+                                            <label for="filtroVendedor">Vendedor</label>
+                                            <select id="filtroVendedor" class="form-control">
+                                                <!-- opciones dinámicas -->
+                                            </select>
+                                        </div>
                                     <?php } ?>
+
+                                    <div class="filtro-item search-box">
+                                        <label for="searchTerm">Buscar</label>
+                                        <div class="search-wrapper">
+                                            <i class='bx bx-search search-icon'></i>
+                                            <input
+                                                id="searchTerm"
+                                                class="form-control"
+                                                type="text"
+                                                placeholder="Buscar pedido..."
+                                                onkeyup="debouncedSearch()" />
+                                        </div>
+                                    </div>
                                 </div>
-                                <h3></h3>
-                                <div class="input-group">
-                                    <i class='bx bx-search search-icon'></i>
-                                    <input
-                                        id="searchTerm"
-                                        class="search-input"
-                                        type="text"
-                                        placeholder="Buscar pedido..."
-                                        onkeyup="debouncedSearch()" />
-                                </div>
-                                <!-- <i class='bx bx-filter'></i> -->
                             </div>
+
+
                             <table id="pedidos">
                                 <thead>
                                     <tr>
-                                        <th>Tipo</th>
                                         <th>Clave</th>
                                         <th>Cliente</th>
                                         <th>Nombre</th>
-                                        <th>Estatus</th>
+                                        <!--<th>Estatus</th>-->
                                         <th>Fecha Elaboracion</th>
                                         <th>Subtotal</th>
                                         <!--<th>Total de Comisiones</th>-->
@@ -336,11 +436,8 @@ session_destroy(); */
                                         <th>Nombre del vendedor</th>
                                         <?php //} 
                                         ?>
-                                        <th>Editar</th>
-                                        <th>Cancelar</th>
-                                        <th>Visuzlizar</th>
-                                        <th>Descargar</th>
-                                        <th id="confirmacion">Enviar Confirmacion</th>
+                                        <th colspan="4" style="text-align:center;">Acciones</th>
+                                        <th id="confirmacion">Confirmación</th>
                                     </tr>
                                 </thead>
                                 <tbody id="datosPedidos">
@@ -371,7 +468,73 @@ session_destroy(); */
                         </div>
                     </div>
                 </div>
-            </main>
+
+ <!-- Modal Whats -->
+<div class="modal fade" id="whatsappModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Enviar confirmación por WhatsApp</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Ingrese el número de WhatsApp para enviar la confirmación:</p>
+                
+                <!-- Grupo de entrada centrado -->
+                <div class="input-group mb-3 input-group-centered">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text d-flex align-items-center">
+                            <span class="me-2">🇲🇽</span>
+                            <span>+52</span>
+                        </span>
+                    </div>
+                    <input type="tel" 
+                           id="whatsappNumber" 
+                           class="form-control" 
+                           placeholder="1234567890"
+                           maxlength="10"
+                           pattern="[0-9]{10}"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                </div>
+                <small class="text-muted">Solo ingrese los 10 dígitos del número sin el prefijo.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="enviarWhatsAppBtn">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Correos Electrónicos -->
+<div class="modal fade" id="modalEnvioCorreos" tabindex="-1" aria-labelledby="modalEnvioCorreosLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEnvioCorreosLabel">Enviar confirmación por correo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Ingrese las direcciones de correo electrónico (máximo 4)</p>
+                
+                <div id="emailContainer">
+                    <!-- Los campos de correo se agregarán aquí -->
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div id="contadorCorreos" class="text-muted">0/4 correos ingresados</div>
+                    <button type="button" class="btn btn-sm btn-outline-primary add-email-btn" id="btnAddEmail">
+                        <i class="bi bi-plus-circle"></i> Agregar otro correo
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnEnviarCorreos" disabled>Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
             <!-- MAIN -->
         </section>
         <!-- CONTENT -->

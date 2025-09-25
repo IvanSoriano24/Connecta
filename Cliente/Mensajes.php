@@ -42,6 +42,7 @@ if (isset($_SESSION['usuario'])) {
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <script src="JS/sideBar.js"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -122,7 +123,17 @@ if (isset($_SESSION['usuario'])) {
         /* Mantener el encabezado sobre las filas */
     }
 </style>
+<style>
+    #buscarTexto,
+    #filtroFecha,
+    #filtroNoPedido,
+    #filtroStatus {
+        min-height: 38px;   /* un poco más alto que el default (~32px) */
+        font-size: 0.95rem; /* texto ligeramente más grande */
+        padding: 6px 10px;  /* más espacio interno */
+    }
 
+</style>
 <body>
     <div class="hero_area">
         <!-- SIDEBAR -->
@@ -180,17 +191,52 @@ if (isset($_SESSION['usuario'])) {
                 <?php endif; ?>
                 <br>
                 <!-- Solo los administradores y almacenistas pueden ver terminar las comandas -->
-                <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR'): ?>
+                <?php if ($tipoUsuario === 'ALMACENISTA' || $tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario === 'SUPER-ALMACENISTA'): ?>
                     <div class="card-body">
                         <h2 class="text-center">Comandas</h2>
+
+                        <div class="mb-3 d-flex flex-wrap gap-2 align-items-end">
+                            <!-- Filtro de Status -->
+                            <div>
+                                <label for="filtroStatus" class="form-label">Status:</label>
+                                <select id="filtroStatus" class="form-select" style="width: 160px;">
+                                    <option value="Abierta">Abiertas</option>
+                                    <option value="CANCELADO">Canceladas</option>
+                                    <option value="Pendiente">Pendientes</option>
+                                    <option value="TERMINADA">Terminadas</option>
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+
+                            <!-- Buscador -->
+                            <div>
+                                <label for="buscarTexto" class="form-label">Buscar:</label>
+                                <input type="text" id="buscarTexto" class="form-control" placeholder="Cliente, status">
+                            </div>
+
+                            <!-- Filtro por fecha -->
+                            <div>
+                                <label for="filtroFecha" class="form-label">Fecha:</label>
+                                <input type="date" id="filtroFecha" class="form-control">
+                            </div>
+
+                            <!-- Filtro por número de pedido -->
+                            <div>
+                                <label for="filtroNoPedido" class="form-label">No. Pedido:</label>
+                                <input type="number" id="filtroNoPedido" class="form-control" placeholder="Ej: 19625">
+                            </div>
+
+                            <!-- Botón limpiar -->
+                            <div>
+                                <button id="btnLimpiarFiltros" class="btn btn-outline-danger">
+                                    Limpiar
+                                </button>
+                            </div>
+                        </div>
+
+
                         <div class="mb-3">
-                            <label for="filtroStatus" class="form-label">Filtrar por Status:</label>
-                            <select id="filtroStatus" class="form-select form-select-sm" style="width: 150px;">
-                                <option value="Abierta">Abiertas</option>
-                                <option value="Pendiente">Pendientes</option>
-                                <option value="TERMINADA">Terminadas</option>
-                                <option value="">Todos</option>
-                            </select>
+                            <button class="btn btn-secondary btn-sm" onclick="verificarComandas()"> Verificar remisiones </button> <!-- onclick="mostrarModal('${comanda.id}')" -->
                         </div>
                         <!-- Tabla de comandas -->
                         <div class="table-data">
@@ -206,6 +252,7 @@ if (isset($_SESSION['usuario'])) {
                                                     <th class="col-fecha">Fecha</th>
                                                     <th>Hora</th>
                                                     <th>Detalles</th>
+                                                    <th>Verificar Remision</th>
                                                     <?php if ($tipoUsuario === 'ADMINISTRADOR'): ?>
                                                         <th>Aurotizar Comanda</th>
                                                     <?php endif; ?>
@@ -221,7 +268,8 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 <?php endif; ?>
-                <!-- MODAL -->
+
+
                 <!-- Modal para Ver Detalles -->
                 <div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel"
                     aria-hidden="true">
@@ -281,6 +329,10 @@ if (isset($_SESSION['usuario'])) {
                                         </div>
                                     </div>
                                     <div class="row">
+                                        <div class="col-md-12 mb-6">
+                                            <label class="form-label">Observaciones</label>
+                                            <input type="text" class="form-control form-control-sm" id="observaciones" readonly>
+                                        </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">Datos de Envío</label>
                                             <button
@@ -326,15 +378,11 @@ if (isset($_SESSION['usuario'])) {
                                             </div>
                                             <div class="mb-3">
                                                 <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>
-                                                <select id="estadoContacto" class="form-select" disabled>
-                                                    <option selected disabled>Selecciona un estado</option>
-                                                </select>
+                                                <input type="text" id="estadoContacto" class="form-control" disabled>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="municipioContacto" class="form-label">Municipio <span class="text-danger">*</span></label>
-                                                <select id="municipioContacto" class="form-select" disabled>
-                                                    <option selected disabled>Selecciona un municipio</option>
-                                                </select>
+                                                <input type="text" id="municipioContacto" class="form-control" disabled>
                                             </div>
                                         </div>
                                     </div>
@@ -375,6 +423,8 @@ if (isset($_SESSION['usuario'])) {
                         </div>
                     </div>
                 </div>
+
+
                 <!-- Modal Pedido -->
                 <div class="modal fade" id="modalPedido" tabindex="-1" aria-labelledby="modalDetallesLabel"
                     aria-hidden="true">
@@ -480,9 +530,9 @@ if (isset($_SESSION['usuario'])) {
                 const numGuia = $("#numGuia").val().trim(); // Obtener y limpiar espacios en la guía
                 const token = $("#csrf_token_C").val().trim();
                 // Validar que el Número de Guía no esté vacío y tenga exactamente 9 dígitos
-                if (numGuia === "" || !/^\d{9}$/.test(numGuia)) {
+                if (numGuia === "" || !/^\d{12}$/.test(numGuia)) {
                     Swal.fire({
-                        text: "El Número de Guía debe contener exactamente 9 dígitos.",
+                        text: "El Número de Guía debe contener exactamente 12 dígitos.",
                         icon: "warning",
                     });
                     return; // Detener el proceso si la validación falla

@@ -178,6 +178,7 @@ function cargarEmpresa(usuario) {
         empresas.forEach((empresa) => {
           const option = document.createElement("option");
           option.value = empresa.id;
+          //console.log(option.value);
           option.textContent = `${empresa.noEmpresa} - ${empresa.razonSocial}`;
           option.setAttribute("data-no-empresa", empresa.noEmpresa);
           option.setAttribute("data-razon-social", empresa.razonSocial);

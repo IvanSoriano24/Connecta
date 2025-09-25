@@ -120,6 +120,55 @@ function obtenerAdministradores() {
     },
   });
 }
+//Funcion para obtener los invetarios
+function mostrarInventarios() {
+  $.ajax({
+    url: "../Servidor/PHP/inventario.php",
+    type: "POST",
+    dataType: "json", // <-- parsea JSON automáticamente
+    data: { numFuncion: "7" },
+    success: function (response) {
+      // tu backend envía { succes: true, inventarios: [...] }
+      if (response.succes) {
+        const inventarios = response.inventarios || [];
+        const $tbody = $("#inventarios");
+        $tbody.empty(); // limpiar antes de re-dibujar
+
+        if (inventarios.length === 0) {
+          // opcional: mostrar fila de "sin datos"
+          $tbody.append(
+            $("<tr>").append(
+              $("<td>")
+                .attr("colspan", 2)
+                .addClass("text-center text-muted")
+                .text("No hay inventarios disponibles")
+            )
+          );
+          return;
+        }
+
+        // recorrer e insertar cada inventario
+        inventarios.forEach((inv) => {
+          const noInv = inv.noInventario != null ? inv.noInventario : "-";
+          const fecha = inv.fechaInicio ? inv.fechaInicio : "-";
+
+          const $fila = $("<tr>");
+          $fila.append($("<td>").text(noInv));
+          $fila.append($("<td>").text(fecha));
+          $tbody.append($fila);
+        });
+      } else {
+        // el servidor devolvió succes: false
+        console.warn("Inventarios:", response.message);
+        alert("Error al cargar inventarios: " + response.message);
+      }
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+      console.error("AJAX error:", textStatus, errorThrown);
+      alert("Error en la solicitud AJAX.");
+    },
+  });
+}
 /*------------------------------------------------Funciones------------------------------------------------*/
 // Funcion para mostrar a los administradores
 function mostrarUsuarios(usuarios) {
@@ -390,16 +439,16 @@ async function verificarFolios() {
     const tiposDisponibles = ["pedido", "remision", "factura"];
 
     // Extraemos los tipos ya guardados (suponiendo que vienen como campo 'tipo')
-    const tiposGuardados = new Set(json.data.map(item => item.tabla));
+    const tiposGuardados = new Set(json.data.map((item) => item.tabla));
 
     const select = document.getElementById("selectFolio");
     // Limpiamos las opciones dinámicas (dejamos sólo el placeholder)
     Array.from(select.options)
-      .filter(opt => opt.value !== "")
-      .forEach(opt => select.removeChild(opt));
+      .filter((opt) => opt.value !== "")
+      .forEach((opt) => select.removeChild(opt));
 
     // Para cada tipo, si no está en la BBDD lo agregamos:
-    tiposDisponibles.forEach(tipo => {
+    tiposDisponibles.forEach((tipo) => {
       if (!tiposGuardados.has(tipo)) {
         const option = document.createElement("option");
         option.value = tipo;
@@ -408,7 +457,6 @@ async function verificarFolios() {
         select.appendChild(option);
       }
     });
-
   } catch (err) {
     console.error("Error de fetch:", err);
   }
@@ -684,8 +732,58 @@ $(document).ready(function () {
       },
     });
   });
+  $("#btnNuevoInventario").on("click", function () {
+    $.ajax({
+      url: "../Servidor/PHP/inventario.php", // Ruta al PHP
+      method: "POST",
+      data: {
+        numFuncion: "6",
+      },
+      success: function (response) {
+        try {
+          const res = JSON.parse(response);
+          if (res.success) {
+            Swal.fire({
+              icon: "success",
+              title: "Éxito",
+              text: "Clave Actualizada.",
+              timer: 1000,
+              showConfirmButton: false,
+            }).then(() => {
+              //$("#selectUsuario").val("").change(); // Limpia el selector de usuarios
+              //$("#selectEmpresa").val(""); // Limpia el selector de empresas
+              $("#seleccionarClaveAdministrador").modal("hide"); // Cerrar el modal
+              obtenerAdministradores();
+              //location.reload();
+            });
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Error",
+              text: res.message || "Error al guardar la clave.",
+            });
+          }
+        } catch (error) {
+          console.error("Error al procesar la respuesta:", error);
+          Swal.fire({
+            icon: "warning",
+            title: "Error",
+            text: "Error al guardar la clave.",
+          });
+        }
+      },
+      error: function () {
+        Swal.fire({
+          icon: "warning",
+          title: "Error",
+          text: "Error al realizar la solicitud.",
+        });
+      },
+    });
+  });
 });
 
+document.addEventListener("DOMContentLoaded", mostrarInventarios);
 // Ejecutar las funcione cuando se cargue la pagina
-document.addEventListener("DOMContentLoaded", obtenerCamposTabla);
-document.addEventListener("DOMContentLoaded", obtenerAdministradores);
+/*document.addEventListener("DOMContentLoaded", obtenerCamposTabla);
+document.addEventListener("DOMContentLoaded", obtenerAdministradores);*/

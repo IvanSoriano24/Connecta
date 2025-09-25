@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Función para mostrar/ocultar el botón de menú según el tamaño de la pantalla
     function toggleMenuButton() {
         if (window.innerWidth > 768) {
-            menuBar.style.display = 'none'; // Oculta el botón en escritorio
+            //menuBar.style.display = 'none'; // Oculta el botón en escritorio
             sidebar.classList.remove('show'); // Asegura que el sidebar esté siempre visible en escritorio
         } else {
             menuBar.style.display = 'block'; // Muestra el botón en móviles

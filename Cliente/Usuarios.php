@@ -40,6 +40,8 @@ if (isset($_SESSION['usuario'])) {
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+
+    <script src="JS/sideBar.js"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -114,7 +116,7 @@ if (isset($_SESSION['usuario'])) {
             <!-- MAIN -->
             <main class="text-center">
                 <div class="modal-header">
-                    <h2 class="modal-title" id="clientes">Gestión de Usuarios</h5>
+                    <h2 class="modal-title" id="clientes">Gestión de Usuarios</h2>
                 </div>
 
                 <!-- Botones de acciones principales -->
@@ -372,13 +374,13 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="col-md-6">
                                 <h6>Seleccionar Empresa</h6>
-                                <select id="selectEmpresa" class="form-select">
+                                <select id="selectLinea" class="form-select">
                                     <option selected disabled>Seleccione una empresa</option>
                                 </select>
                             </div>
-                            <div id="empresasAsociadas" class="mt-4">
+                            <div id="lineasAsignadas" class="mt-4">
                                 <h6>Empresas Asociadas</h6>
-                                <ul id="listaEmpresasAsociadas" class="list-group">
+                                <ul id="listaLienasAsignadas" class="list-group">
                                     <!-- Las empresas asociadas se cargarán dinámicamente aquí -->
                                 </ul>
                             </div>

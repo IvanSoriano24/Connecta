@@ -1,0 +1,81 @@
+[2025-08-19 08:48:09] INFO: El cliente          1 realizo la accion → null
+[2025-08-19 08:48:11] Info: Pedido 194 verificadas existencias correctamente → []
+[2025-08-19 08:48:11] Info: Pedido 194 verificadas existencias correctamente → [{"producto":"PROD01","existencias":220,"apartados":23,"disponible":197}]
+[2025-08-19 08:48:11] Info: Pedido 194 verificadas existencias correctamente → [{"producto":"PROD01","existencias":220,"apartados":23,"disponible":197},{"producto":"PRODUCTO03","existencias":40,"apartados":11,"disponible":29}]
+[2025-08-19 08:48:11] INFO: El pedido 194 cuenta con las existencias necesarias → null
+[2025-08-19 08:48:11] INFO: El cliente          1 maneja credico → null
+[2025-08-19 08:48:13] Succes: Comanda Creada→ null
+[2025-08-19 09:28:29] INFO: El cliente          1 realizo la accion → null
+[2025-08-19 09:28:31] Info: Pedido 194 verificadas existencias correctamente → []
+[2025-08-19 09:28:31] Info: Pedido 194 verificadas existencias correctamente → [{"producto":"PROD01","existencias":216,"apartados":19,"disponible":197}]
+[2025-08-19 09:28:31] Info: Pedido 194 verificadas existencias correctamente → [{"producto":"PROD01","existencias":216,"apartados":19,"disponible":197},{"producto":"PRODUCTO03","existencias":36,"apartados":7,"disponible":29}]
+[2025-08-19 09:28:31] INFO: El pedido 194 cuenta con las existencias necesarias → null
+[2025-08-19 09:28:31] INFO: El cliente          1 maneja credico → null
+[2025-08-19 09:28:32] Succes: Comanda Creada→ null
+[2025-08-20 10:17:40] INFO: El cliente  realizo la accion → null
+[2025-08-20 10:17:42] Advertencia: Pedido: 206 Rechazado → null
+[2025-08-20 10:17:43] Advertencia: Se le notifico al vendedor sobre el pedido 206 → null
+[2025-08-20 10:19:49] INFO: El cliente  realizo la accion → null
+[2025-08-20 10:19:51] Advertencia: El cliente:  rechazo un pedido previamente rechazado → null
+[2025-08-20 10:21:04] INFO: El cliente  realizo la accion → null
+[2025-08-20 10:21:06] Advertencia: El cliente:  rechazo un pedido previamente rechazado → null
+[2025-08-20 10:25:14] INFO: El cliente  realizo la accion → null
+[2025-08-20 10:25:16] Advertencia: El cliente:  rechazo un pedido previamente rechazado → null
+[2025-08-20 10:27:52] INFO: El cliente  realizo la accion → null
+[2025-08-20 10:27:53] Advertencia: El cliente:  rechazo un pedido previamente rechazado → null
+[2025-08-20 10:28:22] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 10:28:24] Advertencia: El cliente:          3 acepto un pedido rechazado → null
+[2025-08-20 10:30:00] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 10:30:02] Advertencia: El cliente:          3 acepto un pedido rechazado → null
+[2025-08-20 10:41:19] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 10:41:21] Info: Pedido 207 verificadas existencias correctamente → []
+[2025-08-20 10:41:21] INFO: El pedido 207 cuenta con las existencias necesarias → null
+[2025-08-20 10:41:21] INFO: El cliente          3 maneja credico → null
+[2025-08-20 10:41:22] Succes: Comanda Creada→ null
+[2025-08-20 10:43:27] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 10:43:28] Advertencia: Confirmacion Repetida de  207 → null
+[2025-08-20 10:44:54] INFO: El cliente          2 realizo la accion → null
+[2025-08-20 10:44:56] Advertencia: Pedido 208 sin existencias → []
+[2025-08-20 10:45:09] INFO: El cliente          2 realizo la accion → null
+[2025-08-20 10:45:11] Advertencia: Pedido 208 sin existencias → []
+[2025-08-20 10:45:26] INFO: El cliente          2 realizo la accion → null
+[2025-08-20 10:45:28] Advertencia: Pedido 208 sin existencias → []
+[2025-08-20 10:51:28] INFO: El cliente          2 realizo la accion → null
+[2025-08-20 10:51:31] Advertencia: Pedido 208 sin existencias → []
+[2025-08-20 10:51:32] Advertencia: Pedido:  sin existencias → null
+[2025-08-20 10:52:47] INFO: El cliente          2 realizo la accion → null
+[2025-08-20 10:52:49] Advertencia: Pedido 208 sin existencias → []
+[2025-08-20 10:52:49] Advertencia: Pedido: 208 sin existencias → null
+[2025-08-20 20:29:05] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:29:07] Advertencia: El cliente:          3 acepto un pedido rechazado → null
+[2025-08-20 20:29:42] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:37:18] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:37:21] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:45:41] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:45:43] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:46:19] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:46:21] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:47:59] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:48:02] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:49:07] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:49:09] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:51:04] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:51:07] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:51:25] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:51:27] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:53:19] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:53:21] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:55:08] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:55:11] Advertencia: Pedido 206 sin existencias → []
+[2025-08-20 20:56:38] INFO: El cliente          3 realizo la accion → null
+[2025-08-20 20:56:40] Advertencia: Pedido 206 sin existencias → []
+[2025-08-26 09:19:44] INFO: El cliente          3 realizo la accion → null
+[2025-08-26 09:19:46] Info: Pedido 211 211 verificadas existencias correctamente → []
+[2025-08-26 09:19:46] INFO: El pedido 211 cuenta con las existencias necesarias → null
+[2025-08-26 09:19:46] INFO: El cliente          3 maneja credico → null
+[2025-08-26 09:19:47] Succes: Comanda Creada→ null
+[2025-09-04 15:08:56] INFO: El cliente        879 realizo la accion → null
+[2025-09-04 15:08:59] Info: Pedido 19141 19141 verificadas existencias correctamente → []
+[2025-09-04 15:08:59] INFO: El pedido 19141 cuenta con las existencias necesarias → null
+[2025-09-04 15:08:59] INFO: El cliente        879 maneja credico → null
+[2025-09-04 15:09:00] Succes: Comanda Creada→ null

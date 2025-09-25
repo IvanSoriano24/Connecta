@@ -1,0 +1,107 @@
+[2025-08-07 17:05:18] Succes: Buscando pago del pedido: 19358 null
+[2025-08-07 17:05:18] Succes: Pedido: 19358 en tiempo null
+[2025-08-07 17:05:18] Succes: Pedido: 19358 con importe 4978.75, con una cuenta de 0.01  null
+[2025-08-07 17:05:18] Succes: Pedido: 19358 no pagado null
+[2025-08-07 17:05:19] Succes: Buscando pago del pedido: 19366 null
+[2025-08-07 17:05:19] Succes: Pedido: 19366 en tiempo null
+[2025-08-07 17:05:19] Succes: Pedido: 19366 con importe 7850.32, con una cuenta de 0.01  null
+[2025-08-07 17:05:19] Succes: Pedido: 19366 no pagado null
+[2025-08-07 17:05:20] Succes: Buscando pago del pedido: 19399 null
+[2025-08-07 17:05:20] Succes: Pedido: 19399 en tiempo null
+[2025-08-07 17:05:20] Succes: Pedido: 19399 con importe 17290.12, con una cuenta de 0  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-07 17:05:20] Succes: Pedido: 19399 no pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-07 17:05:21] Succes: Buscando pago del pedido: 19383 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-07 17:05:21] ERROR:El pago del pedido: 19383 se vencio {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-07 17:05:21] Succes: Liberando existencias del pedido: 19383 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:49:19] Succes: Buscando pago del pedido: 19358 null
+[2025-08-08 10:49:19] Succes: Pedido: 19358 en tiempo null
+[2025-08-08 10:49:19] Succes: Pedido: 19358 con importe 4978.75, con una cuenta de 0.01  null
+[2025-08-08 10:49:19] Succes: Pedido: 19358 no pagado null
+[2025-08-08 10:49:19] Succes: Buscando pago del pedido: 19366 null
+[2025-08-08 10:49:19] Succes: Pedido: 19366 en tiempo null
+[2025-08-08 10:49:19] Succes: Pedido: 19366 con importe 7850.32, con una cuenta de 0.01  null
+[2025-08-08 10:49:19] Succes: Pedido: 19366 no pagado null
+[2025-08-08 10:49:20] Succes: Buscando pago del pedido: 19399 null
+[2025-08-08 10:49:20] Succes: Pedido: 19399 en tiempo null
+[2025-08-08 10:49:20] Succes: Pedido: 19399 con importe 17290.12, con una cuenta de 0  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:49:20] Succes: Pedido: 19399 no pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:49:21] Succes: Buscando pago del pedido: 19383 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:49:21] ERROR:El pago del pedido: 19383 se vencio {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:49:21] Succes: Liberando existencias del pedido: 19383 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:48] Succes: Buscando pago del pedido: 19439 null
+[2025-08-08 10:52:48] Succes: Pedido: 19439 en tiempo null
+[2025-08-08 10:52:49] Succes: Pedido: 19439 con importe 24021.02, con una cuenta de 1953.15  null
+[2025-08-08 10:52:49] Succes: Pedido: 19439 no pagado null
+[2025-08-08 10:52:49] Succes: Buscando pago del pedido: 19394 null
+[2025-08-08 10:52:49] Succes: Pedido: 19394 en tiempo null
+[2025-08-08 10:52:49] Succes: Pedido: 19394 con importe 17290.1, con una cuenta de 0  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:49] Succes: Pedido: 19394 no pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:50] Succes: Buscando pago del pedido: 19453 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:50] Succes: Pedido: 19453 en tiempo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:50] Succes: Pedido: 19453 con importe 5543.99, con una cuenta de 5543.99  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:50] Succes: Pedido: 19453 pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:50] Succes: Pago: 19453 cambio de estatus {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:50] Succes: Iniciando aliminacion de pago {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:51] Succes: CXC eliminada {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:51] Succes: Iniciando resta de saldo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:51] Succes: Saldo actualizado correctamente del cliente        622 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:51] Succes: Iniciando la creacion de la comanda {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:53] Succes: Se creo la comanda {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:53] Succes: Empezando la remision {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:56] Succes: Respuesta de la remision , mas informacion revisar logs de la remision {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:56] Succes: Se elimino el documento de los datos del pedido {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:57] Succes: Buscando pago del pedido: 19436 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:57] Succes: Pedido: 19436 en tiempo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:57] Succes: Pedido: 19436 con importe 5447.18, con una cuenta de 0  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:57] Succes: Pedido: 19436 no pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:57] Succes: Buscando pago del pedido: 19432 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:57] Succes: Pedido: 19432 en tiempo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:58] Succes: Pedido: 19432 con importe 37164.38, con una cuenta de 0  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:58] Succes: Pedido: 19432 no pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:58] Succes: Buscando pago del pedido: 19426 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:58] Succes: Pedido: 19426 en tiempo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:58] Succes: Pedido: 19426 con importe 1452.55, con una cuenta de 1452.55  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:58] Succes: Pedido: 19426 pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:59] Succes: Pago: 19426 cambio de estatus {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:59] Succes: Iniciando aliminacion de pago {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:59] Succes: CXC eliminada {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:59] Succes: Iniciando resta de saldo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:59] Succes: Saldo actualizado correctamente del cliente        614 {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:52:59] Succes: Iniciando la creacion de la comanda {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:53:00] Succes: Se creo la comanda {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:53:00] Succes: Empezando la remision {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:53:01] Succes: Respuesta de la remision , mas informacion revisar logs de la remision {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 10:53:02] Succes: Se elimino el documento de los datos del pedido {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":120}
+[2025-08-08 13:17:43] Succes: Buscando pago del pedido: 115 null
+[2025-08-08 13:24:45] Succes: Buscando pago del pedido: 115 null
+[2025-08-08 13:24:45] INFO:El pedido: 115 tiene una remision null
+[2025-08-08 15:48:08] Succes: Buscando pago del pedido: 19443 null
+[2025-08-08 15:48:08] INFO:El pedido: 19443 tiene una remision null
+[2025-08-08 15:50:23] Succes: Buscando pago del pedido: 19443 null
+[2025-08-08 15:50:23] Succes: Pedido: 19443 en tiempo null
+[2025-08-08 15:50:23] Succes: Pedido: 19443 con importe 68646.32, con una cuenta de 68646.32  null
+[2025-08-08 15:50:23] Succes: Pedido: 19443 pagado null
+[2025-08-08 15:50:23] Succes: Pago: 19443 cambio de estatus null
+[2025-08-08 15:50:23] Succes: Iniciando aliminacion de pago null
+[2025-08-08 15:50:24] Succes: CXC eliminada null
+[2025-08-08 15:50:24] Succes: Iniciando resta de saldo null
+[2025-08-08 15:50:24] Succes: Saldo actualizado correctamente del cliente        823 null
+[2025-08-08 15:50:24] Succes: Iniciando la creacion de la comanda null
+[2025-08-08 15:50:26] Succes: Se creo la comanda del pedido 19443 null
+[2025-08-08 15:50:26] Succes: Empezando la remision null
+[2025-08-08 15:50:31] Succes: Respuesta de la remision , mas informacion revisar logs de la remision null
+[2025-08-08 15:50:31] Succes: Se elimino el documento de los datos del pedido null
+[2025-08-14 12:16:10] Succes: Buscando pago del pedido: 178 null
+[2025-08-14 12:16:10] Succes: Pedido: 178 en tiempo null
+[2025-08-14 12:16:10] Succes: Pedido: 178 con importe 69.6, con una cuenta de 69.6  null
+[2025-08-14 12:16:10] Succes: Pedido: 178 pagado null
+[2025-08-14 12:16:11] Succes: Pago: 178 cambio de estatus null
+[2025-08-14 12:16:11] Succes: Iniciando aliminacion de pago null
+[2025-08-14 12:16:11] Succes: CXC eliminada null
+[2025-08-14 12:16:11] Succes: Iniciando resta de saldo null
+[2025-08-14 12:16:11] Succes: Saldo actualizado correctamente del cliente          2 null
+[2025-08-14 12:16:11] Succes: Iniciando la creacion de la comanda null
+[2025-08-14 12:16:12] Succes: Se creo la comanda del pedido 178 null
+[2025-08-14 12:16:12] Succes: Empezando la remision null
+[2025-08-14 12:16:13] Succes: Respuesta de la remision , mas informacion revisar logs de la remision null
+[2025-08-14 12:16:14] Succes: Se elimino el documento de los datos del pedido null

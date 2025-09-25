@@ -35,6 +35,8 @@ session_destroy(); */
   <!-- Boxicons -->
   <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
+    <script src="JS/sideBar.js"></script>
+
   <!-- My CSS -->
   <link rel="stylesheet" href="CSS/style.css">
 
@@ -75,8 +77,6 @@ session_destroy(); */
           <div class="order">
             <div class="head">
               <h3></h3>
-              <!--<i class='bx bx-search'></i> -->
-              <i class='bx bx-filter'></i>
             </div>
           <!-- Formulario para la Coexion -->
             <form action="">

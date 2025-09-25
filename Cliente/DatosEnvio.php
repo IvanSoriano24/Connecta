@@ -41,6 +41,7 @@ if (isset($_SESSION['usuario'])) {
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <script src="JS/sideBar.js"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
 
@@ -50,6 +51,72 @@ if (isset($_SESSION['usuario'])) {
     <!-- Titulo y Logo -->
     <title>MDConnecta</title>
     <link rel="icon" href="SRC/logoMDConecta.png" />
+
+    <style>
+        /* Asegúrate de incluirlo en tu CSS global */
+        .suggestions-list {
+            position: absolute;
+            top: calc(100% + .25rem);
+            left: 0;
+            right: 0;
+            z-index: 1050;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            background: #fff;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .suggestions-list .list-group-item {
+            padding: .5rem .75rem;
+            cursor: pointer;
+        }
+
+        .suggestions-list .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        #clientesSugeridos li {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        #clientesSugeridos li.highlighted {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .search-group .search-input,
+        .input-group .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            /* espacio a la izquierda para el icono */
+            padding-left: 2.5rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input-group .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: #888;
+            pointer-events: none;
+        }
+
+        .input-group .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+    </style>
 </head>
 
 <body>
@@ -67,21 +134,35 @@ if (isset($_SESSION['usuario'])) {
                         <!-- Tabla de correos -->
                         <div class="table-data">
                             <div class="order">
-                                <div class="order d-flex align-items-start gap-2 mb-3">
-                                    <button class="btn btn-success" id="btnImportar">
-                                        <i class='bx bxs-file-import'></i> Importar
-                                    </button>
-                                    <input
-                                        type="file"
-                                        id="inputExcel"
-                                        accept=".xlsx,.xls"
-                                        style="display:none" />
+                                <div class="order mb-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <!-- Botones a la izquierda -->
+                                        <div class="btn-group">
+                                            <button class="btn btn-success" id="btnImportar">
+                                                <input type="file" id="inputExcel" accept=".xlsx, .xls" style="display: none;">
+                                                <i class='bx bxs-file-import'></i> Importar
+                                            </button>
+                                            <button class="btn btn-primary" id="btnAgregar">
+                                                <i class='bx bxs-plus-circle'></i> Agregar Datos
+                                            </button>
+                                        </div>
 
-                                    <button class="btn btn-primary" id="btnAgregar">
-                                        <i class='bx bxs-plus-circle'></i> Agregar Datos
-                                    </button>
+                                        <!-- Buscador a la derecha -->
+                                        <div class="input-group" style="max-width: 300px;">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class='bx bx-search'></i>
+                                            </span>
+                                            <input
+                                                id="searchTerm"
+                                                class="form-control border-start-0"
+                                                type="text"
+                                                placeholder="Buscar Datos Envío..."
+                                                onkeyup="debouncedSearch()" />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="head">
+
                                     <table id="tablaDatos">
                                         <thead>
                                             <tr>
@@ -116,17 +197,36 @@ if (isset($_SESSION['usuario'])) {
                 </div>
                 <form id="formularioNuevoEnvio" class="px-4 pb-4">
                     <!-- Título del envío -->
+                    <!-- Dentro de tu formulario -->
                     <div class="row mb-3">
-                        <div class="col">
-                            <label for="clienteId">Cliente</label>
-                            <select
-                                id="clienteId"
-                                class="form-select"
-                                required>
-                                <option selected disabled>Selecciona un Cliente</option>
-                            </select>
+                        <!-- Autocomplete Cliente -->
+                        <div class="col-md-6 position-relative">
+                            <label for="cliente" class="form-label">Cliente</label>
+                            <div class="input-group">
+                                <input
+                                    type="text"
+                                    id="cliente"
+                                    name="cliente"
+                                    class="form-control"
+                                    placeholder="Busca un cliente..."
+                                    autocomplete="off"
+                                    oninput="toggleClearButton()">
+                                <button
+                                    id="clearInput"
+                                    type="button"
+                                    class="btn btn-outline-secondary"
+                                    onclick="clearAllFields()"
+                                    tabindex="-1"
+                                    style="display:none">
+                                    <i class="bx bx-x"></i>
+                                </button>
+                            </div>
+                            <!-- Lista de sugerencias -->
+                            <ul id="clientesSugeridos" class="suggestions-list list-group"></ul>
                         </div>
-                        <div class="col">
+
+                        <!-- Título de envío -->
+                        <div class="col-md-6">
                             <label for="titutoContacto" class="form-label">
                                 Título de envío <span class="text-danger">*</span>
                             </label>
@@ -268,7 +368,7 @@ if (isset($_SESSION['usuario'])) {
             </div>
         </div>
     </div>
-    <!-- Modal de visualizacion de correo -->
+    <!-- Modal de visualizacion de Datos de Envio -->
     <div id="modalEnvio" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -299,7 +399,7 @@ if (isset($_SESSION['usuario'])) {
                             <h6 class="fw-bold">Dirección</h6>
                             <div class="mb-3">
                                 <label for="nombreContacto" class="form-label">Nombre del contacto <span class="text-danger">*</span></label>
-                                <input type="text" id="nombreContacto" class="form-control" required>
+                                <input type="text" id="nombreContacto" class="form-control" disabled>
                             </div>
                             <div class="mb-3">
                                 <label for="compañiaContacto" class="form-label">Compañía <span class="text-danger">*</span></label>
@@ -352,7 +452,7 @@ if (isset($_SESSION['usuario'])) {
         </div>
     </div>
     <!-- Modal de edicion -->
-     <div id="modalEnvioEditar" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div id="modalEnvioEditar" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header border-0">
@@ -368,7 +468,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="text" id="titutoDatosEditar" class="form-control" required>
                             </div>
                         </div>
-                    </div> 
+                    </div>
 
                     <!-- campos ocultos -->
                     <input type="hidden" id="csrf_tokenModal" value="<?php echo $csrf_token; ?>">
@@ -414,7 +514,7 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>
-                                <select id="estadoContactoEditar" class="form-select" >
+                                <select id="estadoContactoEditar" class="form-select">
                                     <option selected disabled>Selecciona un estado</option>
                                 </select>
                             </div>
@@ -439,6 +539,7 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/menu.js"></script>
     <script src="JS/app.js"></script>
+    <script src="JS/script.js"></script>
     <script src="JS/datosEnvio.js"></script>
     <script>
         const btn = document.getElementById('btnImportar');
@@ -446,8 +547,11 @@ if (isset($_SESSION['usuario'])) {
 
         // Al hacer click en el botón, disparamos el file picker
         btn.addEventListener('click', () => {
+
             input.value = null; // Limpiar cualquier selección anterior
             input.click();
+            /*btn.value = null; // Limpiar cualquier selección anterior
+            btn.click();*/
         });
         // Cuando el usuario selecciona archivo
         input.addEventListener('change', () => {
@@ -499,6 +603,149 @@ if (isset($_SESSION['usuario'])) {
                 });
         });
     </script>
+    <script>
+        $(document).ready(function() {
+            // Referencias a los elementos UL donde se mostrarán las sugerencias
+            const suggestionsList = $('#clientesSugeridos');
+            // Evento que se dispara al escribir en el campo de cliente
+            $('#cliente').on('input', function() {
+                const clienteInput = $(this).val().trim(); // Valor ingresado
+                const $clienteInput = $(this);
+
+                if (clienteInput.length >= 1) {
+                    // Si hay al menos un carácter, solicitamos sugerencias al servidor
+                    $.ajax({
+                        url: '../Servidor/PHP/clientes.php',
+                        type: 'POST',
+                        data: {
+                            cliente: clienteInput, // Texto a buscar
+                            numFuncion: '18', // Código de función para "buscar cliente"
+                        },
+                        success: function(response) {
+                            try {
+                                // Si la respuesta viene como string, intentamos parsear a JSON
+                                if (typeof response === 'string') {
+                                    response = JSON.parse(response);
+                                }
+                            } catch (e) {
+                                console.error("Error al parsear la respuesta JSON", e);
+                                return;
+                            }
+
+                            // Si la búsqueda tuvo éxito y devolvió un arreglo con al menos un cliente...
+                            if (response.success && Array.isArray(response.cliente) && response.cliente.length > 0) {
+                                suggestionsList.removeClass("d-none");
+                                suggestionsList.empty().show(); // Limpiamos y mostramos el listado
+                                highlightedIndex = -1; // Reiniciamos índice resaltado
+
+                                // Iteramos sobre cada cliente encontrado y creamos un <li> para cada uno
+                                response.cliente.forEach((cliente, index) => {
+                                    const listItem = $('<li></li>')
+                                        .text(`${cliente.CLAVE.trim()} - ${cliente.NOMBRE}`) // Texto visible
+                                        .attr('data-index', index) // Índice en el arreglo
+                                        .attr('data-cliente', JSON.stringify(cliente)) // Datos completos JSON en atributo
+                                        .on('click', function() {
+                                            // Al hacer clic, seleccionamos ese cliente
+                                            seleccionarClienteDesdeSugerencia(cliente);
+                                        });
+
+                                    suggestionsList.append(listItem);
+                                });
+                            } else {
+                                // Si no hay coincidencias, ocultamos el listado
+                                suggestionsList.empty().hide();
+                            }
+                        },
+                        error: function() {
+                            console.error("Error en la solicitud AJAX para sugerencias");
+                            suggestionsList.empty().hide(); // Ocultamos ante fallo
+                        }
+                    });
+                } else {
+                    // Si el input queda vacío, limpamos y ocultamos las sugerencias
+                    suggestionsList.empty().hide();
+                }
+            });
+
+            // Manejo de navegación con teclado en el campo de cliente
+            $('#cliente').on('keydown', function(e) {
+                const items = suggestionsList.find('li');
+                if (!items.length) return; // Si no hay sugerencias, nada que hacer
+
+                if (e.key === 'ArrowDown') {
+                    // Flecha abajo: avanzamos índice (circular) y resaltamos
+                    highlightedIndex = (highlightedIndex + 1) % items.length;
+                    actualizarDestacado(items, highlightedIndex);
+                    e.preventDefault();
+                } else if (e.key === 'ArrowUp') {
+                    // Flecha arriba: retrocedemos índice (circular) y resaltamos
+                    highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+                    actualizarDestacado(items, highlightedIndex);
+                    e.preventDefault();
+                } else if (e.key === 'Tab' || e.key === 'Enter') {
+                    // Tab o Enter: si hay elemento resaltado, lo seleccionamos
+                    if (highlightedIndex >= 0) {
+                        const clienteSeleccionado = JSON.parse(
+                            $(items[highlightedIndex]).attr('data-cliente')
+                        );
+                        seleccionarClienteDesdeSugerencia(clienteSeleccionado);
+                        suggestionsList.empty().hide();
+                        e.preventDefault(); // Prevenir tabulación normal
+                    }
+                }
+            });
+            // Si se hace clic fuera del campo #cliente, ocultamos la lista de sugerencias de clientes
+            $(document).on('click', function(event) {
+                if (!$(event.target).closest('#cliente').length) {
+                    $('#clientesSugeridos').empty().hide();
+                }
+            });
+            // Función para aplicar/remover la clase "highlighted" al <li> correcto
+            function actualizarDestacado(items, index) {
+                items.removeClass('highlighted');
+                $(items[index]).addClass('highlighted');
+            }
+            $('#clearInput').on('click', function() {
+                $('#cliente').val(''); // Limpia campo cliente
+                $('#clientesSugeridos').empty().hide(); // Oculta sugerencias de clientes
+                $(this).hide(); // Oculta el botón "X"
+            });
+        });
+    </script>
+    <script>
+        // 1) Función que recorre las filas y esconde las que no coincidan
+        function filterTable() {
+            const term = document
+                .getElementById('searchTerm')
+                .value
+                .trim()
+                .toLowerCase();
+
+            document
+                .querySelectorAll('#tablaDatos tbody tr')
+                .forEach(row => {
+                    // tomamos todo el texto de la fila
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(term) ? '' : 'none';
+                });
+        }
+
+        // 2) Un pequeño "debounce" para no disparar filterTable en cada pulsación
+        function debounce(fn, delay = 200) {
+            let timeoutId;
+            return function(...args) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+        // 3) Creamos la versión "debounced" de filterTable
+        const debouncedSearch = debounce(filterTable, 250);
+
+        // (Opcional) Si prefieres bindear con addEventListener en vez de onkeyup:
+        // document.getElementById('searchTerm')
+        //   .addEventListener('input', debouncedSearch);
+    </script>
+
 </body>
 
 </html>

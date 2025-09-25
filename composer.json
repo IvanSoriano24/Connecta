@@ -12,6 +12,8 @@
         }
     ],
     "require": {
-        "phpoffice/phpspreadsheet": "^4.4"
+        "phpoffice/phpspreadsheet": "^4.4",
+        "google/cloud-firestore": "^1.53",
+        "kreait/firebase-php": "^7.22"
     }
 }

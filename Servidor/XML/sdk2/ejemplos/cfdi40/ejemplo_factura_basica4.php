@@ -1,6 +1,5 @@
 <?php
-set_time_limit(0);
-require '../../../../PHP/firebase.php';
+// require_once '../../../../PHP/firebase.php';
 //ejemplo factura cfdi 4.0
 // Se desactivan los mensajes de debug
 error_reporting(E_ALL ^ (E_NOTICE | E_WARNING | E_DEPRECATED));
@@ -10,59 +9,10 @@ error_reporting(E_ALL ^ (E_NOTICE | E_WARNING | E_DEPRECATED));
 date_default_timezone_set('America/Mexico_City');
 
 // Se incluye el SDK
-require_once '../../sdk2.php';
-function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
-{
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'header' => "Content-Type: application/json\r\n"
-        ]
-    ]);
-    $result = file_get_contents($url, false, $context);
+require_once __DIR__ . '/../../sdk2.php';
 
-    if ($result === FALSE) {
-        return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
-    }
-    $documents = json_decode($result, true);
-
-    if (!isset($documents['documents'])) {
-        return ['success' => false, 'message' => 'No se encontraron documentos'];
-    }
-    //var_dump("Empresa: ", $noEmpresa);
-    // Busca el documento donde coincida el campo `claveSae`
-    foreach ($documents['documents'] as $document) {
-        $fields = $document['fields'];
-        $empFirebase = (int) $fields['noEmpresa']['integerValue'];
-        $empBuscada  = (int) $noEmpresa;
-        if ($empFirebase === $empBuscada) {
-            return [
-                'success' => true,
-                'data' => [
-                    'host' => $fields['host']['stringValue'],
-                    'puerto' => $fields['puerto']['stringValue'],
-                    'usuario' => $fields['usuario']['stringValue'],
-                    'password' => $fields['password']['stringValue'],
-                    'nombreBase' => $fields['nombreBase']['stringValue'],
-                    'claveSae' => $fields['claveSae']['stringValue']
-                ]
-            ];
-        }
-    }
-    return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
-}
-function datosCliente($clie, $claveSae, $conexionData)
+function datosClienteC($clie, $claveSae, $conexionData, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -85,19 +35,9 @@ function datosCliente($clie, $claveSae, $conexionData)
         echo json_encode(['success' => false, 'message' => "Cliente no encontrado $clie"]);
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
-function datosPedido($cve_doc, $claveSae, $conexionData)
+function datosPedidoC($cve_doc, $claveSae, $conexionData, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -121,19 +61,9 @@ function datosPedido($cve_doc, $claveSae, $conexionData)
         echo json_encode(['success' => false, 'message' => "Pedido/Factura no encontrado $cve_doc"]);
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
-function datosPartida($cve_doc, $claveSae, $conexionData)
+function datosPartidaC($cve_doc, $claveSae, $conexionData, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -155,19 +85,9 @@ function datosPartida($cve_doc, $claveSae, $conexionData)
     }
     return $partidas;
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
-function datosProcuto($CVE_ART, $claveSae, $conexionData)
+function datosProcuto($CVE_ART, $claveSae, $conexionData, $conn)
 {
-    $serverName = $conexionData['host'];
-    $connectionInfo = [
-        "Database" => $conexionData['nombreBase'],
-        "UID" => $conexionData['usuario'],
-        "PWD" => $conexionData['password'],
-        "CharacterSet" => "UTF-8",
-        "TrustServerCertificate" => true
-    ];
-    $conn = sqlsrv_connect($serverName, $connectionInfo);
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -191,9 +111,8 @@ function datosProcuto($CVE_ART, $claveSae, $conexionData)
         echo json_encode(['success' => false, 'message' => 'Producto no encontrado']);
     }
     sqlsrv_free_stmt($stmt);
-    sqlsrv_close($conn);
 }
-function datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+function datosEmpresaC($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
 
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
@@ -253,39 +172,32 @@ function decryptValue(string $b64Cipher, string $b64Iv): string
     $cipher = base64_decode($b64Cipher);
     return openssl_decrypt($cipher, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
 }
-function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
+function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID, $conn, $conexionData, $firebaseProjectId, $firebaseApiKey) {
     if (empty($facturaID)) {
         header('Content-Type: application/json');
-        echo json_encode([
+        return json_encode([
             'success'  => false,
             'Problema' => "Factura no Valida $facturaID"
         ]);
-        return;
     }
-    global $firebaseProjectId, $firebaseApiKey;
 
-    $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
-    if (!$conexionResult['success']) {
-        echo json_encode($conexionResult);
-        die();
-    }
-    $conexionData = $conexionResult['data'];
     /*$facturaID = str_pad($factura, 10, '0', STR_PAD_LEFT);
     $facturaID = str_pad($facturaID, 20, ' ', STR_PAD_LEFT);*/
-
-    $pedidoData = datosPedido($facturaID, $claveSae, $conexionData);
-    $productosData = datosPartida($facturaID, $claveSae, $conexionData);
-    $clienteData = datosCliente($pedidoData['CVE_CLPV'], $claveSae, $conexionData);
-    $empresaData = datosEmpresa($noEmpresa, $firebaseProjectId, $firebaseApiKey);
+    $serverName = $conexionData['host'];
+    $pedidoData = datosPedidoC($facturaID, $claveSae, $conexionData, $conn);
+    $productosData = datosPartidaC($facturaID, $claveSae, $conexionData, $conn);
+    $clienteData = datosClienteC($pedidoData['CVE_CLPV'], $claveSae, $conexionData, $conn);
+    $empresaData = datosEmpresaC($noEmpresa, $firebaseProjectId, $firebaseApiKey);
     //var_dump($empresaData);
     $password = decryptValue($empresaData['keyEncValue'], $empresaData['keyEncIv']);
     // Se especifica la version de CFDi 4.0
     $datos['version_cfdi'] = '4.0';
     // Ruta del XML Timbrado
-    $datos['cfdi'] = '../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
+    $datos['cfdi'] = __DIR__ . '/../../timbrados/cfdi_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
+    //var_dump($datos['cfdi']);
 
     // Ruta del XML de Debug
-    $datos['xml_debug'] = '../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
+    $datos['xml_debug'] = __DIR__ . '/../../timbrados/xml_' . urlencode($clienteData['NOMBRE']) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $facturaID) . '.xml';
     //$datos['xml_debug']='../../timbrados/sin_timbrar_ejemplo_factura4.xml';
 
 
@@ -293,6 +205,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
     $datos['PAC']['usuario'] = $empresaData['rfc'];
     $datos['PAC']['pass'] = $empresaData['rfc'];
     $datos['PAC']['produccion'] = 'SI';
+    //$datos['PAC']['produccion'] = 'NO';
 
     // Credenciales de Timbrado
     /*$datos['PAC']['usuario'] = 'DEMO700101XXX';
@@ -359,7 +272,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
     }*/
 
     // Datos del Emisor
-    $datos['emisor']['rfc'] = trim($empresaData['rfc']); 
+    $datos['emisor']['rfc'] = trim($empresaData['rfc']);
     $datos['emisor']['nombre'] = trim($empresaData['razonSocial']);
     $regimenStr = $empresaData['regimenFiscal'];
     if (preg_match('/^(\d+)/', $regimenStr, $matches)) {
@@ -382,7 +295,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
     $IEPS = 0;
     $porIEPS = 0;
     foreach ($productosData as $producto) {
-        $dataProduc = datosProcuto($producto['CVE_ART'], $claveSae, $conexionData);
+        $dataProduc = datosProcuto($producto['CVE_ART'], $claveSae, $conexionData, $conn);
         $concepto = [];
         // Calcular la base imponible restando el descuento, si lo hay
         $baseImpuesto = $producto['TOT_PARTIDA'];
@@ -420,7 +333,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
             $concepto['Impuestos']['Traslados'][1]['TasaOCuota'] = sprintf('%.6f', $producto['IMPU1'] / 100);
             //$concepto['Impuestos']['Traslados'][1]['Importe'] = sprintf('%.2f', round($baseImpuesto * ($producto['IMPU4'] / 100), 2));        //Original
             $concepto['Impuestos']['Traslados'][1]['Importe'] = sprintf('%.3f', ($baseImpuesto * ($producto['IMPU1'] / 100)));
-        
+
             $IEPS = $IEPS + ($baseImpuesto * ($producto['IMPU1'] / 100));
             $porIEPS = $producto['IMPU1'];
         }
@@ -428,7 +341,6 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
         $DES = $DES + $precioDes;
         $Sum = $Sum + $precioDes;
         $datos['conceptos'][] = $concepto;
-        
     }
     // Se agregan los Impuestos
     $datos['impuestos']['translados'][0]['Base'] = sprintf('%.2f', $pedidoData['CAN_TOT'] - $DES);
@@ -458,28 +370,25 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID){
 
     if (isset($res['codigo_mf_numero']) && $res['codigo_mf_numero'] == 0) {
         header('Content-Type: application/json');
-        echo json_encode([
+        return json_encode([
             "success" => true
         ]);
-        return;
     } else {
         header('Content-Type: application/json');
-        echo json_encode([
+        return json_encode([
             "success" => false,
             "Problema" => $res['mensaje_original_pac_json']
             //"Problema" => $res['codigo_mf_texto']
         ]);
-        return;
     }
-    ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
-    //echo "<h1>Respuesta Generar XML y Timbrado</h1>";
-    foreach ($res as $variable => $valor) {
-        echo "<hr>";
-        $valor = htmlentities($valor);
-        $valor = str_replace('&lt;br/&gt;', '<br/>', $valor);
-        echo "<b>[$variable]=</b>$valor<hr>";
-    }
-    //return true;
+//    ///////////    MOSTRAR RESULTADOS DEL ARRAY $res   ///////////
+//    echo "<h1>Respuesta Generar XML y Timbrado</h1>";
+//    foreach ($res as $variable => $valor) {
+//        echo "<hr>";
+//        $valor = htmlentities($valor);
+//        $valor = str_replace('&lt;br/&gt;', '<br/>', $valor);
+//        echo "<b>[$variable]=</b>$valor<hr>";
+//}
 }
 //http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
 //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
@@ -497,8 +406,8 @@ $factura = 26;*/
 $noEmpresa = 2;
 $claveSae = 02;
 $factura = 18979;*/
-cfdi($cve_doc, $noEmpresa, $claveSae, $factura);
 /*
+ * cfdi($cve_doc, $noEmpresa, $claveSae, $factura);
 $datos['conf']['cer'] =base64_encode(file_get_contents($empresa['archivo_cer']));
 $datos['conf']['key'] =base64_encode(file_get_contents($empresa['archivo_key']));
 base64_encode(file_get_contents($empresa['archivo_cer']));
