@@ -184,113 +184,113 @@ switch ($accion) {
 
     // Guardar todos los artículos de una línea (autoguardado/finalizar)
     case "guardarLinea":
-    // $root y $firebaseApiKey ya definidos en tu archivo
-    $payload = json_decode(file_get_contents("php://input"), true);
+        $payload = json_decode(file_get_contents("php://input"), true);
 
-    if (!$payload || !isset($payload["noInventario"], $payload["claveLinea"], $payload["articulos"])) {
-        echo json_encode(["success" => false, "message" => "Datos incompletos"]);
-        exit;
-    }
+        if (
+            !$payload
+            || !isset($payload["noInventario"], $payload["claveLinea"], $payload["articulos"], $payload["subconteo"])
+        ) {
+            echo json_encode(["success" => false, "message" => "Datos incompletos"]);
+            exit;
+        }
 
-    $noInv       = (int)$payload["noInventario"];
-    $claveLinea  = (string)$payload["claveLinea"];
-    $articulosIn = $payload["articulos"]; // { CVE_ART: [ {lote,corrugados,corrugadosPorCaja,sueltos,piezas,totales}, ... ], ... }
-    $status      = isset($payload["status"]) ? (bool)$payload["status"] : true; // true=editable, false=finalizada
-    $conteoIn    = isset($payload["conteo"]) ? (int)$payload["conteo"] : null;
+        $noInv       = (int)$payload["noInventario"];
+        $claveLinea  = (string)$payload["claveLinea"];
+        $articulosIn = $payload["articulos"];
+        $status      = !isset($payload["status"]) || (bool)$payload["status"];
+        $subconteoIn = (int)$payload["subconteo"];   // 👈 viene del front
 
-    // Usuario actual (quien guarda la línea)
-    $usuarioId = (string)($_SESSION['usuario']['idReal'] ?? '');
+        $usuarioId = (string)($_SESSION['usuario']['idReal'] ?? '');
 
-    // 1) Buscar inventario por folio
-    $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
-    $invDocs = http_get_json($invUrl);
+        // 1) Buscar inventario por folio
+        $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
+        $invDocs = http_get_json($invUrl);
 
-    $invDocId = null;
-    if (isset($invDocs["documents"])) {
-        foreach ($invDocs["documents"] as $doc) {
-            $fields = $doc["fields"] ?? [];
-            if (isset($fields["noInventario"]["integerValue"]) && (int)$fields["noInventario"]["integerValue"] === $noInv) {
-                $invDocId = basename($doc["name"]);
-                break;
+        $invDocId = null;
+        if (isset($invDocs["documents"])) {
+            foreach ($invDocs["documents"] as $doc) {
+                $fields = $doc["fields"] ?? [];
+                if (
+                    isset($fields["noInventario"]["integerValue"])
+                    && (int)$fields["noInventario"]["integerValue"] === $noInv
+                ) {
+                    $invDocId = basename($doc["name"]);
+                    break;
+                }
             }
         }
-    }
-    if (!$invDocId) {
-        echo json_encode(["success" => false, "message" => "Inventario no encontrado"]);
-        exit;
-    }
+        if (!$invDocId) {
+            echo json_encode(["success" => false, "message" => "Inventario no encontrado"]);
+            exit;
+        }
 
-    // 2) Determinar subcolección destino
-    if ($conteoIn !== null && $conteoIn > 0) {
-        $subcol = conteo_to_subcol($conteoIn);
-    } else {
-        $subcol = detectar_subcol_por_asignacion($root, $invDocId, $claveLinea, $usuarioId, $firebaseApiKey)
-              ?? detectar_subcol_por_existencia($root, $invDocId, $claveLinea, $usuarioId, $firebaseApiKey)
-              ?? 'lineas';
-    }
+        // 2) Determinar subcolección en base al subconteo
+        if ($subconteoIn === 1) {
+            $subcol = "lineas";
+        } else {
+            $subcol = "lineas" . str_pad($subconteoIn, 2, "0", STR_PAD_LEFT); // ej. 2 → lineas02, 3 → lineas03
+        }
 
-    // 3) Construir body para Firestore
-    //    Se guarda un campo por producto (CVE_ART) como arrayValue de lotes (mapValue)
-    $data = [
-        "fields" => [
-            "idAsignado" => ["stringValue" => $usuarioId],
-            "status"     => ["booleanValue" => (bool)$status],
-            "updatedAt"  => ["timestampValue" => gmdate('c')],
-        ]
-    ];
+        // 3) Construir body para Firestore
+        $data = [
+            "fields" => [
+                "idAsignado" => ["stringValue" => $usuarioId],
+                "status"     => ["booleanValue" => (bool)$status],
+                "updatedAt"  => ["timestampValue" => gmdate('c')],
+            ]
+        ];
 
-    foreach ($articulosIn as $cveArt => $lotesFront) {
-        $arrLotes = [];
+        foreach ($articulosIn as $cveArt => $lotesFront) {
+            $arrLotes = [];
 
-        // Lotes que vienen del front (cada uno con: lote, corrugados, corrugadosPorCaja, sueltos, piezas, totales)
-        foreach ((array)$lotesFront as $l) {
-            $corr   = (int)($l["corrugados"] ?? 0);
-            $cxc    = (int)($l["corrugadosPorCaja"] ?? 0);
-            $sueltos= (int)($l["sueltos"] ?? 0);
+            foreach ((array)$lotesFront as $l) {
+                $corr    = (int)($l["corrugados"] ?? 0);
+                $cxc     = (int)($l["corrugadosPorCaja"] ?? 0);
+                $sueltos = (int)($l["sueltos"] ?? 0);
 
-            // prioridad total: totales -> piezas -> cálculo
-            if (isset($l["totales"]) && $l["totales"] !== '') {
-                $totalLote = (int)$l["totales"];
-            } elseif (isset($l["piezas"]) && $l["piezas"] !== '') {
-                $totalLote = (int)$l["piezas"];
-            } else {
-                $totalLote = ($corr * $cxc) + $sueltos;
-            }
+                if (isset($l["totales"]) && $l["totales"] !== '') {
+                    $totalLote = (int)$l["totales"];
+                } elseif (isset($l["piezas"]) && $l["piezas"] !== '') {
+                    $totalLote = (int)$l["piezas"];
+                } else {
+                    $totalLote = ($corr * $cxc) + $sueltos;
+                }
 
-            $lote = (string)($l["lote"] ?? "");
+                $lote = (string)($l["lote"] ?? "");
 
-            $arrLotes[] = [
-                "mapValue" => [
-                    "fields" => [
-                        "corrugados"        => ["integerValue" => $corr],
-                        "corrugadosPorCaja" => ["integerValue" => $cxc],
-                        "sueltos"           => ["integerValue" => $sueltos],
-                        "lote"              => ["stringValue"  => $lote],
-                        "total"             => ["integerValue" => (int)$totalLote],
+                $arrLotes[] = [
+                    "mapValue" => [
+                        "fields" => [
+                            "corrugados"        => ["integerValue" => $corr],
+                            "corrugadosPorCaja" => ["integerValue" => $cxc],
+                            "sueltos"           => ["integerValue" => $sueltos],
+                            "lote"              => ["stringValue"  => $lote],
+                            "total"             => ["integerValue" => (int)$totalLote],
+                        ]
                     ]
-                ]
-            ];
+                ];
+            }
+
+            $data["fields"][$cveArt] = ["arrayValue" => ["values" => $arrLotes]];
         }
 
-        // Campo del producto en Firestore
-        $data["fields"][$cveArt] = ["arrayValue" => ["values" => $arrLotes]];
-    }
+        // 4) Guardar en la subcolección detectada
+        $url  = "$root/INVENTARIO/$invDocId/$subcol/$claveLinea?key=$firebaseApiKey";
+        $resp = http_post_json($url, $data, "PATCH");
 
-    // 4) Guardar en la subcolección detectada
-    $url  = "$root/INVENTARIO/$invDocId/$subcol/$claveLinea?key=$firebaseApiKey";
-    $resp = http_post_json($url, $data, "PATCH");
+        if ($resp) {
+            echo json_encode([
+                "success"       => true,
+                "message"       => "Línea guardada correctamente",
+                "subcoleccion"  => $subcol,
+                "claveLinea"    => $claveLinea,
+                "status"        => $status,
+            ]);
+        } else {
+            echo json_encode(["success" => false, "message" => "Error al guardar la línea"]);
+        }
+        break;
 
-    if ($resp) {
-        echo json_encode([
-            "success"       => true,
-            "message"       => "Línea guardada correctamente",
-            "subcoleccion"  => $subcol,
-            "claveLinea"    => $claveLinea
-        ]);
-    } else {
-        echo json_encode(["success" => false, "message" => "Error al guardar la línea"]);
-    }
-    break;
 
     case "obtenerInventarioActivo":
         $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
@@ -359,12 +359,15 @@ switch ($accion) {
             ? (int)$fields["conteo"]["integerValue"]
             : 1;
 
-        // 🔹 Determinar subcolecciones a consultar en base al conteo
-        $subcolecciones = [];
+        // 🔹 Determinar subcolecciones en base al conteo
         if ($conteo === 1) {
             $subcolecciones = ["lineas", "lineas02"];
         } else {
-            $subcolecciones = ["lineas0" . $conteo, "lineas0" . ($conteo + 1)];
+            $start = ($conteo - 1) * 2 + 1; // 2 → 3, 3 → 5, etc.
+            $subcolecciones = [
+                "lineas" . str_pad($start, 2, "0", STR_PAD_LEFT),
+                "lineas" . str_pad($start + 1, 2, "0", STR_PAD_LEFT)
+            ];
         }
 
         // 🔹 Acceso a asignaciones
@@ -375,10 +378,6 @@ switch ($accion) {
             $lineasDocs = http_get_json($lineasUrl);
 
             if (!isset($lineasDocs["documents"])) continue;
-
-            // calcular subconteo desde el nombre de la subcolección
-            $num = (int)filter_var($subcol, FILTER_SANITIZE_NUMBER_INT);
-            $subconteo = $num > 0 ? $num : 1;
 
             foreach ($lineasDocs["documents"] as $doc) {
                 $docId  = basename($doc["name"]);
@@ -426,7 +425,6 @@ switch ($accion) {
 
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
-
 
 
     case 'obtenerLineaConteos':

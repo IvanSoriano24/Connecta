@@ -1019,40 +1019,45 @@ function recolectarLinea() {
   return { noInventario: noInv, claveLinea, articulos };
 }
 // Envía datos al backend (autoguardado/finalizar)
-function guardarLinea(finalizar = false) {
+function guardarLinea(finalizar) {
   const payload = recolectarLinea();
-  payload.status = finalizar ? false : true;
+  payload.subconteo = document.getElementById("subconteoInput").value;
   payload.conteo = document.getElementById("conteoInput").value;
+  payload.status = !finalizar;
+
+  console.log("PAYLOAD: ",payload);
 
   $.ajax({
     url: "../Servidor/PHP/inventarioFirestore.php?accion=guardarLinea",
     method: "POST",
     contentType: "application/json",
     data: JSON.stringify(payload),
-    success: function (res) {
-      if (res.success) {
-        Swal.fire({
-          icon: "success",
-          title: finalizar ? "Línea finalizada" : "Autoguardado",
-          text: res.message,
-        }).then(() => {
-          const modal = new bootstrap.Modal(
-            document.getElementById("resumenInventario")
-          );
-          modal.hide();
-          subirPDFsLineas(window.MDPDFs.getSelected(), {
-            tipo: "linea",
-            linea: res.claveLinea,
-          });
-          window.MDPDFs.reset();
-        });
-      } else {
-        Swal.fire(
-          "Error",
-          res.message || "No se pudo guardar la línea",
-          "error"
-        );
-      }
+
+    success: async function (res) {
+        if (res.success) {
+            console.log("respuesta guardar linea: ", res);
+            await Swal.fire({
+                icon: "success",
+                title: finalizar ? "Línea finalizada" : "Autoguardado",
+                text: res.message,
+            }).then(() => {
+                const modal = new bootstrap.Modal(
+                    document.getElementById("resumenInventario")
+                );
+                modal.hide();
+                subirPDFsLineas(window.MDPDFs.getSelected(), {
+                    tipo: "linea",
+                    linea: res.claveLinea,
+                });
+                window.MDPDFs.reset();
+            });
+        } else {
+            Swal.fire(
+                "Error",
+                res.message || "No se pudo guardar la línea",
+                "error"
+            );
+        }
     },
     error: function () {
       Swal.fire("Error", "Error de comunicación con el servidor", "error");
