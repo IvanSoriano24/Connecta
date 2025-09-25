@@ -169,6 +169,27 @@ function obtenerProductos($articulos, $conexionData, $claveSae)
     }
 }
 
+/*HELPERS COMPARATIVA*/
+// --- helpers (ponlos una sola vez en el archivo) ---
+function _norm_assigned_ids(array $fields): array {
+    $out = [];
+    if (isset($fields['idAsignado']['stringValue']))  $out[] = (string)$fields['idAsignado']['stringValue'];
+    if (isset($fields['idAsignado']['integerValue'])) $out[] = (string)$fields['idAsignado']['integerValue'];
+    if (!empty($fields['idAsignado']['arrayValue']['values'])) {
+        foreach ($fields['idAsignado']['arrayValue']['values'] as $v) {
+            if (isset($v['stringValue']))  $out[] = (string)$v['stringValue'];
+            if (isset($v['integerValue'])) $out[] = (string)$v['integerValue'];
+        }
+    }
+    return array_values(array_unique(array_filter($out, fn($s)=>$s!=='')));
+}
+function _get_user_name(string $root, string $apiKey, ?string $uid): ?string {
+    if (!$uid) return null;
+    $url = "$root/USUARIOS/".rawurlencode($uid)."?key=$apiKey";
+    $doc = http_get_json($url);
+    return $doc['fields']['nombre']['stringValue'] ?? $uid;
+}
+
 // Verificar sesión
 if (!isset($_SESSION['usuario']['idReal'])) {
     echo json_encode(["success" => false, "message" => "No hay sesión activa"]);
@@ -226,7 +247,8 @@ switch ($accion) {
         }
 
         // 🔹 2) Determinar subcolección en base a conteo + subconteo
-        function getSubcol($conteo, $subconteo) {
+        function getSubcol($conteo, $subconteo)
+        {
             if ($conteo === 1) {
                 return ($subconteo === 1) ? "lineas" : "lineas02";
             } else {
@@ -329,7 +351,7 @@ switch ($accion) {
         ]);
         break;
 
-        
+
     case "obtenerLineas":
         $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
         $usuarioId   = $_SESSION['usuario']["idReal"];
@@ -366,7 +388,7 @@ switch ($accion) {
 
         $subcolecciones = []; // arreglo con todos los conteos y subconteos
 
-// 🔹 Generar todas las subcolecciones desde conteo 1 hasta el actual
+        // 🔹 Generar todas las subcolecciones desde conteo 1 hasta el actual
         for ($c = 1; $c <= $maxConteo; $c++) {
             if ($c === 1) {
                 $subcolecciones[] = ["nombre" => "lineas", "conteo" => $c, "subconteo" => 1];
@@ -433,46 +455,102 @@ switch ($accion) {
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
 
-    case 'obtenerLineaConteos':
-        $noInv = (int)($_GET['noInventario'] ?? 0);
-        $claveLinea = (string)($_GET['claveLinea'] ?? '');
-        if (!$noInv || !$claveLinea) {
-            echo json_encode(['success' => false, 'message' => 'Parámetros inválidos']);
-            exit;
-        }
+    case 'obtenerLineaConteos': {
+            $noInv      = (int)($_GET['noInventario'] ?? 0);
+            $claveLinea = (string)($_GET['claveLinea'] ?? '');
+            if (!$noInv || !$claveLinea) {
+                echo json_encode(['success' => false, 'message' => 'Parámetros inválidos']);
+                exit;
+            }
 
-        // 1) localizar inventario por folio
-        $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
-        $invDocs = http_get_json($invUrl);
-        $invDocId = null;
-        if (isset($invDocs['documents'])) {
-            foreach ($invDocs['documents'] as $doc) {
-                $fields = $doc['fields'] ?? [];
-                if ((int)($fields['noInventario']['integerValue'] ?? 0) === $noInv) {
-                    $invDocId = basename($doc['name']);
+            // 1) localizar inventario por folio
+            $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
+            $invDocs = http_get_json($invUrl);
+            $invDocId = null;
+            if (!empty($invDocs['documents'])) {
+                foreach ($invDocs['documents'] as $doc) {
+                    $fields = $doc['fields'] ?? [];
+                    if ((int)($fields['noInventario']['integerValue'] ?? 0) === $noInv) {
+                        $invDocId = basename($doc['name']);
+                        break;
+                    }
+                }
+            }
+            if (!$invDocId) {
+                echo json_encode(['success' => false, 'message' => 'Inventario no encontrado']);
+                exit;
+            }
+
+            // 2) Pares de subcolecciones por conteo (extiende si necesitas más)
+            $pairs = [
+                1 => ['lineas',   'lineas02'],
+                2 => ['lineas03', 'lineas04'],
+                3 => ['lineas05', 'lineas06'],
+                // 4 => ['lineas07','lineas08'], ...
+            ];
+
+            $foundIndex = null;
+            $docA = null;
+            $docB = null;
+            $subA = null;
+            $subB = null;
+
+            foreach ($pairs as $idx => [$sA, $sB]) {
+                $uA = "$root/INVENTARIO/$invDocId/$sA/$claveLinea?key=$firebaseApiKey";
+                $uB = "$root/INVENTARIO/$invDocId/$sB/$claveLinea?key=$firebaseApiKey";
+                $dA = http_get_json($uA);
+                $dB = http_get_json($uB);
+
+                $hasA = $dA && !empty($dA['fields']);
+                $hasB = $dB && !empty($dB['fields']);
+                if ($hasA || $hasB) {
+                    $foundIndex = $idx;
+                    $docA = $hasA ? $dA : null;
+                    $docB = $hasB ? $dB : null;
+                    $subA = $sA;
+                    $subB = $sB;
                     break;
                 }
             }
-        }
-        if (!$invDocId) {
-            echo json_encode(['success' => false, 'message' => 'Inventario no encontrado']);
+
+            if ($foundIndex === null) {
+                // No hay datos en ningún conteo para esta línea
+                echo json_encode([
+                    'success'   => true,
+                    'conteoIdx' => null,
+                    'conteo1'   => null,
+                    'conteo2'   => null,
+                    'user1'     => null,
+                    'user2'     => null
+                ]);
+                exit;
+            }
+
+            // 3) Resolver usuarios (idAsignado) → nombre
+            $user1 = null;
+            $user2 = null;
+            if ($docA && isset($docA['fields'])) {
+                $ids = _norm_assigned_ids($docA['fields']);
+                $uid = $ids[0] ?? null;
+                $user1 = $uid ? ['id' => $uid, 'name' => _get_user_name($root, $firebaseApiKey, $uid)] : null;
+            }
+            if ($docB && isset($docB['fields'])) {
+                $ids = _norm_assigned_ids($docB['fields']);
+                $uid = $ids[0] ?? null;
+                $user2 = $uid ? ['id' => $uid, 'name' => _get_user_name($root, $firebaseApiKey, $uid)] : null;
+            }
+
+            echo json_encode([
+                'success'   => true,
+                'conteoIdx' => $foundIndex,   // 1, 2, 3, ...
+                'subs'      => ['a' => $subA, 'b' => $subB],
+                'conteo1'   => $docA ?: null,
+                'conteo2'   => $docB ?: null,
+                'user1'     => $user1,
+                'user2'     => $user2
+            ]);
             exit;
         }
-
-        // 2) traer ambos docs
-        $url1 = "$root/INVENTARIO/$invDocId/lineas/$claveLinea?key=$firebaseApiKey";
-        $url2 = "$root/INVENTARIO/$invDocId/lineas02/$claveLinea?key=$firebaseApiKey";
-
-        $doc1 = http_get_json($url1);
-        $doc2 = http_get_json($url2);
-
-        // si no existen, devolver success true pero vacíos
-        echo json_encode([
-            'success' => true,
-            'conteo1' => $doc1 && isset($doc1['fields']) ? $doc1 : null,
-            'conteo2' => $doc2 && isset($doc2['fields']) ? $doc2 : null
-        ]);
-        exit;
 
     case 'obtenerInventario':
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
@@ -499,7 +577,8 @@ switch ($accion) {
         }
 
         // 🔹 Calcular nombre de subcolección
-        function getSubcol($conteo, $subconteo) {
+        function getSubcol($conteo, $subconteo)
+        {
             if ($conteo === 1) {
                 return ($subconteo === 1) ? "lineas" : "lineas02";
             } else {

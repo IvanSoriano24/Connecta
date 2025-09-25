@@ -7,7 +7,7 @@ function obtenerLineas() {
       numFuncion: "3",
     },
     success: function (response) {
-        console.log("obtenerLineas: response: ", response);
+      console.log("obtenerLineas: response: ", response);
       try {
         const res =
           typeof response === "string" ? JSON.parse(response) : response;
@@ -352,7 +352,7 @@ function comparararConteos(tipoUsuario, subconteo, conteoLinea) {
       method: "GET",
       dataType: "json",
       data: {
-        accion: "obtenerLineaConteos", // ← endpoint PHP sugerido abajo
+        accion: "obtenerLineaConteos",
         noInventario: noInv,
         claveLinea: claveLinea,
       },
@@ -362,7 +362,6 @@ function comparararConteos(tipoUsuario, subconteo, conteoLinea) {
           const msg = res?.message || "No fue posible obtener los conteos.";
           return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
         }
-        // res.conteo1 y res.conteo2 ya pueden venir normalizados; si no, normalizamos aquí
         const c1 = Array.isArray(res.conteo1)
           ? res.conteo1
           : normalizeDocToProducts(res.conteo1);
@@ -370,10 +369,16 @@ function comparararConteos(tipoUsuario, subconteo, conteoLinea) {
           ? res.conteo2
           : normalizeDocToProducts(res.conteo2);
 
-        const cmp = compareProducts(c1, c2); // {rows, iguales, difs, solo1, solo2}
-        //console.log(cmp);
-        // Render en un modal bonito
-        const html = renderCompareTable(cmp, claveLinea);
+        const cmp = compareProducts(c1, c2);
+
+        // ⭐ Nombres de usuarios (con fallback al id si no hay nombre)
+        const u1 = res.user1?.name || res.user1?.id || "Conteo 1";
+        const u2 = res.user2?.name || res.user2?.id || "Conteo 2";
+
+        const html = renderCompareTable(cmp, claveLinea, {
+          user1: u1,
+          user2: u2,
+        }); // ⭐ pasa nombres
         Swal.fire({
           width: Math.min(window.innerWidth - 40, 900),
           title: `Comparación de conteos — Línea ${claveLinea}`,
@@ -406,7 +411,6 @@ function comparararConteos(tipoUsuario, subconteo, conteoLinea) {
       });
   }
 }
-
 function compararSae(cmp, claveLinea) {
   $.ajax({
     url: "../Servidor/PHP/inventarioFirestore.php",
@@ -483,7 +487,6 @@ function normalizeDocToProducts(doc) {
 
   return out;
 }
-
 // Compara dos listas [{cve_art, total}] y devuelve estructura para pintar
 function compareProducts(c1, c2) {
   // indexar por código
@@ -544,15 +547,23 @@ function compareProducts(c1, c2) {
 
   return { rows, iguales, difs, solo1, solo2 };
 }
-
 // Render HTML de la tabla de comparación
-function renderCompareTable(cmp, linea) {
+function renderCompareTable(cmp, linea, opts = {}) {
+  const u1 = opts.user1 || "Conteo 1";
+  const u2 = opts.user2 || "Conteo 2";
+
   const stats = `
     <div class="mb-2">
       <span class="badge bg-success me-2">Iguales: ${cmp.iguales}</span>
-      <span class="badge bg-warning text-dark me-2">Diferentes: ${cmp.difs}</span>
-      <span class="badge bg-secondary me-2">Solo en C1: ${cmp.solo1}</span>
-      <span class="badge bg-secondary">Solo en C2: ${cmp.solo2}</span>
+      <span class="badge bg-warning text-dark me-2">Diferentes: ${
+        cmp.difs
+      }</span>
+      <span class="badge bg-secondary me-2">Solo en ${escapeHtml(u1)}: ${
+    cmp.solo1
+  }</span>
+      <span class="badge bg-secondary">Solo en ${escapeHtml(u2)}: ${
+    cmp.solo2
+  }</span>
     </div>
   `;
 
@@ -560,8 +571,8 @@ function renderCompareTable(cmp, linea) {
     <thead>
       <tr>
         <th style="white-space:nowrap">Código</th>
-        <th>Conteo 1 </th>
-        <th>Conteo 2 </th>
+        <th>${escapeHtml(u1)}</th>
+        <th>${escapeHtml(u2)}</th>
         <th>Diferencia</th>
       </tr>
     </thead>
@@ -600,9 +611,8 @@ function renderCompareTable(cmp, linea) {
   function rowClass(r) {
     if (r.status === "ok") return "table-success";
     if (r.status === "solo1" || r.status === "solo2") return "table-secondary";
-    return "table-warning"; // diferentes
+    return "table-warning";
   }
-
   function signed(n) {
     return (n > 0 ? "+" : "") + n;
   }
@@ -783,7 +793,6 @@ async function verificarLineaFinalizada(idInventario, claveLinea) {
       claveLinea: claveLinea,
       conteo: conteo,
       subconteo: subconteo,
-
     });
 
     if (res.success && res.finalizada) {
@@ -797,10 +806,6 @@ async function verificarLineaFinalizada(idInventario, claveLinea) {
     $("#finalizarInventarioLinea").show(); // fallback
   }
 }
-
-
-
-
 
 //////////////////////////////////
 $(document).ready(function () {
@@ -836,112 +841,113 @@ $(document).ready(function () {
     }
   });
 
+  // Lineas asignadas
+  $.get("../Servidor/PHP/inventarioFirestore.php", {
+    accion: "obtenerLineas",
+  }).done(function (res) {
+    if (res.success && res.lineas.length > 0) {
+      const clavesAsignadas = res.lineas.map((l) => l.CVE_LIN);
+      console.log(
+        "res obtener lineas: ",
+        res,
+        " clavesAsignadas: ",
+        clavesAsignadas
+      );
 
-    // Lineas asignadas
-    $.get("../Servidor/PHP/inventarioFirestore.php", {
-        accion: "obtenerLineas",
-    }).done(function (res) {
-        if (res.success && res.lineas.length > 0) {
-            const clavesAsignadas = res.lineas.map((l) => l.CVE_LIN);
-            console.log("res obtener lineas: ", res, " clavesAsignadas: ", clavesAsignadas);
+      $.get("../Servidor/PHP/inventario.php", { numFuncion: "3" }).done(
+        function (response) {
+          const r =
+            typeof response === "string" ? JSON.parse(response) : response;
+          if (r.success) {
+            const lineaSelect = $("#lineaSelect");
+            lineaSelect.empty();
+            lineaSelect.append(
+              "<option selected disabled>Seleccione una línea</option>"
+            );
 
-            $.get("../Servidor/PHP/inventario.php", { numFuncion: "3" }).done(
-                function (response) {
-                    const r =
-                        typeof response === "string" ? JSON.parse(response) : response;
-                    if (r.success) {
-                        const lineaSelect = $("#lineaSelect");
-                        lineaSelect.empty();
-                        lineaSelect.append(
-                            "<option selected disabled>Seleccione una línea</option>"
-                        );
+            // 🔹 Ordenar primero por subconteo, luego por CVE_LIN
+            res.lineas.sort((a, b) => {
+              if (a.subconteo !== b.subconteo) {
+                return a.subconteo - b.subconteo;
+              }
+              return a.CVE_LIN.localeCompare(b.CVE_LIN);
+            });
 
-                        // 🔹 Ordenar primero por subconteo, luego por CVE_LIN
-                        res.lineas.sort((a, b) => {
-                            if (a.subconteo !== b.subconteo) {
-                                return a.subconteo - b.subconteo;
-                            }
-                            return a.CVE_LIN.localeCompare(b.CVE_LIN);
-                        });
+            // 🔹 Evitar duplicados
+            const opcionesUnicas = new Set();
 
-                        // 🔹 Evitar duplicados
-                        const opcionesUnicas = new Set();
+            // 🔹 Agrupar por conteo y subconteo
+            const grupos = {};
+            r.data.forEach((dato) => {
+              const lineasAsignadas = res.lineas.filter(
+                (l) => l.CVE_LIN === dato.CVE_LIN
+              );
 
-// 🔹 Agrupar por conteo y subconteo
-                        const grupos = {};
-                        r.data.forEach((dato) => {
-                            const lineasAsignadas = res.lineas.filter(
-                                (l) => l.CVE_LIN === dato.CVE_LIN
-                            );
+              lineasAsignadas.forEach((lineaAsignada) => {
+                const key = `${dato.CVE_LIN}-${lineaAsignada.conteo}-${lineaAsignada.subconteo}`;
+                if (!opcionesUnicas.has(key)) {
+                  opcionesUnicas.add(key);
 
-                            lineasAsignadas.forEach((lineaAsignada) => {
-                                const key = `${dato.CVE_LIN}-${lineaAsignada.conteo}-${lineaAsignada.subconteo}`;
-                                if (!opcionesUnicas.has(key)) {
-                                    opcionesUnicas.add(key);
+                  if (!grupos[lineaAsignada.conteo]) {
+                    grupos[lineaAsignada.conteo] = {};
+                  }
+                  if (!grupos[lineaAsignada.conteo][lineaAsignada.subconteo]) {
+                    grupos[lineaAsignada.conteo][lineaAsignada.subconteo] = [];
+                  }
 
-                                    if (!grupos[lineaAsignada.conteo]) {
-                                        grupos[lineaAsignada.conteo] = {};
-                                    }
-                                    if (!grupos[lineaAsignada.conteo][lineaAsignada.subconteo]) {
-                                        grupos[lineaAsignada.conteo][lineaAsignada.subconteo] = [];
-                                    }
+                  grupos[lineaAsignada.conteo][lineaAsignada.subconteo].push({
+                    CVE_LIN: dato.CVE_LIN,
+                    DESC_LIN: dato.DESC_LIN,
+                    conteo: lineaAsignada.conteo,
+                    subconteo: lineaAsignada.subconteo,
+                  });
+                }
+              });
+            });
 
-                                    grupos[lineaAsignada.conteo][lineaAsignada.subconteo].push({
-                                        CVE_LIN: dato.CVE_LIN,
-                                        DESC_LIN: dato.DESC_LIN,
-                                        conteo: lineaAsignada.conteo,
-                                        subconteo: lineaAsignada.subconteo,
-                                    });
-                                }
-                            });
-                        });
+            // 🔹 Pintar grupos en el select
+            Object.keys(grupos)
+              .sort((a, b) => a - b) // ordenar por conteo
+              .forEach((conteo) => {
+                const optgroupConteo = $(
+                  `<optgroup label="Conteo ${conteo}"></optgroup>`
+                );
 
-// 🔹 Pintar grupos en el select
-                        Object.keys(grupos)
-                            .sort((a, b) => a - b) // ordenar por conteo
-                            .forEach((conteo) => {
-                                const optgroupConteo = $(
-                                    `<optgroup label="Conteo ${conteo}"></optgroup>`
-                                );
-
-                                Object.keys(grupos[conteo])
-                                    .sort((a, b) => a - b) // ordenar por subconteo
-                                    .forEach((sub) => {
-                                        grupos[conteo][sub].forEach((linea) => {
-                                            optgroupConteo.append(
-                                                `<option value="${linea.CVE_LIN}"
+                Object.keys(grupos[conteo])
+                  .sort((a, b) => a - b) // ordenar por subconteo
+                  .forEach((sub) => {
+                    grupos[conteo][sub].forEach((linea) => {
+                      optgroupConteo.append(
+                        `<option value="${linea.CVE_LIN}"
                             data-conteo="${linea.conteo}"
                             data-subconteo="${linea.subconteo}">
                             Subconteo ${linea.subconteo} → ${linea.DESC_LIN}
                         </option>`
-                                            );
-                                        });
-                                    });
+                      );
+                    });
+                  });
 
-                                lineaSelect.append(optgroupConteo);
-                            });
+                lineaSelect.append(optgroupConteo);
+              });
 
+            // Cuando seleccionas una línea, se pintan conteo y subconteo
+            lineaSelect.on("change", function () {
+              const opt = $(this).find(":selected");
 
-// Cuando seleccionas una línea, se pintan conteo y subconteo
-                        lineaSelect.on("change", function () {
-                            const opt = $(this).find(":selected");
+              $("#conteoInput").val(opt.data("conteo") || "");
+              $("#subconteoInput").val(opt.data("subconteo") || "");
 
-                            $("#conteoInput").val(opt.data("conteo") || "");
-                            $("#subconteoInput").val(opt.data("subconteo") || "");
-
-                            // Variables globales
-                            window.subConteo = opt.data("subconteo");
-                            window.claveLinea = opt.val();
-                        });
-
-                    }
-                }
-            );
+              // Variables globales
+              window.subConteo = opt.data("subconteo");
+              window.claveLinea = opt.val();
+            });
+          }
         }
-    });
+      );
+    }
+  });
 
-
-    // === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
+  // === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
   $("#finalizarInventarioLinea").click(function () {
     Swal.fire({
       title: "¿Estás seguro?",
@@ -961,7 +967,7 @@ $(document).ready(function () {
         // Llamar al backend para verificar y generar conteos
         $.post(
           "../Servidor/PHP/inventario.php",
-          { numFuncion: "20", idInventario: idInventario, conteo: conteo},
+          { numFuncion: "20", idInventario: idInventario, conteo: conteo },
           async function (response) {
             console.log("Respuesta verificación inventario:", response);
             if (response.success) {
@@ -1042,7 +1048,7 @@ function guardarLinea(finalizar) {
   payload.conteo = document.getElementById("conteoInput").value;
   payload.status = !finalizar;
 
-  console.log("PAYLOAD: ",payload);
+  console.log("PAYLOAD: ", payload);
 
   $.ajax({
     url: "../Servidor/PHP/inventarioFirestore.php?accion=guardarLinea",
@@ -1051,30 +1057,30 @@ function guardarLinea(finalizar) {
     data: JSON.stringify(payload),
 
     success: async function (res) {
-        if (res.success) {
-            console.log("respuesta guardar linea: ", res);
-            await Swal.fire({
-                icon: "success",
-                title: finalizar ? "Línea finalizada" : "Autoguardado",
-                text: res.message,
-            }).then(() => {
-                const modal = new bootstrap.Modal(
-                    document.getElementById("resumenInventario")
-                );
-                modal.hide();
-                subirPDFsLineas(window.MDPDFs.getSelected(), {
-                    tipo: "linea",
-                    linea: res.claveLinea,
-                });
-                window.MDPDFs.reset();
-            });
-        } else {
-            Swal.fire(
-                "Error",
-                res.message || "No se pudo guardar la línea",
-                "error"
-            );
-        }
+      if (res.success) {
+        console.log("respuesta guardar linea: ", res);
+        await Swal.fire({
+          icon: "success",
+          title: finalizar ? "Línea finalizada" : "Autoguardado",
+          text: res.message,
+        }).then(() => {
+          const modal = new bootstrap.Modal(
+            document.getElementById("resumenInventario")
+          );
+          modal.hide();
+          subirPDFsLineas(window.MDPDFs.getSelected(), {
+            tipo: "linea",
+            linea: res.claveLinea,
+          });
+          window.MDPDFs.reset();
+        });
+      } else {
+        Swal.fire(
+          "Error",
+          res.message || "No se pudo guardar la línea",
+          "error"
+        );
+      }
     },
     error: function () {
       Swal.fire("Error", "Error de comunicación con el servidor", "error");
