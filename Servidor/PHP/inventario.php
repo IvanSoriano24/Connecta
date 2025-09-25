@@ -402,6 +402,93 @@ function actualizarInventario($noEmpresa, $firebaseProject, $apiKey)
     // Si quieres devolver true/false:
     return isset($resCommitArr['writeResults']) ? true : false;
 }
+function actualizarFolio($firebaseProjectId, $firebaseApiKey, $noEmpresa)
+{
+    $collection = "FOLIOS";
+
+    // Construimos la ruta del documento usando runQuery para obtener el nombre completo del doc
+    $queryUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProject/databases/(default)/documents:runQuery?key=$apiKey";
+    $payloadQuery = json_encode([
+        "structuredQuery" => [
+            "from" => [["collectionId" => $collection]],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "documento"],
+                                "op" => "EQUAL",
+                                "value" => ["stringValue" => 'inventarioFisico']
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+
+    $opts = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payloadQuery,
+        ]
+    ];
+    $ctx = stream_context_create($opts);
+    $resp = @file_get_contents($queryUrl, false, $ctx);
+    if ($resp === false) return false;
+
+    $arr = json_decode($resp, true);
+    if (!isset($arr[0]['document']['name'])) return false;
+
+    // Nombre completo del documento: projects/.../databases/(default)/documents/FOLIOS/{docId}
+    $documentName = $arr[0]['document']['name'];
+
+    // Usamos el endpoint commit para aplicar un fieldTransform increment atómico
+    $commitUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProject/databases/(default)/documents:commit?key=$apiKey";
+
+    $payloadCommit = json_encode([
+        "writes" => [
+            [
+                "transform" => [
+                    "document" => $documentName,
+                    "fieldTransforms" => [
+                        [
+                            "fieldPath" => "folioSiguiente",
+                            "decrement" => ["integerValue" => "1"]
+                        ]
+                    ]
+                ]
+            ]
+        ],
+        // opcional: returnTransaction puede omitirse
+    ]);
+
+    $optsCommit = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payloadCommit,
+        ]
+    ];
+    $ctxCommit = stream_context_create($optsCommit);
+    $respCommit = @file_get_contents($commitUrl, false, $ctxCommit);
+    if ($respCommit === false) return false;
+
+    $resCommitArr = json_decode($respCommit, true);
+
+    // Si quieres devolver true/false:
+    return isset($resCommitArr['writeResults']) ? true : false;
+}
 function buscarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
     $collection = "INVENTARIO"; // corregido
@@ -978,87 +1065,221 @@ function getInventarioDocByFolioAsignacion($noEmpresa, $noInventario, $projectId
 }
 function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $projectId, $apiKey)
 {
-    // Helpers mínimos (usa los tuyos si ya existen)
     $root = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents";
 
-    // 1) Resolver inventario activo por empresa + folio
+    // ==== 1) Resolver inventario ====
     $inv = getInventarioDocByFolioAsignacion((int)$noEmpresa, (int)$noInventario, $projectId, $apiKey);
     if (!$inv || empty($inv['docId'])) {
         return ['success' => false, 'message' => 'Inventario activo no encontrado'];
     }
     $invDocId = $inv['docId'];
 
-    // 2) Construir mapValue para "asignaciones" con arrays
-    //    asignaciones: { "001": ["uidA","uidB"], "002": ["uidC"] }
-    $mapFields = [];
-    foreach ($asignaciones as $lineaId => $uids) {
-        if ($lineaId === '' || !is_array($uids)) continue;
-
-        // limitar a 2
-        $uids = array_values(array_filter($uids, fn($u) => is_string($u) && $u !== ''));
-        $uids = array_slice($uids, 0, 2);
-
-        // arrayValue de stringValue
-        $arrVals = array_map(fn($u) => ['stringValue' => $u], $uids);
-        $mapFields[(string)$lineaId] = [
-            'arrayValue' => ['values' => $arrVals]
-        ];
+    // ==== 2) Cargar asignaciones actuales ====
+    $invDocUrl = "$root/INVENTARIO/$invDocId?key=$apiKey";
+    $invDoc    = http_get_json($invDocUrl);
+    $currMap   = []; // lineaId -> [uid0, uid1]
+    if (!empty($invDoc['fields']['asignaciones']['mapValue']['fields'])) {
+        foreach ($invDoc['fields']['asignaciones']['mapValue']['fields'] as $lin => $arr) {
+            $uids = [];
+            if (!empty($arr['arrayValue']['values'])) {
+                foreach ($arr['arrayValue']['values'] as $v) {
+                    if (isset($v['stringValue']) && $v['stringValue'] !== '') {
+                        $uids[] = $v['stringValue'];
+                    }
+                }
+            }
+            $currMap[$lin] = array_slice($uids, 0, 2);
+        }
     }
 
-    // 3) PATCH campo "asignaciones" (sobrescribe con lo enviado)
-    $urlAsign = "$root/INVENTARIO/$invDocId?key=$apiKey&updateMask.fieldPaths=asignaciones";
-    $bodyAsign = [
-        'fields' => [
-            'asignaciones' => [
-                'mapValue' => ['fields' => $mapFields]
-            ]
-        ]
+    // ==== 3) Normalizar nuevas asignaciones (máx 2 por línea) ====
+    $newMap = [];
+    foreach ($asignaciones as $lineaId => $uids) {
+        if ($lineaId === '' || !is_array($uids)) continue;
+        $uids = array_values(array_filter($uids, fn($u) => is_string($u) && $u !== ''));
+        $newMap[(string)$lineaId] = array_slice($uids, 0, 2);
+    }
+
+    // ==== Helpers: detectar si el doc de una subcolección tiene productos guardados ====
+    $reservados = [
+        'locked','conteo','finishedAt','lockedBy','updatedAt','lastProduct',
+        'conteoTotal','diferencia','existSistema','descr','linesStatus','status','idAsignado'
     ];
+    $hasProducts = function(array $doc) use ($reservados): bool {
+        if (empty($doc['fields']) || !is_array($doc['fields'])) return false;
+        foreach ($doc['fields'] as $k => $val) {
+            if (in_array($k, $reservados, true)) continue;
+            // Producto esperado como arrayValue de maps (lotes)
+            if (!empty($val['arrayValue']['values']) && is_array($val['arrayValue']['values'])) {
+                if (count($val['arrayValue']['values']) > 0) return true;
+            }
+        }
+        return false;
+    };
+
+    // ==== 4) Aplicar cambios por línea/slot respetando reglas ====
+    $tsIso   = gmdate('c');
+    $errors  = [];
+    $finalMap = $currMap; // partimos del estado actual y vamos aplicando cambios válidos
+
+    foreach ($newMap as $lineaId => $desiredUids) {
+        $old = $currMap[$lineaId] ?? [];
+        // normalizar a 2 slots
+        $old   = [$old[0] ?? null,   $old[1] ?? null];
+        $want  = [$desiredUids[0] ?? null, $desiredUids[1] ?? null];
+
+        // Recorremos slots 0 (lineas) y 1 (lineas02)
+        for ($slot=0; $slot<2; $slot++) {
+            $subcol = ($slot === 0) ? 'lineas' : 'lineas02';
+            $oldUid = $old[$slot];
+            $newUid = $want[$slot];
+
+            // No cambio → nada que hacer
+            if ($oldUid === $newUid) continue;
+
+            // Situaciones:
+            // A) Quitar asignación (old != null y new == null)
+            // B) Reemplazar asignación (old != null y new != null y old != new)
+            // C) Añadir asignación (old == null y new != null)
+
+            // Cargar doc del slot para ver si tiene captura
+            $docUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey";
+            $doc    = http_get_json($docUrl); // puede no existir (null)
+
+            $tieneProductos = $doc && $hasProducts($doc);
+
+            // A) quitar
+            if ($oldUid && !$newUid) {
+                if ($tieneProductos) {
+                    // ❌ Regla 1: no puedes quitar porque hay productos guardados
+                    $errors[] = "No se puede quitar la asignación de $subcol/$lineaId: ya hay productos capturados.";
+                    // Mantenemos la asignación antigua
+                    $finalMap[$lineaId][$slot] = $oldUid;
+                    continue;
+                }
+                // ✓ Eliminar doc (si existe) y liberar slot
+                http_delete_simple($docUrl); // ignorar fallo puntual
+                $finalMap[$lineaId][$slot] = null;
+                continue;
+            }
+
+            // B) reemplazar
+            if ($oldUid && $newUid && $oldUid !== $newUid) {
+                if ($tieneProductos) {
+                    // ❌ No puedes reemplazar si ya hay captura
+                    $errors[] = "No se puede cambiar la asignación de $subcol/$lineaId: ya hay productos capturados.";
+                    // Mantener antiguo
+                    $finalMap[$lineaId][$slot] = $oldUid;
+                    continue;
+                }
+                // ✓ No hay productos: borro doc anterior y creo/actualizo con nuevo asignado
+                http_delete_simple($docUrl);
+                // crear/patch con nuevo idAsignado + conteo
+                $patchUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey"
+                          . "&updateMask.fieldPaths=idAsignado"
+                          . "&updateMask.fieldPaths=conteo"
+                          . "&updateMask.fieldPaths=updatedAt";
+                $body = [
+                    'fields' => [
+                        'idAsignado'   => ['stringValue' => $newUid],
+                        'conteo'       => ['integerValue' => ($slot+1)],
+                        'updatedAt'    => ['timestampValue' => $tsIso],
+                    ]
+                ];
+                http_patch_jsonAsignacion($patchUrl, $body);
+                $finalMap[$lineaId][$slot] = $newUid;
+                continue;
+            }
+
+            // C) añadir
+            if (!$oldUid && $newUid) {
+                // ✓ escribir doc con idAsignado
+                $patchUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey"
+                          . "&updateMask.fieldPaths=idAsignado"
+                          . "&updateMask.fieldPaths=conteo"
+                          . "&updateMask.fieldPaths=updatedAt";
+                $body = [
+                    'fields' => [
+                        'idAsignado'   => ['stringValue' => $newUid],
+                        'conteo'       => ['integerValue' => ($slot+1)],
+                        'updatedAt'    => ['timestampValue' => $tsIso],
+                    ]
+                ];
+                http_patch_jsonAsignacion($patchUrl, $body);
+                $finalMap[$lineaId][$slot] = $newUid;
+                continue;
+            }
+        }
+
+        // Limpia nulls finales del arreglo (deja solo existentes)
+        $finalMap[$lineaId] = array_values(array_filter($finalMap[$lineaId] ?? [], fn($u)=>!!$u));
+        // Asegura límite de 2
+        $finalMap[$lineaId] = array_slice($finalMap[$lineaId], 0, 2);
+    }
+
+    // También contempla líneas que estaban antes y no vienen en $newMap:
+    // Eso equivale a "quitar ambos"; aplica misma regla.
+    foreach ($currMap as $lineaId => $oldUids) {
+        if (array_key_exists($lineaId, $newMap)) continue; // ya tratada
+        $old = [$oldUids[0] ?? null, $oldUids[1] ?? null];
+        $want = [null, null];
+
+        for ($slot=0; $slot<2; $slot++) {
+            $subcol = ($slot===0)?'lineas':'lineas02';
+            $oldUid = $old[$slot];
+            if (!$oldUid) continue;
+
+            $docUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey";
+            $doc    = http_get_json($docUrl);
+            $tieneProductos = $doc && $hasProducts($doc);
+
+            if ($tieneProductos) {
+                // Mantener asignación existente
+                $finalMap[$lineaId][$slot] = $oldUid;
+                $errors[] = "No se puede quitar la asignación de $subcol/$lineaId: ya hay productos capturados.";
+            } else {
+                // Borrar doc y liberar
+                http_delete_simple($docUrl);
+                if (isset($finalMap[$lineaId])) {
+                    unset($finalMap[$lineaId][$slot]);
+                }
+            }
+        }
+
+        // Normaliza restantes para esa línea
+        if (isset($finalMap[$lineaId])) {
+            $finalMap[$lineaId] = array_values(array_filter($finalMap[$lineaId], fn($u)=>!!$u));
+            if (count($finalMap[$lineaId])===0) unset($finalMap[$lineaId]);
+        }
+    }
+
+    // ==== 5) Escribir asignaciones finales al doc INVENTARIO ====
+    $mapFields = [];
+    foreach ($finalMap as $lineaId => $uids) {
+        $uids = array_values(array_filter($uids, fn($u)=>is_string($u)&&$u!==''));
+        $uids = array_slice($uids, 0, 2);
+        $arrVals = array_map(fn($u)=>['stringValue'=>$u], $uids);
+        $mapFields[(string)$lineaId] = ['arrayValue' => ['values' => $arrVals]];
+    }
+
+    $urlAsign  = "$root/INVENTARIO/$invDocId?key=$apiKey&updateMask.fieldPaths=asignaciones";
+    $bodyAsign = ['fields' => ['asignaciones' => ['mapValue' => ['fields' => $mapFields]]]];
     $resp1 = http_patch_jsonAsignacion($urlAsign, $bodyAsign);
     if (!$resp1) {
         return ['success' => false, 'message' => 'No se pudo guardar asignaciones en el documento de inventario'];
     }
 
-    // 4) Espejo por conteo: lineas (1er asignado) y lineas02 (2º asignado)
-    foreach ($asignaciones as $lineaId => $uids) {
-        $uids = array_values(array_filter($uids, fn($u) => is_string($u) && $u !== ''));
-        $uids = array_slice($uids, 0, 2);
-
-        $ts = gmdate('c');
-
-        // 4.1 Primer asignado -> lineas/{lineaId}
-        if (isset($uids[0])) {
-            $urlL1 = "$root/INVENTARIO/$invDocId/lineas/$lineaId?key=$apiKey&updateMask.fieldPaths=idAsignado&updateMask.fieldPaths=conteo&updateMask.fieldPaths=updatedAt";
-            $bodyL1 = [
-                'fields' => [
-                    'idAsignado' => ['stringValue'  => $uids[0]],
-                    'conteo'        => ['integerValue' => 1],
-                    'updatedAt'     => ['timestampValue' => $ts]
-                ]
-            ];
-            http_patch_jsonAsignacion($urlL1, $bodyL1); // ignorar error puntual
-        }
-
-        // 4.2 Segundo asignado -> lineas02/{lineaId}
-        if (isset($uids[1])) {
-            $urlL2 = "$root/INVENTARIO/$invDocId/lineas02/$lineaId?key=$apiKey&updateMask.fieldPaths=idAsignado&updateMask.fieldPaths=conteo&updateMask.fieldPaths=updatedAt";
-            $bodyL2 = [
-                'fields' => [
-                    'idAsignado' => ['stringValue'  => $uids[1]],
-                    'conteo'        => ['integerValue' => 2],
-                    'updatedAt'     => ['timestampValue' => $ts]
-                ]
-            ];
-            http_patch_jsonAsignacion($urlL2, $bodyL2);
-        } else {
-            // Si no hay segundo, elimina el doc en lineas02 para esta línea (opción recomendada)
-            $delUrl = "$root/INVENTARIO/$invDocId/lineas02/$lineaId?key=$apiKey";
-            http_delete_simple($delUrl);
-            // Alternativa: dejar doc vacío con PATCH si prefieres no borrar
-        }
+    // ==== 6) Respuesta ====
+    if (!empty($errors)) {
+        // No es fallo total: se aplicó lo que se pudo, pero hubo bloqueos
+        return [
+            'success' => true,
+            'warnings' => $errors,
+            'aplicado' => $finalMap
+        ];
     }
 
-    return ['success' => true];
+    return ['success' => true, 'aplicado' => $finalMap];
 }
 function http_delete_simple($url)
 {
@@ -1421,14 +1642,14 @@ function obtenerLineasAsignadas(int $noEmpresa, int $noInventario, string $proje
     try {
         // 1) Resolver el doc del INVENTARIO (usa tu helper existente)
         if (!function_exists('getInventarioDocByFolioAsignacion') && !function_exists('getInventarioDocByFolio')) {
-            return ['success'=>false, 'message'=>'No existe helper getInventarioDocByFolio*'];
+            return ['success' => false, 'message' => 'No existe helper getInventarioDocByFolio*'];
         }
         $inv = function_exists('getInventarioDocByFolioAsignacion')
             ? getInventarioDocByFolioAsignacion($noEmpresa, $noInventario, $projectId, $apiKey)
             : getInventarioDocByFolio($noEmpresa, $noInventario, $projectId, $apiKey);
 
         if (!$inv || empty($inv['docId'])) {
-            return ['success'=>false, 'message'=>'Inventario no encontrado'];
+            return ['success' => false, 'message' => 'Inventario no encontrado'];
         }
         $invDocId = $inv['docId'];
 
@@ -1491,9 +1712,8 @@ function obtenerLineasAsignadas(int $noEmpresa, int $noInventario, string $proje
             'usuarios'     => $usuarios,   // { uid: {nombre, usuario}, ... }
             'lineasDesc'   => $lineasDesc,
         ];
-
     } catch (Throwable $e) {
-        return ['success'=>false, 'message'=>$e->getMessage()];
+        return ['success' => false, 'message' => $e->getMessage()];
     }
 }
 function leerUsuarioPorId(string $projectId, string $apiKey, string $userId): ?array
@@ -1512,8 +1732,9 @@ function leerUsuarioPorId(string $projectId, string $apiKey, string $userId): ?a
         // agrega lo que necesites: tipoUsuario, noEmpresa, etc.
     ];
 }
-function http_get_jsonAsignaciones(string $url): ?array {
-    $ctx = stream_context_create(['http'=>['method'=>'GET','timeout'=>30]]);
+function http_get_jsonAsignaciones(string $url): ?array
+{
+    $ctx = stream_context_create(['http' => ['method' => 'GET', 'timeout' => 30]]);
     $res = @file_get_contents($url, false, $ctx);
     if ($res === false) return null;
     $j = json_decode($res, true);
@@ -1796,6 +2017,7 @@ switch ($funcion) {
             $result  = file_get_contents($url, false, $context);
 
             if ($http_response_header && strpos($http_response_header[0], "200") !== false) {
+                actualizarFolio($firebaseProjectId, $firebaseApiKey, $noEmpresa);
                 echo json_encode(["success" => true, "message" => "Inventario eliminado"]);
             } else {
                 echo json_encode(["success" => false, "message" => "No se pudo eliminar inventario"]);
