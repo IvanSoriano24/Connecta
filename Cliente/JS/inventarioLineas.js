@@ -832,60 +832,101 @@ $(document).ready(function () {
     }
   });
 
-  // Lineas asignadas
-  $.get("../Servidor/PHP/inventarioFirestore.php", {
-    accion: "obtenerLineas",
-  }).done(function (res) {
-    if (res.success && res.lineas.length > 0) {
-      const clavesAsignadas = res.lineas.map((l) => l.CVE_LIN);
 
-      $.get("../Servidor/PHP/inventario.php", { numFuncion: "3" }).done(
-        function (response) {
-          const r =
-            typeof response === "string" ? JSON.parse(response) : response;
-          if (r.success) {
-            const lineaSelect = $("#lineaSelect");
-            lineaSelect.empty();
-            lineaSelect.append(
-              "<option selected disabled>Seleccione una línea</option>"
+    // Lineas asignadas
+    $.get("../Servidor/PHP/inventarioFirestore.php", {
+        accion: "obtenerLineas",
+    }).done(function (res) {
+        if (res.success && res.lineas.length > 0) {
+            const clavesAsignadas = res.lineas.map((l) => l.CVE_LIN);
+            console.log("res obtener lineas: ", res, " clavesAsignadas: ", clavesAsignadas);
+
+            $.get("../Servidor/PHP/inventario.php", { numFuncion: "3" }).done(
+                function (response) {
+                    const r =
+                        typeof response === "string" ? JSON.parse(response) : response;
+                    if (r.success) {
+                        const lineaSelect = $("#lineaSelect");
+                        lineaSelect.empty();
+                        lineaSelect.append(
+                            "<option selected disabled>Seleccione una línea</option>"
+                        );
+
+                        // 🔹 Ordenar primero por subconteo, luego por CVE_LIN
+                        res.lineas.sort((a, b) => {
+                            if (a.subconteo !== b.subconteo) {
+                                return a.subconteo - b.subconteo;
+                            }
+                            return a.CVE_LIN.localeCompare(b.CVE_LIN);
+                        });
+
+// 🔹 Evitar duplicados (mismo CVE_LIN + subconteo)
+                        const opcionesUnicas = new Set();
+
+// 🔹 Agrupar por subconteo
+                        const grupos = {};
+
+                        r.data.forEach((dato) => {
+                            const lineasAsignadas = res.lineas.filter(
+                                (l) => l.CVE_LIN === dato.CVE_LIN
+                            );
+
+                            lineasAsignadas.forEach((lineaAsignada) => {
+                                const key = `${dato.CVE_LIN}-${lineaAsignada.subconteo}`;
+                                if (!opcionesUnicas.has(key)) {
+                                    opcionesUnicas.add(key);
+
+                                    if (!grupos[lineaAsignada.subconteo]) {
+                                        grupos[lineaAsignada.subconteo] = [];
+                                    }
+
+                                    grupos[lineaAsignada.subconteo].push({
+                                        CVE_LIN: dato.CVE_LIN,
+                                        DESC_LIN: dato.DESC_LIN,
+                                        conteo: lineaAsignada.conteo,
+                                        subconteo: lineaAsignada.subconteo,
+                                    });
+                                }
+                            });
+                        });
+
+// 🔹 Pintar grupos en el select
+                        Object.keys(grupos)
+                            .sort((a, b) => a - b) // ordenar por subconteo
+                            .forEach((sub) => {
+                                const optgroup = $(`<optgroup label="Subconteo ${sub}"></optgroup>`);
+                                grupos[sub].forEach((linea) => {
+                                    optgroup.append(
+                                        `<option value="${linea.CVE_LIN}"
+                  data-conteo="${linea.conteo}"
+                  data-subconteo="${linea.subconteo}">
+            ${linea.DESC_LIN}
+         </option>`
+                                    );
+                                });
+                                lineaSelect.append(optgroup);
+                            });
+
+
+                        // Cuando seleccionas una línea, se pintan conteo y subconteo
+                        lineaSelect.on("change", function () {
+                            const opt = $(this).find(":selected");
+
+                            $("#conteoInput").val(opt.data("conteo") || "");
+                            $("#subconteoInput").val(opt.data("subconteo") || "");
+
+                            // Variables globales
+                            window.subConteo = opt.data("subconteo");
+                            window.claveLinea = opt.val();
+                        });
+                    }
+                }
             );
-
-            console.log("res: ", res);
-            r.data.forEach((dato) => {
-              const lineaAsignada = res.lineas.find(
-                (l) => l.CVE_LIN === dato.CVE_LIN
-              );
-              console.log("linea: ", lineaAsignada);
-
-              if (lineaAsignada) {
-                lineaSelect.append(
-                  `<option value="${dato.CVE_LIN}"
-                                               data-conteo="${lineaAsignada.conteo}"
-                                               data-subconteo="${lineaAsignada.subconteo}">
-                                         ${dato.DESC_LIN} (Subconteo ${lineaAsignada.subconteo})
-                                       </option>`
-                );
-              }
-            });
-
-            // Cuando seleccionas una línea, se pintan conteo y subconteo
-            lineaSelect.on("change", function () {
-              const opt = $(this).find(":selected");
-
-              $("#conteoInput").val(opt.data("conteo") || "");
-              $("#subconteoInput").val(opt.data("subconteo") || "");
-
-              // Aquí obtenemos los valores para las variables globales
-              window.subConteo = opt.data("subconteo");
-              window.claveLinea = opt.val(); // 👈 ESTA es la clave de la línea seleccionada
-            });
-          }
         }
-      );
-    }
-  });
+    });
 
-  // === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
+
+    // === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
   $("#finalizarInventarioLinea").click(function () {
     Swal.fire({
       title: "¿Estás seguro?",
