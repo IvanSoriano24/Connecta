@@ -7,6 +7,7 @@ function obtenerLineas() {
       numFuncion: "3",
     },
     success: function (response) {
+        console.log("obtenerLineas: response: ", response);
       try {
         const res =
           typeof response === "string" ? JSON.parse(response) : response;
@@ -941,11 +942,12 @@ $(document).ready(function () {
         guardarLinea(true); // Guardar y bloquear edición
 
         const idInventario = window.idInventario;
+        const conteo = document.getElementById("subconteoInput").value;
 
         // Llamar al backend para verificar y generar conteos
         $.post(
           "../Servidor/PHP/inventario.php",
-          { numFuncion: "20", idInventario: idInventario },
+          { numFuncion: "20", idInventario: idInventario, conteo: conteo},
           async function (response) {
             console.log("Respuesta verificación inventario:", response);
             if (response.success) {
