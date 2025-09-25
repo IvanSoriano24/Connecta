@@ -188,7 +188,7 @@ switch ($accion) {
 
         if (
             !$payload
-            || !isset($payload["noInventario"], $payload["claveLinea"], $payload["articulos"], $payload["subconteo"])
+            || !isset($payload["noInventario"], $payload["claveLinea"], $payload["articulos"], $payload["subconteo"], $payload["conteo"])
         ) {
             echo json_encode(["success" => false, "message" => "Datos incompletos"]);
             exit;
@@ -197,12 +197,13 @@ switch ($accion) {
         $noInv       = (int)$payload["noInventario"];
         $claveLinea  = (string)$payload["claveLinea"];
         $articulosIn = $payload["articulos"];
-        $status      = !isset($payload["status"]) || (bool)$payload["status"];
-        $subconteoIn = (int)$payload["subconteo"];   // 👈 viene del front
+        $status      = !isset($payload["status"]) || (bool)$payload["status"]; // true → editable
+        $subconteoIn = (int)$payload["subconteo"];
+        $conteo      = (int)$payload["conteo"];
 
         $usuarioId = (string)($_SESSION['usuario']['idReal'] ?? '');
 
-        // 1) Buscar inventario por folio
+        // 🔹 1) Buscar inventario por folio
         $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
         $invDocs = http_get_json($invUrl);
 
@@ -224,14 +225,18 @@ switch ($accion) {
             exit;
         }
 
-        // 2) Determinar subcolección en base al subconteo
-        if ($subconteoIn === 1) {
-            $subcol = "lineas";
-        } else {
-            $subcol = "lineas" . str_pad($subconteoIn, 2, "0", STR_PAD_LEFT); // ej. 2 → lineas02, 3 → lineas03
+        // 🔹 2) Determinar subcolección en base a conteo + subconteo
+        function getSubcol($conteo, $subconteo) {
+            if ($conteo === 1) {
+                return ($subconteo === 1) ? "lineas" : "lineas02";
+            } else {
+                $start = ($conteo - 1) * 2 + ($subconteo === 1 ? 1 : 2);
+                return "lineas" . str_pad($start, 2, "0", STR_PAD_LEFT);
+            }
         }
+        $subcol = getSubcol($conteo, $subconteoIn);
 
-        // 3) Construir body para Firestore
+        // 🔹 3) Construir body para Firestore
         $data = [
             "fields" => [
                 "idAsignado" => ["stringValue" => $usuarioId],
@@ -274,7 +279,7 @@ switch ($accion) {
             $data["fields"][$cveArt] = ["arrayValue" => ["values" => $arrLotes]];
         }
 
-        // 4) Guardar en la subcolección detectada
+        // 🔹 4) Guardar en la subcolección detectada
         $url  = "$root/INVENTARIO/$invDocId/$subcol/$claveLinea?key=$firebaseApiKey";
         $resp = http_post_json($url, $data, "PATCH");
 
@@ -290,7 +295,6 @@ switch ($accion) {
             echo json_encode(["success" => false, "message" => "Error al guardar la línea"]);
         }
         break;
-
 
     case "obtenerInventarioActivo":
         $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
@@ -354,27 +358,31 @@ switch ($accion) {
         $fields   = $inventarioActivo["fields"];
         $asignadas = [];
 
-        // 🔹 Tomar conteo del padre
-        $conteo = isset($fields["conteo"]["integerValue"])
+        // 🔹 Tomar conteo máximo del inventario
+        $maxConteo = isset($fields["conteo"]["integerValue"])
             ? (int)$fields["conteo"]["integerValue"]
             : 1;
 
-        // 🔹 Determinar subcolecciones en base al conteo
-        if ($conteo === 1) {
-            $subcolecciones = ["lineas", "lineas02"];
-        } else {
-            $start = ($conteo - 1) * 2 + 1; // 2 → 3, 3 → 5, etc.
-            $subcolecciones = [
-                "lineas" . str_pad($start, 2, "0", STR_PAD_LEFT),
-                "lineas" . str_pad($start + 1, 2, "0", STR_PAD_LEFT)
-            ];
+        $subcolecciones = []; // arreglo con todos los conteos y subconteos
+
+// 🔹 Generar todas las subcolecciones desde conteo 1 hasta el actual
+        for ($c = 1; $c <= $maxConteo; $c++) {
+            if ($c === 1) {
+                $subcolecciones[] = ["nombre" => "lineas", "conteo" => $c, "subconteo" => 1];
+                $subcolecciones[] = ["nombre" => "lineas02", "conteo" => $c, "subconteo" => 2];
+            } else {
+                $start = ($c - 1) * 2 + 1;
+                $subcolecciones[] = ["nombre" => "lineas" . str_pad($start, 2, "0", STR_PAD_LEFT), "conteo" => $c, "subconteo" => 1];
+                $subcolecciones[] = ["nombre" => "lineas" . str_pad($start + 1, 2, "0", STR_PAD_LEFT), "conteo" => $c, "subconteo" => 2];
+            }
         }
 
-        // 🔹 Acceso a asignaciones
+
+        // Acceso a asignaciones
         $asignaciones = $fields["asignaciones"]["mapValue"]["fields"] ?? [];
 
         foreach ($subcolecciones as $subcol) {
-            $lineasUrl  = "$root/INVENTARIO/$invDocId/$subcol?key=$firebaseApiKey";
+            $lineasUrl  = "$root/INVENTARIO/$invDocId/{$subcol['nombre']}?key=$firebaseApiKey";
             $lineasDocs = http_get_json($lineasUrl);
 
             if (!isset($lineasDocs["documents"])) continue;
@@ -385,7 +393,6 @@ switch ($accion) {
                     ? $doc["fields"]["status"]["booleanValue"]
                     : null;
 
-                // 🔹 obtener usuarios asignados a este documento
                 $usuariosAsignados = [];
                 if (isset($asignaciones[$docId]["arrayValue"]["values"])) {
                     foreach ($asignaciones[$docId]["arrayValue"]["values"] as $val) {
@@ -394,25 +401,23 @@ switch ($accion) {
                 }
 
                 if ($tipoUsuario === "SUPER-ALMACENISTA") {
-                    // devuelve todas las posiciones (dos subconteos, etc.)
                     foreach ($usuariosAsignados as $idx => $usuarioAsignado) {
                         $asignadas[] = [
                             "CVE_LIN"   => $docId,
-                            "coleccion" => $subcol,
-                            "conteo"    => $conteo,
-                            "subconteo" => $idx + 1,   // posición +1
+                            "coleccion" => $subcol['nombre'],
+                            "conteo"    => $subcol['conteo'],
+                            "subconteo" => $idx + 1,
                             "status"    => $status,
                             "asignadoA" => $usuarioAsignado
                         ];
                     }
                 } else {
-                    // usuario normal: solo su subconteo
                     foreach ($usuariosAsignados as $idx => $usuarioAsignado) {
                         if ($usuarioAsignado === $usuarioId) {
                             $asignadas[] = [
                                 "CVE_LIN"   => $docId,
-                                "coleccion" => $subcol,
-                                "conteo"    => $conteo,
+                                "coleccion" => $subcol['nombre'],
+                                "conteo"    => $subcol['conteo'],
                                 "subconteo" => $idx + 1,
                                 "status"    => $status,
                                 "asignadoA" => $usuarioAsignado
@@ -423,9 +428,9 @@ switch ($accion) {
             }
         }
 
+
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
-
 
     case 'obtenerLineaConteos':
         $noInv = (int)($_GET['noInventario'] ?? 0);

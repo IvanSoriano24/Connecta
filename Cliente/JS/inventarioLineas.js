@@ -861,27 +861,29 @@ $(document).ready(function () {
                             return a.CVE_LIN.localeCompare(b.CVE_LIN);
                         });
 
-// 🔹 Evitar duplicados (mismo CVE_LIN + subconteo)
+                        // 🔹 Evitar duplicados
                         const opcionesUnicas = new Set();
 
-// 🔹 Agrupar por subconteo
+// 🔹 Agrupar por conteo y subconteo
                         const grupos = {};
-
                         r.data.forEach((dato) => {
                             const lineasAsignadas = res.lineas.filter(
                                 (l) => l.CVE_LIN === dato.CVE_LIN
                             );
 
                             lineasAsignadas.forEach((lineaAsignada) => {
-                                const key = `${dato.CVE_LIN}-${lineaAsignada.subconteo}`;
+                                const key = `${dato.CVE_LIN}-${lineaAsignada.conteo}-${lineaAsignada.subconteo}`;
                                 if (!opcionesUnicas.has(key)) {
                                     opcionesUnicas.add(key);
 
-                                    if (!grupos[lineaAsignada.subconteo]) {
-                                        grupos[lineaAsignada.subconteo] = [];
+                                    if (!grupos[lineaAsignada.conteo]) {
+                                        grupos[lineaAsignada.conteo] = {};
+                                    }
+                                    if (!grupos[lineaAsignada.conteo][lineaAsignada.subconteo]) {
+                                        grupos[lineaAsignada.conteo][lineaAsignada.subconteo] = [];
                                     }
 
-                                    grupos[lineaAsignada.subconteo].push({
+                                    grupos[lineaAsignada.conteo][lineaAsignada.subconteo].push({
                                         CVE_LIN: dato.CVE_LIN,
                                         DESC_LIN: dato.DESC_LIN,
                                         conteo: lineaAsignada.conteo,
@@ -893,23 +895,31 @@ $(document).ready(function () {
 
 // 🔹 Pintar grupos en el select
                         Object.keys(grupos)
-                            .sort((a, b) => a - b) // ordenar por subconteo
-                            .forEach((sub) => {
-                                const optgroup = $(`<optgroup label="Subconteo ${sub}"></optgroup>`);
-                                grupos[sub].forEach((linea) => {
-                                    optgroup.append(
-                                        `<option value="${linea.CVE_LIN}"
-                  data-conteo="${linea.conteo}"
-                  data-subconteo="${linea.subconteo}">
-            ${linea.DESC_LIN}
-         </option>`
-                                    );
-                                });
-                                lineaSelect.append(optgroup);
+                            .sort((a, b) => a - b) // ordenar por conteo
+                            .forEach((conteo) => {
+                                const optgroupConteo = $(
+                                    `<optgroup label="Conteo ${conteo}"></optgroup>`
+                                );
+
+                                Object.keys(grupos[conteo])
+                                    .sort((a, b) => a - b) // ordenar por subconteo
+                                    .forEach((sub) => {
+                                        grupos[conteo][sub].forEach((linea) => {
+                                            optgroupConteo.append(
+                                                `<option value="${linea.CVE_LIN}"
+                            data-conteo="${linea.conteo}"
+                            data-subconteo="${linea.subconteo}">
+                            Subconteo ${linea.subconteo} → ${linea.DESC_LIN}
+                        </option>`
+                                            );
+                                        });
+                                    });
+
+                                lineaSelect.append(optgroupConteo);
                             });
 
 
-                        // Cuando seleccionas una línea, se pintan conteo y subconteo
+// Cuando seleccionas una línea, se pintan conteo y subconteo
                         lineaSelect.on("change", function () {
                             const opt = $(this).find(":selected");
 
@@ -920,6 +930,7 @@ $(document).ready(function () {
                             window.subConteo = opt.data("subconteo");
                             window.claveLinea = opt.val();
                         });
+
                     }
                 }
             );
@@ -968,7 +979,7 @@ $(document).ready(function () {
     });
   });
 
-  // === AUTOGUARDADO cada 5 minutos ===
+  // =============================== AUTOGUARDADO DE LINEA cada 5 minutos =====================================
 
   /*
       setInterval(() => {
