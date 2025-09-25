@@ -59,7 +59,7 @@ function noInventario() {
     $.ajax({
         url: "../Servidor/PHP/inventario.php",
         method: "GET",
-        data: {numFuncion: "2"},
+        data: { numFuncion: "2" },
 
         // 1) Indica que esperas JSON
         dataType: "json",
@@ -171,9 +171,8 @@ function abrirModal() {
           <td colspan="5" class="text-end">Subtotal producto:</td>
           <td>${conteo}</td>
           <td>${exist}</td>
-          <td class="${diffClass}">${
-                diferencia > 0 ? "+" : ""
-            }${diferencia}</td>
+          <td class="${diffClass}">${diferencia > 0 ? "+" : ""
+                }${diferencia}</td>
         </tr>
         <!-- fila vacía para separación -->
         <tr><td colspan="9" style="background:transparent; border:0; height:15px;"></td></tr>
@@ -196,9 +195,8 @@ function abrirModal() {
             <td colspan="5" class="text-end">TOTALES DE LA LÍNEA:</td>
             <td>${totalLinea}</td>
             <td>${totalInventario}</td>
-            <td class="${diffLineaClass}">${
-            diferenciaLinea > 0 ? "+" : ""
-        }${diferenciaLinea}</td>
+            <td class="${diffLineaClass}">${diferenciaLinea > 0 ? "+" : ""
+            }${diferenciaLinea}</td>
           </tr>
         </tfoot>
       </table>
@@ -233,9 +231,9 @@ function buscarInventario() {
     return $.ajax({
         url: "../Servidor/PHP/inventario.php",
         method: "GET",
-        data: {numFuncion: "1"},
+        data: { numFuncion: "1" },
         dataType: "json",
-        headers: {"X-CSRF-Token": csrfToken},
+        headers: { "X-CSRF-Token": csrfToken },
     })
         .done(async function (res) {
             // Esperado: { success: true, foundActive: bool, existsAny: bool, docId: string|null, folioSiguiente: int|null }
@@ -254,7 +252,7 @@ function buscarInventario() {
             }
 
             // Presentación/estado
-            const {foundActive, existsAny, noInventario, docId} = res;
+            const { foundActive, existsAny, noInventario, docId } = res;
 
             cerrarLoader();
             if (foundActive) {
@@ -353,7 +351,7 @@ function comparararConteos(tipoUsuario) {
             .done(function (res) {
                 if (!res || res.success !== true) {
                     const msg = res?.message || "No fue posible obtener los conteos.";
-                    return Swal.fire({icon: "info", title: "Sin datos", text: msg});
+                    return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
                 }
                 // res.conteo1 y res.conteo2 ya pueden venir normalizados; si no, normalizamos aquí
                 const c1 = Array.isArray(res.conteo1)
@@ -402,7 +400,7 @@ function compararSae(cmp, claveLinea) {
         .done(function (res) {
             if (!res || res.success !== true) {
                 const msg = res?.message || "No fue posible obtener los conteos.";
-                return Swal.fire({icon: "info", title: "Sin datos", text: msg});
+                return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
             }
             //console.log(res);
             const html = tablaComparativaSae(cmp, claveLinea, res.data);
@@ -457,10 +455,10 @@ function normalizeDocToProducts(doc) {
             const lote = String(f.lote?.stringValue ?? "");
             const tot = parseInt(f.total?.integerValue ?? corr * cxc, 10) || 0;
             suma += tot;
-            return {corrugados: corr, corrugadosPorCaja: cxc, lote, total: tot};
+            return { corrugados: corr, corrugadosPorCaja: cxc, lote, total: tot };
         });
 
-        out.push({cve_art: k, total: suma, lotes});
+        out.push({ cve_art: k, total: suma, lotes });
     });
 
     return out;
@@ -524,7 +522,7 @@ function compareProducts(c1, c2) {
         return Math.abs(r2.diff) - Math.abs(r1.diff);
     });
 
-    return {rows, iguales, difs, solo1, solo2};
+    return { rows, iguales, difs, solo1, solo2 };
 }
 
 // Render HTML de la tabla de comparación
@@ -552,8 +550,8 @@ function renderCompareTable(cmp, linea) {
     const body = `
     <tbody>
       ${cmp.rows
-        .map(
-            (r) => `
+            .map(
+                (r) => `
         <tr class="${rowClass(r)}">
           <td><code>${escapeHtml(r.cve_art)}</code></td>
           <td>${r.total1}</td>
@@ -561,8 +559,8 @@ function renderCompareTable(cmp, linea) {
           <td>${signed(r.diff)}</td>
         </tr>
       `
-        )
-        .join("")}
+            )
+            .join("")}
     </tbody>
   `;
 
@@ -623,11 +621,11 @@ function tablaComparativaSae(cmp, linea, saeList) {
     const body = `
     <tbody>
       ${cmp.rows
-        .map((r) => {
-            const saeExist = saeIndex.get(String(r.cve_art)) ?? 0;
-            const diff = (Number(r.total1) || 0) - saeExist;
-            const status = diff === 0 ? "ok" : diff > 0 ? "mayor" : "menor";
-            return `
+            .map((r) => {
+                const saeExist = saeIndex.get(String(r.cve_art)) ?? 0;
+                const diff = (Number(r.total1) || 0) - saeExist;
+                const status = diff === 0 ? "ok" : diff > 0 ? "mayor" : "menor";
+                return `
           <tr class="${rowClass(status)}">
             <td><code>${escapeHtml(r.cve_art)}</code></td>
             <td>${Number(r.total1) || 0}</td>
@@ -635,8 +633,8 @@ function tablaComparativaSae(cmp, linea, saeList) {
             <td>${signed(diff)}</td>
           </tr>
         `;
-        })
-        .join("")}
+            })
+            .join("")}
     </tbody>
   `;
 
@@ -666,13 +664,13 @@ function tablaComparativaSae(cmp, linea, saeList) {
         return String(str ?? "").replace(
             /[&<>"']/g,
             (m) =>
-                ({
-                    "&": "&amp;",
-                    "<": "&lt;",
-                    ">": "&gt;",
-                    '"': "&quot;",
-                    "'": "&#39;",
-                }[m])
+            ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+            }[m])
         );
     }
 }
@@ -682,13 +680,13 @@ function escapeHtml(str) {
     return String(str ?? "").replace(
         /[&<>"']/g,
         (m) =>
-            ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#39;",
-            }[m])
+        ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+        }[m])
     );
 }
 
@@ -698,7 +696,7 @@ async function subirPendientesDespuesDeLinea(claveLinea) {
 
     const res = await subirPDFsLineas(files); // <- ya arma FormData con noInventario
     // Feedback al usuario:
-    Swal.fire({icon: 'success', title: 'Archivos cargados', text: 'Se adjuntaron correctamente a la línea.'});
+    Swal.fire({ icon: 'success', title: 'Archivos cargados', text: 'Se adjuntaron correctamente a la línea.' });
     return res;
 }
 
@@ -724,7 +722,7 @@ function subirPDFsLineas(selectedFiles, meta = {}) {
 
     for (const f of files) fd.append('pdfs[]', f, f.name);
 
-    return fetch("../Servidor/PHP/inventario.php", {method: 'POST', body: fd})
+    return fetch("../Servidor/PHP/inventario.php", { method: 'POST', body: fd })
         .then(async (r) => {
             const text = await r.text();
             let data = null;
@@ -743,7 +741,7 @@ function subirPDFsLineas(selectedFiles, meta = {}) {
 
 async function verificarLineaFinalizada(idInventario, claveLinea, subconteo) {
     // Determinar subcolección con base en el subconteo
-    const subcol = subconteo === 1 ? "lineas" : `lineas${subconteo.toString().padStart(2,"0")}`;
+    const subcol = subconteo === 1 ? "lineas" : `lineas${subconteo.toString().padStart(2, "0")}`;
 
     try {
         const res = await $.get("../Servidor/PHP/inventarioFirestore.php", {
@@ -809,7 +807,7 @@ $(document).ready(function () {
         if (res.success && res.lineas.length > 0) {
             const clavesAsignadas = res.lineas.map((l) => l.CVE_LIN);
 
-            $.get("../Servidor/PHP/inventario.php", {numFuncion: "3"}).done(
+            $.get("../Servidor/PHP/inventario.php", { numFuncion: "3" }).done(
                 function (response) {
                     const r =
                         typeof response === "string" ? JSON.parse(response) : response;
@@ -860,7 +858,7 @@ $(document).ready(function () {
     });
 
 
-// === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
+    // === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
     $("#finalizarInventarioLinea").click(function () {
         Swal.fire({
             title: "¿Estás seguro?",
@@ -879,7 +877,7 @@ $(document).ready(function () {
                 // Llamar al backend para verificar y generar conteos
                 $.post(
                     "../Servidor/PHP/inventario.php",
-                    {numFuncion: "20", idInventario: idInventario},
+                    { numFuncion: "20", idInventario: idInventario },
                     async function (response) {
                         console.log("Respuesta verificación inventario:", response);
                         if (response.success) {
@@ -928,24 +926,32 @@ function recolectarLinea() {
             const $row = $(this);
             const lote =
                 $row.find(".lote input").val() || $row.find(".lote").text() || "—";
+            /*const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
+            const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
+            const sueltos = Number($row.find('.qty-input-sueltos').val()) || 0;
+            const totales = Number($row.find('.qty-input-total').val()) || 0;
+            const piezas = (corr * cajas) + sueltos;*/
             const corr = parseInt($row.find(".qty-input-corrugado").val()) || 0;
             const cajas = parseInt($row.find(".qty-input-cajas").val()) || 0;
-            const piezas = corr * cajas;
+            const sueltos = ($row.find('.qty-input-sueltos').val()) || 0;
+            const totales = ($row.find('.qty-input-total').val()) || 0;
+            const piezas = (corr * cajas) + sueltos;
 
             lotes.push({
                 lote,
                 corrugados: corr,
                 corrugadosPorCaja: cajas,
-                total: piezas,
+                sueltos: sueltos,
+                piezas: piezas,
+                totales: totales,
             });
         });
 
         articulos[codigoArticulo] = lotes;
     });
 
-    return {noInventario: noInv, claveLinea, articulos};
+    return { noInventario: noInv, claveLinea, articulos };
 }
-
 // Envía datos al backend (autoguardado/finalizar)
 function guardarLinea(finalizar = false) {
     const payload = recolectarLinea();
@@ -968,7 +974,7 @@ function guardarLinea(finalizar = false) {
                         document.getElementById("resumenInventario")
                     );
                     modal.hide();
-                    subirPDFsLineas(window.MDPDFs.getSelected(), {tipo: 'linea', linea: res.claveLinea});
+                    subirPDFsLineas(window.MDPDFs.getSelected(), { tipo: 'linea', linea: res.claveLinea });
                     window.MDPDFs.reset();
                 });
             } else {
@@ -1043,9 +1049,9 @@ function generarPDFInventario(datos) {
             datos: JSON.stringify(datos),
             logo: logoBase64
         },
-        xhrFields: {responseType: "blob"}, // Esperamos PDF binario
+        xhrFields: { responseType: "blob" }, // Esperamos PDF binario
         success: function (data) {
-            const blob = new Blob([data], {type: "application/pdf"});
+            const blob = new Blob([data], { type: "application/pdf" });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = "Inventario_" + datos.noInventario + "_" + datos.claveLinea + ".pdf";

@@ -120,7 +120,7 @@ function abrirModalAsignacion(noInv) {
     // Cerrar modal de inventarios
     // guarda el inventario actual en un hidden del modal
     // (agrégalo al modal si no existe)
-     $("#modalInventarios").modal("hide");
+    $("#modalInventarios").modal("hide");
     let $hidden = $('#asociarLineas input[type="hidden"][name="noInventario"]');
     if ($hidden.length === 0) {
       $("#asociarLineas .modal-body").prepend(
@@ -163,39 +163,45 @@ function abrirModalAsignacion(noInv) {
   }
 }
 // (Opcional) trae lo que haya guardado en Firestore y puebla asignByUser/lineIndex
+// Llama esto al abrir el modal, pasando el noInventario activo
 async function cargarAsignacionesExistentes(noInv) {
   try {
     const res = await $.ajax({
       url: "../Servidor/PHP/inventario.php",
       method: "GET",
       dataType: "json",
-      data: { numFuncion: "11", noInventario: noInv }, // <-- crea este case 11 en PHP para devolver {asignaciones:{ lineaId:[userId1,userId2], ... }, usuarios:{userId:{nombre,usuario}}}
+      data: { numFuncion: "11", noInventario: noInv },
     });
 
-    if (!res || res.success !== true || !res.asignaciones) return;
+    if (!res || res.success !== true) return;
 
-    // Normaliza: res.asignaciones = { "001":["u1","u2"], "002":["u3"] ... }
-    // res.usuarios = { u1:{nombre:"..." , usuario:"@..."}, ... }  (sugerido para etiquetas)
-    Object.entries(res.asignaciones).forEach(([lin, users]) => {
-      if (!lineIndex[lin]) lineIndex[lin] = new Set();
-      (users || []).forEach((uid) => {
-        const u = (res.usuarios && res.usuarios[uid]) || {};
-        if (!asignByUser[uid])
+    // Limpia estructuras en memoria
+    asignByUser = {};
+    lineIndex = {};
+
+    const asign = res.asignaciones || {}; // { lineaId: [uid1, uid2], ... }
+    const users = res.usuarios || {};      // opcional, para mostrar nombre/usuario
+
+    Object.entries(asign).forEach(([lineaId, uids]) => {
+      if (!lineIndex[lineaId]) lineIndex[lineaId] = new Set();
+      (uids || []).slice(0, 2).forEach(uid => {
+        const infoU = users[uid] || {};
+        if (!asignByUser[uid]) {
           asignByUser[uid] = {
-            userName: u.nombre || uid,
-            userHandle: u.usuario || "",
-            lineas: {},
+            userName: infoU.nombre || uid,
+            userHandle: infoU.usuario || "",
+            lineas: {}
           };
-        asignByUser[uid].lineas[lin] = {
-          lineaDesc: res.lineasDesc?.[lin] || lin,
-        };
-        lineIndex[lin].add(uid);
+        }
+        // 👇 clave: marcamos persisted
+        asignByUser[uid].lineas[lineaId] = { lineaDesc: lineaId, persisted: true };
+        lineIndex[lineaId].add(uid);
       });
     });
 
     renderLista($("#listaEmpresasAsociadas"));
   } catch (e) {
-    console.warn("No se pudieron cargar asignaciones existentes:", e);
+    console.error("cargarAsignacionesExistentes error:", e);
   }
 }
 //////////////////////////////////////////////////////////
@@ -316,13 +322,13 @@ function escapeHtml(str) {
   return String(str ?? "").replace(
     /[&<>"']/g,
     (m) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      }[m])
+    ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[m])
   );
 }
 function escapeAttr(str) {
@@ -333,13 +339,13 @@ function escapeHtml(str) {
   return String(str ?? "").replace(
     /[&<>"']/g,
     (m) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      }[m])
+    ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[m])
   );
 }
 /**AsignarLinea**/
@@ -385,40 +391,38 @@ function renderLista($lista) {
     return;
   }
 
-  const rows = userIds
-    .map((uid) => {
-      const u = asignByUser[uid];
-      const lineas =
-        Object.entries(u.lineas)
-          .map(
-            ([linId, info]) => `
-      <span class="badge bg-light text-dark border me-2 mb-2 d-inline-flex align-items-center">
-        ${escapeHtml(info.lineaDesc)} 
-        <small class="text-muted ms-1">(${escapeHtml(linId)})</small>
-        <button type="button"
-                class="btn btn-link btn-sm text-danger ms-2 p-0 btnQuitar"
-                data-user="${escapeAttr(uid)}"
-                data-linea="${escapeAttr(linId)}"
-                title="Quitar esta línea">
-          &times;
-        </button>
-      </span>
-    `
-          )
-          .join("") || '<span class="text-muted">Sin líneas</span>';
+  const rows = userIds.map((uid) => {
+    const u = asignByUser[uid];
+    const lineas = Object.entries(u.lineas).map(([linId, info]) => {
+      const isOld = !!info.persisted; // ← venía del servidor
+      // estilos: viejo => éxito sutil; nuevo => claro
+      const cls = isOld
+        ? "bg-success-subtle border border-success text-success"
+        : "bg-light text-dark border";
+
+      const check = isOld ? '<i class="bx bx-check-circle me-1"></i>' : '';
 
       return `
+        <span class="badge ${cls} me-2 mb-2 d-inline-flex align-items-center">
+          ${check}${escapeHtml(info.lineaDesc)}
+          <small class="text-muted ms-1">(${escapeHtml(linId)})</small>
+          <button type="button"
+                  class="btn btn-link btn-sm ${isOld ? 'text-warning' : 'text-danger'} ms-2 p-0 btnQuitar"
+                  data-user="${escapeAttr(uid)}"
+                  data-linea="${escapeAttr(linId)}"
+                  title="${isOld ? 'Quitar (ya asignada antes)' : 'Quitar'}">
+            &times;
+          </button>
+        </span>
+      `;
+    }).join("") || '<span class="text-muted">Sin líneas</span>';
+
+    return `
       <li class="list-group-item" data-user="${escapeAttr(uid)}">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="fw-semibold">${escapeHtml(u.userName)}</div>
-            ${
-              u.userHandle
-                ? `<small class="text-muted">@${escapeHtml(
-                    u.userHandle
-                  )}</small>`
-                : ""
-            }
+            ${u.userHandle ? `<small class="text-muted">@${escapeHtml(u.userHandle)}</small>` : ""}
           </div>
           <button type="button"
                   class="btn btn-outline-danger btn-sm ms-3 btnQuitarUsuario"
@@ -430,23 +434,32 @@ function renderLista($lista) {
         <div class="mt-2">${lineas}</div>
       </li>
     `;
-    })
-    .join("");
+  }).join("");
 
-  $lista.html(rows);
+  // leyenda opcional
+  const legend = `
+    <li class="list-group-item d-flex align-items-center gap-3">
+      <span class="badge bg-success-subtle border border-success text-success">
+        <i class="bx bx-check-circle me-1"></i>Asignación existente
+      </span>
+      <span class="badge bg-light text-dark border">Nueva asignación</span>
+    </li>
+  `;
+
+  $lista.html(legend + rows);
 }
 // ====== Helpers ======
 function escapeHtml(str) {
   return String(str ?? "").replace(
     /[&<>"']/g,
     (m) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      }[m])
+    ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[m])
   );
 }
 function escapeAttr(str) {
@@ -455,13 +468,30 @@ function escapeAttr(str) {
 $("#listaEmpresasAsociadas").on("click", ".btnQuitar", function () {
   const uid = $(this).data("user");
   const lin = $(this).data("linea");
-  if (asignPend[uid] && asignPend[uid].lineas[lin]) {
-    delete asignPend[uid].lineas[lin];
-    if (Object.keys(asignPend[uid].lineas).length === 0) delete asignPend[uid];
-    renderLista(asignPend, $("#listaEmpresasAsociadas"));
+
+  const obj = asignByUser?.[uid]?.lineas?.[lin];
+  if (!obj) return;
+
+  const reallyRemove = async () => {
+    delete asignByUser[uid].lineas[lin];
+    lineIndex[lin]?.delete(uid);
+    if (Object.keys(asignByUser[uid].lineas).length === 0) delete asignByUser[uid];
+    renderLista($("#listaEmpresasAsociadas"));
+  };
+
+  if (obj.persisted) {
+    Swal.fire({
+      icon: "warning",
+      title: "Quitar asignación existente",
+      text: "Esta línea ya estaba asignada previamente. ¿Seguro que deseas quitarla?",
+      showCancelButton: true,
+      confirmButtonText: "Sí, quitar",
+      cancelButtonText: "Cancelar",
+    }).then((r) => { if (r.isConfirmed) reallyRemove(); });
+  } else {
+    reallyRemove();
   }
 });
-
 $("#btnModalInventarios").click(function () {
   mostrarInventarios();
 });
@@ -474,7 +504,6 @@ $("#btnNuevoInventario").click(function () {
     url: "../Servidor/PHP/inventario.php",
     method: "POST",
     data: { numFuncion: "6" },
-
     success: function (response) {
       cerrarLoader();
       try {
