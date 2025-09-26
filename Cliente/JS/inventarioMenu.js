@@ -6,6 +6,20 @@ let lineIndex = {
   // lineaId: Set<userId>
 };
 
+// Función para formatear fecha
+function formatearFecha(fechaStr) {
+  if (!fechaStr) return "-";
+
+  const meses = ["ene", "feb", "mar", "abr", "may", "jun",
+    "jul", "ago", "sept", "oct", "nov", "dic"];
+
+  const [fechaParte, horaParte] = fechaStr.split(" "); // "2025-09-26", "08:30:48"
+  const [anio, mes, dia] = fechaParte.split("-");
+
+  return `${parseInt(dia)} ${meses[parseInt(mes) - 1]} ${anio} ${horaParte}`;
+}
+
+
 async function mostrarInventarios() {
   $.ajax({
     url: "../Servidor/PHP/inventario.php",
@@ -33,24 +47,29 @@ async function mostrarInventarios() {
         return;
       }
 
+
+
       // Pintado inicial
       inventarios.forEach((inv) => {
         const noInv = inv.noInventario ?? "-";
-        const fecha = inv.fechaInicio ?? "-";
-        const estado = inv.status ? "Activo" : "Finalizado";
+        const fecha = formatearFecha(inv.fechaInicio) ?? "-";
+        const estado = inv.status
+            ? `<span class="badge-estado badge-activo">Activo</span>`
+            : `<span class="badge-estado badge-finalizado">Finalizado</span>`;
+
 
         const $acciones = $(`<td class="acciones"></td>`);
 
         // Descargar (se mostrará tras comprobar archivos)
         const $btnDesc = $(
-          `<button class="btn btn-sm btn-primary d-none me-2">Descargar</button>`
+          `<button class="btn btn-sm btn-blue me-2">Descargar Evidencias</button>`
         ).on("click", () => descargarEvidencia(noInv));
         $acciones.append($btnDesc);
 
         // Asignar líneas (solo activos)
         if (inv.status === true) {
           const $btnAsign = $(
-            `<button class="btn btn-sm btn-outline-secondary">Asignar líneas</button>`
+            `<button class="btn btn-sm btn-purple">Asignar líneas</button>`
           ).on("click", () => abrirModalAsignacion(noInv));
           $acciones.append($btnAsign);
         } else {
@@ -116,11 +135,14 @@ function descargarEvidencia(noInv) {
 }
 ///////////////////////////////////////////////////////////
 function abrirModalAsignacion(noInv) {
+  $("#modalInventarios").modal("hide");
+  mostrarLoader("Cargando Líneas...", "Por favor espera");
   try {
     // Cerrar modal de inventarios
     // guarda el inventario actual en un hidden del modal
     // (agrégalo al modal si no existe)
-    $("#modalInventarios").modal("hide");
+
+
     let $hidden = $('#asociarLineas input[type="hidden"][name="noInventario"]');
     if ($hidden.length === 0) {
       $("#asociarLineas .modal-body").prepend(
@@ -146,14 +168,17 @@ function abrirModalAsignacion(noInv) {
     // por ejemplo: obtenerAlmacenistas(); // llenar #selectUsuario
 
     // opcional: traer asignaciones existentes para no empezar vacío
+
     cargarAsignacionesExistentes(noInv).then(() => {
       // abrir modal
       const el = document.getElementById("asociarLineas");
       const modal = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+      cerrarLoader();
       modal.show();
       //$("#btnAsignar").off("click").on("click", asignarLinea);
     });
   } catch (e) {
+    cerrarLoader();
     console.error(e);
     Swal.fire({
       icon: "error",
@@ -278,7 +303,7 @@ function obtenerAlmacenistas() {
           const lineaSelect = $("#selectUsuario");
           lineaSelect.empty();
           lineaSelect.append(
-            "<option selected disabled>Seleccione una linea</option>"
+            "<option selected disabled>Seleccione un usuario</option>"
           );
 
           res.data.forEach((dato) => {
@@ -620,3 +645,61 @@ $("#btnGuardarAsignacion").on("click", function () {
 $("#btnAsignar").click(function () {
   asignarLinea();
 });
+
+
+// ======================== SWITCHES DE CONFIGURACION ================================
+$(document).ready(function() {
+  // Obtener valores iniciales al cargar la página
+  obtenerConfig();
+
+  // Eventos de cambio
+  $("#switchGeneracionConteos").on("change", function() {
+    actualizarConfig("generacionConteos", this.checked);
+  });
+
+  $("#switchGuardadoAutomatico").on("change", function() {
+    actualizarConfig("guardadoAutomatico", this.checked);
+  });
+});
+
+// === Obtener configuración inicial (case 22) ===
+function obtenerConfig() {
+  $.ajax({
+    url: "../Servidor/PHP/inventario.php",
+    method: "GET",
+    data: { numFuncion: 22 },
+    dataType: "json" // 👈 fuerza JSON
+  })
+      .done(function(res) {
+        if (res.success && res.data) {
+          $("#switchGeneracionConteos").prop("checked", res.data.generacionConteos === true);
+          $("#switchGuardadoAutomatico").prop("checked", res.data.guardadoAutomatico === true);
+        } else {
+          console.error("Error al obtener configuración:", res.message || "Respuesta sin datos");
+        }
+      })
+      .fail(function(err) {
+        console.error("Fallo en obtenerConfig:", err);
+      });
+}
+
+
+
+// === Actualizar configuración (case 23) ===
+function actualizarConfig(campo, valor) {
+  $.post("../Servidor/PHP/inventario.php", {
+    numFuncion: 23,
+    campo: campo,
+    valor: valor
+  }, null, "json").done(function(res) {
+    if (res.success) {
+      console.log("Actualizado");
+    } else {
+      console.log("Error");
+    }
+  }).fail(function(err) {
+    console.log("Fallo en actualizarConfig:", err);
+  });
+}
+
+

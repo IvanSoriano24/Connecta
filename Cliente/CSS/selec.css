@@ -43,6 +43,47 @@
     transform: scale(1.05); /* Efecto de zoom */
 }
 
+/* Botón morado minimalista */
+.btn-purple {
+    background-color: #9b59b6; /* Morado */
+    border: none;
+    border-radius: 8px; /* Bordes sutilmente redondeados */
+    padding: 8px 16px; /* Más pequeño y compacto */
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-purple:hover {
+    background-color: #8e44ad; /* Morado más oscuro */
+    transform: translateY(-2px);
+    color: #fff;
+}
+
+/* Botón azul minimalista */
+.btn-blue {
+    background-color: #3498db; /* Azul */
+    border: none;
+    border-radius: 8px; /* Bordes sutiles */
+    padding: 8px 16px; /* Compacto */
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-blue:hover {
+    background-color: #2980b9; /* Azul más oscuro */
+    transform: translateY(-2px);
+    color: #fff;
+}
+
+
+
+
 /* Pie de página */
 footer {
     margin-top: 20px;

@@ -114,6 +114,26 @@ session_destroy(); */
                 font-size: 72px;
             }
         }
+
+        .badge-estado {
+            display: inline-block;
+            padding: 5px 16px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .badge-activo {
+            background-color: rgba(40, 167, 69, 0.15); /* Verde muy suave */
+            color: #28a745; /* Texto verde */
+        }
+
+        .badge-finalizado {
+            background-color: rgba(108, 117, 125, 0.15); /* Gris muy suave */
+            color: #6c757d; /* Texto gris */
+        }
+
+
     </style>
 </head>
 
@@ -141,7 +161,24 @@ session_destroy(); */
                                 data-bs-target="#modalInventarios" id="btnModalInventarios">
                             <i class='bx bx-clipboard'></i> Ver Inventarios
                         </button>
+
+                        <div class="mt-3">
+                            <div class="form-check form-switch d-inline-block me-4">
+                                <input class="form-check-input" type="checkbox" id="switchGeneracionConteos">
+                                <label class="form-check-label" for="switchGeneracionConteos">
+                                    Generación conteos automático
+                                </label>
+                            </div>
+
+                            <div class="form-check form-switch d-inline-block">
+                                <input class="form-check-input" type="checkbox" id="switchGuardadoAutomatico">
+                                <label class="form-check-label" for="switchGuardadoAutomatico">
+                                    Guardado automático
+                                </label>
+                            </div>
+                        </div>
                     </div>
+
                     <?php
                 }
                 ?>
@@ -186,13 +223,13 @@ session_destroy(); */
                         <!-- Cuerpo con la tabla -->
                         <div class="modal-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover align-middle">
+                                <table class="table table-striped table-hover align-middle text-center">
                                     <thead class="table-primary">
                                     <tr>
                                         <th>No. Inventario</th>
                                         <th>Fecha</th>
                                         <th>Estado</th>
-                                        <th>Descargar Evidencia</th>
+                                        <th>Acciones</th>
                                     </tr>
                                     </thead>
                                     <tbody id="tablaInventarios">
@@ -226,22 +263,22 @@ session_destroy(); */
                         </div>
                         <div class="modal-body">
 
-                            <div class="container">
-                                <div class="row">
-                                    <div class="col-md-6">
+                            <div>
+                                <div class="row align-items-end">
+                                    <div class="col-md-5">
                                         <h6>Seleccionar Usuario</h6>
                                         <select id="selectUsuario" class="form-select">
                                             <option selected disabled>Seleccione un usuario</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-5">
                                         <h6>Seleccionar Linea</h6>
                                         <select id="lineaSelect" class="form-select">
-                                            <option selected disabled>Seleccione una linea</option>
+                                            <option selected disabled>Seleccione una línea</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <input type="button" value="Asignar" class="form-button" id="btnAsignar">
+                                    <div class="col d-flex">
+                                        <button type="button" class="btn btn-success ms-auto" id="btnAsignar">Asignar</button>
                                     </div>
                                     <div id="empresasAsociadas" class="mt-4">
                                         <h6>Lineas Asignadas</h6>
