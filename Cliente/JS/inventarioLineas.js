@@ -236,7 +236,7 @@ function buscarInventario() {
   const $btnNext = $("#btnNext");
 
   // Estado inicial (opcional)
-  $btnNext.prop("disabled", true);
+  //$btnNext.prop("disabled", true);
 
   return $.ajax({
     url: "../Servidor/PHP/inventario.php",
@@ -272,7 +272,7 @@ function buscarInventario() {
           .prop("readonly", true)
           .addClass("is-valid");
         $linea.prop("disabled", false);
-        $btnNext.prop("disabled", false);
+        //$btnNext.prop("disabled", false);
 
         Swal.fire({
           icon: "info",

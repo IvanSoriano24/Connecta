@@ -553,31 +553,6 @@ $("#btnNuevoInventario").click(function () {
 // Cancelar desde el header o footer
 $("#cerrarModalAsociasionHeader, #cerrarModalAsociasionFooter").click(
   function () {
-    if (inventarioActualId) {
-      $.ajax({
-        url: "../Servidor/PHP/inventario.php",
-        method: "POST",
-        data: {
-          numFuncion: "21",
-          idInventario: inventarioActualId,
-        },
-        success: function (response) {
-          try {
-            const res = JSON.parse(response);
-            if (res.success) {
-              console.log("Inventario eliminado:", inventarioActualId);
-            } else {
-              console.warn("Error al eliminar inventario:", res.message);
-            }
-          } catch (e) {
-            console.error("Error procesando eliminación:", e);
-          }
-        },
-        error: function () {
-          console.error("Error al eliminar inventario en backend.");
-        },
-      });
-    }
     $("#asociarLineas").modal("hide");
   }
 );

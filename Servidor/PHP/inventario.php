@@ -101,7 +101,7 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario, $usuarioId, ?int $conteoPreferido=null)
+function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey, $linea, $noInventario, $usuarioId, ?int $conteoPreferido = null)
 {
     if (!$noEmpresa || !$linea || !$noInventario) {
         return ['success' => false, 'message' => 'Parámetros incompletos'];
@@ -153,7 +153,7 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
         }
 
         if (in_array((string)$usuarioId, $assigned, true)) {
-            $candidatos[] = ['subcol'=>$sc, 'conteo'=>$numConteo, 'doc'=>$doc];
+            $candidatos[] = ['subcol' => $sc, 'conteo' => $numConteo, 'doc' => $doc];
         }
     }
 
@@ -176,7 +176,7 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
     // Elegir candidato:
     // - si vino $conteoPreferido ya lo filtramos arriba
     // - si no vino, tomar el de mayor conteo (el más reciente)
-    usort($candidatos, fn($a,$b)=> $b['conteo'] <=> $a['conteo']);
+    usort($candidatos, fn($a, $b) => $b['conteo'] <=> $a['conteo']);
     $pick = $candidatos[0];
 
     $fields      = $pick['doc']['fields'];
@@ -187,8 +187,19 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
 
     // Campos no producto
     $reservados = [
-        'locked','conteo','finishedAt','lockedBy','updatedAt','lastProduct',
-        'conteoTotal','diferencia','existSistema','descr','linesStatus','idAsignado','status'
+        'locked',
+        'conteo',
+        'finishedAt',
+        'lockedBy',
+        'updatedAt',
+        'lastProduct',
+        'conteoTotal',
+        'diferencia',
+        'existSistema',
+        'descr',
+        'linesStatus',
+        'idAsignado',
+        'status'
     ];
 
     // Transformar productos
@@ -698,7 +709,8 @@ function escape_field_path($name)
     return '`' . str_replace('`', '\\`', $name) . '`';
 }
 // Helper: resuelve nombre de subcolección a partir de conteo/subconteo
-function subcol_from_conteo(int $conteo, int $subconteo): string {
+function subcol_from_conteo(int $conteo, int $subconteo): string
+{
     // normaliza
     if ($conteo < 1)     $conteo = 1;
     if ($subconteo !== 2) $subconteo = 1; // sólo 1 o 2
@@ -722,9 +734,9 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
     }
 
     // Validaciones mínimas
-    foreach (['linea','noInventario','cve_art','conteo','subconteo'] as $k) {
+    foreach (['linea', 'noInventario', 'cve_art', 'conteo', 'subconteo'] as $k) {
         if (!isset($payload[$k]) || $payload[$k] === '') {
-            echo json_encode(['success'=>false,'message'=>"Falta $k"]);
+            echo json_encode(['success' => false, 'message' => "Falta $k"]);
             exit;
         }
     }
@@ -752,7 +764,7 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
     // 1) Inventario
     $inv = getInventarioDocByFolio($noEmpresa, $folioInv, $firebaseProjectId, $firebaseApiKey);
     if (!$inv || empty($inv['docId'])) {
-        echo json_encode(['success'=>false,'message'=>'No se encontró inventario activo para ese folio/empresa']);
+        echo json_encode(['success' => false, 'message' => 'No se encontró inventario activo para ese folio/empresa']);
         exit;
     }
     $invDocId = $inv['docId'];
@@ -767,11 +779,11 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
     // (opcional) bloqueo: si tu semántica usa status=false como bloqueada, revísalo también
     $lineDoc = http_get_json($lineDocUrl);
     if (isset($lineDoc['fields']['locked']['booleanValue']) && $lineDoc['fields']['locked']['booleanValue'] === true) {
-        echo json_encode(['success'=>false,'message'=>'Línea bloqueada']);
+        echo json_encode(['success' => false, 'message' => 'Línea bloqueada']);
         exit;
     }
     if (isset($lineDoc['fields']['status']['booleanValue']) && $lineDoc['fields']['status']['booleanValue'] === false) {
-        echo json_encode(['success'=>false,'message'=>'Línea finalizada (no editable)']);
+        echo json_encode(['success' => false, 'message' => 'Línea finalizada (no editable)']);
         exit;
     }
 
@@ -835,7 +847,7 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
 
     $patchResp = http_patch_json($patchUrl, $payloadFirestore);
     if (!$patchResp) {
-        echo json_encode(['success'=>false,'message'=>'No se pudo guardar en Firestore']);
+        echo json_encode(['success' => false, 'message' => 'No se pudo guardar en Firestore']);
         exit;
     }
 
@@ -1131,10 +1143,21 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
 
     // ==== Helpers: detectar si el doc de una subcolección tiene productos guardados ====
     $reservados = [
-        'locked','conteo','finishedAt','lockedBy','updatedAt','lastProduct',
-        'conteoTotal','diferencia','existSistema','descr','linesStatus','status','idAsignado'
+        'locked',
+        'conteo',
+        'finishedAt',
+        'lockedBy',
+        'updatedAt',
+        'lastProduct',
+        'conteoTotal',
+        'diferencia',
+        'existSistema',
+        'descr',
+        'linesStatus',
+        'status',
+        'idAsignado'
     ];
-    $hasProducts = function(array $doc) use ($reservados): bool {
+    $hasProducts = function (array $doc) use ($reservados): bool {
         if (empty($doc['fields']) || !is_array($doc['fields'])) return false;
         foreach ($doc['fields'] as $k => $val) {
             if (in_array($k, $reservados, true)) continue;
@@ -1158,7 +1181,7 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         $want  = [$desiredUids[0] ?? null, $desiredUids[1] ?? null];
 
         // Recorremos slots 0 (lineas) y 1 (lineas02)
-        for ($slot=0; $slot<2; $slot++) {
+        for ($slot = 0; $slot < 2; $slot++) {
             $subcol = ($slot === 0) ? 'lineas' : 'lineas02';
             $oldUid = $old[$slot];
             $newUid = $want[$slot];
@@ -1205,13 +1228,13 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
                 http_delete_simple($docUrl);
                 // crear/patch con nuevo idAsignado + conteo
                 $patchUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey"
-                          . "&updateMask.fieldPaths=idAsignado"
-                          . "&updateMask.fieldPaths=conteo"
-                          . "&updateMask.fieldPaths=updatedAt";
+                    . "&updateMask.fieldPaths=idAsignado"
+                    . "&updateMask.fieldPaths=conteo"
+                    . "&updateMask.fieldPaths=updatedAt";
                 $body = [
                     'fields' => [
                         'idAsignado'   => ['stringValue' => $newUid],
-                        'conteo'       => ['integerValue' => ($slot+1)],
+                        'conteo'       => ['integerValue' => ($slot + 1)],
                         'updatedAt'    => ['timestampValue' => $tsIso],
                     ]
                 ];
@@ -1224,13 +1247,13 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
             if (!$oldUid && $newUid) {
                 // ✓ escribir doc con idAsignado
                 $patchUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey"
-                          . "&updateMask.fieldPaths=idAsignado"
-                          . "&updateMask.fieldPaths=conteo"
-                          . "&updateMask.fieldPaths=updatedAt";
+                    . "&updateMask.fieldPaths=idAsignado"
+                    . "&updateMask.fieldPaths=conteo"
+                    . "&updateMask.fieldPaths=updatedAt";
                 $body = [
                     'fields' => [
                         'idAsignado'   => ['stringValue' => $newUid],
-                        'conteo'       => ['integerValue' => ($slot+1)],
+                        'conteo'       => ['integerValue' => ($slot + 1)],
                         'updatedAt'    => ['timestampValue' => $tsIso],
                     ]
                 ];
@@ -1241,7 +1264,7 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         }
 
         // Limpia nulls finales del arreglo (deja solo existentes)
-        $finalMap[$lineaId] = array_values(array_filter($finalMap[$lineaId] ?? [], fn($u)=>!!$u));
+        $finalMap[$lineaId] = array_values(array_filter($finalMap[$lineaId] ?? [], fn($u) => !!$u));
         // Asegura límite de 2
         $finalMap[$lineaId] = array_slice($finalMap[$lineaId], 0, 2);
     }
@@ -1253,8 +1276,8 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         $old = [$oldUids[0] ?? null, $oldUids[1] ?? null];
         $want = [null, null];
 
-        for ($slot=0; $slot<2; $slot++) {
-            $subcol = ($slot===0)?'lineas':'lineas02';
+        for ($slot = 0; $slot < 2; $slot++) {
+            $subcol = ($slot === 0) ? 'lineas' : 'lineas02';
             $oldUid = $old[$slot];
             if (!$oldUid) continue;
 
@@ -1277,17 +1300,17 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
 
         // Normaliza restantes para esa línea
         if (isset($finalMap[$lineaId])) {
-            $finalMap[$lineaId] = array_values(array_filter($finalMap[$lineaId], fn($u)=>!!$u));
-            if (count($finalMap[$lineaId])===0) unset($finalMap[$lineaId]);
+            $finalMap[$lineaId] = array_values(array_filter($finalMap[$lineaId], fn($u) => !!$u));
+            if (count($finalMap[$lineaId]) === 0) unset($finalMap[$lineaId]);
         }
     }
 
     // ==== 5) Escribir asignaciones finales al doc INVENTARIO ====
     $mapFields = [];
     foreach ($finalMap as $lineaId => $uids) {
-        $uids = array_values(array_filter($uids, fn($u)=>is_string($u)&&$u!==''));
+        $uids = array_values(array_filter($uids, fn($u) => is_string($u) && $u !== ''));
         $uids = array_slice($uids, 0, 2);
-        $arrVals = array_map(fn($u)=>['stringValue'=>$u], $uids);
+        $arrVals = array_map(fn($u) => ['stringValue' => $u], $uids);
         $mapFields[(string)$lineaId] = ['arrayValue' => ['values' => $arrVals]];
     }
 
@@ -1769,6 +1792,21 @@ function http_get_jsonAsignaciones(string $url): ?array
     $j = json_decode($res, true);
     return is_array($j) ? $j : null;
 }
+function _arr_string_from_field(?array $field): array
+{
+    // field tipo arrayValue.values de stringValue -> array de strings
+    $out = [];
+    if (!empty($field['arrayValue']['values'])) {
+        foreach ($field['arrayValue']['values'] as $v) {
+            if (isset($v['stringValue'])) $out[] = (string)$v['stringValue'];
+        }
+    }
+    return $out;
+}
+function _arrayValue_strings(array $arr): array
+{
+    return ['arrayValue' => ['values' => array_map(fn($s) => ['stringValue' => (string)$s], array_values(array_unique($arr)))]];
+}
 
 
 // -----------------------------------------------------------------------------------------------------//
@@ -1971,7 +2009,6 @@ switch ($funcion) {
                     "conteo" => ["integerValue" => $nextConteo]
                 ]
             ]);
-
             file_get_contents($urlUpdateInv, false, stream_context_create([
                 'http' => [
                     'method'  => 'PATCH',
@@ -1980,64 +2017,87 @@ switch ($funcion) {
                 ]
             ]));
 
-
             // Obtener asignaciones de la cabecera
             $asignaciones = $docInv['fields']['asignaciones']['mapValue']['fields'] ?? [];
-
             // Crear subcolecciones nuevas con documentos por cada asignación
+            // Copiamos “resueltosSAE” del par actual -> “omitidos” en el siguiente par
             foreach ($asignaciones as $docId => $arrUsuarios) {
                 $usuarios = $arrUsuarios['arrayValue']['values'] ?? [];
 
-                // Subconteo 1 → primer usuario
+                // 1) Junta resueltosSAE del par actual (si existen en cualquiera de los 2 docs)
+                $resueltos = [];
+                foreach ($currentPair as $subcolActual) {
+                    $urlActual = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/$subcolActual/$docId?key=$firebaseApiKey";
+                    $docAct = @json_decode(@file_get_contents($urlActual), true);
+                    if (!isset($docAct['fields'])) continue;
+
+                    // tolerar distintos nombres por si cambiaste el campo
+                    foreach (['resueltosSAE', 'igualesSAE', 'coincidentesSAE'] as $k) {
+                        if (isset($docAct['fields'][$k])) {
+                            $resueltos = array_merge($resueltos, _arr_string_from_field($docAct['fields'][$k]));
+                        }
+                    }
+                }
+                $resueltos = array_values(array_unique($resueltos)); // 🔒 únicos
+
+                // 2) Crear documentos del siguiente par con omitidos + idAsignado
+                $tsIso = gmdate('c');
+
+                // Subconteo 1 (nextPair[0]) ← primer usuario
                 if (isset($usuarios[0]['stringValue'])) {
                     $usuario1 = $usuarios[0]['stringValue'];
-                    $urlCreateDoc = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/{$nextPair[0]}/$docId?key=$firebaseApiKey";
 
-                    $payloadDoc = json_encode([
+                    $urlCreateDoc = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/{$nextPair[0]}/$docId?key=$firebaseApiKey";
+                    $payloadDoc = [
                         "fields" => [
                             "status"     => ["booleanValue" => true],
                             "idAsignado" => ["stringValue"  => $usuario1],
-                            "updatedAt"  => ["timestampValue" => gmdate('c')]
+                            "updatedAt"  => ["timestampValue" => $tsIso],
                         ]
-                    ]);
+                    ];
+                    if (!empty($resueltos)) {
+                        $payloadDoc["fields"]["omitidos"] = _arrayValue_strings($resueltos);
+                    }
 
                     file_get_contents($urlCreateDoc, false, stream_context_create([
                         'http' => [
                             'method'  => 'PATCH',
                             'header'  => "Content-Type: application/json\r\n",
-                            'content' => $payloadDoc
+                            'content' => json_encode($payloadDoc)
                         ]
                     ]));
                 }
 
-                // Subconteo 2 → segundo usuario
+                // Subconteo 2 (nextPair[1]) ← segundo usuario
                 if (isset($usuarios[1]['stringValue'])) {
                     $usuario2 = $usuarios[1]['stringValue'];
-                    $urlCreateDoc = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/{$nextPair[1]}/$docId?key=$firebaseApiKey";
 
-                    $payloadDoc = json_encode([
+                    $urlCreateDoc = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario/{$nextPair[1]}/$docId?key=$firebaseApiKey";
+                    $payloadDoc = [
                         "fields" => [
                             "status"     => ["booleanValue" => true],
                             "idAsignado" => ["stringValue"  => $usuario2],
-                            "updatedAt"  => ["timestampValue" => gmdate('c')]
+                            "updatedAt"  => ["timestampValue" => $tsIso],
                         ]
-                    ]);
+                    ];
+                    if (!empty($resueltos)) {
+                        $payloadDoc["fields"]["omitidos"] = _arrayValue_strings($resueltos);
+                    }
 
                     file_get_contents($urlCreateDoc, false, stream_context_create([
                         'http' => [
                             'method'  => 'PATCH',
                             'header'  => "Content-Type: application/json\r\n",
-                            'content' => $payloadDoc
+                            'content' => json_encode($payloadDoc)
                         ]
                     ]));
                 }
             }
-
             echo json_encode(['success' => true, 'message' => "Nuevos conteos creados: " . implode(" y ", $nextPair) . " y conteo actualizado a $nextConteo"]);
         } else {
             echo json_encode(['success' => true, 'message' => 'Todas las líneas finalizadas. No se generaron más conteos (generacionConteos = false)']);
         }
-    break;
+        break;
 
 
     case 21: // Eliminar inventario

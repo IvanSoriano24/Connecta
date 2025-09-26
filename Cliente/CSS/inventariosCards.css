@@ -1,0 +1,78 @@
+/* --- Tarjeta compacta con header sticky --- */
+.article-card.spacious {
+  max-height: 60vh;          /* ajusta a tu gusto */
+  overflow: auto;            /* permite scroll interno de los lotes */
+  border: 1px solid #e9ecef;
+  border-radius: .5rem;
+  background: #fff;
+}
+
+/* Header fijo dentro de la tarjeta */
+.article-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+  border-bottom: 1px solid #eef1f4;
+  padding: .5rem .75rem;
+}
+
+/* Más aire y jerarquía visual */
+.article-head .code { font-weight: 700; }
+.article-head .name { font-weight: 600; margin-left: .5rem; }
+.article-head .exist { font-size: .85rem; color: #6c757d; }
+.article-head .total { margin-left: auto; }
+
+/* --- Filas compactas --- */
+.rows.rows--spaced { padding: .5rem .75rem; }
+
+/* Grid compacto para cada fila de lote */
+.row-line {
+  display: grid;
+  grid-template-columns: 120px repeat(4, minmax(0, 1fr)) 40px; /* Lote + 4 inputs + (opcional) eliminar */
+  gap: .5rem;
+  align-items: center;
+  padding: .25rem 0;
+  border-bottom: 1px dashed #f2f4f7;
+}
+
+/* “Lote” ocupa una columna fija */
+.row-line .lote { font-weight: 500; }
+
+/* Inputs compactos */
+.row-line .form-control.form-control-sm {
+  height: calc(1.3rem + 2px);
+  padding: .125rem .375rem;
+  font-size: .8rem;
+}
+
+/* Etiquetas pequeñas encima del input */
+.field.label > span {
+  display: block;
+  font-size: .75rem;
+  color: #6c757d;
+  margin-bottom: .15rem;
+}
+
+/* Botón Agregar siempre visible pegado abajo */
+.row-add.row-add--spaced {
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.6), #fff 60%);
+  padding: .35rem 0 .5rem;
+  border-top: 1px solid #f1f3f5;
+}
+
+/* Botones compactos */
+.btn.btn-sm, .btn.btn-outline-primary.btn-sm, .btn.btn-danger.btn-sm {
+  padding: .125rem .4rem;
+  font-size: .8rem;
+}
+
+/* Acciones del header en una sola línea con gap */
+.article-head.article-head--spaced {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}

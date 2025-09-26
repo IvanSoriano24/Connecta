@@ -430,6 +430,7 @@ session_destroy(); */
             --bs-btn-disabled-border-color: #0d6efd;
         }
     </style>
+    <link rel="stylesheet" href="CSS/inventariosCards.css">
 </head>
 
 <body>
@@ -453,12 +454,11 @@ session_destroy(); */
                             <span class="status">Iniciado</span>
                             <span class="sep">|</span>
                             <a href="inventarioLineas.php" class="current">Por líneas</a>
-                            <span>idUsuario: <?= $_SESSION['usuario']['idReal']; ?></span>
                         </div>
 
                         <div class="d-flex gap-2">
                             <a href="inventarioFisico.php" class="btn btn-light">Atrás</a>
-                            <button type="button" class="btn btn-primary" id="btnNext">Siguiente</button>
+                            <button type="button" class="btn btn-primary" id="btnNext" disabled>Terminar</button>
                         </div>
                     </div>
 
@@ -548,7 +548,7 @@ session_destroy(); */
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content pdf-modal-content">
                 <div class="modal-header pdf-modal-header-style">
-                    <h5 class="modal-title">Subir Archivos PDF</h5>
+                    <h5 class="modal-title">Subir Archivos</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -631,14 +631,32 @@ session_destroy(); */
             resetUI();
 
             $linea.on('change', function() {
+                //btnNext
+                //$btnNext.disable.false;
                 const linea = $(this).val();
                 if (!linea) {
                     resetUI();
                     return;
                 }
-                loadArticulos(linea);
-                loadGuardados(linea);
+                mostrarLoader();
+                updateBtnNextState();
+                loadArticulos(linea)
+                    .then(function(items) {
+                        // loadArticulos terminó correctamente
+                        loadGuardados(linea);
+                    })
+                    .catch(function(err) {
+                        // manejo de error si lo deseas
+                        console.error('loadArticulos falló:', err);
+                        // opcional: aún así intentar loadGuardados o no
+                    });
             });
+
+            function updateBtnNextState() {
+                const linea = $linea.val();
+                // Deshabilitar si no hay valor, habilitar si hay alguno
+                $btnNext.prop('disabled', !linea);
+            }
 
             function resetUI() {
                 $btnNext.prop('disabled', true);
@@ -664,7 +682,7 @@ session_destroy(); */
             // Carga por línea -> numFuncion=4
             function loadArticulos(linea) {
                 showLoading();
-                $.ajax({
+                return $.ajax({
                         url: '../Servidor/PHP/inventario.php',
                         method: 'GET',
                         dataType: 'json',
@@ -676,29 +694,30 @@ session_destroy(); */
                             linea: linea
                         }
                     })
-                    .done(function(res) {
-                        // La API puede venir como {success:true,data:[...]} o directamente [...]
+                    .then(function(res) {
                         const rows = Array.isArray(res?.data) ? res.data :
                             Array.isArray(res) ? res :
                             (res?.CVE_ART ? [res] : []);
 
                         if (!rows.length) {
                             showEmpty('No hay artículos para esta línea.');
-                            return;
+                            return []; // devolver array vacío para seguir la cadena
                         }
 
-                        // 1) Normalizar: agrupar por CVE_ART -> items con lotes[]
                         const items = normalizeToArticles(rows);
                         if (!items.length) {
                             showEmpty();
-                            return;
+                            return [];
                         }
 
-                        // 2) Render
                         renderArticulos(items);
                         $btnNext.prop('disabled', false);
-                    })
-                    .fail(showError);
+                        return items; // valor que recibe el .then en el caller
+                    }, function(err) {
+                        // propaga el error hacia el .catch del caller
+                        showError(err);
+                        return $.Deferred().reject(err).promise();
+                    });
             }
             //Mostar productos guardados de la linea
             function loadGuardados(linea) {
@@ -721,6 +740,7 @@ session_destroy(); */
                         // { success:true, linea:"002", locked:bool, productos:[{ cve_art, conteoTotal, lotes:[{corrugados,corrugadosPorCaja,lote,total}] }] }
                         if (!res || res.success !== true) return;
                         applyGuardadosToUI(res);
+                        cerrarLoader();
                     })
                     .fail(function(err) {
                         console.error('loadGuardados error:', err);
@@ -779,7 +799,7 @@ session_destroy(); */
 
                 // 3) Si la línea está bloqueada, deshabilita inputs y botones
                 if (locked === false) {
-                    $articulos.find('input, button.btn-add-row, button.btn-save-article, button.eliminarLote')
+                    $articulos.find('input, button.btn-add-row, button.btn-save-article, button.eliminarLote, button.btn-save-image')
                         .prop('disabled', true);
                     $('#btnCerrarLinea').prop('disabled', true);
                     // Opcional: aviso visual
@@ -805,63 +825,46 @@ session_destroy(); */
                 $card.find('.article-total').text(sum);
             }
             // Fila de lote (HTML) con valores
-            function rowHtml({
-                lote,
-                corr,
-                cajas,
-                sueltos,
-                activa,
-                total
-            }) {
-                const bloqueado = !activa;
-                const disabledAttr = bloqueado ? 'disabled' : '';
-                /*console.log(lote);
-                console.log(corr);
-                console.log(cajas);
-                console.log(sueltos);
-                console.log(total);*/
-                return `
-                    <div class="row-line">
-                    <div class="lote">
-                        ${lote ? escapeHtml(lote) : ''}
-                    </div>
+            function rowHtml({ lote, corr, cajas, sueltos, activa, total }) {
+  const bloqueado   = !activa;
+  const disabledAttr = bloqueado ? 'disabled' : '';
+  return `
+    <div class="row-line">
+      <div class="lote">
+        ${lote ? escapeHtml(lote) : ''}
+      </div>
 
-                    <label class="field label">
-                        <span>Corrugado:</span>
-                        <input type="number"
-                            class="form-control qty-input-corrugado"
-                            value="${Number(corr) || 0}"
-                            min="0"
-                            step="1"
-                            ${disabledAttr}>
-                    </label>
+      <label class="field label">
+        <span>Corrugado</span>
+        <input type="number" class="form-control form-control-sm qty-input-corrugado"
+               value="${Number(corr) || 0}" min="0" step="1" ${disabledAttr}>
+      </label>
 
-                    <label class="field label">
-                        <span>Cajas por Corrugado:</span>
-                        <input type="number"
-                            class="form-control qty-input-cajas"
-                            value="${Number(cajas) || 0}"
-                            min="0"
-                            step="1"
-                            ${disabledAttr}>
-                    </label>
+      <label class="field label">
+        <span>Cajas</span>
+        <input type="number" class="form-control form-control-sm qty-input-cajas"
+               value="${Number(cajas) || 0}" min="0" step="1" ${disabledAttr}>
+      </label>
 
-                    <label class="field label">
-                        <span>Cajas sueltas:</span>
-                        <input type="number"
-                            class="form-control qty-input-sueltos"
-                            value="${Number(sueltos) || 0}"
-                            min="0"
-                            step="1"
-                            ${disabledAttr}>
-                    </label>
-                        <label class="field label">
-                        <span>Total:</span>
-                        <input type="text" class="form-control qty-input-total" value="${Number(total) || 0}" min="0" step="1" readonly ${disabledAttr}>
-                    </label>
-                    </div>
-                `;
-            }
+      <label class="field label">
+        <span>Sueltas</span>
+        <input type="number" class="form-control form-control-sm qty-input-sueltos"
+               value="${Number(sueltos) || 0}" min="0" step="1" ${disabledAttr}>
+      </label>
+
+      <label class="field label">
+        <span>Total</span>
+        <input type="text" class="form-control form-control-sm qty-input-total"
+               value="${Number(total) || 0}" readonly ${disabledAttr}>
+      </label>
+
+      <div class="eliminar">
+        <!-- espacio reservado por si agregas botón eliminar en filas recuperadas -->
+      </div>
+    </div>
+  `;
+}
+
             // Para seleccionar claves con guiones en selectores de atributo (seguro)
             function cssEscape(str) {
                 return String(str).replace(/("|'|\\)/g, '\\$1');
@@ -920,7 +923,7 @@ session_destroy(); */
                         const row = `
                         <div class="row-line row-line">
                             <div class="lote">
-                            <input type="text" class="form-control" placeholder="Lote ${idx}">
+                            <input type="text" class="form-control" maxlength="12" placeholder="Lote ${idx}">
                             </div>
 
                             <label class="field label">
@@ -929,7 +932,7 @@ session_destroy(); */
                             </label>
 
                             <label class="field label">
-                            <span>Cajas por Corrugado:</span>
+                            <span name="Cajas por Corrugado">Cajas:</span>
                             <input type="number" class="form-control qty-input-cajas" value="0" min="0" step="1">
                             </label>
 
@@ -1168,63 +1171,63 @@ session_destroy(); */
             /****/
             // Tarjeta de un artículo (versión espaciosa)
             function buildArticleCard(item) {
-                const lotes = (item.lotes || []).map((r, i) => `
-                <div class="row-line row-line">
-                    <div class="lote">${escapeHtml(r.LOTE ?? `Lote ${i+1}`)}</div>
+  const lotes = (item.lotes || []).map((r, i) => `
+    <div class="row-line">
+      <div class="lote">${escapeHtml(r.LOTE ?? `Lote ${i+1}`)}</div>
 
-                    <label class="field label">
-                    <span>Corrugado:</span>
-                    <input type="number" class="form-control qty-input-corrugado" value="0" min="0" step="1">
-                    </label>
+      <label class="field label">
+        <span>Corrugado</span>
+        <input type="number" class="form-control form-control-sm qty-input-corrugado" value="0" min="0" step="1">
+      </label>
 
-                    <label class="field label">
-                    <span>Cajas por Corrugado:</span>
-                    <input type="number" class="form-control qty-input-cajas" value="0" min="0" step="1">
-                    </label>
+      <label class="field label">
+        <span>Cajas</span>
+        <input type="number" class="form-control form-control-sm qty-input-cajas" value="0" min="0" step="1">
+      </label>
 
-                    <label class="field label">
-                    <span>Cajas sueltas:</span>
-                    <input type="number" class="form-control qty-input-sueltos" value="0" min="0" step="1">
-                    </label>
+      <label class="field label">
+        <span>Sueltas</span>
+        <input type="number" class="form-control form-control-sm qty-input-sueltos" value="0" min="0" step="1">
+      </label>
 
-                    <label class="field label">
-                    <span>Total:</span>
-                    <input type="text" class="form-control qty-input-total" value="0" min="0" step="1" readonly>
-                    </label>
-                </div>
-                `).join('');
-                return `
-                        <section class="article-card spacious" data-articulo="${escapeAttr(item.codigo)}" data-exist="${item.exist}">
-                        <header class="article-head article-head--spaced">
-                            <div class="code">${escapeHtml(item.codigo)}</div>
-                            <a class="name" href="javascript:void(0)">${escapeHtml(item.nombre)}</a>
-                            <div class="exist">Inventario: ${escapeHtml(item.exist)}</div>
-                            <div class="total">
-                            Conteo:
-                            <span class="badge bg-primary-subtle text-primary fw-semibold article-total">0</span>
-                            </div>
-                            <!-- Botón Guardar del producto -->
-                            <button type="button" class="btn btn-success btn-save-article">
-                                <i class="bx bx-save"></i> Guardar producto
-                            </button>
-                            <span class="save-status ms-2 text-muted" style="display:none;"></span>
-                            <button type="button" class="btn btn-success btn-save-image">
-                                <i class="bi bi-image"></i> Guardar Imagenes
-                            </button>
-                            </div>
-                        </header>
+      <label class="field label">
+        <span>Total</span>
+        <input type="text" class="form-control form-control-sm qty-input-total" value="0" readonly>
+      </label>
+    </div>
+  `).join('');
 
-                        <div class="rows rows--spaced">
-                            ${lotes}
-                            <div class="row-add row-add--spaced">
-                            <button type="button" class="btn btn-outline-primary btn-add-row" title="Agregar lote">
-                                <i class="bx bx-plus"></i>
-                            </button>
-                            </div>
-                        </div>
-                        </section>
-                `;
-            }
+  return `
+    <section class="article-card spacious" data-articulo="${escapeAttr(item.codigo)}" data-exist="${item.exist}">
+      <header class="article-head article-head--spaced">
+        <div class="code">${escapeHtml(item.codigo)}</div>
+        <a class="name" href="javascript:void(0)">${escapeHtml(item.nombre)}</a>
+        <div class="exist">Inventario: ${escapeHtml(item.exist)}</div>
+        <div class="total">
+          Conteo:
+          <span class="badge bg-primary-subtle text-primary fw-semibold article-total">0</span>
+        </div>
+        <button type="button" class="btn btn-success btn-sm btn-save-article">
+          <i class="bx bx-save"></i> Guardar
+        </button>
+        <span class="save-status ms-2 text-muted" style="display:none;"></span>
+        <button type="button" class="btn btn-outline-secondary btn-sm btn-save-image">
+          <i class="bi bi-image"></i> Imágenes
+        </button>
+      </header>
+
+      <div class="rows rows--spaced">
+        ${lotes}
+        <div class="row-add row-add--spaced">
+          <button type="button" class="btn btn-outline-primary btn-sm btn-add-row" title="Agregar lote">
+            <i class="bx bx-plus"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
             // Loader
             function skeleton() {
                 return `
