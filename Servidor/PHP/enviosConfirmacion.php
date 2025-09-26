@@ -2,13 +2,14 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+$logDir  = __DIR__ . '/logs';
+$logFile = $logDir . '/enviosConfirmacion.log';
 
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
 
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
-{
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae, $logFile){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -22,6 +23,13 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     }
     $documents = json_decode($result, true);
     if (!isset($documents['documents'])) {
+        $error = error_get_last();
+        $msg = sprintf(
+            "[%s] INFO: No se encontro una conexion → %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($error, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         return ['success' => false, 'message' => 'No se encontraron documentos'];
     }
     // Busca el documento donde coincida el campo `noEmpresa`
@@ -46,7 +54,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     }
     return ['success' => false, 'message' => 'No se encontró una conexión para la empresa especificada'];
 }
-function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
+function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $noEmpresa, $logFile)
 {
     $url = "https://firestore.googleapis.com/v1/projects/"
         . "$firebaseProjectId/databases/(default)/documents:runQuery"
@@ -95,6 +103,13 @@ function verificarStatusPedido($pedidoID, $firebaseProjectId, $firebaseApiKey, $
 
     // Si falla la consulta, asumimos "true" (no está pendiente)
     if ($resp === false) {
+        $error = error_get_last();
+        $msg = sprintf(
+            "[%s] INFO: No se encontro el pedido en 'PEDIDOS_AUTORIZAR' → %s\n",
+            date('Y-m-d H:i:s'),
+            json_encode($error, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         return true;
     }
 
@@ -193,21 +208,7 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
     //$emailPredArray = explode(';', $emailPred); // Divide los correos por `;`
     //$emailPred = trim($emailPredArray[0]); // Obtiene solo el primer correo y elimina espacios extra
     $clienteNombre = trim($clienteData['NOMBRE']);
-
-    /*$emailPred = 'desarrollo01@mdcloud.mx';
-    $numeroWhatsApp = '+527773750925';*/
     $claveCliente = $clave;
-    /*$emailPred = 'marcos.luna@mdcloud.mx';
-    $numeroWhatsApp = '+527775681612';*/
-    /*$emailPred = 'amartinez@grupointerzenda.com';
-    $numeroWhatsApp = '+527772127123';*/ // Interzenda
-    //$emailPred = "";
-    //$numeroWhatsApp = "";
-    /*$emailPred = $_SESSION['usuario']['correo'];
-    $numeroWhatsApp = $_SESSION['usuario']['telefono'];*/
-    /*$emailPred = 'ivan.soriano@mdcloud.mx';
-    $numeroWhatsApp = '+527773340218';*/
-    // Obtener el id de Firestore del pedido buscado
     global $firebaseProjectId, $firebaseApiKey;
 
     // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
@@ -294,7 +295,7 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
         $correosArray = explode(';', $correosManuales);
         $correosEnviados = [];
         $correosInvalidos = [];
-        
+
         foreach ($correosArray as $correo) {
             $correo = trim($correo);
             if (filter_var($correo, FILTER_VALIDATE_EMAIL)) {
@@ -305,7 +306,7 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
                 $correosInvalidos[] = $correo;
             }
         }
-        
+
         if (!empty($correosEnviados)) {
             echo json_encode([
                 'success' => true,
@@ -325,8 +326,8 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
             'message' => 'No se proporcionaron direcciones de correo electrónico.'
         ]);
     }
-    
-    sqlsrv_close($conn);    
+
+    sqlsrv_close($conn);
 }
 function descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID)
 {
@@ -687,7 +688,8 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
         throw new Exception("Error al enviar el correo");
     }
 }
-function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData, $numeroWhatsApp){
+function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData, $numeroWhatsApp)
+{
 
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -910,7 +912,8 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
         //die();
     }
 }
-function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios){
+function enviarWhatsAppConPlantilla($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios)
+{
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -1245,7 +1248,7 @@ switch ($funcion) {
         $correosManuales = $_POST['correos'] ?? '';
 
         // Obtenemos la conexión
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae, $logFile);
         if (!$conexionResult['success']) {
             header("HTTP/1.1 500 Internal Server Error");
             echo "Error al conectar a Firebase";
@@ -1260,7 +1263,7 @@ switch ($funcion) {
         $pedidoIDFormato = ltrim($pedidoID, '0'); // Ahora sí elimina los ceros iniciales
         //var_dump("Pedido Formateado", $pedidoIDFormato);
 
-        $pedidoAutorisado = verificarStatusPedido($pedidoIDFormato, $firebaseProjectId, $firebaseApiKey, $noEmpresa, $conexionData);
+        $pedidoAutorisado = verificarStatusPedido($pedidoIDFormato, $firebaseProjectId, $firebaseApiKey, $noEmpresa, $conexionData, $logFile);
         //die();
         if ($pedidoAutorisado) {
             //enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData);
@@ -1273,9 +1276,8 @@ switch ($funcion) {
     case 2:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae  = $_SESSION['empresa']['claveSae'];
-
         // Obtenemos la conexión
-        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae, $logFile);
         if (!$conexionResult['success']) {
             header("HTTP/1.1 500 Internal Server Error");
             echo "Error al conectar a Firebase";
@@ -1283,7 +1285,6 @@ switch ($funcion) {
         }
         $conexionData = $conexionResult['data'];
         $telefono = $_POST['telefono'];
-        //$telefono = '7773750925';
         $pedidoID = $_POST['pedidoID'];
         $pedidoID = trim($pedidoID); // Elimina espacios en blanco al inicio y al final
         //var_dump("Pedido: ", $pedidoID);
@@ -1291,8 +1292,7 @@ switch ($funcion) {
         $pedidoIDFormato = ltrim($pedidoID, '0'); // Ahora sí elimina los ceros iniciales
         //var_dump("Pedido Formateado", $pedidoIDFormato);
 
-        $pedidoAutorisado = verificarStatusPedido($pedidoIDFormato, $firebaseProjectId, $firebaseApiKey, $noEmpresa, $conexionData);
-        //die();
+        $pedidoAutorisado = verificarStatusPedido($pedidoIDFormato, $firebaseProjectId, $firebaseApiKey, $noEmpresa, $conexionData, $logFile);
         if ($pedidoAutorisado) {
             //enviarConfirmacion($pedidoID, $noEmpresa, $claveSae, $conexionData);
             enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData, $telefono);
@@ -1302,7 +1302,7 @@ switch ($funcion) {
         }
         break;
     default:
-        echo json_encode(['success' => false, 'message' => 'Funcion no valida Ventas.']);
+        echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);
         //echo json_encode(['success' => false, 'message' => 'No hay funcion.']);
         break;
 }

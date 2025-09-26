@@ -431,7 +431,7 @@ botonesMail.forEach((boton) => {
             Swal.fire({
                 title: "Aviso",
                 text: "Hubo un problema al enviar por Correo",
-                icon: "error",
+                icon: "warning",
                 confirmButtonText: "Entendido",
             });
         }
@@ -511,56 +511,6 @@ function buscarAnticipo(pedidoID) {
         console.log("Detalles del error:", jqXHR.responseText);
     });
 }
-
-function enviarConfirmacion(pedidoID) {
-    Swal.fire({
-        title: "Enviando confirmación...",
-        text: "Por favor, espera mientras se envia la confirmación del cliente.",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        didOpen: () => {
-            Swal.showLoading();
-        },
-    });
-    $.post(
-        "../Servidor/PHP/ventas.php",
-        {numFuncion: "28", pedidoID: pedidoID},
-        function (response) {
-            try {
-                if (typeof response === "string") {
-                    response = JSON.parse(response);
-                }
-                if (response.success) {
-                    Swal.fire({
-                        title: "Enviado",
-                        text: "Se ha Enviado la Confirmacion al Pedido",
-                        icon: "success",
-                        confirmButtonText: "Entendido",
-                    }).then(() => {
-                        datosPedidos(); // Actualizar la tabla
-                    });
-                } else {
-                    Swal.fire({
-                        title: "Aviso",
-                        text: response.message || "No se pudo cancelar el pedido",
-                        icon: "warning",
-                        confirmButtonText: "Entendido",
-                    });
-                }
-            } catch (error) {
-                console.error("Error al procesar la respuesta JSON:", error);
-            }
-        }
-    ).fail(function (jqXHR, textStatus, errorThrown) {
-        Swal.fire({
-            title: "Aviso",
-            text: "Hubo un problema al intentar enviar el pedido",
-            icon: "error",
-            confirmButtonText: "Entendido",
-        });
-        console.log("Detalles del error:", jqXHR.responseText);
-    });
-}
 function enviarConfirmacionMail(pedidoID, correos = []) {
      Swal.fire({
         title: "Enviando confirmación...",
@@ -614,7 +564,7 @@ function enviarConfirmacionMail(pedidoID, correos = []) {
             Swal.fire({
                 title: "Error",
                 text: response.message || "No se pudo enviar el correo",
-                icon: "error",
+                icon: "warning",
                 confirmButtonText: "Entendido",
             });
         }
@@ -629,10 +579,6 @@ function enviarConfirmacionMail(pedidoID, correos = []) {
         });
     });
 }
-
-
-
-
 function enviarConfirmacionWhats(pedidoID, telefono) {
      Swal.fire({
         title: "Enviando confirmación...",
@@ -685,7 +631,6 @@ function enviarConfirmacionWhats(pedidoID, telefono) {
         console.log("Detalles del error:", jqXHR.responseText);
     });
 }
-
 // Agregar event listener para enviar formulario
 $(document).ready(function() {
     // Permitir enviar con la tecla Enter

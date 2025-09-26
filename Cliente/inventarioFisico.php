@@ -155,7 +155,7 @@ session_destroy(); */
                     Selecciona la manera en la que deseas realizar el inventario
                 </p>
                 <?php
-                if ($tipoUsuario === "SUPER-ALMACENISTA") { ?>
+                if ($tipoUsuario === "SUPER-ALMACENISTA" || $tipoUsuario === "ADMINISTRADOR") { ?>
                     <div class="text-center mt-4">
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                                 data-bs-target="#modalInventarios" id="btnModalInventarios">
@@ -313,7 +313,7 @@ session_destroy(); */
 <script src="JS/menu.js"></script>
 <script src="JS/app.js"></script>
 <script src="JS/script.js"></script>
-<script src="JS/productos.js"></script>
+<!--<script src="JS/productos.js"></script>-->
 <script src="JS/inventarioMenu.js"></script>
 </body>
 </html>
