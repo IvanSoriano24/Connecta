@@ -259,7 +259,7 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
     // Inicializa la variable donde guardarás el id
     $idFirebasePedido = null;
     $direccion1Contacto = null;
-    $envioCorreo = false;
+    //$envioCorreo = false;
 
     if ($response !== false) {
         $resultArray = json_decode($response, true);
@@ -272,13 +272,13 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
             // y para tomar tu campo direccion1Contacto:
             $fields = $doc['fields'];
             $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
-            $envioCorreo = $fields['enviarCorreo']['booleanValue'] ?? false;
+            //$envioCorreo = $fields['enviarCorreo']['booleanValue'] ?? false;
         }
     }
-    if(!$envioCorreo){
+    /*if(!$envioCorreo){
         echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'No se le notifico al cliente debido a la restriccion del envio de confirmacion por este medio.']);
         die();
-    }
+    }*/
     $rutaPDF = descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
     $dataCredito = validarCreditos($conexionData, $clave);
 
@@ -822,7 +822,7 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
     // Inicializa la variable donde guardarás el id
     $idFirebasePedido = null;
     $direccion1Contacto = null;
-    $envioWhats = false;
+    //$envioWhats = false;
 
     if ($response !== false) {
         $resultArray = json_decode($response, true);
@@ -835,13 +835,13 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
             // y para tomar tu campo direccion1Contacto:
             $fields = $doc['fields'];
             $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
-            $envioWhats = $fields['enviarWhat']['booleanValue'] ?? false;
+            //$envioWhats = $fields['enviarWhat']['booleanValue'] ?? false;
         }
     }
-    if(!$envioWhats){
+    /*if(!$envioWhats){
         echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'No se le notifico al cliente debido a la restriccion del envio de confirmacion por este medio.']);
         die();
-    }
+    }*/
     $rutaPDF = descargarPedido($conexionData, $claveSae, $noEmpresa, $pedidoID);
 
     if ($numeroWhatsApp === "") {

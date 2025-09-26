@@ -978,20 +978,20 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     }
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         // Enviar notificaciones solo si los datos son válidos
-        if ($formularioData['enviarCorreo']) {
-            if ($correoBandera === 0) {
-                enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $id, $conn); // Enviar correo
-            }
-        } else {
+        //if ($formularioData['enviarCorreo']) {
+        if ($correoBandera === 0) {
+            enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $id, $conn); // Enviar correo
+        }
+        /*} else {
             $correoBandera = 1;
+        }*/
+        // if ($formularioData['enviarWhats']) {
+        if ($numeroBandera === 0) {
+            $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $id, $conn);
         }
-        if ($formularioData['enviarWhats']) {
-            if ($numeroBandera === 0) {
-                $resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $id, $conn);
-            }
-        }else {
+        /*}else {
             $numeroBandera = 1;
-        }
+        }*/
         //Respuestas
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -1060,8 +1060,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
     $asunto = 'Detalles del Pedido #' . $noPedido;
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito)  . "&idEnvios=" . urlencode($idEnvios);
 
@@ -1135,7 +1135,8 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
-function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios){
+function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios)
+{
     //$url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     //$token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -1669,9 +1670,9 @@ switch ($funtion) {
                 $clienteId = $formularioData['cliente'];
                 $clave = formatearClaveCliente($clienteId);
                 $dataCredito = json_decode(validarCreditos($conexionData, $clave, $conn), true);
-
+                
                 if ($dataCredito['success']) {
-                    $conCredito = "S";
+                    $conCredito = $dataCredito['conCredito'];
                 } else {
                     $conCredito = "N";
                 }
@@ -1696,6 +1697,7 @@ switch ($funtion) {
 
                     $validarSaldo = validarSaldo($conexionData, $clave, $claveSae, $conn);
 
+
                     /*if ($validarSaldo == 0 && $credito == 0) {
                         $estatus = "E";
                     } else if ($validarSaldo == 1 || $credito == 1) {
@@ -1705,7 +1707,6 @@ switch ($funtion) {
                     /*$estatus = "E";
                     $validarSaldo = 0;
                     $credito = 0;*/
-
                     // Lógica para edición de pedido
                     $DAT_ENVIO = gaurdarDatosEnvio($conexionData, $clave, $formularioData, $envioData, $claveSae, $conn); //ROLLBACK
                     actualizarControl2($conexionData, $claveSae, $conn); //ROLLBACK
@@ -1717,15 +1718,19 @@ switch ($funtion) {
                         if ($validarSaldo === 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero'], $conn);
                             $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa, $formularioData['observaciones']);
-
                             validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito, $id, $conn);
-
                             exit();
                         } else {
                             //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                             $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa, $formularioData['observaciones'], $conn);
-                            guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData, $id, $conn);
-                            $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito, $conn);
+                            if ($conCredito == "S") {
+                                guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData, $id, $conn);
+                                $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito, $conn);
+                            } else {
+                                //var_dump("Si");
+                                $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero'], $conn);
+                                validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito, $id, $conn);
+                            }
                             header('Content-Type: application/json; charset=UTF-8');
                             echo json_encode([
                                 'success' => false,

@@ -755,9 +755,9 @@ function guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData)
         'estadoContacto'      => ['stringValue'  => $envioData['estadoContacto']],
         'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']],
         //Datos adicionales
-        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""],
-        'enviarWhat' => ['booleanValue' => $formularioData['enviarWhats'] ?? ""],
-        'enviarCorreo' => ['booleanValue' => $formularioData['enviarCorreo'] ?? ""]
+        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""]
+        //'enviarWhat' => ['booleanValue' => $formularioData['enviarWhats'] ?? ""],
+        //'enviarCorreo' => ['booleanValue' => $formularioData['enviarCorreo'] ?? ""]
     ];
 
     // Prepara la URL de la colección
@@ -879,12 +879,12 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         $numeroBandera = 0;
     }
     if (($correo === 'S')) {
-        if ($formularioData['enviarCorreo']) {
+        //if ($formularioData['enviarCorreo']) {
             if ($correoBandera === 0) {
                 enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $idEnvios, $conn, $claveCliente); // Enviar correo
             }
-        }
-        if ($formularioData['enviarWhats']) {
+        //}
+        //if ($formularioData['enviarWhats']) {
             // Enviar notificaciones solo si los datos son válidos
             if ($numeroBandera === 0) {
                 $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
@@ -901,7 +901,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
                 }
                 //var_dump($resultadoWhatsApp);
             }
-        }
+        //}
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
             /// Respuesta de éxito
@@ -1000,8 +1000,8 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
     $productosJson = urlencode(json_encode($partidasData));
 
     // URL base del servidor
-    //$urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
-    $urlBase = "http://localhost/MDConnecta/Servidor/PHP";
+    $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&idEnvios=" . urlencode($idEnvios) . "&claveCliente=" . urlencode($claveCliente);
 

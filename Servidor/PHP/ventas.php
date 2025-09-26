@@ -5306,9 +5306,9 @@ function guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData)
         'estadoContacto'      => ['stringValue'  => $envioData['estadoContacto']],
         'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']],
         //Datos adicionales
-        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""],
-        'enviarWhat' => ['booleanValue' => $formularioData['enviarWhats'] ?? ""],
-        'enviarCorreo' => ['booleanValue' => $formularioData['enviarCorreo'] ?? ""]
+        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""]
+        //'enviarWhat' => ['booleanValue' => $formularioData['enviarWhats'] ?? ""],
+        //'enviarCorreo' => ['booleanValue' => $formularioData['enviarCorreo'] ?? ""]
     ];
 
     // Prepara la URL de la colección
@@ -6496,16 +6496,16 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     }
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
         // Enviar notificaciones solo si los datos son válidos
-        if ($formularioData['enviarCorreo']) {
+        //if ($formularioData['enviarCorreo']) {
             if ($correoBandera === 0) {
                 enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente); // Enviar correo
             }
-        }
-        if ($formularioData['enviarWhats']) {
+        //}
+        //if ($formularioData['enviarWhats']) {
             if ($numeroBandera === 0) {
                 $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
             }
-        }
+        //}
 
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {

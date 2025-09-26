@@ -1885,6 +1885,73 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
     });
   return false;
 }
+function mostrarMoldal() {
+  //limpiarFormulario();
+  let estadoSelect = document.getElementById("estadoContacto").value;
+  let tipoOperacion = document.getElementById("tipoOperacion").value;
+  if (tipoOperacion === "alta") {
+    if (estadoSelect === "Selecciona un estado") {
+      obtenerEstados();
+    }
+    obtenerDatosEnvio();
+  }
+  $("#modalEnvio").modal("show");
+}
+function obtenerDatosEnvio() {
+  const clienteId = document.getElementById("cliente").value;
+
+  $.ajax({
+    url: "../Servidor/PHP/clientes.php",
+    method: "GET",
+    data: { numFuncion: "5", clave: clienteId }, // Llamar la función para obtener vendedores
+    success: function (response) {
+      try {
+        const res =
+          typeof response === "string" ? JSON.parse(response) : response;
+
+        if (res.success && Array.isArray(res.data)) {
+          const selectDatosEnvio = $("#selectDatosEnvio");
+          selectDatosEnvio.empty();
+          selectDatosEnvio.append(
+            "<option selected disabled>Selecciona un Dato</option>"
+          );
+
+          res.data.forEach((dato) => {
+            selectDatosEnvio.append(
+              `<option value="${dato.id}" data-id="${dato.idDocumento}" data-titulo="${dato.tituloEnvio}">
+                ${dato.tituloEnvio}
+              </option>`
+            );
+          });
+
+          // Habilitar el select si hay vendedores disponibles
+          //selectDatosEnvio.prop("disabled", res.data.length === 0);
+        } else {
+          /*Swal.fire({
+            icon: "warning",
+            title: "Aviso",
+            text: res.message || "No se Encontraron Datos de Envio.",
+          });*/
+          //$("#selectDatosEnvio").prop("disabled", true);
+        }
+      } catch (error) {
+        console.error("Error al Procesar la Respuesta:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Error al Cargar Datos de Envio.",
+        });
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al Obtener la Lista de Datos.",
+      });
+    },
+  });
+}
 document.getElementById("añadirPartida").addEventListener("click", function () {
   agregarFilaPartidas();
 });
@@ -2037,4 +2104,8 @@ $(document).ready(function () {
     //Boton para redigir a la seccion de pedidos
     window.location.href = "Ventas.php";
   });
+  $("#datosEnvio").click(function () {
+  //Funcion para mostrar el modal de los datos de envio
+  mostrarMoldal();
+});
 });
