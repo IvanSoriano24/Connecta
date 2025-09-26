@@ -69,12 +69,13 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[INVE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-        $sql = "SELECT I.CVE_ART, I.DESCR, LIN_PROD, I.EXIST, L.CVE_ART AS ProductoLote, L.LOTE, L.CANTIDAD AS CantidadLote
+        $sql = "SELECT I.CVE_ART, I.DESCR, I.LIN_PROD, I.EXIST, L.CVE_ART AS ProductoLote, L.LOTE, L.CANTIDAD AS CantidadLote
             FROM $nombreTabla I
             INNER JOIN $nombreTabla2 L ON L.CVE_ART = I.CVE_ART
             INNER JOIN $nombreTabla3 C ON C.CVE_PROD = I.CVE_ART
             WHERE I.LIN_PROD = ? AND (C.CAMPLIB2 != 'N' OR C.CAMPLIB2 IS NULL)";
         $param = [$linea];
+        
         $stmt = sqlsrv_query($conn, $sql, $param);
         if ($stmt === false) {
             $errors = print_r(sqlsrv_errors(), true);
@@ -85,6 +86,7 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
         // Procesar resultados
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
             $datos[] = $row;
+            
         }
         //var_dump($datos);
 

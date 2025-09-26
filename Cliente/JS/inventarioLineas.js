@@ -337,7 +337,7 @@ async function initInventarioUI() {
 }
 
 ///////////////////////////////////
-function comparararConteos(tipoUsuario, subconteo, conteoLinea) {
+/*function comparararConteos(tipoUsuario, subconteo, conteoLinea) {
   if (tipoUsuario === "SUPER-ALMACENISTA") {
     const noInv = $("#noInventario").val();
     const claveLinea = $("#lineaSelect").val();
@@ -410,6 +410,128 @@ function comparararConteos(tipoUsuario, subconteo, conteoLinea) {
         });
       });
   }
+}*/
+function comparararConteos(tipoUsuario) {
+  if (tipoUsuario !== "SUPER-ALMACENISTA") return;
+
+  const noInv = $("#noInventario").val();
+  const claveLinea = $("#lineaSelect").val();
+  if (!noInv || !claveLinea) {
+    return Swal.fire({ icon: "warning", title: "Faltan datos para comparar" });
+  }
+
+  $.ajax({
+    url: "../Servidor/PHP/inventarioFirestore.php",
+    method: "GET",
+    dataType: "json",
+    data: { accion: "obtenerLineaConteos", noInventario: noInv, claveLinea },
+  })
+  .done(function (res) {
+    if (!res || res.success !== true) {
+      const msg = res?.message || "No fue posible obtener los conteos.";
+      return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
+    }
+
+    const p1 = res.conteo1 ? normalizeDocToProducts(res.conteo1) : null;
+    const p2 = res.conteo2 ? normalizeDocToProducts(res.conteo2) : null;
+
+    // A) No hay ningún conteo
+    if (!p1 && !p2) {
+      return Swal.fire({ icon: "info", title: "Sin datos", text: "No hay conteos para esta línea." });
+    }
+
+    // B) Solo un conteo → usa tu compararSae(cmp, claveLinea)
+    if ((p1 && !p2) || (!p1 && p2)) {
+      const unico = p1 || p2;
+
+      // construimos un cmp “mínimo” con las filas del conteo único
+      const cmpMin = {
+        rows: unico.map(it => ({
+          cve_art: String(it.cve_art),
+          // estos campos serán reemplazados/contrastados por la lógica del backend/tablaComparativaSae con SAE
+          total1: Number(it.total) || 0,
+          total2: 0,
+          diff: 0,
+          status: "ok",
+        })),
+        iguales: 0,
+        difs: 0,
+        solo1: 0,
+        solo2: 0,
+      };
+
+      // ✅ Reutiliza tu función existente
+      return compararSae(cmpMin, claveLinea);
+    }
+
+    // C) Hay dos conteos → comparas entre sí como ya hacías
+    const c1 = Array.isArray(res.conteo1) ? res.conteo1 : p1;
+    const c2 = Array.isArray(res.conteo2) ? res.conteo2 : p2;
+    const cmp = compareProducts(c1, c2);
+
+    const u1 = res.user1?.name || res.user1?.id || "Conteo 1";
+    const u2 = res.user2?.name || res.user2?.id || "Conteo 2";
+    const html = renderCompareTable(cmp, claveLinea, { user1: u1, user2: u2 });
+
+    Swal.fire({
+      width: Math.min(window.innerWidth - 40, 900),
+      title: `Comparación de conteos — Línea ${claveLinea}`,
+      html,
+      confirmButtonText: "Cerrar",
+    }).then(() => {
+      if (cmp.rows.length == cmp.iguales) {
+        compararSae(cmp, claveLinea); // tu flujo actual
+      } else {
+        Swal.fire({
+          title: "Comparación SAE",
+          html: "<strong>Conteos diferentes</strong><br>No es posible compararlo con SAE.",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
+          showCloseButton: true,
+          allowOutsideClick: false,
+          backdrop: true,
+          timerProgressBar: false,
+        }).then(async() => {
+          const idInventario = window.idInventario;
+          const conteo = document.getElementById("subconteoInput").value;
+          if (window.BanderaGeneracionConteoNuevo) {
+            // Llamar al backend para verificar y generar conteos
+            $.post(
+                "../Servidor/PHP/inventario.php",
+                {numFuncion: "20", idInventario: idInventario, conteo: conteo},
+                async function (response) {
+                  console.log("Respuesta verificación inventario:", response);
+                  if (response.success) {
+                    window.finalizadoConteo = false;
+                    await mostrarAlerta("Éxito", response.message, "success");
+                  } else {
+                    await mostrarAlerta(
+                        "Aún hay líneas sin terminar",
+                        response.message,
+                        "info"
+                    );
+                  }
+                  window.location.reload();
+                },
+                "json"
+            ).fail(async (jqXHR, textStatus, errorThrown) => {
+              await mostrarAlerta("Ocurrió un problema inesperado", "", "");
+              console.error("Error AJAX:", textStatus, errorThrown);
+              console.log("Respuesta cruda:", jqXHR.responseText);
+              window.location.href = "inventarioFisico.php";
+            });
+          } else {
+            window.finalizadoConteo = true;
+            await mostrarAlerta("Éxito", "Todo correcto, no se generó un nuevo conteo", "success");
+          }
+        });
+      }
+    });
+  })
+  .fail(function (err) {
+    console.error("comparararConteos error:", err);
+    Swal.fire({ icon: "error", title: "Error", text: "No fue posible comparar los conteos." });
+  });
 }
 
 function compararSae(cmp, claveLinea) {
@@ -479,8 +601,6 @@ function compararSae(cmp, claveLinea) {
         });
       });
 }
-
-
 // Si el backend te devuelve el doc completo (formato Firestore REST), lo convertimos a:
 // [{ cve_art, total, lotes:[{corrugados,corrugadosPorCaja,lote,total}]}]
 function normalizeDocToProducts(doc) {
