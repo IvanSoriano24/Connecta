@@ -453,7 +453,7 @@ session_destroy(); */
                             <span class="dot"></span>
                             <span class="status">Iniciado</span>
                             <span class="sep">|</span>
-                            <a href="inventarioLineas.php" class="current">Por líneas</a>
+                            <a href="#" class="current">Por líneas</a>
                         </div>
 
                         <div class="d-flex gap-2">
@@ -499,7 +499,7 @@ session_destroy(); */
                             </div>
 
                             <div class="col-12 col-md-3 mt-2">
-                                <span class="text-muted">Autoguardado desactivado</span>
+                                <span class="text-muted"></span>
                             </div>
                         </div>
                     </div>

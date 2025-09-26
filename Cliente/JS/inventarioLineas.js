@@ -434,7 +434,7 @@ function compararSae(cmp, claveLinea) {
           title: `Comparación con SAE — Línea ${claveLinea}`,
           html,
           confirmButtonText: "Cerrar",
-        }).then(() => {
+        }).then(async () => {
           const idInventario = window.idInventario;
           const conteo = document.getElementById("subconteoInput").value;
 
@@ -442,10 +442,11 @@ function compararSae(cmp, claveLinea) {
             // Llamar al backend para verificar y generar conteos
             $.post(
                 "../Servidor/PHP/inventario.php",
-                { numFuncion: "20", idInventario: idInventario, conteo: conteo },
+                {numFuncion: "20", idInventario: idInventario, conteo: conteo},
                 async function (response) {
                   console.log("Respuesta verificación inventario:", response);
                   if (response.success) {
+                    window.finalizadoConteo = false;
                     await mostrarAlerta("Éxito", response.message, "success");
                   } else {
                     await mostrarAlerta(
@@ -463,6 +464,9 @@ function compararSae(cmp, claveLinea) {
               console.log("Respuesta cruda:", jqXHR.responseText);
               window.location.href = "inventarioFisico.php";
             });
+          } else {
+            window.finalizadoConteo = true;
+            await mostrarAlerta("Éxito", "Todo correcto, no se generó un nuevo conteo", "success");
           }
         });
       })
