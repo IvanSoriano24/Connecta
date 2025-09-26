@@ -76,3 +76,61 @@
   align-items: center;
   flex-wrap: wrap;
 }
+
+/* ===== Base (desktop/tablet) — ya lo tienes parecido ===== */
+/*.row-line {
+  display: grid;
+  grid-template-columns: minmax(110px, 180px) repeat(4, minmax(0, 1fr)) 40px;
+  gap: .5rem;
+  align-items: center;
+  padding: .25rem 0;
+  border-bottom: 1px dashed #f2f4f7;
+}*/
+.row-line .lote { font-weight: 500; }
+.field.label > span { display:block; font-size:.75rem; color:#6c757d; margin-bottom:.15rem; }
+.form-control.form-control-sm { height: calc(1.3rem + 2px); padding:.125rem .375rem; font-size:.8rem; }
+
+/* ===== Mobile: <= 768px → 2 columnas ===== */
+@media (max-width: 768px) {
+  .article-card.spacious { max-height: 70vh; } /* un poco más alto en móvil */
+  .row-line {
+    grid-template-columns: 1fr 1fr; /* dos columnas fluidas */
+    grid-auto-rows: auto;
+  }
+  /* Lote ocupa todo el ancho en la primera fila */
+  .row-line .lote {
+    grid-column: 1 / -1;
+  }
+  /* Cada label ocupa una celda; el total también */
+  .row-line .field.label,
+  .row-line .eliminar {
+    grid-column: span 1;
+  }
+  /* Botón eliminar (si hay) al final de fila, ancho automático */
+  .row-line .eliminar {
+    justify-self: end;
+  }
+
+  /* Evita overflow en botones del header */
+  .article-head.article-head--spaced {
+    gap: .4rem;
+  }
+
+  /* IMPORTANTE (iOS): evitar zoom por inputs <16px */
+  .form-control.form-control-sm {
+    font-size: 16px;         /* iOS no hace zoom al enfocar */
+    height: 2rem;            /* seguimos compacto visualmente */
+    padding: .25rem .5rem;
+  }
+  .field.label > span { font-size: .8rem; }
+}
+
+/* ===== Extra pequeño: <= 420px → 1 columna (apilado total) ===== */
+@media (max-width: 420px) {
+  .row-line { grid-template-columns: 1fr; }
+  .row-line .field.label,
+  .row-line .eliminar {
+    grid-column: 1 / -1; /* cada input a lo ancho */
+  }
+  .row-add.row-add--spaced { position: static; } /* si el sticky molesta en pantallas mínimas */
+}

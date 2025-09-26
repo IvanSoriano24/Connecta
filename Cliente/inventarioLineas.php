@@ -825,45 +825,52 @@ session_destroy(); */
                 $card.find('.article-total').text(sum);
             }
             // Fila de lote (HTML) con valores
-            function rowHtml({ lote, corr, cajas, sueltos, activa, total }) {
-  const bloqueado   = !activa;
-  const disabledAttr = bloqueado ? 'disabled' : '';
-  return `
-    <div class="row-line">
-      <div class="lote">
-        ${lote ? escapeHtml(lote) : ''}
-      </div>
+            function rowHtml({
+                lote,
+                corr,
+                cajas,
+                sueltos,
+                activa,
+                total
+            }) {
+                const bloqueado = !activa;
+                const disabledAttr = bloqueado ? 'disabled' : '';
+                return `
+                    <div class="row-line">
+                    <div class="lote">
+                        ${lote ? escapeHtml(lote) : ''}
+                    </div>
 
-      <label class="field label">
-        <span>Corrugado</span>
-        <input type="number" class="form-control form-control-sm qty-input-corrugado"
-               value="${Number(corr) || 0}" min="0" step="1" ${disabledAttr}>
-      </label>
+                    <label class="field label">
+                        <span>Corrugado</span>
+                        <input type="number" class="form-control form-control-sm qty-input-corrugado"
+                            value="${Number(corr) || 0}" min="0" step="1" ${disabledAttr}>
+                    </label>
 
-      <label class="field label">
-        <span>Cajas</span>
-        <input type="number" class="form-control form-control-sm qty-input-cajas"
-               value="${Number(cajas) || 0}" min="0" step="1" ${disabledAttr}>
-      </label>
+                    <label class="field label">
+                        <span>Cajas</span>
+                        <input type="number" class="form-control form-control-sm qty-input-cajas"
+                            value="${Number(cajas) || 0}" min="0" step="1" ${disabledAttr}>
+                    </label>
 
-      <label class="field label">
-        <span>Sueltas</span>
-        <input type="number" class="form-control form-control-sm qty-input-sueltos"
-               value="${Number(sueltos) || 0}" min="0" step="1" ${disabledAttr}>
-      </label>
+                    <label class="field label">
+                        <span>Sueltas</span>
+                        <input type="number" class="form-control form-control-sm qty-input-sueltos"
+                            value="${Number(sueltos) || 0}" min="0" step="1" ${disabledAttr}>
+                    </label>
 
-      <label class="field label">
-        <span>Total</span>
-        <input type="text" class="form-control form-control-sm qty-input-total"
-               value="${Number(total) || 0}" readonly ${disabledAttr}>
-      </label>
+                    <label class="field label">
+                        <span>Total</span>
+                        <input type="text" class="form-control form-control-sm qty-input-total"
+                            value="${Number(total) || 0}" readonly ${disabledAttr}>
+                    </label>
 
-      <div class="eliminar">
-        <!-- espacio reservado por si agregas botón eliminar en filas recuperadas -->
-      </div>
-    </div>
-  `;
-}
+                    <div class="eliminar">
+                        <!-- espacio reservado por si agregas botón eliminar en filas recuperadas -->
+                    </div>
+                    </div>
+                `;
+            }
 
             // Para seleccionar claves con guiones en selectores de atributo (seguro)
             function cssEscape(str) {
@@ -971,7 +978,6 @@ session_destroy(); */
                 const linea = $('#lineaSelect').val();
                 const noInv = $('#noInventario').val();
                 const code = $card.data('articulo') || $.trim($card.find('.code').text());
-                //const noEmp = (window.empresaActivaId || ($('#empresaActivaId').val())) ?? null; // ajusta si usas sesión
 
                 // Validaciones rápidas
                 if (!linea) return Swal.fire({
@@ -982,10 +988,31 @@ session_destroy(); */
                     icon: 'warning',
                     title: 'Falta No. Inventario'
                 });
-                /*if (!noEmp) return Swal.fire({
-                    icon: 'warning',
-                    title: 'Falta noEmpresa'
-                });*/
+
+                // Revalidación de filas (por si serialize no agregó clase)
+                const invalidRows = [];
+                $card.find('.row-line').each((idx, el) => {
+                    const $row = $(el);
+                    const corr = Number($row.find('.qty-input-corrugado').val()) || 0;
+                    const cajas = Number($row.find('.qty-input-cajas').val()) || 0;
+                    // regla: si corr > 0 entonces cajas > 0; si cajas > 0 entonces corr > 0
+                    if ((corr > 0 && cajas === 0) || (cajas > 0 && corr === 0)) {
+                        // identificar fila: preferir lote, si no usar índice
+                        const loteTxt = ($row.find('.lote input').val() || $row.find('.lote').text() || '').trim();
+                        invalidRows.push(loteTxt || `Fila ${idx + 1}`);
+                        $row.addClass('invalid-corr-cajas');
+                    } else {
+                        $row.removeClass('invalid-corr-cajas');
+                    }
+                });
+
+                if (invalidRows.length) {
+                    return Swal.fire({
+                        icon: 'warning',
+                        title: 'Campos faltantes',
+                        html: 'Los campos no deben ir en 0: <br><b>'
+                    });
+                }
 
                 // Serializar tarjeta → payload
                 const data = serializeArticleCard($card, {
@@ -994,7 +1021,7 @@ session_destroy(); */
                 });
 
                 // Validar que haya al menos 1 fila con piezas > 0
-                const piezasTot = data.conteoTotal;
+                const piezasTot = Number(data.conteoTotal || 0);
                 if (piezasTot <= 0) {
                     return Swal.fire({
                         icon: 'info',
@@ -1023,7 +1050,8 @@ session_destroy(); */
                     if (!resp || resp.success !== true) {
                         throw new Error(resp?.message || 'Error de servidor');
                     }
-                    ////////////////////////////////////////////////////////////////
+
+                    // Subir PDFs si hay
                     const files = window.MDPDFs?.getSelected?.() || [];
                     if (files.length) {
                         await subirPDFsLineas(files, {
@@ -1033,7 +1061,7 @@ session_destroy(); */
                         });
                         window.MDPDFs?.reset?.();
                     }
-                    ////////////////////////////////////////////////////////////////
+
                     markSaved($card, resp);
                     Swal.fire({
                         icon: 'success',
@@ -1053,6 +1081,7 @@ session_destroy(); */
                     toggleSaving($btn, false);
                 }
             });
+
             // Cuando el usuario pulsa "Guardar Imágenes" en una tarjeta
             $articulos.on('click', '.btn-save-image', function() {
                 const $card = $(this).closest('.article-card');
@@ -1102,8 +1131,13 @@ session_destroy(); */
                     const totales = Number($row.find('.qty-input-total').val()) || 0;
                     const piezas = (corr * cajas) + sueltos;
 
-                    // Solo guarda filas con algo de captura
-                    if ((corr > 0 && cajas > 0) || (lote && piezas >= 0)) {
+                    // Validación cruzada: si corr > 0 entonces cajas > 0; si cajas > 0 entonces corr > 0
+                    const corrTiene = corr > 0;
+                    const cajasTiene = cajas > 0;
+                    const validaCorrCajas = !((corrTiene && !cajasTiene) || (cajasTiene && !corrTiene));
+
+                    // Solo guarda filas con algo de captura y que pasen la validación
+                    if (validaCorrCajas && ((corr > 0 && cajas > 0) || (lote && piezas >= 0) || sueltos > 0 || totales > 0)) {
                         lotes.push({
                             lote,
                             corrugados: corr,
@@ -1112,6 +1146,11 @@ session_destroy(); */
                             piezas,
                             totales
                         });
+                    } else if (!validaCorrCajas) {
+                        // Marca visual opcional: añade clase de error a la fila para que el usuario corrija
+                        $row.addClass('invalid-corr-cajas');
+
+                        // También puedes mostrar un tooltip o mensaje inline aquí si lo deseas
                     }
                 });
 
@@ -1171,62 +1210,62 @@ session_destroy(); */
             /****/
             // Tarjeta de un artículo (versión espaciosa)
             function buildArticleCard(item) {
-  const lotes = (item.lotes || []).map((r, i) => `
-    <div class="row-line">
-      <div class="lote">${escapeHtml(r.LOTE ?? `Lote ${i+1}`)}</div>
+                const lotes = (item.lotes || []).map((r, i) => `
+                    <div class="row-line">
+                    <div class="lote">${escapeHtml(r.LOTE ?? `Lote ${i+1}`)}</div>
 
-      <label class="field label">
-        <span>Corrugado</span>
-        <input type="number" class="form-control form-control-sm qty-input-corrugado" value="0" min="0" step="1">
-      </label>
+                    <label class="field label">
+                        <span>Corrugado</span>
+                        <input type="number" class="form-control form-control-sm qty-input-corrugado" value="0" min="0" step="1">
+                    </label>
 
-      <label class="field label">
-        <span>Cajas</span>
-        <input type="number" class="form-control form-control-sm qty-input-cajas" value="0" min="0" step="1">
-      </label>
+                    <label class="field label">
+                        <span>Cajas</span>
+                        <input type="number" class="form-control form-control-sm qty-input-cajas" value="0" min="0" step="1">
+                    </label>
 
-      <label class="field label">
-        <span>Sueltas</span>
-        <input type="number" class="form-control form-control-sm qty-input-sueltos" value="0" min="0" step="1">
-      </label>
+                    <label class="field label">
+                        <span>Sueltas</span>
+                        <input type="number" class="form-control form-control-sm qty-input-sueltos" value="0" min="0" step="1">
+                    </label>
 
-      <label class="field label">
-        <span>Total</span>
-        <input type="text" class="form-control form-control-sm qty-input-total" value="0" readonly>
-      </label>
-    </div>
-  `).join('');
+                    <label class="field label">
+                        <span>Total</span>
+                        <input type="text" class="form-control form-control-sm qty-input-total" value="0" readonly>
+                    </label>
+                    </div>
+                `).join('');
 
-  return `
-    <section class="article-card spacious" data-articulo="${escapeAttr(item.codigo)}" data-exist="${item.exist}">
-      <header class="article-head article-head--spaced">
-        <div class="code">${escapeHtml(item.codigo)}</div>
-        <a class="name" href="javascript:void(0)">${escapeHtml(item.nombre)}</a>
-        <div class="exist">Inventario: ${escapeHtml(item.exist)}</div>
-        <div class="total">
-          Conteo:
-          <span class="badge bg-primary-subtle text-primary fw-semibold article-total">0</span>
-        </div>
-        <button type="button" class="btn btn-success btn-sm btn-save-article">
-          <i class="bx bx-save"></i> Guardar
-        </button>
-        <span class="save-status ms-2 text-muted" style="display:none;"></span>
-        <button type="button" class="btn btn-outline-secondary btn-sm btn-save-image">
-          <i class="bi bi-image"></i> Imágenes
-        </button>
-      </header>
+                return `
+                    <section class="article-card spacious" data-articulo="${escapeAttr(item.codigo)}" data-exist="${item.exist}">
+                    <header class="article-head article-head--spaced">
+                        <div class="code">${escapeHtml(item.codigo)}</div>
+                        <a class="name" href="javascript:void(0)">${escapeHtml(item.nombre)}</a>
+                        <div class="exist">Inventario: ${escapeHtml(item.exist)}</div>
+                        <div class="total">
+                        Conteo:
+                        <span class="badge bg-primary-subtle text-primary fw-semibold article-total">0</span>
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm btn-save-article">
+                        <i class="bx bx-save"></i> Guardar
+                        </button>
+                        <span class="save-status ms-2 text-muted" style="display:none;"></span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-save-image">
+                        <i class="bi bi-image"></i> Imágenes
+                        </button>
+                    </header>
 
-      <div class="rows rows--spaced">
-        ${lotes}
-        <div class="row-add row-add--spaced">
-          <button type="button" class="btn btn-outline-primary btn-sm btn-add-row" title="Agregar lote">
-            <i class="bx bx-plus"></i>
-          </button>
-        </div>
-      </div>
-    </section>
-  `;
-}
+                    <div class="rows rows--spaced">
+                        ${lotes}
+                        <div class="row-add row-add--spaced">
+                        <button type="button" class="btn btn-outline-primary btn-sm btn-add-row" title="Agregar lote">
+                            <i class="bx bx-plus"></i>
+                        </button>
+                        </div>
+                    </div>
+                    </section>
+                `;
+            }
 
             // Loader
             function skeleton() {
@@ -1265,7 +1304,6 @@ session_destroy(); */
             }
         })();
     </script>
-
     <script>
         (function() {
             const $btnGuardar = document.getElementById('guardarPedido'); // ← TU botón verde

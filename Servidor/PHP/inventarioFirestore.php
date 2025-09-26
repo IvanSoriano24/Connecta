@@ -451,7 +451,6 @@ switch ($accion) {
             }
         }
 
-
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
 
