@@ -308,9 +308,9 @@ function obtenerAlmacenistas() {
 
           res.data.forEach((dato) => {
             lineaSelect.append(
-              `<option value="${dato.idUsuario}"" data-id="${dato.idUsuario} data-nombre="${dato.nombre}">
-                ${dato.nombre}
-              </option>`
+                `<option value="${dato.idUsuario}" data-id="${dato.idUsuario}" data-nombre="${dato.nombre}">
+                  ${dato.nombre} ${dato.apellido}
+                </option>`
             );
           });
 
@@ -533,7 +533,6 @@ $("#btnNuevoInventario").click(function () {
       cerrarLoader();
       try {
         const res = JSON.parse(response);
-        console.log("Crear inve: ", res);
         if (res.success) {
           inventarioActualId = res.idInventario; // guardar el ID
           Swal.fire({

@@ -255,11 +255,11 @@ function obtenerProductoGuardado($noEmpresa, $firebaseProjectId, $firebaseApiKey
 
 function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
-    // Construir la URL para filtrar (usa el campo inventarioFisico y noEmpresa)
     $collection = "FOLIOS";
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+    $baseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+    $urlQuery = "$baseUrl:runQuery?key=$firebaseApiKey";
 
-    // Payload para hacer un where compuesto (idPedido y noEmpresa)
+    // Payload para hacer un where compuesto (documento y noEmpresa)
     $payload = json_encode([
         "structuredQuery" => [
             "from" => [
@@ -299,26 +299,54 @@ function noInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     ];
 
     $context = stream_context_create($options);
-    $response = @file_get_contents($url, false, $context);
+    $response = @file_get_contents($urlQuery, false, $context);
 
-    // Inicializa la variable donde guardarás el id
     $noInventario = null;
-    if ($response !== false) {
 
+    if ($response !== false) {
         $resultArray = json_decode($response, true);
-        // runQuery devuelve un array con un elemento por cada match
+
         if (isset($resultArray[0]['document'])) {
+            // Documento encontrado
             $doc = $resultArray[0]['document'];
-            // si quieres el ID:
-            $parts = explode('/', $doc['name']);
             $fields = $doc['fields'];
-            //var_dump($doc);
-            // y para tomar tu campo direccion1Contacto:
             $noInventario = $fields['folioSiguiente']['integerValue'] ?? null;
+            return (int)$noInventario;
         }
     }
-    return $noInventario;
+
+    // -----------------------
+    // Si no existe, lo creamos
+    // -----------------------
+    $newDoc = [
+        "fields" => [
+            "documento" => ["stringValue" => "inventarioFisico"],
+            "folioInicial" => ["integerValue" => 1],
+            "folioSiguiente" => ["integerValue" => 1],
+            "noEmpresa" => ["integerValue" => (int)$noEmpresa],
+        ]
+    ];
+
+    $optionsCreate = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
+            'content' => json_encode($newDoc),
+        ]
+    ];
+
+    $urlCreate = "$baseUrl/$collection?key=$firebaseApiKey";
+    $contextCreate = stream_context_create($optionsCreate);
+    $respCreate = @file_get_contents($urlCreate, false, $contextCreate);
+
+    if ($respCreate !== false) {
+        // Documento creado con éxito → devolvemos el folio inicial
+        return 1;
+    }
+
+    return null; // si no se pudo crear
 }
+
 
 function actualizarInventario($noEmpresa, $firebaseProject, $apiKey)
 {
@@ -1047,6 +1075,7 @@ function obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey)
                     'idUsuario' => $id,
                     'usuario' => $fields['usuario']['stringValue'] ?? null,
                     'nombre' => $fields['nombre']['stringValue'] ?? null,
+                    'apellido' => $fields['apellido']['stringValue'] ?? null,
                     // agrega lo que necesites (email, activo, etc.)
                 ];
             }

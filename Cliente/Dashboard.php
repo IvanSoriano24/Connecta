@@ -199,6 +199,24 @@ if (isset($_SESSION['usuario'])) {
                     //Si tiene conexion a SAE
                     const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
                     $("#empresaSelect").prop("disabled", true);
+                    seleccionarEmpresa(noEmpresa);
+                    //const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
+
+                    modal.hide();
+                    // Guardar los datos en la variable global
+                    idEmpresarial = {
+                        id: empresaSeleccionada,
+                        noEmpresa: noEmpresa,
+                        razonSocial: razonSocial,
+                        claveUsuario: claveUsuario,
+                        claveSae: claveSae,
+                        contrasena: contrasena
+                    };
+
+                    // Llamar la función sesionEmpresa para registrar sesión
+                    sesionEmpresa(idEmpresarial);
+
+                    /*
                     Swal.fire({
                         title: 'Has seleccionado:',
                         text: `${noEmpresa} - ${razonSocial}`,
@@ -220,7 +238,7 @@ if (isset($_SESSION['usuario'])) {
                         // Llamar la función sesionEmpresa para registrar sesión
                         sesionEmpresa(idEmpresarial);
 
-                    });
+                    }); */
 
                 } else {
                     //No tiene conexion a SAE
