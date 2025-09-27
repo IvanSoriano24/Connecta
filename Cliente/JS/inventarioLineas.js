@@ -577,14 +577,12 @@ function compararSae(cmp, claveLinea) {
                         "info"
                     );
                   }
-                  window.location.reload();
                 },
                 "json"
             ).fail(async (jqXHR, textStatus, errorThrown) => {
               await mostrarAlerta("Ocurrió un problema inesperado", "", "");
               console.error("Error AJAX:", textStatus, errorThrown);
               console.log("Respuesta cruda:", jqXHR.responseText);
-              window.location.href = "inventarioFisico.php";
             });
           } else {
             window.finalizadoConteo = true;

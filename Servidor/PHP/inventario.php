@@ -2132,7 +2132,7 @@ switch ($funcion) {
                 }
             }
 
-            echo json_encode(['success' => true, 'message' => "Nuevos conteos creados: " . implode(" y ", $nextPair) . " y conteo actualizado a $nextConteo"]);
+            echo json_encode(['success' => true, 'message' => "Nuevos conteos creados"]);
         } else {
             echo json_encode(['success' => true, 'message' => 'Todas las líneas finalizadas. No se generaron más conteos (generacionConteos = false)']);
         }
