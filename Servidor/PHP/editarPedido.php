@@ -8,6 +8,197 @@ require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
 include 'utils.php';
 
+function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename){
+    global $firebaseProjectId, $firebaseApiKey;
+
+    // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
+    $collection = "DATOS_PEDIDO";
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    // Payload para hacer un where compuesto (idPedido y noEmpresa)
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "idPedido"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noPedido]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op" => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => $payload,
+        ]
+    ];
+
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    // Inicializa la variable donde guardarás el id
+    $idFirebasePedido = null;
+    $direccion1Contacto = null;
+
+    if ($response !== false) {
+        $resultArray = json_decode($response, true);
+        // runQuery devuelve un array con un elemento por cada match
+        if (isset($resultArray[0]['document'])) {
+            $doc    = $resultArray[0]['document'];
+            // si quieres el ID:
+            $parts  = explode('/', $doc['name']);
+            $idFirebasePedido = end($parts);
+            // y para tomar tu campo direccion1Contacto:
+            $fields = $doc['fields'];
+            $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
+        }
+    }
+
+    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
+    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
+
+    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idEnvios);
+    $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
+
+    // ✅ Construir la lista de productos
+    $productosStr = "";
+    $total = 0;
+    $DES_TOT = 0;
+    $IMPORTE = 0;
+    $IMP_TOT4 = 0;
+    foreach ($partidasData as $partida) {
+        $producto = $partida['producto'] ?? $partida['CVE_ART'];
+        $cantidad = $partida['cantidad'] ?? $partida['CANT'];
+        $precioUnitario = $partida['precioUnitario'] ?? $partida['PREC'];
+        $totalPartida = $cantidad * $precioUnitario;
+        $total += $totalPartida;
+        $IMPORTE = $total;
+        $productosStr .= "$producto - $cantidad unidades, ";
+
+        $IMPU4 = $partida['iva'] ?? $partida['IMPU4'];
+        $desc1 = $partida['descuento'] ?? $partida['DESC1'];
+
+        $desProcentaje = ($desc1 / 100);
+
+        $DES = $totalPartida * $desProcentaje;
+
+        $DES_TOT += $DES;
+
+        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
+
+        $IMP_TOT4 += $IMP_T4;
+    }
+
+    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
+
+    // ✅ Eliminar la última coma y espacios
+    $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
+
+    $data = [
+        "messaging_product" => "whatsapp", // 📌 Campo obligatorio
+        "recipient_type" => "individual",
+        "to" => $numeroWhatsApp,
+        "type" => "template",
+        "template" => [
+            "name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            "language" => ["code" => "es_MX"], // 📌 Corregido a español España
+            "components" => [
+                [
+                    "type" => "header",
+                    "parameters" => [
+                        [
+                            "type" => "document",
+                            "document" => [
+                                "link" => $rutaPDFW,
+                                "filename" => $filename
+                            ]
+                        ]
+                    ]
+
+                ],
+                [
+                    "type" => "body",
+                    "parameters" => [
+                        ["type" => "text", "text" => $clienteNombre], // 📌 Confirmación del pedido
+                        ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
+                        ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
+                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)], // 📌 Lista de productos
+                        ["type" => "text", "text" => $direccion1Contacto], // 📌 Lista de productos
+                        ["type" => "text", "text" => "$" . number_format($DES_TOT, 2)], // 📌 Precio total
+                        ["type" => "text", "text" => "$" . number_format($IMP_TOT4, 2)], // 📌 Lista de productos
+                    ]
+                ],
+                // ✅ Botón Confirmar
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 0,
+                    "parameters" => [
+                        ["type" => "payload", "payload" => $urlConfirmar] // 📌 URL dinámica
+                    ]
+                ],
+                // ✅ Botón Rechazar
+                [
+                    "type" => "button",
+                    "sub_type" => "url",
+                    "index" => 1,
+                    "parameters" => [
+                        ["type" => "payload", "payload" => $urlRechazar] // 📌 URL dinámica
+                    ]
+                ]
+            ]
+        ]
+    ];
+    // ✅ Verificar JSON antes de enviarlo
+    $data_string = json_encode($data, JSON_PRETTY_PRINT);
+    error_log("WhatsApp JSON: " . $data_string);
+
+    // ✅ Revisar si el JSON contiene `messaging_product`
+    if (!isset($data['messaging_product'])) {
+        error_log("ERROR: 'messaging_product' no está en la solicitud.");
+        return false;
+    }
+
+    // ✅ Enviar solicitud a WhatsApp API con headers correctos
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer " . $token,
+        "Content-Type: application/json"
+    ]);
+
+    $result = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    error_log("WhatsApp Response: " . $result);
+    error_log("HTTP Status Code: " . $http_code);
+
+    return $result;
+}
 function validarSaldo($conexionData, $clave, $claveSae, $conn)
 {
     try {
@@ -1274,135 +1465,6 @@ function enviarWhatsAppConPlantillaActualizacion($numero, $clienteNombre, $noPed
 
     return $result;
 }
-function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename)
-{
-    global $firebaseProjectId, $firebaseApiKey;
-
-    $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
-    $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-
-    $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idEnvios);
-    $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
-
-    // ✅ Construir la lista de productos
-    $productosStr = "";
-    $total = 0;
-    $DES_TOT = 0;
-    $IMPORTE = 0;
-    $IMP_TOT4 = 0;
-    foreach ($partidasData as $partida) {
-        $producto = $partida['producto'] ?? $partida['CVE_ART'];
-        $cantidad = $partida['cantidad'] ?? $partida['CANT'];
-        $precioUnitario = $partida['precioUnitario'] ?? $partida['PREC'];
-        $totalPartida = $cantidad * $precioUnitario;
-        $total += $totalPartida;
-        $IMPORTE = $total;
-        $productosStr .= "$producto - $cantidad unidades, ";
-
-        $IMPU4 = $partida['iva'] ?? $partida['IMPU4'];
-        $desc1 = $partida['descuento'] ?? $partida['DESC1'];
-
-        $desProcentaje = ($desc1 / 100);
-
-        $DES = $totalPartida * $desProcentaje;
-
-        $DES_TOT += $DES;
-
-        $IMP_T4 = ($totalPartida - $DES) * ($IMPU4 / 100);
-
-        $IMP_TOT4 += $IMP_T4;
-    }
-
-    $IMPORTE = $IMPORTE + $IMP_TOT4 - $DES_TOT;
-
-    // ✅ Eliminar la última coma y espacios
-    $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
-
-    $data = [
-        "messaging_product" => "whatsapp", // 📌 Campo obligatorio
-        "recipient_type" => "individual",
-        "to" => $numeroWhatsApp,
-        "type" => "template",
-        "template" => [
-            "name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
-            "language" => ["code" => "es_MX"], // 📌 Corregido a español España
-            "components" => [
-                [
-                    "type" => "header",
-                    "parameters" => [
-                        [
-                            "type" => "document",
-                            "document" => [
-                                "link" => $rutaPDFW,
-                                "filename" => $filename
-                            ]
-                        ]
-                    ]
-
-                ],
-                [
-                    "type" => "body",
-                    "parameters" => [
-                        ["type" => "text", "text" => $clienteNombre], // 📌 Confirmación del pedido
-                        ["type" => "text", "text" => $noPedido], // 📌 Confirmación del pedido
-                        ["type" => "text", "text" => $productosStr], // 📌 Lista de productos
-                        ["type" => "text", "text" => "$" . number_format($IMPORTE, 2)], // 📌 Lista de productos
-                        ["type" => "text", "text" => $direccion1Contacto], // 📌 Lista de productos
-                        ["type" => "text", "text" => "$" . number_format($DES_TOT, 2)], // 📌 Precio total
-                        ["type" => "text", "text" => "$" . number_format($IMP_TOT4, 2)], // 📌 Lista de productos
-                    ]
-                ],
-                // ✅ Botón Confirmar
-                [
-                    "type" => "button",
-                    "sub_type" => "url",
-                    "index" => 0,
-                    "parameters" => [
-                        ["type" => "payload", "payload" => $urlConfirmar] // 📌 URL dinámica
-                    ]
-                ],
-                // ✅ Botón Rechazar
-                [
-                    "type" => "button",
-                    "sub_type" => "url",
-                    "index" => 1,
-                    "parameters" => [
-                        ["type" => "payload", "payload" => $urlRechazar] // 📌 URL dinámica
-                    ]
-                ]
-            ]
-        ]
-    ];
-    // ✅ Verificar JSON antes de enviarlo
-    $data_string = json_encode($data, JSON_PRETTY_PRINT);
-    error_log("WhatsApp JSON: " . $data_string);
-
-    // ✅ Revisar si el JSON contiene `messaging_product`
-    if (!isset($data['messaging_product'])) {
-        error_log("ERROR: 'messaging_product' no está en la solicitud.");
-        return false;
-    }
-
-    // ✅ Enviar solicitud a WhatsApp API con headers correctos
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_POST, true);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer " . $token,
-        "Content-Type: application/json"
-    ]);
-
-    $result = curl_exec($curl);
-    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    curl_close($curl);
-
-    error_log("WhatsApp Response: " . $result);
-    error_log("HTTP Status Code: " . $http_code);
-
-    return $result;
-}
 function obtenerDescripcionProducto($CVE_ART, $conexionData, $claveSae, $conn)
 {
     // Aquí puedes realizar una consulta para obtener la descripción del producto basado en la clave
@@ -1658,8 +1720,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
