@@ -274,6 +274,7 @@ function buscarInventario() {
         $linea.prop("disabled", false);
         //$btnNext.prop("disabled", false);
 
+        /*
         Swal.fire({
           icon: "info",
           title: "Inventario activo",
@@ -285,7 +286,7 @@ function buscarInventario() {
           </div>
         `,
           confirmButtonText: "Continuar",
-        });
+        }); */
       } else if (existsAny) {
         // No hay activo, pero sí existen inventarios (inactivos)
         $noInv
@@ -411,8 +412,10 @@ async function initInventarioUI() {
       });
   }
 }*/
+
 function comparararConteos(tipoUsuario) {
   if (tipoUsuario !== "SUPER-ALMACENISTA") return;
+
 
   const noInv = $("#noInventario").val();
   const claveLinea = $("#lineaSelect").val();
@@ -420,6 +423,7 @@ function comparararConteos(tipoUsuario) {
     return Swal.fire({ icon: "warning", title: "Faltan datos para comparar" });
   }
 
+  mostrarLoader();
   $.ajax({
     url: "../Servidor/PHP/inventarioFirestore.php",
     method: "GET",
@@ -427,6 +431,7 @@ function comparararConteos(tipoUsuario) {
     data: { accion: "obtenerLineaConteos", noInventario: noInv, claveLinea },
   })
   .done(function (res) {
+    cerrarLoader();
     if (!res || res.success !== true) {
       const msg = res?.message || "No fue posible obtener los conteos.";
       return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
@@ -482,6 +487,8 @@ function comparararConteos(tipoUsuario) {
       if (cmp.rows.length == cmp.iguales) {
         compararSae(cmp, claveLinea); // tu flujo actual
       } else {
+
+        window.BanderaGeneracionConteoNuevo = true;
         Swal.fire({
           title: "Comparación SAE",
           html: "<strong>Conteos diferentes</strong><br>No es posible compararlo con SAE.",
@@ -494,12 +501,14 @@ function comparararConteos(tipoUsuario) {
         }).then(async() => {
           const idInventario = window.idInventario;
           const conteo = document.getElementById("subconteoInput").value;
+          mostrarLoader();
           if (window.BanderaGeneracionConteoNuevo) {
             // Llamar al backend para verificar y generar conteos
             $.post(
                 "../Servidor/PHP/inventario.php",
                 {numFuncion: "20", idInventario: idInventario, conteo: conteo},
                 async function (response) {
+                  cerrarLoader();
                   console.log("Respuesta verificación inventario:", response);
                   if (response.success) {
                     window.finalizadoConteo = false;
@@ -511,16 +520,18 @@ function comparararConteos(tipoUsuario) {
                         "info"
                     );
                   }
-                  window.location.reload();
+
                 },
                 "json"
             ).fail(async (jqXHR, textStatus, errorThrown) => {
+              cerrarLoader();
               await mostrarAlerta("Ocurrió un problema inesperado", "", "");
               console.error("Error AJAX:", textStatus, errorThrown);
               console.log("Respuesta cruda:", jqXHR.responseText);
               window.location.href = "inventarioFisico.php";
             });
           } else {
+            cerrarLoader();
             window.finalizadoConteo = true;
             await mostrarAlerta("Éxito", "Todo correcto, no se generó un nuevo conteo", "success");
           }
@@ -1117,6 +1128,7 @@ $(document).ready(function () {
     }).then((result) => {
       if (result.isConfirmed) {
         guardarLinea(true); // Guardar y bloquear edición
+
       }
     });
   });
@@ -1176,6 +1188,7 @@ function recolectarLinea() {
 
 // Envía datos al backend (autoguardado/finalizar)
 function guardarLinea(finalizar) {
+  mostrarLoader("Guardando línea...");
   const payload = recolectarLinea();
   payload.subconteo = document.getElementById("subconteoInput").value;
   payload.conteo = document.getElementById("conteoInput").value;
@@ -1190,6 +1203,7 @@ function guardarLinea(finalizar) {
     data: JSON.stringify(payload),
 
     success: async function (res) {
+      cerrarLoader();
       if (res.success) {
         console.log("respuesta guardar linea: ", res);
         await Swal.fire({
@@ -1197,26 +1211,37 @@ function guardarLinea(finalizar) {
           title: finalizar ? "Línea finalizada" : "Autoguardado",
           text: res.message,
         }).then(() => {
-          const modal = new bootstrap.Modal(
-            document.getElementById("resumenInventario")
-          );
+          const modalEl = document.getElementById("resumenInventario");
+          const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
           modal.hide();
-          subirPDFsLineas(window.MDPDFs.getSelected(), {
-            tipo: "linea",
-            linea: res.claveLinea,
-          });
-          window.MDPDFs.reset();
+
+          try {
+            const seleccionados = window.MDPDFs.getSelected();
+            if (seleccionados && seleccionados.length > 0) {
+              subirPDFsLineas(seleccionados, {
+                tipo: "linea",
+                linea: res.claveLinea,
+              });
+              window.MDPDFs.reset();
+            }
+          } catch (err) {
+            console.warn("No se pudieron subir PDFs:", err.message);
+          }
+
+          window.location.reload();
         });
+
       } else {
-        Swal.fire(
+        await Swal.fire(
           "Error",
           res.message || "No se pudo guardar la línea",
           "error"
         );
       }
     },
-    error: function () {
-      Swal.fire("Error", "Error de comunicación con el servidor", "error");
+    error: async function () {
+      cerrarLoader();
+      await Swal.fire("Error", "Error de comunicación con el servidor", "error");
     },
   });
 }

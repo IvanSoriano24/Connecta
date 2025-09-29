@@ -305,7 +305,111 @@ switch ($accion) {
         $url  = "$root/INVENTARIO/$invDocId/$subcol/$claveLinea?key=$firebaseApiKey";
         $resp = http_post_json($url, $data, "PATCH");
 
+        // 🔹 4) Guardar en la subcolección detectada
+        $url  = "$root/INVENTARIO/$invDocId/$subcol/$claveLinea?key=$firebaseApiKey";
+        $resp = http_post_json($url, $data, "PATCH");
+
         if ($resp) {
+            // ---------------------------
+            // 🔹 5) Comparar con subcolección par
+            // ---------------------------
+            // Función auxiliar para encontrar el par dinámicamente
+            function getParSubcol($subcol) {
+                // Primer conteo especial
+                if ($subcol === "lineas") return "lineas02";
+                if ($subcol === "lineas02") return "lineas";
+
+                // Para lineas con número (ej. lineas03, lineas04, ...)
+                if (preg_match('/^lineas(\d{2})$/', $subcol, $m)) {
+                    $num = (int)$m[1];
+
+                    // Si es impar → su par es +1
+                    if ($num % 2 === 1) {
+                        $parNum = $num + 1;
+                    } else { // Si es par → su par es -1
+                        $parNum = $num - 1;
+                    }
+
+                    return "lineas" . str_pad($parNum, 2, "0", STR_PAD_LEFT);
+                }
+
+                return null; // No reconocido
+            }
+
+
+
+            $parSubcol = getParSubcol($subcol);
+            if ($parSubcol) {
+                $parUrl = "$root/INVENTARIO/$invDocId/$parSubcol/$claveLinea?key=$firebaseApiKey";
+                $parDoc = http_get_json($parUrl);
+
+                if ($parDoc && isset($parDoc["fields"])) {
+                    $differences = [];
+
+                    // Recorremos solo los artículos que acabamos de guardar
+                    foreach ($articulosIn as $cveArt => $lotesFront) {
+                        // Calcular total del guardado (lado actual)
+                        $totGuardado = 0;
+                        foreach ($lotesFront as $l) {
+                            $corr    = (int)($l["corrugados"] ?? 0);
+                            $cxc     = (int)($l["corrugadosPorCaja"] ?? 0);
+                            $sueltos = (int)($l["sueltos"] ?? 0);
+
+                            if (isset($l["totales"]) && $l["totales"] !== '') {
+                                $totGuardado += (int)$l["totales"];
+                            } elseif (isset($l["piezas"]) && $l["piezas"] !== '') {
+                                $totGuardado += (int)$l["piezas"];
+                            } else {
+                                $totGuardado += ($corr * $cxc) + $sueltos;
+                            }
+                        }
+
+                        // Revisar si existe en el par
+                        if (isset($parDoc["fields"][$cveArt]["arrayValue"]["values"])) {
+                            $totPar = 0;
+                            foreach ($parDoc["fields"][$cveArt]["arrayValue"]["values"] as $lot) {
+                                $totPar += (int)($lot["mapValue"]["fields"]["total"]["integerValue"] ?? 0);
+                            }
+
+                            // Si no coincide → agregar a differences
+                            if ($totPar !== $totGuardado) {
+                                $differences[] = $cveArt;
+                            }
+                        }
+                    }
+
+                    // Si hubo diferencias → actualizar cabecera
+                    if (!empty($differences)) {
+                        $invFields = $inventarioActivo["fields"] ?? [];
+                        $currentDif = [];
+                        if (isset($invFields["productosDiferentes"]["arrayValue"]["values"])) {
+                            foreach ($invFields["productosDiferentes"]["arrayValue"]["values"] as $val) {
+                                if (isset($val["stringValue"])) {
+                                    $currentDif[] = $val["stringValue"];
+                                }
+                            }
+                        }
+
+                        // Unir sin duplicados
+                        $newDif = array_unique(array_merge($currentDif, $differences));
+
+                        // Construir body para update
+                        $updateBody = [
+                            "fields" => [
+                                "productosDiferentes" => [
+                                    "arrayValue" => [
+                                        "values" => array_map(fn($cve) => ["stringValue" => $cve], $newDif)
+                                    ]
+                                ]
+                            ]
+                        ];
+
+                        $cabUrl = "$root/INVENTARIO/$invDocId?updateMask.fieldPaths=productosDiferentes&key=$firebaseApiKey";
+                        http_post_json($cabUrl, $updateBody, "PATCH");
+                    }
+                }
+            }
+
             echo json_encode([
                 "success"       => true,
                 "message"       => "Línea guardada correctamente",
@@ -350,7 +454,6 @@ switch ($accion) {
             "fechaInicio" => $fechaInicio
         ]);
         break;
-
 
     case "obtenerLineas":
         $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
@@ -600,7 +703,53 @@ switch ($accion) {
         echo json_encode(['success' => true, 'finalizada' => $finalizada]);
         break;
 
+    case "obtenerProductosDiferentes":
+        $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
+        $invDocs = http_get_json($invUrl);
 
+        if (!isset($invDocs["documents"])) {
+            echo json_encode(["success" => false, "message" => "No hay inventarios"]);
+            exit;
+        }
+
+        // Buscar inventario activo
+        $inventarioActivo = null;
+        foreach ($invDocs["documents"] as $doc) {
+            if (
+                isset($doc["fields"]["status"]["booleanValue"]) &&
+                $doc["fields"]["status"]["booleanValue"] === true
+            ) {
+                $inventarioActivo = $doc;
+                break;
+            }
+        }
+
+        if (!$inventarioActivo) {
+            echo json_encode(["success" => false, "message" => "Inventario activo no encontrado"]);
+            exit;
+        }
+
+        $fields = $inventarioActivo["fields"] ?? [];
+        $productosDiferentes = [];
+
+        if (isset($fields["productosDiferentes"]["arrayValue"]["values"])) {
+            foreach ($fields["productosDiferentes"]["arrayValue"]["values"] as $val) {
+                if (isset($val["stringValue"])) {
+                    $productosDiferentes[] = $val["stringValue"];
+                }
+            }
+        }
+
+        $noInventario = isset($fields["noInventario"]["integerValue"])
+            ? (int)$fields["noInventario"]["integerValue"]
+            : null;
+
+        echo json_encode([
+            "success" => true,
+            "noInventario" => $noInventario,
+            "productosDiferentes" => $productosDiferentes
+        ]);
+        break;
     default:
         echo json_encode(["success" => false, "message" => "Acción no válida"]);
         break;

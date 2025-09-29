@@ -442,7 +442,7 @@ session_destroy(); */
             <!-- NAVBAR -->
             <?php include 'navbar.php'; ?>
             <!-- MAIN -->
-            <main class="my-4 hero_area">
+            <main class="hero_area">
                 <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
 
                 <div class="inv-lines container-xxl px-3 px-md-4">
@@ -679,46 +679,82 @@ session_destroy(); */
                 console.error('Error AJAX inventario líneas:', xhr);
                 showEmpty('Ocurrió un error al cargar los artículos. Intenta de nuevo.');
             }
+
             // Carga por línea -> numFuncion=4
             function loadArticulos(linea) {
                 showLoading();
                 return $.ajax({
-                        url: '../Servidor/PHP/inventario.php',
-                        method: 'GET',
-                        dataType: 'json',
-                        headers: {
-                            'X-CSRF-Token': csrfToken
-                        },
-                        data: {
-                            numFuncion: '4',
-                            linea: linea
-                        }
-                    })
-                    .then(function(res) {
+                    url: '../Servidor/PHP/inventario.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    headers: {
+                        'X-CSRF-Token': csrfToken
+                    },
+                    data: {
+                        numFuncion: '4',
+                        linea: linea
+                    }
+                })
+                    .then(function (res) {
                         const rows = Array.isArray(res?.data) ? res.data :
                             Array.isArray(res) ? res :
-                            (res?.CVE_ART ? [res] : []);
+                                (res?.CVE_ART ? [res] : []);
 
                         if (!rows.length) {
                             showEmpty('No hay artículos para esta línea.');
-                            return []; // devolver array vacío para seguir la cadena
+                            return [];
                         }
 
-                        const items = normalizeToArticles(rows);
+                        let items = normalizeToArticles(rows);
+
                         if (!items.length) {
                             showEmpty();
                             return [];
                         }
 
-                        renderArticulos(items);
-                        $btnNext.prop('disabled', false);
-                        return items; // valor que recibe el .then en el caller
-                    }, function(err) {
-                        // propaga el error hacia el .catch del caller
+                        const conteoVal = parseInt($("#conteoInput").val(), 10) || 0;
+
+                        // --------------------------
+                        // Filtro por conteo > 1
+                        // --------------------------
+                        if (conteoVal > 1) {
+                            return $.get("../Servidor/PHP/inventarioFirestore.php", {
+                                accion: "obtenerProductosDiferentes"
+                            }).then(function (invRes) {
+                                if (invRes.success && Array.isArray(invRes.productosDiferentes)) {
+                                    const productosDif = invRes.productosDiferentes;
+
+                                    items = items.filter(it => {
+                                        const code = it.CVE_ART || it.cve_art || it.codigo || it.code;
+                                        return productosDif.includes(String(code));
+                                    });
+                                }
+
+                                if (!items.length) {
+                                    showEmpty('No hay artículos que coincidan con productosDiferentes.');
+                                    return [];
+                                }
+
+                                renderArticulos(items);
+                                $btnNext.prop('disabled', false);
+                                return items;
+                            }).fail(function (err) {
+                                console.warn("No se pudo obtener productosDiferentes:", err);
+                                renderArticulos(items); // fallback: pinta todo si falla la consulta
+                                return items;
+                            });
+                        } else {
+                            // Renderizado normal cuando conteo = 1
+                            renderArticulos(items);
+                            $btnNext.prop('disabled', false);
+                            return items;
+                        }
+                    }, function (err) {
                         showError(err);
                         return $.Deferred().reject(err).promise();
                     });
             }
+
             //Mostar productos guardados de la linea
             function loadGuardados(linea) {
                 const noInventario = document.getElementById("noInventario").value;
