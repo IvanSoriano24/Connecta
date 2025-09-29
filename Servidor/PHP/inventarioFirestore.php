@@ -403,41 +403,8 @@ switch ($accion) {
         break;
 
     case "obtenerInventarioActivo":
-        $invUrl = "$root/INVENTARIO?key=$firebaseApiKey";
-        $invDocs = http_get_json($invUrl);
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
 
-        if (!isset($invDocs["documents"])) {
-            echo json_encode(["success" => false, "message" => "No hay inventarios"]);
-            exit;
-        }
-
-        $inventarioActivo = null;
-        foreach ($invDocs["documents"] as $doc) {
-            if (isset($doc["fields"]["status"]["booleanValue"]) && $doc["fields"]["status"]["booleanValue"] === true) {
-                $inventarioActivo = $doc;
-                break;
-            }
-        }
-
-        if (!$inventarioActivo) {
-            echo json_encode(["success" => false, "message" => "Inventario activo no encontrado"]);
-            exit;
-        }
-
-        $fields = $inventarioActivo["fields"];
-        $noInventario = isset($fields["noInventario"]["integerValue"]) ? (int)$fields["noInventario"]["integerValue"] : null;
-        $fechaInicio = isset($fields["fechaInicio"]["stringValue"]) ? $fields["fechaInicio"]["stringValue"] : null;
-
-        echo json_encode([
-            "success" => true,
-            "noInventario" => $noInventario,
-            "fechaInicio" => $fechaInicio
-        ]);
-        break;
-
-    case "obtenerLineas":
-        $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
-        $usuarioId   = $_SESSION['usuario']["idReal"];
         $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
         $invDocs = http_get_json($invUrl);
 
@@ -446,22 +413,74 @@ switch ($accion) {
             exit;
         }
 
-        // buscar inventario activo
         $inventarioActivo = null;
         foreach ($invDocs["documents"] as $doc) {
-            if (isset($doc["fields"]["status"]["booleanValue"]) && $doc["fields"]["status"]["booleanValue"] === true) {
+            $fields = $doc["fields"];
+
+            // 🔹 Validar que sea de la empresa en sesión y que esté activo
+            if (
+                isset($fields["status"]["booleanValue"]) &&
+                $fields["status"]["booleanValue"] === true &&
+                isset($fields["noEmpresa"]["integerValue"]) &&
+                (int)$fields["noEmpresa"]["integerValue"] === (int)$noEmpresa
+            ) {
                 $inventarioActivo = $doc;
                 break;
             }
         }
 
         if (!$inventarioActivo) {
-            echo json_encode(["success" => false, "message" => "Inventario activo no encontrado"]);
+            echo json_encode(["success" => false, "message" => "Inventario activo no encontrado para la empresa"]);
             exit;
         }
 
-        $invDocId = basename($inventarioActivo["name"]);
-        $fields   = $inventarioActivo["fields"];
+        $fields = $inventarioActivo["fields"];
+        $noInv  = (int)($fields["noInventario"]["integerValue"] ?? 0);
+        $fechaI = $fields["fechaInicio"]["stringValue"] ?? null; // guardas fecha como string
+        $fechaF = $fields["fechaFin"]["stringValue"] ?? null;    // puede no existir
+
+        echo json_encode([
+            "success"      => true,
+            "noInventario" => $noInv,
+            "fechaInicio"  => $fechaI,
+            "fechaFin"     => $fechaF
+        ]);
+        break;
+
+    case "obtenerLineas":
+        $tipoUsuario = $_SESSION['usuario']["tipoUsuario"] ?? null;
+        $usuarioId   = $_SESSION['usuario']["idReal"] ?? null;
+        $noEmpresa   = $_SESSION['empresa']['noEmpresa'] ?? null;
+
+        $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
+        $invDocs = http_get_json($invUrl);
+
+        if (!isset($invDocs["documents"])) {
+            echo json_encode(["success" => false, "message" => "No hay inventarios"]);
+            exit;
+        }
+
+        // 🔹 Buscar inventario activo de la empresa en sesión
+        $inventarioActivo = null;
+        foreach ($invDocs["documents"] as $doc) {
+            $fields = $doc["fields"] ?? [];
+
+            $status     = $fields["status"]["booleanValue"] ?? false;
+            $empresaDoc = isset($fields["noEmpresa"]["integerValue"]) ? (int)$fields["noEmpresa"]["integerValue"] : null;
+
+            if ($status === true && $empresaDoc === (int)$noEmpresa) {
+                $inventarioActivo = $doc;
+                break;
+            }
+        }
+
+        if (!$inventarioActivo) {
+            echo json_encode(["success" => false, "message" => "Inventario activo no encontrado para la empresa"]);
+            exit;
+        }
+
+        $invDocId  = basename($inventarioActivo["name"]);
+        $fields    = $inventarioActivo["fields"];
         $asignadas = [];
 
         // 🔹 Tomar conteo máximo del inventario
@@ -469,7 +488,7 @@ switch ($accion) {
             ? (int)$fields["conteo"]["integerValue"]
             : 1;
 
-        $subcolecciones = []; // arreglo con todos los conteos y subconteos
+        $subcolecciones = [];
 
         // 🔹 Generar todas las subcolecciones desde conteo 1 hasta el actual
         for ($c = 1; $c <= $maxConteo; $c++) {
@@ -483,8 +502,7 @@ switch ($accion) {
             }
         }
 
-
-        // Acceso a asignaciones
+        // 🔹 Acceso a asignaciones
         $asignaciones = $fields["asignaciones"]["mapValue"]["fields"] ?? [];
 
         foreach ($subcolecciones as $subcol) {
@@ -495,10 +513,9 @@ switch ($accion) {
 
             foreach ($lineasDocs["documents"] as $doc) {
                 $docId  = basename($doc["name"]);
-                $status = isset($doc["fields"]["status"]["booleanValue"])
-                    ? $doc["fields"]["status"]["booleanValue"]
-                    : null;
+                $status = $doc["fields"]["status"]["booleanValue"] ?? null;
 
+                // 🔹 Leer asignaciones para esta línea
                 $usuariosAsignados = [];
                 if (isset($asignaciones[$docId]["arrayValue"]["values"])) {
                     foreach ($asignaciones[$docId]["arrayValue"]["values"] as $val) {
@@ -506,29 +523,18 @@ switch ($accion) {
                     }
                 }
 
-                if ($tipoUsuario === "SUPER-ALMACENISTA") {
-                    foreach ($usuariosAsignados as $idx => $usuarioAsignado) {
-                        $asignadas[] = [
-                            "CVE_LIN"   => $docId,
-                            "coleccion" => $subcol['nombre'],
-                            "conteo"    => $subcol['conteo'],
-                            "subconteo" => $idx + 1,
-                            "status"    => $status,
-                            "asignadoA" => $usuarioAsignado
-                        ];
-                    }
-                } else {
-                    foreach ($usuariosAsignados as $idx => $usuarioAsignado) {
-                        if ($usuarioAsignado === $usuarioId) {
-                            $asignadas[] = [
-                                "CVE_LIN"   => $docId,
-                                "coleccion" => $subcol['nombre'],
-                                "conteo"    => $subcol['conteo'],
-                                "subconteo" => $idx + 1,
-                                "status"    => $status,
-                                "asignadoA" => $usuarioAsignado
-                            ];
-                        }
+                foreach ($usuariosAsignados as $idx => $usuarioAsignado) {
+                    $registro = [
+                        "CVE_LIN"   => $docId,
+                        "coleccion" => $subcol['nombre'],
+                        "conteo"    => $subcol['conteo'],
+                        "subconteo" => $idx + 1, // posición = subconteo
+                        "status"    => $status,
+                        "asignadoA" => $usuarioAsignado
+                    ];
+
+                    if ($tipoUsuario === "SUPER-ALMACENISTA" || $usuarioAsignado === $usuarioId) {
+                        $asignadas[] = $registro;
                     }
                 }
             }
@@ -536,6 +542,8 @@ switch ($accion) {
 
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
+
+
 
     case 'obtenerLineaConteos': {
             $noInv      = (int)($_GET['noInventario'] ?? 0);
@@ -609,6 +617,7 @@ switch ($accion) {
             ]);
             exit;
         }
+
     case 'obtenerInventario':
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];
@@ -705,6 +714,7 @@ switch ($accion) {
             "productosDiferentes" => $productosDiferentes
         ]);
         break;
+
     default:
         echo json_encode(["success" => false, "message" => "Acción no válida"]);
         break;

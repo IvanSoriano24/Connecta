@@ -1259,35 +1259,45 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         }
     }
 
-    // ==== 3) Normalizar nuevas asignaciones (máx 2 por línea) ====
+    // ==== 3) Normalizar nuevas asignaciones (máx 2 por línea, manteniendo slots previos) ====
     $newMap = [];
     foreach ($asignaciones as $lineaId => $uids) {
         if ($lineaId === '' || !is_array($uids)) continue;
         $uids = array_values(array_filter($uids, fn($u) => is_string($u) && $u !== ''));
-        $newMap[(string)$lineaId] = array_slice($uids, 0, 2);
+
+        // Traer los que ya estaban antes
+        $prev = $currMap[$lineaId] ?? [];
+
+        // Mantener consistencia: si alguno de los previos sigue, lo dejamos en el mismo slot
+        $slot0 = null;
+        $slot1 = null;
+        foreach ($uids as $u) {
+            if (isset($prev[0]) && $u === $prev[0]) {
+                $slot0 = $u; // se queda en slot 0
+            } elseif (isset($prev[1]) && $u === $prev[1]) {
+                $slot1 = $u; // se queda en slot 1
+            }
+        }
+
+        // Rellenar vacíos con los nuevos que no estaban
+        foreach ($uids as $u) {
+            if ($slot0 === null) { $slot0 = $u; continue; }
+            if ($slot1 === null && $u !== $slot0) { $slot1 = $u; continue; }
+        }
+
+        $newMap[(string)$lineaId] = array_values(array_filter([$slot0, $slot1], fn($u) => !!$u));
     }
 
     // ==== Helpers: detectar si el doc de una subcolección tiene productos guardados ====
     $reservados = [
-        'locked',
-        'conteo',
-        'finishedAt',
-        'lockedBy',
-        'updatedAt',
-        'lastProduct',
-        'conteoTotal',
-        'diferencia',
-        'existSistema',
-        'descr',
-        'linesStatus',
-        'status',
-        'idAsignado'
+        'locked','conteo','finishedAt','lockedBy','updatedAt',
+        'lastProduct','conteoTotal','diferencia','existSistema',
+        'descr','linesStatus','status','idAsignado'
     ];
     $hasProducts = function (array $doc) use ($reservados): bool {
         if (empty($doc['fields']) || !is_array($doc['fields'])) return false;
         foreach ($doc['fields'] as $k => $val) {
             if (in_array($k, $reservados, true)) continue;
-            // Producto esperado como arrayValue de maps (lotes)
             if (!empty($val['arrayValue']['values']) && is_array($val['arrayValue']['values'])) {
                 if (count($val['arrayValue']['values']) > 0) return true;
             }
@@ -1302,41 +1312,28 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
 
     foreach ($newMap as $lineaId => $desiredUids) {
         $old = $currMap[$lineaId] ?? [];
-        // normalizar a 2 slots
         $old = [$old[0] ?? null, $old[1] ?? null];
         $want = [$desiredUids[0] ?? null, $desiredUids[1] ?? null];
 
-        // Recorremos slots 0 (lineas) y 1 (lineas02)
         for ($slot = 0; $slot < 2; $slot++) {
             $subcol = ($slot === 0) ? 'lineas' : 'lineas02';
             $oldUid = $old[$slot];
             $newUid = $want[$slot];
 
-            // No cambio → nada que hacer
             if ($oldUid === $newUid) continue;
 
-            // Situaciones:
-            // A) Quitar asignación (old != null y new == null)
-            // B) Reemplazar asignación (old != null y new != null y old != new)
-            // C) Añadir asignación (old == null y new != null)
-
-            // Cargar doc del slot para ver si tiene captura
             $docUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey";
-            $doc = http_get_json($docUrl); // puede no existir (null)
-
+            $doc = http_get_json($docUrl); // puede no existir
             $tieneProductos = $doc && $hasProducts($doc);
 
             // A) quitar
             if ($oldUid && !$newUid) {
                 if ($tieneProductos) {
-                    // ❌ Regla 1: no puedes quitar porque hay productos guardados
                     $errors[] = "No se puede quitar la asignación de $subcol/$lineaId: ya hay productos capturados.";
-                    // Mantenemos la asignación antigua
                     $finalMap[$lineaId][$slot] = $oldUid;
                     continue;
                 }
-                // ✓ Eliminar doc (si existe) y liberar slot
-                http_delete_simple($docUrl); // ignorar fallo puntual
+                http_delete_simple($docUrl);
                 $finalMap[$lineaId][$slot] = null;
                 continue;
             }
@@ -1344,15 +1341,11 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
             // B) reemplazar
             if ($oldUid && $newUid && $oldUid !== $newUid) {
                 if ($tieneProductos) {
-                    // ❌ No puedes reemplazar si ya hay captura
                     $errors[] = "No se puede cambiar la asignación de $subcol/$lineaId: ya hay productos capturados.";
-                    // Mantener antiguo
                     $finalMap[$lineaId][$slot] = $oldUid;
                     continue;
                 }
-                // ✓ No hay productos: borro doc anterior y creo/actualizo con nuevo asignado
                 http_delete_simple($docUrl);
-                // crear/patch con nuevo idAsignado + conteo
                 $patchUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey"
                     . "&updateMask.fieldPaths=idAsignado"
                     . "&updateMask.fieldPaths=conteo"
@@ -1371,7 +1364,6 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
 
             // C) añadir
             if (!$oldUid && $newUid) {
-                // ✓ escribir doc con idAsignado
                 $patchUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey"
                     . "&updateMask.fieldPaths=idAsignado"
                     . "&updateMask.fieldPaths=conteo"
@@ -1389,46 +1381,8 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
             }
         }
 
-        // Limpia nulls finales del arreglo (deja solo existentes)
         $finalMap[$lineaId] = array_values(array_filter($finalMap[$lineaId] ?? [], fn($u) => !!$u));
-        // Asegura límite de 2
         $finalMap[$lineaId] = array_slice($finalMap[$lineaId], 0, 2);
-    }
-
-    // También contempla líneas que estaban antes y no vienen en $newMap:
-    // Eso equivale a "quitar ambos"; aplica misma regla.
-    foreach ($currMap as $lineaId => $oldUids) {
-        if (array_key_exists($lineaId, $newMap)) continue; // ya tratada
-        $old = [$oldUids[0] ?? null, $oldUids[1] ?? null];
-        $want = [null, null];
-
-        for ($slot = 0; $slot < 2; $slot++) {
-            $subcol = ($slot === 0) ? 'lineas' : 'lineas02';
-            $oldUid = $old[$slot];
-            if (!$oldUid) continue;
-
-            $docUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey";
-            $doc = http_get_json($docUrl);
-            $tieneProductos = $doc && $hasProducts($doc);
-
-            if ($tieneProductos) {
-                // Mantener asignación existente
-                $finalMap[$lineaId][$slot] = $oldUid;
-                $errors[] = "No se puede quitar la asignación de $subcol/$lineaId: ya hay productos capturados.";
-            } else {
-                // Borrar doc y liberar
-                http_delete_simple($docUrl);
-                if (isset($finalMap[$lineaId])) {
-                    unset($finalMap[$lineaId][$slot]);
-                }
-            }
-        }
-
-        // Normaliza restantes para esa línea
-        if (isset($finalMap[$lineaId])) {
-            $finalMap[$lineaId] = array_values(array_filter($finalMap[$lineaId], fn($u) => !!$u));
-            if (count($finalMap[$lineaId]) === 0) unset($finalMap[$lineaId]);
-        }
     }
 
     // ==== 5) Escribir asignaciones finales al doc INVENTARIO ====
@@ -1449,7 +1403,6 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
 
     // ==== 6) Respuesta ====
     if (!empty($errors)) {
-        // No es fallo total: se aplicó lo que se pudo, pero hubo bloqueos
         return [
             'success' => true,
             'warnings' => $errors,
@@ -1459,6 +1412,7 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
 
     return ['success' => true, 'aplicado' => $finalMap];
 }
+
 
 function http_delete_simple($url)
 {

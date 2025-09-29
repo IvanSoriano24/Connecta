@@ -986,7 +986,7 @@ $(document).ready(function () {
     accion: "obtenerInventarioActivo",
   }).done(function (res) {
     if (res.success) {
-      console.log("res: ", res);
+      console.log("Inventario Activo: ", res);
       $("#noInventario").val(res.noInventario);
       noInventario = res.noInventario;
 
@@ -1014,6 +1014,7 @@ $(document).ready(function () {
   $.get("../Servidor/PHP/inventarioFirestore.php", {
     accion: "obtenerLineas",
   }).done(function (res) {
+    console.log("obtenerLines res que hay: ", res)
     if (res.success && res.lineas.length > 0) {
       const clavesAsignadas = res.lineas.map((l) => l.CVE_LIN);
       console.log(

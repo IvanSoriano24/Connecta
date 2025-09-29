@@ -641,6 +641,8 @@ $("#btnGuardarAsignacion").on("click", function () {
       $btn.prop("disabled", false).text("Guardar Asignacion");
     });
 });
+
+
 $("#btnAsignar").click(function () {
   asignarLinea();
 });

@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const sidebar = document.getElementById('sidebar');
 
     // Función para mostrar/ocultar el botón de menú según el tamaño de la pantalla
+    /*
     function toggleMenuButton() {
         if (window.innerWidth > 768) {
             //menuBar.style.display = 'none'; // Oculta el botón en escritorio
@@ -51,9 +52,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Llamar a la función al cargar la página
     toggleMenuButton();
 
+
     // Llamar a la función cuando se cambia el tamaño de la ventana
     window.addEventListener('resize', toggleMenuButton);
 
+*/
     // Evento para alternar la visibilidad del sidebar
     menuBar?.addEventListener('click', function () {
         sidebar.classList.toggle('show');
