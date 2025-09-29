@@ -229,6 +229,7 @@ switch ($accion) {
         $invDocs = http_get_json($invUrl);
 
         $invDocId = null;
+        $inventarioActivo = null;
         if (isset($invDocs["documents"])) {
             foreach ($invDocs["documents"] as $doc) {
                 $fields = $doc["fields"] ?? [];
@@ -237,6 +238,7 @@ switch ($accion) {
                     && (int)$fields["noInventario"]["integerValue"] === $noInv
                 ) {
                     $invDocId = basename($doc["name"]);
+                    $inventarioActivo = $doc;
                     break;
                 }
             }
@@ -305,38 +307,22 @@ switch ($accion) {
         $url  = "$root/INVENTARIO/$invDocId/$subcol/$claveLinea?key=$firebaseApiKey";
         $resp = http_post_json($url, $data, "PATCH");
 
-        // 🔹 4) Guardar en la subcolección detectada
-        $url  = "$root/INVENTARIO/$invDocId/$subcol/$claveLinea?key=$firebaseApiKey";
-        $resp = http_post_json($url, $data, "PATCH");
-
         if ($resp) {
             // ---------------------------
-            // 🔹 5) Comparar con subcolección par
+            // 🔹 5) Comparar con subcolección par y actualizar productosDiferentes
             // ---------------------------
-            // Función auxiliar para encontrar el par dinámicamente
             function getParSubcol($subcol) {
-                // Primer conteo especial
                 if ($subcol === "lineas") return "lineas02";
                 if ($subcol === "lineas02") return "lineas";
 
-                // Para lineas con número (ej. lineas03, lineas04, ...)
                 if (preg_match('/^lineas(\d{2})$/', $subcol, $m)) {
                     $num = (int)$m[1];
-
-                    // Si es impar → su par es +1
-                    if ($num % 2 === 1) {
-                        $parNum = $num + 1;
-                    } else { // Si es par → su par es -1
-                        $parNum = $num - 1;
-                    }
-
+                    $parNum = ($num % 2 === 1) ? $num + 1 : $num - 1;
                     return "lineas" . str_pad($parNum, 2, "0", STR_PAD_LEFT);
                 }
 
-                return null; // No reconocido
+                return null;
             }
-
-
 
             $parSubcol = getParSubcol($subcol);
             if ($parSubcol) {
@@ -344,11 +330,19 @@ switch ($accion) {
                 $parDoc = http_get_json($parUrl);
 
                 if ($parDoc && isset($parDoc["fields"])) {
-                    $differences = [];
+                    // Recuperar array actual de productosDiferentes
+                    $invFields = $inventarioActivo["fields"] ?? [];
+                    $currentDif = [];
+                    if (isset($invFields["productosDiferentes"]["arrayValue"]["values"])) {
+                        foreach ($invFields["productosDiferentes"]["arrayValue"]["values"] as $val) {
+                            if (isset($val["stringValue"])) {
+                                $currentDif[] = $val["stringValue"];
+                            }
+                        }
+                    }
 
-                    // Recorremos solo los artículos que acabamos de guardar
+                    // Recorremos artículos y actualizamos lista
                     foreach ($articulosIn as $cveArt => $lotesFront) {
-                        // Calcular total del guardado (lado actual)
                         $totGuardado = 0;
                         foreach ($lotesFront as $l) {
                             $corr    = (int)($l["corrugados"] ?? 0);
@@ -364,49 +358,35 @@ switch ($accion) {
                             }
                         }
 
-                        // Revisar si existe en el par
+                        $totPar = 0;
                         if (isset($parDoc["fields"][$cveArt]["arrayValue"]["values"])) {
-                            $totPar = 0;
                             foreach ($parDoc["fields"][$cveArt]["arrayValue"]["values"] as $lot) {
                                 $totPar += (int)($lot["mapValue"]["fields"]["total"]["integerValue"] ?? 0);
                             }
+                        }
 
-                            // Si no coincide → agregar a differences
-                            if ($totPar !== $totGuardado) {
-                                $differences[] = $cveArt;
+                        if ($totPar !== $totGuardado) {
+                            if (!in_array($cveArt, $currentDif)) {
+                                $currentDif[] = $cveArt;
                             }
+                        } else {
+                            // Coincide → eliminar si estaba
+                            $currentDif = array_values(array_filter($currentDif, fn($x) => $x !== $cveArt));
                         }
                     }
 
-                    // Si hubo diferencias → actualizar cabecera
-                    if (!empty($differences)) {
-                        $invFields = $inventarioActivo["fields"] ?? [];
-                        $currentDif = [];
-                        if (isset($invFields["productosDiferentes"]["arrayValue"]["values"])) {
-                            foreach ($invFields["productosDiferentes"]["arrayValue"]["values"] as $val) {
-                                if (isset($val["stringValue"])) {
-                                    $currentDif[] = $val["stringValue"];
-                                }
-                            }
-                        }
-
-                        // Unir sin duplicados
-                        $newDif = array_unique(array_merge($currentDif, $differences));
-
-                        // Construir body para update
-                        $updateBody = [
-                            "fields" => [
-                                "productosDiferentes" => [
-                                    "arrayValue" => [
-                                        "values" => array_map(fn($cve) => ["stringValue" => $cve], $newDif)
-                                    ]
+                    // Actualizar SOLO productosDiferentes
+                    $updateBody = [
+                        "fields" => [
+                            "productosDiferentes" => [
+                                "arrayValue" => [
+                                    "values" => array_map(fn($cve) => ["stringValue" => $cve], $currentDif)
                                 ]
                             ]
-                        ];
-
-                        $cabUrl = "$root/INVENTARIO/$invDocId?updateMask.fieldPaths=productosDiferentes&key=$firebaseApiKey";
-                        http_post_json($cabUrl, $updateBody, "PATCH");
-                    }
+                        ]
+                    ];
+                    $cabUrl = "$root/INVENTARIO/$invDocId?updateMask.fieldPaths=productosDiferentes&key=$firebaseApiKey";
+                    http_post_json($cabUrl, $updateBody, "PATCH");
                 }
             }
 

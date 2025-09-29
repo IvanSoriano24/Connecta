@@ -1251,8 +1251,10 @@ $("#btnNext").click(function () {
   abrirModal();
 });
 
-// Convierte imagen en <img> a base64
+
+// Convierte <img> en base64
 function getBase64Image(imgElement) {
+  if (!imgElement) return "";
   const canvas = document.createElement("canvas");
   canvas.width = imgElement.naturalWidth;
   canvas.height = imgElement.naturalHeight;
@@ -1261,7 +1263,7 @@ function getBase64Image(imgElement) {
   return canvas.toDataURL("image/png");
 }
 
-// Arma los datos para el PDF usando la vista actual
+// Arma datos para PDF
 function prepararDatosPDF() {
   const payload = recolectarLinea();
   const datos = [];
@@ -1275,7 +1277,7 @@ function prepararDatosPDF() {
       clave: clave,
       articulo: nombre,
       sae: exist,
-      lotes: lotes,
+      lotes: lotes, // mandar lotes completos
     });
   });
 
@@ -1301,13 +1303,13 @@ function generarPDFInventario(datos) {
       datos: JSON.stringify(datos),
       logo: logoBase64,
     },
-    xhrFields: { responseType: "blob" }, // Esperamos PDF binario
+    xhrFields: { responseType: "blob" },
     success: function (data) {
       const blob = new Blob([data], { type: "application/pdf" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download =
-        "Inventario_" + datos.noInventario + "_" + datos.claveLinea + ".pdf";
+          "Inventario_" + datos.noInventario + "_" + datos.claveLinea + ".pdf";
       link.click();
     },
     error: function () {
@@ -1316,7 +1318,6 @@ function generarPDFInventario(datos) {
   });
 }
 
-// Evento botón
 $("#generarPDF").click(function () {
   const datos = prepararDatosPDF();
   generarPDFInventario(datos);

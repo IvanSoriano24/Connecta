@@ -1,117 +1,130 @@
 <?php
-require __DIR__ . '/../fpdf/fpdf.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
+// === Datos recibidos ===
+$datos = json_decode($_POST['datos'] ?? "{}", true);
+$logo = $_POST['logo'] ?? "";
 
-class PDFInventario extends FPDF {
-    function Footer() {
-        $this->SetY(-15);
-        $this->SetFont('Arial','I',8);
-        $this->Cell(0,10,'Página '.$this->PageNo().'/{nb}',0,0,'C');
-    }
-}
-
-$datosPost = json_decode($_POST['datos'], true);
-$logoBase64 = $_POST['logo'] ?? null;
-
-// === Procesar logo ===
-if ($logoBase64) {
-    $logoData = explode(',', $logoBase64);
-    $logoContent = base64_decode($logoData[1]);
-    $logoPath = __DIR__ . "/tmp_logo.png";
-    file_put_contents($logoPath, $logoContent);
-} else {
-    $logoPath = __DIR__ . "/SRC/imagen-small.png";
-}
-
-$pdf = new PDFInventario('P','mm','Letter');
-$pdf->AliasNbPages();
+// Crear PDF
+$pdf = new TCPDF();
 $pdf->AddPage();
+$pdf->SetFont("helvetica", "", 10);
 
-// Logo
-if (file_exists($logoPath)) {
-    $pdf->Image($logoPath, 10, 8, 30);
+// === Logo ===
+if ($logo) {
+    $logoData = preg_replace('#^data:image/\w+;base64,#i', '', $logo);
+    $logoContent = base64_decode($logoData);
+    $tmpLogo = __DIR__ . "/tmp_logo.png";
+    file_put_contents($tmpLogo, $logoContent);
+    $pdf->Image($tmpLogo, 170, 10, 30); // arriba derecha
 }
-$pdf->Ln(20);
 
-// Encabezado
-$pdf->SetFont('Arial','B',12);
-$pdf->Cell(0,10,utf8_decode("Resumen Inventario Físico"),0,1,'C');
-$pdf->Ln(4);
+// === Encabezado ===
+$pdf->SetY(15);
+$pdf->SetFont("helvetica", "B", 14);
+$pdf->Cell(0, 10, "Resumen Inventario Físico", 0, 1, "C");
+$pdf->Ln(2);
 
-// Datos generales
-$pdf->SetFont('Arial','',10);
-$pdf->Cell(50,8,"Linea: " . utf8_decode($datosPost['claveLinea']),0,0,'L');
-$pdf->Cell(70,8,"No. Inventario: " . $datosPost['noInventario'],0,1,'L');
-$pdf->Cell(100,8,"Realizado por: " . utf8_decode($datosPost['usuario'] ?? "—"),0,1,'L');
-$pdf->Cell(50,8,"Fecha inicio: " . ($datosPost['fechaInicio'] ?? ""),0,0,'L');
-$pdf->Cell(70,8,"Fecha fin: " . ($datosPost['fechaFin'] ?? ""),0,1,'L');
-$pdf->Ln(4);
+$pdf->SetFont("helvetica", "", 10);
+$htmlHeader = "
+<table cellspacing='0' cellpadding='4'>
+<tr>
+    <td><b>Línea:</b> " . ($datos['claveLinea'] ?? "-") . "</td>
+    <td><b>Fecha inicio:</b> " . ($datos['fechaInicio'] ?? "-") . "</td>
+</tr>
+<tr>
+    <td><b>No. Inventario:</b> " . ($datos['noInventario'] ?? "-") . "</td>
+    <td><b>Fecha fin:</b> " . ($datos['fechaFin'] ?? "-") . "</td>
+</tr>
+<tr>
+    <td colspan='2'><b>Realizado por:</b> " . ($datos['usuario'] ?? "—") . "</td>
+</tr>
+</table>
+";
+$pdf->writeHTML($htmlHeader, true, false, false, false, "");
 
-// Cabecera de tabla
-$pdf->SetFont('Arial','B',8);
-$pdf->Cell(25,8,"Clave",1,0,'C');
-$pdf->Cell(50,8,"Articulo",1,0,'C');
-$pdf->Cell(25,8,"Lote",1,0,'C');
-$pdf->Cell(20,8,"Corrugados",1,0,'C');
-$pdf->Cell(20,8,"Cajas",1,0,'C');
-$pdf->Cell(20,8,"Total",1,0,'C');
-$pdf->Cell(25,8,"Inventario SAE",1,0,'C');
-$pdf->Cell(25,8,"Diferencia",1,1,'C');
+// === Tabla ===
+$pdf->Ln(3);
+$html = '
+<table border="1" cellpadding="4">
+<thead>
+<tr style="background-color:#4B0082; color:#fff; font-weight:bold; text-align:center;">
+  <th>Clave</th>
+  <th>Artículo</th>
+  <th>Lote</th>
+  <th>Corrugados</th>
+  <th>Cajas</th>
+  <th>Total piezas</th>
+  <th>Suma total lotes</th>
+  <th>Inventario SAE</th>
+  <th>Diferencia</th>
+</tr>
+</thead>
+<tbody>
+';
 
-$pdf->SetFont('Arial','',8);
-
-// Totales
 $totalLinea = 0;
-$totalSAE = 0;
-$totalDif = 0;
+$totalSae = 0;
 
-foreach ($datosPost['datos'] as $producto) {
-    $clave = $producto['clave'];
-    $articulo = utf8_decode($producto['articulo']);
-    $sae = $producto['sae'];
-    $subtotalProducto = 0;
+foreach (($datos['datos'] ?? []) as $art) {
+    $subtotal = 0;
+    $rowsLotes = "";
 
-    foreach ($producto['lotes'] as $lote) {
-        $corr = $lote['corrugados'];
-        $cajas = $lote['corrugadosPorCaja'];
-        $total = $lote['total'];
-        $loteClave = $lote['lote'];
+    foreach ($art['lotes'] as $l) {
+        $lote = $l['lote'] ?? '';
+        $corr = $l['corrugados'] ?? 0;
+        $cxc = $l['corrugadosPorCaja'] ?? 0;
+        $sueltos = $l['sueltos'] ?? 0;
+        $total = $l['total'] ?? (($corr * $cxc) + $sueltos);
+        $sae = $art['sae'];
 
-        $pdf->Cell(25,8,$clave,1);
-        $pdf->Cell(50,8,$articulo,1);
-        $pdf->Cell(25,8,$loteClave,1);
-        $pdf->Cell(20,8,$corr,1,0,'C');
-        $pdf->Cell(20,8,$cajas,1,0,'C');
-        $pdf->Cell(20,8,$total,1,0,'C');
-        $pdf->Cell(25,8,$sae,1,0,'C');
-        $pdf->Cell(25,8,($total - $sae),1,1,'C');
+        $rowsLotes .= "<tr>
+            <td>{$art['clave']}</td>
+            <td>{$art['articulo']}</td>
+            <td>{$lote}</td>
+            <td align='center'>{$corr}</td>
+            <td align='center'>{$cxc}</td>
+            <td align='center'>{$total}</td>
+            <td align='center'>{$total}</td>
+            <td align='center'>{$sae}</td>
+            <td align='center'>" . ($total - $sae) . "</td>
+        </tr>";
 
-        $subtotalProducto += $total;
+        $subtotal += $total;
     }
 
-    // Subtotal por producto
-    $pdf->SetFont('Arial','B',8);
-    $pdf->Cell(120,8,"Subtotal producto:",1);
-    $pdf->Cell(20,8,$subtotalProducto,1,0,'C');
-    $pdf->Cell(25,8,$sae,1,0,'C');
-    $pdf->Cell(25,8,($subtotalProducto - $sae),1,1,'C');
-    $pdf->SetFont('Arial','',8);
+    // Filas del producto
+    $html .= $rowsLotes;
 
-    $totalLinea += $subtotalProducto;
-    $totalSAE   += $sae;
-    $totalDif   += ($subtotalProducto - $sae);
+    // Subtotal producto
+    $html .= "<tr style='font-weight:bold; background-color:#f0f0f0;'>
+        <td colspan='5' align='right'>Subtotal producto:</td>
+        <td align='center'>{$subtotal}</td>
+        <td align='center'>{$subtotal}</td>
+        <td align='center'>{$art['sae']}</td>
+        <td align='center'>" . ($subtotal - $art['sae']) . "</td>
+    </tr>";
+
+    $totalLinea += $subtotal;
+    $totalSae += $art['sae'];
 }
 
-// Totales finales
-$pdf->Ln(4);
-$pdf->SetFont('Arial','B',10);
-$pdf->Cell(120,8,"TOTALES DE LA LINEA:",1);
-$pdf->Cell(20,8,$totalLinea,1,0,'C');
-$pdf->Cell(25,8,$totalSAE,1,0,'C');
-$pdf->Cell(25,8,$totalDif,1,1,'C');
+// Totales de la línea
+$html .= "<tr style='font-weight:bold; background-color:#dcdcdc;'>
+  <td colspan='5' align='right'>TOTALES DE LA LÍNEA:</td>
+  <td align='center'>{$totalLinea}</td>
+  <td align='center'>{$totalLinea}</td>
+  <td align='center'>{$totalSae}</td>
+  <td align='center'>" . ($totalLinea - $totalSae) . "</td>
+</tr>";
 
-// === Salida limpia ===
+$html .= "</tbody></table>";
+
+$pdf->writeHTML($html, true, false, true, false, "");
+
+// === Salida PDF ===
+ob_end_clean();
 header('Content-Type: application/pdf');
-header('Content-Disposition: inline; filename="inventario.pdf"');
-$pdf->Output('I', 'inventario.pdf');
+header('Content-Disposition: inline; filename="Inventario.pdf"');
+$pdf->Output("Inventario.pdf", "I");
 exit;
