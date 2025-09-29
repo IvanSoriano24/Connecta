@@ -396,6 +396,115 @@ if (isset($_SESSION['usuario'])) {
 
     /********************************/
 </style>
+<style>
+    .pdf-modal-content {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.pdf-modal-header-style {
+  background: linear-gradient(90deg,#0456b8,#1e90ff);
+  color: #fff;
+  border-bottom: none;
+}
+
+.pdf-btn-primary {
+  background-color: #0d6efd;
+  color: #fff;
+  border: none;
+}
+
+.pdf-custom-file-btn i {
+  margin-right: .4rem;
+}
+
+.pdf-file-input-container {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  padding: .5rem 0;
+  border: 2px dashed #e9ecef;
+  border-radius: .5rem;
+  transition: background .15s, border-color .15s;
+}
+
+.pdf-file-input-container.dragover {
+  background: #f8fbff;
+  border-color: #0d6efd;
+}
+
+.pdf-instruction-text {
+  font-size: .875rem;
+  color: #6c757d;
+  margin-top: .25rem;
+}
+
+.pdf-selected-files {
+  margin-top: 1rem;
+  border-top: 1px solid #e9ecef;
+  padding-top: .75rem;
+}
+
+.pdf-header-info {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:.5rem;
+}
+
+.pdf-file-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:.4rem .5rem;
+  border-radius:.375rem;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,0.03);
+  margin-bottom:.4rem;
+  gap:.5rem;
+}
+
+.pdf-file-meta {
+  display:flex;
+  gap:.75rem;
+  align-items:center;
+  overflow:hidden;
+}
+
+.pdf-file-meta .pdf-filename {
+  font-weight:500;
+  color:#0d6efd;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  overflow:hidden;
+  max-width:40ch;
+}
+
+.pdf-file-size {
+  font-size:.85rem;
+  color:#6c757d;
+}
+
+.pdf-remove-btn {
+  background:transparent;
+  border:none;
+  color:#dc3545;
+  font-size:1.05rem;
+}
+
+.pdf-view-link {
+  color:#198754;
+  text-decoration:none;
+  font-size:.9rem;
+}
+
+.pdf-empty-state {
+  text-align:center;
+  color:#6c757d;
+  padding:1rem;
+}
+
+</style>
 
 <body>
     <!-- <div class=""> -->
@@ -549,7 +658,7 @@ if (isset($_SESSION['usuario'])) {
                                 <div class="pdf-button-container">
                                     <label for="enviar" class="me-2">Agregar orden de compra</label>
                                     <button type="button" id="btnSubirPDF" class="btn-like-subirpdf"
-                                        data-bs-toggle="modal" data-bs-target="#modalPDF" onclick="abrirModalPdf()">
+                                        data-bs-toggle="modal" data-bs-target="#modalPDF" onclick="abrirModalPdf()" disabled>
                                         <i class="bx bx-upload"></i> Subir PDF
                                     </button>
                                 </div>
@@ -1070,60 +1179,60 @@ if (isset($_SESSION['usuario'])) {
         </div>
     </div>
     <!-- Modal para subir PDFs -->
-                <div id="modalPDF" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="false"> <!-- data-bs-backdrop="false" -->
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content pdf-modal-content">
-                            <div class="modal-header pdf-modal-header-style">
-                                <h5 class="modal-title">Subir Archivos PDF</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="formPDF" enctype="multipart/form-data">
-                                    <!-- 🔹 NUEVO: el front (subirPDFs) leerá este valor -->
-                                    <input type="hidden" id="pedidoId" name="pedidoId"
-                                        value="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>">
+    <div id="modalPDF" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="false"> <!-- data-bs-backdrop="false" -->
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content pdf-modal-content">
+                <div class="modal-header pdf-modal-header-style">
+                    <h5 class="modal-title">Subir Archivos PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formPDF" enctype="multipart/form-data">
+                        <!-- 🔹 NUEVO: el front (subirPDFs) leerá este valor -->
+                        <input type="hidden" id="pedidoId" name="pedidoId"
+                            value="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>">
 
-                                    <div class="pdf-mb-3">
-                                        <label class="form-label">Selecciona de 1 a 4 archivos PDF (Máximo 5MB cada uno)</label>
-                                        <div class="pdf-file-input-container">
-                                            <button type="button" class="btn pdf-btn-primary pdf-custom-file-btn" id="btnAgregarPDF">
-                                                <i class="bi bi-plus-circle"></i> Agregar PDF
-                                            </button>
-                                            <!-- 🔹 CORREGIDO: añadimos name="pdfs[]" para el fallback del JS/PHP -->
-                                            <input type="file" id="pdfFiles" name="pdfs[]" class="form-control d-none"
-                                                accept=".pdf,application/pdf" multiple>
-                                        </div>
-                                        <div class="pdf-instruction-text">
-                                            Puedes seleccionar múltiples archivos manteniendo presionada la tecla Ctrl
-                                        </div>
-                                    </div>
-                                    <!-- Sección de archivos seleccionados -->
-                                    <div class="pdf-selected-files" id="selectedFilesContainer">
-                                        <div class="pdf-header-info">
-                                            <h6>Archivos seleccionados</h6>
-                                            <span class="pdf-file-status" id="contadorPDFs">0/4</span>
-                                        </div>
-                                        <div id="selectedFilesList"><!-- Los archivos seleccionados aparecerán aquí --></div>
-                                    </div>
-                                    <!-- Previews (oculta) -->
-                                    <div id="pdfPreviews" class="pdf-mt-3 d-none">
-                                        <div class="pdf-empty-state" id="emptyState">
-                                            <i class="bi bi-file-earmark-pdf"></i>
-                                            <p>No hay archivos seleccionados</p>
-                                        </div>
-                                    </div>
-                                </form>
+                        <div class="pdf-mb-3">
+                            <label class="form-label">Selecciona de 1 a 4 archivos PDF (Máximo 5MB cada uno)</label>
+                            <div class="pdf-file-input-container">
+                                <button type="button" class="btn pdf-btn-primary pdf-custom-file-btn" id="btnAgregarPDF">
+                                    <i class="bi bi-plus-circle"></i> Agregar PDF
+                                </button>
+                                <!-- 🔹 CORREGIDO: añadimos name="pdfs[]" para el fallback del JS/PHP -->
+                                <input type="file" id="pdfFiles" name="pdfs[]" class="form-control d-none"
+                                    accept=".pdf,application/pdf" multiple>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <!-- 🔹 Respaldo opcional del pedidoId en el botón -->
-                                <button type="button" class="btn pdf-btn-primary" id="guardarPDFs"
-                                    data-pedido-id="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>"
-                                    disabled>Guardar PDFs</button>
+                            <div class="pdf-instruction-text">
+                                Puedes seleccionar múltiples archivos manteniendo presionada la tecla Ctrl
                             </div>
                         </div>
-                    </div>
+                        <!-- Sección de archivos seleccionados -->
+                        <div class="pdf-selected-files" id="selectedFilesContainer">
+                            <div class="pdf-header-info">
+                                <h6>Archivos seleccionados</h6>
+                                <span class="pdf-file-status" id="contadorPDFs">0/4</span>
+                            </div>
+                            <div id="selectedFilesList"><!-- Los archivos seleccionados aparecerán aquí --></div>
+                        </div>
+                        <!-- Previews (oculta) -->
+                        <div id="pdfPreviews" class="pdf-mt-3 d-none">
+                            <div class="pdf-empty-state" id="emptyState">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                                <p>No hay archivos seleccionados</p>
+                            </div>
+                        </div>
+                    </form>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <!-- 🔹 Respaldo opcional del pedidoId en el botón -->
+                    <button type="button" class="btn pdf-btn-primary" id="guardarPDFs"
+                        data-pedido-id="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>"
+                        disabled>Guardar PDFs</button>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 
     <!-- Scripts de JS para el funcionamiento del sistema -->

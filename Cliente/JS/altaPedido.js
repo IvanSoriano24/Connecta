@@ -1598,7 +1598,7 @@ async function seleccionarProductoDesdeSugerencia(inputProducto, producto) {
 function llenarDatosProducto(producto) {}
 function desbloquearCampos() {
   $(
-    "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio, #observaciones, #enviarWhats, #enviarCorreo"
+    "#entrega, #supedido, #entrega, #condicion, #descuentofin, #enviar, #datosEnvio, #observaciones, #enviarWhats, #enviarCorreo, #btnSubirPDF"
   ).prop("disabled", false);
 }
 function llenarDatosCliente(cliente) {
