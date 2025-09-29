@@ -794,9 +794,9 @@ function guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData)
         'estadoContacto'      => ['stringValue'  => $envioData['estadoContacto']],
         'municipioContacto'   => ['stringValue'  => $envioData['municipioContacto']],
         //Datos adicionales
-        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""]
-        //'enviarWhat' => ['booleanValue' => $formularioData['enviarWhats'] ?? ""],
-        //'enviarCorreo' => ['booleanValue' => $formularioData['enviarCorreo'] ?? ""]
+        'observaciones' => ['stringValue' => $formularioData['observaciones'] ?? ""],
+        'enviarWhat' => ['booleanValue' => $formularioData['enviarWhats'] ?? ""],
+        'enviarCorreo' => ['booleanValue' => $formularioData['enviarCorreo'] ?? ""]
     ];
 
     // Prepara la URL de la colección
@@ -923,7 +923,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
                 enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $idEnvios, $conn, $claveCliente); // Enviar correo
             }
         //}
-        //if ($formularioData['enviarWhats']) {
+        if ($formularioData['enviarWhats']) {
             // Enviar notificaciones solo si los datos son válidos
             if ($numeroBandera === 0) {
                 $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
@@ -940,7 +940,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
                 }
                 //var_dump($resultadoWhatsApp);
             }
-        //}
+        }
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {
             /// Respuesta de éxito

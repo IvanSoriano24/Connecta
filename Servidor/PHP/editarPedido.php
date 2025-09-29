@@ -1175,7 +1175,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         /*} else {
             $correoBandera = 1;
         }*/
-        // if ($formularioData['enviarWhats']) {
+        if ($formularioData['enviarWhats']) {
         if ($numeroBandera === 0) {
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
@@ -1184,9 +1184,9 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
             //$resultadoWhatsApp = enviarWhatsAppConPlantillaActualizacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $id);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $id, $rutaPDFW, $filename);
         }
-        /*}else {
+        }else {
             $numeroBandera = 1;
-        }*/
+        }
         //Respuestas
 
         // Determinar la respuesta JSON según las notificaciones enviadas
@@ -1672,7 +1672,7 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-    $partidasData = obtenerPartidasActualizadas($CVE_DOC, $conexionData, $claveSae);
+    $partidasData = obtenerPartidasActualizadas($CVE_DOC, $conexionData, $claveSae, $conn);
 
     // Configuración de la API de WhatsApp
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';

@@ -535,6 +535,25 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="observaciones">Observaciones</label>
                                 <input type="text" name="observaciones" id="observaciones" style="width:250px;" disabled>
                             </div>
+                            <div class="form-element">
+                                <label for="enviarWhats">Enviar WhatsApp<input type="checkbox" name="enviarWhats" id="enviarWhats" style="width:250px;" checked disabled></label>
+                                <label for="enviarCorreo">Enviar Correo<input type="checkbox" name="enviarCorreo" id="enviarCorreo" style="width:250px;" checked disabled></label>
+                            </div>
+                            <div class="container my-5">
+                                <!-- Campo de entrada principal (simulado) -->
+                                <input type="hidden" id="enviar">
+
+                                <!-- Botón para abrir el modal de PDFs -->
+                                <div class="pdf-button-container">
+                                    <label for="enviar" class="me-2">Agregar orden de compra</label>
+                                    <button type="button" id="btnSubirPDF" class="btn-like-subirpdf"
+                                        data-bs-toggle="modal" data-bs-target="#modalPDF" onclick="abrirModalPdf()" disabled>
+                                        <i class="bx bx-upload"></i> Subir PDF
+                                    </button>
+                                </div>
+                                <!-- cerca del botón "Subir PDF" -->
+                                <div id="resumenPDFs" class="mt-2 d-flex flex-wrap gap-2"></div>
+                            </div>
                             <div class="form-element" style="display: none;">
                                 <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
                                 <input type="text" name="codigoPostal" id="codigoPostal"
@@ -742,15 +761,15 @@ if (isset($_SESSION['usuario'])) {
                                         <h6 class="fw-bold">Detalles de la dirección</h6>
                                         <div class="mb-3">
                                             <label for="direccion1Contacto" class="form-label">Línea 1 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength = "80" required>
+                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength="80" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="direccion2Contacto" class="form-label">Línea 2 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion2Contacto" class="form-control" maxlength = "50" required>
+                                            <input type="text" id="direccion2Contacto" class="form-control" maxlength="50" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="codigoContacto" class="form-label">Código Postal <span class="text-danger">*</span></label>
-                                            <input type="text" id="codigoContacto" class="form-control" maxlength = "5" required>
+                                            <input type="text" id="codigoContacto" class="form-control" maxlength="5" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="estadoContacto" class="form-label">Estado <span class="text-danger">*</span></label>

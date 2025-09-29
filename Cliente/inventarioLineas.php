@@ -596,7 +596,7 @@ session_destroy(); */
                     <!-- 🔹 Respaldo opcional del pedidoId en el botón -->
                     <button type="button" class="btn pdf-btn-primary" id="guardarPDFs"
                         data-pedido-id="<?= htmlspecialchars($pedidoId ?? ($_GET['pedidoId'] ?? '')) ?>"
-                        disabled>Guardar PDFs</button>
+                        disabled>Guardar Imagen</button>
                 </div>
             </div>
         </div>

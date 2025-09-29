@@ -646,10 +646,11 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="observaciones">Observaciones</label>
                                 <input type="text" name="observaciones" id="observaciones" style="width:250px;" disabled>
                             </div>
-                            <!--<div class="form-element">
+                            <div class="form-element">
                                 <label for="enviarWhats">Enviar WhatsApp<input type="checkbox" name="enviarWhats" id="enviarWhats" style="width:250px;" checked disabled></label>
                                 <label for="enviarCorreo">Enviar Correo<input type="checkbox" name="enviarCorreo" id="enviarCorreo" style="width:250px;" checked disabled></label>
-                            </div> -->
+                            </div>
+                            
                             <div class="container my-5">
                                 <!-- Campo de entrada principal (simulado) -->
                                 <input type="hidden" id="enviar">

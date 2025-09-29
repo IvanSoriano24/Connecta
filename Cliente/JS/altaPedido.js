@@ -1045,8 +1045,8 @@ function obtenerDatosFormulario() {
     tipoOperacion: document.getElementById("tipoOperacion").value,
     CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value, // Mover
     observaciones: document.getElementById("observaciones").value,
-    /*enviarWhats: document.getElementById("enviarWhats").checked,
-    enviarCorreo: document.getElementById("enviarCorreo").checked,*/
+    enviarWhats: document.getElementById("enviarWhats").checked,
+    enviarCorreo: document.getElementById("enviarCorreo").checked,
   };
   return formularioData;
 }

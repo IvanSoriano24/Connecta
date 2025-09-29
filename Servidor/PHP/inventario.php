@@ -1090,8 +1090,7 @@ function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     echo json_encode(['success' => true, 'inventarios' => $inventarios]);
 }
 
-function obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey)
-{
+function obtenerAlmacenistas($noEmpresa, $firebaseProjectId, $firebaseApiKey){
     $collection = "USUARIOS";
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
 

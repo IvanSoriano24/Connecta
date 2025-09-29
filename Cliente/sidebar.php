@@ -224,7 +224,7 @@
 
         <?php } ?>
         <li>
-            <a href="mensajes.php" title="Mensajes" tabindex="-1">
+            <a href="Mensajes.php" title="Mensajes" tabindex="-1">
                 <i class='bx bxs-message-dots'></i>
                 <span class="text">Mensajes</span>
                 <span id="mensajesNotificacion" class="badge bg-danger text-white d-none" style="font-size: 0.8rem; margin-left: 10px;">0</span>
