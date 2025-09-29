@@ -73,7 +73,7 @@ function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedid
             $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
         }
     }
-
+    
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -113,7 +113,6 @@ function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedid
 
     // ✅ Eliminar la última coma y espacios
     $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
-
     $data = [
         "messaging_product" => "whatsapp", // 📌 Campo obligatorio
         "recipient_type" => "individual",

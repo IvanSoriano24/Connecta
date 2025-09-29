@@ -763,8 +763,66 @@ function subcol_from_conteo(int $conteo, int $subconteo): string
     return $idx === 1 ? 'lineas' : ('lineas' . str_pad($idx, 2, '0', STR_PAD_LEFT));
 }
 
-function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebaseApiKey)
-{
+/*function subcol_from_conteo(int $conteo, int $subconteo): string {
+    // conteo 1 => lineas / lineas02
+    // conteo 2 => lineas03 / lineas04
+    // conteo 3 => lineas05 / lineas06 ...
+    if ($conteo <= 1) return ($subconteo === 2) ? 'lineas02' : 'lineas';
+    $start = ($conteo - 1) * 2 + 1;            // 2->3, 3->5, ...
+    $idx   = ($subconteo === 2) ? $start + 1 : $start;
+    return 'lineas' . str_pad($idx, 2, '0', STR_PAD_LEFT);
+}*/
+
+// runQuery por noEmpresa + noInventario (usa REST nativo)
+function resolveInvDocIdStrict(int $noEmpresa, int $noInv, string $projectId, string $apiKey): ?string {
+    $root = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents";
+    $url  = "$root:runQuery?key=$apiKey";
+
+    $body = [
+        "structuredQuery" => [
+            "from" => [ ["collectionId" => "INVENTARIO"] ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        ["fieldFilter" => [
+                            "field" => ["fieldPath" => "noEmpresa"],
+                            "op"    => "EQUAL",
+                            "value" => ["integerValue" => $noEmpresa],
+                        ]],
+                        ["fieldFilter" => [
+                            "field" => ["fieldPath" => "noInventario"],
+                            "op"    => "EQUAL",
+                            "value" => ["integerValue" => $noInv],
+                        ]],
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ];
+
+    $opts = [
+        'http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => json_encode($body, JSON_UNESCAPED_UNICODE)
+        ]
+    ];
+    $res = @file_get_contents($url, false, stream_context_create($opts));
+    if ($res === false) return null;
+    $rows = json_decode($res, true);
+    if (!is_array($rows)) return null;
+
+    foreach ($rows as $r) {
+        if (!empty($r['document']['name'])) {
+            return basename($r['document']['name']);
+        }
+    }
+    return null;
+}
+
+function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebaseApiKey) {
     $payload = json_decode($_POST['payload'] ?? 'null', true);
     if (!$payload) {
         echo json_encode(['success' => false, 'message' => 'Payload inválido']);
@@ -775,50 +833,50 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
         $payload['noEmpresa'] = (string)$_SESSION['empresa']['noEmpresa'];
     }
 
-    // Validaciones mínimas
-    foreach (['linea', 'noInventario', 'cve_art', 'conteo', 'subconteo'] as $k) {
+    foreach (['linea','noInventario','cve_art','conteo','subconteo'] as $k) {
         if (!isset($payload[$k]) || $payload[$k] === '') {
             echo json_encode(['success' => false, 'message' => "Falta $k"]);
             exit;
         }
     }
 
-    $lineaId = (string)$payload['linea'];
-    $folioInv = (int)$payload['noInventario'];
-    $cveArt = (string)$payload['cve_art'];
-    $existSistema = (int)($payload['existSistema'] ?? 0);
-    $conteoTotal  = (int)($payload['conteoTotal'] ?? 0);
-    $diferencia   = (int)($payload['diferencia'] ?? ($conteoTotal - $existSistema));
+    // ---- Variables
+    $lineaId      = (string)$payload['linea'];
+    $folioInv     = (int)$payload['noInventario'];
+    $cveArt       = (string)$payload['cve_art'];
     $lotesIn      = is_array($payload['lotes'] ?? null) ? $payload['lotes'] : [];
-    $tsLocal      = (string)($payload['tsLocal'] ?? gmdate('c'));
-
-    // ⚙️ nuevos del front
-    $conteoIn = (int)$payload['conteo'];     // 1,2,3,...
-    $subconteoIn = (int)$payload['subconteo'];  // 1 ó 2
-
-    $usuarioId = (string)($_SESSION['usuario']['idReal'] ?? '');
+    $conteoIn     = (int)$payload['conteo'];      // 1,2,3,...
+    $subconteoIn  = (int)$payload['subconteo'];   // 1 ó 2
+    $usuarioId    = (string)($_SESSION['usuario']['idReal'] ?? '');
+    $idInventario = isset($payload['idInventario']) ? (string)$payload['idInventario'] : null;
 
     if (!$noEmpresa) {
         echo json_encode(['success' => false, 'message' => 'Falta noEmpresa']);
         exit;
     }
 
-    // 1) Inventario
-    $inv = getInventarioDocByFolio($noEmpresa, $folioInv, $firebaseProjectId, $firebaseApiKey);
-    if (!$inv || empty($inv['docId'])) {
-        echo json_encode(['success' => false, 'message' => 'No se encontró inventario activo para ese folio/empresa']);
-        exit;
+    // 1) Resolver docId del inventario **correcto**
+    //    - Si viene idInventario → úsalo
+    //    - Si no, consulta estricta por noEmpresa + noInventario (runQuery)
+    if ($idInventario && $idInventario !== '') {
+        $invDocId = $idInventario;
+    } else {
+        // si ya tienes getInventarioDocByFolio(noEmpresa, folio) que sí filtra por empresa, puedes usarlo.
+        $invDocId = resolveInvDocIdStrict((int)$noEmpresa, $folioInv, $firebaseProjectId, $firebaseApiKey);
+        if (!$invDocId) {
+            echo json_encode(['success' => false, 'message' => 'Inventario no encontrado para esa empresa y folio']);
+            exit;
+        }
     }
-    $invDocId = $inv['docId'];
 
-    // 2) Subcolección a partir de conteo/subconteo
+    // 2) Subcolección por conteo/subconteo
     $subcol = subcol_from_conteo($conteoIn, $subconteoIn);
 
-    // 3) URL doc línea en subcolección elegida
-    $root = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+    // 3) URL doc línea
+    $root       = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
     $lineDocUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$firebaseApiKey";
 
-    // (opcional) bloqueo: si tu semántica usa status=false como bloqueada, revísalo también
+    // (opcional) bloqueo
     $lineDoc = http_get_json($lineDocUrl);
     if (isset($lineDoc['fields']['locked']['booleanValue']) && $lineDoc['fields']['locked']['booleanValue'] === true) {
         echo json_encode(['success' => false, 'message' => 'Línea bloqueada']);
@@ -829,15 +887,11 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
         exit;
     }
 
-    // 4) Append de lotes para ESTE producto
-    $existing = [];
-    if ($lineDoc && isset($lineDoc['fields'][$cveArt]['arrayValue']['values'])) {
-        $existing = $lineDoc['fields'][$cveArt]['arrayValue']['values'];
-    }
-
+    // 4) Construir valores **NUEVOS** del producto (REEMPLAZO, no append)
+    $newValues = [];
     foreach ((array)$lotesIn as $row) {
-        $corr = (int)($row['corrugados'] ?? 0);
-        $cxc = (int)($row['cajasPorCorrugado'] ?? $row['corrugadosPorCaja'] ?? 0);
+        $corr    = (int)($row['corrugados'] ?? 0);
+        $cxc     = (int)($row['cajasPorCorrugado'] ?? $row['corrugadosPorCaja'] ?? 0);
         $sueltos = (int)($row['sueltos'] ?? 0);
 
         if (isset($row['totales']) && $row['totales'] !== '') {
@@ -849,23 +903,45 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
         }
 
         $lote = (string)($row['lote'] ?? '');
-
-        $existing[] = [
+        $newValues[] = [
             'mapValue' => [
                 'fields' => [
-                    'corrugados' => ['integerValue' => $corr],
+                    'corrugados'        => ['integerValue' => $corr],
                     'corrugadosPorCaja' => ['integerValue' => $cxc],
-                    'sueltos' => ['integerValue' => $sueltos],
-                    'lote' => ['stringValue' => $lote],
-                    'total' => ['integerValue' => (int)$totalLote],
+                    'sueltos'           => ['integerValue' => $sueltos],
+                    'lote'              => ['stringValue'  => $lote],
+                    'total'             => ['integerValue' => (int)$totalLote],
                 ]
             ]
         ];
     }
 
-    // 5) PATCH: campo del producto + metadatos + conteo y subconteo
-    $escapedProductField = escape_field_path($cveArt);
+    /*
+    // 🔁 ALTERNATIVA: “actualizar por lote” (merge) en vez de reemplazar todo
+    // - Lee existentes (si hay)
+    $existingValues = [];
+    if ($lineDoc && isset($lineDoc['fields'][$cveArt]['arrayValue']['values'])) {
+        $existingValues = $lineDoc['fields'][$cveArt]['arrayValue']['values'];
+    }
 
+    // - Indexa por 'lote' para sobrescribir si el lote ya existía
+    $byLote = [];
+    foreach ($existingValues as $v) {
+        $f = $v['mapValue']['fields'] ?? [];
+        $l = isset($f['lote']['stringValue']) ? trim(strtolower($f['lote']['stringValue'])) : '';
+        $byLote[$l] = $v;
+    }
+    foreach ($newValues as $nv) {
+        $f = $nv['mapValue']['fields'] ?? [];
+        $l = isset($f['lote']['stringValue']) ? trim(strtolower($f['lote']['stringValue'])) : '';
+        $byLote[$l] = $nv; // reemplaza/crea
+    }
+    // - El valor final para guardar:
+    $newValues = array_values($byLote);
+    */
+
+    // 5) PATCH (reemplaza el campo del producto)
+    $escapedProductField = escape_field_path($cveArt);
     $patchUrl = $lineDocUrl
         . '&updateMask.fieldPaths=' . rawurlencode($escapedProductField)
         . '&updateMask.fieldPaths=status'
@@ -877,13 +953,13 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
 
     $payloadFirestore = [
         'fields' => [
-            'status' => ['booleanValue' => true],     // editable
-            'updatedAt' => ['timestampValue' => gmdate('c')],
-            'lastProduct' => ['stringValue' => $cveArt],
-            'idAsignado' => ['stringValue' => $usuarioId],
-            'conteo' => ['integerValue' => $conteoIn],    // 👈 número de conteo (par)
-            'subconteo' => ['integerValue' => $subconteoIn], // 👈 1 o 2 dentro del par
-            $cveArt => ['arrayValue' => ['values' => $existing]],
+            'status'      => ['booleanValue' => true],
+            'updatedAt'   => ['timestampValue' => gmdate('c')],
+            'lastProduct' => ['stringValue'  => $cveArt],
+            'idAsignado'  => ['stringValue'  => $usuarioId],
+            'conteo'      => ['integerValue' => $conteoIn],
+            'subconteo'   => ['integerValue' => $subconteoIn],
+            $cveArt       => ['arrayValue' => ['values' => $newValues]],
         ]
     ];
 
@@ -894,15 +970,16 @@ function guardarProducto($noEmpresa, $noInventario, $firebaseProjectId, $firebas
     }
 
     echo json_encode([
-        'success' => true,
-        'docPath' => "INVENTARIO/$invDocId/$subcol/$lineaId",
-        'product' => $cveArt,
+        'success'      => true,
+        'docPath'      => "INVENTARIO/$invDocId/$subcol/$lineaId",
+        'product'      => $cveArt,
         'subcoleccion' => $subcol,
-        'conteo' => $conteoIn,
-        'subconteo' => $subconteoIn,
-        'updated' => true
+        'conteo'       => $conteoIn,
+        'subconteo'    => $subconteoIn,
+        'updated'      => true
     ]);
 }
+
 
 //////////////////////////GUARDAR PRODUCTO/////////////////////////////////////////
 function iniciarInventario($noEmpresa, $firebaseProjectId, $firebaseApiKey, $noInventario)
