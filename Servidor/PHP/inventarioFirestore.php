@@ -539,6 +539,7 @@ switch ($accion) {
 
     case 'obtenerLineaConteos': {
             $noInv      = (int)($_GET['noInventario'] ?? 0);
+            $conteo     = (int)($_GET['conteo'] ?? 1);      // ← usa el conteo que te mandan (default 1)
             $claveLinea = (string)($_GET['claveLinea'] ?? '');
             if (!$noInv || !$claveLinea) {
                 echo json_encode(['success' => false, 'message' => 'Parámetros inválidos']);
@@ -563,77 +564,51 @@ switch ($accion) {
                 exit;
             }
 
-            // 2) Pares de subcolecciones por conteo (extiende si necesitas más)
-            $pairs = [
-                1 => ['lineas',   'lineas02'],
-                2 => ['lineas03', 'lineas04'],
-                3 => ['lineas05', 'lineas06'],
-                // 4 => ['lineas07','lineas08'], ...
-            ];
+            // 2) Elegir el par según el CONTEO solicitado (sin recorrer todos)
+            [$subA, $subB] = subcols_for_conteo($conteo);
 
-            $foundIndex = null;
-            $docA = null;
-            $docB = null;
-            $subA = null;
-            $subB = null;
+            $uA  = "$root/INVENTARIO/$invDocId/$subA/$claveLinea?key=$firebaseApiKey";
+            $uB  = "$root/INVENTARIO/$invDocId/$subB/$claveLinea?key=$firebaseApiKey";
+            $docA = http_get_json($uA);
+            $docB = http_get_json($uB);
 
-            foreach ($pairs as $idx => [$sA, $sB]) {
-                $uA = "$root/INVENTARIO/$invDocId/$sA/$claveLinea?key=$firebaseApiKey";
-                $uB = "$root/INVENTARIO/$invDocId/$sB/$claveLinea?key=$firebaseApiKey";
-                $dA = http_get_json($uA);
-                $dB = http_get_json($uB);
-
-                $hasA = $dA && !empty($dA['fields']);
-                $hasB = $dB && !empty($dB['fields']);
-                if ($hasA || $hasB) {
-                    $foundIndex = $idx;
-                    $docA = $hasA ? $dA : null;
-                    $docB = $hasB ? $dB : null;
-                    $subA = $sA;
-                    $subB = $sB;
-                    break;
-                }
-            }
-
-            if ($foundIndex === null) {
-                // No hay datos en ningún conteo para esta línea
-                echo json_encode([
-                    'success'   => true,
-                    'conteoIdx' => null,
-                    'conteo1'   => null,
-                    'conteo2'   => null,
-                    'user1'     => null,
-                    'user2'     => null
-                ]);
-                exit;
-            }
+            // Si quisieras fallback automático al par anterior cuando no hay nada en este conteo,
+            // descomenta este bloque:
+            /*
+        if ((empty($docA['fields']) && empty($docB['fields'])) && $conteo > 1) {
+            [$subA, $subB] = subcols_for_conteo($conteo - 1);
+            $uA  = "$root/INVENTARIO/$invDocId/$subA/$claveLinea?key=$firebaseApiKey";
+            $uB  = "$root/INVENTARIO/$invDocId/$subB/$claveLinea?key=$firebaseApiKey";
+            $docA = http_get_json($uA);
+            $docB = http_get_json($uB);
+        }
+        */
 
             // 3) Resolver usuarios (idAsignado) → nombre
             $user1 = null;
             $user2 = null;
-            if ($docA && isset($docA['fields'])) {
-                $ids = _norm_assigned_ids($docA['fields']);
-                $uid = $ids[0] ?? null;
+            if (!empty($docA['fields'])) {
+                $ids  = _norm_assigned_ids($docA['fields']);
+                $uid  = $ids[0] ?? null;
                 $user1 = $uid ? ['id' => $uid, 'name' => _get_user_name($root, $firebaseApiKey, $uid)] : null;
             }
-            if ($docB && isset($docB['fields'])) {
-                $ids = _norm_assigned_ids($docB['fields']);
-                $uid = $ids[0] ?? null;
+            if (!empty($docB['fields'])) {
+                $ids  = _norm_assigned_ids($docB['fields']);
+                $uid  = $ids[0] ?? null;
                 $user2 = $uid ? ['id' => $uid, 'name' => _get_user_name($root, $firebaseApiKey, $uid)] : null;
             }
 
             echo json_encode([
                 'success'   => true,
-                'conteoIdx' => $foundIndex,   // 1, 2, 3, ...
+                'conteoIdx' => $conteo,                    // ← ahora refleja el conteo pedido
                 'subs'      => ['a' => $subA, 'b' => $subB],
-                'conteo1'   => $docA ?: null,
-                'conteo2'   => $docB ?: null,
+                'conteo1'   => (!empty($docA['fields']) ? $docA : null),
+                'conteo2'   => (!empty($docB['fields']) ? $docB : null),
                 'user1'     => $user1,
                 'user2'     => $user2
             ]);
             exit;
         }
-
     case 'obtenerInventario':
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];
         $claveSae = $_SESSION['empresa']['claveSae'];

@@ -419,6 +419,7 @@ function comparararConteos(tipoUsuario) {
 
   const noInv = $("#noInventario").val();
   const claveLinea = $("#lineaSelect").val();
+  const conteo = $("#conteoInput").val();
   if (!noInv || !claveLinea) {
     return Swal.fire({ icon: "warning", title: "Faltan datos para comparar" });
   }
@@ -428,7 +429,7 @@ function comparararConteos(tipoUsuario) {
     url: "../Servidor/PHP/inventarioFirestore.php",
     method: "GET",
     dataType: "json",
-    data: { accion: "obtenerLineaConteos", noInventario: noInv, claveLinea },
+    data: { accion: "obtenerLineaConteos", noInventario: noInv, claveLinea, conteo: conteo },
   })
   .done(function (res) {
     cerrarLoader();
