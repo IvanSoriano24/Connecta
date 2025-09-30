@@ -1331,14 +1331,18 @@ $("#generarPDF").click(function () {
 function prepararDatosExcel() {
   const payload = recolectarLinea();
   const datos = [];
-
   let totalGeneral = 0;
 
-  Object.entries(payload.articulos).forEach(([clave, lotes]) => {
-    lotes.forEach((lote) => {
+  Object.entries(payload.articulos).forEach(([clave, lotes], indexClave) => {
+    // Si no es la primera clave → insertar fila en blanco como separación
+    if (indexClave > 0) {
+      datos.push({ Clave: "", Lote: "", Cantidad: "" });
+    }
+
+    lotes.forEach((lote, indexLote) => {
       const cantidad = lote.piezas || 0;
       datos.push({
-        Clave: clave,
+        Clave: indexLote === 0 ? clave : "", // solo la primera fila de la clave lleva clave
         Lote: lote.lote || "—",
         Cantidad: cantidad,
       });
@@ -1346,14 +1350,13 @@ function prepararDatosExcel() {
     });
   });
 
-  datos.push({
-    Clave: "TOTAL",
-    Lote: "",
-    Cantidad: totalGeneral,
-  });
+  // Fila vacía + total
+  datos.push({ Clave: "", Lote: "", Cantidad: "" });
+  datos.push({ Clave: "", Lote: "TOTAL", Cantidad: totalGeneral });
 
   return datos;
 }
+
 
 async function generarExcelInventario(datos) {
   // Insertar fila vacía antes del TOTAL
