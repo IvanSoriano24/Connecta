@@ -1168,8 +1168,8 @@ function recolectarLinea() {
             const piezas = (corr * cajas) + sueltos;*/
       const corr = parseInt($row.find(".qty-input-corrugado").val()) || 0;
       const cajas = parseInt($row.find(".qty-input-cajas").val()) || 0;
-      const sueltos = $row.find(".qty-input-sueltos").val() || 0;
-      const totales = $row.find(".qty-input-total").val() || 0;
+      const sueltos = parseInt($row.find(".qty-input-sueltos").val()) || 0;
+      const totales = parseInt($row.find(".qty-input-total").val()) || 0;
       const piezas = corr * cajas + sueltos;
 
       lotes.push({
@@ -1254,6 +1254,7 @@ $("#btnNext").click(function () {
 });
 
 
+// =================== PDF =============================
 // Convierte <img> en base64
 function getBase64Image(imgElement) {
   if (!imgElement) return "";
@@ -1323,4 +1324,140 @@ function generarPDFInventario(datos) {
 $("#generarPDF").click(function () {
   const datos = prepararDatosPDF();
   generarPDFInventario(datos);
+});
+
+// ============== EXCEL =====================
+// Arma datos para Excel
+function prepararDatosExcel() {
+  const payload = recolectarLinea();
+  const datos = [];
+
+  let totalGeneral = 0;
+
+  Object.entries(payload.articulos).forEach(([clave, lotes]) => {
+    lotes.forEach((lote) => {
+      const cantidad = lote.piezas || 0;
+      datos.push({
+        Clave: clave,
+        Lote: lote.lote || "—",
+        Cantidad: cantidad,
+      });
+      totalGeneral += cantidad;
+    });
+  });
+
+  datos.push({
+    Clave: "TOTAL",
+    Lote: "",
+    Cantidad: totalGeneral,
+  });
+
+  return datos;
+}
+
+async function generarExcelInventario(datos) {
+  // Insertar fila vacía antes del TOTAL
+  const total = datos.pop(); // quitamos el total original
+  datos.push({ Clave: "", Lote: "", Cantidad: "" }); // fila vacía
+  datos.push({
+    Clave: "", // nada en clave
+    Lote: "TOTAL", // total en columna Lote
+    Cantidad: total.Cantidad, // número en Cantidad
+  });
+
+  // Crear libro y hoja
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Inventario");
+
+  // Definir columnas con anchos
+  worksheet.columns = [
+    { header: "Clave", key: "Clave", width: 30 },
+    { header: "Lote", key: "Lote", width: 18 },
+    { header: "Cantidad", key: "Cantidad", width: 12 },
+  ];
+
+  // Agregar filas
+  datos.forEach((row) => {
+    const newRow = worksheet.addRow(row);
+
+    // Forzar alineación de la celda Lote a la derecha
+    newRow.getCell("Lote").alignment = { horizontal: "right" };
+  });
+
+
+  // === Estilos ===
+  // Encabezados
+  worksheet.getRow(1).eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "3f317d" }, // morado
+    };
+    cell.alignment = { horizontal: "center", vertical: "middle" };
+  });
+
+  // Fila TOTAL (última)
+  const totalRowIndex = worksheet.rowCount;
+  const cellTotalText = worksheet.getCell("B" + totalRowIndex); // columna Lote
+  const cellTotalValue = worksheet.getCell("C" + totalRowIndex); // columna Cantidad
+
+  // Celda "TOTAL"
+  cellTotalText.font = { bold: true, color: { argb: "FFFFFFFF" } };
+  cellTotalText.fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "3f317d" }, // lila/morado
+  };
+  cellTotalText.alignment = { horizontal: "center" };
+
+  // Celda valor del total
+  cellTotalValue.font = { bold: true, color: { argb: "FFFFFFFF" } };
+  cellTotalValue.fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FF2ECC71" }, // verde
+  };
+  cellTotalValue.alignment = { horizontal: "right" };
+
+  // Exportar archivo
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+
+
+
+  // Obtener texto del option seleccionado
+  let lineaDesc = $("#lineaSelect option:selected").text() || "linea";
+
+  // Limpiar espacios en blanco al inicio y fin
+  lineaDesc = lineaDesc.trim();
+
+  // Quitar el "Sub X → " si existe
+  lineaDesc = lineaDesc.replace(/^Sub\s+\d+\s+→\s+/, "");
+
+  // Reemplazar espacios múltiples por uno solo
+  lineaDesc = lineaDesc.replace(/\s+/g, " ");
+
+  // Opcional: quitar acentos y reemplazar espacios por "_"
+  const lineaFile = lineaDesc
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quita acentos
+      .replace(/\s+/g, "_"); // espacios → _
+
+  // Fecha actual YYYY-MM-DD
+  const hoy = new Date();
+  const fecha = hoy.toISOString().split("T")[0]; // corta en "T", queda solo yyyy-mm-dd
+
+  // Exportar con nombre: Inventario_LINEA_2025-09-30.xlsx
+  saveAs(blob, `Inventario - ${lineaFile} - ${fecha}.xlsx`);
+
+
+
+}
+
+$("#exportarExcel").click(function () {
+  const datos = prepararDatosExcel();
+  generarExcelInventario(datos);
 });
