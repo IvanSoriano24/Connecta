@@ -8,7 +8,8 @@ require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
 include 'utils.php';
 
-function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename){
+function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename)
+{
     global $firebaseProjectId, $firebaseApiKey;
 
     // Construir la URL para filtrar (usa el campo idPedido y noEmpresa)
@@ -73,7 +74,7 @@ function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedid
             $direccion1Contacto = $fields['direccion1Contacto']['stringValue'] ?? null;
         }
     }
-    
+
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -1175,7 +1176,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         /*} else {
             $correoBandera = 1;
         }*/
-        // if ($formularioData['enviarWhats']) {
+        //if ($formularioData['enviarWhats']) {
         if ($numeroBandera === 0) {
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
@@ -1618,50 +1619,138 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
     }
     /****/
     if ($idFirebasePedido === "") {
-        // Finalmente, enviamos todo a Firestore
-        $url = "https://firestore.googleapis.com/v1/projects/"
-            . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+        // 🔎 Confirmar con runQuery que no exista
+        $urlCheck = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+        $payloadCheck = json_encode([
+            "structuredQuery" => [
+                "from" => [["collectionId" => $collection]],
+                "where" => [
+                    "compositeFilter" => [
+                        "op" => "AND",
+                        "filters" => [
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "folio"],
+                                    "op" => "EQUAL",
+                                    "value" => ["stringValue" => $formularioData['numero']]
+                                ]
+                            ],
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "noEmpresa"],
+                                    "op" => "EQUAL",
+                                    "value" => ["integerValue" => (int)$noEmpresa]
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                "limit" => 1
+            ]
+        ]);
 
-        $payload = json_encode(['fields' => $fields]);
-        file_put_contents("debug_payload.json", $payload);
-        $options = [
+        $optionsCheck = [
             'http' => [
                 'header'  => "Content-Type: application/json\r\n",
                 'method'  => 'POST',
-                'content' => $payload,
+                'content' => $payloadCheck,
             ]
         ];
-        $context  = stream_context_create($options);
-        $response = @file_get_contents($url, false, $context);
+        $contextCheck  = stream_context_create($optionsCheck);
+        $responseCheck = @file_get_contents($urlCheck, false, $contextCheck);
 
-        if ($response === false) {
-            $error = error_get_last();
-            echo json_encode(['success' => false, 'message' => $error['message']]);
-            exit;
+        $resultCheck = $responseCheck ? json_decode($responseCheck, true) : [];
+        if (isset($resultCheck[0]['document']['name'])) {
+            // Si lo encuentra en el segundo runQuery, obtenemos el ID
+            $parts = explode('/', $resultCheck[0]['document']['name']);
+            $idFirebasePedido = end($parts);
+        }
+
+        if ($idFirebasePedido === "") {
+            // 🚀 Crear porque no existe
+            $url = "https://firestore.googleapis.com/v1/projects/"
+                . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
+
+            $method = "POST";
+        } else {
+            // ⚡ Ya existe → Actualizar
+            $url = "https://firestore.googleapis.com/v1/projects/"
+                . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$idFirebasePedido?key=$firebaseApiKey";
+
+            $method = "PATCH";
         }
     } else {
-        // Finalmente, enviamos todo a Firestore
-        $url = "https://firestore.googleapis.com/v1/projects/"
-            . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/"
-            . "$idFirebasePedido?key=$firebaseApiKey";
+        // ✅ Ya teníamos el ID → Confirmar con runQuery por seguridad
+        $urlCheck = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+        $payloadCheck = json_encode([
+            "structuredQuery" => [
+                "from" => [["collectionId" => $collection]],
+                "where" => [
+                    "compositeFilter" => [
+                        "op" => "AND",
+                        "filters" => [
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "folio"],
+                                    "op" => "EQUAL",
+                                    "value" => ["stringValue" => $formularioData['numero']]
+                                ]
+                            ],
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "noEmpresa"],
+                                    "op" => "EQUAL",
+                                    "value" => ["integerValue" => (int)$noEmpresa]
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                "limit" => 1
+            ]
+        ]);
 
-        $payload = json_encode(['fields' => $fields]);
-        file_put_contents("debug_payload.json", $payload);
-        $options = [
+        $optionsCheck = [
             'http' => [
                 'header'  => "Content-Type: application/json\r\n",
-                'method'  => 'PATCH',
-                'content' => $payload,
+                'method'  => 'POST',
+                'content' => $payloadCheck,
             ]
         ];
-        $context  = stream_context_create($options);
-        $response = @file_get_contents($url, false, $context);
+        $contextCheck  = stream_context_create($optionsCheck);
+        $responseCheck = @file_get_contents($urlCheck, false, $contextCheck);
 
-        if ($response === false) {
-            $error = error_get_last();
-            echo json_encode(['success' => false, 'message' => $error['message']]);
-            exit;
+        $resultCheck = $responseCheck ? json_decode($responseCheck, true) : [];
+        if (isset($resultCheck[0]['document']['name'])) {
+            $parts = explode('/', $resultCheck[0]['document']['name']);
+            $idFirebasePedido = end($parts);
         }
+
+        // ⚡ Forzar a PATCH porque sí existe
+        $url = "https://firestore.googleapis.com/v1/projects/"
+            . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR/$idFirebasePedido?key=$firebaseApiKey";
+
+        $method = "PATCH";
+    }
+
+    // Enviar datos a Firestore (crear o actualizar)
+    $payload = json_encode(['fields' => $fields]);
+    file_put_contents("debug_payload.json", $payload);
+
+    $options = [
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => $method,
+            'content' => $payload,
+        ]
+    ];
+    $context  = stream_context_create($options);
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        $error = error_get_last();
+        echo json_encode(['success' => false, 'message' => $error['message']]);
+        exit;
     }
 }
 function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $credito, $conn)
@@ -1672,7 +1761,7 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     $CVE_DOC = str_pad($formularioData['numero'], 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
-    $partidasData = obtenerPartidasActualizadas($CVE_DOC, $conexionData, $claveSae);
+    $partidasData = obtenerPartidasActualizadas($CVE_DOC, $conexionData, $claveSae, $conn);
 
     // Configuración de la API de WhatsApp
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
@@ -1719,8 +1808,9 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
+    //$numero = "+527773340218";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";

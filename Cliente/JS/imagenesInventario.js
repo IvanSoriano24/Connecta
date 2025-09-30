@@ -172,7 +172,7 @@ function subirPDFsLineas(selectedFiles, meta = {}) {
     // Listeners (evitamos duplicarlos si ya existen)
     //detachAll(); // seguridad para no duplicar si vuelves a llamar init()
 
-    btnAgregarPDF.addEventListener("click", onClickAgregarPDF);
+    //btnAgregarPDF.addEventListener("click", onClickAgregarPDF);
     pdfFilesInput.addEventListener("change", onChangeFiles);
     guardarPDFsBtn.addEventListener("click", onClickGuardar);
 

@@ -3,6 +3,14 @@ require_once "firebase.php";
 session_start();
 header("Content-Type: application/json");
 
+function subcols_for_conteo(int $n): array {
+    if ($n <= 1) return ['lineas', 'lineas02']; // conteo 1
+    $start = ($n - 1) * 2 + 1;                  // 2→3 y 4; 3→5 y 6; etc.
+    return [
+        'lineas' . str_pad($start,     2, '0', STR_PAD_LEFT),
+        'lineas' . str_pad($start + 1, 2, '0', STR_PAD_LEFT),
+    ];
+}
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
