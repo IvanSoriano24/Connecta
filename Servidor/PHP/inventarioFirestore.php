@@ -524,12 +524,20 @@ switch ($accion) {
                 $status = $doc["fields"]["status"]["booleanValue"] ?? null;
 
                 // 🔹 Leer asignaciones para esta línea
+                // 🔹 Leer asignaciones para esta línea
                 $usuariosAsignados = [];
                 if (isset($asignaciones[$docId]["arrayValue"]["values"])) {
                     foreach ($asignaciones[$docId]["arrayValue"]["values"] as $val) {
-                        $usuariosAsignados[] = $val["stringValue"];
+                        if (isset($val["stringValue"])) {
+                            $usuariosAsignados[] = $val["stringValue"];
+                        } elseif (isset($val["nullValue"])) {
+                            $usuariosAsignados[] = null;
+                        } else {
+                            $usuariosAsignados[] = null; // fallback seguro
+                        }
                     }
                 }
+
 
                 foreach ($usuariosAsignados as $idx => $usuarioAsignado) {
                     $registro = [
@@ -548,6 +556,7 @@ switch ($accion) {
             }
         }
 
+        $asignadas = array_values(array_unique($asignadas, SORT_REGULAR));
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
 

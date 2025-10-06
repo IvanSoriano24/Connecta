@@ -231,50 +231,67 @@ async function cargarAsignacionesExistentes(noInv) {
 }
 //////////////////////////////////////////////////////////
 
-//lineaSelect
+// =======================
+// 🔹 Helpers Generales
+// =======================
+function escapeHtml(str) {
+  return String(str ?? "").replace(
+      /[&<>"']/g,
+      (m) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          }[m])
+  );
+}
+
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/"/g, "&quot;");
+}
+
+// =======================
+// 🔹 Obtener líneas
+// =======================
 function obtenerLineas() {
   $.ajax({
     url: "../Servidor/PHP/inventario.php",
     method: "GET",
-    data: {
-      numFuncion: "3",
-    },
+    data: { numFuncion: "3" },
     success: function (response) {
       try {
         const res =
-          typeof response === "string" ? JSON.parse(response) : response;
+            typeof response === "string" ? JSON.parse(response) : response;
 
         if (res.success && Array.isArray(res.data)) {
           const lineaSelect = $("#lineaSelect");
           lineaSelect.empty();
           lineaSelect.append(
-            "<option selected disabled>Seleccione una linea</option>"
+              "<option selected disabled>Seleccione una línea</option>"
           );
 
           res.data.forEach((dato) => {
             lineaSelect.append(
-              `<option value="${dato.CVE_LIN}" data-id="${dato.CVE_LIN}" data-descripcion="${dato.DESC_LIN}">
+                `<option value="${dato.CVE_LIN}" data-id="${dato.CVE_LIN}" data-descripcion="${dato.DESC_LIN}">
                 ${dato.DESC_LIN}
               </option>`
             );
           });
-
-          // Habilitar el select si hay vendedores disponibles
-          //lineaSelect.prop("disabled", res.data.length === 0);
         } else {
           Swal.fire({
             icon: "warning",
             title: "Aviso",
-            text: res.message || "No se Encontraron Lineas.",
+            text: res.message || "No se encontraron líneas.",
           });
-          //$("#lineaSelect").prop("disabled", true);
         }
       } catch (error) {
-        console.error("Error al Procesar la Respuesta:", error);
+        console.error("Error al procesar las líneas:", error);
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Error al Cargar las Lineas.",
+          text: "Error al cargar las líneas.",
         });
       }
     },
@@ -282,54 +299,52 @@ function obtenerLineas() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Error al Obtener las Lineas.",
+        text: "Error al obtener las líneas.",
       });
     },
   });
 }
+
+// =======================
+// 🔹 Obtener almacenistas
+// =======================
 function obtenerAlmacenistas() {
   $.ajax({
     url: "../Servidor/PHP/inventario.php",
     method: "GET",
-    data: {
-      numFuncion: "9",
-    },
+    data: { numFuncion: "9" },
     success: function (response) {
       try {
         const res =
-          typeof response === "string" ? JSON.parse(response) : response;
+            typeof response === "string" ? JSON.parse(response) : response;
 
         if (res.success && Array.isArray(res.data)) {
-          const lineaSelect = $("#selectUsuario");
-          lineaSelect.empty();
-          lineaSelect.append(
-            "<option selected disabled>Seleccione un usuario</option>"
+          const userSelect = $("#selectUsuario");
+          userSelect.empty();
+          userSelect.append(
+              "<option selected disabled>Seleccione un usuario</option>"
           );
 
           res.data.forEach((dato) => {
-            lineaSelect.append(
+            userSelect.append(
                 `<option value="${dato.idUsuario}" data-id="${dato.idUsuario}" data-nombre="${dato.nombre}">
-                  ${dato.nombre} ${dato.apellido}
-                </option>`
+                ${dato.nombre} ${dato.apellido}
+              </option>`
             );
           });
-
-          // Habilitar el select si hay vendedores disponibles
-          //lineaSelect.prop("disabled", res.data.length === 0);
         } else {
           Swal.fire({
             icon: "warning",
             title: "Aviso",
-            text: res.message || "No se Encontraron Lineas.",
+            text: res.message || "No se encontraron usuarios.",
           });
-          //$("#lineaSelect").prop("disabled", true);
         }
       } catch (error) {
-        console.error("Error al Procesar la Respuesta:", error);
+        console.error("Error al procesar usuarios:", error);
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Error al Cargar las Lineas.",
+          text: "Error al cargar los usuarios.",
         });
       }
     },
@@ -337,78 +352,56 @@ function obtenerAlmacenistas() {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Error al Obtener las Lineas.",
+        text: "Error al obtener los usuarios.",
       });
     },
   });
 }
-// Helpers
-function escapeHtml(str) {
-  return String(str ?? "").replace(
-    /[&<>"']/g,
-    (m) =>
-    ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    }[m])
-  );
-}
-function escapeAttr(str) {
-  return escapeHtml(str).replace(/"/g, "&quot;");
-}
-// Helper para escapar HTML
-function escapeHtml(str) {
-  return String(str ?? "").replace(
-    /[&<>"']/g,
-    (m) =>
-    ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    }[m])
-  );
-}
-/**AsignarLinea**/
-// ====== Asignar (click) ======
+
+// =======================
+// 🔹 Asignar línea
+// =======================
 function asignarLinea() {
   const $selUser = $("#selectUsuario");
-  const $selLinea = $("#lineaSelect"); // o #selectLineaModal si renombraste
+  const $selLinea = $("#lineaSelect");
   const $lista = $("#listaEmpresasAsociadas");
+
   const userId = ($selUser.val() || "").toString();
   const userName = $selUser.find("option:selected").text().trim() || userId;
   const userHandle = $selUser.find("option:selected").data("usuario") || "";
   const lineaId = ($selLinea.val() || "").toString();
   const lineaDesc = $selLinea.find("option:selected").text().trim() || lineaId;
+
   if (!userId)
     return Swal.fire({ icon: "warning", title: "Selecciona un usuario" });
   if (!lineaId)
     return Swal.fire({ icon: "warning", title: "Selecciona una línea" });
+
   // Asegurar estructuras
   if (!asignByUser[userId])
     asignByUser[userId] = { userName, userHandle, lineas: {} };
   if (!lineIndex[lineaId]) lineIndex[lineaId] = new Set();
-  // Si ya está asignado a este usuario, no hacemos nada
+
   const yaEsta = !!asignByUser[userId].lineas[lineaId];
-  // Regla: máx. 2 almacenistas por línea (si no es el mismo usuario)
+
+  // Máximo 2 almacenistas por línea
   if (!yaEsta && lineIndex[lineaId].size >= 2) {
-    const actuales = Array.from(lineIndex[lineaId]).join(", ");
     return Swal.fire({
       icon: "info",
       title: "Límite alcanzado",
       text: `La línea ${lineaId} ya tiene 2 almacenistas asignados.`,
     });
   }
+
   // Asignar
   asignByUser[userId].lineas[lineaId] = { lineaDesc };
   lineIndex[lineaId].add(userId);
   renderLista($lista);
 }
-// ====== Render: agrupado por usuario, listando sus líneas ======
+
+// =======================
+// 🔹 Render de lista
+// =======================
 function renderLista($lista) {
   const userIds = Object.keys(asignByUser);
   if (userIds.length === 0) {
@@ -416,52 +409,63 @@ function renderLista($lista) {
     return;
   }
 
-  const rows = userIds.map((uid) => {
-    const u = asignByUser[uid];
-    const lineas = Object.entries(u.lineas).map(([linId, info]) => {
-      const isOld = !!info.persisted; // ← venía del servidor
-      // estilos: viejo => éxito sutil; nuevo => claro
-      const cls = isOld
-        ? "bg-success-subtle border border-success text-success"
-        : "bg-light text-dark border";
+  const rows = userIds
+      .map((uid) => {
+        const u = asignByUser[uid];
+        const lineas = Object.entries(u.lineas)
+            .map(([linId, info]) => {
+              const isOld = !!info.persisted;
+              const cls = isOld
+                  ? "bg-success-subtle border border-success text-success"
+                  : "bg-light text-dark border";
+              const check = isOld ? '<i class="bx bx-check-circle me-1"></i>' : "";
 
-      const check = isOld ? '<i class="bx bx-check-circle me-1"></i>' : '';
+              return `
+            <span class="badge ${cls} me-2 mb-2 d-inline-flex align-items-center">
+              ${check}${escapeHtml(info.lineaDesc)}
+              <small class="text-muted ms-1">(${escapeHtml(linId)})</small>
+              <button type="button"
+                      class="btn btn-link btn-sm ${
+                  isOld ? "text-warning" : "text-danger"
+              } ms-2 p-0 btnQuitar"
+                      data-user="${escapeAttr(uid)}"
+                      data-linea="${escapeAttr(linId)}"
+                      title="${
+                  isOld
+                      ? "Quitar (ya asignada antes)"
+                      : "Quitar asignación"
+              }">
+                &times;
+              </button>
+            </span>
+          `;
+            })
+            .join("") || '<span class="text-muted">Sin líneas</span>';
 
-      return `
-        <span class="badge ${cls} me-2 mb-2 d-inline-flex align-items-center">
-          ${check}${escapeHtml(info.lineaDesc)}
-          <small class="text-muted ms-1">(${escapeHtml(linId)})</small>
-          <button type="button"
-                  class="btn btn-link btn-sm ${isOld ? 'text-warning' : 'text-danger'} ms-2 p-0 btnQuitar"
-                  data-user="${escapeAttr(uid)}"
-                  data-linea="${escapeAttr(linId)}"
-                  title="${isOld ? 'Quitar (ya asignada antes)' : 'Quitar'}">
-            &times;
-          </button>
-        </span>
-      `;
-    }).join("") || '<span class="text-muted">Sin líneas</span>';
-
-    return `
-      <li class="list-group-item" data-user="${escapeAttr(uid)}">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <div class="fw-semibold">${escapeHtml(u.userName)}</div>
-            ${u.userHandle ? `<small class="text-muted">@${escapeHtml(u.userHandle)}</small>` : ""}
+        return `
+        <li class="list-group-item" data-user="${escapeAttr(uid)}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold">${escapeHtml(u.userName)}</div>
+              ${
+            u.userHandle
+                ? `<small class="text-muted">@${escapeHtml(u.userHandle)}</small>`
+                : ""
+        }
+            </div>
+            <button type="button"
+                    class="btn btn-outline-danger btn-sm ms-3 btnQuitarUsuario"
+                    data-user="${escapeAttr(uid)}"
+                    title="Quitar todas las líneas de este usuario">
+              Quitar todo
+            </button>
           </div>
-          <button type="button"
-                  class="btn btn-outline-danger btn-sm ms-3 btnQuitarUsuario"
-                  data-user="${escapeAttr(uid)}"
-                  title="Quitar todas las líneas de este usuario">
-            Quitar todo
-          </button>
-        </div>
-        <div class="mt-2">${lineas}</div>
-      </li>
-    `;
-  }).join("");
+          <div class="mt-2">${lineas}</div>
+        </li>
+      `;
+      })
+      .join("");
 
-  // leyenda opcional
   const legend = `
     <li class="list-group-item d-flex align-items-center gap-3">
       <span class="badge bg-success-subtle border border-success text-success">
@@ -473,23 +477,10 @@ function renderLista($lista) {
 
   $lista.html(legend + rows);
 }
-// ====== Helpers ======
-function escapeHtml(str) {
-  return String(str ?? "").replace(
-    /[&<>"']/g,
-    (m) =>
-    ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    }[m])
-  );
-}
-function escapeAttr(str) {
-  return escapeHtml(str).replace(/"/g, "&quot;");
-}
+
+// =======================
+// 🔹 Quitar una línea
+// =======================
 $("#listaEmpresasAsociadas").on("click", ".btnQuitar", function () {
   const uid = $(this).data("user");
   const lin = $(this).data("linea");
@@ -500,7 +491,8 @@ $("#listaEmpresasAsociadas").on("click", ".btnQuitar", function () {
   const reallyRemove = async () => {
     delete asignByUser[uid].lineas[lin];
     lineIndex[lin]?.delete(uid);
-    if (Object.keys(asignByUser[uid].lineas).length === 0) delete asignByUser[uid];
+    if (Object.keys(asignByUser[uid].lineas).length === 0)
+      delete asignByUser[uid];
     renderLista($("#listaEmpresasAsociadas"));
   };
 
@@ -512,16 +504,54 @@ $("#listaEmpresasAsociadas").on("click", ".btnQuitar", function () {
       showCancelButton: true,
       confirmButtonText: "Sí, quitar",
       cancelButtonText: "Cancelar",
-    }).then((r) => { if (r.isConfirmed) reallyRemove(); });
+    }).then((r) => {
+      if (r.isConfirmed) reallyRemove();
+    });
   } else {
     reallyRemove();
   }
 });
+
+// =======================
+// 🔹 Quitar todas las líneas de un usuario
+// =======================
+$("#listaEmpresasAsociadas").on("click", ".btnQuitarUsuario", function () {
+  const uid = $(this).data("user");
+  const usuario = asignByUser?.[uid];
+  if (!usuario) return;
+
+  const $btn = $(this);
+  Swal.fire({
+    icon: "warning",
+    title: "Quitar todas las líneas",
+    text: `¿Deseas quitar todas las líneas asignadas a ${usuario.userName}?`,
+    showCancelButton: true,
+    confirmButtonText: "Sí, quitar todo",
+    cancelButtonText: "Cancelar",
+  }).then((r) => {
+    if (!r.isConfirmed) return;
+
+    $btn.prop("disabled", true).text("Quitando...");
+
+    Object.keys(usuario.lineas).forEach((lin) => {
+      lineIndex[lin]?.delete(uid);
+    });
+
+    delete asignByUser[uid];
+    renderLista($("#listaEmpresasAsociadas"));
+
+    $btn.prop("disabled", false).text("Quitar todo");
+  });
+});
+
+// =======================
+// 🔹 Modal de inventarios
+// =======================
 $("#btnModalInventarios").click(function () {
   mostrarInventarios();
 });
 
-let inventarioActualId = null; // variable global para guardar el ID
+let inventarioActualId = null;
 
 $("#btnNuevoInventario").click(function () {
   mostrarLoader();
@@ -534,7 +564,7 @@ $("#btnNuevoInventario").click(function () {
       try {
         const res = JSON.parse(response);
         if (res.success) {
-          inventarioActualId = res.idInventario; // guardar el ID
+          inventarioActualId = res.idInventario;
           Swal.fire({
             icon: "success",
             title: "Éxito",
@@ -557,7 +587,7 @@ $("#btnNuevoInventario").click(function () {
       } catch (error) {
         console.error("Error al procesar la respuesta:", error);
         Swal.fire({
-          icon: "warning",
+          icon: "error",
           title: "Error",
           text: "Error al guardar la clave.",
         });
@@ -574,6 +604,10 @@ $("#btnNuevoInventario").click(function () {
   });
 });
 
+
+
+
+
 // Cancelar desde el header o footer
 $("#cerrarModalAsociasionHeader, #cerrarModalAsociasionFooter").click(
   function () {
@@ -584,11 +618,7 @@ $("#cerrarModalAsociasionHeader, #cerrarModalAsociasionFooter").click(
 $("#btnGuardarAsignacion").on("click", function () {
   const $btn = $(this);
   const csrf = $("#csrf_token").val();
-  //const noInv = $("#noInventario").val();
 
-  /*if (!noInv) {
-    return Swal.fire({ icon: "warning", title: "Falta No. Inventario" });
-  }*/
   if (Object.keys(asignByUser).length === 0) {
     return Swal.fire({
       icon: "info",
@@ -596,14 +626,53 @@ $("#btnGuardarAsignacion").on("click", function () {
       text: "Agrega al menos una asignación.",
     });
   }
+
   mostrarLoader();
-  // Construir payload: { lineaId: userId }
+
+  // ============================================================
+  // 🔹 Paso 1: recolectar todos los UIDs únicos y su posición global
+  // ============================================================
+  const todosUIDs = new Set();
+  Object.values(lineIndex).forEach((set) => {
+    Array.from(set).forEach((uid) => todosUIDs.add(uid));
+  });
+
+  // Mapa fijo de posición por usuario (la primera vez que aparece)
+  const uidSlot = {};
+  let nextSlot = 0;
+  for (const uid of todosUIDs) {
+    if (nextSlot < 2) {
+      uidSlot[uid] = nextSlot;
+      nextSlot++;
+    }
+  }
+
+  console.log("🧩 Mapa fijo de slots:", uidSlot);
+
+  // ============================================================
+  // 🔹 Paso 2: construir asignaciones con 2 posiciones fijas
+  // ============================================================
   const asignaciones = {};
   Object.entries(lineIndex).forEach(([lin, set]) => {
     const arr = Array.from(set);
-    if (arr.length > 0) asignaciones[String(lin)] = arr.slice(0, 2);
+    let slot0 = null;
+    let slot1 = null;
+
+    arr.forEach((uid) => {
+      const pos = uidSlot[uid];
+      if (pos === 0) slot0 = uid;
+      if (pos === 1) slot1 = uid;
+    });
+
+    // 🔸 Si falta alguno, lo dejamos explícitamente como null
+    asignaciones[String(lin)] = [slot0 ?? null, slot1 ?? null];
   });
-  console.log("payload asignaciones", asignaciones);
+
+  console.log("📦 Payload final de asignaciones:", asignaciones);
+
+  // ============================================================
+  // 🔹 Paso 3: enviar payload normalizado
+  // ============================================================
   $btn.prop("disabled", true).text("Guardando…");
 
   $.ajax({
@@ -612,34 +681,32 @@ $("#btnGuardarAsignacion").on("click", function () {
     dataType: "json",
     headers: { "X-CSRF-Token": csrf },
     data: {
-      numFuncion: "10", // <-- tu case de guardar asignaciones
-      //noInventario: noInv,
-      payload: JSON.stringify({ asignaciones }), // { "001": "userId", ... }
+      numFuncion: "10",
+      payload: JSON.stringify({ asignaciones }),
     },
   })
-    .done(async function (res) {
-      cerrarLoader();
-      if (!res || res.success !== true) {
-        throw new Error(res?.message || "No se pudo guardar");
-      }
-      await Swal.fire({
-        icon: "success",
-        title: "Asignaciones guardadas",
-        timer: 1400,
-        showConfirmButton: false,
+      .done(async function (res) {
+        cerrarLoader();
+        if (!res || res.success !== true) {
+          throw new Error(res?.message || "No se pudo guardar");
+        }
+        await Swal.fire({
+          icon: "success",
+          title: "Asignaciones guardadas",
+          timer: 1400,
+          showConfirmButton: false,
+        });
+        $("#asociarLineas").modal("hide");
+      })
+      .fail(function (err) {
+        cerrarLoader();
+        console.error("Guardar asignaciones error:", err);
+        Swal.fire({ icon: "error", title: "Error", text: "Intenta de nuevo." });
+      })
+      .always(function () {
+        cerrarLoader();
+        $btn.prop("disabled", false).text("Guardar Asignacion");
       });
-      //$modal.modal("hide");
-      $("#asociarLineas").modal("hide");
-    })
-    .fail(function (err) {
-      cerrarLoader();
-      console.error("Guardar asignaciones error:", err);
-      Swal.fire({ icon: "error", title: "Error", text: "Intenta de nuevo." });
-    })
-    .always(function () {
-      cerrarLoader();
-      $btn.prop("disabled", false).text("Guardar Asignacion");
-    });
 });
 
 
