@@ -10,7 +10,7 @@ session_start();
 /****************************************/
 /****************************************/
 
-function obtenerLineas($claveSae, $conexionData)
+/*function obtenerLineas($claveSae, $conexionData)
 {
     $conn = sqlsrv_connect($conexionData['host'], [
         "Database" => $conexionData['nombreBase'],
@@ -23,8 +23,21 @@ function obtenerLineas($claveSae, $conexionData)
         throw new Exception("No pude conectar a la base de datos");
     }
     try {
-        $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIN" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-        $sql = "SELECT * FROM $nombreTabla";
+        $tablaL = "[{$conexionData['nombreBase']}].[dbo].[CLIN" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $tablaI = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $tablaC = "[{$conexionData['nombreBase']}].[dbo].[INVE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+        $sql = "
+            SELECT L.*
+            FROM $tablaL L
+            WHERE EXISTS (
+                SELECT 1
+                FROM $tablaI I
+                INNER JOIN $tablaC C ON C.CVE_PROD = I.CVE_ART
+                WHERE I.LIN_PROD = L.CVE_LIN
+                  AND (C.CAMPLIB2 != 'N' OR C.CAMPLIB2 IS NULL)
+            )";
+
         $stmt = sqlsrv_query($conn, $sql);
         if ($stmt === false) {
             $errors = print_r(sqlsrv_errors(), true);
@@ -32,11 +45,9 @@ function obtenerLineas($claveSae, $conexionData)
         }
 
         $datos = [];
-        // Procesar resultados
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
             $datos[] = $row;
         }
-        //var_dump($datos);
 
         if (!empty($datos)) {
             header('Content-Type: application/json');
@@ -45,16 +56,86 @@ function obtenerLineas($claveSae, $conexionData)
             echo json_encode(['success' => false, 'message' => 'No se Encontraron lineas.']);
         }
     } catch (Exception $e) {
-        // Si falla cualquiera, deshacemos TODO:
         sqlsrv_rollback($conn);
         sqlsrv_close($conn);
-        //return ['success' => false, 'message' => $e->getMessage()];
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-
-function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
+*/
+function obtenerLineas($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
+    header('Content-Type: application/json');
+
+    if ($noEmpresa === null || !$firebaseProjectId || !$firebaseApiKey) {
+        echo json_encode(['success' => false, 'message' => 'Faltan parámetros: noEmpresa, firebaseProjectId o firebaseApiKey.']);
+        return;
+    }
+
+    $collection = "CATEGORIAS";
+    $baseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+    $urlQuery = "$baseUrl:runQuery?key=$firebaseApiKey";
+
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => $collection]
+            ],
+            "where" => [
+                "fieldFilter" => [
+                    "field" => ["fieldPath" => "noEmpresa"],
+                    "op" => "EQUAL",
+                    "value" => ["integerValue" => (int)$noEmpresa]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ]);
+
+    $options = [
+        'http' => [
+            'header' => "Content-Type: application/json\r\n",
+            'method' => 'POST',
+            'content' => $payload,
+            'timeout' => 10
+        ]
+    ];
+
+    $context = stream_context_create($options);
+    $response = @file_get_contents($urlQuery, false, $context);
+
+    if ($response === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al consultar Firebase.']);
+        return;
+    }
+
+    $resultArray = json_decode($response, true);
+    if (!is_array($resultArray) || !isset($resultArray[0]['document'])) {
+        echo json_encode(['success' => false, 'message' => 'No se encontró documento de categorías para la empresa.']);
+        return;
+    }
+
+    $doc = $resultArray[0]['document'];
+    $fields = $doc['fields'] ?? [];
+
+    $categorias = [];
+    if (isset($fields['categorias']['arrayValue']['values']) && is_array($fields['categorias']['arrayValue']['values'])) {
+        foreach ($fields['categorias']['arrayValue']['values'] as $v) {
+            if (isset($v['stringValue'])) {
+                $categorias[] = (string)$v['stringValue'];
+            }
+        }
+    }
+
+    if (empty($categorias)) {
+        echo json_encode(['success' => false, 'message' => 'El documento no contiene categorías.']);
+        return;
+    }
+
+    // Devolver las "líneas" como las categorías obtenidas
+    echo json_encode(['success' => true, 'data' => array_values($categorias)]);
+}
+
+function obtenerProductosPorLinea($claveSae, $conexionData, $linea){
     $conn = sqlsrv_connect($conexionData['host'], [
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
@@ -71,10 +152,11 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea)
         $nombreTabla3 = "[{$conexionData['nombreBase']}].[dbo].[INVE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $sql = "SELECT I.CVE_ART, I.DESCR, I.LIN_PROD, I.EXIST, L.CVE_ART AS ProductoLote, L.LOTE, L.CANTIDAD AS CantidadLote
             FROM $nombreTabla I
-            INNER JOIN $nombreTabla2 L ON L.CVE_ART = I.CVE_ART
-            INNER JOIN $nombreTabla3 C ON C.CVE_PROD = I.CVE_ART
-            WHERE I.LIN_PROD = ? AND (C.CAMPLIB2 != 'N' OR C.CAMPLIB2 IS NULL)";
+            LEFT JOIN $nombreTabla2 L ON L.CVE_ART = I.CVE_ART
+            LEFT JOIN $nombreTabla3 C ON C.CVE_PROD = I.CVE_ART
+            WHERE I.CTRL_ALM = ? AND (C.CAMPLIB2 != 'N' OR C.CAMPLIB2 IS NULL)";
         $param = [$linea];
+        //var_dump($linea);
         
         $stmt = sqlsrv_query($conn, $sql, $param);
         if ($stmt === false) {
@@ -1229,18 +1311,24 @@ function getInventarioDocByFolioAsignacion($noEmpresa, $noInventario, $projectId
     return ['docId' => $docId];
 }
 ///////////////
-// Helper para saber el par de subcolecciones según el conteo N
+// Helper: par de subcolecciones para el conteo N
 function subcols_for_conteo(int $n): array {
-    if ($n <= 1) return ['lineas', 'lineas02']; // Conteo 1
-    $start = ($n - 1) * 2 + 1;                  // 2→3/4, 3→5/6, 4→7/8, ...
+    if ($n <= 1) return ['lineas','lineas02'];       // conteo 1
+    $start = ($n - 1) * 2 + 1;                       // 2→3,4; 3→5,6; ...
     return [
         'lineas' . str_pad($start,     2, '0', STR_PAD_LEFT),
         'lineas' . str_pad($start + 1, 2, '0', STR_PAD_LEFT),
     ];
 }
 
-function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $projectId, $apiKey)
-{
+function guardarAsignaciones(
+    $noEmpresa,
+    $noInventario,
+    array $asignaciones,
+    $projectId,
+    $apiKey,
+    ?int $conteoActual = null      // 👈 opcional: pásalo desde el front si ya lo tienes
+){
     $root = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents";
 
     // ==== 1) Resolver inventario ====
@@ -1250,20 +1338,26 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
     }
     $invDocId = $inv['docId'];
 
-    // ==== 2) Cargar asignaciones actuales ====
+    // Traer cabecera para conocer conteo si no te lo pasaron
     $invDocUrl = "$root/INVENTARIO/$invDocId?key=$apiKey";
-    $invDoc = http_get_json($invDocUrl);
+    $invDoc    = http_get_json($invDocUrl);
+    if ($conteoActual === null) {
+        $conteoActual = (int)($invDoc['fields']['conteo']['integerValue'] ?? 1);
+        if ($conteoActual < 1) $conteoActual = 1;
+    }
+
+    // Subcolecciones del par del conteo actual
+    [$subA, $subB] = subcols_for_conteo($conteoActual);
+
+    // ==== 2) Cargar asignaciones actuales (map del inventario) ====
     $currMap = [];
     if (!empty($invDoc['fields']['asignaciones']['mapValue']['fields'])) {
         foreach ($invDoc['fields']['asignaciones']['mapValue']['fields'] as $lin => $arr) {
             $uids = [];
             if (!empty($arr['arrayValue']['values'])) {
                 foreach ($arr['arrayValue']['values'] as $v) {
-                    if (isset($v['stringValue'])) {
-                        $uids[] = $v['stringValue'];
-                    } elseif (isset($v['nullValue'])) {
-                        $uids[] = null;
-                    }
+                    if (isset($v['stringValue'])) $uids[] = $v['stringValue'];
+                    elseif (isset($v['nullValue'])) $uids[] = null;
                 }
             }
             $currMap[$lin] = array_pad($uids, 2, null);
@@ -1274,13 +1368,13 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
     $newMap = [];
     foreach ($asignaciones as $lineaId => $uids) {
         if ($lineaId === '' || !is_array($uids)) continue;
-        $uids = array_slice($uids, 0, 2);
+        $uids = array_slice(array_values($uids), 0, 2);
         $newMap[(string)$lineaId] = $uids;
     }
 
     // ==== Helpers ====
     $reservados = [
-        'locked','conteo','finishedAt','lockedBy','updatedAt',
+        'locked','conteo','subconteo','finishedAt','lockedBy','updatedAt',
         'lastProduct','conteoTotal','diferencia','existSistema',
         'descr','linesStatus','status','idAsignado'
     ];
@@ -1295,29 +1389,29 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         return false;
     };
 
-    // ==== 4) Aplicar cambios ====
-    $tsIso = gmdate('c');
-    $errors = [];
+    // ==== 4) Aplicar cambios en el PAR del conteo actual ====
+    $tsIso   = gmdate('c');
+    $errors  = [];
     $finalMap = [];
 
     foreach ($newMap as $lineaId => $desiredUids) {
-        $old = $currMap[$lineaId] ?? [null, null];
+        $old  = $currMap[$lineaId] ?? [null, null];
         $want = [$desiredUids[0] ?? null, $desiredUids[1] ?? null];
         $finalMap[$lineaId] = $want;
 
+        // slot 0 -> subA (subconteo 1), slot 1 -> subB (subconteo 2)
         for ($slot = 0; $slot < 2; $slot++) {
-            $subcol = ($slot === 0) ? 'lineas' : 'lineas02';
+            $subcol = ($slot === 0) ? $subA : $subB;
             $oldUid = $old[$slot];
             $newUid = $want[$slot];
 
-            // Sin cambios
             if ($oldUid === $newUid) continue;
 
             $docUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey";
-            $doc = http_get_json($docUrl);
+            $doc    = http_get_json($docUrl);
             $tieneProductos = $doc && $hasProducts($doc);
 
-            // 🔹 Eliminar documento si se quitó el usuario
+            // Quitar
             if ($oldUid && !$newUid) {
                 if ($tieneProductos) {
                     $errors[] = "No se puede quitar la asignación de $subcol/$lineaId: ya hay productos capturados.";
@@ -1327,7 +1421,7 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
                 continue;
             }
 
-            // 🔹 Reemplazar usuario
+            // Reemplazar
             if ($oldUid && $newUid && $oldUid !== $newUid) {
                 if ($tieneProductos) {
                     $errors[] = "No se puede cambiar la asignación de $subcol/$lineaId: ya hay productos capturados.";
@@ -1336,48 +1430,50 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
                 http_delete_simple($docUrl);
             }
 
-            // 🔹 Crear o actualizar si hay nuevo UID
+            // Crear/Actualizar nuevo UID
             if ($newUid) {
-                $patchUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey"
+                $patchUrl = "$docUrl"
                     . "&updateMask.fieldPaths=idAsignado"
                     . "&updateMask.fieldPaths=conteo"
+                    . "&updateMask.fieldPaths=subconteo"
                     . "&updateMask.fieldPaths=updatedAt";
+
                 $body = [
                     'fields' => [
-                        'idAsignado'   => ['stringValue' => $newUid],
-                        'conteo'       => ['integerValue' => ($slot + 1)],
-                        'updatedAt'    => ['timestampValue' => $tsIso],
+                        'idAsignado' => ['stringValue'   => $newUid],
+                        'conteo'     => ['integerValue'  => $conteoActual],     // 👈 conteo correcto (1,2,3…)
+                        'subconteo'  => ['integerValue'  => $slot + 1],        // 👈 1 o 2 dentro del par
+                        'updatedAt'  => ['timestampValue'=> $tsIso],
                     ]
                 ];
                 http_patch_jsonAsignacion($patchUrl, $body);
             }
         }
 
-        // 🔹 Si ambos son null → no mantener en el mapa
+        // Si ambos null → no mantener en mapa
         if ($want[0] === null && $want[1] === null) {
             unset($finalMap[$lineaId]);
         }
     }
 
-    // ==== 🧹 Limpieza final de documentos huérfanos ====
+    // ==== 5) Limpieza final SOLO en el par actual ====
     foreach ($currMap as $lineaId => $uidsAntiguos) {
         $new = $finalMap[$lineaId] ?? [null, null];
 
-        // Si ahora ambos slots son null, eliminar documentos de ambas subcolecciones
-        if (($new[0] === null && $new[1] === null)) {
-            foreach (['lineas', 'lineas02'] as $subcol) {
+        // ambos null -> borrar ambos docs del par actual
+        if ($new[0] === null && $new[1] === null) {
+            foreach ([$subA, $subB] as $subcol) {
                 $docUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey";
                 http_delete_simple($docUrl);
             }
             continue;
         }
 
-        // Caso normal: solo eliminar los slots que cambiaron de valor a null
+        // slots que pasaron de valor -> null dentro del par actual
         for ($slot = 0; $slot < 2; $slot++) {
-            $subcol = ($slot === 0) ? 'lineas' : 'lineas02';
+            $subcol = ($slot === 0) ? $subA : $subB;
             $oldUid = $uidsAntiguos[$slot] ?? null;
             $newUid = $new[$slot] ?? null;
-
             if ($oldUid && !$newUid) {
                 $docUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey";
                 http_delete_simple($docUrl);
@@ -1385,40 +1481,28 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         }
     }
 
-
-    // ==== 5) Guardar asignaciones ====
+    // ==== 6) Persistir el mapa "asignaciones" en cabecera ====
     $mapFields = [];
     foreach ($finalMap as $lineaId => $uids) {
         $arrVals = [];
         foreach ($uids as $u) {
-            if ($u === null || $u === '') {
-                $arrVals[] = ['nullValue' => null];
-            } else {
-                $arrVals[] = ['stringValue' => $u];
-            }
+            $arrVals[] = ($u === null || $u === '') ? ['nullValue' => null] : ['stringValue' => $u];
         }
         $arrVals = array_pad($arrVals, 2, ['nullValue' => null]);
         $mapFields[(string)$lineaId] = ['arrayValue' => ['values' => $arrVals]];
     }
 
-    $urlAsign = "$root/INVENTARIO/$invDocId?key=$apiKey&updateMask.fieldPaths=asignaciones";
+    $urlAsign  = "$root/INVENTARIO/$invDocId?key=$apiKey&updateMask.fieldPaths=asignaciones";
     $bodyAsign = ['fields' => ['asignaciones' => ['mapValue' => ['fields' => $mapFields]]]];
-    $resp1 = http_patch_jsonAsignacion($urlAsign, $bodyAsign);
+    $resp1     = http_patch_jsonAsignacion($urlAsign, $bodyAsign);
 
     if (!$resp1) {
         return ['success' => false, 'message' => 'No se pudo guardar asignaciones en el documento de inventario'];
     }
 
-    // ==== 6) Respuesta final ====
-    if (!empty($errors)) {
-        return [
-            'success' => true,
-            'warnings' => $errors,
-            'aplicado' => $finalMap
-        ];
-    }
-
-    return ['success' => true, 'aplicado' => $finalMap];
+    return !empty($errors)
+        ? ['success' => true, 'warnings' => $errors, 'aplicado' => $finalMap, 'conteo' => $conteoActual, 'subs' => [$subA,$subB]]
+        : ['success' => true, 'aplicado' => $finalMap, 'conteo' => $conteoActual, 'subs' => [$subA,$subB]];
 }
 
 function http_delete_simple($url)
@@ -1941,7 +2025,8 @@ switch ($funcion) {
         $claveSae = $_SESSION['empresa']['claveSae'];
         $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
         $conexionData = $conexionResult['data'];
-        obtenerLineas($claveSae, $conexionData);
+        //obtenerLineas($claveSae, $conexionData);
+        obtenerLineas($noEmpresa, $firebaseProjectId, $firebaseApiKey);
         break;
     case 4:
         $noEmpresa = $_SESSION['empresa']['noEmpresa'];

@@ -1884,7 +1884,7 @@ function insertarPar_Factr($conexionData, $pedidoId, $cveDoc, $claveSae, $enlace
             $row['NUM_PAR'],
             $row['CVE_ART'],
             $row['CANT'],
-            $row['PXS'],
+            $row['CANT'],
             $row['PREC'],
             $row['COST'],
             $row['IMPU1'],

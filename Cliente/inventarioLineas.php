@@ -634,6 +634,7 @@ session_destroy(); */
             const $mensaje = $('#msgArticulos');
             const $btnNext = $('#btnNext');
             const csrfToken = $('#csrf_token').val();
+            console.log("Cargada: ", $linea);
 
             resetUI();
 
@@ -645,6 +646,7 @@ session_destroy(); */
                     resetUI();
                     return;
                 }
+                console.log("Cambio");
                 mostrarLoader();
                 updateBtnNextState();
                 loadArticulos(linea)

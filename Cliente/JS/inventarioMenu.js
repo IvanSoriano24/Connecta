@@ -255,6 +255,7 @@ function escapeAttr(str) {
 // =======================
 // 🔹 Obtener líneas
 // =======================
+/*
 function obtenerLineas() {
   $.ajax({
     url: "../Servidor/PHP/inventario.php",
@@ -264,7 +265,7 @@ function obtenerLineas() {
       try {
         const res =
             typeof response === "string" ? JSON.parse(response) : response;
-
+        
         if (res.success && Array.isArray(res.data)) {
           const lineaSelect = $("#lineaSelect");
           lineaSelect.empty();
@@ -304,7 +305,70 @@ function obtenerLineas() {
     },
   });
 }
+*/
+function obtenerLineas() {
+  $.ajax({
+    url: "../Servidor/PHP/inventario.php",
+    method: "GET",
+    data: { numFuncion: "3" },
+    success: function (response) {
+      try {
+        const res = typeof response === "string" ? JSON.parse(response) : response;
 
+        if (res.success && Array.isArray(res.data)) {
+          const lineaSelect = $("#lineaSelect");
+          lineaSelect.empty();
+          lineaSelect.append("<option selected disabled>Seleccione una línea</option>");
+
+          res.data.forEach((dato) => {
+            if (dato && typeof dato === "object") {
+              const value = dato.CVE_LIN ?? dato.value ?? "";
+              const desc = dato.DESC_LIN ?? dato.descripcion ?? value;
+              lineaSelect.append(
+                `<option value="${escapeHtml(value)}" data-id="${escapeHtml(value)}" data-descripcion="${escapeHtml(desc)}">${escapeHtml(desc)}</option>`
+              );
+            } else {
+              const str = String(dato);
+              lineaSelect.append(
+                `<option value="${escapeHtml(str)}" data-id="${escapeHtml(str)}" data-descripcion="${escapeHtml(str)}">${escapeHtml(str)}</option>`
+              );
+            }
+          });
+        } else {
+          Swal.fire({
+            icon: "warning",
+            title: "Aviso",
+            text: res.message || "No se encontraron líneas.",
+          });
+        }
+      } catch (error) {
+        console.error("Error al procesar las líneas:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Error al cargar las líneas.",
+        });
+      }
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener las líneas.",
+      });
+    },
+  });
+}
+
+// Pequeña función para escapar valores antes de insertarlos en HTML
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 // =======================
 // 🔹 Obtener almacenistas
 // =======================
@@ -603,10 +667,6 @@ $("#btnNuevoInventario").click(function () {
     },
   });
 });
-
-
-
-
 
 // Cancelar desde el header o footer
 $("#cerrarModalAsociasionHeader, #cerrarModalAsociasionFooter").click(

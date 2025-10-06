@@ -762,7 +762,7 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
 
         // Filtro por vendedor
         $params = [];
-        if ($tipoUsuario === 'ADMINISTRADOR') {
+        if ($tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario = 'SUPER-ALMACENISTA') {
             if ($filtroVendedor !== '') {
                 $sql      .= " AND f.CVE_VEND = ?";
                 $params[]  = $filtroVendedor;
@@ -9137,6 +9137,7 @@ switch ($funcion) {
         }
         // Mostrar los clientes usando los datos de conexión obtenidos
         $conexionData = $conexionResult['data'];
+        //var_dump($conexionData);
         $filtroFecha = $_POST['filtroFecha'];
         $estadoPedido = $_POST['estadoPedido'];
         $filtroVendedor = $_POST['filtroVendedor'];

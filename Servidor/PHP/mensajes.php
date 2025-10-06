@@ -736,55 +736,7 @@ function formatearClaveVendedor($clave)
 function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
 {
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    /*
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'header' => "Content-Type: application/json\r\n"
-        ]
-    ]);
-
-    $response = @file_get_contents($url, false, $context);
-
-    if ($response === false) {
-        echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos.']);
-    } else {
-        $data = json_decode($response, true);
-        $comandas = [];
-        //var_dump($data);
-        if (isset($data['documents'])) {
-            foreach ($data['documents'] as $document) {
-                
-                $fields = $document['fields'];
-                $status = $fields['status']['stringValue'];
-            
-                // Aplicar el filtro de estado si está definido
-                if ($filtroStatus === '' || $status === $filtroStatus) {
-                    //var_dump($fields['folio']['stringValue']);
-                    if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
-                        $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
-                        $fecha = $fechaHora[0] ?? "";
-                        $hora = $fechaHora[1] ?? "00:00:00";
-
-                        $comandas[] = [
-                            'id' => basename($document['name']),
-                            'noPedido' => $fields['folio']['stringValue'],
-                            'nombreCliente' => $fields['nombreCliente']['stringValue'],
-                            'status' => $status,
-                            'fecha' => $fecha,
-                            'hora' => $hora
-                        ];
-                    }
-                }
-            }
-        }
-        usort($comandas, function ($a, $b) {
-            return strcmp($b['noPedido'], $a['noPedido']);
-        });
-        echo json_encode(['success' => true, 'data' => $comandas]);
-    }*/
+    
     $collection = "COMANDA";
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId"
         . "/databases/(default)/documents:runQuery?key=$firebaseApiKey";

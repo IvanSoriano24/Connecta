@@ -335,7 +335,7 @@ function subirPDFsLineas(selectedFiles, meta = {}) {
     Swal.fire({
       icon: "success",
       title: "PDFs listos",
-      text: 'Se guardarán junto con el pedido al presionar el botón verde "Guardar".',
+      text: 'Se guardarán junto con el producto al presionar guardar o Terminar la categoria.',
       confirmButtonText: "Aceptar",
       returnFocus: false,
     }).then(() => {
