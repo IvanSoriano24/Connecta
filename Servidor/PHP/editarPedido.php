@@ -835,9 +835,10 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData, $conn
             $NUM_PAR_EXISTENTE = $partidasExistentes[$CVE_ART];
             // Si la partida ya existe, realizar un UPDATE
             $sql = "UPDATE $nombreTabla SET 
-                CANT = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
+                CANT = ?, PXS = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
                 TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ? WHERE NUM_PAR = ? AND CVE_ART = ? AND CVE_DOC = ?";
             $params = [
+                $CANT,
                 $CANT,
                 $PREC,
                 $IMPU1,
