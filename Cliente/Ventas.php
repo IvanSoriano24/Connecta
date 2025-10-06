@@ -368,9 +368,9 @@ session_destroy(); */
                             <button type="button" class="btn btn-secondary filtro-rol" data-rol="Cancelados">Cancelados</button>
                         </div>
                     </div>
-                    <!-- Secciones de Pedido-->
+                    <!-- Boton de Pedido-->
                     <div class="button-container">
-                        <?php if ($tipoUsuario != "FACTURISTA") { ?>
+                        <?php if ($tipoUsuario != "FACTURISTA"  && $tipoUsuario != "SUPER-ALMACENISTA") { ?>
                             <a href="#" class="btn-crear" id="altaPedido">
                                 <i class='bx bxs-file-plus'></i>
                                 <span href="#" class="text">Crear Pedido</span>

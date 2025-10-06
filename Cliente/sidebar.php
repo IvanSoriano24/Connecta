@@ -167,7 +167,7 @@
             </a>
         </li>
 
-        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR" || $tipoUsuario == "FACTURISTA" || $tipoUsuario == "ALMACENISTA") { ?>
+        <?php if ($tipoUsuario == "ADMINISTRADOR" || $tipoUsuario == "VENDEDOR" || $tipoUsuario == "FACTURISTA" || $tipoUsuario == "ALMACENISTA" || $tipoUsuario == "SUPER-ALMACENISTA") { ?>
             <li class="dropdown-manual">
                 <a href="#" class="dropdown-toggle dropdown-toggle-manual" title="Ventas" tabindex="-1">
                     <i class='bx bxs-shopping-bag-alt'></i>

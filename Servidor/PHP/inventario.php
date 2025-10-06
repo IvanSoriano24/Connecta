@@ -1228,9 +1228,24 @@ function getInventarioDocByFolioAsignacion($noEmpresa, $noInventario, $projectId
     $docId = end($nameParts);
     return ['docId' => $docId];
 }
-
-function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $projectId, $apiKey)
-{
+///////////////
+// Helper para saber el par de subcolecciones según el conteo N
+function subcols_for_conteo(int $n): array {
+    if ($n <= 1) return ['lineas', 'lineas02']; // Conteo 1
+    $start = ($n - 1) * 2 + 1;                  // 2→3/4, 3→5/6, 4→7/8, ...
+    return [
+        'lineas' . str_pad($start,     2, '0', STR_PAD_LEFT),
+        'lineas' . str_pad($start + 1, 2, '0', STR_PAD_LEFT),
+    ];
+}
+function guardarAsignaciones(
+    $noEmpresa,
+    $noInventario,
+    array $asignaciones,
+    $projectId,
+    $apiKey,
+    ?int $conteoActual = null
+){
     $root = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents";
 
     // ==== 1) Resolver inventario ====
@@ -1240,18 +1255,25 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
     }
     $invDocId = $inv['docId'];
 
-    // ==== 2) Cargar asignaciones actuales ====
+    // Doc inventario (para leer conteo actual si no lo pasan)
     $invDocUrl = "$root/INVENTARIO/$invDocId?key=$apiKey";
-    $invDoc = http_get_json($invDocUrl);
+    $invDoc    = http_get_json($invDocUrl);
+    if ($conteoActual === null) {
+        $conteoActual = (int)($invDoc['fields']['conteo']['integerValue'] ?? 1);
+        if ($conteoActual < 1) $conteoActual = 1;
+    }
+
+    // Par de subcolecciones del conteo actual
+    [$subA, $subB] = subcols_for_conteo($conteoActual);
+
+    // ==== 2) Cargar asignaciones actuales (cabecera) ====
     $currMap = []; // lineaId -> [uid0, uid1]
     if (!empty($invDoc['fields']['asignaciones']['mapValue']['fields'])) {
         foreach ($invDoc['fields']['asignaciones']['mapValue']['fields'] as $lin => $arr) {
             $uids = [];
             if (!empty($arr['arrayValue']['values'])) {
                 foreach ($arr['arrayValue']['values'] as $v) {
-                    if (isset($v['stringValue']) && $v['stringValue'] !== '') {
-                        $uids[] = $v['stringValue'];
-                    }
+                    if (isset($v['stringValue']) && $v['stringValue'] !== '') $uids[] = $v['stringValue'];
                 }
             }
             $currMap[$lin] = array_slice($uids, 0, 2);
@@ -1264,21 +1286,15 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         if ($lineaId === '' || !is_array($uids)) continue;
         $uids = array_values(array_filter($uids, fn($u) => is_string($u) && $u !== ''));
 
-        // Traer los que ya estaban antes
         $prev = $currMap[$lineaId] ?? [];
 
-        // Mantener consistencia: si alguno de los previos sigue, lo dejamos en el mismo slot
-        $slot0 = null;
-        $slot1 = null;
+        // Mantener slots si siguen los mismos
+        $slot0 = null; $slot1 = null;
         foreach ($uids as $u) {
-            if (isset($prev[0]) && $u === $prev[0]) {
-                $slot0 = $u; // se queda en slot 0
-            } elseif (isset($prev[1]) && $u === $prev[1]) {
-                $slot1 = $u; // se queda en slot 1
-            }
+            if (isset($prev[0]) && $u === $prev[0]) $slot0 = $u;
+            elseif (isset($prev[1]) && $u === $prev[1]) $slot1 = $u;
         }
-
-        // Rellenar vacíos con los nuevos que no estaban
+        // Rellenar vacíos con nuevos
         foreach ($uids as $u) {
             if ($slot0 === null) { $slot0 = $u; continue; }
             if ($slot1 === null && $u !== $slot0) { $slot1 = $u; continue; }
@@ -1287,9 +1303,9 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         $newMap[(string)$lineaId] = array_values(array_filter([$slot0, $slot1], fn($u) => !!$u));
     }
 
-    // ==== Helpers: detectar si el doc de una subcolección tiene productos guardados ====
+    // ==== Helper: detectar si un doc de una subcolección (del conteo actual) tiene productos ====
     $reservados = [
-        'locked','conteo','finishedAt','lockedBy','updatedAt',
+        'locked','conteo','subconteo','finishedAt','lockedBy','updatedAt',
         'lastProduct','conteoTotal','diferencia','existSistema',
         'descr','linesStatus','status','idAsignado'
     ];
@@ -1304,28 +1320,31 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         return false;
     };
 
-    // ==== 4) Aplicar cambios por línea/slot respetando reglas ====
-    $tsIso = gmdate('c');
-    $errors = [];
-    $finalMap = $currMap; // partimos del estado actual y vamos aplicando cambios válidos
+    // ==== 4) Aplicar cambios SOLO en el par del conteo actual ====
+    $tsIso   = gmdate('c');
+    $errors  = [];
+    $finalMap = $currMap; // partimos del estado actual (cabecera)
 
     foreach ($newMap as $lineaId => $desiredUids) {
         $old = $currMap[$lineaId] ?? [];
         $old = [$old[0] ?? null, $old[1] ?? null];
         $want = [$desiredUids[0] ?? null, $desiredUids[1] ?? null];
 
+        // slot 0 → $subA con subconteo=1
+        // slot 1 → $subB con subconteo=2
         for ($slot = 0; $slot < 2; $slot++) {
-            $subcol = ($slot === 0) ? 'lineas' : 'lineas02';
-            $oldUid = $old[$slot];
-            $newUid = $want[$slot];
+            $subcol    = ($slot === 0) ? $subA : $subB;
+            $subconteo = $slot + 1; // 1 ó 2
+            $oldUid    = $old[$slot];
+            $newUid    = $want[$slot];
 
             if ($oldUid === $newUid) continue;
 
             $docUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey";
-            $doc = http_get_json($docUrl); // puede no existir
+            $doc    = http_get_json($docUrl); // puede no existir
             $tieneProductos = $doc && $hasProducts($doc);
 
-            // A) quitar
+            // A) Quitar asignación
             if ($oldUid && !$newUid) {
                 if ($tieneProductos) {
                     $errors[] = "No se puede quitar la asignación de $subcol/$lineaId: ya hay productos capturados.";
@@ -1337,23 +1356,27 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
                 continue;
             }
 
-            // B) reemplazar
+            // B) Reemplazar asignación
             if ($oldUid && $newUid && $oldUid !== $newUid) {
                 if ($tieneProductos) {
                     $errors[] = "No se puede cambiar la asignación de $subcol/$lineaId: ya hay productos capturados.";
                     $finalMap[$lineaId][$slot] = $oldUid;
                     continue;
                 }
+                // Limpio y creo el doc con el nuevo usuario
                 http_delete_simple($docUrl);
                 $patchUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey"
                     . "&updateMask.fieldPaths=idAsignado"
                     . "&updateMask.fieldPaths=conteo"
+                    . "&updateMask.fieldPaths=subconteo"
                     . "&updateMask.fieldPaths=updatedAt";
                 $body = [
                     'fields' => [
-                        'idAsignado'   => ['stringValue' => $newUid],
-                        'conteo'       => ['integerValue' => ($slot + 1)],
-                        'updatedAt'    => ['timestampValue' => $tsIso],
+                        'idAsignado' => ['stringValue'   => $newUid],
+                        'conteo'     => ['integerValue'  => $conteoActual], // 👈 conteo actual
+                        'subconteo'  => ['integerValue'  => $subconteo],    // 👈 1 ó 2
+                        'updatedAt'  => ['timestampValue'=> $tsIso],
+                        'status'     => ['booleanValue'  => true],          // editable
                     ]
                 ];
                 http_patch_jsonAsignacion($patchUrl, $body);
@@ -1361,17 +1384,20 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
                 continue;
             }
 
-            // C) añadir
+            // C) Añadir asignación
             if (!$oldUid && $newUid) {
                 $patchUrl = "$root/INVENTARIO/$invDocId/$subcol/$lineaId?key=$apiKey"
                     . "&updateMask.fieldPaths=idAsignado"
                     . "&updateMask.fieldPaths=conteo"
+                    . "&updateMask.fieldPaths=subconteo"
                     . "&updateMask.fieldPaths=updatedAt";
                 $body = [
                     'fields' => [
-                        'idAsignado'   => ['stringValue' => $newUid],
-                        'conteo'       => ['integerValue' => ($slot + 1)],
-                        'updatedAt'    => ['timestampValue' => $tsIso],
+                        'idAsignado' => ['stringValue'   => $newUid],
+                        'conteo'     => ['integerValue'  => $conteoActual], // 👈 conteo actual
+                        'subconteo'  => ['integerValue'  => $subconteo],    // 👈 1 ó 2
+                        'updatedAt'  => ['timestampValue'=> $tsIso],
+                        'status'     => ['booleanValue'  => true],
                     ]
                 ];
                 http_patch_jsonAsignacion($patchUrl, $body);
@@ -1380,11 +1406,12 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
             }
         }
 
+        // Normaliza slots de la cabecera (máx 2)
         $finalMap[$lineaId] = array_values(array_filter($finalMap[$lineaId] ?? [], fn($u) => !!$u));
         $finalMap[$lineaId] = array_slice($finalMap[$lineaId], 0, 2);
     }
 
-    // ==== 5) Escribir asignaciones finales al doc INVENTARIO ====
+    // ==== 5) Escribir asignaciones finales en el doc INVENTARIO ====
     $mapFields = [];
     foreach ($finalMap as $lineaId => $uids) {
         $uids = array_values(array_filter($uids, fn($u) => is_string($u) && $u !== ''));
@@ -1393,25 +1420,19 @@ function guardarAsignaciones($noEmpresa, $noInventario, array $asignaciones, $pr
         $mapFields[(string)$lineaId] = ['arrayValue' => ['values' => $arrVals]];
     }
 
-    $urlAsign = "$root/INVENTARIO/$invDocId?key=$apiKey&updateMask.fieldPaths=asignaciones";
+    $urlAsign  = "$root/INVENTARIO/$invDocId?key=$apiKey&updateMask.fieldPaths=asignaciones";
     $bodyAsign = ['fields' => ['asignaciones' => ['mapValue' => ['fields' => $mapFields]]]];
-    $resp1 = http_patch_jsonAsignacion($urlAsign, $bodyAsign);
+    $resp1     = http_patch_jsonAsignacion($urlAsign, $bodyAsign);
     if (!$resp1) {
         return ['success' => false, 'message' => 'No se pudo guardar asignaciones en el documento de inventario'];
     }
 
     // ==== 6) Respuesta ====
     if (!empty($errors)) {
-        return [
-            'success' => true,
-            'warnings' => $errors,
-            'aplicado' => $finalMap
-        ];
+        return ['success' => true, 'warnings' => $errors, 'aplicado' => $finalMap, 'conteo' => $conteoActual, 'subs' => [$subA, $subB]];
     }
-
-    return ['success' => true, 'aplicado' => $finalMap];
+    return ['success' => true, 'aplicado' => $finalMap, 'conteo' => $conteoActual, 'subs' => [$subA, $subB]];
 }
-
 
 function http_delete_simple($url)
 {
