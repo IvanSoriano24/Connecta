@@ -885,17 +885,17 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile){
             } else{
                 $apartados = (float)$row['APART'] - $cantidad;
             }
-            var_dump("apartados: ", $apartados);
+            //var_dump("apartados: ", $apartados);
             if($existencias < 0){
                 $existencias = 0;
             }
-            var_dump("existencias: ", $existencias);
+            //var_dump("existencias: ", $existencias);
             //$disponible = (float)$row['DISPONIBLE']; //$disponible = $existencias - ($apartados - $cantidad);
             $disponible = $existencias - $apartados;
             if($disponible < 0){
                 $disponible = 0;
             }
-            var_dump("disponible: ", $disponible);
+            //var_dump("disponible: ", $disponible);
             //$disponible = $existencias - abs($apartados);
             /*var_dump($existencias);
             var_dump($apartados);

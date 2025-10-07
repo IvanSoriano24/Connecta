@@ -1601,8 +1601,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
