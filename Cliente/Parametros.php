@@ -45,7 +45,7 @@ if (isset($_SESSION['usuario'])) {
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
-    <script src="JS/sideBar.js"></script>
+    <script src="JS/sideBar.js?n=1"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
 
@@ -120,10 +120,10 @@ if (isset($_SESSION['usuario'])) {
 
     <!-- JS Para el funcionamiento del sistema -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="JS/menu.js"></script>
-    <script src="JS/app.js"></script>
-    <script src="JS/script.js"></script>
-    <script src="JS/parametros.js"></script>
+    <script src="JS/menu.js?n=1"></script>
+    <script src="JS/app.js?n=1"></script>
+    <script src="JS/script.js?n=1"></script>
+    <script src="JS/parametros.js?n=1"></script>
     <!-- Script para los botones de navegacion en la seccion de los campos libres -->
     <script>
         $(function() {

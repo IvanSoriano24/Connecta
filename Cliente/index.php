@@ -81,7 +81,7 @@ if (isset($_SESSION["usuario"])) {
             </form>
         </div>
     </div>
-    <script src="JS/java.js"></script>
+    <script src="JS/java.js?n=1"></script>
     <script>
         //Funcion para mostrar u ocultar la contraseña
         document.getElementById("togglePassword").addEventListener("click", function() {

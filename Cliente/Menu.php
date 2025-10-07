@@ -415,8 +415,8 @@ if (isset($_SESSION['usuario'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
 
-    <script src="JS/menu.js"></script>
-    <script src="JS/app.js"></script>
+    <script src="JS/menu.js?n=1"></script>
+    <script src="JS/app.js?n=1"></script>
     <!-- <script src="JS/articulos.js"></script> -->
     <script>
         async function cargarProductos() {

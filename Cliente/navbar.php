@@ -133,4 +133,4 @@
     </div>
 </nav>
 
-<script src="JS/alerts.js"></script>
+<script src="JS/alerts.js?n=1"></script>

@@ -749,7 +749,7 @@ function cargarMunicipios({ estadoClave, municipioSeleccionado }) {
 // --- FLUJO DE EDICIÓN ---
 // ¡OJO! En edición, NO llames obtenerEstados() aparte. Solo este flujo.
 async function obtenerDatosEnvioEditar(pedidoID) {
-  $("#datosEnvio, #selectDatosEnvio, #observaciones").prop("disabled", false);
+  //$("#datosEnvio, #selectDatosEnvio, #observaciones").prop("disabled", false);
 
   $.post(
     "../Servidor/PHP/clientes.php",
