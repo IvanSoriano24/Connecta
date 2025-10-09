@@ -105,3 +105,55 @@
 [2025-08-14 12:16:12] Succes: Empezando la remision null
 [2025-08-14 12:16:13] Succes: Respuesta de la remision , mas informacion revisar logs de la remision null
 [2025-08-14 12:16:14] Succes: Se elimino el documento de los datos del pedido null
+[2025-10-09 20:51:01] ERROR:El pedido: 19182 se cancelo null
+[2025-10-09 20:51:04] ERROR:El pedido: 19711 se cancelo null
+[2025-10-09 20:51:07] ERROR:El pedido: 203 se cancelo null
+[2025-10-09 20:51:09] ERROR:El pedido: 208 se cancelo null
+[2025-10-09 20:51:10] ERROR:El pedido: 19706 se cancelo null
+[2025-10-09 20:51:13] ERROR:El pedido: 19704 se cancelo null
+[2025-10-09 20:51:17] ERROR:El pedido: 115 se cancelo null
+[2025-10-09 20:51:20] ERROR:El pedido: 19640 se cancelo null
+[2025-10-09 20:51:21] ERROR:El pedido: 19383 se cancelo null
+[2025-10-09 20:51:23] ERROR:El pedido: 19546 se cancelo null
+[2025-10-09 20:51:28] ERROR:El pago del pedido: 19154 se vencio null
+[2025-10-09 20:51:28] Succes: Liberando existencias del pedido: 19154 null
+[2025-10-09 20:51:29] Succes: Existencias liberadas exitosamente null
+[2025-10-09 20:51:29] Succes: Cancelando pedido 19154 null
+[2025-10-09 20:51:29] Succes: Pedido           0000019154 cancelado null
+[2025-10-09 20:51:30] ERROR:El pedido: 19394 se cancelo null
+[2025-10-09 20:51:31] ERROR:El pago del pedido: 19159 se vencio null
+[2025-10-09 20:51:31] Succes: Liberando existencias del pedido: 19159 null
+[2025-10-09 20:51:31] Succes: Existencias liberadas exitosamente null
+[2025-10-09 20:51:31] Succes: Existencias liberadas exitosamente null
+[2025-10-09 20:51:31] Succes: Existencias liberadas exitosamente null
+[2025-10-09 20:51:31] Succes: Cancelando pedido 19159 null
+[2025-10-09 20:51:32] Succes: Pedido           0000019159 cancelado null
+[2025-10-09 20:51:33] ERROR:El pedido: 19623 se cancelo null
+[2025-10-09 20:51:34] ERROR:El pedido: 19636 se cancelo null
+[2025-10-09 20:51:35] ERROR:El pedido: 19436 se cancelo null
+[2025-10-09 20:51:36] ERROR:El pedido: 19624 se cancelo null
+[2025-10-09 20:51:38] ERROR:El pedido: 19488 se cancelo null
+[2025-10-09 20:51:39] ERROR:El pedido: 19389 se cancelo null
+[2025-10-09 20:51:41] ERROR:El pago del pedido: 19167 se vencio null
+[2025-10-09 20:51:41] Succes: Liberando existencias del pedido: 19167 null
+[2025-10-09 20:51:41] Succes: Existencias liberadas exitosamente null
+[2025-10-09 20:51:41] Succes: Existencias liberadas exitosamente null
+[2025-10-09 20:51:41] Succes: Cancelando pedido 19167 null
+[2025-10-09 20:51:41] Succes: Pedido           0000019167 cancelado null
+[2025-10-09 20:51:42] ERROR:El pedido: 19384 se cancelo null
+[2025-10-09 20:51:43] ERROR:El pedido: 19385 se cancelo null
+[2025-10-09 20:51:45] ERROR:El pago del pedido: 19158 se vencio null
+[2025-10-09 20:51:45] Succes: Liberando existencias del pedido: 19158 null
+[2025-10-09 20:51:45] Succes: Existencias liberadas exitosamente null
+[2025-10-09 20:51:45] Succes: Existencias liberadas exitosamente null
+[2025-10-09 20:51:45] Succes: Cancelando pedido 19158 null
+[2025-10-09 20:51:45] Succes: Pedido           0000019158 cancelado null
+[2025-10-09 20:51:46] ERROR:El pedido: 19523 se cancelo null
+[2025-10-09 20:51:49] ERROR:El pedido: 19709 se cancelo null
+[2025-10-09 20:51:50] ERROR:El pedido: 19481 se cancelo null
+[2025-10-09 20:51:53] ERROR:El pedido: 174 se cancelo null
+[2025-10-09 20:51:55] ERROR:El pago del pedido: 19153 se vencio null
+[2025-10-09 20:51:55] Succes: Liberando existencias del pedido: 19153 null
+[2025-10-09 20:51:55] Succes: Existencias liberadas exitosamente null
+[2025-10-09 20:51:55] Succes: Cancelando pedido 19153 null
+[2025-10-09 20:51:55] Succes: Pedido           0000019153 cancelado null

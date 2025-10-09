@@ -1,0 +1,6 @@
+[2025-10-09 16:35:48] INFO: Creando remision 
+[2025-10-09 16:35:48] INFO: Funcion actualizarMulti: 
+[2025-10-09 16:35:53] INFO: Fin de la remision → {"type":2,"message":"Undefined array key \"E_LTPD\"","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\remision.php","line":401}
+[2025-10-09 16:52:09] INFO: Creando remision 
+[2025-10-09 16:52:09] INFO: Funcion actualizarMulti: 
+[2025-10-09 16:52:19] INFO: Fin de la remision → {"type":2,"message":"Undefined array key \"E_LTPD\"","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\remision.php","line":401}

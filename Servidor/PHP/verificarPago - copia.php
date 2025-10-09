@@ -4,7 +4,7 @@
 $logDir  = __DIR__ . '/logs';
 $logFile = $logDir . '/verificarPago.log';
 require 'firebase.php';
-//require 'funcionalidades.php';
+require 'funcionalidades.php';
 
 //Funcion para obtener los datos de conexion
 function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
@@ -284,8 +284,7 @@ function cambiarEstadoPago($firebaseProjectId, $firebaseApiKey, $pagoId, $folio,
         error_log($msg, 3, $logFile);
     }
 }
-function cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile, $resultado)
-{
+function cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile, $resultado){
     //Construir la URL con el id del documento y los updateMask para solo actualizar los campos requeridos
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=status&updateMask.fieldPaths=buscar&key=$firebaseApiKey";
 
@@ -315,7 +314,7 @@ function cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, 
         //Cambiar el estado en base de datos SAE
     }
 }
-function crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile){
+/*function crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile){
     $err = error_get_last();
     $msg = sprintf(
         "[%s] Succes: Empezando la remision %s\n",
@@ -366,7 +365,7 @@ function crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile){
     );
     error_log($msg, 3, $logFile);
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-}
+}*/
 function eliminarCxc($conexionData, $claveSae, $cliente, $pagado, $logFile)
 {
     // Configuración de conexión
@@ -1424,25 +1423,8 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile)
                         var_dump("folio: ", $folio);
 
                         /*$resultadoValidacion = validarRemision($conexionData, $folio, $claveSae, $logFile);
-                        if (!$resultadoValidacion) {*/
-                        //if ($fechaPago <= $fechaLimiteObj) {
-                        if (($fechaActual->getTimestamp() - $fechaPago->getTimestamp()) > 72 * 3600) {
-                            $resultado = 'Vencida';
-                            var_dump("Pago vencido");
-                            cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile, $resultado);
-                            $err = error_get_last();
-                            $msg = sprintf(
-                                "[%s] ERROR:El pago del pedido: $folio se vencio %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($err, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
-                            //Si ya pasaron, liberar existencias
-                            liberarExistencias($conexionData, $folio, $claveSae, $logFile);
-                            cancelarPedido($conexionData, $folio, $claveSae, $logFile);
-                            //Notificar
-                            //} else if ($fechaPago > $fechaLimiteObj) {
-                        } else {
+                    if (!$resultadoValidacion) {*/
+                        if ($fechaPago <= $fechaLimiteObj) {
                             $err = error_get_last();
                             $msg = sprintf(
                                 "[%s] Succes: Pedido: $folio en tiempo %s\n",
@@ -1476,7 +1458,7 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile)
                                 //$exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile);
                                 //if ($exsitencias['success']) {
                                 crearComanda($idEnvios, $folio, $claveSae, $noEmpresa, $vendedor, $fechaElaboracion, $conexionData, $firebaseProjectId, $firebaseApiKey, $logFile);
-                                crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile);
+                                //crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile);
                                 // Eliminar el documento de DATOS_PEDIDO
                                 //eliminarDocumentoDatosPedido($firebaseProjectId, $firebaseApiKey, $idEnvios, $logFile);
                                 //Termina validacion
@@ -1489,6 +1471,20 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile)
                                 );
                                 error_log($msg, 3, $logFile);
                             }
+                        } else if ($fechaPago > $fechaLimiteObj) {
+                            $resultado = 'Vencida';
+                            cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile, $resultado);
+                            $err = error_get_last();
+                            $msg = sprintf(
+                                "[%s] ERROR:El pago del pedido: $folio se vencio %s\n",
+                                date('Y-m-d H:i:s'),
+                                json_encode($err, JSON_UNESCAPED_UNICODE)
+                            );
+                            error_log($msg, 3, $logFile);
+                            //Si ya pasaron, liberar existencias
+                            liberarExistencias($conexionData, $folio, $claveSae, $logFile);
+                            cancelarPedido($conexionData, $folio, $claveSae, $logFile);
+                            //Notificar
                         }
                         /*} else {
                         var_dump("Pedido remisionado: ", $folio);
@@ -1501,26 +1497,24 @@ function verificarPedidos($firebaseProjectId, $firebaseApiKey, $logFile)
                         $resultado = 'Pagada';
                         cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile, $resultado);
                     }*/
-                    } else if (($fechaActual->getTimestamp() - $fechaPago->getTimestamp()) > 72 * 3600) {
-                        $resultado = 'Vencida';
-                        var_dump("Pago vencido");
-                        cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile, $resultado);
-                        $err = error_get_last();
-                        $msg = sprintf(
-                            "[%s] ERROR:El pago del pedido: $folio se vencio %s\n",
-                            date('Y-m-d H:i:s'),
-                            json_encode($err, JSON_UNESCAPED_UNICODE)
-                        );
-                        error_log($msg, 3, $logFile);
-                        //Si ya pasaron, liberar existencias
-                        liberarExistencias($conexionData, $folio, $claveSae, $logFile);
-                        cancelarPedido($conexionData, $folio, $claveSae, $logFile);
-                        //Notificar
                     }
+                } else if ($fechaPago > $fechaLimiteObj) {
+                    $resultado = 'Vencida';
+                    cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile, $resultado);
+                    $err = error_get_last();
+                    $msg = sprintf(
+                        "[%s] ERROR:El pago del pedido: $folio se vencio %s\n",
+                        date('Y-m-d H:i:s'),
+                        json_encode($err, JSON_UNESCAPED_UNICODE)
+                    );
+                    error_log($msg, 3, $logFile);
+                    //Si ya pasaron, liberar existencias
+                    liberarExistencias($conexionData, $folio, $claveSae, $logFile);
+                    cancelarPedido($conexionData, $folio, $claveSae, $logFile);
+                    //Notificar
                 }
             } else {
                 $resultado = 'Cancelada';
-                var_dump("Pedido Cancelado");
                 cambiarEstadoPagoVencido($firebaseProjectId, $firebaseApiKey, $pagoId, $folio, $conexionData, $claveSae, $logFile, $resultado);
                 $err = error_get_last();
                 $msg = sprintf(

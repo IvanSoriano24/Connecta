@@ -2,6 +2,8 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+$logDir  = __DIR__ . '/logs';
+$logFile = $logDir . '/remision.log';
 
 require 'firebase.php'; // Archivo de configuración de Firebase
 include 'reportes.php';
@@ -356,7 +358,7 @@ function insertarMimve($conexionData, $pedidoId, $claveSae, $cveDoc, $enlace)
     $folio = sqlsrv_fetch_array($stmtFolio, SQLSRV_FETCH_ASSOC);
 
     $numMov = $ultimos['NUM_MOV'];
-    
+
     $cveFolio = $folio['CVE_FOLIO'];
     $cantMov = 0;
     //$refer = $pedidoId;
@@ -1196,7 +1198,7 @@ function gaurdarDatosEnvio($conexionData, $pedidoId, $claveSae)
 }
 function gaurdarDatosEnvioF($conexionData, $pedidoId, $claveSae, $conn)
 {
-   if ($conn === false) {
+    if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INFENVIO" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -2129,7 +2131,7 @@ function actualizarAlerta($conexionData, $claveSae)
         'message' => "ALERTA01 actualizada correctamente"
     ]);*/
 }
-function actualizarMulti($conexionData, $pedidoId, $claveSae)
+function actualizarMulti($conexionData, $pedidoId, $claveSae, $logFile)
 {
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -2148,6 +2150,13 @@ function actualizarMulti($conexionData, $pedidoId, $claveSae)
             'errors' => sqlsrv_errors()
         ]));
     }
+    $error = error_get_last();
+    $msg = sprintf(
+        "[%s] INFO: Funcion actualizarMulti: \n",
+        date('Y-m-d H:i:s'),
+        json_encode($error, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     // Construcción dinámica de las tablas
@@ -2163,6 +2172,13 @@ function actualizarMulti($conexionData, $pedidoId, $claveSae)
 
     $stmtProductos = sqlsrv_query($conn, $sqlProductos, $params);
     if ($stmtProductos === false) {
+        $error = error_get_last();
+        $msg = sprintf(
+            "[%s] ERROR: Error al obtener productos del  \n",
+            date('Y-m-d H:i:s'),
+            json_encode($error, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
         die(json_encode([
             'success' => false,
             'message' => 'Error al obtener productos del pedido',
@@ -2960,87 +2976,108 @@ function generarPDFP($conexionData, $cveDoc, $claveSae, $noEmpresa, $vendedor)
 
 function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace)
 {
-    $urlComanda = "https://firestore.googleapis.com/v1/projects/"
-        . "$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+    $baseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
+    $runQueryUrl = $baseUrl . ":runQuery?key=$firebaseApiKey";
 
-    $response = @file_get_contents($urlComanda);
-    if ($response === FALSE) {
-        echo json_encode(['success' => false, 'message' => 'Error al obtener las comandas.']);
-        return;
-    }
-
-    $data = json_decode($response, true);
-    if (empty($data['documents'])) {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron comandas.']);
-        return;
-    }
-
-    foreach ($data['documents'] as $document) {
-        $fields = $document['fields'] ?? [];
-        if (($fields['folio']['stringValue'] ?? '') !== $pedidoId) {
-            continue;
-        }
-
-        // Extraer el ID del doc (la parte después de /COMANDA/)
-        $pathParts = explode('/', $document['name']);
-        $docId = end($pathParts);
-
-        // Traer y modificar el array de productos
-        $productos = $fields['productos']['arrayValue']['values'] ?? [];
-        foreach ($productos as &$producto) {
-            $pf = &$producto['mapValue']['fields'];
-            if (($pf['clave']['stringValue'] ?? '') === $enlace['CVE_ART']) {
-                // CREA el campo 'lote' (si no existía) o lo SOBREESCRIBE
-                $pf['lote'] = ['stringValue' => $enlace['LOTE']];
-            }
-        }
-        unset($producto);
-
-        // Preparamos payload sólo con 'productos' reescrito
-        $fieldsToSave = [
-            'productos' => [
-                'arrayValue' => [
-                    'values' => $productos
+    // Construir body para runQuery que filtre por campo folio == $pedidoId
+    $body = [
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => "COMANDA"]
+            ],
+            "where" => [
+                "fieldFilter" => [
+                    "field" => ["fieldPath" => "folio"],
+                    "op" => "EQUAL",
+                    "value" => ["stringValue" => (string)$pedidoId]
                 ]
-            ]
-        ];
-        $payload = json_encode(['fields' => $fieldsToSave]);
+            ],
+            "limit" => 1
+        ]
+    ];
+    $ctxRun = stream_context_create([
+        "http" => [
+            "header"  => "Content-Type: application/json\r\n",
+            "method"  => "POST",
+            "content" => json_encode($body),
+            "ignore_errors" => true
+        ]
+    ]);
 
-        // URL de PATCH con mask para sólo ese array
-        $urlUpdate = "https://firestore.googleapis.com/v1/projects/"
-            . "$firebaseProjectId/databases/(default)/documents/COMANDA/"
-            . "$docId?updateMask.fieldPaths=productos&key=$firebaseApiKey";
-
-        // Creamos el contexto HTTP
-        $ctx = stream_context_create([
-            'http' => [
-                'header'  => "Content-Type: application/json\r\n",
-                'method'  => 'PATCH',
-                'content' => $payload,
-            ]
-        ]);
-
-        // Un solo file_get_contents
-        $result = @file_get_contents($urlUpdate, false, $ctx);
-        if ($result === FALSE) {
-            echo json_encode([
-                'success' => false,
-                'message' => "Error al actualizar la comanda $docId."
-            ]);
-        } else {
-            /*echo json_encode([
-                'success' => true,
-                'message' => "Comanda $docId actualizada correctamente."
-            ]);*/
-        }
+    $resp = @file_get_contents($runQueryUrl, false, $ctxRun);
+    if ($resp === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al ejecutar runQuery para buscar la comanda.']);
         return;
     }
 
-    // Si nunca encontramos ningún folio coincidente:
-    echo json_encode([
-        'success' => false,
-        'message' => "Comanda con folio $pedidoId no encontrada."
+    $rows = json_decode($resp, true);
+    if (empty($rows) || !is_array($rows)) {
+        echo json_encode(['success' => false, 'message' => 'Respuesta vacía o inválida de runQuery.']);
+        return;
+    }
+
+    // Buscar el primer documento devuelto por runQuery
+    $document = null;
+    foreach ($rows as $entry) {
+        if (isset($entry['document'])) {
+            $document = $entry['document'];
+            break;
+        }
+    }
+
+    if ($document === null) {
+        echo json_encode(['success' => false, 'message' => "Comanda con folio $pedidoId no encontrada."]);
+        return;
+    }
+
+    // Extraer docId desde document.name (la parte después de /COMANDA/)
+    $name = $document['name'] ?? '';
+    $pathParts = explode('/', $name);
+    $docId = end($pathParts);
+    if (empty($docId)) {
+        echo json_encode(['success' => false, 'message' => 'No se pudo extraer el ID del documento.']);
+        return;
+    }
+
+    // Obtener productos y aplicar modificación del campo lote según $enlace
+    $fields = $document['fields'] ?? [];
+    $productos = $fields['productos']['arrayValue']['values'] ?? [];
+    foreach ($productos as &$producto) {
+        if (!isset($producto['mapValue']['fields'])) continue;
+        $pf = &$producto['mapValue']['fields'];
+        if (($pf['clave']['stringValue'] ?? '') === $enlace['CVE_ART']) {
+            $pf['lote'] = ['stringValue' => (string)$enlace['LOTE']];
+        }
+    }
+    unset($producto);
+
+    // Preparar payload para PATCH actualizando solo products
+    $fieldsToSave = [
+        'productos' => [
+            'arrayValue' => [
+                'values' => $productos
+            ]
+        ]
+    ];
+    $payload = json_encode(['fields' => $fieldsToSave]);
+
+    $urlUpdate = $baseUrl . "/COMANDA/$docId?updateMask.fieldPaths=productos&key=$firebaseApiKey";
+    $ctxUpdate = stream_context_create([
+        'http' => [
+            'header'  => "Content-Type: application/json\r\n",
+            'method'  => 'PATCH',
+            'content' => $payload,
+            'ignore_errors' => true
+        ]
     ]);
+
+    $result = @file_get_contents($urlUpdate, false, $ctxUpdate);
+    if ($result === FALSE) {
+        echo json_encode(['success' => false, 'message' => "Error al actualizar la comanda $docId."]);
+        return;
+    }
+
+    echo json_encode(['success' => true, 'message' => "Comanda $docId actualizada correctamente."]);
 }
 function remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio)
 {
@@ -3317,12 +3354,18 @@ function actualizarStatusPedido($conexionData, $pedidoId, $claveSae)
     sqlsrv_close($conn);
 }
 /**************************************************************************************************************/
-function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor)
+function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor, $logFile)
 {
     global $firebaseProjectId, $firebaseApiKey;
+    $error = error_get_last();
+    $msg = sprintf(
+        "[%s] INFO: Creando remision \n",
+        date('Y-m-d H:i:s'),
+        json_encode($error, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
 
-
-    actualizarMulti($conexionData, $pedidoId, $claveSae);
+    actualizarMulti($conexionData, $pedidoId, $claveSae, $logFile);
     actualizarInve5($conexionData, $pedidoId, $claveSae);
     actualizarFolios($conexionData, $claveSae);
     actualizarInve($conexionData, $pedidoId, $claveSae);
@@ -3381,7 +3424,13 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
     }
 
     actualizarStatusPedido($conexionData, $pedidoId, $claveSae);
-
+    $error = error_get_last();
+    $msg = sprintf(
+        "[%s] INFO: Fin de la remision → %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($error, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     //remisionarComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio);
 
     //$cveDoc = '          0000013314';
@@ -4395,7 +4444,8 @@ function obtenerFolio($remisionId, $claveSae, $conexionData, $conn)
     }
     return $FOLIO;
 }
-function obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpresa){
+function obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpresa)
+{
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 
     $context = stream_context_create([
@@ -4560,7 +4610,6 @@ function datosFolios($claveSae, $conexionData, $conn)
     $stmt = sqlsrv_query($conn, $sql);
     if ($stmt === false) {
         throw new Exception("Error al ejecutar la consulta" . sqlsrv_errors());
-
     }
     // Obtener los resultados
     $foliosData = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
@@ -5116,7 +5165,6 @@ function actualizarFolio($conexionData, $claveSae, $conn)
         //sqlsrv_close($conn);
         //die(json_encode(['success' => false, 'message' => 'Error al actualizar el folio', 'errors' => sqlsrv_errors()]));
         throw new Exception("Error al actualizar el folio");
-
     }
 
     // Verificar cuántas filas se han afectado
@@ -6162,7 +6210,8 @@ function actualizarInclie2($conexionData, $claveSae, $claveCliente, $conn)
     // Cerrar conexión
     sqlsrv_free_stmt($stmt);
 }
-function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn, $datos){
+function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn, $datos)
+{
     $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
     $fechaSni = (new DateTime())->format('Y-m-d');
     if ($conn === false) {
@@ -6217,7 +6266,8 @@ function actualizarInclie1($conexionData, $claveSae, $claveCliente, $conn, $dato
     // 7) Cerrar
     sqlsrv_free_stmt($stmt);
 }
-function actualizarInclie3($conexionData, $claveSae, $claveCliente, $conn, $datos){
+function actualizarInclie3($conexionData, $claveSae, $claveCliente, $conn, $datos)
+{
     $fechaDoc = (new DateTime())->format('Y-m-d') . ' 00:00:00.000';
     $fechaSni = (new DateTime())->format('Y-m-d');
     if ($conn === false) {
@@ -6535,7 +6585,6 @@ function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
     //var_dump("respuestaCfdi: ", $facturaResponse);
     return $facturaResponse;
     */
-
 }
 function datosPedido($cve_doc, $claveSae, $conexionData, $conn)
 {
@@ -6988,7 +7037,6 @@ function obtenerPedido($cveDoc, $conexionData, $claveSae, $conn)
 {
     if ($conn === false) {
         throw new Exception("Error al conectar con la base de datos" . sqlsrv_errors());
-
     }
 
     $nombreTabla  = "[{$conexionData['nombreBase']}].[dbo].[FACTF"  . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -7244,6 +7292,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     if ($correo === 'S' && !empty($emailPred)) {
 
         $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
+        //$rutaPDFW = "https://mdconecta.mdcloud.a´´/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
 
         //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
 
@@ -7585,7 +7634,7 @@ switch ($funcion) {
         $conexionData = $conexionResult['data'];
         $pedidoId = $_POST['pedidoId'];
 
-        $cveDoc = crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor);
+        $cveDoc = crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor, $logFile);
         echo json_encode(['success' => true, 'cveDoc' => $cveDoc]);
         break;
     case 2:

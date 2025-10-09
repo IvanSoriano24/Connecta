@@ -154,7 +154,8 @@ function obtenerProductosPorLinea($claveSae, $conexionData, $linea){
             FROM $nombreTabla I
             LEFT JOIN $nombreTabla2 L ON L.CVE_ART = I.CVE_ART
             LEFT JOIN $nombreTabla3 C ON C.CVE_PROD = I.CVE_ART
-            WHERE I.CTRL_ALM = ? AND (C.CAMPLIB2 != 'N' OR C.CAMPLIB2 IS NULL)";
+            WHERE I.CTRL_ALM = ? AND (C.CAMPLIB2 = 'N' OR C.CAMPLIB2 IS NOT NULL)";
+            //WHERE I.CTRL_ALM = ? AND (C.CAMPLIB2 != 'N' OR C.CAMPLIB2 IS NULL)";
         $param = [$linea];
         //var_dump($linea);
         

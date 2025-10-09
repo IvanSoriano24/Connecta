@@ -82,6 +82,7 @@ class clsMail
 
             // Enviar el correo y manejar errores
             if (!$this->mail->send()) {
+                throw new Exception("Error al enviar el correo: " . $this->mail->ErrorInfo);
                 return "Error al enviar el correo: " . $this->mail->ErrorInfo;
                 /*echo json_encode([
                     'success' => false,

@@ -7,6 +7,8 @@ $logFile = $logDir . '/confirmarPedido.log';
 date_default_timezone_set('America/Mexico_City');
 // Se importa los datos de firebase
 require 'firebase.php'; // Archivo de configuración de Firebase
+require 'funcionalidades.php';
+
 //Funcion para obtener la conexion de la empresa
 function obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa)
 {
@@ -147,7 +149,58 @@ function formatearClaveVendedor($clave)
     $clave = str_pad($clave, 5, ' ', STR_PAD_LEFT);
     return $clave;
 }
+function buscarEstadoPedido($conexionData, $folio, $claveSae)
+{
+    // Creamos la conexion
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        // Error de conexión
+        return null;
+    }
 
+    // Preparar CVE_DOC con ceros y espacios según el formato original
+    $CVE_DOC = str_pad($folio, 10, '0', STR_PAD_LEFT);
+    $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
+
+    $nombreTabla = "[" . $conexionData['nombreBase'] . "].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $sql = "SELECT STATUS FROM $nombreTabla WHERE CVE_DOC = ?";
+    $params = [$CVE_DOC];
+
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    if ($stmt === false) {
+        sqlsrv_close($conn);
+        return null;
+    }
+
+    $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+    if ($row === null) {
+        // No se encontró el registro
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+        return null;
+    }
+
+    $status = isset($row['STATUS']) ? trim($row['STATUS']) : null;
+
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+
+    // Regla: si STATUS es C => FALSE; si es E u O => TRUE;
+    if ($status === 'C') {
+        return false;
+    }
+    if ($status === 'E' || $status === 'O') {
+        return true;
+    }
+}
 use Google\Cloud\Firestore\FirestoreClient;
 
 function datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey)
@@ -207,6 +260,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
     error_log($msg, 3, $logFile);
     //Verificamos si el pedido ya fue aceptado
     $resultado = verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId);
+
     /*var_dump($resultado);
     die();*/
     if (!$resultado) {
@@ -231,415 +285,381 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
             die();
         }
         $conexionData = $conexionResult['data'];
-        //Verifcamos que accion realizara
-        if ($accion === 'confirmar') {
-            $rechazo = buscarRechazo($firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa);
-            if (!$rechazo) {
-                //Inicia validacion
-                $exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile);
-                if ($exsitencias['success']) {
-                    $error = error_get_last();
-                    $msg = sprintf(
-                        "[%s] INFO: El pedido $pedidoId cuenta con las existencias necesarias → %s\n",
-                        date('Y-m-d H:i:s'),
-                        json_encode($error, JSON_UNESCAPED_UNICODE)
-                    );
-                    error_log($msg, 3, $logFile);
-                    //Verificamos si es un pedido realizado con credito o sin credito
-                    if ($conCredito === 'S') {
+        $pedidoCorrecto = buscarEstadoPedido($conexionData, $pedidoId, $claveSae);
+        if ($pedidoCorrecto) {
+            //Verifcamos que accion realizara
+            if ($accion === 'confirmar') {
+                $rechazo = buscarRechazo($firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa);
+                if (!$rechazo) {
+                    //Inicia validacion
+                    $exsitencias = verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile);
+                    if ($exsitencias['success']) {
                         $error = error_get_last();
                         $msg = sprintf(
-                            "[%s] INFO: El cliente $clave maneja credico → %s\n",
+                            "[%s] INFO: El pedido $pedidoId cuenta con las existencias necesarias → %s\n",
                             date('Y-m-d H:i:s'),
                             json_encode($error, JSON_UNESCAPED_UNICODE)
                         );
                         error_log($msg, 3, $logFile);
-                        // Obtener la hora actual
-                        $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
-                        // Determinar el estado según la hora
-                        $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
-                        //$estadoComanda = $horaActual >= 15 ? "Pendiente" : "Abierta"; // "Pendiente" después de 3:00 PM
-                        //Obtenemos los productos
-                        $producto = obtenerProductos($pedidoId, $conexionData, $claveSae);
-                        $envioData = datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey);
-                        // Preparar datos para Firebase
-                        $comanda = [
-                            "fields" => [
-                                "idComanda" => ["stringValue" => uniqid()],
-                                "folio" => ["stringValue" => $pedidoId],
-                                "claveCliente" => ["stringValue" => $claveCliente],
-                                "nombreCliente" => ["stringValue" => $nombreCliente],
-                                "enviarA" => ["stringValue" => $enviarA],
-                                "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion ?? ""],
-                                "productos" => [
-                                    "arrayValue" => [
-                                        "values" => array_map(function ($producto) use ($conexionData, $claveSae) {
-                                            $productoData = obtenerDescripcion($producto["CVE_ART"], $conexionData, $claveSae);
-                                            return [
-                                                "mapValue" => [
-                                                    "fields" => [
-                                                        "clave" => ["stringValue" => $producto["CVE_ART"]],
-                                                        "descripcion" => ["stringValue" => $productoData["DESCR"]],
-                                                        "cantidad" => ["integerValue" => (int) $producto["CANT"]],
-                                                    ]
-                                                ]
-                                            ];
-                                        }, $producto)
-                                    ]
-                                ],
-                                "envio" => [
-                                    'mapValue' => ['fields' => [
-                                        'codigoContacto' => ['stringValue' => $envioData['codigoContacto']],
-                                        'companiaContacto' => ['stringValue' => $envioData['companiaContacto']],
-                                        'correoContacto' => ['stringValue' => $envioData['correoContacto']],
-                                        'direccion1Contacto' => ['stringValue' => $envioData['direccion1Contacto']],
-                                        'direccion2Contacto' => ['stringValue' => $envioData['direccion2Contacto']],
-                                        'estadoContacto' => ['stringValue' => $envioData['estadoContacto']],
-                                        'idPedido' => ['integerValue' => $envioData['idPedido']],
-                                        'municipioContacto' => ['stringValue' => $envioData['municipioContacto']],
-                                        'noEmpresa' => ['integerValue' => $envioData['noEmpresa']],
-                                        'nombreContacto' => ['stringValue' => $envioData['nombreContacto']],
-                                        'telefonoContacto' => ['stringValue' => $envioData['telefonoContacto']],
-                                    ]]
-                                ],
-                                "vendedor" => ["stringValue" => $vendedor],
-                                "status" => ["stringValue" => $estadoComanda], // Establecer estado según la hora
-                                "claveSae" => ["stringValue" => $claveSae],
-                                "noEmpresa" => ["integerValue" => $noEmpresa], //integerValue
-                                "pagada" => ["booleanValue" => true], //true
-                                "credito" => ["booleanValue" => true],
-                                "facturado" => ["booleanValue" => false],
-                                "observaciones" => ["stringValue" => $envioData['observaciones'] ?? ""]
-                            ]
-                        ];
-
-                        // URL de Firebase
-                        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
-
-                        // Enviar los datos a Firebase
-                        $context = stream_context_create([
-                            'http' => [
-                                'method' => 'POST',
-                                'header' => "Content-Type: application/json\r\n",
-                                'content' => json_encode($comanda)
-                            ]
-                        ]);
-                        //Realizamos la consulta
-                        $response = @file_get_contents($url, false, $context);
-
-                        if ($response === false) {
-                            //Si la consulta no fue correcta, mostrará este mensaje
+                        //Verificamos si es un pedido realizado con credito o sin credito
+                        if ($conCredito === 'S') {
                             $error = error_get_last();
                             $msg = sprintf(
-                                "[%s] ERROR: Error al crear la Comanda → %s\n",
+                                "[%s] INFO: El cliente $clave maneja credico → %s\n",
                                 date('Y-m-d H:i:s'),
                                 json_encode($error, JSON_UNESCAPED_UNICODE)
                             );
                             error_log($msg, 3, $logFile);
-                            echo "<div class='container'>
+                            // Obtener la hora actual
+                            $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
+                            // Determinar el estado según la hora
+                            $estadoComanda = $horaActual >= 13 ? "Pendiente" : "Abierta"; // "Pendiente" después de 1:00 PM
+                            //$estadoComanda = $horaActual >= 15 ? "Pendiente" : "Abierta"; // "Pendiente" después de 3:00 PM
+                            //Obtenemos los productos
+                            $producto = obtenerProductos($pedidoId, $conexionData, $claveSae);
+                            $envioData = datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey);
+                            // Preparar datos para Firebase
+                            $comanda = [
+                                "fields" => [
+                                    "idComanda" => ["stringValue" => uniqid()],
+                                    "folio" => ["stringValue" => $pedidoId],
+                                    "claveCliente" => ["stringValue" => $claveCliente],
+                                    "nombreCliente" => ["stringValue" => $nombreCliente],
+                                    "enviarA" => ["stringValue" => $enviarA],
+                                    "fechaHoraElaboracion" => ["stringValue" => $fechaElaboracion ?? ""],
+                                    "productos" => [
+                                        "arrayValue" => [
+                                            "values" => array_map(function ($producto) use ($conexionData, $claveSae) {
+                                                $productoData = obtenerDescripcion($producto["CVE_ART"], $conexionData, $claveSae);
+                                                return [
+                                                    "mapValue" => [
+                                                        "fields" => [
+                                                            "clave" => ["stringValue" => $producto["CVE_ART"]],
+                                                            "descripcion" => ["stringValue" => $productoData["DESCR"]],
+                                                            "cantidad" => ["integerValue" => (int) $producto["CANT"]],
+                                                        ]
+                                                    ]
+                                                ];
+                                            }, $producto)
+                                        ]
+                                    ],
+                                    "envio" => [
+                                        'mapValue' => ['fields' => [
+                                            'codigoContacto' => ['stringValue' => $envioData['codigoContacto']],
+                                            'companiaContacto' => ['stringValue' => $envioData['companiaContacto']],
+                                            'correoContacto' => ['stringValue' => $envioData['correoContacto']],
+                                            'direccion1Contacto' => ['stringValue' => $envioData['direccion1Contacto']],
+                                            'direccion2Contacto' => ['stringValue' => $envioData['direccion2Contacto']],
+                                            'estadoContacto' => ['stringValue' => $envioData['estadoContacto']],
+                                            'idPedido' => ['integerValue' => $envioData['idPedido']],
+                                            'municipioContacto' => ['stringValue' => $envioData['municipioContacto']],
+                                            'noEmpresa' => ['integerValue' => $envioData['noEmpresa']],
+                                            'nombreContacto' => ['stringValue' => $envioData['nombreContacto']],
+                                            'telefonoContacto' => ['stringValue' => $envioData['telefonoContacto']],
+                                        ]]
+                                    ],
+                                    "vendedor" => ["stringValue" => $vendedor],
+                                    "status" => ["stringValue" => $estadoComanda], // Establecer estado según la hora
+                                    "claveSae" => ["stringValue" => $claveSae],
+                                    "noEmpresa" => ["integerValue" => $noEmpresa], //integerValue
+                                    "pagada" => ["booleanValue" => true], //true
+                                    "credito" => ["booleanValue" => true],
+                                    "facturado" => ["booleanValue" => false],
+                                    "observaciones" => ["stringValue" => $envioData['observaciones'] ?? ""]
+                                ]
+                            ];
+
+                            // URL de Firebase
+                            $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+
+                            // Enviar los datos a Firebase
+                            $context = stream_context_create([
+                                'http' => [
+                                    'method' => 'POST',
+                                    'header' => "Content-Type: application/json\r\n",
+                                    'content' => json_encode($comanda)
+                                ]
+                            ]);
+                            //Realizamos la consulta
+                            $response = @file_get_contents($url, false, $context);
+
+                            if ($response === false) {
+                                //Si la consulta no fue correcta, mostrará este mensaje
+                                $error = error_get_last();
+                                $msg = sprintf(
+                                    "[%s] ERROR: Error al crear la Comanda → %s\n",
+                                    date('Y-m-d H:i:s'),
+                                    json_encode($error, JSON_UNESCAPED_UNICODE)
+                                );
+                                error_log($msg, 3, $logFile);
+                                echo "<div class='container'>
                         <div class='title'>Error al Conectarse</div>
                         <div class='message'>Hubo un problema al confirmar su pedido</div>
                         <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                       </div>";
-                            die();
-                        } else {
-                            $error = error_get_last();
-                            $msg = sprintf(
-                                "[%s] Succes: Comanda Creada→ %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($error, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
-                            //Si fue correcta, empieza a realizar la remision obteniendo 
-                            $result = json_decode($response, true);
-                            if (isset($result['name'])) {
+                                die();
+                            } else {
+                                $error = error_get_last();
+                                $msg = sprintf(
+                                    "[%s] Succes: Comanda Creada→ %s\n",
+                                    date('Y-m-d H:i:s'),
+                                    json_encode($error, JSON_UNESCAPED_UNICODE)
+                                );
+                                error_log($msg, 3, $logFile);
+                                //Si fue correcta, empieza a realizar la remision obteniendo 
+                                $result = json_decode($response, true);
+                                if (isset($result['name'])) {
 
-                                $remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-                                //$remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+                                    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                                    //$remisionUrl = "https://mdconecta.mdcloud.app/Servidor/PHP/remision.php";
+                                    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
-                                $data = [
-                                    'numFuncion' => 1,
-                                    'pedidoId' => $pedidoId,
-                                    'claveSae' => $claveSae,
-                                    'noEmpresa' => $noEmpresa,
-                                    'vendedor' => $vendedor
-                                ];
+                                    $data = [
+                                        'numFuncion' => 1,
+                                        'pedidoId' => $pedidoId,
+                                        'claveSae' => $claveSae,
+                                        'noEmpresa' => $noEmpresa,
+                                        'vendedor' => $vendedor
+                                    ];
 
-                                $ch = curl_init();
-                                curl_setopt($ch, CURLOPT_URL, $remisionUrl);
-                                curl_setopt($ch, CURLOPT_POST, true);
-                                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                                    'Content-Type: application/x-www-form-urlencoded'
-                                ]);
+                                    $ch = curl_init();
+                                    curl_setopt($ch, CURLOPT_URL, $remisionUrl);
+                                    curl_setopt($ch, CURLOPT_POST, true);
+                                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                                        'Content-Type: application/x-www-form-urlencoded'
+                                    ]);
 
-                                $remisionResponse = curl_exec($ch);
+                                    $remisionResponse = curl_exec($ch);
 
-                                if (curl_errno($ch)) {
+                                    if (curl_errno($ch)) {
+                                        $error = error_get_last();
+                                        $msg = sprintf(
+                                            "[%s] ERROR: Error al crear la Comanda → %s\n",
+                                            date('Y-m-d H:i:s'),
+                                            json_encode($error, JSON_UNESCAPED_UNICODE)
+                                        );
+                                        error_log($msg, 3, $logFile);
+                                        echo 'Error cURL: ' . curl_error($ch);
+                                    }
+
+                                    curl_close($ch);
+
+                                    //echo "Respuesta de remision.php: " . $remisionResponse;
+                                    $remisionData = json_decode($remisionResponse, true);
+                                    $error = error_get_last();
+                                        $msg = sprintf(
+                                            "[%s] INFO: Respuesta de la remision $remisionData → %s\n",
+                                            date('Y-m-d H:i:s'),
+                                            json_encode($error, JSON_UNESCAPED_UNICODE)
+                                        );
+                                        error_log($msg, 3, $logFile);
+                                    echo "Respuesta de decodificada.php: " . $remisionData;
+                                    //$cveDoc = trim($remisionData['cveDoc']);
+
+                                    // Verificar si la respuesta es un PDF
+                                    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+                                    if (strpos($contentType, 'application/pdf') !== false) {
+                                        // Guardar el PDF localmente o redireccionar
+                                        file_put_contents("remision.pdf", $remisionResponse);
+                                        echo "<script>window.open('remision.pdf', '_blank');</script>";
+                                    }
+                                    //crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor, $logFile);
+                                    bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "aceptado", $noEmpresa);
+                                    echo "<div class='container'>
+                            <div class='title'>Confirmación Exitosa</div>
+                            <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+                            <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
+                          </div>";
+                                } else {
                                     $error = error_get_last();
                                     $msg = sprintf(
-                                        "[%s] ERROR: Error al crear la Comanda → %s\n",
+                                        "[%s] ERROR: Error al crear la remision → %s\n",
                                         date('Y-m-d H:i:s'),
                                         json_encode($error, JSON_UNESCAPED_UNICODE)
                                     );
                                     error_log($msg, 3, $logFile);
-                                    echo 'Error cURL: ' . curl_error($ch);
-                                }
-
-                                curl_close($ch);
-
-                                //echo "Respuesta de remision.php: " . $remisionResponse;
-                                $remisionData = json_decode($remisionResponse, true);
-                                //echo "Respuesta de decodificada.php: " . $remisionData;
-                                //$cveDoc = trim($remisionData['cveDoc']);
-
-                                // Verificar si la respuesta es un PDF
-                                $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-                                if (strpos($contentType, 'application/pdf') !== false) {
-                                    // Guardar el PDF localmente o redireccionar
-                                    file_put_contents("remision.pdf", $remisionResponse);
-                                    echo "<script>window.open('remision.pdf', '_blank');</script>";
-                                }
-                                bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "aceptado", $noEmpresa);
-                                echo "<div class='container'>
-                            <div class='title'>Confirmación Exitosa</div>
-                            <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
-                            <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
-                          </div>";
-                            } else {
-                                $error = error_get_last();
-                                $msg = sprintf(
-                                    "[%s] ERROR: Error al crear la remision → %s\n",
-                                    date('Y-m-d H:i:s'),
-                                    json_encode($error, JSON_UNESCAPED_UNICODE)
-                                );
-                                error_log($msg, 3, $logFile);
-                                echo "<div class='container'>
+                                    echo "<div class='container'>
                             <div class='title'>Error al Registrar</div>
                             <div class='message'>Hubo un problema al aceptar su pedido.</div>
                             <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                           </div>";
+                                }
                             }
-                        }
-                    } else {
-                        //Actualizar status para buscar pago
-                        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
-
-                        $response = @file_get_contents($url);
-                        if ($response === false) {
-                            $error = error_get_last();
-                            $msg = sprintf(
-                                "[%s] ERROR: Error al obtener los datos de los pagos → %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($error, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
-                            echo "Error al obtener los ...\n";
-                            return;
-                        }
-                        $data = json_decode($response, true);
-                        if (!isset($data['documents'])) {
-                            $error = error_get_last();
-                            $msg = sprintf(
-                                "[%s] ERROR: No se encontraron datos de pagos → %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($error, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
-                            echo "No se encontraron ...\n";
-                            return;
-                        }
-
-                        $error = error_get_last();
-                        $msg = sprintf(
-                            "[%s] Succes: Se encontro datos de pago → %s\n",
-                            date('Y-m-d H:i:s'),
-                            json_encode($error, JSON_UNESCAPED_UNICODE)
-                        );
-                        error_log($msg, 3, $logFile);
-
-                        // Recorrer todas las comandas y verificar si el folio ya está en la base de datos
-                        foreach ($data['documents'] as $document) {
-                            $fields = $document['fields'];
-                            if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
-                                $pagoId = basename($document['name']);
-                                $status = $fields['status'];
-                                $buscar = $fields['buscar'];
-                            }
-                        }
-                        $error = error_get_last();
-                        $msg = sprintf(
-                            "[%s] Succes: dato encontrado → %s\n",
-                            date('Y-m-d H:i:s'),
-                            json_encode($error, JSON_UNESCAPED_UNICODE)
-                        );
-                        error_log($msg, 3, $logFile);
-                        if ($buscar['booleanValue']) {
-                            $error = error_get_last();
-                            $msg = sprintf(
-                                "[%s] Succes: Pedido $pedidoId aceptado y esperando el pago → %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($error, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
-                            echo "<div class='container'>
-                        <div class='title'>Pedido aceptado</div>
-                        <div class='message'>El pedido fue aceptado y esperando el pago.</div>
-                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                      </div>";
-                        } else if ($status['stringValue'] === 'Pagada') {
-                            $error = error_get_last();
-                            $msg = sprintf(
-                                "[%s] Advertencia: El pago del pedido $pedidoId ya se confirmo → %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($error, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
-                            echo "<div class='container'>
-                        <div class='title'>Pedido pagado</div>
-                        <div class='message'>El pedido ya fue pagado.</div>
-                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                      </div>";
                         } else {
-                            $urlActualizacion = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=buscar&key=$firebaseApiKey";
-                            $data = [
-                                'fields' => [
-                                    'buscar' => ['booleanValue' => true]
-                                ]
-                            ];
-                            $context = stream_context_create([
-                                'http' => [
-                                    'method' => 'PATCH',
-                                    'header' => "Content-Type: application/json\r\n",
-                                    'content' => json_encode($data)
-                                ]
-                            ]);
+                            //Actualizar status para buscar pago
+                            $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
 
-                            $response = @file_get_contents($urlActualizacion, false, $context);
-
+                            $response = @file_get_contents($url);
                             if ($response === false) {
-                                $error = error_get_last();
-                                echo "<div class='container'>
-                            <div class='title'>Error al actualizar el Pago</div>
-                            <div class='message'>No se pudo actualizar la información.</div>
-                            <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                        </div>";
-                            } else {
-                                bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "anticipo", $noEmpresa);
-                                echo "<div class='container'>
-                            <div class='title'>Confirmación Exitosa</div>
-                            <div class='message'>El pedido ha sido confirmado y tiene 72 horas para pagarlo.</div>
-                            <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
-                          </div>";
-                            }
-                        }
-                    }
-                } else {
-                    bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "sin existencias", $noEmpresa);
-                    if ($conCredito === 'S') {
-
-                        $result = notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiKey, $vendedor, $pedidoId, $nombreCliente, $noEmpresa, $claveSae);
-                        //var_dump($result);
-                        $error = error_get_last();
-                        $msg = sprintf(
-                            "[%s] Advertencia: Pedido: $pedidoId sin existencias → %s\n",
-                            date('Y-m-d H:i:s'),
-                            json_encode($error, JSON_UNESCAPED_UNICODE)
-                        );
-                        error_log($msg, 3, $logFile);
-                        //Hacer for de los pedidos sin existencias
-                        echo "<div class='container'>
-                            <div class='title'>Confirmación Exitosa</div>
-                            <!--<div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>-->
-                            <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
-                          </div>";
-                    } else {
-                        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
-
-                        $response = @file_get_contents($url);
-                        if ($response === false) {
-                            echo "Error al obtener los ...\n";
-                            return;
-                        }
-                        $data = json_decode($response, true);
-                        if (!isset($data['documents'])) {
-                            echo "No se encontraron ...\n";
-                            return;
-                        }
-
-                        // Recorrer todas las comandas y verificar si el folio ya está en la base de datos
-                        foreach ($data['documents'] as $document) {
-                            $fields = $document['fields'];
-                            if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
-                                $pagoId = basename($document['name']);
-                                $status = $fields['status'];
-                                $buscar = $fields['buscar'];
-                            }
-                        }
-                        if ($buscar['booleanValue']) {
-                            echo "<div class='container'>
-                                <div class='title'>Pedido aceptado</div>
-                                <div class='message'>El pedido fue aceptado y esperando el pago.</div>
-                                <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                            </div>";
-                            $error = error_get_last();
-                            $msg = sprintf(
-                                "[%s] Advertencia: Pedido: $pedidoId sin existencias → %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($error, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
-                        } else if ($status['stringValue'] === 'Pagada') {
-                            echo "<div class='container'>
-                                    <div class='title'>Pedido pagado</div>
-                                    <div class='message'>El pedido ya fue pagado.</div>
-                                    <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                                </div>";
-                            $error = error_get_last();
-                            $msg = sprintf(
-                                "[%s] Advertencia: Pedido: $pedidoId sin existencias → %s\n",
-                                date('Y-m-d H:i:s'),
-                                json_encode($error, JSON_UNESCAPED_UNICODE)
-                            );
-                            error_log($msg, 3, $logFile);
-                        } else {
-                            $urlActualizacion = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=buscar&key=$firebaseApiKey";
-                            $data = [
-                                'fields' => [
-                                    'buscar' => ['booleanValue' => true]
-                                ]
-                            ];
-                            $context = stream_context_create([
-                                'http' => [
-                                    'method' => 'PATCH',
-                                    'header' => "Content-Type: application/json\r\n",
-                                    'content' => json_encode($data)
-                                ]
-                            ]);
-
-                            $response = @file_get_contents($urlActualizacion, false, $context);
-
-                            if ($response === false) {
-                                $error = error_get_last();
-                                echo "<div class='container'>
-                        <div class='title'>Error al actualizar el Pago</div>
-                        <div class='message'>No se pudo actualizar la información.</div>
-                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                      </div>";
                                 $error = error_get_last();
                                 $msg = sprintf(
-                                    "[%s] ERROR: No se pudo actualizar la informacion de pago para el pedido: $pedidoId → %s\n",
+                                    "[%s] ERROR: Error al obtener los datos de los pagos → %s\n",
                                     date('Y-m-d H:i:s'),
                                     json_encode($error, JSON_UNESCAPED_UNICODE)
                                 );
                                 error_log($msg, 3, $logFile);
-                            } else {
-                                bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "anticipo", $noEmpresa);
+                                echo "Error al obtener los ...\n";
+                                return;
+                            }
+                            $data = json_decode($response, true);
+                            if (!isset($data['documents'])) {
+                                $error = error_get_last();
+                                $msg = sprintf(
+                                    "[%s] ERROR: No se encontraron datos de pagos → %s\n",
+                                    date('Y-m-d H:i:s'),
+                                    json_encode($error, JSON_UNESCAPED_UNICODE)
+                                );
+                                error_log($msg, 3, $logFile);
+                                echo "No se encontraron ...\n";
+                                return;
+                            }
+
+                            $error = error_get_last();
+                            $msg = sprintf(
+                                "[%s] Succes: Se encontro datos de pago → %s\n",
+                                date('Y-m-d H:i:s'),
+                                json_encode($error, JSON_UNESCAPED_UNICODE)
+                            );
+                            error_log($msg, 3, $logFile);
+
+                            // Recorrer todas las comandas y verificar si el folio ya está en la base de datos
+                            foreach ($data['documents'] as $document) {
+                                $fields = $document['fields'];
+                                if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
+                                    $pagoId = basename($document['name']);
+                                    $status = $fields['status'];
+                                    $buscar = $fields['buscar'];
+                                }
+                            }
+                            $error = error_get_last();
+                            $msg = sprintf(
+                                "[%s] Succes: dato encontrado → %s\n",
+                                date('Y-m-d H:i:s'),
+                                json_encode($error, JSON_UNESCAPED_UNICODE)
+                            );
+                            error_log($msg, 3, $logFile);
+                            if ($buscar['booleanValue']) {
+                                $error = error_get_last();
+                                $msg = sprintf(
+                                    "[%s] Succes: Pedido $pedidoId aceptado y esperando el pago → %s\n",
+                                    date('Y-m-d H:i:s'),
+                                    json_encode($error, JSON_UNESCAPED_UNICODE)
+                                );
+                                error_log($msg, 3, $logFile);
                                 echo "<div class='container'>
-                                    <div class='title'>Confirmación Exitosa</div>
-                                    <div class='message'>El pedido ha sido confirmado y tiene 72 horas para pagarlo.</div>
-                                    <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
+                        <div class='title'>Pedido aceptado</div>
+                        <div class='message'>El pedido fue aceptado y esperando el pago.</div>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
+                      </div>";
+                            } else if ($status['stringValue'] === 'Pagada') {
+                                $error = error_get_last();
+                                $msg = sprintf(
+                                    "[%s] Advertencia: El pago del pedido $pedidoId ya se confirmo → %s\n",
+                                    date('Y-m-d H:i:s'),
+                                    json_encode($error, JSON_UNESCAPED_UNICODE)
+                                );
+                                error_log($msg, 3, $logFile);
+                                echo "<div class='container'>
+                        <div class='title'>Pedido pagado</div>
+                        <div class='message'>El pedido ya fue pagado.</div>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
+                      </div>";
+                            } else {
+                                $urlActualizacion = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=buscar&key=$firebaseApiKey";
+                                $data = [
+                                    'fields' => [
+                                        'buscar' => ['booleanValue' => true]
+                                    ]
+                                ];
+                                $context = stream_context_create([
+                                    'http' => [
+                                        'method' => 'PATCH',
+                                        'header' => "Content-Type: application/json\r\n",
+                                        'content' => json_encode($data)
+                                    ]
+                                ]);
+
+                                $response = @file_get_contents($urlActualizacion, false, $context);
+
+                                if ($response === false) {
+                                    $error = error_get_last();
+                                    echo "<div class='container'>
+                            <div class='title'>Error al actualizar el Pago</div>
+                            <div class='message'>No se pudo actualizar la información.</div>
+                            <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
+                        </div>";
+                                } else {
+                                    bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "anticipo", $noEmpresa);
+                                    echo "<div class='container'>
+                            <div class='title'>Confirmación Exitosa</div>
+                            <div class='message'>El pedido ha sido confirmado y tiene 72 horas para pagarlo.</div>
+                            <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
+                          </div>";
+                                }
+                            }
+                        }
+                    } else {
+                        bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "sin existencias", $noEmpresa);
+                        if ($conCredito === 'S') {
+
+                            $result = notificarSinExistencias($exsitencias, $firebaseProjectId, $firebaseApiKey, $vendedor, $pedidoId, $nombreCliente, $noEmpresa, $claveSae);
+                            //var_dump($result);
+                            $error = error_get_last();
+                            $msg = sprintf(
+                                "[%s] Advertencia: Pedido: $pedidoId sin existencias → %s\n",
+                                date('Y-m-d H:i:s'),
+                                json_encode($error, JSON_UNESCAPED_UNICODE)
+                            );
+                            error_log($msg, 3, $logFile);
+                            //Hacer for de los pedidos sin existencias
+                            echo "<div class='container'>
+                            <div class='title'>Confirmación Exitosa</div>
+                            <!--<div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>-->
+                            <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+                          </div>";
+                        } else {
+                            $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";
+
+                            $response = @file_get_contents($url);
+                            if ($response === false) {
+                                echo "Error al obtener los ...\n";
+                                return;
+                            }
+                            $data = json_decode($response, true);
+                            if (!isset($data['documents'])) {
+                                echo "No se encontraron ...\n";
+                                return;
+                            }
+
+                            // Recorrer todas las comandas y verificar si el folio ya está en la base de datos
+                            foreach ($data['documents'] as $document) {
+                                $fields = $document['fields'];
+                                if (isset($fields['folio']['stringValue']) && $fields['folio']['stringValue'] === $pedidoId) {
+                                    $pagoId = basename($document['name']);
+                                    $status = $fields['status'];
+                                    $buscar = $fields['buscar'];
+                                }
+                            }
+                            if ($buscar['booleanValue']) {
+                                echo "<div class='container'>
+                                <div class='title'>Pedido aceptado</div>
+                                <div class='message'>El pedido fue aceptado y esperando el pago.</div>
+                                <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
+                            </div>";
+                                $error = error_get_last();
+                                $msg = sprintf(
+                                    "[%s] Advertencia: Pedido: $pedidoId sin existencias → %s\n",
+                                    date('Y-m-d H:i:s'),
+                                    json_encode($error, JSON_UNESCAPED_UNICODE)
+                                );
+                                error_log($msg, 3, $logFile);
+                            } else if ($status['stringValue'] === 'Pagada') {
+                                echo "<div class='container'>
+                                    <div class='title'>Pedido pagado</div>
+                                    <div class='message'>El pedido ya fue pagado.</div>
+                                    <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                                 </div>";
                                 $error = error_get_last();
                                 $msg = sprintf(
@@ -648,131 +668,190 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                                     json_encode($error, JSON_UNESCAPED_UNICODE)
                                 );
                                 error_log($msg, 3, $logFile);
-                            }
-                        }
-                    }
-                }
-            } else {
-                $error = error_get_last();
-                $msg = sprintf(
-                    "[%s] Advertencia: El cliente: $clave acepto un pedido rechazado → %s\n",
-                    date('Y-m-d H:i:s'),
-                    json_encode($error, JSON_UNESCAPED_UNICODE)
-                );
-                error_log($msg, 3, $logFile);
-                //El pedido fue rechazado
-                echo "<div class='container'>
-                        <div class='title'>Pedido Rechazado</div>
-                        <div class='message'>Estimado cliente, se le informa que este pedido $pedidoId fue rechazado.</div>
-                        <!-- <a href='/Cliente/altaPedido.php' class='button'>Volver</a> -->
+                            } else {
+                                $urlActualizacion = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS/$pagoId?updateMask.fieldPaths=buscar&key=$firebaseApiKey";
+                                $data = [
+                                    'fields' => [
+                                        'buscar' => ['booleanValue' => true]
+                                    ]
+                                ];
+                                $context = stream_context_create([
+                                    'http' => [
+                                        'method' => 'PATCH',
+                                        'header' => "Content-Type: application/json\r\n",
+                                        'content' => json_encode($data)
+                                    ]
+                                ]);
+
+                                $response = @file_get_contents($urlActualizacion, false, $context);
+
+                                if ($response === false) {
+                                    $error = error_get_last();
+                                    echo "<div class='container'>
+                        <div class='title'>Error al actualizar el Pago</div>
+                        <div class='message'>No se pudo actualizar la información.</div>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                       </div>";
-            }
-            //Termina validacion
-        } elseif ($accion === 'rechazar') {
-            $rechazo = buscarRechazo($firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa);
-            if (!$rechazo) {
-                $error = error_get_last();
-                $msg = sprintf(
-                    "[%s] Advertencia: Pedido: $pedidoId Rechazado → %s\n",
-                    date('Y-m-d H:i:s'),
-                    json_encode($error, JSON_UNESCAPED_UNICODE)
-                );
-                error_log($msg, 3, $logFile);
-                $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
-                // Consultar Firebase para obtener los datos del vendedor
-                $context = stream_context_create([
-                    'http' => [
-                        'method' => 'GET',
-                        'header' => "Content-Type: application/json\r\n"
-                    ]
-                ]);
-
-                $response = @file_get_contents($firebaseUrl, false, $context);
-
-                $usuariosData = json_decode($response, true);
-                $telefonoVendedor = null;
-                $nombreVendedor = null;
-                $vendedor = 1;
-                $vendedor = formatearClaveVendedor($vendedor);
-                //var_dump($clave);
-                // Buscar al vendedor por clave
-                if (isset($usuariosData['documents'])) {
-                    foreach ($usuariosData['documents'] as $document) {
-                        $fields = $document['fields'];
-                        if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
-                            if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
-                                if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
-                                    $telefonoVendedor = $fields['telefono']['stringValue'];
-                                    $nombreVendedor = $fields['nombre']['stringValue'];
-                                    break;
+                                    $error = error_get_last();
+                                    $msg = sprintf(
+                                        "[%s] ERROR: No se pudo actualizar la informacion de pago para el pedido: $pedidoId → %s\n",
+                                        date('Y-m-d H:i:s'),
+                                        json_encode($error, JSON_UNESCAPED_UNICODE)
+                                    );
+                                    error_log($msg, 3, $logFile);
+                                } else {
+                                    bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "anticipo", $noEmpresa);
+                                    echo "<div class='container'>
+                                    <div class='title'>Confirmación Exitosa</div>
+                                    <div class='message'>El pedido ha sido confirmado y tiene 72 horas para pagarlo.</div>
+                                    <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
+                                </div>";
+                                    $error = error_get_last();
+                                    $msg = sprintf(
+                                        "[%s] Advertencia: Pedido: $pedidoId sin existencias → %s\n",
+                                        date('Y-m-d H:i:s'),
+                                        json_encode($error, JSON_UNESCAPED_UNICODE)
+                                    );
+                                    error_log($msg, 3, $logFile);
                                 }
                             }
                         }
                     }
-                }
-                //$telefonoVendedor = '+527772127123'; // Interzenda
-                //$telefonoVendedor = '+527773750925';
-                //$telefonoVendedor = '+527773340218';
-                //$telefonoVendedor = '+527775681612';
-                if (!$telefonoVendedor) {
-                    $error = error_get_last();
-                    $msg = sprintf(
-                        "[%s] ERROR: No se notifico al vendedor sobre el pedido $pedidoId → %s\n",
-                        date('Y-m-d H:i:s'),
-                        json_encode($error, JSON_UNESCAPED_UNICODE)
-                    );
-                    error_log($msg, 3, $logFile);
-                    echo "<div class='container'>
-                        <div class='title'>Error al Encontrar Vendedor</div>
-                        <div class='message'>No se encontró el número de teléfono del vendedor.</div>
-                        <!-- <a href='/Cliente/altaPedido.php' class='button'>Volver</a> -->
-                      </div>";
-                    exit;
-                }
-                // Enviar mensaje de WhatsApp
-                $resultadoWhatsApp = enviarWhatsApp($telefonoVendedor, $pedidoId, $nombreCliente);
-                guardarRechazo($firebaseProjectId, $firebaseApiKey, $noEmpresa, $pedidoId, $nombreCliente);
-                if ($resultadoWhatsApp) {
-                    $error = error_get_last();
-                    $msg = sprintf(
-                        "[%s] Advertencia: Se le notifico al vendedor sobre el pedido $pedidoId → %s\n",
-                        date('Y-m-d H:i:s'),
-                        json_encode($error, JSON_UNESCAPED_UNICODE)
-                    );
-                    error_log($msg, 3, $logFile);
-                    echo "<div class='container'>
-                        <div class='title'>Pedido Rechazado</div>
-                        <div class='message'>El pedido $pedidoId fue rechazado correctamente y se notificó al vendedor.</div>
-                        <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
-                      </div>";
                 } else {
+                    $error = error_get_last();
+                    $msg = sprintf(
+                        "[%s] Advertencia: El cliente: $clave acepto un pedido rechazado → %s\n",
+                        date('Y-m-d H:i:s'),
+                        json_encode($error, JSON_UNESCAPED_UNICODE)
+                    );
+                    error_log($msg, 3, $logFile);
+                    //El pedido fue rechazado
                     echo "<div class='container'>
-                        <div class='title'>Error al Notificar</div>
-                        <div class='message'>El pedido fue rechazado, pero no se pudo notificar al vendedor.</div>
-                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                      </div>";
-                }
-            } else {
-                $error = error_get_last();
-                $msg = sprintf(
-                    "[%s] Advertencia: El cliente: $clave rechazo un pedido previamente rechazado → %s\n",
-                    date('Y-m-d H:i:s'),
-                    json_encode($error, JSON_UNESCAPED_UNICODE)
-                );
-                error_log($msg, 3, $logFile);
-                //El pedido fue rechazado
-                echo "<div class='container'>
                         <div class='title'>Pedido Rechazado</div>
                         <div class='message'>Estimado cliente, se le informa que este pedido $pedidoId fue rechazado.</div>
                         <!-- <a href='/Cliente/altaPedido.php' class='button'>Volver</a> -->
                       </div>";
-            }
-        } else {
-            echo "<div class='container'>
+                }
+                //Termina validacion
+            } elseif ($accion === 'rechazar') {
+                $rechazo = buscarRechazo($firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa);
+                if (!$rechazo) {
+                    $error = error_get_last();
+                    $msg = sprintf(
+                        "[%s] Advertencia: Pedido: $pedidoId Rechazado → %s\n",
+                        date('Y-m-d H:i:s'),
+                        json_encode($error, JSON_UNESCAPED_UNICODE)
+                    );
+                    error_log($msg, 3, $logFile);
+                    $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
+                    // Consultar Firebase para obtener los datos del vendedor
+                    $context = stream_context_create([
+                        'http' => [
+                            'method' => 'GET',
+                            'header' => "Content-Type: application/json\r\n"
+                        ]
+                    ]);
+
+                    $response = @file_get_contents($firebaseUrl, false, $context);
+
+                    $usuariosData = json_decode($response, true);
+                    $telefonoVendedor = null;
+                    $nombreVendedor = null;
+                    $vendedor = 1;
+                    $vendedor = formatearClaveVendedor($vendedor);
+                    //var_dump($clave);
+                    // Buscar al vendedor por clave
+                    if (isset($usuariosData['documents'])) {
+                        foreach ($usuariosData['documents'] as $document) {
+                            $fields = $document['fields'];
+                            if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                                if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
+                                    if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
+                                        $telefonoVendedor = $fields['telefono']['stringValue'];
+                                        $nombreVendedor = $fields['nombre']['stringValue'];
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //$telefonoVendedor = '+527772127123'; // Interzenda
+                    //$telefonoVendedor = '+527773750925';
+                    //$telefonoVendedor = '+527773340218';
+                    //$telefonoVendedor = '+527775681612';
+                    if (!$telefonoVendedor) {
+                        $error = error_get_last();
+                        $msg = sprintf(
+                            "[%s] ERROR: No se notifico al vendedor sobre el pedido $pedidoId → %s\n",
+                            date('Y-m-d H:i:s'),
+                            json_encode($error, JSON_UNESCAPED_UNICODE)
+                        );
+                        error_log($msg, 3, $logFile);
+                        echo "<div class='container'>
+                        <div class='title'>Error al Encontrar Vendedor</div>
+                        <div class='message'>No se encontró el número de teléfono del vendedor.</div>
+                        <!-- <a href='/Cliente/altaPedido.php' class='button'>Volver</a> -->
+                      </div>";
+                        exit;
+                    }
+                    // Enviar mensaje de WhatsApp
+                    $resultadoWhatsApp = enviarWhatsApp($telefonoVendedor, $pedidoId, $nombreCliente);
+                    guardarRechazo($firebaseProjectId, $firebaseApiKey, $noEmpresa, $pedidoId, $nombreCliente);
+                    if ($resultadoWhatsApp) {
+                        $error = error_get_last();
+                        $msg = sprintf(
+                            "[%s] Advertencia: Se le notifico al vendedor sobre el pedido $pedidoId → %s\n",
+                            date('Y-m-d H:i:s'),
+                            json_encode($error, JSON_UNESCAPED_UNICODE)
+                        );
+                        error_log($msg, 3, $logFile);
+                        echo "<div class='container'>
+                        <div class='title'>Pedido Rechazado</div>
+                        <div class='message'>El pedido $pedidoId fue rechazado correctamente y se notificó al vendedor.</div>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
+                      </div>";
+                    } else {
+                        echo "<div class='container'>
+                        <div class='title'>Error al Notificar</div>
+                        <div class='message'>El pedido fue rechazado, pero no se pudo notificar al vendedor.</div>
+                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
+                      </div>";
+                    }
+                } else {
+                    $error = error_get_last();
+                    $msg = sprintf(
+                        "[%s] Advertencia: El cliente: $clave rechazo un pedido previamente rechazado → %s\n",
+                        date('Y-m-d H:i:s'),
+                        json_encode($error, JSON_UNESCAPED_UNICODE)
+                    );
+                    error_log($msg, 3, $logFile);
+                    //El pedido fue rechazado
+                    echo "<div class='container'>
+                        <div class='title'>Pedido Rechazado</div>
+                        <div class='message'>Estimado cliente, se le informa que este pedido $pedidoId fue rechazado.</div>
+                        <!-- <a href='/Cliente/altaPedido.php' class='button'>Volver</a> -->
+                      </div>";
+                }
+            } else {
+                echo "<div class='container'>
                     <div class='title'>Acción no válida</div>
                     <div class='message'>No se reconoció la acción solicitada.</div>
                     <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
                   </div>";
+            }
+        } else {
+            echo "<div class='container'>
+                    <div class='title'>Acción no válida</div>
+                    <div class='message'>Accion invalida para el pedido $pedidoId.</div>
+                    <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
+                  </div>";
+            $err = error_get_last();
+            $msg = sprintf(
+                "[%s] ERROR:El pedido: $pedidoId se cancelo %s\n",
+                date('Y-m-d H:i:s'),
+                json_encode($err, JSON_UNESCAPED_UNICODE)
+            );
+            error_log($msg, 3, $logFile);
         }
     }
 } else {
@@ -829,7 +908,8 @@ function enviarWhatsApp($numero, $pedidoId, $nombreCliente)
 
     return $result;
 }
-function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile){
+function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile)
+{
     //Creamos la conexion
     $serverName = $conexionData['host'];
     $connectionInfo = [
@@ -880,19 +960,19 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile){
         if ($row) {
             $existencias = (float)$row['EXIST'];
             //$apartados = (float)$row['APART'] - $cantidad;
-            if((float)$row['APART'] < 0){
+            if ((float)$row['APART'] < 0) {
                 $apartados = 0;
-            } else{
+            } else {
                 $apartados = (float)$row['APART'] - $cantidad;
             }
             //var_dump("apartados: ", $apartados);
-            if($existencias < 0){
+            if ($existencias < 0) {
                 $existencias = 0;
             }
             //var_dump("existencias: ", $existencias);
             //$disponible = (float)$row['DISPONIBLE']; //$disponible = $existencias - ($apartados - $cantidad);
             $disponible = $existencias - $apartados;
-            if($disponible < 0){
+            if ($disponible < 0) {
                 $disponible = 0;
             }
             //var_dump("disponible: ", $disponible);
@@ -960,7 +1040,8 @@ function verificarExistencias($pedidoId, $conexionData, $claveSae, $logFile){
         ];
     }
 }
-function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId){
+function verificarExistencia($firebaseProjectId, $firebaseApiKey, $pedidoId)
+{
     //var_dump("Pedido: ", $pedidoId);
     // Endpoint de runQuery
     $url = sprintf(
