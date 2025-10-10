@@ -603,7 +603,7 @@ function enviarCorreoPedido($correo, $clienteNombre, $noPedido, $partidasData, $
     }
 
     $correoDestino = $correo;
-    $vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
+    //$vendedor = obtenerNombreVendedor($vendedor, $conexionData, $claveSae);
     // Obtener el nombre de la empresa desde la sesión
     $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'Empresa Desconocida';
 

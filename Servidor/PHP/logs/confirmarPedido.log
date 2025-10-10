@@ -358,3 +358,74 @@
 [2025-10-10 08:54:46] Succes: Comanda Creada→ null
 [2025-10-10 08:54:58] INFO: Actualizando estus del pedido → null
 [2025-10-10 08:54:58] SUCCES: Estado del pedido 19186 actualizado → null
+[2025-10-10 12:21:47] INFO: El cliente        879 realizo la accion → null
+[2025-10-10 12:21:48] ERROR:El pedido: 19191 se cancelo null
+[2025-10-10 12:29:36] INFO: El cliente        879 realizo la accion → null
+[2025-10-10 12:30:00] Advertencia: Pedido 19192 19192 sin existencias AA-1819 → []
+[2025-10-10 12:30:00] Info: Pedido 19192 19192 verificadas existencias correctamente → []
+[2025-10-10 12:30:02] Advertencia: Pedido: 19192 sin existencias → null
+[2025-10-10 12:33:10] INFO: El cliente        879 realizo la accion → null
+[2025-10-10 12:33:13] Info: Pedido 19192 19192 verificadas existencias correctamente → []
+[2025-10-10 12:33:13] Info: Pedido 19192 19192 verificadas existencias correctamente → [{"producto":"AA-1819","existencias":12,"apartados":11,"disponible":1}]
+[2025-10-10 12:33:13] INFO: El pedido 19192 cuenta con las existencias necesarias → null
+[2025-10-10 12:33:13] INFO: El cliente        879 maneja credico → null
+[2025-10-10 12:33:15] Succes: Comanda Creada→ null
+[2025-10-10 12:33:15] INFO: Creacion de la Remision null
+[2025-10-10 12:33:15] INFO: Inicio de la Remision null
+[2025-10-10 12:33:22] INFO: Actualizando estus del pedido → null
+[2025-10-10 12:33:22] SUCCES: Estado del pedido 19192 actualizado → null
+[2025-10-10 12:35:25] INFO: El cliente        879 realizo la accion → null
+[2025-10-10 12:35:25] Advertencia: Confirmacion Repetida de  19192 → null
+[2025-10-10 12:37:18] INFO: El cliente  realizo la accion → null
+[2025-10-10 12:37:20] Advertencia: Pedido: 19193 Rechazado → null
+[2025-10-10 12:37:21] ERROR: No se notifico al vendedor sobre el pedido 19193 → null
+[2025-10-10 12:37:54] INFO: El cliente  realizo la accion → null
+[2025-10-10 12:37:56] Advertencia: Pedido: 19193 Rechazado → null
+[2025-10-10 12:37:56] ERROR: No se notifico al vendedor sobre el pedido 19193 → null
+[2025-10-10 12:41:28] INFO: El cliente        880 realizo la accion → null
+[2025-10-10 12:41:31] Info: Pedido 19194 19194 verificadas existencias correctamente → []
+[2025-10-10 12:41:31] Info: Pedido 19194 19194 verificadas existencias correctamente → [{"producto":"AD-1819","existencias":24997,"apartados":80,"disponible":24917}]
+[2025-10-10 12:41:31] INFO: El pedido 19194 cuenta con las existencias necesarias → null
+[2025-10-10 12:41:32] Succes: Se encontro datos de pago → null
+[2025-10-10 12:41:32] Succes: dato encontrado → null
+[2025-10-10 12:43:52] INFO: El cliente  realizo la accion → null
+[2025-10-10 12:43:54] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 12:43:54] ERROR: No se notifico al vendedor sobre el pedido 19195 → null
+[2025-10-10 12:46:49] INFO: El cliente  realizo la accion → null
+[2025-10-10 12:46:51] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 12:46:52] ERROR: No se notifico al vendedor sobre el pedido 19195 → null
+[2025-10-10 12:47:10] INFO: El cliente        880 realizo la accion → null
+[2025-10-10 12:47:13] Info: Pedido 19195 19195 verificadas existencias correctamente → []
+[2025-10-10 12:47:13] INFO: El pedido 19195 cuenta con las existencias necesarias → null
+[2025-10-10 12:47:13] Succes: Se encontro datos de pago → null
+[2025-10-10 12:47:13] Succes: dato encontrado → null
+[2025-10-10 12:48:02] INFO: El cliente        880 realizo la accion → null
+[2025-10-10 12:48:03] Info: Pedido 19195 19195 verificadas existencias correctamente → []
+[2025-10-10 12:48:03] INFO: El pedido 19195 cuenta con las existencias necesarias → null
+[2025-10-10 12:48:04] Succes: Se encontro datos de pago → null
+[2025-10-10 12:48:04] Succes: dato encontrado → null
+[2025-10-10 12:48:04] Succes: Pedido 19195 aceptado y esperando el pago → null
+[2025-10-10 14:02:15] INFO: El cliente  realizo la accion → null
+[2025-10-10 14:02:17] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 14:02:17] ERROR: No se notifico al vendedor sobre el pedido 19195 → null
+[2025-10-10 14:05:36] INFO: El cliente  realizo la accion → null
+[2025-10-10 14:05:38] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 14:05:38] ERROR: No se notifico al vendedor sobre el pedido 19195 → null
+[2025-10-10 14:05:56] INFO: El cliente  realizo la accion → null
+[2025-10-10 14:05:57] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 14:05:57] ERROR: No se notifico al vendedor sobre el pedido 19195 → null
+[2025-10-10 14:20:52] INFO: El cliente  realizo la accion → null
+[2025-10-10 14:20:54] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 14:20:54] ERROR: No se notifico al vendedor sobre el pedido 19195 → null
+[2025-10-10 14:21:47] INFO: El cliente  realizo la accion → null
+[2025-10-10 14:21:48] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 14:21:49] ERROR: No se notifico al vendedor sobre el pedido 19195 → null
+[2025-10-10 14:22:51] INFO: El cliente  realizo la accion → null
+[2025-10-10 14:22:52] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 14:22:53] ERROR: No se notifico al vendedor sobre el pedido 19195 → null
+[2025-10-10 14:23:55] INFO: El cliente  realizo la accion → null
+[2025-10-10 14:23:56] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 14:23:57] ERROR: No se notifico al vendedor sobre el pedido 19195 → null
+[2025-10-10 14:24:51] INFO: El cliente  realizo la accion → null
+[2025-10-10 14:24:52] Advertencia: Pedido: 19195 Rechazado → null
+[2025-10-10 14:24:53] Advertencia: Se le notifico al vendedor sobre el pedido 19195 → null

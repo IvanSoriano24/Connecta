@@ -873,7 +873,7 @@ if (isset($_SESSION['usuario'])) {
                                         <h6 class="fw-bold">Detalles de la dirección</h6>
                                         <div class="mb-3">
                                             <label for="direccion1Contacto" class="form-label">Línea 1 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength="80" required>
+                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength="50" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="direccion2Contacto" class="form-label">Línea 2 <span class="text-danger">*</span></label>
@@ -993,6 +993,7 @@ if (isset($_SESSION['usuario'])) {
                                                 type="text"
                                                 id="direccion1NuevoContacto"
                                                 class="form-control"
+                                                maxlength="50"
                                                 required>
                                         </div>
 
@@ -1003,7 +1004,9 @@ if (isset($_SESSION['usuario'])) {
                                             <input
                                                 type="text"
                                                 id="direccion2NuevoContacto"
+                                                maxlength="50"
                                                 class="form-control">
+                                                
                                         </div>
 
                                         <div class="mb-3">

@@ -936,7 +936,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
                 //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
                 $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
                 if (str_contains($resultadoWhatsApp, "error")) {
-                    throw new Exception("Problema al enviar mensaje de WhatsApp");
+                   // throw new Exception("Problema al enviar mensaje de WhatsApp");
                 }
                 //var_dump($resultadoWhatsApp);
             }
@@ -968,7 +968,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
             if (str_contains($resultadoWhatsApp, "error")) {
-                throw new Exception("Problema al enviar mensaje de WhatsApp");
+                //throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
         }
@@ -985,7 +985,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
             if (str_contains($resultadoWhatsApp, "error")) {
-                throw new Exception("Problema al enviar mensaje de WhatsApp");
+                //throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             /// Respuesta de éxito
             header('Content-Type: application/json; charset=UTF-8');
@@ -1006,7 +1006,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
             if (str_contains($resultadoWhatsApp, "error")) {
-                throw new Exception("Problema al enviar mensaje de WhatsApp");
+                //throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no usa Correo y su WhatsApp no es válido.']);
         }

@@ -759,7 +759,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData, $conn
     $CVE_DOC = str_pad($clave, 20, ' ', STR_PAD_LEFT);
     // Iniciar transacción
     sqlsrv_begin_transaction($conn);
-
+    actualizarApartados($conexionData, $partidasData, $conn);
     // **1. Ajustar el inventario antes de modificar las partidas**
     $resultadoInventario = actualizarNuevoInventario($conexionData, $formularioData, $partidasData, $conn);
     if (!$resultadoInventario['success']) {
@@ -935,8 +935,46 @@ function obtenerPartidasActualizadas($CVE_DOC, $conexionData, $claveSae, $conn)
     return $partidas;
     sqlsrv_free_stmt($stmt);
 }
-function actualizarNuevoInventario($conexionData, $formularioData, $partidasData, $conn)
+function actualizarApartados($conexionData, $partidasData, $conn)
 {
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    foreach ($partidasData as $partida) {
+        $CVE_ART = $partida['producto'];
+        //$cantidad = "uno";
+        // SQL para actualizar los campos EXIST y PEND_SURT
+        $sqlSelect = "SELECT CVE_ART, APART FROM $nombreTabla WHERE CVE_ART = '$CVE_ART' AND APART < 0";
+        $stmtSelect = sqlsrv_query($conn, $sqlSelect);
+        if ($stmtSelect === false) {
+            continue;
+        } else {
+            $sql = "UPDATE $nombreTabla
+            SET    
+                [APART] = 0  
+            WHERE [CVE_ART] = '$CVE_ART' AND [APART] < 0";
+            // Preparar la consulta
+            // Ejecutar la consulta SQL
+            $stmt = sqlsrv_query($conn, $sql);
+            if ($stmt === false) {
+                die(json_encode(['success' => false, 'message' => 'Error al actualizar el inventario', 'errors' => sqlsrv_errors()]));
+            }
+            // Verificar cuántas filas se han afectado
+            $rowsAffected = sqlsrv_rows_affected($stmt);
+            // Retornar el resultado
+            /*if ($rowsAffected > 0) {
+            // echo json_encode(['success' => true, 'message' => 'Inventario actualizado correctamente']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No se encontró el producto para actualizar']);
+            }*/
+        }
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_free_stmt($stmtSelect);
+}
+function actualizarNuevoInventario($conexionData, $formularioData, $partidasData, $conn){
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }

@@ -765,14 +765,16 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                     $usuariosData = json_decode($response, true);
                     $telefonoVendedor = null;
                     $nombreVendedor = null;
-                    $vendedor = 1;
+                    //$vendedor = 1;
                     $vendedor = formatearClaveVendedor($vendedor);
                     //var_dump($clave);
+                    //var_dump($vendedor);
                     // Buscar al vendedor por clave
                     if (isset($usuariosData['documents'])) {
                         foreach ($usuariosData['documents'] as $document) {
                             $fields = $document['fields'];
                             if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
+                                //var_dump($fields);
                                 if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $vendedor) {
                                     if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
                                         $telefonoVendedor = $fields['telefono']['stringValue'];

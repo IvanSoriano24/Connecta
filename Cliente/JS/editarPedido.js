@@ -501,38 +501,39 @@ function actualizarTablaPartidas(pedidoID) {
     nuevaFila.setAttribute("data-num-par", partida.NUM_PAR); // Identifica cada fila por NUM_PAR
 
     nuevaFila.innerHTML = `
-    <td>
-        <button type="button" class="btn btn-danger btn-sm eliminarPartida" onclick="eliminarPartidaFormularioEditar(${partida.NUM_PAR}, '${pedidoID}')">
-            <i class="bx bx-trash"></i>
-        </button>
-    </td>
-    <td>
-        <div class="d-flex flex-column position-relative">
-            <div class="d-flex align-items-center">
-                <input type="text" class="producto" placeholder="" value="${partida.CVE_ART}" oninput="mostrarSugerencias(this)" />
-                <button type="button" class="btn ms-2" onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))"><i class="bx bx-search"></i></button>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm eliminarPartida" onclick="eliminarPartidaFormularioEditar(${partida.NUM_PAR}, '${pedidoID}')">
+                <i class="bx bx-trash"></i>
+            </button>
+        </td>
+        <td>
+            <div class="d-flex flex-column position-relative">
+                <div class="d-flex align-items-center">
+                    <input type="text" class="producto" placeholder="" value="${partida.CVE_ART}" oninput="mostrarSugerencias(this)" />
+                    <button type="button" class="btn ms-2" onclick="mostrarProductos(this.closest('tr').querySelector('.producto'))"><i class="bx bx-search"></i></button>
+                </div>
+                <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
             </div>
-            <ul class="lista-sugerencias position-absolute bg-white list-unstyled border border-secondary mt-1 p-2 d-none"></ul>
-        </div>
-    </td>
-    <td><input type="number" class="cantidad" value="${partida.CANT}" style="text-align: right;" /></td>
-    <td><input type="text" class="unidad" value="${partida.UNI_VENTA}" readonly /></td>
-    <td><input type="number" class="descuento" value="${partida.DESC1}" style="text-align: right;" readonly/></td>
-    <td><input type="number" class="iva" value="${partida.IMPU4}" style="text-align: right;" readonly /></td>
-    
-    <td><input type="number" class="precioUnidad" value="${partida.PREC}" style="text-align: right;" readonly /></td>
-    <td><input type="number" class="subtotalPartida" value="${partida.TOT_PARTIDA}" style="text-align: right;" readonly /></td>
-    <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
-    <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
-    <td><input type="number" class="ieps" value="${partida.IMPU1}" readonly hidden /></td>
-    <td><input type="number" class="comision" value="${partida.COMI}" readonly hidden /></td>
-    <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td> 
-    <td><input type="text" class="CVE_PRODSERV" value="0" readonly hidden /></td>
-      <td><input type="text" class="COSTO_PROM" value="0" readonly hidden /></td>
-`;
+        </td>
+        <td><input type="number" class="cantidad" value="${partida.CANT}" style="text-align: right;" /></td>
+        <td><input type="text" class="unidad" value="${partida.UNI_VENTA}" readonly /></td>
+        <td><input type="number" class="descuento" value="${partida.DESC1}" style="text-align: right;" readonly/></td>
+        <td><input type="number" class="iva" value="${partida.IMPU4}" style="text-align: right;" readonly /></td>
+        
+        <td><input type="number" class="precioUnidad" value="${partida.PREC}" style="text-align: right;" readonly /></td>
+        <td><input type="number" class="subtotalPartida" value="${partida.TOT_PARTIDA}" style="text-align: right;" readonly /></td>
+        <td><input type="number" class="impuesto2" value="0" readonly hidden /></td>
+        <td><input type="number" class="impuesto3" value="0" readonly hidden /></td>
+        <td><input type="number" class="ieps" value="${partida.IMPU1}" readonly hidden /></td>
+        <td><input type="number" class="comision" value="${partida.COMI}" readonly hidden /></td>
+        <td><input type="text" class="CVE_UNIDAD" value="0" readonly hidden /></td> 
+        <td><input type="text" class="CVE_PRODSERV" value="0" readonly hidden /></td>
+          <td><input type="text" class="COSTO_PROM" value="0" readonly hidden /></td>
+    `;
 
     // Validar que la cantidad no sea negativa
     const cantidadInput = nuevaFila.querySelector(".cantidad");
+    //console.log("Cantidad: ", cantidadInput);
     cantidadInput.addEventListener("input", () => {
       if (parseFloat(cantidadInput.value) < 0) {
         Swal.fire({
@@ -543,7 +544,8 @@ function actualizarTablaPartidas(pedidoID) {
         });
         cantidadInput.value = 0; // Restablecer el valor a 0
       } else {
-        calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
+        validarExistencias(nuevaFila, cantidadInput.value);
+        //calcularSubtotal(nuevaFila); // Recalcular subtotal si el valor es válido
       }
     });
     tablaProductos.appendChild(nuevaFila);
@@ -1557,6 +1559,42 @@ function guardarPedido(id) {
     console.error("Error en guardarPedido:", error);
   }
 }
+function obtenerTotales() {
+  const partidasData = obtenerDatosPartidas(); // debe devolver un array de objetos
+  const formularioData = obtenerDatosFormulario(); // idem
+
+  const form = new FormData();
+  form.append("numFuncion", "29");
+  form.append("formulario", JSON.stringify(formularioData));
+  form.append("partidas", JSON.stringify(partidasData));
+
+  fetch("../Servidor/PHP/ventas.php", {
+    method: "POST",
+    body: form,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (!data.success) {
+        return Swal.fire(
+          "Error",
+          data.message || "No se pudieron calcular totales",
+          "error"
+        );
+      }
+      const subtotalPedido =
+        data.subtotal.toFixed(2) - data.descuento.toFixed(2);
+      // ¡Ahora sí puedes leer data.subtotal, data.iva y data.importe!
+      $("#subtotal").val(data.subtotal.toFixed(2));
+      $("#descuento").val(data.descuento.toFixed(2));
+      $("#subtotalPedido").val(subtotalPedido.toFixed(2));
+      $("#iva").val(data.iva.toFixed(2));
+      $("#importe").val(data.importe.toFixed(2));
+    })
+    .catch((err) => {
+      console.error("Error al obtener los totales:", err);
+      Swal.fire("Error", "No se pudo contactar al servidor.", "error");
+    });
+}
 function validarDatosEnvio() {
   //Obtenemos los valores
   const nombreContacto = document.getElementById("nombreContacto").value;
@@ -2184,5 +2222,9 @@ $(document).ready(function () {
   $("#datosEnvio").click(function () {
     //Funcion para mostrar el modal de los datos de envio
     mostrarMoldal();
+  });
+  $("#verTotales").click(function () {
+    obtenerTotales();
+    $("#modalTotales").modal("show");
   });
 });
