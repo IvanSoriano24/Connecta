@@ -2657,17 +2657,18 @@ function actualizarStatusPedido($conexionData, $pedidoId, $claveSae, $conn, $log
             'errors' => sqlsrv_errors()
         ]));
     }
-     $error = sqlsrv_errors();
-        $msg = sprintf(
-            "[%s] SUCCES: Estado del pedido $pedidoId actualizado → %s\n",
-            date('Y-m-d H:i:s'),
-            json_encode($error, JSON_UNESCAPED_UNICODE)
-        );
-        error_log($msg, 3, $logFile);
+    $error = sqlsrv_errors();
+    $msg = sprintf(
+        "[%s] SUCCES: Estado del pedido $pedidoId actualizado → %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($error, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     // Cerrar conexión
     sqlsrv_free_stmt($stmtUpdate);
 }
-function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace){
+function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace)
+{
     $baseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents";
     $runQueryUrl = $baseUrl . ":runQuery?key=$firebaseApiKey";
 
@@ -2718,7 +2719,7 @@ function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, 
     }
 
     if ($document === null) {
-        echo json_encode(['success' => false, 'message' => "Comanda con folio $pedidoId no encontrada."]);
+        //echo json_encode(['success' => false, 'message' => "Comanda con folio $pedidoId no encontrada."]);
         return;
     }
 
@@ -2765,17 +2766,24 @@ function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, 
 
     $result = @file_get_contents($urlUpdate, false, $ctxUpdate);
     if ($result === FALSE) {
-        echo json_encode(['success' => false, 'message' => "Error al actualizar la comanda $docId."]);
+        //echo json_encode(['success' => false, 'message' => "Error al actualizar la comanda $docId."]);
         return;
     }
 
-    echo json_encode(['success' => true, 'message' => "Comanda $docId actualizada correctamente."]);
+    //echo json_encode(['success' => true, 'message' => "Comanda $docId actualizada correctamente."]);
 }
 
 //function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor,  $conn){
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor, $logFile)
 {
     global $firebaseProjectId, $firebaseApiKey;
+    $error = error_get_last();
+    $msg = sprintf(
+        "[%s] INFO: Inicio de la Remision %s\n",
+        date('Y-m-d H:i:s'),
+        json_encode($error, JSON_UNESCAPED_UNICODE)
+    );
+    error_log($msg, 3, $logFile);
     $conn = sqlsrv_connect($conexionData['host'], [
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],

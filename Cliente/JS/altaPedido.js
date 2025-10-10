@@ -1201,6 +1201,7 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
       console.log("Respuesta del servidor:", data);
 
       if (data.success) {
+        guardarOrden();
         //Mensaje cuando el pedido se realizo con exito
         Swal.fire({
           title: "¡Pedido guardado exitosamente!",
@@ -1208,7 +1209,6 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           icon: "success",
           confirmButtonText: "Aceptar",
         }).then(() => {
-          guardarOrden();
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });

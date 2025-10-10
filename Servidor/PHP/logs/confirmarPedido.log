@@ -348,3 +348,13 @@
 [2025-10-06 13:38:59] Succes: Comanda Creada→ null
 [2025-10-06 13:40:27] INFO: El cliente        825 realizo la accion → null
 [2025-10-06 13:40:27] Advertencia: Confirmacion Repetida de  19716 → null
+[2025-10-10 08:54:42] INFO: El cliente        879 realizo la accion → null
+[2025-10-10 08:54:44] Info: Pedido 19186 19186 verificadas existencias correctamente → []
+[2025-10-10 08:54:44] Info: Pedido 19186 19186 verificadas existencias correctamente → [{"producto":"JD3-2032","existencias":1402,"apartados":0,"disponible":1402}]
+[2025-10-10 08:54:44] Info: Pedido 19186 19186 verificadas existencias correctamente → [{"producto":"JD3-2032","existencias":1402,"apartados":0,"disponible":1402},{"producto":"JD3-2325","existencias":3596,"apartados":3,"disponible":3593}]
+[2025-10-10 08:54:44] Info: Pedido 19186 19186 verificadas existencias correctamente → [{"producto":"JD3-2032","existencias":1402,"apartados":0,"disponible":1402},{"producto":"JD3-2325","existencias":3596,"apartados":3,"disponible":3593},{"producto":"JD60-25","existencias":638,"apartados":2,"disponible":636}]
+[2025-10-10 08:54:44] INFO: El pedido 19186 cuenta con las existencias necesarias → null
+[2025-10-10 08:54:44] INFO: El cliente        879 maneja credico → null
+[2025-10-10 08:54:46] Succes: Comanda Creada→ null
+[2025-10-10 08:54:58] INFO: Actualizando estus del pedido → null
+[2025-10-10 08:54:58] SUCCES: Estado del pedido 19186 actualizado → null

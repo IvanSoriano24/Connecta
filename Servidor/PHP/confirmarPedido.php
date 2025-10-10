@@ -201,6 +201,7 @@ function buscarEstadoPedido($conexionData, $folio, $claveSae)
         return true;
     }
 }
+
 use Google\Cloud\Firestore\FirestoreClient;
 
 function datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey)
@@ -410,7 +411,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                                 $result = json_decode($response, true);
                                 if (isset($result['name'])) {
 
-                                    //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
+                                    /*//$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
                                     //$remisionUrl = "https://mdconecta.mdcloud.app/Servidor/PHP/remision.php";
                                     $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
 
@@ -464,14 +465,21 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                                         // Guardar el PDF localmente o redireccionar
                                         file_put_contents("remision.pdf", $remisionResponse);
                                         echo "<script>window.open('remision.pdf', '_blank');</script>";
-                                    }
-                                    //crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor, $logFile);
+                                    }*/
+                                    $error = error_get_last();
+                                    $msg = sprintf(
+                                        "[%s] INFO: Creacion de la Remision %s\n",
+                                        date('Y-m-d H:i:s'),
+                                        json_encode($error, JSON_UNESCAPED_UNICODE)
+                                    );
+                                    error_log($msg, 3, $logFile);
+                                    crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor, $logFile);
                                     bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "aceptado", $noEmpresa);
                                     echo "<div class='container'>
-                            <div class='title'>Confirmación Exitosa</div>
-                            <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
-                            <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
-                          </div>";
+                                        <div class='title'>Confirmación Exitosa</div>
+                                        <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
+                                        <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
+                                    </div>";
                                 } else {
                                     $error = error_get_last();
                                     $msg = sprintf(
