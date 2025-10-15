@@ -42,7 +42,7 @@ if (isset($_SESSION['usuario'])) {
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
-    <script src="JS/sideBar.js"></script>
+    <script src="JS/sideBar.js?n=1"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -317,9 +317,9 @@ if (isset($_SESSION['usuario'])) {
         });
     }
 </script>
-<script src="JS/menu.js"></script>
-<script src="JS/app.js"></script>
-<script src="JS/script.js"></script>
+<script src="JS/menu.js?n=1"></script>
+<script src="JS/app.j?n=1s"></script>
+<script src="JS/script.js?n=1"></script>
 
 <script>
     //var claveSae = "/*<?php /*echo $claveSae;*/ ?>*/";

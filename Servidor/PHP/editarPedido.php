@@ -120,7 +120,8 @@ function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedid
         "to" => $numeroWhatsApp,
         "type" => "template",
         "template" => [
-            "name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            "name" => "new_confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            //"name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
             "language" => ["code" => "es_MX"], // 📌 Corregido a español España
             "components" => [
                 [
@@ -759,7 +760,7 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData, $conn
     $CVE_DOC = str_pad($clave, 20, ' ', STR_PAD_LEFT);
     // Iniciar transacción
     sqlsrv_begin_transaction($conn);
-
+    actualizarApartados($conexionData, $partidasData, $conn);
     // **1. Ajustar el inventario antes de modificar las partidas**
     $resultadoInventario = actualizarNuevoInventario($conexionData, $formularioData, $partidasData, $conn);
     if (!$resultadoInventario['success']) {
@@ -835,9 +836,10 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData, $conn
             $NUM_PAR_EXISTENTE = $partidasExistentes[$CVE_ART];
             // Si la partida ya existe, realizar un UPDATE
             $sql = "UPDATE $nombreTabla SET 
-                CANT = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
+                CANT = ?, PXS = ?, PREC = ?, IMPU1 = ?, IMPU4 = ?, DESC1 = ?, DESC2 = ?, 
                 TOTIMP1 = ?, TOTIMP4 = ?, TOT_PARTIDA = ? WHERE NUM_PAR = ? AND CVE_ART = ? AND CVE_DOC = ?";
             $params = [
+                $CANT,
                 $CANT,
                 $PREC,
                 $IMPU1,
@@ -934,8 +936,46 @@ function obtenerPartidasActualizadas($CVE_DOC, $conexionData, $claveSae, $conn)
     return $partidas;
     sqlsrv_free_stmt($stmt);
 }
-function actualizarNuevoInventario($conexionData, $formularioData, $partidasData, $conn)
+function actualizarApartados($conexionData, $partidasData, $conn)
 {
+    $claveSae = $_SESSION['empresa']['claveSae'];
+    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    if ($conn === false) {
+        die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
+    }
+    foreach ($partidasData as $partida) {
+        $CVE_ART = $partida['producto'];
+        //$cantidad = "uno";
+        // SQL para actualizar los campos EXIST y PEND_SURT
+        $sqlSelect = "SELECT CVE_ART, APART FROM $nombreTabla WHERE CVE_ART = '$CVE_ART' AND APART < 0";
+        $stmtSelect = sqlsrv_query($conn, $sqlSelect);
+        if ($stmtSelect === false) {
+            continue;
+        } else {
+            $sql = "UPDATE $nombreTabla
+            SET    
+                [APART] = 0  
+            WHERE [CVE_ART] = '$CVE_ART' AND [APART] < 0";
+            // Preparar la consulta
+            // Ejecutar la consulta SQL
+            $stmt = sqlsrv_query($conn, $sql);
+            if ($stmt === false) {
+                die(json_encode(['success' => false, 'message' => 'Error al actualizar el inventario', 'errors' => sqlsrv_errors()]));
+            }
+            // Verificar cuántas filas se han afectado
+            $rowsAffected = sqlsrv_rows_affected($stmt);
+            // Retornar el resultado
+            /*if ($rowsAffected > 0) {
+            // echo json_encode(['success' => true, 'message' => 'Inventario actualizado correctamente']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No se encontró el producto para actualizar']);
+            }*/
+        }
+    }
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_free_stmt($stmtSelect);
+}
+function actualizarNuevoInventario($conexionData, $formularioData, $partidasData, $conn){
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
@@ -1178,6 +1218,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         }*/
         //if ($formularioData['enviarWhats']) {
         if ($numeroBandera === 0) {
+            //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
@@ -1213,6 +1254,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
             $emailPred = $_SESSION['usuario']['correo'];
             $numeroWhatsApp = $_SESSION['usuario']['telefono'];
             enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $id, $conn); // Enviar correo
+            //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
@@ -1228,6 +1270,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         $emailPred = $_SESSION['usuario']['correo'];
         $numeroWhatsApp = $_SESSION['usuario']['telefono'];
         enviarCorreoActualizacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $id, $conn); // Enviar correo
+        //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
         $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
         //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
         $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
@@ -1267,6 +1310,7 @@ function enviarCorreoActualizacion($correo, $clienteNombre, $noPedido, $partidas
 
     // URL base del servidor
     $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.app/Servidor/PHP";
     //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito)  . "&idEnvios=" . urlencode($idEnvios);
@@ -1808,8 +1852,8 @@ function enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $n
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numeroTelefono = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
     //$numero = "+527773340218";
     //$numero = $_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos

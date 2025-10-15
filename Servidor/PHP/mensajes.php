@@ -382,7 +382,7 @@ function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae
     // ✅ Eliminar la última coma y espacios
     $productosStr = trim(preg_replace('/,\s*$/', '', $productosStr));
 
-
+    //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
     $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
     //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
@@ -397,7 +397,8 @@ function enviarWhatsAppPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae
         "to" => $numeroWhatsApp,
         "type" => "template",
         "template" => [
-            "name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            "name" => "new_confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            //"name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
             "language" => ["code" => "es_MX"], // 📌 Corregido a español España
             "components" => [
                 [
@@ -565,6 +566,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 
     // URL base del servidor
     $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.app/Servidor/PHP";
     //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
 
     // URLs para confirmar o rechazar el pedido
@@ -736,55 +738,7 @@ function formatearClaveVendedor($clave)
 function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
 {
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
-    /*
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'header' => "Content-Type: application/json\r\n"
-        ]
-    ]);
-
-    $response = @file_get_contents($url, false, $context);
-
-    if ($response === false) {
-        echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos.']);
-    } else {
-        $data = json_decode($response, true);
-        $comandas = [];
-        //var_dump($data);
-        if (isset($data['documents'])) {
-            foreach ($data['documents'] as $document) {
-                
-                $fields = $document['fields'];
-                $status = $fields['status']['stringValue'];
-            
-                // Aplicar el filtro de estado si está definido
-                if ($filtroStatus === '' || $status === $filtroStatus) {
-                    //var_dump($fields['folio']['stringValue']);
-                    if ($fields['noEmpresa']['integerValue'] === $noEmpresa) {
-                        $fechaHora = isset($fields['fechaHoraElaboracion']['stringValue']) ? explode(' ', $fields['fechaHoraElaboracion']['stringValue']) : ['', ''];
-                        $fecha = $fechaHora[0] ?? "";
-                        $hora = $fechaHora[1] ?? "00:00:00";
-
-                        $comandas[] = [
-                            'id' => basename($document['name']),
-                            'noPedido' => $fields['folio']['stringValue'],
-                            'nombreCliente' => $fields['nombreCliente']['stringValue'],
-                            'status' => $status,
-                            'fecha' => $fecha,
-                            'hora' => $hora
-                        ];
-                    }
-                }
-            }
-        }
-        usort($comandas, function ($a, $b) {
-            return strcmp($b['noPedido'], $a['noPedido']);
-        });
-        echo json_encode(['success' => true, 'data' => $comandas]);
-    }*/
+    
     $collection = "COMANDA";
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId"
         . "/databases/(default)/documents:runQuery?key=$firebaseApiKey";

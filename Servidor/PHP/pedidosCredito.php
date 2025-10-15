@@ -927,7 +927,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             // Enviar notificaciones solo si los datos son válidos
             if ($numeroBandera === 0) {
                 $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-
+                //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
                 //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
                 //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
@@ -936,7 +936,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
                 //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
                 $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
                 if (str_contains($resultadoWhatsApp, "error")) {
-                    throw new Exception("Problema al enviar mensaje de WhatsApp");
+                   // throw new Exception("Problema al enviar mensaje de WhatsApp");
                 }
                 //var_dump($resultadoWhatsApp);
             }
@@ -959,7 +959,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             $numeroWhatsApp = $_SESSION['usuario']['telefono'];
             enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $idEnvios, $conn, $claveCliente); // Enviar correo
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-
+            //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
@@ -968,7 +968,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
             if (str_contains($resultadoWhatsApp, "error")) {
-                throw new Exception("Problema al enviar mensaje de WhatsApp");
+                //throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
         }
@@ -976,7 +976,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
         // Enviar notificaciones solo si los datos son válidos
         if ($numeroBandera === 0) {
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-
+            //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
@@ -985,7 +985,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
             if (str_contains($resultadoWhatsApp, "error")) {
-                throw new Exception("Problema al enviar mensaje de WhatsApp");
+                //throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             /// Respuesta de éxito
             header('Content-Type: application/json; charset=UTF-8');
@@ -997,7 +997,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             $numeroWhatsApp = $_SESSION['usuario']['telefono'];
             enviarCorreo($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $idEnvios, $conn, $claveCliente); // Enviar correo
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-
+            //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Pedido" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
 
             //$filename = "Pedido_" . urldecode($noPedido) . ".pdf";
@@ -1006,7 +1006,7 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
             if (str_contains($resultadoWhatsApp, "error")) {
-                throw new Exception("Problema al enviar mensaje de WhatsApp");
+                //throw new Exception("Problema al enviar mensaje de WhatsApp");
             }
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no usa Correo y su WhatsApp no es válido.']);
         }
@@ -1040,6 +1040,7 @@ function enviarCorreo($correo, $clienteNombre, $noPedido, $partidasData, $enviar
 
     // URL base del servidor
     $urlBase = "https://mdconecta.mdcloud.mx/Servidor/PHP";
+    //$urlBase = "https://mdconecta.mdcloud.app/Servidor/PHP";
     //$urlBase = "http://localhost/MDConnecta/Servidor/PHP";
     // URLs para confirmar o rechazar el pedido
     $urlConfirmar = "$urlBase/confirmarPedido.php?pedidoId=$noPedido&accion=confirmar&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&idEnvios=" . urlencode($idEnvios) . "&claveCliente=" . urlencode($claveCliente);
@@ -1231,7 +1232,8 @@ function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedid
         "to" => $numeroWhatsApp,
         "type" => "template",
         "template" => [
-            "name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            "name" => "new_confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            //"name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
             "language" => ["code" => "es_MX"], // 📌 Corregido a español España
             "components" => [
                 [
@@ -1601,8 +1603,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
-    $numero = "+527773750925";
+    $numero = "+527772127123"; //InterZenda AutorizaTelefono
+    //$numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";

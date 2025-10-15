@@ -42,7 +42,7 @@ session_destroy(); */
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
-    <script src="JS/sideBar.js"></script>
+    <script src="JS/sideBar.js?n=1"></script>
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
 
@@ -607,12 +607,12 @@ session_destroy(); */
     <!-- CONTENT -->
 
     <!-- JS Para la confirmacion empresa -->
-    <script src="JS/imagenesInventario.js"></script>
+    <script src="JS/imagenesInventario.js?n=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="JS/menu.js"></script>
-    <script src="JS/app.js"></script>
-    <script src="JS/script.js"></script>
-    <script src="JS/inventarioLineas.js"></script>
+    <script src="JS/menu.js?n=1"></script>
+    <script src="JS/app.js?n=1"></script>
+    <script src="JS/script.js?n=1"></script>
+    <script src="JS/inventarioLineas.js?n=1"></script>
 
     <!-- Para el PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -634,6 +634,7 @@ session_destroy(); */
             const $mensaje = $('#msgArticulos');
             const $btnNext = $('#btnNext');
             const csrfToken = $('#csrf_token').val();
+            console.log("Cargada: ", $linea);
 
             resetUI();
 
@@ -645,6 +646,7 @@ session_destroy(); */
                     resetUI();
                     return;
                 }
+                console.log("Cambio");
                 mostrarLoader();
                 updateBtnNextState();
                 loadArticulos(linea)

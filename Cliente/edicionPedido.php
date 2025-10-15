@@ -715,6 +715,7 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                             <form id="formularioEnvio" class="px-4 pb-4">
                                 <!-- selector y botón de nuevo dato -->
+                                 
                                 <div class="row align-items-center mb-3">
                                     <div class="col-md-8 d-flex align-items-center">
                                         <label for="selectDatosEnvio" class="me-2 mb-0">Escoge tus datos:</label>
@@ -1069,12 +1070,12 @@ if (isset($_SESSION['usuario'])) {
     </div>
 
     <!-- Scripts de JS para el funcionamiento del sistema -->
-    <script src="JS/menu.js"></script>
-    <script src="JS/app.js"></script>
-    <script src="JS/script.js"></script>
+    <script src="JS/menu.js?n=1"></script>
+    <script src="JS/app.js?n=1"></script>
+    <script src="JS/script.js?n=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- <script src="JS/ventas.js"></script> -->
-    <script src="JS/editarPedido.js"></script>
+    <script src="JS/editarPedido.js?n=1"></script>
     <!--<script src="JS/clientes.js"></script>-->
 
     <!-- Funcion JS para obtener la fecha actual-->

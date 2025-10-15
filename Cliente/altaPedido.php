@@ -47,7 +47,7 @@ if (isset($_SESSION['usuario'])) {
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
-    <script src="JS/sideBar.js"></script>
+    <script src="JS/sideBar.js?n=1"></script>
 
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
@@ -873,7 +873,7 @@ if (isset($_SESSION['usuario'])) {
                                         <h6 class="fw-bold">Detalles de la dirección</h6>
                                         <div class="mb-3">
                                             <label for="direccion1Contacto" class="form-label">Línea 1 <span class="text-danger">*</span></label>
-                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength="80" required>
+                                            <input type="text" id="direccion1Contacto" class="form-control" maxlength="50" required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="direccion2Contacto" class="form-label">Línea 2 <span class="text-danger">*</span></label>
@@ -993,6 +993,7 @@ if (isset($_SESSION['usuario'])) {
                                                 type="text"
                                                 id="direccion1NuevoContacto"
                                                 class="form-control"
+                                                maxlength="50"
                                                 required>
                                         </div>
 
@@ -1003,7 +1004,9 @@ if (isset($_SESSION['usuario'])) {
                                             <input
                                                 type="text"
                                                 id="direccion2NuevoContacto"
+                                                maxlength="50"
                                                 class="form-control">
+                                                
                                         </div>
 
                                         <div class="mb-3">
@@ -1237,13 +1240,13 @@ if (isset($_SESSION['usuario'])) {
     </div>
 
     <!-- Scripts de JS para el funcionamiento del sistema -->
-    <script src="JS/menu.js"></script>
-    <script src="JS/app.js"></script>
-    <script src="JS/script.js"></script>
+    <script src="JS/menu.js?n=1"></script>
+    <script src="JS/app.js?n=1"></script>
+    <script src="JS/script.js?n=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="JS/ventas.js"></script>
-    <script src="JS/altaPedido.js"></script>
-    <script src="JS/pdfs.js"></script>
+    <script src="JS/ventas.js?n=1"></script>
+    <script src="JS/altaPedido.js?n=1"></script>
+    <script src="JS/pdfs.js?n=1"></script>
 
     <!-- Funcion JS para obtener la fecha actual-->
     <script>

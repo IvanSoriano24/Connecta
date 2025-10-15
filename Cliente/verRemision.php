@@ -618,12 +618,12 @@ if (isset($_SESSION['usuario'])) {
     </section>
 </div>
 <!-- CONTENT -->
-<script src="JS/menu.js"></script>
-<script src="JS/app.js"></script>
-<script src="JS/script.js"></script>
+<script src="JS/menu.js?n=1"></script>
+<script src="JS/app.js?n=1"></script>
+<script src="JS/script.js?n=1"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="JS/remisiones.js"></script>
-<script src="JS/verRemision.js"></script>
+<script src="JS/remisiones.js?n=1"></script>
+<script src="JS/verRemision.js?n=1"></script>
 <!--<script src="JS/clientes.js"></script>-->
 </body>
 </html>

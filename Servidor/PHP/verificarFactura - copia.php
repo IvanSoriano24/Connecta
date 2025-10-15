@@ -352,6 +352,7 @@ function verificarEstadoPedido($folio, $conexionData, $claveSae)
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
 {
     $facturaUrl = "https://mdconecta.mdcloud.mx/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
+    //$facturaUrl = "https://mdconecta.mdcloud.app/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
     //$facturaUrl = "http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php";
 
     $data = [
@@ -518,6 +519,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
 
     if ($correo === 'S' && !empty($emailPred)) {
         $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
+        //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
         $filename = "Factura_" . urldecode($folioFactura) . ".pdf";
         $resultadoWhatsApp = enviarWhatsAppFactura($numeroWhatsApp, $clienteNombre, $noPactura, $claveSae, $rutaPDFW, $filename);
@@ -794,6 +796,7 @@ function facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito)
 
     // URL del servidor donde se ejecutará la remisión
     $facturanUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/factura.php";
+    //$facturanUrl = "https://mdconecta.mdcloud.app/Servidor/PHP/factura.php";
     //$facturanUrl = 'http://localhost/MDConnecta/Servidor/PHP/factura.php';
 
     // Datos a enviar a la API de remisión

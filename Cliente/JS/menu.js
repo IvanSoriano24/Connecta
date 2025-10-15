@@ -1139,7 +1139,6 @@ function validarEmpresaNew() {
     },
   });
 }
-
 function verificarNotificaciones() {
   $.get(
     "../Servidor/PHP/mensajes.php",

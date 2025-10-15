@@ -18,7 +18,7 @@ function obtenerLineas() {
           lineaSelect.append(
             "<option selected disabled>Seleccione una linea</option>"
           );
-
+          console.log("Data: ", res.data);
           res.data.forEach((dato) => {
             lineaSelect.append(
               `<option value="${dato.CVE_LIN}" data-id="${dato.CVE_LIN}" data-descripcion="${dato.DESC_LIN}">
@@ -416,7 +416,6 @@ async function initInventarioUI() {
 function comparararConteos(tipoUsuario) {
   if (tipoUsuario !== "SUPER-ALMACENISTA") return;
 
-
   const noInv = $("#noInventario").val();
   const claveLinea = $("#lineaSelect").val();
   const conteo = $("#conteoInput").val();
@@ -429,85 +428,100 @@ function comparararConteos(tipoUsuario) {
     url: "../Servidor/PHP/inventarioFirestore.php",
     method: "GET",
     dataType: "json",
-    data: { accion: "obtenerLineaConteos", noInventario: noInv, claveLinea, conteo: conteo },
+    data: {
+      accion: "obtenerLineaConteos",
+      noInventario: noInv,
+      claveLinea,
+      conteo: conteo,
+    },
   })
-  .done(function (res) {
-    cerrarLoader();
-    if (!res || res.success !== true) {
-      const msg = res?.message || "No fue posible obtener los conteos.";
-      return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
-    }
+    .done(function (res) {
+      cerrarLoader();
+      if (!res || res.success !== true) {
+        const msg = res?.message || "No fue posible obtener los conteos.";
+        return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
+      }
 
-    const p1 = res.conteo1 ? normalizeDocToProducts(res.conteo1) : null;
-    const p2 = res.conteo2 ? normalizeDocToProducts(res.conteo2) : null;
+      const p1 = res.conteo1 ? normalizeDocToProducts(res.conteo1) : null;
+      const p2 = res.conteo2 ? normalizeDocToProducts(res.conteo2) : null;
 
-    // A) No hay ningún conteo
-    if (!p1 && !p2) {
-      return Swal.fire({ icon: "info", title: "Sin datos", text: "No hay conteos para esta línea." });
-    }
+      // A) No hay ningún conteo
+      if (!p1 && !p2) {
+        return Swal.fire({
+          icon: "info",
+          title: "Sin datos",
+          text: "No hay conteos para esta línea.",
+        });
+      }
 
-    // B) Solo un conteo → usa tu compararSae(cmp, claveLinea)
-    if ((p1 && !p2) || (!p1 && p2)) {
-      const unico = p1 || p2;
+      // B) Solo un conteo → usa tu compararSae(cmp, claveLinea)
+      if ((p1 && !p2) || (!p1 && p2)) {
+        const unico = p1 || p2;
 
-      // construimos un cmp “mínimo” con las filas del conteo único
-      const cmpMin = {
-        rows: unico.map(it => ({
-          cve_art: String(it.cve_art),
-          // estos campos serán reemplazados/contrastados por la lógica del backend/tablaComparativaSae con SAE
-          total1: Number(it.total) || 0,
-          total2: 0,
-          diff: 0,
-          status: "ok",
-        })),
-        iguales: 0,
-        difs: 0,
-        solo1: 0,
-        solo2: 0,
-      };
+        // construimos un cmp “mínimo” con las filas del conteo único
+        const cmpMin = {
+          rows: unico.map((it) => ({
+            cve_art: String(it.cve_art),
+            // estos campos serán reemplazados/contrastados por la lógica del backend/tablaComparativaSae con SAE
+            total1: Number(it.total) || 0,
+            total2: 0,
+            diff: 0,
+            status: "ok",
+          })),
+          iguales: 0,
+          difs: 0,
+          solo1: 0,
+          solo2: 0,
+        };
 
-      // ✅ Reutiliza tu función existente
-      return compararSae(cmpMin, claveLinea);
-    }
+        // ✅ Reutiliza tu función existente
+        return compararSae(cmpMin, claveLinea);
+      }
 
-    // C) Hay dos conteos → comparas entre sí como ya hacías
-    const c1 = Array.isArray(res.conteo1) ? res.conteo1 : p1;
-    const c2 = Array.isArray(res.conteo2) ? res.conteo2 : p2;
-    const cmp = compareProducts(c1, c2);
+      // C) Hay dos conteos → comparas entre sí como ya hacías
+      const c1 = Array.isArray(res.conteo1) ? res.conteo1 : p1;
+      const c2 = Array.isArray(res.conteo2) ? res.conteo2 : p2;
+      const cmp = compareProducts(c1, c2);
 
-    const u1 = res.user1?.name || res.user1?.id || "Conteo 1";
-    const u2 = res.user2?.name || res.user2?.id || "Conteo 2";
-    const html = renderCompareTable(cmp, claveLinea, { user1: u1, user2: u2 });
+      const u1 = res.user1?.name || res.user1?.id || "Conteo 1";
+      const u2 = res.user2?.name || res.user2?.id || "Conteo 2";
+      const html = renderCompareTable(cmp, claveLinea, {
+        user1: u1,
+        user2: u2,
+      });
 
-    Swal.fire({
-      width: Math.min(window.innerWidth - 40, 900),
-      title: `Comparación de conteos — Línea ${claveLinea}`,
-      html,
-      confirmButtonText: "Cerrar",
-    }).then(() => {
-      if (cmp.rows.length == cmp.iguales) {
-        compararSae(cmp, claveLinea); // tu flujo actual
-      } else {
-
-        window.BanderaGeneracionConteoNuevo = true;
-        Swal.fire({
-          title: "Comparación SAE",
-          html: "<strong>Conteos diferentes</strong><br>No es posible compararlo con SAE.",
-          icon: "warning",
-          confirmButtonText: "Aceptar",
-          showCloseButton: true,
-          allowOutsideClick: false,
-          backdrop: true,
-          timerProgressBar: false,
-        }).then(async() => {
-          const idInventario = window.idInventario;
-          const conteo = document.getElementById("subconteoInput").value;
-          mostrarLoader();
-          if (window.BanderaGeneracionConteoNuevo) {
-            // Llamar al backend para verificar y generar conteos
-            $.post(
+      Swal.fire({
+        width: Math.min(window.innerWidth - 40, 900),
+        title: `Comparación de conteos — Línea ${claveLinea}`,
+        html,
+        confirmButtonText: "Cerrar",
+      }).then(() => {
+        if (cmp.rows.length == cmp.iguales) {
+          compararSae(cmp, claveLinea); // tu flujo actual
+        } else {
+          window.BanderaGeneracionConteoNuevo = true;
+          Swal.fire({
+            title: "Comparación SAE",
+            html: "<strong>Conteos diferentes</strong><br>No es posible compararlo con SAE.",
+            icon: "warning",
+            confirmButtonText: "Aceptar",
+            showCloseButton: true,
+            allowOutsideClick: false,
+            backdrop: true,
+            timerProgressBar: false,
+          }).then(async () => {
+            const idInventario = window.idInventario;
+            const conteo = document.getElementById("subconteoInput").value;
+            mostrarLoader();
+            if (window.BanderaGeneracionConteoNuevo) {
+              // Llamar al backend para verificar y generar conteos
+              $.post(
                 "../Servidor/PHP/inventario.php",
-                {numFuncion: "20", idInventario: idInventario, conteo: conteo},
+                {
+                  numFuncion: "20",
+                  idInventario: idInventario,
+                  conteo: conteo,
+                },
                 async function (response) {
                   cerrarLoader();
                   console.log("Respuesta verificación inventario:", response);
@@ -516,34 +530,42 @@ function comparararConteos(tipoUsuario) {
                     await mostrarAlerta("Éxito", response.message, "success");
                   } else {
                     await mostrarAlerta(
-                        "Aún hay líneas sin terminar",
-                        response.message,
-                        "info"
+                      "Aún hay líneas sin terminar",
+                      response.message,
+                      "info"
                     );
                   }
-
                 },
                 "json"
-            ).fail(async (jqXHR, textStatus, errorThrown) => {
+              ).fail(async (jqXHR, textStatus, errorThrown) => {
+                cerrarLoader();
+                await mostrarAlerta("Ocurrió un problema inesperado", "", "");
+                console.error("Error AJAX:", textStatus, errorThrown);
+                console.log("Respuesta cruda:", jqXHR.responseText);
+                window.location.href = "inventarioFisico.php";
+              });
+            } else {
+              console.log("Bandera: ", window.BanderaGeneracionConteoNuevo);
               cerrarLoader();
-              await mostrarAlerta("Ocurrió un problema inesperado", "", "");
-              console.error("Error AJAX:", textStatus, errorThrown);
-              console.log("Respuesta cruda:", jqXHR.responseText);
-              window.location.href = "inventarioFisico.php";
-            });
-          } else {
-            cerrarLoader();
-            window.finalizadoConteo = true;
-            await mostrarAlerta("Éxito", "Todo correcto, no se generó un nuevo conteo", "success");
-          }
-        });
-      }
+              window.finalizadoConteo = true;
+              await mostrarAlerta(
+                "Éxito",
+                "Todo correcto, no se generó un nuevo conteo",
+                "success"
+              );
+            }
+          });
+        }
+      });
+    })
+    .fail(function (err) {
+      console.error("comparararConteos error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No fue posible comparar los conteos.",
+      });
     });
-  })
-  .fail(function (err) {
-    console.error("comparararConteos error:", err);
-    Swal.fire({ icon: "error", title: "Error", text: "No fue posible comparar los conteos." });
-  });
 }
 
 function compararSae(cmp, claveLinea) {
@@ -556,60 +578,64 @@ function compararSae(cmp, claveLinea) {
       articulos: cmp.rows,
     },
   })
-      .done(function (res) {
-        if (!res || res.success !== true) {
-          const msg = res?.message || "No fue posible obtener los conteos.";
-          return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
+    .done(function (res) {
+      if (!res || res.success !== true) {
+        const msg = res?.message || "No fue posible obtener los conteos.";
+        return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
+      }
+
+      const html = tablaComparativaSae(cmp, claveLinea, res.data);
+      Swal.fire({
+        width: Math.min(window.innerWidth - 40, 900),
+        title: `Comparación con SAE — Línea ${claveLinea}`,
+        html,
+        confirmButtonText: "Cerrar",
+      }).then(async () => {
+        const idInventario = window.idInventario;
+        const conteo = document.getElementById("subconteoInput").value;
+
+        if (window.BanderaGeneracionConteoNuevo) {
+          // Llamar al backend para verificar y generar conteos
+          $.post(
+            "../Servidor/PHP/inventario.php",
+            { numFuncion: "20", idInventario: idInventario, conteo: conteo },
+            async function (response) {
+              console.log("Respuesta verificación inventario:", response);
+              if (response.success) {
+                window.finalizadoConteo = false;
+                await mostrarAlerta("Éxito", response.message, "success");
+              } else {
+                await mostrarAlerta(
+                  "Aún hay líneas sin terminar",
+                  response.message,
+                  "info"
+                );
+              }
+            },
+            "json"
+          ).fail(async (jqXHR, textStatus, errorThrown) => {
+            await mostrarAlerta("Ocurrió un problema inesperado", "", "");
+            console.error("Error AJAX:", textStatus, errorThrown);
+            console.log("Respuesta cruda:", jqXHR.responseText);
+          });
+        } else {
+          window.finalizadoConteo = true;
+          await mostrarAlerta(
+            "Éxito",
+            "Todo correcto, no se generó un nuevo conteo",
+            "success"
+          );
         }
-
-        const html = tablaComparativaSae(cmp, claveLinea, res.data);
-        Swal.fire({
-          width: Math.min(window.innerWidth - 40, 900),
-          title: `Comparación con SAE — Línea ${claveLinea}`,
-          html,
-          confirmButtonText: "Cerrar",
-        }).then(async () => {
-          const idInventario = window.idInventario;
-          const conteo = document.getElementById("subconteoInput").value;
-
-          if (window.BanderaGeneracionConteoNuevo) {
-            // Llamar al backend para verificar y generar conteos
-            $.post(
-                "../Servidor/PHP/inventario.php",
-                {numFuncion: "20", idInventario: idInventario, conteo: conteo},
-                async function (response) {
-                  console.log("Respuesta verificación inventario:", response);
-                  if (response.success) {
-                    window.finalizadoConteo = false;
-                    await mostrarAlerta("Éxito", response.message, "success");
-                  } else {
-                    await mostrarAlerta(
-                        "Aún hay líneas sin terminar",
-                        response.message,
-                        "info"
-                    );
-                  }
-                },
-                "json"
-            ).fail(async (jqXHR, textStatus, errorThrown) => {
-              await mostrarAlerta("Ocurrió un problema inesperado", "", "");
-              console.error("Error AJAX:", textStatus, errorThrown);
-              console.log("Respuesta cruda:", jqXHR.responseText);
-            });
-          } else {
-            window.finalizadoConteo = true;
-            await mostrarAlerta("Éxito", "Todo correcto, no se generó un nuevo conteo", "success");
-          }
-        });
-      })
-      .fail(function (err) {
-        console.error("compararSae error:", err);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No fue posible comparar los conteos.",
-        });
       });
+    })
+    .fail(function (err) {
+      console.error("compararSae error:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No fue posible comparar los conteos.",
+      });
+    });
 }
 // Si el backend te devuelve el doc completo (formato Firestore REST), lo convertimos a:
 // [{ cve_art, total, lotes:[{corrugados,corrugadosPorCaja,lote,total}]}]
@@ -977,6 +1003,187 @@ async function verificarLineaFinalizada(idInventario, claveLinea) {
 }
 
 //////////////////////////////////
+function cargarLineasDesdeFirestore() {
+  $.get("../Servidor/PHP/inventarioFirestore.php", { accion: "obtenerLineas" })
+    .done(function (resRaw) {
+      const res = typeof resRaw === "string" ? JSON.parse(resRaw) : resRaw;
+      console.log("Respuesta Firestore:", res);
+
+      // Normalizar: priorizar res.lineas, si no existe usar res.data
+      const lineasRaw = Array.isArray(res.lineas)
+        ? res.lineas
+        : Array.isArray(res.data)
+        ? res.data
+        : null;
+
+      if (
+        !res ||
+        !res.success ||
+        !Array.isArray(lineasRaw) ||
+        lineasRaw.length === 0
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Aviso",
+          text: "No se encontraron líneas en Firestore.",
+        });
+        return;
+      }
+
+      // Obtener datos del servidor SQL
+      $.get("../Servidor/PHP/inventario.php", { numFuncion: "3" })
+        .done(function (respRaw) {
+          const r = typeof respRaw === "string" ? JSON.parse(respRaw) : respRaw;
+          if (!r || !r.success || !Array.isArray(r.data)) {
+            Swal.fire({
+              icon: "warning",
+              title: "Aviso",
+              text: "No se encontraron líneas en el servidor.",
+            });
+            return;
+          }
+
+          const lineaSelect = $("#lineaSelect");
+          //lineaSelect.off("change");
+          lineaSelect.empty();
+          lineaSelect.append(
+            "<option selected disabled>Seleccione una línea</option>"
+          );
+
+          // Si lineasRaw es array de strings, crear objetos simples
+          const fireLineas = lineasRaw.map((item) => {
+            if (item && typeof item === "object") {
+              return {
+                CVE_LIN: String(item.CVE_LIN ?? item.value ?? ""),
+                conteo: Number.isFinite(item.conteo) ? item.conteo : 0,
+                subconteo: Number.isFinite(item.subconteo) ? item.subconteo : 0,
+              };
+            } else {
+              const s = String(item);
+              return { CVE_LIN: s, conteo: 0, subconteo: 0 };
+            }
+          });
+
+          // Mapa rápido de r.data por CVE_LIN (string)
+          // Normalizar y crear mapaR
+          const mapaR = {};
+          r.data.forEach((d) => {
+            const rawKey = d.CVE_LIN ?? d.value ?? "";
+            const key = String(rawKey).trim().toUpperCase();
+            mapaR[key] = d;
+          });
+
+          const opcionesUnicas = new Set(); // mover fuera del bucle
+          const grupos = {};
+
+          fireLineas.forEach((fl) => {
+            const claveNorm = String(fl.CVE_LIN).trim().toUpperCase();
+            console.log("Data: ", fl, " claveNorm:", claveNorm);
+
+            // Si quieres obligar a existir en r.data usa:
+            // const datoServer = mapaR[claveNorm];
+            // if (!datoServer) { console.warn("No existe en r.data:", claveNorm); return; }
+
+            // Incluimos aunque no exista en r.data (fallback)
+            const key = `${claveNorm}-${fl.conteo}-${fl.subconteo}`;
+            if (opcionesUnicas.has(key)) return;
+            opcionesUnicas.add(key);
+
+            if (!grupos[fl.conteo]) grupos[fl.conteo] = {};
+            if (!grupos[fl.conteo][fl.subconteo])
+              grupos[fl.conteo][fl.subconteo] = [];
+
+            grupos[fl.conteo][fl.subconteo].push({
+              CVE_LIN: claveNorm,
+              DESC_LIN:
+                fl.DESC_LIN ??
+                (mapaR[claveNorm] && mapaR[claveNorm].DESC_LIN) ??
+                claveNorm,
+              conteo: fl.conteo,
+              subconteo: fl.subconteo,
+            });
+          });
+
+          console.log("Grupos resultantes:", grupos);
+
+          Object.keys(grupos)
+            .map(Number)
+            .sort((a, b) => a - b)
+            .forEach((conteo) => {
+              const optgroup = $(
+                `<optgroup label="Conteo ${conteo}"></optgroup>`
+              );
+              Object.keys(grupos[conteo])
+                .map(Number)
+                .sort((a, b) => a - b)
+                .forEach((sub) => {
+                  grupos[conteo][sub].forEach((linea) => {
+                    const v = escapeHtml(linea.CVE_LIN);
+                    const desc = escapeHtml(linea.DESC_LIN);
+                    // Aseguramos los atributos data-*
+                    const $opt = $(
+                      `<option value="${v}" data-conteo="${linea.conteo}" data-subconteo="${linea.subconteo}">Sub ${linea.subconteo} → ${desc}</option>`
+                    );
+                    optgroup.append($opt);
+                  });
+                });
+              lineaSelect.append(optgroup);
+            });
+
+          // Bind del change (una sola vez) con lectura robusta de atributos
+          lineaSelect.on("change", function () {
+            const opt = $(this).find(":selected");
+            console.log("opt seleccionado DOM:", opt.get(0)); // para inspección
+
+            // Intentar con .data() y caer a .attr() si es necesario
+            let conteoVal = opt.data("conteo");
+            if (conteoVal === undefined) conteoVal = opt.attr("data-conteo");
+            let subconteoVal = opt.data("subconteo");
+            if (subconteoVal === undefined)
+              subconteoVal = opt.attr("data-subconteo");
+
+            // Normalizar a string/número según necesites
+            if (conteoVal !== undefined && conteoVal !== null)
+              conteoVal = String(conteoVal);
+            if (subconteoVal !== undefined && subconteoVal !== null)
+              subconteoVal = String(subconteoVal);
+
+            console.log("conteoVal:", conteoVal, "subconteoVal:", subconteoVal);
+
+            $("#conteoInput").val(conteoVal || "");
+            $("#subconteoInput").val(subconteoVal || "");
+
+            window.subConteo = subconteoVal || "";
+            window.claveLinea = opt.val() || "";
+          });
+        })
+        .fail(function () {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Error al obtener las líneas del servidor.",
+          });
+        });
+    })
+    .fail(function () {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al obtener las líneas desde Firestore.",
+      });
+    });
+}
+// Escapa texto para insertar en HTML
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+//////////////////////////////////
 $(document).ready(function () {
   initInventarioUI();
   let noInventario = null;
@@ -1009,9 +1216,9 @@ $(document).ready(function () {
       }
     }
   });
-
+  cargarLineasDesdeFirestore();
   // Lineas asignadas
-  $.get("../Servidor/PHP/inventarioFirestore.php", {
+  /*$.get("../Servidor/PHP/inventarioFirestore.php", {
     accion: "obtenerLineas",
   }).done(function (res) {
     console.log("obtenerLines res que hay: ", res)
@@ -1115,7 +1322,7 @@ $(document).ready(function () {
         }
       );
     }
-  });
+  });*/
 
   // === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
   $("#finalizarInventarioLinea").click(function () {
@@ -1130,7 +1337,6 @@ $(document).ready(function () {
     }).then((result) => {
       if (result.isConfirmed) {
         guardarLinea(true); // Guardar y bloquear edición
-
       }
     });
   });
@@ -1214,7 +1420,9 @@ function guardarLinea(finalizar) {
           text: res.message,
         }).then(() => {
           const modalEl = document.getElementById("resumenInventario");
-          const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+          const modal =
+            bootstrap.Modal.getInstance(modalEl) ||
+            new bootstrap.Modal(modalEl);
           modal.hide();
 
           try {
@@ -1232,7 +1440,6 @@ function guardarLinea(finalizar) {
 
           window.location.reload();
         });
-
       } else {
         await Swal.fire(
           "Error",
@@ -1243,7 +1450,11 @@ function guardarLinea(finalizar) {
     },
     error: async function () {
       cerrarLoader();
-      await Swal.fire("Error", "Error de comunicación con el servidor", "error");
+      await Swal.fire(
+        "Error",
+        "Error de comunicación con el servidor",
+        "error"
+      );
     },
   });
 }
@@ -1252,7 +1463,6 @@ function guardarLinea(finalizar) {
 $("#btnNext").click(function () {
   abrirModal();
 });
-
 
 // =================== PDF =============================
 // Convierte <img> en base64
@@ -1312,7 +1522,7 @@ function generarPDFInventario(datos) {
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download =
-          "Inventario_" + datos.noInventario + "_" + datos.claveLinea + ".pdf";
+        "Inventario_" + datos.noInventario + "_" + datos.claveLinea + ".pdf";
       link.click();
     },
     error: function () {
@@ -1357,7 +1567,6 @@ function prepararDatosExcel() {
   return datos;
 }
 
-
 async function generarExcelInventario(datos) {
   // Insertar fila vacía antes del TOTAL
   const total = datos.pop(); // quitamos el total original
@@ -1386,7 +1595,6 @@ async function generarExcelInventario(datos) {
     // Forzar alineación de la celda Lote a la derecha
     newRow.getCell("Lote").alignment = { horizontal: "right" };
   });
-
 
   // === Estilos ===
   // Encabezados
@@ -1429,9 +1637,6 @@ async function generarExcelInventario(datos) {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 
-
-
-
   // Obtener texto del option seleccionado
   let lineaDesc = $("#lineaSelect option:selected").text() || "linea";
 
@@ -1446,8 +1651,9 @@ async function generarExcelInventario(datos) {
 
   // Opcional: quitar acentos y reemplazar espacios por "_"
   const lineaFile = lineaDesc
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quita acentos
-      .replace(/\s+/g, "_"); // espacios → _
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // quita acentos
+    .replace(/\s+/g, "_"); // espacios → _
 
   // Fecha actual YYYY-MM-DD
   const hoy = new Date();
@@ -1455,9 +1661,6 @@ async function generarExcelInventario(datos) {
 
   // Exportar con nombre: Inventario_LINEA_2025-09-30.xlsx
   saveAs(blob, `Inventario - ${lineaFile} - ${fecha}.xlsx`);
-
-
-
 }
 
 $("#exportarExcel").click(function () {
