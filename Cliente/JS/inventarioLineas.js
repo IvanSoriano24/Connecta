@@ -483,6 +483,10 @@ function comparararConteos(tipoUsuario) {
       const c2 = Array.isArray(res.conteo2) ? res.conteo2 : p2;
       const cmp = compareProducts(c1, c2);
 
+      // 🔹 Ordenar por código o nombre del producto (por ejemplo cve_art)
+      cmp.rows.sort((a, b) => a.cve_art.localeCompare(b.cve_art));
+
+
       const u1 = res.user1?.name || res.user1?.id || "Conteo 1";
       const u2 = res.user2?.name || res.user2?.id || "Conteo 2";
       const html = renderCompareTable(cmp, claveLinea, {
@@ -511,7 +515,7 @@ function comparararConteos(tipoUsuario) {
             timerProgressBar: false,
           }).then(async () => {
             const idInventario = window.idInventario;
-            const conteo = document.getElementById("subconteoInput").value;
+            const conteo = document.getElementById("conteoInput").value;
 
             // 🔹 Verificar si el conteo actual sigue siendo el mismo ANTES de mostrar loader
             const resInv = await fetch(`../Servidor/PHP/inventarioFirestore.php?accion=obtenerConteoActual&idInventario=${idInventario}`);
