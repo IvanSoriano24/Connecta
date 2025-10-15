@@ -216,4 +216,58 @@ function obtenerNombreVendedor($vendedor, $conexionData, $claveSae, $conn){
 
     return $nombre;
 }
+
+/**********************************************
+ * FUNCIÓN: obtenerDatosSAE
+ * Lee datos de inventario del sistema Aspel SAE
+ **********************************************/
+function obtenerDatosSAE($noEmpresa, $firebaseProjectId, $firebaseApiKey)
+{
+    // Obtener conexión a SAE desde Firestore (colección CONEXIONES)
+    $conexion = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, "");
+
+    if (!$conexion['success']) {
+        return []; // No hay conexión configurada
+    }
+
+    $cfg = $conexion['data'];
+    $host = $cfg['host'];
+    $puerto = $cfg['puerto'];
+    $usuario = $cfg['usuario'];
+    $password = $cfg['password'];
+    $nombreBase = $cfg['nombreBase'];
+
+    // Conexión a SQL Server (Aspel SAE)
+    $connectionInfo = [
+        "Database" => $nombreBase,
+        "UID" => $usuario,
+        "PWD" => $password,
+        "CharacterSet" => "UTF-8"
+    ];
+
+    $conn = @sqlsrv_connect($host . "," . $puerto, $connectionInfo);
+    if (!$conn) {
+        return []; // Evitar detener todo si no se conecta
+    }
+
+    $datos = [];
+    $query = "SELECT TOP 100 CLAVE, DESCRIPCION, EXIST, COSTO, (EXIST * COSTO) AS TOTAL FROM INVE01 ORDER BY CLAVE ASC";
+    $stmt = sqlsrv_query($conn, $query);
+
+    if ($stmt) {
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            $datos[] = [
+                'clave' => utf8_encode($row['CLAVE']),
+                'descripcion' => utf8_encode($row['DESCRIPCION']),
+                'existencia' => (float)$row['EXIST'],
+                'costo' => (float)$row['COSTO'],
+                'total' => (float)$row['TOTAL']
+            ];
+        }
+    }
+
+    sqlsrv_close($conn);
+    return $datos;
+}
+
 /**********************************************FUNCIONES*************************************************/

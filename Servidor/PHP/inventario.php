@@ -1077,7 +1077,11 @@ function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     foreach ($respuesta as $item) {
         if (isset($item['document']['fields'])) {
             $f = $item['document']['fields'];
+            $fullName = $item['document']['name'] ?? '';
+            $idDocumento = $fullName ? basename($fullName) : null;
+
             $inventarios[] = [
+                'idDocumento' => $idDocumento, // 🔹 nuevo campo
                 'conteo' => isset($f['conteo']['integerValue']) ? (int)$f['conteo']['integerValue'] : null,
                 'fechaInicio' => isset($f['fechaInicio']['stringValue']) ? $f['fechaInicio']['stringValue'] : null,
                 'noEmpresa' => isset($f['noEmpresa']['integerValue']) ? (int)$f['noEmpresa']['integerValue'] : null,
@@ -1086,6 +1090,7 @@ function mostrarInventarios($noEmpresa, $firebaseProjectId, $firebaseApiKey)
             ];
         }
     }
+
     //return $inventarios;
     echo json_encode(['success' => true, 'inventarios' => $inventarios]);
 }

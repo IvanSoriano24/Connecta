@@ -133,6 +133,27 @@ session_destroy(); */
             color: #6c757d; /* Texto gris */
         }
 
+        /* Forzar que los menús desplegables dentro del modal se muestren encima */
+        .modal .dropdown-menu {
+            position: fixed !important;  /* saca el menú del flujo del modal */
+            top: auto !important;
+            left: auto !important;
+            transform: none !important;
+            z-index: 3000 !important;    /* más alto que el modal */
+        }
+
+        /* Opcional: limitar altura si hay muchas opciones */
+        .modal .dropdown-menu.show {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        #modalInventarios .modal-content {
+            padding: 0 !important;
+        }
+
 
     </style>
 </head>
@@ -307,6 +328,18 @@ session_destroy(); */
     </section>
     <!-- CONTENT -->
 </div>
+
+
+<!-- jsPDF core -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- jsPDF AutoTable plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+<!-- ExcelJS + FileSaver -->
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
 
 <!-- JS Para la confirmación empresa -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>

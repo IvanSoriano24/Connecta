@@ -52,6 +52,7 @@ async function mostrarInventarios() {
       // Pintado inicial
       inventarios.forEach((inv) => {
         const noInv = inv.noInventario ?? "-";
+        const idDoc = inv.idDocumento ?? "";
         const fecha = formatearFecha(inv.fechaInicio) ?? "-";
         const estado = inv.status
             ? `<span class="badge-estado badge-activo">Activo</span>`
@@ -69,7 +70,7 @@ async function mostrarInventarios() {
         // Asignar líneas (solo activos)
         if (inv.status === true) {
           const $btnAsign = $(
-            `<button class="btn btn-sm btn-purple">Asignar líneas</button>`
+            `<button class="btn btn-sm btn-purple me-2">Asignar líneas</button>`
           ).on("click", () => abrirModalAsignacion(noInv));
           $acciones.append($btnAsign);
         } else {
@@ -77,12 +78,57 @@ async function mostrarInventarios() {
         }
 
         const $fila = $(`
-        <tr data-noinv="${noInv}">
+        <tr data-noinv="${noInv}" data-idDoc="${idDoc}">
           <td>${noInv}</td>
           <td>${fecha}</td>
           <td>${estado}</td>
         </tr>
       `);
+
+        // ================== Construcción dinámica del dropdown ==================
+        const totalConteos = inv.conteo || 1; // número total de conteos que viene de Firestore
+
+        let dropdownHTML = `
+  <div class="btn-group">
+    <button class="btn btn-sm btn-success dropdown-toggle"
+      style="padding: 8px 16px !important; font-size: 14px; transition: all 0.25s ease; border-radius: 8px;"
+      data-bs-toggle="dropdown" aria-expanded="false">
+      Reportes
+    </button>
+    <ul class="dropdown-menu">
+`;
+
+// Generar dinámicamente las opciones según el número de conteos
+        for (let i = 1; i <= totalConteos; i++) {
+          const conteoLabel = `Conteo ${i}`;
+          const separador = i < totalConteos ? `<li><hr class="dropdown-divider"></li>` : "";
+
+          dropdownHTML += `
+    <li><h6 class="dropdown-header">${conteoLabel}</h6></li>
+    <li><a class="dropdown-item" href="#"
+           data-tipo="excel"
+           data-conteo="${i}"
+           data-noinv="${noInv}"
+           data-iddoc="${idDoc}">
+           Excel
+    </a></li>
+    <li><a class="dropdown-item" href="#"
+           data-tipo="pdf"
+           data-conteo="${i}"
+           data-noinv="${noInv}"
+           data-iddoc="${idDoc}">
+           PDF
+    </a></li>
+    ${separador}
+  `;
+        }
+
+        dropdownHTML += `</ul></div>`;
+
+        const $btnReportes = $(dropdownHTML);
+        $acciones.append($btnReportes);
+
+
         $fila.append($acciones);
         $tbody.append($fila);
       });
@@ -107,6 +153,303 @@ async function mostrarInventarios() {
       });
     });
 }
+
+// Evento para los botones PDF y EXCEL de los reportes de inventario
+// ===================== EVENTO DE DESCARGA (PDF / EXCEL) =====================
+$(document).on("click", ".dropdown-item[data-tipo]", async function (e) {
+  e.preventDefault();
+
+  // === Datos del botón ===
+  const tipo = $(this).data("tipo"); // 'pdf' o 'excel'
+  const conteo = $(this).data("conteo"); // 1, 2, ...
+  const noInventario = $(this).data("noinv"); // número visible
+  const idDocumento = $(this).data("iddoc"); // 🔹 id real del documento Firestore (nuevo)
+
+  try {
+    // Mostrar carga visual
+    Swal.fire({
+      title: "Generando reporte...",
+      text: `Conteo ${conteo} — Espere un momento`,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    // === Llamada al backend ===
+    const res = await $.ajax({
+      url: "../Servidor/PHP/exportarInventario.php",
+      type: "POST",
+      dataType: "json",
+      data: {
+        noInventario: noInventario,
+        idDocumento: idDocumento, // 🔹 nuevo
+        conteo: conteo,
+      },
+    });
+
+    Swal.close();
+
+    // === Validar respuesta ===
+    if (!res.success) {
+      Swal.fire("Error", res.message || "No se pudo obtener la información del inventario.", "error");
+      return;
+    }
+
+    console.log("📦 Datos recibidos del backend:", res);
+
+    // === Generar archivo según tipo ===
+    if (tipo === "pdf") {
+      generarPDFInventarioCompleto(res.datos, conteo);
+    } else if (tipo === "excel") {
+      generarExcelInventarioCompleto(res.datos, conteo);
+    }
+
+  } catch (error) {
+    Swal.close();
+    console.error("Error AJAX:", error);
+    Swal.fire("Error", "Error al comunicarse con el servidor.", "error");
+  }
+});
+async function generarExcelInventarioCompleto(datos) {
+  try {
+    const cab = datos.cabecera || {};
+    const lineas = datos.lineas || [];
+    const sae = datos.sae || [];
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Inventario");
+
+    // ==== ENCABEZADO GENERAL ====
+    sheet.addRow([`Inventario No: ${cab.noInventario?.integerValue || "-"}`]);
+    sheet.addRow([`Fecha inicio: ${cab.fechaInicio?.stringValue || "-"}`]);
+    sheet.addRow([]); // Espacio
+
+    // ==== ENCABEZADOS DE TABLA ====
+    const headerRow = sheet.addRow([
+      "Categoría",
+      "Clave",
+      "Subconteo 1",
+      "Subconteo 2",
+      "SAE",
+      "Diferencia",
+    ]);
+
+    // Aplicar formato celda por celda, no a toda la fila
+    headerRow.eachCell((cell, colNumber) => {
+      if (colNumber <= 6) { // Solo las columnas de la tabla
+        cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "3f317d" },
+        };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      }
+    });
+
+
+    // ==== AGRUPAR DATOS DE FIRESTORE ====
+    const totalesFirestore = {};
+    lineas.forEach((r) => {
+      const clave = r.clave || "";
+      if (!totalesFirestore[clave]) {
+        totalesFirestore[clave] = { categoria: r.categoria, totales: {} };
+      }
+
+      const subconteo = r.conteo ? `sub${r.conteo}` : "sub1";
+      if (!totalesFirestore[clave].totales[subconteo]) {
+        totalesFirestore[clave].totales[subconteo] = 0;
+      }
+      totalesFirestore[clave].totales[subconteo] += r.total || 0;
+    });
+
+    // ==== AGREGAR DATOS DE SAE ====
+    sae.forEach((p) => {
+      const clave = p.clave || "";
+      if (!totalesFirestore[clave]) {
+        totalesFirestore[clave] = { categoria: "", totales: {} };
+      }
+      totalesFirestore[clave].totales.sae = p.existencia || 0;
+    });
+
+    // ==== LLENAR TABLA ====
+    Object.entries(totalesFirestore).forEach(([clave, data]) => {
+      const c = data.categoria || "";
+      const sub1 = data.totales.sub1 || 0;
+      const sub2 = data.totales.sub2 || 0;
+      const saeVal = data.totales.sae || 0;
+      const iguales = sub1 === sub2 && sub1 === saeVal;
+
+      const difText = iguales ? "✔" : "✘";
+      const row = sheet.addRow([c, clave, sub1, sub2, saeVal, difText]);
+
+      // Alinear numéricos a la derecha
+      row.getCell(3).alignment = { horizontal: "right" };
+      row.getCell(4).alignment = { horizontal: "right" };
+      row.getCell(5).alignment = { horizontal: "right" };
+
+      // Formato condicional simple
+      const diffCell = row.getCell(6);
+      diffCell.alignment = { horizontal: "center" };
+      diffCell.font = {
+        bold: true,
+        color: { argb: iguales ? "FF2ECC71" : "FFFF3D3D" }, // Verde o rojo
+      };
+    });
+
+    // ==== ESTILO DE COLUMNAS ====
+    const widths = [15, 25, 15, 15, 15, 15];
+    widths.forEach((w, i) => (sheet.getColumn(i + 1).width = w));
+
+    // ==== BORDES ====
+    sheet.eachRow((row, rowNumber) => {
+      if (rowNumber >= 5) {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: "thin", color: { argb: "FFAAAAAA" } },
+            bottom: { style: "thin", color: { argb: "FFAAAAAA" } },
+            left: { style: "thin", color: { argb: "FFAAAAAA" } },
+            right: { style: "thin", color: { argb: "FFAAAAAA" } },
+          };
+        });
+      }
+    });
+
+    // ==== EXPORTACIÓN ====
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+// Tomamos número de inventario y conteo
+    const numInventario = cab.noInventario?.integerValue || "";
+    const conteo = cab.conteo?.stringValue || cab.conteo?.integerValue || "Desconocido";
+
+// Construimos el nombre del archivo
+    const nombreArchivo = `Inventario ${numInventario} - Conteo ${conteo}.xlsx`;
+    saveAs(blob, nombreArchivo);
+
+  } catch (err) {
+    console.error("Error al generar Excel:", err);
+    Swal.fire("Error", "No se pudo generar el Excel", "error");
+  }
+}
+function generarPDFInventarioCompleto(datos, conteo) {
+  try {
+    const { jsPDF } = window.jspdf;
+    const cab = datos.cabecera || {};
+    const lineas = datos.lineas || [];
+    const sae = datos.sae || [];
+
+    const doc = new jsPDF("p", "mm", "a4");
+    const fecha = new Date().toLocaleString();
+
+    // ==== ENCABEZADO ====
+    doc.setFontSize(14);
+    doc.setTextColor(63, 49, 125);
+    doc.text("Reporte comparativo de inventario", 14, 15);
+
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Inventario No: ${cab.noInventario?.integerValue || "-"}`, 14, 25);
+    doc.text(`Fecha Inicio: ${cab.fechaInicio?.stringValue || "-"}`, 14, 35);
+    doc.text(`Conteo: ${conteo}`, 14, 40);
+    doc.text(`Generado: ${fecha}`, 14, 45);
+
+    // ==== AGRUPAR TOTALES DE FIRESTORE ====
+    const totalesFirestore = {};
+    lineas.forEach((r) => {
+      const clave = r.clave || "";
+      if (!totalesFirestore[clave]) {
+        totalesFirestore[clave] = { categoria: r.categoria, totales: {} };
+      }
+
+      const subconteo = `sub${conteo}`;
+      if (!totalesFirestore[clave].totales[subconteo]) {
+        totalesFirestore[clave].totales[subconteo] = 0;
+      }
+      totalesFirestore[clave].totales[subconteo] += r.total || 0;
+    });
+
+    // ==== AGREGAR DATOS DE SAE ====
+    sae.forEach((p) => {
+      const clave = p.clave || "";
+      if (!totalesFirestore[clave]) {
+        totalesFirestore[clave] = { categoria: "", totales: {} };
+      }
+      totalesFirestore[clave].totales.sae = p.existencia || 0;
+    });
+
+    // ==== CONSTRUIR CUERPO TABLA ====
+    const body = [];
+    Object.entries(totalesFirestore).forEach(([clave, data]) => {
+      const c = data.categoria;
+      const sub1 = data.totales.sub1 || 0;
+      const sub2 = data.totales.sub2 || 0;
+      const saeVal = data.totales.sae || 0;
+
+      const iguales = sub1 === sub2 && sub1 === saeVal;
+      // Usamos símbolos compatibles con PDF (✓ y ✗)
+      const difText = iguales ? "OK" : "X";
+
+      body.push([
+        c,
+        clave,
+        sub1.toLocaleString("es-MX"),
+        sub2.toLocaleString("es-MX"),
+        saeVal.toLocaleString("es-MX"),
+        difText,
+      ]);
+    });
+
+    // ==== TABLA COMPARATIVA ====
+    doc.autoTable({
+      startY: 50,
+      head: [["Categoría", "Clave", "Subconteo 1", "Subconteo 2", "SAE", "Dif."]],
+      body,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [63, 49, 125], textColor: 255 },
+      columnStyles: {
+        0: { halign: "center" }, // Categoría
+        1: { halign: "center" }, // Clave
+        2: { halign: "right" },  // Subconteo 1
+        3: { halign: "right" },  // Subconteo 2
+        4: { halign: "right" },  // SAE
+        5: { halign: "center" }, // Dif.
+      },
+      didParseCell: (data) => {
+        // Alinear encabezados
+        if (data.section === "head") {
+          if (data.column.index === 0 || data.column.index === 1) {
+            data.cell.styles.halign = "center";
+          } else if (data.column.index <= 4) {
+            data.cell.styles.halign = "right";
+          } else if (data.column.index === 5) {
+            data.cell.styles.halign = "center"; // Dif centrado
+          }
+        }
+
+        // Colorear diferencia
+        if (data.section === "body" && data.column.index === 5) {
+          if (data.cell.text[0] === "X") {
+            data.cell.styles.textColor = [255, 0, 0]; // rojo
+          } else {
+            data.cell.styles.textColor = [0, 150, 0]; // verde
+          }
+        }
+      },
+    });
+
+    // ==== DESCARGA ====
+    const noInv = cab.noInventario?.integerValue || "";
+    const nombrePDF = `Inventario ${noInv} - Conteo ${conteo}.pdf`;
+    doc.save(nombrePDF);
+  } catch (err) {
+    console.error("Error al generar PDF:", err);
+    Swal.fire("Error", "No se pudo generar el PDF", "error");
+  }
+}
+
+
 // Comprueba si existe evidencia (PROMISE -> boolean)
 function buscarArchivos(noInv) {
   return new Promise((resolve, reject) => {
