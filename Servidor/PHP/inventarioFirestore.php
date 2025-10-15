@@ -82,7 +82,6 @@ function http_post_json($url, $data, $method = "PATCH")
     return json_decode($res, true);
 }
 
-
 function conteo_to_subcol(int $conteo): string
 {
     return $conteo <= 1 ? 'lineas' : ('lineas' . str_pad((string)$conteo, 2, '0', STR_PAD_LEFT));
@@ -233,28 +232,20 @@ switch ($accion) {
         $usuarioId = (string)($_SESSION['usuario']['idReal'] ?? '');
 
         // 🔹 1) Buscar inventario por folio
-        $invUrl  = "$root/INVENTARIO?key=$firebaseApiKey";
-        $invDocs = http_get_json($invUrl);
-
-        $invDocId = null;
-        $inventarioActivo = null;
-        if (isset($invDocs["documents"])) {
-            foreach ($invDocs["documents"] as $doc) {
-                $fields = $doc["fields"] ?? [];
-                if (
-                    isset($fields["noInventario"]["integerValue"])
-                    && (int)$fields["noInventario"]["integerValue"] === $noInv
-                ) {
-                    $invDocId = basename($doc["name"]);
-                    $inventarioActivo = $doc;
-                    break;
-                }
-            }
-        }
+        $invDocId = $payload["idInventario"] ?? null;
         if (!$invDocId) {
+            echo json_encode(["success" => false, "message" => "ID de inventario no especificado"]);
+            exit;
+        }
+
+        // Obtener datos del inventario actual
+        $invUrl = "$root/INVENTARIO/$invDocId?key=$firebaseApiKey";
+        $inventarioActivo = http_get_json($invUrl);
+        if (!$inventarioActivo || !isset($inventarioActivo["fields"])) {
             echo json_encode(["success" => false, "message" => "Inventario no encontrado"]);
             exit;
         }
+
 
         // 🔹 2) Determinar subcolección en base a conteo + subconteo
         function getSubcol($conteo, $subconteo)
@@ -378,8 +369,51 @@ switch ($accion) {
                                 $currentDif[] = $cveArt;
                             }
                         } else {
-                            // Coincide → eliminar si estaba
-                            $currentDif = array_values(array_filter($currentDif, fn($x) => $x !== $cveArt));
+                            // 🔹 Coinciden los subconteos → comparar con SAE
+                            $noEmpresa = $_SESSION['empresa']['noEmpresa'] ?? null;
+                            $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+
+                            if ($noEmpresa && $claveSae) {
+                                // Obtener conexión al SAE
+                                $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+                                $conexionData = $conexionResult['data'];
+
+                                // Abrir conexión SQL Server
+                                $conn = sqlsrv_connect($conexionData['host'], [
+                                    "Database" => $conexionData['nombreBase'],
+                                    "UID" => $conexionData['usuario'],
+                                    "PWD" => $conexionData['password'],
+                                    "CharacterSet" => "UTF-8",
+                                    "TrustServerCertificate" => true
+                                ]);
+
+                                if ($conn) {
+                                    $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+                                    $sql = "SELECT EXIST FROM $nombreTabla WHERE CVE_ART = ?";
+                                    $param = [$cveArt];
+                                    $stmt = sqlsrv_query($conn, $sql, $param);
+
+                                    if ($stmt && ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC))) {
+                                        $existenciaSAE = (float)$row['EXIST'];
+                                    } else {
+                                        $existenciaSAE = null;
+                                    }
+                                    sqlsrv_close($conn);
+
+                                    // 🔸 Comparar totales Firestore vs SAE
+                                    if ($existenciaSAE !== null && $existenciaSAE != $totGuardado) {
+                                        if (!in_array($cveArt, $currentDif)) {
+                                            $currentDif[] = $cveArt;
+                                        }
+                                    } elseif ($existenciaSAE !== null && $existenciaSAE == $totGuardado) {
+                                        // Coincide con SAE → eliminar si estaba
+                                        $currentDif = array_values(array_filter($currentDif, fn($x) => $x !== $cveArt));
+                                    }
+                                } else {
+                                    error_log("❌ No se pudo conectar a la base de datos SAE para comparar $cveArt");
+                                }
+                            }
+
                         }
                     }
 
@@ -560,8 +594,6 @@ switch ($accion) {
         echo json_encode(["success" => true, "lineas" => $asignadas]);
         break;
 
-
-
     case 'obtenerLineaConteos': {
             $noInv      = (int)($_GET['noInventario'] ?? 0);
             $conteo     = (int)($_GET['conteo'] ?? 1);      // ← usa el conteo que te mandan (default 1)
@@ -731,6 +763,22 @@ switch ($accion) {
             "productosDiferentes" => $productosDiferentes
         ]);
         break;
+
+    case "obtenerConteoActual":
+        $idInventario = $_GET['idInventario'] ?? null;
+        if (!$idInventario) {
+            echo json_encode(["success" => false, "message" => "Falta ID"]);
+            exit;
+        }
+
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/INVENTARIO/$idInventario?key=$firebaseApiKey";
+        $res = file_get_contents($url);
+        $doc = json_decode($res, true);
+
+        $conteo = (int)($doc['fields']['conteo']['integerValue'] ?? 0);
+        echo json_encode(["success" => true, "conteo" => $conteo]);
+        break;
+
 
     default:
         echo json_encode(["success" => false, "message" => "Acción no válida"]);

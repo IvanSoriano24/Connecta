@@ -2147,6 +2147,16 @@ switch ($funcion) {
 
         $conteo = (int)($docInv['fields']['conteo']['integerValue'] ?? 1);
 
+        // Validar que el conteo actual del inventario coincida con el solicitado
+        $conteoSolicitado = (int)($_POST['conteo'] ?? 0);
+        if ($conteoSolicitado !== $conteo) {
+            echo json_encode([
+                'success' => false,
+                'message' => "El conteo solicitado ($conteoSolicitado) no coincide con el conteo actual del inventario ($conteo). No se generará un nuevo conteo."
+            ]);
+            exit;
+        }
+
         // Calcular par actual según el conteo
         if ($conteo === 1) {
             $currentPair = ["lineas", "lineas02"];

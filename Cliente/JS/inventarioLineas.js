@@ -512,31 +512,47 @@ function comparararConteos(tipoUsuario) {
           }).then(async () => {
             const idInventario = window.idInventario;
             const conteo = document.getElementById("subconteoInput").value;
+
+            // 🔹 Verificar si el conteo actual sigue siendo el mismo ANTES de mostrar loader
+            const resInv = await fetch(`../Servidor/PHP/inventarioFirestore.php?accion=obtenerConteoActual&idInventario=${idInventario}`);
+            const docInv = await resInv.json();
+            const conteoActual = Number(docInv?.conteo || 0);
+
+            // 🚫 Si el conteo ya no es el actual → salir sin mostrar loader ni generar nada
+            if (conteoActual !== Number(conteo)) {
+              console.log(
+                  `⏭ Conteo ${conteo} no es el actual (${conteoActual}), se omite generación.`
+              );
+              return;
+            }
+
+            // ✅ Solo si sigue siendo el actual → continuar flujo normal
             mostrarLoader();
+
             if (window.BanderaGeneracionConteoNuevo) {
               // Llamar al backend para verificar y generar conteos
               $.post(
-                "../Servidor/PHP/inventario.php",
-                {
-                  numFuncion: "20",
-                  idInventario: idInventario,
-                  conteo: conteo,
-                },
-                async function (response) {
-                  cerrarLoader();
-                  console.log("Respuesta verificación inventario:", response);
-                  if (response.success) {
-                    window.finalizadoConteo = false;
-                    await mostrarAlerta("Éxito", response.message, "success");
-                  } else {
-                    await mostrarAlerta(
-                      "Aún hay líneas sin terminar",
-                      response.message,
-                      "info"
-                    );
-                  }
-                },
-                "json"
+                  "../Servidor/PHP/inventario.php",
+                  {
+                    numFuncion: "20",
+                    idInventario: idInventario,
+                    conteo: conteo,
+                  },
+                  async function (response) {
+                    cerrarLoader();
+                    console.log("Respuesta verificación inventario:", response);
+                    if (response.success) {
+                      window.finalizadoConteo = false;
+                      await mostrarAlerta("Éxito", response.message, "success");
+                    } else {
+                      await mostrarAlerta(
+                          "Aún hay líneas sin terminar",
+                          response.message,
+                          "info"
+                      );
+                    }
+                  },
+                  "json"
               ).fail(async (jqXHR, textStatus, errorThrown) => {
                 cerrarLoader();
                 await mostrarAlerta("Ocurrió un problema inesperado", "", "");
@@ -549,12 +565,13 @@ function comparararConteos(tipoUsuario) {
               cerrarLoader();
               window.finalizadoConteo = true;
               await mostrarAlerta(
-                "Éxito",
-                "Todo correcto, no se generó un nuevo conteo",
-                "success"
+                  "Éxito",
+                  "Todo correcto, no se generó un nuevo conteo",
+                  "success"
               );
             }
           });
+
         }
       });
     })
@@ -1401,6 +1418,9 @@ function guardarLinea(finalizar) {
   payload.subconteo = document.getElementById("subconteoInput").value;
   payload.conteo = document.getElementById("conteoInput").value;
   payload.status = !finalizar;
+
+  payload.idInventario = window.idInventario;
+
 
   console.log("PAYLOAD: ", payload);
 
