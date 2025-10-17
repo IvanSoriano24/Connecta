@@ -120,8 +120,8 @@ function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedid
         "to" => $numeroWhatsApp,
         "type" => "template",
         "template" => [
-            "name" => "new_confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
-            //"name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            //"name" => "new_confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            "name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
             "language" => ["code" => "es_MX"], // 📌 Corregido a español España
             "components" => [
                 [

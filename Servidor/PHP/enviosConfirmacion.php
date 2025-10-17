@@ -1103,7 +1103,7 @@ function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedid
 
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
-
+    //"Pedido.php?accion=confirmar&pedidoId=" . 
     $urlConfirmar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&enviarA=" . urlencode($enviarA) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&noEmpresa=" . urlencode($noEmpresa) . "&clave=" . urlencode($clave) . "&conCredito=" . urlencode($conCredito) . "&claveCliente=" . urlencode($claveCliente) . "&idEnvios=" . urlencode($idFirebasePedido);
     $urlRechazar = urlencode($noPedido) . "&nombreCliente=" . urlencode($clienteNombre) . "&vendedor=" . urlencode($vendedor) . "&fechaElab=" . urlencode($fechaElaboracion) . "&claveSae=" . urlencode($claveSae) . "&clave=" . urlencode($clave) . "&noEmpresa=" . urlencode($noEmpresa);
 
@@ -1147,8 +1147,8 @@ function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedid
         "to" => $numeroWhatsApp,
         "type" => "template",
         "template" => [
-            "name" => "new_confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
-            //"name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            //"name" => "new_confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
+            "name" => "confirmar_pedido_pdf", // 📌 Nombre EXACTO en Meta Business Manager
             "language" => ["code" => "es_MX"], // 📌 Corregido a español España
             "components" => [
                 [
