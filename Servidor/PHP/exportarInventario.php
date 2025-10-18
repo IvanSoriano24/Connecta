@@ -37,7 +37,9 @@ try {
     }
 
     $fields = $jsonCab['fields'];
-    $noEmpresa = isset($fields['noEmpresa']['integerValue']) ? (int)$fields['noEmpresa']['integerValue'] : 0;
+    $noEmpresa = isset($fields['noEmpresa']['integerValue'])
+        ? strval($fields['noEmpresa']['integerValue'])
+        : "0";
 
     // ======================================================
     // 🔹 2. LEER SUBCOLECCIÓN SEGÚN EL CONTEO
@@ -89,6 +91,8 @@ try {
 
     if (!empty($clavesFirestore)) {
         // Obtener todos los productos de SAE
+        error_log("noEmpresa recibido: " . $noEmpresa);
+
         $datosSAEall = obtenerDatosSAE($noEmpresa, $firebaseProjectId, $firebaseApiKey);
 
         // Filtrar solo los que existen en Firestore

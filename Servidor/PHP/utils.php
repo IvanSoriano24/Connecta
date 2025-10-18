@@ -1,6 +1,8 @@
 <?php
 /**********************************************FUNCIONES*************************************************/
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae){
+    error_log("Buscando conexión Firestore para empresa $noEmpresa");
+
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
         'http' => [
@@ -10,6 +12,7 @@ function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $clave
     ]);
     $result = file_get_contents($url, false, $context);
     if ($result === FALSE) {
+        error_log("No se encontró conexión o error Firestore: " . $result);
         return ['success' => false, 'message' => 'Error al obtener los datos de Firebase'];
     }
     $documents = json_decode($result, true);
@@ -223,8 +226,12 @@ function obtenerNombreVendedor($vendedor, $conexionData, $claveSae, $conn){
  **********************************************/
 function obtenerDatosSAE($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
+    error_log("Entrando a obtenerDatosSAE con empresa " . $noEmpresa);
+
     // Obtener conexión a SAE desde Firestore (colección CONEXIONES)
     $conexion = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, "");
+
+    error_log("Resultado obtenerConexion: " . json_encode($conexion));
 
     if (!$conexion['success']) {
         return []; // No hay conexión configurada
@@ -236,23 +243,43 @@ function obtenerDatosSAE($noEmpresa, $firebaseProjectId, $firebaseApiKey)
     $usuario = $cfg['usuario'];
     $password = $cfg['password'];
     $nombreBase = $cfg['nombreBase'];
+    $claveSae = $cfg['claveSae'] ?? "01"; // fallback
+
+    // Limpiar clave SAE para quitar ceros a la izquierda
+    $claveSaeLimpia = ltrim($claveSae, '0'); // "02" → "2"
 
     // Conexión a SQL Server (Aspel SAE)
     $connectionInfo = [
         "Database" => $nombreBase,
         "UID" => $usuario,
         "PWD" => $password,
-        "CharacterSet" => "UTF-8"
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
     ];
 
-    $conn = @sqlsrv_connect($host . "," . $puerto, $connectionInfo);
+    error_log("Intentando conectar a SAE → Host: $host Puerto: $puerto Base: $nombreBase Usuario: $usuario");
+
+    $conn = @sqlsrv_connect($host, $connectionInfo);
     if (!$conn) {
-        return []; // Evitar detener todo si no se conecta
+        error_log("Error al conectar a SQL: " . print_r(sqlsrv_errors(), true));
+        $errors = print_r(sqlsrv_errors(), true);
+        error_log("Error al conectar a SAE ($host:$puerto) → $errors");
+        return [];
     }
 
+    // ✅ Usar la clave SAE correcta para construir el nombre de tabla
+    $tabla = "[{$nombreBase}].[dbo].[INVE" . str_pad($cfg['claveSae'], 2, "0", STR_PAD_LEFT) . "]";
+    error_log("Consultando tabla $tabla");
+
     $datos = [];
-    $query = "SELECT TOP 100 CLAVE, DESCRIPCION, EXIST, COSTO, (EXIST * COSTO) AS TOTAL FROM INVE01 ORDER BY CLAVE ASC";
+    $query = "SELECT I.CVE_ART AS CLAVE, I.DESCR AS DESCRIPCION, I.EXIST, 
+                 ISNULL(I.COSTO_PROM, 0) AS COSTO, 
+                 (I.EXIST * ISNULL(I.COSTO_PROM, 0)) AS TOTAL
+          FROM $tabla I
+          ORDER BY I.CVE_ART ASC";
+
     $stmt = sqlsrv_query($conn, $query);
+    error_log("Query ejecutado correctamente en $tabla. Filas: " . sqlsrv_num_rows($stmt));
 
     if ($stmt) {
         while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {

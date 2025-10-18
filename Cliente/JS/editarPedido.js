@@ -331,7 +331,7 @@ function obtenerVendedores(tipoUsuario, claveUsuario) {
         res.data.forEach((vendedor) => {
           const opt = document.createElement("option");
           opt.value = vendedor.clave;
-          opt.textContent = `${vendedor.nombre} || ${vendedor.clave}`;
+          opt.textContent = `${vendedor.clave}  -  ${vendedor.nombre}`;
           if (vendedor.clave === claveUsuario) {
             opt.selected = true;
           }
@@ -386,6 +386,7 @@ function obtenerFolioSiguiente() {
   });
 }
 function obtenerDatosPedido(pedidoID) {
+  mostrarLoader("Cargando datos del pedido...");
   $.post(
     "../Servidor/PHP/ventas.php",
     {
@@ -431,8 +432,12 @@ function obtenerDatosPedido(pedidoID) {
         //cargarPartidas(pedido.partidas);
         //alert("Datos del pedido cargados con éxito");
 
+        //Cargar vendedor:
+        document.getElementById("vendedor").value = pedido.CVE_VEND || "";
         console.log("Datos del pedido cargados correctamente.");
+        cerrarLoader();
       } else {
+        cerrarLoader();
         Swal.fire({
           title: "Aviso",
           text: "No se pudo cargar el pedido.",

@@ -8,6 +8,8 @@ $logFile = $logDir . '/enviosConfirmacion.log';
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
+require 'funcionesFirebase.php';
+
 
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae, $logFile){
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
@@ -308,6 +310,7 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
         }
 
         if (!empty($correosEnviados)) {
+            buscarYEliminar($noPedido);
             echo json_encode([
                 'success' => true,
                 'message' => 'Pedido enviado correctamente a: ' . implode(', ', $correosEnviados),
@@ -885,6 +888,7 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
         }
 
         // Determinar la respuesta JSON según las notificaciones enviadas
+        buscarYEliminar($noPedido);
         if ($numeroBandera === 0) {
             /// Respuesta de éxito
             header('Content-Type: application/json; charset=UTF-8');
@@ -911,6 +915,7 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
             //die();
         }
     } else {
+        buscarYEliminar($noPedido);
         echo json_encode(['success' => false, 'datos' => true, 'message' => 'El cliente no Tiene un Correo y WhatsApp Válido Registrado.']);
         //die();
     }

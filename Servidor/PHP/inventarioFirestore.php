@@ -197,6 +197,28 @@ function _get_user_name(string $root, string $apiKey, ?string $uid): ?string {
     return $doc['fields']['nombre']['stringValue'] ?? $uid;
 }
 
+/**
+ * Convierte un campo de tipo arrayValue de Firestore a un array PHP de strings
+ */
+function _arr_string_from_field($field)
+{
+    if (!isset($field['arrayValue']['values'])) {
+        return [];
+    }
+
+    $values = $field['arrayValue']['values'];
+    $result = [];
+
+    foreach ($values as $v) {
+        if (isset($v['stringValue'])) {
+            $result[] = $v['stringValue'];
+        }
+    }
+
+    return $result;
+}
+
+
 // Verificar sesión
 if (!isset($_SESSION['usuario']['idReal'])) {
     echo json_encode(["success" => false, "message" => "No hay sesión activa"]);
@@ -525,14 +547,27 @@ switch ($accion) {
         $fields    = $inventarioActivo["fields"];
         $asignadas = [];
 
-        // 🔹 Tomar conteo máximo del inventario
+        // Obtener productos diferentes para filtrar líneas activas
+        $productosDif = _arr_string_from_field($fields["productosDiferentes"] ?? []);
+
+        // Extraer prefijos activos (AD, JD, etc.) desde productosDiferentes
+        $prefijosActivos = [];
+        foreach ($productosDif as $p) {
+            if (preg_match('/^([A-Z]+)/i', $p, $m)) {
+                $prefijosActivos[] = strtoupper($m[1]);
+            }
+        }
+        $prefijosActivos = array_unique($prefijosActivos);
+
+
+        // Tomar conteo máximo del inventario
         $maxConteo = isset($fields["conteo"]["integerValue"])
             ? (int)$fields["conteo"]["integerValue"]
             : 1;
 
         $subcolecciones = [];
 
-        // 🔹 Generar todas las subcolecciones desde conteo 1 hasta el actual
+        // Generar todas las subcolecciones desde conteo 1 hasta el actual
         for ($c = 1; $c <= $maxConteo; $c++) {
             if ($c === 1) {
                 $subcolecciones[] = ["nombre" => "lineas", "conteo" => $c, "subconteo" => 1];
@@ -544,7 +579,7 @@ switch ($accion) {
             }
         }
 
-        // 🔹 Acceso a asignaciones
+        // Acceso a asignaciones
         $asignaciones = $fields["asignaciones"]["mapValue"]["fields"] ?? [];
 
         foreach ($subcolecciones as $subcol) {
@@ -557,8 +592,12 @@ switch ($accion) {
                 $docId  = basename($doc["name"]);
                 $status = $doc["fields"]["status"]["booleanValue"] ?? null;
 
-                // 🔹 Leer asignaciones para esta línea
-                // 🔹 Leer asignaciones para esta línea
+                // Saltar si el prefijo del docId (AD, JD, etc.) ya no está activo
+                if (!in_array(strtoupper($docId), $prefijosActivos)) {
+                    continue;
+                }
+
+                // Leer asignaciones para esta línea
                 $usuariosAsignados = [];
                 if (isset($asignaciones[$docId]["arrayValue"]["values"])) {
                     foreach ($asignaciones[$docId]["arrayValue"]["values"] as $val) {

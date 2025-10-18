@@ -7,6 +7,8 @@ require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
 include 'utils.php';
+require 'funcionesFirebase.php';
+
 
 function enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename)
 {
@@ -1120,6 +1122,7 @@ function actualizarDatosPedido($envioData, $FOLIO, $noEmpresa, $observaciones)
     }
     //echo json_encode(['success' => true, 'message' => 'Datos de envío actualizados']);
 }
+
 function validarCorreoClienteActualizacion($formularioData, $conexionData, $rutaPDF, $claveSae, $conCredito, $id, $conn)
 {
     if ($conn === false) {
@@ -1230,6 +1233,9 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
             $numeroBandera = 1;
         }*/
         //Respuestas
+
+        // Buscar y eliminar pedido en PEDIDOS_RECHAZO si existe
+        buscarYEliminar($noPedido);
 
         // Determinar la respuesta JSON según las notificaciones enviadas
         if ($correoBandera === 0 && $numeroBandera === 0) {

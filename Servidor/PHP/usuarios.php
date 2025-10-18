@@ -1039,6 +1039,7 @@ function obtenerVendedor($conexionData, $claveSae)
             NOMBRE AS nombre
         FROM $nombreTabla
         WHERE STATUS = 'A'
+        ORDER BY CVE_VEND ASC
     ";
     $stmt = sqlsrv_query($conn, $sql);
 
@@ -1065,11 +1066,6 @@ function obtenerVendedor($conexionData, $claveSae)
     sqlsrv_close($conn);
 
     if (!empty($vendedores)) {
-        // Ordenar los vendedores por nombre alfabéticamente
-        usort($vendedores, function ($a, $b) {
-            return strcmp($a['nombre'], $b['nombre']);
-        });
-
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'data' => $vendedores]);
         exit();

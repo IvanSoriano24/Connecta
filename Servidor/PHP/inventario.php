@@ -1506,6 +1506,28 @@ function guardarAsignaciones(
         return ['success' => false, 'message' => 'No se pudo guardar asignaciones en el documento de inventario'];
     }
 
+    // ==== 7) Si estamos en conteo >= 2, actualizar productos diferentes ====
+    if ($conteoActual >= 2) {
+        require "inventarioProductosDiferentes.php";
+
+        $lineasNuevas = array_keys($finalMap); // las categorías asignadas, ej. ["AD", "JD"]
+
+        // Llamada interna a la función que acabamos de crear
+        $respProductos = actualizarProductosDiferentesDesdeSQL(
+            $noEmpresa,
+            $lineasNuevas,
+            $invDocId,
+            $projectId,
+            $apiKey
+        );
+
+        // Si algo falla, puedes incluir advertencia
+        if (!$respProductos['success']) {
+            $errors[] = "Advertencia: no se pudieron actualizar los productos diferentes (" . $respProductos['message'] . ")";
+        }
+    }
+
+
     return !empty($errors)
         ? ['success' => true, 'warnings' => $errors, 'aplicado' => $finalMap, 'conteo' => $conteoActual, 'subs' => [$subA,$subB]]
         : ['success' => true, 'aplicado' => $finalMap, 'conteo' => $conteoActual, 'subs' => [$subA,$subB]];
@@ -2223,11 +2245,27 @@ switch ($funcion) {
             ]));
 
 
-            // Obtener asignaciones de la cabecera
+            // Obtener asignaciones y productos diferentes
             $asignaciones = $docInv['fields']['asignaciones']['mapValue']['fields'] ?? [];
+            $productosDif = _arr_string_from_field($docInv['fields']['productosDiferentes'] ?? []);
 
-            // Crear subcolecciones nuevas con documentos por cada asignación
+// 1️⃣ Extraer prefijos activos de productosDiferentes
+            $prefijosActivos = [];
+            foreach ($productosDif as $p) {
+                if (preg_match('/^([A-Z]+)/i', $p, $m)) {
+                    $prefijosActivos[] = strtoupper($m[1]);
+                }
+            }
+            $prefijosActivos = array_unique($prefijosActivos);
+
+// 2️⃣ Crear subcolecciones nuevas con documentos filtrados
             foreach ($asignaciones as $docId => $arrUsuarios) {
+
+                // Saltar si el prefijo (AD, JD, etc.) ya no tiene productos en productosDiferentes
+                if (!in_array(strtoupper($docId), $prefijosActivos)) {
+                    continue; // ⛔ No crear documento para este grupo
+                }
+
                 $usuarios = $arrUsuarios['arrayValue']['values'] ?? [];
 
                 // 1) Junta resueltosSAE del par actual (si existen en cualquiera de los 2 docs)
@@ -2237,7 +2275,6 @@ switch ($funcion) {
                     $docAct = @json_decode(@file_get_contents($urlActual), true);
                     if (!isset($docAct['fields'])) continue;
 
-                    // tolerar distintos nombres por si cambiaste el campo
                     foreach (['resueltosSAE', 'igualesSAE', 'coincidentesSAE'] as $k) {
                         if (isset($docAct['fields'][$k])) {
                             $resueltos = array_merge($resueltos, _arr_string_from_field($docAct['fields'][$k]));
@@ -2246,7 +2283,6 @@ switch ($funcion) {
                 }
                 $resueltos = array_values(array_unique($resueltos)); // 🔒 únicos
 
-                // 2) Crear documentos del siguiente par con omitidos + idAsignado
                 $tsIso = gmdate('c');
 
                 // Subconteo 1 (nextPair[0]) ← primer usuario
