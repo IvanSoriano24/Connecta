@@ -1,8 +1,10 @@
 <?php
+global $firebaseApiKey, $firebaseProjectId;
 require_once "firebase.php";
 session_start();
 header("Content-Type: application/json");
 
+if (!function_exists('subcols_for_conteo')) {
 function subcols_for_conteo(int $n): array {
     if ($n <= 1) return ['lineas', 'lineas02']; // conteo 1
     $start = ($n - 1) * 2 + 1;                  // 2→3 y 4; 3→5 y 6; etc.
@@ -11,7 +13,8 @@ function subcols_for_conteo(int $n): array {
         'lineas' . str_pad($start + 1, 2, '0', STR_PAD_LEFT),
     ];
 }
-function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
+}
+function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
     $context = stream_context_create([
@@ -593,9 +596,10 @@ switch ($accion) {
                 $status = $doc["fields"]["status"]["booleanValue"] ?? null;
 
                 // Saltar si el prefijo del docId (AD, JD, etc.) ya no está activo
-                if (!in_array(strtoupper($docId), $prefijosActivos)) {
+                if (!empty($prefijosActivos) && !in_array(strtoupper($docId), $prefijosActivos)) {
                     continue;
                 }
+
 
                 // Leer asignaciones para esta línea
                 $usuariosAsignados = [];

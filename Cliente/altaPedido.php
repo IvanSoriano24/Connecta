@@ -647,8 +647,8 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="text" name="observaciones" id="observaciones" style="width:250px;" disabled>
                             </div>
                             <div class="form-element">
-                                <!--<label for="enviarWhats">Enviar WhatsApp<input type="checkbox" name="enviarWhats" id="enviarWhats" style="width:250px;" checked disabled></label>
-                                <label for="enviarCorreo">Enviar Correo<input type="checkbox" name="enviarCorreo" id="enviarCorreo" style="width:250px;" checked disabled></label>-->
+                                <label for="enviarWhats">Enviar WhatsApp<input type="checkbox" name="enviarWhats" id="enviarWhats" style="width:250px;" checked disabled></label>
+                                <label for="enviarCorreo">Enviar Correo<input type="checkbox" name="enviarCorreo" id="enviarCorreo" style="width:250px;" checked disabled></label>
                             </div>
                             
                             <div class="container my-5">

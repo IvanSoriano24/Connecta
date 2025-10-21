@@ -7435,7 +7435,6 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
             . "$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
 
         $payload = json_encode(['fields' => $fields]);
-        file_put_contents("debug_payload.json", $payload);
         $options = [
             'http' => [
                 'header'  => "Content-Type: application/json\r\n",
@@ -7458,7 +7457,6 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
             . "$idFirebasePedido?key=$firebaseApiKey";
 
         $payload = json_encode(['fields' => $fields]);
-        file_put_contents("debug_payload.json", $payload);
         $options = [
             'http' => [
                 'header'  => "Content-Type: application/json\r\n",

@@ -1785,7 +1785,6 @@ function guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $no
 
     // Enviar datos a Firestore (crear o actualizar)
     $payload = json_encode(['fields' => $fields]);
-    file_put_contents("debug_payload.json", $payload);
 
     $options = [
         'http' => [

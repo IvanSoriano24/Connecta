@@ -550,6 +550,8 @@ async function cargarAsignacionesExistentes(noInv) {
     const asign = res.asignaciones || {}; // { lineaId: [uid1, uid2], ... }
     const users = res.usuarios || {};      // opcional, para mostrar nombre/usuario
 
+    window.asignacionesOriginales = asign;
+
     Object.entries(asign).forEach(([lineaId, uids]) => {
       if (!lineIndex[lineaId]) lineIndex[lineaId] = new Set();
       (uids || []).slice(0, 2).forEach(uid => {
@@ -821,29 +823,29 @@ function renderLista($lista) {
         const u = asignByUser[uid];
         const lineas = Object.entries(u.lineas)
             .map(([linId, info]) => {
-              const isOld = !!info.persisted;
+              const isOld = !!info.persisted; // línea ya guardada en Firestore
               const cls = isOld
                   ? "bg-success-subtle border border-success text-success"
                   : "bg-light text-dark border";
               const check = isOld ? '<i class="bx bx-check-circle me-1"></i>' : "";
 
+              // 👇 solo mostrar botón eliminar si es nueva (no persistida)
+              const btnQuitar = !isOld
+                  ? `
+              <button type="button"
+                      class="btn btn-link btn-sm text-danger ms-2 p-0 btnQuitar"
+                      data-user="${escapeAttr(uid)}"
+                      data-linea="${escapeAttr(linId)}"
+                      title="Quitar asignación">
+                &times;
+              </button>`
+                  : "";
+
               return `
             <span class="badge ${cls} me-2 mb-2 d-inline-flex align-items-center">
               ${check}${escapeHtml(info.lineaDesc)}
               <small class="text-muted ms-1">(${escapeHtml(linId)})</small>
-              <button type="button"
-                      class="btn btn-link btn-sm ${
-                  isOld ? "text-warning" : "text-danger"
-              } ms-2 p-0 btnQuitar"
-                      data-user="${escapeAttr(uid)}"
-                      data-linea="${escapeAttr(linId)}"
-                      title="${
-                  isOld
-                      ? "Quitar (ya asignada antes)"
-                      : "Quitar asignación"
-              }">
-                &times;
-              </button>
+              ${btnQuitar}
             </span>
           `;
             })
@@ -860,12 +862,7 @@ function renderLista($lista) {
                 : ""
         }
             </div>
-            <button type="button"
-                    class="btn btn-outline-danger btn-sm ms-3 btnQuitarUsuario"
-                    data-user="${escapeAttr(uid)}"
-                    title="Quitar todas las líneas de este usuario">
-              Quitar todo
-            </button>
+            <!-- si quieres volver a habilitar el botón global de quitar usuario, agrégalo aquí -->
           </div>
           <div class="mt-2">${lineas}</div>
         </li>
@@ -1055,7 +1052,7 @@ $("#btnGuardarAsignacion").on("click", function () {
   // ============================================================
   // 🔹 Paso 2: construir asignaciones con 2 posiciones fijas
   // ============================================================
-  const asignaciones = {};
+  let asignaciones = {};
   Object.entries(lineIndex).forEach(([lin, set]) => {
     const arr = Array.from(set);
     let slot0 = null;
@@ -1071,8 +1068,37 @@ $("#btnGuardarAsignacion").on("click", function () {
     asignaciones[String(lin)] = [slot0 ?? null, slot1 ?? null];
   });
 
-  console.log("📦 Payload final de asignaciones:", asignaciones);
 
+  // ============================================================
+  // 🔹 Paso 2.5: comparar con las asignaciones originales (window.asignacionesOriginales)
+  // ============================================================
+  const originales = window.asignacionesOriginales || {};
+  const nuevasAsignaciones = {};
+
+  Object.entries(asignaciones).forEach(([linea, arrNueva]) => {
+    const arrOriginal = originales[linea] || [null, null];
+
+    const iguales =
+        arrOriginal.length === arrNueva.length &&
+        arrOriginal.every((uid, idx) => uid === arrNueva[idx]);
+
+    if (!iguales) {
+      nuevasAsignaciones[linea] = arrNueva; // Solo si cambió o es nueva
+    }
+  });
+
+  if (Object.keys(nuevasAsignaciones).length === 0) {
+    cerrarLoader();
+    return Swal.fire({
+      icon: "info",
+      title: "Sin cambios",
+      text: "No hay nuevas asignaciones para guardar.",
+    });
+  }
+
+  console.log("📦 Asignaciones NUEVAS o MODIFICADAS:", nuevasAsignaciones);
+
+  asignaciones = nuevasAsignaciones;
   // ============================================================
   // 🔹 Paso 3: enviar payload normalizado
   // ============================================================
@@ -1085,7 +1111,7 @@ $("#btnGuardarAsignacion").on("click", function () {
     headers: { "X-CSRF-Token": csrf },
     data: {
       numFuncion: "10",
-      payload: JSON.stringify({ asignaciones }),
+      payload: JSON.stringify({ asignaciones  }),
     },
   })
       .done(async function (res) {

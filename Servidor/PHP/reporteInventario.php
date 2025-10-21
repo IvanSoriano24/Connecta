@@ -14,7 +14,7 @@ $pdf->SetFont("helvetica", "", 10);
 if ($logo) {
     $logoData = preg_replace('#^data:image/\w+;base64,#i', '', $logo);
     $logoContent = base64_decode($logoData);
-    $tmpLogo = __DIR__ . "/tmp_logo.png";
+    $tmpLogo = __DIR__ . "/../../Cliente/SRC/logoInterzenda.png";
     file_put_contents($tmpLogo, $logoContent);
     $pdf->Image($tmpLogo, 170, 10, 30); // arriba derecha
 }

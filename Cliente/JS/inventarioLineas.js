@@ -1,3 +1,6 @@
+//Variable global para el autoguardado
+let autoSaveInterval = null;
+
 //lineaSelect
 function obtenerLineas() {
   $.ajax({
@@ -533,43 +536,39 @@ async function comparararConteos(tipoUsuario) {
 
           mostrarLoader();
           try {
+            // 1️⃣ Primero avisa al backend que se cierre el inventario (sin PDF todavía)
             const resFin = await fetch("../Servidor/PHP/finalizarInventario.php", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 idInventario: window.idInventario,
-                autorizadoPor: window.nombreYapellido || "Usuario actual",
+                autorizadoPor: nombreUsuario || "Usuario actual",
               }),
             });
-            const data = await resFin.json();
+
+            // ✅ No intentes leer JSON si el script manda un PDF
             cerrarLoader();
 
-            if (data.success) {
-              await Swal.fire({
-                icon: "success",
-                title: "Inventario finalizado",
-                text: "Se generó el PDF de cierre correctamente.",
-              });
+            // 2️⃣ Ahora abre una nueva pestaña para descargar el PDF
+            window.open(
+                `../Servidor/PHP/finalizarInventario.php?idInventario=${window.idInventario}&autorizadoPor=${encodeURIComponent(
+                    nombreUsuario || "Usuario actual"
+                )}`,
+                "_blank"
+            );
 
-              // 📄 Descargar PDF automáticamente
-              const a = document.createElement("a");
-              a.href = `../Servidor/PDF/${data.nombrePDF}`;
-              a.download = data.nombrePDF;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-            } else {
-              await Swal.fire({
-                icon: "error",
-                title: "Error al finalizar",
-                text: data.message || "No se pudo cerrar el inventario.",
-              });
-            }
+            await Swal.fire({
+              icon: "success",
+              title: "Inventario finalizado",
+              text: "El PDF de cierre se descargará automáticamente.",
+            });
           } catch (e) {
             cerrarLoader();
             console.error(e);
             await Swal.fire("Error", "Error de conexión al cerrar inventario.", "error");
           }
+
+
           return;
         }
 
@@ -1210,6 +1209,21 @@ function cargarLineasDesdeFirestore() {
 
             window.subConteo = subconteoVal || "";
             window.claveLinea = opt.val() || "";
+
+            // Reiniciar el autoguardado al seleccionar una línea
+            if (autoSaveInterval) {
+              clearInterval(autoSaveInterval);
+              console.log("Autoguardado anterior detenido");
+            }
+
+            if (window.claveLinea) {
+              autoSaveInterval = setInterval(() => {
+                console.log(`Autoguardado de línea ${window.claveLinea}...`);
+                guardarLinea(false);
+              }, 5 * 60 * 1000); // cada 5 minutos
+              console.log("Autoguardado iniciado para la línea:", window.claveLinea);
+            }
+
           });
         })
         .fail(function () {
@@ -1272,112 +1286,6 @@ $(document).ready(function () {
     }
   });
   cargarLineasDesdeFirestore();
-  // Lineas asignadas
-  /*$.get("../Servidor/PHP/inventarioFirestore.php", {
-    accion: "obtenerLineas",
-  }).done(function (res) {
-    console.log("obtenerLines res que hay: ", res)
-    if (res.success && res.lineas.length > 0) {
-      const clavesAsignadas = res.lineas.map((l) => l.CVE_LIN);
-      console.log(
-        "res obtener lineas: ",
-        res,
-        " clavesAsignadas: ",
-        clavesAsignadas
-      );
-
-      $.get("../Servidor/PHP/inventario.php", { numFuncion: "3" }).done(
-        function (response) {
-          const r =
-            typeof response === "string" ? JSON.parse(response) : response;
-          if (r.success) {
-            const lineaSelect = $("#lineaSelect");
-            lineaSelect.empty();
-            lineaSelect.append(
-              "<option selected disabled>Seleccione una línea</option>"
-            );
-
-            // 🔹 Ordenar primero por subconteo, luego por CVE_LIN
-            res.lineas.sort((a, b) => {
-              if (a.subconteo !== b.subconteo) {
-                return a.subconteo - b.subconteo;
-              }
-              return a.CVE_LIN.localeCompare(b.CVE_LIN);
-            });
-
-            // 🔹 Evitar duplicados
-            const opcionesUnicas = new Set();
-
-            // 🔹 Agrupar por conteo y subconteo
-            const grupos = {};
-            r.data.forEach((dato) => {
-              const lineasAsignadas = res.lineas.filter(
-                (l) => l.CVE_LIN === dato.CVE_LIN
-              );
-
-              lineasAsignadas.forEach((lineaAsignada) => {
-                const key = `${dato.CVE_LIN}-${lineaAsignada.conteo}-${lineaAsignada.subconteo}`;
-                if (!opcionesUnicas.has(key)) {
-                  opcionesUnicas.add(key);
-
-                  if (!grupos[lineaAsignada.conteo]) {
-                    grupos[lineaAsignada.conteo] = {};
-                  }
-                  if (!grupos[lineaAsignada.conteo][lineaAsignada.subconteo]) {
-                    grupos[lineaAsignada.conteo][lineaAsignada.subconteo] = [];
-                  }
-
-                  grupos[lineaAsignada.conteo][lineaAsignada.subconteo].push({
-                    CVE_LIN: dato.CVE_LIN,
-                    DESC_LIN: dato.DESC_LIN,
-                    conteo: lineaAsignada.conteo,
-                    subconteo: lineaAsignada.subconteo,
-                  });
-                }
-              });
-            });
-
-            // 🔹 Pintar grupos en el select
-            Object.keys(grupos)
-              .sort((a, b) => a - b) // ordenar por conteo
-              .forEach((conteo) => {
-                const optgroupConteo = $(
-                  `<optgroup label="Conteo ${conteo}"></optgroup>`
-                );
-
-                Object.keys(grupos[conteo])
-                  .sort((a, b) => a - b) // ordenar por subconteo
-                  .forEach((sub) => {
-                    grupos[conteo][sub].forEach((linea) => {
-                      optgroupConteo.append(
-                        `<option value="${linea.CVE_LIN}"
-                            data-conteo="${linea.conteo}"
-                            data-subconteo="${linea.subconteo}">
-                            Sub ${linea.subconteo} → ${linea.DESC_LIN}
-                        </option>`
-                      );
-                    });
-                  });
-
-                lineaSelect.append(optgroupConteo);
-              });
-
-            // Cuando seleccionas una línea, se pintan conteo y subconteo
-            lineaSelect.on("change", function () {
-              const opt = $(this).find(":selected");
-
-              $("#conteoInput").val(opt.data("conteo") || "");
-              $("#subconteoInput").val(opt.data("subconteo") || "");
-
-              // Variables globales
-              window.subConteo = opt.data("subconteo");
-              window.claveLinea = opt.val();
-            });
-          }
-        }
-      );
-    }
-  });*/
 
   // === BOTÓN FINALIZAR INVENTARIO DE LÍNEA ===
   $("#finalizarInventarioLinea").click(function () {
@@ -1395,14 +1303,6 @@ $(document).ready(function () {
       }
     });
   });
-
-  // =============================== AUTOGUARDADO DE LINEA cada 5 minutos =====================================
-
-  /*
-      setInterval(() => {
-          console.log("Autoguardado...");
-          guardarLinea(false);
-      }, 5 * 60 * 1000); */
 });
 
 // ======================= FUNCIONES =======================
@@ -1449,18 +1349,17 @@ function recolectarLinea() {
   return { noInventario: noInv, claveLinea, articulos };
 }
 
-// Envía datos al backend (autoguardado/finalizar)
+// === FUNCIÓN GUARDAR LÍNEA ===
 function guardarLinea(finalizar) {
-  mostrarLoader("Guardando línea...");
-  const payload = recolectarLinea();
-  payload.subconteo = document.getElementById("subconteoInput").value;
-  payload.conteo = document.getElementById("conteoInput").value;
-  payload.status = !finalizar;
+  if (finalizar) mostrarLoader("Guardando línea...");
 
+  const payload = recolectarLinea();
+  payload.subconteo = $("#subconteoInput").val();
+  payload.conteo = $("#conteoInput").val();
+  payload.status = !finalizar;
   payload.idInventario = window.idInventario;
 
-
-  console.log("PAYLOAD: ", payload);
+  console.log("PAYLOAD:", payload);
 
   $.ajax({
     url: "../Servidor/PHP/inventarioFirestore.php?accion=guardarLinea",
@@ -1469,50 +1368,32 @@ function guardarLinea(finalizar) {
     data: JSON.stringify(payload),
 
     success: async function (res) {
-      cerrarLoader();
+      if (finalizar) cerrarLoader();
+
       if (res.success) {
-        console.log("respuesta guardar linea: ", res);
-        await Swal.fire({
-          icon: "success",
-          title: finalizar ? "Línea finalizada" : "Autoguardado",
-          text: res.message,
-        }).then(() => {
-          const modalEl = document.getElementById("resumenInventario");
-          const modal =
-            bootstrap.Modal.getInstance(modalEl) ||
-            new bootstrap.Modal(modalEl);
-          modal.hide();
-
-          try {
-            const seleccionados = window.MDPDFs.getSelected();
-            if (seleccionados && seleccionados.length > 0) {
-              subirPDFsLineas(seleccionados, {
-                tipo: "linea",
-                linea: res.claveLinea,
-              });
-              window.MDPDFs.reset();
-            }
-          } catch (err) {
-            console.warn("No se pudieron subir PDFs:", err.message);
-          }
-
-          window.location.reload();
-        });
+        if (finalizar) {
+          await Swal.fire({
+            icon: "success",
+            title: "Línea finalizada",
+            text: res.message,
+          }).then(() => {
+            const modalEl = document.getElementById("resumenInventario");
+            const modal =
+                bootstrap.Modal.getInstance(modalEl) ||
+                new bootstrap.Modal(modalEl);
+            modal.hide();
+            window.location.reload();
+          });
+        } else {
+          console.log("✅ Autoguardado correcto:", res.message);
+        }
       } else {
-        await Swal.fire(
-          "Error",
-          res.message || "No se pudo guardar la línea",
-          "error"
-        );
+        await Swal.fire("Error", res.message || "No se pudo guardar la línea", "error");
       }
     },
     error: async function () {
-      cerrarLoader();
-      await Swal.fire(
-        "Error",
-        "Error de comunicación con el servidor",
-        "error"
-      );
+      if (finalizar) cerrarLoader();
+      await Swal.fire("Error", "Error de comunicación con el servidor", "error");
     },
   });
 }
