@@ -836,10 +836,13 @@ function cancelarComanda(comanda) {
 }
 
 function verificarComandas() {
+    mostrarLoader("Verificando...");
     $.get(
         "../Servidor/PHP/mensajes.php",
         {numFuncion: "13"},
+
         function (resp) {
+            cerrarLoader();
             if (!resp.success) {
                 return Swal.fire("Error", " " + resp.message, "error");
             }
@@ -848,7 +851,7 @@ function verificarComandas() {
             let texto = "";
             if (canceladas.length > 0) {
                 texto +=
-                    `✅ Comandas canceladas:<br>` +
+                    `Comandas canceladas:<br>` +
                     canceladas.map((c) => c.noPedido).join(", ") +
                     "<br><br>";
             }
@@ -867,6 +870,7 @@ function verificarComandas() {
         },
         "json"
     ).fail(function (err) {
+        cerrarLoader();
         Swal.fire(
             "Error de red",
             "No se pudo conectar: " + err.statusText,

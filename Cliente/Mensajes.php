@@ -138,6 +138,48 @@ if (isset($_SESSION['usuario'])) {
     .btn-comandas:hover {
         transform: scale(1.1);
     }
+    #content main .table-data .head2 {
+        display: grid;
+        gap: 16px;
+        margin-bottom: 24px;
+        width: 100%;
+    }
+
+
+    /* ===== Cabecera sticky para la tabla de comandas ===== */
+    .tabla-scroll {
+        max-height: 500px;         /* altura visible con scroll */
+        overflow-y: auto;          /* habilita desplazamiento vertical */
+        position: relative;
+    }
+
+    .tabla-comandas {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .tabla-comandas thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        text-align: center;
+        padding: 8px;
+    }
+
+    .tabla-comandas tbody td {
+        text-align: center;
+        padding: 6px;
+    }
+
+    .tabla-comandas thead th {
+        background-color: #d8d8d8;
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    #content main .table-data > div {
+        padding: 0 0 !important;
+    }
+
 
 
 </style>
@@ -188,7 +230,7 @@ if (isset($_SESSION['usuario'])) {
                                         <table id="tablaPedidos" class="tabla-pedidos">
                                             <thead>
                                                 <tr>
-                                                    <th>No. Pedido</th>
+                                                    <th>Pedido</th>
                                                     <th>Cliente</th>
                                                     <th class="col-fecha">Fecha</th>
                                                     <th>Vendedor</th>
@@ -229,7 +271,7 @@ if (isset($_SESSION['usuario'])) {
                             <!-- Buscador -->
                             <div>
                                 <label for="buscarTexto" class="form-label">Buscar:</label>
-                                <input type="text" id="buscarTexto" class="form-control" placeholder="Cliente, status, No. Pedido, ">
+                                <input type="text" id="buscarTexto" class="form-control" placeholder="Cliente, status, Pedido, ">
                             </div>
 
                             <!-- Filtro por fecha -->
@@ -240,7 +282,7 @@ if (isset($_SESSION['usuario'])) {
 
                             <!-- Filtro por número de pedido -->
                             <div>
-                                <label for="filtroNoPedido" class="form-label">No. Pedido:</label>
+                                <label for="filtroNoPedido" class="form-label">Pedido:</label>
                                 <input type="number" id="filtroNoPedido" class="form-control" placeholder="Ej: 19625">
                             </div>
 
@@ -254,17 +296,17 @@ if (isset($_SESSION['usuario'])) {
 
 
                         <div class="mb-3">
-                            <button class="btn btn-secondary btn-sm" onclick="verificarComandas()"> Verificar remisiones </button> <!-- onclick="mostrarModal('${comanda.id}')" -->
+                            <button class="btn btn-outline-success" onclick="verificarComandas()"> Verificar remisiones </button> <!-- onclick="mostrarModal('${comanda.id}')" -->
                         </div>
                         <!-- Tabla de comandas -->
                         <div class="table-data">
                             <div class="order">
-                                <div class="head">
+                                <div class="head2">
                                     <div class="tabla-scroll">
                                         <table id="tablaComandas" class="tabla-comandas">
                                             <thead>
                                                 <tr>
-                                                    <th>No. Pedido</th>
+                                                    <th>Pedido</th>
                                                     <th>Nombre Cliente</th>
                                                     <th>Status</th>
                                                     <th class="col-fecha">Fecha</th>
@@ -307,7 +349,7 @@ if (isset($_SESSION['usuario'])) {
 
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
-                                            <label for="detalleNoPedido" class="form-label">No. Pedido:</label>
+                                            <label for="detalleNoPedido" class="form-label">Pedido:</label>
                                             <input type="text" id="detalleNoPedido" class="form-control form-control-sm"
                                                 readonly>
                                         </div>
@@ -465,7 +507,7 @@ if (isset($_SESSION['usuario'])) {
 
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
-                                            <label for="folio" class="form-label">No. Pedido:</label>
+                                            <label for="folio" class="form-label">Pedido:</label>
                                             <input type="text" id="folio" class="form-control form-control-sm"
                                                 style="text-align: center; vertical-align: middle;" readonly>
                                         </div>

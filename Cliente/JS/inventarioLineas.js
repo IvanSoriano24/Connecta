@@ -417,6 +417,7 @@ async function initInventarioUI() {
 }*/
 
 async function comparararConteos(tipoUsuario) {
+
   if (tipoUsuario !== "SUPER-ALMACENISTA") return;
 
   const noInv = $("#noInventario").val();
@@ -427,7 +428,6 @@ async function comparararConteos(tipoUsuario) {
     return Swal.fire({ icon: "warning", title: "Faltan datos para comparar" });
   }
 
-  mostrarLoader();
   $.ajax({
     url: "../Servidor/PHP/inventarioFirestore.php",
     method: "GET",
@@ -440,7 +440,6 @@ async function comparararConteos(tipoUsuario) {
     },
   })
       .done(async function (res) {
-        cerrarLoader();
 
         if (!res || res.success !== true) {
           const msg = res?.message || "No fue posible obtener los conteos.";
@@ -507,74 +506,7 @@ async function comparararConteos(tipoUsuario) {
         }
 
         // ❗ Diferencias detectadas
-        const { isConfirmed: continuar } = await Swal.fire({
-          title: "Diferencias encontradas",
-          html: `
-          <p>Se detectaron diferencias entre los conteos de la línea <strong>${claveLinea}</strong>.</p>
-          <p>¿Deseas generar un <strong>nuevo conteo</strong> o <strong>finalizar</strong> el inventario?</p>
-        `,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Generar nuevo conteo",
-          cancelButtonText: "Finalizar inventario",
-        });
-
-        // ===========================================
-        // Opción 1️⃣ — Finalizar inventario
-        // ===========================================
-        if (!continuar) {
-          const { isConfirmed: confirmarFin } = await Swal.fire({
-            title: "¿Seguro que deseas finalizar?",
-            text: "No podrás generar más conteos después de finalizar.",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonText: "Sí, finalizar",
-            cancelButtonText: "Cancelar",
-          });
-
-          if (!confirmarFin) return;
-
-          mostrarLoader();
-          try {
-            // 1️⃣ Primero avisa al backend que se cierre el inventario (sin PDF todavía)
-            const resFin = await fetch("../Servidor/PHP/finalizarInventario.php", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                idInventario: window.idInventario,
-                autorizadoPor: nombreUsuario || "Usuario actual",
-              }),
-            });
-
-            // ✅ No intentes leer JSON si el script manda un PDF
-            cerrarLoader();
-
-            // 2️⃣ Ahora abre una nueva pestaña para descargar el PDF
-            window.open(
-                `../Servidor/PHP/finalizarInventario.php?idInventario=${window.idInventario}&autorizadoPor=${encodeURIComponent(
-                    nombreUsuario || "Usuario actual"
-                )}`,
-                "_blank"
-            );
-
-            await Swal.fire({
-              icon: "success",
-              title: "Inventario finalizado",
-              text: "El PDF de cierre se descargará automáticamente.",
-            });
-          } catch (e) {
-            cerrarLoader();
-            console.error(e);
-            await Swal.fire("Error", "Error de conexión al cerrar inventario.", "error");
-          }
-
-
-          return;
-        }
-
-        // ===========================================
-        // Opción 2️⃣ — Generar nuevo conteo
-        // ===========================================
+        // Verificar si el conteo actual en pantalla coincide con el activo en Firestore
         const idInventario = window.idInventario;
         const resInv = await fetch(
             `../Servidor/PHP/inventarioFirestore.php?accion=obtenerConteoActual&idInventario=${idInventario}`
@@ -582,10 +514,88 @@ async function comparararConteos(tipoUsuario) {
         const docInv = await resInv.json();
         const conteoActual = Number(docInv?.conteo || 0);
 
-        if (conteoActual !== Number(conteo)) {
-          console.log(`⏭ Conteo ${conteo} no es el actual (${conteoActual}), omitiendo generación.`);
-          return;
+        // Solo mostrar el Swal si el conteo actual coincide
+        if (Number(conteo) === conteoActual) {
+          const { isConfirmed: continuar } = await Swal.fire({
+            title: "Diferencias encontradas",
+            html: `
+      <p>Se detectaron diferencias entre los conteos de la línea <strong>${claveLinea}</strong>.</p>
+      <p>¿Deseas generar un <strong>nuevo conteo</strong> o <strong>finalizar</strong> el inventario?</p>
+        `,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Generar nuevo conteo",
+            cancelButtonText: "Finalizar inventario",
+          });
+
+          // ===========================================
+          // Opción 1️⃣ — Finalizar inventario
+          // ===========================================
+          if (!continuar) {
+
+            const { isConfirmed: confirmarFin } = await Swal.fire({
+              title: "¿Seguro que deseas finalizar?",
+              text: "No podrás generar más conteos después de finalizar.",
+              icon: "question",
+              showCancelButton: true,
+              confirmButtonText: "Sí, finalizar",
+              cancelButtonText: "Cancelar",
+            });
+
+            if (!confirmarFin) return;
+
+            mostrarLoader();
+            try {
+              // 1️⃣ Primero avisa al backend que se cierre el inventario (sin PDF todavía)
+              const resFin = await fetch("../Servidor/PHP/finalizarInventario.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  idInventario: window.idInventario,
+                  autorizadoPor: nombreUsuario || "Usuario actual",
+                }),
+              });
+
+              // ✅ No intentes leer JSON si el script manda un PDF
+              cerrarLoader();
+
+              // 2️⃣ Ahora abre una nueva pestaña para descargar el PDF
+              window.open(
+                  `../Servidor/PHP/finalizarInventario.php?idInventario=${window.idInventario}&autorizadoPor=${encodeURIComponent(
+                      nombreUsuario || "Usuario actual"
+                  )}`,
+                  "_blank"
+              );
+
+              await Swal.fire({
+                icon: "success",
+                title: "Inventario finalizado",
+                text: "El PDF de cierre se descargará automáticamente.",
+              });
+            } catch (e) {
+              cerrarLoader();
+              console.error(e);
+              await Swal.fire("Error", "Error de conexión al cerrar inventario.", "error");
+            }
+
+
+            return;
+          }
+
+          // ===========================================
+          // Opción 2️⃣ — Generar nuevo conteo
+          // ===========================================
+          const idInventario = window.idInventario;
+          const resInv = await fetch(
+              `../Servidor/PHP/inventarioFirestore.php?accion=obtenerConteoActual&idInventario=${idInventario}`
+          );
+          const docInv = await resInv.json();
+          const conteoActual = Number(docInv?.conteo || 0);
+        } else {
+          console.log(`⏭ Conteo local (${conteo}) distinto al actual (${conteoActual}), no se muestra alert.`);
+          return; // Salir sin mostrar nada
         }
+
 
         mostrarLoader();
         $.post(
