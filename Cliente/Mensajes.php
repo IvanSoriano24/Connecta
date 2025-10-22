@@ -122,6 +122,24 @@ if (isset($_SESSION['usuario'])) {
         z-index: 1;
         /* Mantener el encabezado sobre las filas */
     }
+
+    .btn-comandas {
+        color:#3f317d;
+        cursor:pointer;
+        border: none;
+        border-radius: 50%;
+        font-size: 1.3rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, background-color 0.3s ease;
+    }
+
+    .btn-comandas:hover {
+        transform: scale(1.1);
+    }
+
+
 </style>
 <style>
     #buscarTexto,
@@ -211,7 +229,7 @@ if (isset($_SESSION['usuario'])) {
                             <!-- Buscador -->
                             <div>
                                 <label for="buscarTexto" class="form-label">Buscar:</label>
-                                <input type="text" id="buscarTexto" class="form-control" placeholder="Cliente, status">
+                                <input type="text" id="buscarTexto" class="form-control" placeholder="Cliente, status, No. Pedido, ">
                             </div>
 
                             <!-- Filtro por fecha -->
@@ -252,9 +270,10 @@ if (isset($_SESSION['usuario'])) {
                                                     <th class="col-fecha">Fecha</th>
                                                     <th>Hora</th>
                                                     <th>Detalles</th>
-                                                    <th>Verificar Remision</th>
+                                                    <th>Verificar</th>
+                                                    <th>Imprimir</th>
                                                     <?php if ($tipoUsuario === 'ADMINISTRADOR'): ?>
-                                                        <th>Aurotizar Comanda</th>
+                                                        <th>Autorizar</th>
                                                     <?php endif; ?>
                                                 </tr>
                                             </thead>
@@ -509,6 +528,9 @@ if (isset($_SESSION['usuario'])) {
             </main>
         </section>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="JS/menu.js?n=1"></script>
     <script src="JS/app.js?n=1"></script>

@@ -101,16 +101,26 @@ function pintarComandas(lista, tipoUsuario) {
               <td>${comanda.status || "-"}</td>
               <td>${comanda.fecha || "-"}</td>
               <td>${comanda.hora || "-"}</td>
-              <td>
-                <button class="btn btn-secondary btn-sm" onclick="mostrarModal('${comanda.id}')">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </td>
-              <td>
-                <button class="btn btn-secondary btn-sm" onclick="verificarRemision('${comanda.noPedido}', '${comanda.id}')">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </td>
+              <td class="text-center">
+                  <i class="bi btn-comandas bi-clipboard-data"
+                     title="Ver Detalles"
+                     data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                     onclick="mostrarModal('${comanda.id}')"></i>
+                </td>
+                
+                <td class="text-center">
+                  <i class="bi btn-comandas bi-clipboard-check"
+                     title="Verificar Remisión"
+                     data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                     onclick="verificarRemision('${comanda.noPedido}', '${comanda.id}')"></i>
+                </td>
+                
+                <td class="text-center">
+                  <i class="bi btn-comandas bi-printer"
+                     title="Imprimir Comanda"
+                     data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                     onclick="imprimirComanda('${comanda.id}')"></i>
+                </td>
             </tr>
         `);
 
@@ -122,13 +132,206 @@ function pintarComandas(lista, tipoUsuario) {
                     .attr("onclick", `activarComanda("${comanda.id}")`);
                 $row.append($("<td>").append($btn));
             } else {
-                $row.append($("<td>").text("-"));
+                $row.append($("<td class='text-center'>").text("-"));
             }
         }
 
         tbody.append($row);
     });
+    initTooltipsTabla();
+
 }
+
+
+// Función para imprimir la comanda
+function imprimirComanda(comandaId) {
+    $.get(
+        "../Servidor/PHP/mensajes.php",
+        { numFuncion: "2", comandaId },
+        function (response) {
+            if (!response.success) {
+                return Swal.fire("Error", "No se pudo obtener la comanda", "error");
+            }
+
+            const comanda = response.data;
+
+            // === ENCABEZADO DEL DOCUMENTO ===
+            const encabezado = {
+                columns: [
+                    { text: "COMANDA DE PEDIDO", style: "titulo" },
+                    {
+                        text: `No. Pedido: ${comanda.noPedido || "-"}`,
+                        style: "pedido",
+                        alignment: "right"
+                    }
+                ]
+            };
+
+            // === INFORMACIÓN GENERAL ===
+            const infoGeneral = {
+                style: "tablaInfo",
+                table: {
+                    widths: ["25%", "25%", "25%", "25%"],
+                    body: [
+                        [
+                            { text: "Cliente", style: "th" },
+                            { text: comanda.nombreCliente || "-" },
+                            { text: "Status", style: "th" },
+                            { text: comanda.status || "-" }
+                        ],
+                        [
+                            { text: "Fecha", style: "th" },
+                            { text: comanda.fecha || "-" },
+                            { text: "Hora", style: "th" },
+                            { text: comanda.hora || "-" }
+                        ],
+                        [
+                            { text: "Num. Guía", style: "th" },
+                            { text: comanda.numGuia || "-" },
+                            { text: "Observaciones", style: "th" },
+                            { text: comanda.observaciones || "-" }
+                        ]
+                    ]
+                },
+                layout: "lightHorizontalLines"
+            };
+
+            // === PRODUCTOS ===
+            const productosHeader = [
+                { text: "Clave", style: "th" },
+                { text: "Descripción", style: "th" },
+                { text: "Cantidad", style: "th" },
+                { text: "Lote", style: "th" }
+            ];
+
+            const productosBody = comanda.productos.map(prod => [
+                prod.clave || "-",
+                prod.descripcion || "-",
+                { text: prod.cantidad || "-", alignment: "right" },
+                prod.lote || "-"
+            ]);
+
+            const tablaProductos = {
+                style: "tablaProductos",
+                table: {
+                    widths: ["20%", "40%", "20%", "20%"],
+                    body: [productosHeader, ...productosBody]
+                },
+                layout: {
+                    fillColor: function (i) {
+                        return i === 0 ? "#0d6efd" : null; // azul para encabezado
+                    },
+                    hLineColor: () => "#ccc",
+                    vLineColor: () => "#ccc",
+                }
+            };
+
+            // === DATOS DE ENVÍO ===
+            const envio = comanda.envioData || {};
+            const tablaEnvio = {
+                style: "tablaEnvio",
+                table: {
+                    widths: ["30%", "70%"],
+                    body: [
+                        [{ text: "Datos de envío", style: "th", colSpan: 2, alignment: "center" }, {}],
+                        ["Nombre del contacto", envio.nombreContacto || "-"],
+                        ["Compañía", envio.companiaContacto || "-"],
+                        ["Teléfono", envio.telefonoContacto || "-"],
+                        ["Correo", envio.correoContacto || "-"],
+                        ["Dirección 1", envio.direccion1Contacto || "-"],
+                        ["Dirección 2", envio.direccion2Contacto || "-"],
+                        ["Código Postal", envio.codigoContacto || "-"],
+                        ["Estado", envio.estadoContacto || "-"],
+                        ["Municipio", envio.municipioContacto || "-"]
+                    ]
+                },
+                layout: "lightHorizontalLines"
+            };
+
+            // === DEFINICIÓN DEL PDF ===
+            const docDefinition = {
+                content: [
+                    encabezado,
+                    { text: "\n" },
+                    infoGeneral,
+                    { text: "\n" },
+                    { text: "Productos", style: "subtitulo" },
+                    tablaProductos,
+                    { text: "\n" },
+                    tablaEnvio
+                ],
+                styles: {
+                    titulo: {
+                        fontSize: 20,
+                        bold: true,
+                        color: "#0d6efd"
+                    },
+                    pedido: {
+                        fontSize: 12,
+                        bold: true
+                    },
+                    subtitulo: {
+                        fontSize: 16,
+                        bold: true,
+                        margin: [0, 10, 0, 5]
+                    },
+                    th: {
+                        bold: true,
+                        fillColor: "#f2f2f2",
+                        color: "#000"
+                    },
+                    tablaInfo: {
+                        margin: [0, 10, 0, 10]
+                    },
+                    tablaProductos: {
+                        margin: [0, 10, 0, 10]
+                    },
+                    tablaEnvio: {
+                        margin: [0, 10, 0, 10]
+                    }
+                },
+                defaultStyle: {
+                    fontSize: 10
+                },
+                footer: function (currentPage, pageCount) {
+                    return {
+                        columns: [
+                            {
+                                text: "Documento generado automáticamente por MDConnecta",
+                                alignment: "center",
+                                fontSize: 9,
+                                color: "#777",
+                                margin: [0, 10, 0, 0]
+                            }
+                        ]
+                    };
+                },
+                info: {
+                    title: `Comanda ${comanda.noPedido || "sinNumero"}`,
+                    author: 'MDConnecta',
+                    subject: 'Comanda de pedido',
+                    keywords: 'comanda, mdconnecta, pedido'
+                },
+            };
+
+            // Descargar el PDF
+             const nombreArchivo = `Comanda ${comanda.noPedido || "sinNumero"}.pdf`;
+             pdfMake.createPdf(docDefinition).download(nombreArchivo);
+        },
+        "json"
+    );
+}
+
+// Función para agregar un mensaje de ayuda a los iconos de las comandas
+function initTooltipsTabla() {
+    const nodes = document.querySelectorAll('#tablaComandas [data-bs-toggle="tooltip"]');
+    nodes.forEach(el => {
+        const inst = bootstrap.Tooltip.getInstance(el);
+        if (inst) inst.dispose();
+        new bootstrap.Tooltip(el, { delay: { show: 0, hide: 0 }, trigger: 'hover' });
+    });
+}
+
 
 // Eventos en buscador y filtros locales
 $(document).on("input change", "#buscarTexto, #filtroFecha, #filtroNoPedido", function () {

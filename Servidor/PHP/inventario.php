@@ -1403,12 +1403,12 @@ function guardarAsignaciones(
     // ==== 3️⃣ Subcolecciones ====
     $subcols_for_conteo = function ($conteo) {
         $map = [
-            1 => ['lineas01', 'lineas02'],
+            1 => ['lineas', 'lineas02'],
             2 => ['lineas03', 'lineas04'],
             3 => ['lineas05', 'lineas06'],
             4 => ['lineas07', 'lineas08']
         ];
-        return $map[$conteo] ?? ['lineas01', 'lineas02'];
+        return $map[$conteo] ?? ['lineas', 'lineas02'];
     };
     [$subA, $subB] = $subcols_for_conteo($conteoActual);
 
