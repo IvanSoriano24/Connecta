@@ -8,7 +8,7 @@ if (isset($_SESSION['usuario'])) {
 	$nombreUsuario = $_SESSION['usuario']["nombre"];
 	$tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
 	$correo = $_SESSION['usuario']["correo"];
-	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMIISTRADOR') {
+	if ($_SESSION['usuario']['tipoUsuario'] == 'ADMINISTRADOR') {
 		header('Location:Dashboard.php');
 		exit();
 	}

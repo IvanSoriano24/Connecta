@@ -47,6 +47,8 @@ if (isset($_SESSION['usuario'])) {
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
+    <script src="JS/sideBar.js?n=1"></script>
+
     <!-- My CSS -->
     <link rel="stylesheet" href="CSS/style.css">
     <link rel="stylesheet" href="CSS/selec.css">
@@ -216,11 +218,11 @@ if (isset($_SESSION['usuario'])) {
         background-color: #007bff;
         color: #fff;
         border: none;
-        padding: 10px 20px;
+        padding: 0 0;
         font-size: 14px;
         cursor: pointer;
         border-radius: 3px;
-        margin: 0 10px;
+        margin: 0 0;
     }
 
 
@@ -398,8 +400,9 @@ if (isset($_SESSION['usuario'])) {
 <body>
     <!-- <div class=""> -->
     <!-- SIDEBAR -->
-    <?php include 'sidebar.php'; ?>
+
     <div class="hero_area">
+        <?php include 'sidebar.php'; ?>
         <section id="content">
             <!-- NAVBAR -->
             <?php include 'navbar.php'; ?>
@@ -546,7 +549,7 @@ if (isset($_SESSION['usuario'])) {
                                 <!-- Botón para abrir el modal de PDFs -->
                                 <div class="pdf-button-container">
                                     <label for="enviar" class="me-2">Agregar orden de compra</label>
-                                    <button type="button" id="btnSubirPDF" class="btn-like-subirpdf"
+                                    <button type="button" id="btnSubirPDF" class="btn-like-subirpdf p-2 border-5"
                                         data-bs-toggle="modal" data-bs-target="#modalPDF" onclick="abrirModalPdf()" disabled>
                                         <i class="bx bx-upload"></i> Subir PDF
                                     </button>

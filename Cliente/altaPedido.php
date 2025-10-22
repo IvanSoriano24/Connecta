@@ -218,11 +218,11 @@ if (isset($_SESSION['usuario'])) {
         background-color: #007bff;
         color: #fff;
         border: none;
-        padding: 10px 20px;
+        padding: 0 0;
         font-size: 14px;
         cursor: pointer;
         border-radius: 3px;
-        margin: 0 10px;
+        margin: 0 0;
     }
 
 
@@ -508,9 +508,10 @@ if (isset($_SESSION['usuario'])) {
 
 <body>
     <!-- <div class=""> -->
-    <!-- SIDEBAR -->
-    <?php include 'sidebar.php'; ?>
+
     <div class="hero_area">
+        <!-- SIDEBAR -->
+        <?php include 'sidebar.php'; ?>
         <section id="content">
             <!-- NAVBAR -->
             <?php include 'navbar.php'; ?>
@@ -647,8 +648,8 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="text" name="observaciones" id="observaciones" style="width:250px;" disabled>
                             </div>
                             <div class="form-element">
-                                <label for="enviarWhats">Enviar WhatsApp<input type="checkbox" name="enviarWhats" id="enviarWhats" style="width:250px;" checked disabled></label>
-                                <label for="enviarCorreo">Enviar Correo<input type="checkbox" name="enviarCorreo" id="enviarCorreo" style="width:250px;" checked disabled></label>
+                                <label for="enviarWhats">Enviar WhatsApp<input type="checkbox" name="enviarWhats" id="enviarWhats" style="width:250px;" checked></label>
+                                <label for="enviarCorreo">Enviar Correo<input type="checkbox" name="enviarCorreo" id="enviarCorreo" style="width:250px;" checked></label>
                             </div>
                             
                             <div class="container my-5">
@@ -658,7 +659,7 @@ if (isset($_SESSION['usuario'])) {
                                 <!-- Botón para abrir el modal de PDFs -->
                                 <div class="pdf-button-container">
                                     <label for="enviar" class="me-2">Agregar orden de compra</label>
-                                    <button type="button" id="btnSubirPDF" class="btn-like-subirpdf"
+                                    <button type="button" id="btnSubirPDF" class="btn-like-subirpdf p-2 border-5"
                                         data-bs-toggle="modal" data-bs-target="#modalPDF" onclick="abrirModalPdf()" disabled>
                                         <i class="bx bx-upload"></i> Subir PDF
                                     </button>
