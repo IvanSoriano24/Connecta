@@ -487,128 +487,31 @@ async function comparararConteos(tipoUsuario) {
         const u2 = res.user2?.name || res.user2?.id || "Conteo 2";
         const html = renderCompareTable(cmp, claveLinea, { user1: u1, user2: u2 });
 
-        // Mostrar resultados de comparación
-        const resSwal = await Swal.fire({
+        await Swal.fire({
           width: Math.min(window.innerWidth - 40, 900),
           title: `Comparación de conteos — Línea ${claveLinea}`,
           html,
           confirmButtonText: "Cerrar",
         });
 
-        if (!resSwal.isConfirmed) return;
-
-        // ==============================
-        // Resultado de comparación
-        // ==============================
+        // Si los conteos son iguales → comparar con SAE
         if (cmp.rows.length === cmp.iguales) {
-          // ✅ Todos iguales → comparar con SAE
           return compararSae(cmp, claveLinea);
         }
 
-        // ❗ Diferencias detectadas
-        // Verificar si el conteo actual en pantalla coincide con el activo en Firestore
-        const idInventario = window.idInventario;
-        const resInv = await fetch(
-            `../Servidor/PHP/inventarioFirestore.php?accion=obtenerConteoActual&idInventario=${idInventario}`
-        );
-        const docInv = await resInv.json();
-        const conteoActual = Number(docInv?.conteo || 0);
-
-        // Solo mostrar el Swal si el conteo actual coincide
-        if (Number(conteo) === conteoActual) {
-          const { isConfirmed: continuar } = await Swal.fire({
-            title: "Diferencias encontradas",
-            html: `
-      <p>Se detectaron diferencias entre los conteos de la línea <strong>${claveLinea}</strong>.</p>
-      <p>¿Deseas generar un <strong>nuevo conteo</strong> o <strong>finalizar</strong> el inventario?</p>
-        `,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Generar nuevo conteo",
-            cancelButtonText: "Finalizar inventario",
-          });
-
-          // ===========================================
-          // Opción 1️⃣ — Finalizar inventario
-          // ===========================================
-          if (!continuar) {
-
-            const { isConfirmed: confirmarFin } = await Swal.fire({
-              title: "¿Seguro que deseas finalizar?",
-              text: "No podrás generar más conteos después de finalizar.",
-              icon: "question",
-              showCancelButton: true,
-              confirmButtonText: "Sí, finalizar",
-              cancelButtonText: "Cancelar",
-            });
-
-            if (!confirmarFin) return;
-
-            mostrarLoader();
-            try {
-              // 1️⃣ Primero avisa al backend que se cierre el inventario (sin PDF todavía)
-              const resFin = await fetch("../Servidor/PHP/finalizarInventario.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  idInventario: window.idInventario,
-                  autorizadoPor: nombreUsuario || "Usuario actual",
-                }),
-              });
-
-              // ✅ No intentes leer JSON si el script manda un PDF
-              cerrarLoader();
-
-              // 2️⃣ Ahora abre una nueva pestaña para descargar el PDF
-              window.open(
-                  `../Servidor/PHP/finalizarInventario.php?idInventario=${window.idInventario}&autorizadoPor=${encodeURIComponent(
-                      nombreUsuario || "Usuario actual"
-                  )}`,
-                  "_blank"
-              );
-
-              await Swal.fire({
-                icon: "success",
-                title: "Inventario finalizado",
-                text: "El PDF de cierre se descargará automáticamente.",
-              });
-            } catch (e) {
-              cerrarLoader();
-              console.error(e);
-              await Swal.fire("Error", "Error de conexión al cerrar inventario.", "error");
-            }
-
-
-            return;
-          }
-
-          // ===========================================
-          // Opción 2️⃣ — Generar nuevo conteo
-          // ===========================================
-          const idInventario = window.idInventario;
-          const resInv = await fetch(
-              `../Servidor/PHP/inventarioFirestore.php?accion=obtenerConteoActual&idInventario=${idInventario}`
-          );
-          const docInv = await resInv.json();
-          const conteoActual = Number(docInv?.conteo || 0);
-        } else {
-          console.log(`⏭ Conteo local (${conteo}) distinto al actual (${conteoActual}), no se muestra alert.`);
-          return; // Salir sin mostrar nada
-        }
-
-
-        mostrarLoader();
+        // ❗ Diferencias detectadas → generar nuevo conteo directamente
+        mostrarLoader("Generando nuevo conteo...");
         $.post(
             "../Servidor/PHP/inventario.php",
             {
               numFuncion: "20",
-              idInventario: idInventario,
+              idInventario: window.idInventario,
               conteo: conteo,
             },
             async function (response) {
               cerrarLoader();
               if (response.success) {
-                await Swal.fire("Éxito", response.message, "success");
+                await Swal.fire("Nuevo conteo generado", response.message, "success");
               } else {
                 await Swal.fire("Aviso", response.message, "info");
               }
@@ -631,76 +534,117 @@ async function comparararConteos(tipoUsuario) {
       });
 }
 
-
 function compararSae(cmp, claveLinea) {
   $.ajax({
     url: "../Servidor/PHP/inventarioFirestore.php",
     method: "GET",
     dataType: "json",
     data: {
-      accion: "obtenerInventario", // ← endpoint PHP sugerido abajo
+      accion: "obtenerInventario",
       articulos: cmp.rows,
     },
   })
-    .done(function (res) {
-      if (!res || res.success !== true) {
-        const msg = res?.message || "No fue posible obtener los conteos.";
-        return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
-      }
+      .done(async function (res) {
+        if (!res || res.success !== true) {
+          const msg = res?.message || "No fue posible obtener los conteos.";
+          return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
+        }
 
-      const html = tablaComparativaSae(cmp, claveLinea, res.data);
-      Swal.fire({
-        width: Math.min(window.innerWidth - 40, 900),
-        title: `Comparación con SAE — Línea ${claveLinea}`,
-        html,
-        confirmButtonText: "Cerrar",
-      }).then(async () => {
+        const html = tablaComparativaSae(cmp, claveLinea, res.data);
+        await Swal.fire({
+          width: Math.min(window.innerWidth - 40, 900),
+          title: `Comparación con SAE — Línea ${claveLinea}`,
+          html,
+          confirmButtonText: "Cerrar",
+        });
+
+        // Verificar si SAE coincide
+        const diferencias = detectarDiferenciasConSae(cmp.rows, res.data);
         const idInventario = window.idInventario;
-        const conteo = document.getElementById("subconteoInput").value;
+        const conteo = document.getElementById("conteoInput").value;
 
-        if (window.BanderaGeneracionConteoNuevo) {
-          // Llamar al backend para verificar y generar conteos
+        console.log("Datos recibidos desde SAE:", res.data);
+
+        if (diferencias.length > 0) {
+          // ❌ SAE no coincide → generar nuevo conteo
+          mostrarLoader("Generando nuevo conteo...");
           $.post(
-            "../Servidor/PHP/inventario.php",
-            { numFuncion: "20", idInventario: idInventario, conteo: conteo },
-            async function (response) {
-              console.log("Respuesta verificación inventario:", response);
-              if (response.success) {
-                window.finalizadoConteo = false;
-                await mostrarAlerta("Éxito", response.message, "success");
-              } else {
-                await mostrarAlerta(
-                  "Aún hay líneas sin terminar",
-                  response.message,
-                  "info"
-                );
-              }
-            },
-            "json"
-          ).fail(async (jqXHR, textStatus, errorThrown) => {
-            await mostrarAlerta("Ocurrió un problema inesperado", "", "");
-            console.error("Error AJAX:", textStatus, errorThrown);
-            console.log("Respuesta cruda:", jqXHR.responseText);
+              "../Servidor/PHP/inventario.php",
+              { numFuncion: "20", idInventario: idInventario, conteo: conteo },
+              async function (response) {
+                cerrarLoader();
+                if (response.success) {
+                  await Swal.fire("Nuevo conteo generado", response.message, "success");
+                } else {
+                  await Swal.fire("Aviso", response.message, "info");
+                }
+              },
+              "json"
+          ).fail(async () => {
+            cerrarLoader();
+            Swal.fire("Error", "No se pudo generar el nuevo conteo.", "error");
           });
         } else {
-          window.finalizadoConteo = true;
-          await mostrarAlerta(
-            "Éxito",
-            "Todo correcto, no se generó un nuevo conteo",
-            "success"
-          );
+          // ✅ Coincide con SAE → finalizar inventario
+          const autorizadoPor = nombreUsuario || "Usuario actual";
+          mostrarLoader();
+          try {
+            await fetch("../Servidor/PHP/finalizarInventario.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ idInventario, autorizadoPor }),
+            });
+            cerrarLoader();
+
+            window.open(
+                `../Servidor/PHP/finalizarInventario.php?idInventario=${idInventario}&autorizadoPor=${encodeURIComponent(autorizadoPor)}`,
+                "_blank"
+            );
+
+            await Swal.fire(
+                "Inventario finalizado",
+                "El PDF de cierre se descargará automáticamente.",
+                "success"
+            );
+          } catch (err) {
+            cerrarLoader();
+            await Swal.fire("Error", "Error al finalizar inventario.", "error");
+          }
         }
+      })
+      .fail(function (err) {
+        console.error("compararSae error:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No fue posible comparar los conteos.",
+        });
       });
-    })
-    .fail(function (err) {
-      console.error("compararSae error:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No fue posible comparar los conteos.",
-      });
-    });
 }
+
+// Detectar diferencias con SAE
+function detectarDiferenciasConSae(conteosLocales, datosSae) {
+  const difs = [];
+
+  for (const local of conteosLocales) {
+    const sae = datosSae.find((it) => it.CVE_ART === local.cve_art);
+    const totalSae = Number(sae?.EXIST || 0); // ← usa el campo correcto
+    const totalLocal = Number(local.total1 || local.total2 || local.total || 0);
+
+    if (totalSae !== totalLocal) {
+      difs.push({
+        cve_art: local.cve_art,
+        local: totalLocal,
+        sae: totalSae,
+      });
+    }
+  }
+
+  console.log("Diferencias detectadas con SAE:", difs); // para depuración
+  return difs;
+}
+
+
 // Si el backend te devuelve el doc completo (formato Firestore REST), lo convertimos a:
 // [{ cve_art, total, lotes:[{corrugados,corrugadosPorCaja,lote,total}]}]
 function normalizeDocToProducts(doc) {
