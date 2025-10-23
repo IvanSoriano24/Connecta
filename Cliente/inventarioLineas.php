@@ -537,7 +537,7 @@ session_destroy(); */
                 <div class="modal-footer">
                     <button type="button" class="btn btn-dark" id="generarPDF">Generar PDF</button>
                     <button type="button" class="btn btn-success" id="exportarExcel">Exportar Excel</button>
-                    <?php  if ($_SESSION['usuario']['tipoUsuario'] !== 'ADMISTRADOR') { ?>
+                    <?php  if ($_SESSION['usuario']['tipoUsuario'] !== 'SUPER-ALMACENISTA') { ?>
                         <button type="button" class="btn btn-danger" id="finalizarInventarioLinea">Guardar Línea</button>
                     <?php } ?>
                 </div>
