@@ -422,7 +422,7 @@ async function comparararConteos(tipoUsuario) {
 
   const noInv = $("#noInventario").val();
   const claveLinea = $("#lineaSelect").val();
-  const conteo = $("#conteoInput").val();
+  const conteo = Number($("#conteoInput").val());
 
   if (!noInv || !claveLinea) {
     return Swal.fire({ icon: "warning", title: "Faltan datos para comparar" });
@@ -440,7 +440,6 @@ async function comparararConteos(tipoUsuario) {
     },
   })
       .done(async function (res) {
-
         if (!res || res.success !== true) {
           const msg = res?.message || "No fue posible obtener los conteos.";
           return Swal.fire({ icon: "info", title: "Sin datos", text: msg });
@@ -494,23 +493,87 @@ async function comparararConteos(tipoUsuario) {
           confirmButtonText: "Cerrar",
         });
 
-        // Si los conteos son iguales → comparar con SAE
+        // ✅ Si los conteos son iguales → comparar con SAE
         if (cmp.rows.length === cmp.iguales) {
           return compararSae(cmp, claveLinea);
         }
 
-        await Swal.fire({
-          icon: "warning",
-          title: "Diferencias encontradas entre los contadores",
-          html: `
-    <p>Se detectaron diferencias entre los conteos de la línea <strong>${claveLinea}</strong>.</p>
-    <p>Se generará automáticamente un nuevo conteo para revisión.</p>
-  `,
-          confirmButtonText: "Aceptar",
-        });
+        // ❗ Diferencias detectadas
+        if (conteo >= 2) {
+          // 🔹 Si ya va en el conteo 2 o más → preguntar qué hacer
+          const { isConfirmed: generarNuevo } = await Swal.fire({
+            title: "Diferencias encontradas",
+            html: `
+            <p>Se detectaron diferencias entre los conteos de la línea <strong>${claveLinea}</strong>.</p>
+            <p>¿Deseas generar un <strong>nuevo conteo</strong> o <strong>finalizar</strong> el inventario?</p>
+          `,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Generar nuevo conteo",
+            cancelButtonText: "Finalizar inventario",
+          });
 
+          if (!generarNuevo) {
+            // 🔸 Confirmar finalización
+            const { isConfirmed: confirmarFin } = await Swal.fire({
+              title: "¿Seguro que deseas finalizar?",
+              text: "No podrás generar más conteos después de finalizar.",
+              icon: "question",
+              showCancelButton: true,
+              confirmButtonText: "Sí, finalizar",
+              cancelButtonText: "Cancelar",
+            });
 
-        // ❗ Diferencias detectadas → generar nuevo conteo directamente
+            if (!confirmarFin) return;
+
+            // 🔸 Finalizar inventario
+            mostrarLoader();
+            try {
+              await fetch("../Servidor/PHP/finalizarInventario.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  idInventario: window.idInventario,
+                  autorizadoPor: nombreUsuario || "Usuario actual",
+                }),
+              });
+
+              cerrarLoader();
+
+              window.open(
+                  `../Servidor/PHP/finalizarInventario.php?idInventario=${window.idInventario}&autorizadoPor=${encodeURIComponent(
+                      nombreUsuario || "Usuario actual"
+                  )}`,
+                  "_blank"
+              );
+
+              await Swal.fire({
+                icon: "success",
+                title: "Inventario finalizado",
+                text: "El PDF de cierre se descargará automáticamente.",
+              });
+            } catch (e) {
+              cerrarLoader();
+              console.error(e);
+              await Swal.fire("Error", "Error al finalizar inventario.", "error");
+            }
+
+            return; // salir sin generar nuevo conteo
+          }
+        } else {
+          // 🔹 Si es el primer conteo → solo aviso
+          await Swal.fire({
+            icon: "warning",
+            title: "Diferencias encontradas entre los contadores",
+            html: `
+            <p>Se detectaron diferencias entre los conteos de la línea <strong>${claveLinea}</strong>.</p>
+            <p>Se generará automáticamente un nuevo conteo para revisión.</p>
+          `,
+            confirmButtonText: "Aceptar",
+          });
+        }
+
+        // 🔹 Generar nuevo conteo
         mostrarLoader("Generando nuevo conteo...");
         $.post(
             "../Servidor/PHP/inventario.php",
@@ -576,8 +639,77 @@ function compararSae(cmp, claveLinea) {
 
         console.log("Datos recibidos desde SAE:", res.data);
 
+
         if (diferencias.length > 0) {
-          // ❌ SAE no coincide → generar nuevo conteo
+          if (conteo >= 2) {
+            // 🔹 Si ya va en conteo 2 o más → preguntar qué hacer
+            const { isConfirmed: generarNuevo } = await Swal.fire({
+              title: "Diferencias encontradas con SAE",
+              html: `
+        <p>Se detectaron diferencias entre los conteos y el sistema SAE para la línea <strong>${claveLinea}</strong>.</p>
+        <p>¿Deseas generar un <strong>nuevo conteo</strong> o <strong>finalizar</strong> el inventario?</p>
+      `,
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonText: "Generar nuevo conteo",
+              cancelButtonText: "Finalizar inventario",
+            });
+
+            if (!generarNuevo) {
+              // 🔸 Confirmar finalización
+              const { isConfirmed: confirmarFin } = await Swal.fire({
+                title: "¿Seguro que deseas finalizar?",
+                text: "No podrás generar más conteos después de finalizar.",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Sí, finalizar",
+                cancelButtonText: "Cancelar",
+              });
+
+              if (!confirmarFin) return;
+
+              // 🔸 Finalizar inventario
+              const autorizadoPor = nombreUsuario || "Usuario actual";
+              mostrarLoader();
+              try {
+                await fetch("../Servidor/PHP/finalizarInventario.php", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ idInventario, autorizadoPor }),
+                });
+                cerrarLoader();
+
+                window.open(
+                    `../Servidor/PHP/finalizarInventario.php?idInventario=${idInventario}&autorizadoPor=${encodeURIComponent(autorizadoPor)}`,
+                    "_blank"
+                );
+
+                await Swal.fire(
+                    "Inventario finalizado",
+                    "El PDF de cierre se descargará automáticamente.",
+                    "success"
+                );
+              } catch (err) {
+                cerrarLoader();
+                await Swal.fire("Error", "Error al finalizar inventario.", "error");
+              }
+
+              return; // salir sin generar nuevo conteo
+            }
+          } else {
+            // 🔹 Si es conteo 1 → solo aviso
+            await Swal.fire({
+              icon: "warning",
+              title: "Diferencias encontradas con SAE",
+              html: `
+        <p>Se detectaron diferencias entre los conteos y el sistema SAE.</p>
+        <p>Se generará automáticamente un nuevo conteo para revisión.</p>
+      `,
+              confirmButtonText: "Aceptar",
+            });
+          }
+
+          // 🔹 Generar nuevo conteo
           mostrarLoader("Generando nuevo conteo...");
           $.post(
               "../Servidor/PHP/inventario.php",
@@ -595,7 +727,8 @@ function compararSae(cmp, claveLinea) {
             cerrarLoader();
             Swal.fire("Error", "No se pudo generar el nuevo conteo.", "error");
           });
-        } else {
+        }
+        else {
           // ✅ Coincide con SAE → finalizar inventario
           const autorizadoPor = nombreUsuario || "Usuario actual";
           mostrarLoader();
