@@ -499,6 +499,17 @@ async function comparararConteos(tipoUsuario) {
           return compararSae(cmp, claveLinea);
         }
 
+        await Swal.fire({
+          icon: "warning",
+          title: "Diferencias encontradas entre los contadores",
+          html: `
+    <p>Se detectaron diferencias entre los conteos de la línea <strong>${claveLinea}</strong>.</p>
+    <p>Se generará automáticamente un nuevo conteo para revisión.</p>
+  `,
+          confirmButtonText: "Aceptar",
+        });
+
+
         // ❗ Diferencias detectadas → generar nuevo conteo directamente
         mostrarLoader("Generando nuevo conteo...");
         $.post(

@@ -537,7 +537,9 @@ session_destroy(); */
                 <div class="modal-footer">
                     <button type="button" class="btn btn-dark" id="generarPDF">Generar PDF</button>
                     <button type="button" class="btn btn-success" id="exportarExcel">Exportar Excel</button>
-                    <button type="button" class="btn btn-danger" id="finalizarInventarioLinea">Guardar Línea</button>
+                    <?php  if ($_SESSION['usuario']['tipoUsuario'] !== 'ADMISTRADOR') { ?>
+                        <button type="button" class="btn btn-danger" id="finalizarInventarioLinea">Guardar Línea</button>
+                    <?php } ?>
                 </div>
             </div>
         </div>
@@ -612,7 +614,7 @@ session_destroy(); */
     <script src="JS/menu.js?n=1"></script>
     <script src="JS/app.js?n=1"></script>
     <script src="JS/script.js?n=1"></script>
-    <script src="JS/inventarioLineas.js?n=1"></script>
+    <script src="JS/inventarioLineas.js?v=20251023v2"></script>
 
     <!-- Para el PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
