@@ -347,6 +347,7 @@ session_destroy(); */
 <script src="JS/app.js?n=1"></script>
 <script src="JS/script.js?n=1"></script>
 <!--<script src="JS/productos.js"></script>-->
+<!--<script src="JS/productos.js"></script>-->
 <script src="JS/inventarioMenu.js?v=20251023"></script>
 </body>
 </html>
