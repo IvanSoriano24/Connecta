@@ -822,6 +822,87 @@ switch ($accion) {
         echo json_encode(["success" => true, "conteo" => $conteo]);
         break;
 
+    case "obtenerConfig":
+        $doc = $_GET["doc"] ?? "inventarioFisico";
+        $url = "$root/CONFIG/$doc?key=$firebaseApiKey";
+        $data = http_get_json($url);
+
+        if (!$data || !isset($data["fields"])) {
+            echo json_encode(["success" => false, "message" => "No se encontró la configuración"]);
+            exit;
+        }
+
+        $fields = $data["fields"];
+        $cfg = [
+            "guardadoAutomatico" => $fields["guardadoAutomatico"]["booleanValue"] ?? false,
+        ];
+        echo json_encode(["success" => true, "data" => $cfg]);
+        break;
+
+    case "obtenerStatusLinea":
+        $idInv = $_GET["idInventario"] ?? null;
+        $subcol = $_GET["subcol"] ?? null;
+        $claveLinea = $_GET["claveLinea"] ?? null;
+
+        if (!$idInv || !$subcol || !$claveLinea) {
+            echo json_encode(["success" => false, "message" => "Faltan parámetros"]);
+            exit;
+        }
+
+        $url = "$root/INVENTARIO/$idInv/$subcol/$claveLinea?key=$firebaseApiKey";
+        $data = http_get_json($url);
+
+        if (!$data || !isset($data["fields"]["status"])) {
+            echo json_encode(["success" => false, "message" => "No se encontró el documento o el campo status"]);
+            exit;
+        }
+
+        $status = $data["fields"]["status"]["booleanValue"] ?? false;
+        echo json_encode(["success" => true, "data" => ["status" => (bool)$status]]);
+        break;
+
+    case "verificarDatosConteo":
+        $idDoc = $_GET['idDocumento'] ?? null;
+        $conteo = (int)($_GET['conteo'] ?? 1);
+
+        if (!$idDoc) {
+            echo json_encode(["success" => false, "message" => "Falta idDocumento"]);
+            exit;
+        }
+
+        // Determinar las subcolecciones posibles para el conteo
+        $sub1 = $conteo === 1 ? "lineas" : "lineas" . str_pad(($conteo - 1) * 2 + 1, 2, "0", STR_PAD_LEFT);
+        $sub2 = $conteo === 1 ? "lineas02" : "lineas" . str_pad(($conteo - 1) * 2 + 2, 2, "0", STR_PAD_LEFT);
+
+        $url1 = "$root/INVENTARIO/$idDoc/$sub1?key=$firebaseApiKey";
+        $url2 = "$root/INVENTARIO/$idDoc/$sub2?key=$firebaseApiKey";
+
+        $data1 = http_get_json($url1);
+        $data2 = http_get_json($url2);
+
+        // Detectar si hay al menos un documento con campos de artículos
+        $hasData = false;
+        foreach ([$data1, $data2] as $dataset) {
+            if (!isset($dataset['documents'])) continue;
+            foreach ($dataset['documents'] as $doc) {
+                if (!empty($doc['fields'])) {
+                    // Excluir campos técnicos
+                    $fields = array_diff_key($doc['fields'], [
+                        'idAsignado' => 1,
+                        'status' => 1,
+                        'updatedAt' => 1,
+                    ]);
+                    if (count($fields) > 0) {
+                        $hasData = true;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        echo json_encode(["success" => true, "hasData" => $hasData]);
+        break;
+
 
     default:
         echo json_encode(["success" => false, "message" => "Acción no válida"]);

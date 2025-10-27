@@ -1720,6 +1720,9 @@ function obtenerDatosFormulario() {
     tipoOperacion: document.getElementById("tipoOperacion").value,
     CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value, // Mover
     observaciones: document.getElementById("observaciones").value,
+    enviarWhats: document.getElementById("enviarWhats").checked,
+    enviarCorreo: document.getElementById("enviarCorreo").checked,
+
   };
   return formularioData;
 }
@@ -1883,17 +1886,75 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
       console.log("Respuesta del servidor:", data);
 
       if (data.success) {
-        //Mensaje cuando el pedido se realizo con exito
         Swal.fire({
           title: "¡Pedido guardado exitosamente!",
-          text: data.message || "El pedido se procesó correctamente.",
+          html: `
+      <p>${data.message || "El pedido se procesó correctamente."}</p>
+      ${
+              data.correo
+                  ? `<p><strong>${data.correo}</strong></p>`
+                  : ""
+          }
+      ${
+              data.whats
+                  ? `<p><strong>${data.whats}</strong></p>`
+                  : ""
+          }
+    `,
           icon: "success",
           confirmButtonText: "Aceptar",
         }).then(() => {
-          // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else if (data.autorizacion) {
+      }
+      else if (data.soloCorreo) {
+        Swal.fire({
+          title: "Pedido actualizado",
+          html: `
+      <p>${data.message || "El pedido se envió solo al correo:"}</p>
+      ${
+              data.correo
+                  ? `<p><strong>${data.correo}</strong></p>`
+                  : ""
+          }
+    `,
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          window.location.href = "Ventas.php";
+        });
+      }
+      else if (data.soloWhats) {
+        Swal.fire({
+          title: "Pedido actualizado",
+          html: `
+      <p>${data.message || "El pedido se envió solo al WhatsApp:"}</p>
+      ${
+              data.whats
+                  ? `<p><strong>${data.whats}</strong></p>`
+                  : ""
+          }
+    `,
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          window.location.href = "Ventas.php";
+        });
+      }
+      else if (data.sinEnvio) {
+        Swal.fire({
+          title: "Pedido actualizado",
+          text:
+              data.message ||
+              "El pedido fue actualizado pero no se envió notificación al cliente.",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          window.location.href = "Ventas.php";
+        });
+      }
+
+      else if (data.autorizacion) {
         //Mensaje cuando se tiene que autorizar el pedido por un administrador
         Swal.fire({
           title: "Saldo vencido",
@@ -1905,7 +1966,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else if (data.exist) {
+      }
+      else if (data.exist) {
         //Mensaje cuando no hay existencias para algunos productos
         Swal.fire({
           title: "Error al guardar el pedido",
@@ -1936,7 +1998,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           icon: "error",
           confirmButtonText: "Aceptar",
         });
-      } else if (data.cxc) {
+      }
+      else if (data.cxc) {
         //Mensaje cuando no se encontro un anticipo y tiene 72 horas para pagar
         Swal.fire({
           title: "Cuenta por pagar",
@@ -1947,7 +2010,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else if (data.telefono) {
+      }
+      else if (data.telefono) {
         //Mensaje cuando solo se le pudo notificar al cliente por WhatsApp
         Swal.fire({
           title: "Pedido Guardado",
@@ -1958,7 +2022,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else if (data.correo) {
+      }
+      else if (data.correo) {
         //Mensaje cuando solo se le pudo notificar al cliente por correo
         Swal.fire({
           title: "Pedido Guardado",
@@ -1969,7 +2034,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else if (data.notificacion) {
+      }
+      else if (data.notificacion) {
         //Mensaje cuando no se pudo notificar al cliente y se le notifico al vendedor
         Swal.fire({
           title: "Pedido Guardado",
@@ -1980,7 +2046,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else {
+      }
+      else {
         Swal.fire({
           title: "Error al Guardar el Pedido",
           text: data.message || "Ocurrió un error inesperado.",
@@ -2076,9 +2143,7 @@ function obtenerDatosEnvio() {
 document.getElementById("añadirPartida").addEventListener("click", function () {
   agregarFilaPartidas();
 });
-document
-  .getElementById("tablaProductos")
-  .addEventListener("keydown", function (event) {
+document.getElementById("tablaProductos").addEventListener("keydown", function (event) {
     if (
       event.key === "Tab" &&
       event.target.classList.contains("descuento") // Solo si el evento ocurre en un input de cantidad
@@ -2086,9 +2151,7 @@ document
       agregarFilaPartidas();
     }
   });
-document
-  .getElementById("formularioPedido")
-  .addEventListener("keydown", function (event) {
+document.getElementById("formularioPedido").addEventListener("keydown", function (event) {
     // Si Tab y el target es el input con id "enviar"
     if (event.key === "Tab" && event.target.id === "enviar") {
       agregarFilaPartidas();

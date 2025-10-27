@@ -505,6 +505,69 @@ if (isset($_SESSION['usuario'])) {
 }
 
 </style>
+<!-- Estilos para los checks de enviar correo y whatsapp -->
+<style>
+    /* contenedor de los checks */
+    .form-checks {
+        display: flex;
+        gap: 40px;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    /* oculta el checkbox original */
+    .form-checks input[type="checkbox"] {
+        display: none;
+    }
+
+    /* SOLO los labels con atributo data-check tendrán el estilo */
+    label[data-check] {
+        position: relative;
+        padding-left: 35px;
+        cursor: pointer;
+        font-family: "Poppins", sans-serif;
+        font-size: 15px;
+        color: #333;
+    }
+
+    /* caja del checkbox */
+    label[data-check]::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 2px;
+        width: 22px;
+        height: 22px;
+        border: 2px solid #00bd56;
+        border-radius: 6px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+    }
+
+    /* palomita */
+    label[data-check]::after {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 4px;
+        width: 8px;
+        height: 14px;
+        border-right: 3px solid #fff;
+        border-bottom: 3px solid #fff;
+        transform: rotate(45deg) scale(0);
+        transition: transform 0.2s ease;
+    }
+
+    /* cuando está marcado */
+    .form-checks input[type="checkbox"]:checked + label[data-check]::before {
+        background-color: #00bd56;
+        border-color: #00bd56;
+    }
+
+    .form-checks input[type="checkbox"]:checked + label[data-check]::after {
+        transform: rotate(45deg) scale(1);
+    }
+</style>
 
 <body>
     <!-- <div class=""> -->
@@ -647,9 +710,12 @@ if (isset($_SESSION['usuario'])) {
                                 <label for="observaciones">Observaciones</label>
                                 <input type="text" name="observaciones" id="observaciones" style="width:250px;" disabled>
                             </div>
-                            <div class="form-element">
-                                <label for="enviarWhats">Enviar WhatsApp<input type="checkbox" name="enviarWhats" id="enviarWhats" style="width:250px;" checked></label>
-                                <label for="enviarCorreo">Enviar Correo<input type="checkbox" name="enviarCorreo" id="enviarCorreo" style="width:250px;" checked></label>
+                            <div class="form-checks">
+                                <input type="checkbox" name="enviarWhats" id="enviarWhats" checked>
+                                <label for="enviarWhats" data-check>Enviar WhatsApp</label>
+
+                                <input type="checkbox" name="enviarCorreo" id="enviarCorreo" checked>
+                                <label for="enviarCorreo" data-check>Enviar Correo</label>
                             </div>
                             
                             <div class="container my-5">

@@ -1045,8 +1045,8 @@ function obtenerDatosFormulario() {
     tipoOperacion: document.getElementById("tipoOperacion").value,
     CVE_ESQIMPU: document.getElementById("CVE_ESQIMPU").value, // Mover
     observaciones: document.getElementById("observaciones").value,
-    /*enviarWhats: document.getElementById("enviarWhats").checked,
-    enviarCorreo: document.getElementById("enviarCorreo").checked,*/
+    enviarWhats: document.getElementById("enviarWhats").checked,
+    enviarCorreo: document.getElementById("enviarCorreo").checked,
   };
   return formularioData;
 }
@@ -1200,19 +1200,60 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
       if (!data) return;
       console.log("Respuesta del servidor:", data);
 
+
       if (data.success) {
         guardarOrden();
-        //Mensaje cuando el pedido se realizo con exito
         Swal.fire({
           title: "¡Pedido guardado exitosamente!",
-          text: data.message || "El pedido se procesó correctamente.",
+          html: `
+      <p>${data.message || "El pedido se procesó correctamente."}</p>
+      ${data.correo ? `<p><strong>Correo:</strong> ${data.correo}</p>` : ""}
+      ${data.whats ? `<p><strong>WhatsApp:</strong> ${data.whats}</p>` : ""}
+    `,
           icon: "success",
           confirmButtonText: "Aceptar",
         }).then(() => {
-          // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else if (data.autorizacion) {
+      }
+      else if (data.soloCorreo) {
+        Swal.fire({
+          title: "Pedido guardado",
+          html: `
+      <p>${data.message || "El pedido se envió solo por correo."}</p>
+      ${data.correo ? `<p><strong>Correo:</strong> ${data.correo}</p>` : ""}
+    `,
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          window.location.href = "Ventas.php";
+        });
+      }
+      else if (data.soloWhats) {
+        Swal.fire({
+          title: "Pedido guardado",
+          html: `
+      <p>${data.message || "El pedido se envió solo por WhatsApp."}</p>
+      ${data.whats ? `<p><strong>WhatsApp:</strong> ${data.whats}</p>` : ""}
+    `,
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          window.location.href = "Ventas.php";
+        });
+      }
+      else if (data.sinEnvio) {
+        Swal.fire({
+          title: "Pedido guardado",
+          text: data.message || "El pedido fue guardado pero no se enviaron notificaciones.",
+          icon: "info",
+          confirmButtonText: "Aceptar",
+        }).then(() => {
+          window.location.href = "Ventas.php";
+        });
+      }
+
+      else if (data.autorizacion) {
         //Mensaje cuando se tiene que autorizar el pedido por un administrador
         Swal.fire({
           title: "Saldo vencido",
@@ -1225,7 +1266,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           guardarOrden();
           window.location.href = "Ventas.php";
         });
-      } else if (data.exist) {
+      }
+      else if (data.exist) {
         //Mensaje cuando no hay existencias para algunos productos
         Swal.fire({
           title: "Error al guardar el pedido",
@@ -1256,7 +1298,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           icon: "error",
           confirmButtonText: "Aceptar",
         });
-      } else if (data.cxc) {
+      }
+      else if (data.cxc) {
         //Mensaje cuando no se encontro un anticipo y tiene 72 horas para pagar
         Swal.fire({
           title: "Cuenta por pagar",
@@ -1268,7 +1311,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           guardarOrden();
           window.location.href = "Ventas.php";
         });
-      } else if (data.telefono) {
+      }
+      else if (data.telefono) {
         //Mensaje cuando solo se le pudo notificar al cliente por WhatsApp
         Swal.fire({
           title: "Pedido Guardado",
@@ -1280,7 +1324,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           // Redirigir al usuario o realizar otra acción
           window.location.href = "Ventas.php";
         });
-      } else if (data.correo) {
+      }
+      else if (data.correo) {
         //Mensaje cuando solo se le pudo notificar al cliente por correo
         Swal.fire({
           title: "Pedido Guardado",
@@ -1292,7 +1337,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           guardarOrden();
           window.location.href = "Ventas.php";
         });
-      } else if (data.notificacion) {
+      }
+      else if (data.notificacion) {
         //Mensaje cuando no se pudo notificar al cliente y se le notifico al vendedor
         Swal.fire({
           title: "Pedido Guardado",
@@ -1304,7 +1350,8 @@ async function enviarDatosBackend(formularioData, partidasData, envioData) {
           guardarOrden();
           window.location.href = "Ventas.php";
         });
-      } else {
+      }
+      else {
         Swal.fire({
           title: "Error al Guardar el Pedido",
           text: data.message || "Ocurrió un error inesperado.",

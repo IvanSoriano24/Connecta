@@ -6419,7 +6419,7 @@ function pagarCxc($conexionData, $claveSae, $datosCxC, $formularioData, $partida
     //echo json_encode(['success' => true, 'message' => 'CxC creada y pagada.']);
     return;
 }
-function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn, $idEnvios)
+function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn, $idEnvios, $flagCorreo, $flagWhats)
 {
     if ($conn === false) {
         die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
@@ -6499,48 +6499,59 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
         $numeroBandera = 0;
     }
     if (($correo === 'S' && isset($emailPred)) || isset($numeroWhatsApp)) {
-        // Enviar notificaciones solo si los datos son válidos
-        //if ($formularioData['enviarCorreo']) {
-        if ($correoBandera === 0) {
-            enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente); // Enviar correo
+
+        // Determinar si se deben enviar notificaciones según los checks del frontend
+        $puedeEnviarCorreo = ($correoBandera === 0) && ($flagCorreo === true || $flagCorreo === "true" || $flagCorreo === 1 || $flagCorreo === "1");
+        $puedeEnviarWhats  = ($numeroBandera === 0) && ($flagWhats === true || $flagWhats === "true" || $flagWhats === 1 || $flagWhats === "1");
+
+        // Enviar correo si aplica
+        if ($puedeEnviarCorreo) {
+            enviarCorreoConfirmacion($emailPred, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente);
         }
-        //}
-        //if ($formularioData['enviarWhats']) {
-        if ($numeroBandera === 0) {
-            //$resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
+
+        // Enviar WhatsApp si aplica
+        if ($puedeEnviarWhats) {
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-            //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-            //$resultadoWhatsApp = enviarWhatsAppConPlantilla($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios);
             $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $idEnvios, $rutaPDFW, $filename);
         }
-        //}
 
-        // Determinar la respuesta JSON según las notificaciones enviadas
-        if ($correoBandera === 0 && $numeroBandera === 0) {
-            // Respuesta de éxito
-            header('Content-Type: application/json; charset=UTF-8');
+        // Respuesta JSON según lo que se envió
+        if ($puedeEnviarCorreo && $puedeEnviarWhats) {
             echo json_encode([
-                'success' => false,
-                'cxc' => true,
-                'message' => 'El pedido tiene 72 Horas para liquidarse.',
+                'success' => true,
+                'message' => "Pedido realizado y enviado por correo a $emailPred y por WhatsApp a $numeroWhatsApp.",
+                'correo' => $emailPred,
+                'whats' => $numeroWhatsApp,
             ]);
-        } elseif ($correoBandera === 1 && $numeroBandera === 0) {
-            echo json_encode(['success' => false, 'telefono' => true, 'message' => 'Pedido Realizado, el Cliente no tiene Correo para Notificar pero si WhatsApp. Se tiene 72 horas para saldar el pedido.']);
-            //die();
-        } elseif ($correoBandera === 0 && $numeroBandera === 1) {
-            echo json_encode(['success' => false, 'correo' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene WhatsApp para notifiar pero si Correo. Se tiene 72 horas para saldar el pedido.']);
-            //die();
+        } elseif ($puedeEnviarCorreo && !$puedeEnviarWhats) {
+            echo json_encode([
+                'success' => true,
+                'soloCorreo' => true,
+                'message' => "Pedido realizado y enviado solo por correo a $emailPred.",
+                'correo' => $emailPred,
+            ]);
+        } elseif (!$puedeEnviarCorreo && $puedeEnviarWhats) {
+            echo json_encode([
+                'success' => true,
+                'soloWhats' => true,
+                'message' => "Pedido realizado y enviado solo por WhatsApp a $numeroWhatsApp.",
+                'whats' => $numeroWhatsApp,
+            ]);
         } else {
-            $correoVendedor = $_SESSION['usuario']['correo'];
-            $telefonoVendedor = $_SESSION['usuario']['telefono'];
-            enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente); // Enviar correo
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaConfirmacion($telefonoVendedor, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente);
-
-            echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Realizado, el Cliente no Tiene un Correo y WhatsApp para notificar. Se tiene 72 horas para saldar el pedido.']);
-            //die();
+            echo json_encode([
+                'success' => true,
+                'sinEnvio' => true,
+                'message' => "Pedido realizado pero no se enviaron notificaciones al cliente.",
+            ]);
         }
-    } else {
+
+        sqlsrv_commit($conn);
+        sqlsrv_close($conn);
+        exit();
+    }
+
+    else {
         $correoVendedor = $_SESSION['usuario']['correo'];
         $telefonoVendedor = $_SESSION['usuario']['telefono'];
         enviarCorreoConfirmacion($correoVendedor, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente); // Enviar correo
@@ -6555,6 +6566,7 @@ function validarCorreoClienteConfirmacion($formularioData, $partidasData, $conex
     }
     sqlsrv_free_stmt($stmt);
 }
+
 function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente)
 {
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
@@ -6679,6 +6691,7 @@ function enviarWhatsAppConPlantillaConfirmacion($numero, $clienteNombre, $noPedi
 
     return $result;
 }
+
 function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $claveSae, $noEmpresa, $clave, $rutaPDF, $conCredito, $conexionData, $claveCliente)
 {
     // Crear una instancia de la clase clsMail
@@ -6784,6 +6797,7 @@ function enviarCorreoConfirmacion($correo, $clienteNombre, $noPedido, $partidasD
         echo json_encode(['success' => false, 'message' => $resultado]);
     }
 }
+
 function restarSaldo($conexionData, $claveSae, $datosCxC, $claveCliente)
 {
     $serverName = $conexionData['host'];
@@ -9369,6 +9383,9 @@ switch ($funcion) {
         break;
     case 8:
         $formularioData = json_decode($_POST['formulario'], true); // Datos del formulario desde JS
+        $flagWhats = $formularioData['enviarWhats'] ?? false;
+        $flagCorreo = $formularioData['enviarCorreo'] ?? false;
+
         $csrf_token  = $_SESSION['csrf_token'];
         $csrf_token_form = $formularioData['token'];
         if ($csrf_token === $csrf_token_form) {
@@ -9433,7 +9450,7 @@ switch ($funcion) {
                     actualizarInventario($conexionData, $partidasData, $conn);
                     $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $folio, $conn);
                     guardarPago($idEnvios, $conexionData, $formularioData, $partidasData, $claveSae, $noEmpresa, $folio, $conn);
-                    validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn, $idEnvios);
+                    validarCorreoClienteConfirmacion($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $folio, $conn, $idEnvios, $flagCorreo, $flagWhats);
                     //$fac = generarCuentaPorCobrar($conexionData, $formularioData, $claveSae, $partidasData);
                     sqlsrv_commit($conn);
                     sqlsrv_close($conn);

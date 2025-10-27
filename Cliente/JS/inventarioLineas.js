@@ -1314,13 +1314,77 @@ function cargarLineasDesdeFirestore() {
               console.log("Autoguardado anterior detenido");
             }
 
-            if (window.claveLinea) {
-              autoSaveInterval = setInterval(() => {
-                console.log(`Autoguardado de línea ${window.claveLinea}...`);
-                guardarLinea(false);
-              }, 5 * 60 * 1000); // cada 5 minutos
-              console.log("Autoguardado iniciado para la línea:", window.claveLinea);
+            if (window.claveLinea && tipoUsuario === "ALMACENISTA") {
+              const idInv = window.idInventario;
+              const conteoVal = Number($("#conteoInput").val() || 1);
+              const subVal = Number($("#subconteoInput").val() || 1);
+
+              // Determinar subcolección (igual que en backend)
+              function getSubcol(c, s) {
+                if (c === 1) return s === 1 ? "lineas" : "lineas02";
+                const start = (c - 1) * 2 + (s === 1 ? 1 : 2);
+                return "lineas" + String(start).padStart(2, "0");
+              }
+              const subcol = getSubcol(conteoVal, subVal);
+
+              // Paso 1: obtener la configuración global
+              $.get("../Servidor/PHP/inventarioFirestore.php", {
+                accion: "obtenerConfig",
+                doc: "inventarioFisico",
+              })
+                  .done(function (cfgRaw) {
+                    const cfg = typeof cfgRaw === "string" ? JSON.parse(cfgRaw) : cfgRaw;
+                    const activo =
+                        cfg && cfg.success && cfg.data?.guardadoAutomatico === true;
+
+                    if (!activo) {
+                      console.log(
+                          "Guardado automático desactivado en CONFIG/inventarioFisico"
+                      );
+                      return;
+                    }
+
+                    // Paso 2: verificar que la línea siga activa (status = true)
+                    $.get("../Servidor/PHP/inventarioFirestore.php", {
+                      accion: "obtenerStatusLinea",
+                      idInventario: idInv,
+                      subcol: subcol,
+                      claveLinea: window.claveLinea,
+                    })
+                        .done(function (resRaw) {
+                          const res =
+                              typeof resRaw === "string" ? JSON.parse(resRaw) : resRaw;
+                          const lineaActiva =
+                              res && res.success && res.data?.status === true;
+
+                          if (lineaActiva) {
+                            autoSaveInterval = setInterval(() => {
+                              console.log(
+                                  `Autoguardado de línea ${window.claveLinea}...`
+                              );
+                              guardarLinea(false);
+                            }, .5 * 60 * 1000);
+                            console.log(
+                                "Autoguardado iniciado para línea activa:",
+                                window.claveLinea
+                            );
+                          } else {
+                            console.log(
+                                `Línea ${window.claveLinea} tiene status=false, no se inicia autoguardado`
+                            );
+                          }
+                        })
+                        .fail(function () {
+                          console.warn("Error al verificar el status de la línea en Firestore");
+                        });
+                  })
+                  .fail(function () {
+                    console.warn("No se pudo obtener la configuración de guardado automático");
+                  });
+            } else{
+              console.log("No se activa el AUTOGUARDADO porque no es usuario ALMACENISTA, es: ", tipoUsuario);
             }
+
 
           });
         })

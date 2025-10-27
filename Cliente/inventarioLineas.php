@@ -9,7 +9,7 @@ if (isset($_SESSION['usuario'])) {
     $nombreApellido = "{$_SESSION['usuario']['nombre']} {$_SESSION['usuario']['apellido']}";
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     $correo = $_SESSION['usuario']["correo"];
-    if ($_SESSION['usuario']['tipoUsuario'] == 'ADMISTRADOR') {
+    if ($_SESSION['usuario']['tipoUsuario'] == 'ADMINISTRADOR') {
         header('Location:Dashboard.php');
         exit();
     }
@@ -628,6 +628,7 @@ session_destroy(); */
     <script>
         const nombreUsuario = "<?php echo $_SESSION['usuario']['nombre'] . ' ' . $_SESSION['usuario']['apellido']; ?>";
         const usuarioId = "<?php echo $_SESSION['usuario']['id']; ?>";
+        const tipoUsuario = <?php echo json_encode($_SESSION['usuario']['tipoUsuario'] ?? ''); ?>;
     </script>
     <script>
         (function() {

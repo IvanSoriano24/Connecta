@@ -87,7 +87,6 @@ async function mostrarInventarios() {
 
         // ================== Construcción dinámica del dropdown ==================
         const totalConteos = inv.conteo || 1; // número total de conteos que viene de Firestore
-
         let dropdownHTML = `
   <div class="btn-group">
     <button class="btn btn-sm btn-success dropdown-toggle"
@@ -103,30 +102,58 @@ async function mostrarInventarios() {
           const conteoLabel = `Conteo ${i}`;
           const separador = i < totalConteos ? `<li><hr class="dropdown-divider"></li>` : "";
 
+          // 🔹 Marcador inicial de “cargando”
           dropdownHTML += `
     <li><h6 class="dropdown-header">${conteoLabel}</h6></li>
-    <li><a class="dropdown-item" href="#"
-           data-tipo="excel"
-           data-conteo="${i}"
-           data-noinv="${noInv}"
-           data-iddoc="${idDoc}">
-           Excel
-    </a></li>
-    <li><a class="dropdown-item" href="#"
-           data-tipo="pdf"
-           data-conteo="${i}"
-           data-noinv="${noInv}"
-           data-iddoc="${idDoc}">
-           PDF
+    <li><a class="dropdown-item disabled text-muted" id="btnRep-${idDoc}-${i}">
+      Verificando datos...
     </a></li>
     ${separador}
   `;
+
+          // 🔹 Verificar datos en Firestore vía PHP
+          $.get("../Servidor/PHP/inventarioFirestore.php", {
+            accion: "verificarDatosConteo",
+            idDocumento: idDoc,
+            conteo: i,
+          })
+              .done((resRaw) => {
+                const res = typeof resRaw === "string" ? JSON.parse(resRaw) : resRaw;
+                const $btn = $(`#btnRep-${idDoc}-${i}`);
+
+                if (res.success && res.hasData) {
+                  // Reemplazar por botones activos
+                  $btn.parent().html(`
+          <a class="dropdown-item" href="#"
+             data-tipo="excel"
+             data-conteo="${i}"
+             data-noinv="${noInv}"
+             data-iddoc="${idDoc}">
+             Excel
+          </a>
+          <a class="dropdown-item" href="#"
+             data-tipo="pdf"
+             data-conteo="${i}"
+             data-noinv="${noInv}"
+             data-iddoc="${idDoc}">
+             PDF
+          </a>
+        `);
+                } else {
+                  // No hay datos → dejar deshabilitado
+                  $btn.text("Sin datos disponibles").addClass("text-muted");
+                }
+              })
+              .fail(() => {
+                $(`#btnRep-${idDoc}-${i}`).text("Error al verificar").addClass("text-danger");
+              });
         }
 
         dropdownHTML += `</ul></div>`;
 
         const $btnReportes = $(dropdownHTML);
         $acciones.append($btnReportes);
+
 
 
         $fila.append($acciones);
@@ -209,6 +236,7 @@ $(document).on("click", ".dropdown-item[data-tipo]", async function (e) {
     Swal.fire("Error", "Error al comunicarse con el servidor.", "error");
   }
 });
+
 async function generarExcelInventarioCompleto(datos) {
   try {
     const cab = datos.cabecera || {};
