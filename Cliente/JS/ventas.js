@@ -220,6 +220,16 @@ function enviarConfirmacionMail(pedidoID, correos = []) {
   alert("Correos enviados: " + correos.join(", "));
 }
 
+// Función para inicializar tooltips de Bootstrap en la tabla de pedidos
+function initTooltipsPedidos() {
+  const nodes = document.querySelectorAll('#pedidos [data-bs-toggle="tooltip"]');
+  nodes.forEach(el => {
+    const inst = bootstrap.Tooltip.getInstance(el);
+    if (inst) inst.dispose();
+    new bootstrap.Tooltip(el, { delay: { show: 0, hide: 0 }, trigger: 'hover' });
+  });
+}
+
 function agregarEventosBotones() {
   // Botones de editar
   const botonesEditar = document.querySelectorAll(".btnEditarPedido");
@@ -965,17 +975,19 @@ function datosPedidos(limpiarTabla = true) {
                     ? `
 
                   <!-- EDITAR -->
-                  <td>
-                    <button class="btnEditarPedido btn-iconNuevos btn-editar" data-id="${pedido.Clave}" title="Editar">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
+                  <td class="text-center">
+                    <i class="bi btn-iconNuevos bi-pencil btnEditarPedido"
+                       title="Editar Pedido"
+                       data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                       data-id="${pedido.Clave}"></i>
                   </td>
-                  
+
                   <!-- CANCELAR -->
-                  <td>
-                    <button class="btnCancelarPedido btn-iconNuevos btn-cancelar" data-id="${pedido.Clave}" title="Cancelar">
-                      <i class="fa-solid fa-ban"></i>
-                    </button>
+                  <td class="text-center">
+                    <i class="bi btn-iconNuevos bi-x-circle btnCancelarPedido"
+                       title="Cancelar Pedido"
+                       data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                       data-id="${pedido.Clave}"></i>
                   </td>
                 `
                     : `
@@ -983,23 +995,21 @@ function datosPedidos(limpiarTabla = true) {
                   <td></td>
                 `
                 }
-                
+
                 <!-- VISUALIZAR -->
-                <td>
-                  <button class="btnVerPedido btn-iconNuevos btn-visualizar" data-id="${
-                    pedido.Clave
-                  }" title="Visualizar">
-                    <i class="fa-regular fa-eye"></i>
-                  </button>
+                <td class="text-center">
+                  <i class="bi btn-iconNuevos bi-eye btnVerPedido"
+                     title="Ver Detalles"
+                     data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                     data-id="${pedido.Clave}"></i>
                 </td>
-                
+
                 <!-- DESCARGAR -->
-                <td>
-                  <button class="btnDescargarPedido btn-iconNuevos btn-downloadP" data-id="${
-                    pedido.Clave
-                  }" title="Descargar">
-                    <i class="fa-solid fa-download"></i>
-                  </button>
+                <td class="text-center">
+                  <i class="bi btn-iconNuevos bi-download btnDescargarPedido"
+                     title="Descargar PDF"
+                     data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                     data-id="${pedido.Clave}"></i>
                 </td>
               `;
 
@@ -1011,21 +1021,26 @@ function datosPedidos(limpiarTabla = true) {
                 td.style.gap = "8px"; // espacio entre botones
                 td.style.justifyContent = "center";
                 td.style.alignItems = "center";
+                td.className = "text-center";
 
                 // WhatsApp
-                const btnWhats = document.createElement("button");
+                const btnWhats = document.createElement("i");
                 btnWhats.className =
-                  "btn-iconNuevos btn-enviarWhatsapp btnSendWhats";
+                  "bi bi-whatsapp btn-iconNuevos btn-enviarWhatsapp btnSendWhats";
                 btnWhats.title = "Enviar por WhatsApp";
-                btnWhats.innerHTML = '<i class="fa-brands fa-whatsapp"></i>';
+                btnWhats.setAttribute("data-bs-toggle", "tooltip");
+                btnWhats.setAttribute("data-bs-placement", "top");
+                btnWhats.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
                 btnWhats.dataset.id = pedido.Clave;
 
                 // Correo
-                const btnMail = document.createElement("button");
+                const btnMail = document.createElement("i");
                 btnMail.className =
-                  "btn-iconNuevos btn-enviarCorreo btnSendMail";
+                  "bi bi-envelope btn-iconNuevos btn-enviarCorreo btnSendMail";
                 btnMail.title = "Enviar por Correo";
-                btnMail.innerHTML = '<i class="fa-regular fa-envelope"></i>';
+                btnMail.setAttribute("data-bs-toggle", "tooltip");
+                btnMail.setAttribute("data-bs-placement", "top");
+                btnMail.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
                 btnMail.dataset.id = pedido.Clave;
 
                 td.appendChild(btnWhats);
@@ -1046,6 +1061,9 @@ function datosPedidos(limpiarTabla = true) {
             } else {
               //document.getElementById("btnMostrarMas").style.display = "block";
             }
+
+            // Inicializar tooltips de Bootstrap
+            initTooltipsPedidos();
 
             // Llama a la función que asigna eventos a los botones, si está definida
             if (typeof agregarEventosBotones === "function") {
@@ -1807,7 +1825,7 @@ function doSearch(limpiarTabla = true) {
                   : "Sin importe";
 
                 row.innerHTML = `
-                  
+
                   <td>${pedido.Clave || "Sin nombre"}</td>
                   <td >${pedido.Cliente || "Sin cliente"}</td>
                   <td>${pedido.Nombre || "Sin nombre"}</td>
@@ -1822,47 +1840,39 @@ function doSearch(limpiarTabla = true) {
                 <td class="nombreVendedor">${
                   pedido.NombreVendedor || "Sin vendedor"
                 }</td>
-                
+
                 <!-- EDITAR -->
-                  <td>
-                    <button class="btnEditarPedido btn-iconNuevos btn-editar" data-id="${
-                      pedido.Clave
-                    }" title="Editar">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                  </td>
-                  
-                  
+                <td class="text-center">
+                  <i class="bi btn-iconNuevos bi-pencil btnEditarPedido"
+                     title="Editar Pedido"
+                     data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                     data-id="${pedido.Clave}"></i>
+                </td>
+
                 <!-- CANCELAR -->
-                  <td>
-                    <button class="btnCancelarPedido btn-iconNuevos btn-cancelar" data-id="${
-                      pedido.Clave
-                    }" title="Cancelar">
-                      <i class="fa-solid fa-ban"></i>
-                    </button>
-                  </td>
-                  
-                  
+                <td class="text-center">
+                  <i class="bi btn-iconNuevos bi-x-circle btnCancelarPedido"
+                     title="Cancelar Pedido"
+                     data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                     data-id="${pedido.Clave}"></i>
+                </td>
+
                 <!-- VISUALIZAR -->
-                <td>
-                  <button class="btnVerPedido btn-iconNuevos btn-visualizar" data-id="${
-                    pedido.Clave
-                  }" title="Visualizar">
-                    <i class="fa-regular fa-eye"></i>
-                  </button>
+                <td class="text-center">
+                  <i class="bi btn-iconNuevos bi-eye btnVerPedido"
+                     title="Ver Detalles"
+                     data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                     data-id="${pedido.Clave}"></i>
                 </td>
-                  <td>
-                  
-                                
+
                 <!-- DESCARGAR -->
-                <td>
-                  <button class="btnDescargarPedido btn-iconNuevos btn-downloadP" data-id="${
-                    pedido.Clave
-                  }" title="Descargar">
-                    <i class="fa-solid fa-download"></i>
-                  </button>
+                <td class="text-center">
+                  <i class="bi btn-iconNuevos bi-download btnDescargarPedido"
+                     title="Descargar PDF"
+                     data-bs-toggle="tooltip" data-bs-placement="top" data-bs-delay='{"show":0,"hide":0}'
+                     data-id="${pedido.Clave}"></i>
                 </td>
-               
+
                 `;
                 const td = document.createElement("td");
                 if (estadoPedido === "Activos") {
@@ -1880,6 +1890,9 @@ function doSearch(limpiarTabla = true) {
               // Agregar todas las filas de una sola vez
               pedidosTable.appendChild(fragment);
               buildPagination(response.total);
+
+              // Inicializar tooltips de Bootstrap
+              initTooltipsPedidos();
 
               // Llama a la función que asigna eventos a los botones, si está definida
               if (typeof agregarEventosBotones === "function") {

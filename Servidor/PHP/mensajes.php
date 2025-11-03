@@ -817,13 +817,29 @@ function comandas($firebaseProjectId, $firebaseApiKey, $filtroStatus)
         $fechaHoraStr = $fields['fechaHoraElaboracion']['stringValue'] ?? "";
         list($fecha, $hora) = array_pad(explode(" ", $fechaHoraStr), 2, ["", "00:00:00"]);
 
+        // Obtener vendedor
+        $vendedor = $fields['vendedor']['stringValue'] ?? "";
+
+        // Determinar tipo de pago: Anticipado si pagada=true, Crédito si credito=true
+        $pagada = $fields['pagada']['booleanValue'] ?? false;
+        $credito = $fields['credito']['booleanValue'] ?? false;
+        
+        $tipoPago = "No definido";
+        if ($pagada) {
+            $tipoPago = "Anticipado";
+        } elseif ($credito) {
+            $tipoPago = "Crédito";
+        }
+
         $comandas[] = [
             'id' => basename($doc['name']),
             'noPedido' => $fields['folio']['stringValue'] ?? "",
             'nombreCliente' => $fields['nombreCliente']['stringValue'] ?? "",
             'status' => $fields['status']['stringValue'] ?? "",
             'fecha' => $fecha,
-            'hora' => $hora
+            'hora' => $hora,
+            'vendedor' => $vendedor,
+            'tipoPago' => $tipoPago
         ];
     }
 
@@ -851,16 +867,90 @@ function obtenerDetallesComanda($firebaseProjectId, $firebaseApiKey, $comandaId)
         $fields = $data['fields'];
         $productos = [];
 
+        // Obtener el folio del pedido para buscar lotes en BD si no están en Firebase
+        $folioPedido = $fields['folio']['stringValue'] ?? '';
+        $claveSae = $_SESSION['empresa']['claveSae'] ?? '';
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'] ?? '';
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        $conn = null;
+        if ($conexionResult['success']) {
+            $conexionData = $conexionResult['data'];
+            $serverName = $conexionData['host'];
+            $connectionInfo = [
+                "Database" => $conexionData['nombreBase'],
+                "UID" => $conexionData['usuario'],
+                "PWD" => $conexionData['password'],
+                "CharacterSet" => "UTF-8",
+                "TrustServerCertificate" => true
+            ];
+            $conn = @sqlsrv_connect($serverName, $connectionInfo);
+        }
+
         if (isset($fields['productos']['arrayValue']['values'])) {
             foreach ($fields['productos']['arrayValue']['values'] as $p) {
+                // Obtener el lote, verificar múltiples formatos posibles
+                $lote = '';
+                if (isset($p['mapValue']['fields']['lote'])) {
+                    if (isset($p['mapValue']['fields']['lote']['stringValue'])) {
+                        $lote = trim($p['mapValue']['fields']['lote']['stringValue']);
+                    } elseif (isset($p['mapValue']['fields']['lote']['integerValue'])) {
+                        $lote = (string)$p['mapValue']['fields']['lote']['integerValue'];
+                    } elseif (isset($p['mapValue']['fields']['lote']['doubleValue'])) {
+                        $lote = (string)$p['mapValue']['fields']['lote']['doubleValue'];
+                    }
+                }
+                
+                // Si el lote está vacío, "N/A" o "NA", intentar obtenerlo desde LTPD a través de ENLACE_LTPD
+                // Nota: Los lotes se asignan cuando se procesa la remisión. Si no están aquí,
+                // significa que la comanda aún no ha sido procesada o el producto no tiene control de lotes.
+                if (empty($lote) || $lote === 'N/A' || $lote === 'NA') {
+                    $claveProducto = $p['mapValue']['fields']['clave']['stringValue'] ?? '';
+                    if (!empty($claveProducto) && $conn !== false && !empty($folioPedido)) {
+                        // Intentar obtener el lote desde LTPD usando ENLACE_LTPD y PAR_FACTP
+                        $tablaEnlace = "[{$conexionData['nombreBase']}].[dbo].[ENLACE_LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+                        $tablaLotes = "[{$conexionData['nombreBase']}].[dbo].[LTPD" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+                        $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+                        $pedidoFormat = str_pad($folioPedido, 10, '0', STR_PAD_LEFT);
+                        $pedidoFormat = str_pad($pedidoFormat, 20, ' ', STR_PAD_LEFT);
+                        
+                        // Buscar el lote a través de la relación: PAR_FACTP -> ENLACE_LTPD -> LTPD
+                        $sql = "SELECT TOP 1 L.LOTE 
+                                FROM $tablaEnlace E
+                                INNER JOIN $tablaLotes L ON L.REG_LTPD = E.REG_LTPD AND L.CVE_ART = E.CVE_ART
+                                INNER JOIN $tablaPartidas P ON P.CVE_ART = ?
+                                WHERE P.CVE_DOC = ? AND P.CVE_ART = ?
+                                ORDER BY E.E_LTPD DESC";
+                        $params = [$claveProducto, $pedidoFormat, $claveProducto];
+                        $stmt = @sqlsrv_query($conn, $sql, $params);
+                        
+                        if ($stmt !== false) {
+                            $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+                            if ($row && isset($row['LOTE']) && !empty(trim($row['LOTE']))) {
+                                $lote = trim((string)$row['LOTE']);
+                            }
+                            sqlsrv_free_stmt($stmt);
+                        }
+                    }
+                }
+                
+                // Si después de todo sigue vacío, dejarlo vacío
+                if (empty($lote) || $lote === 'N/A' || $lote === 'NA') {
+                    $lote = '';
+                }
+                
                 $productos[] = [
                     'cantidad'     => $p['mapValue']['fields']['cantidad']['integerValue'] ?? 0,
                     'clave'        => $p['mapValue']['fields']['clave']['stringValue'] ?? '',
                     'descripcion'  => $p['mapValue']['fields']['descripcion']['stringValue'] ?? '',
-                    'lote'         => $p['mapValue']['fields']['lote']['stringValue'] ?? 'N/A',
+                    'lote'         => $lote,
                     'checked'      => $p['mapValue']['fields']['checked']['booleanValue'] ?? false
                 ];
             }
+        }
+        
+        // Cerrar conexión si se abrió
+        if ($conn !== false && $conn !== null) {
+            sqlsrv_close($conn);
         }
 
         $envioData = [];

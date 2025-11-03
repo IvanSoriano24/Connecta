@@ -7,6 +7,7 @@ let todasComandas = [];
 // Cargar comandas desde PHP
 function cargarComandas(tipoUsuario) {
     const filtroStatus = $("#filtroStatus").val();
+    const colspan = tipoUsuario === "ADMINISTRADOR" ? "11" : "10";
 
     $.get(
         "../Servidor/PHP/mensajes.php",
@@ -18,7 +19,7 @@ function cargarComandas(tipoUsuario) {
             } else {
                 $("#tablaComandas tbody").empty().append(`
                     <tr>
-                        <td colspan="8" class="text-center text-muted">
+                        <td colspan="${colspan}" class="text-center text-muted">
                             No hay comandas para mostrar
                         </td>
                     </tr>
@@ -36,21 +37,25 @@ function cargarComandas(tipoUsuario) {
 function aplicarFiltros(tipoUsuario) {
     const texto = ($("#buscarTexto").val() || "").toLowerCase().trim();
     const fecha = ($("#filtroFecha").val() || "").trim();
-    const pedido = ($("#filtroNoPedido").val() || "").trim();
-    //console.log("Filtros:", { texto, fecha, pedido, todasComandas });
+    const tipoPago = ($("#filtroTipoPago").val() || "").trim();
+    //console.log("Filtros:", { texto, fecha, tipoPago, todasComandas });
 
     let filtradas = todasComandas;
 
-    // Filtro por texto
+    // Filtro por texto (busca en: nombre cliente, status, pedido, vendedor, tipo pago)
     if (texto) {
         filtradas = filtradas.filter(c => {
             const nombre = (c.nombreCliente || "").toLowerCase().trim();
             const status = (c.status || "").toLowerCase().trim();
             const noPed  = (c.noPedido || "").toLowerCase().trim();
+            const vend = (c.vendedor || "").toLowerCase().trim();
+            const tPago = (c.tipoPago || "").toLowerCase().trim();
             return (
                 nombre.includes(texto) ||
                 status.includes(texto) ||
-                noPed.includes(texto)
+                noPed.includes(texto) ||
+                vend.includes(texto) ||
+                tPago.includes(texto)
             );
         });
     }
@@ -60,16 +65,16 @@ function aplicarFiltros(tipoUsuario) {
         filtradas = filtradas.filter(c => c.fecha && c.fecha.trim() === fecha);
     }
 
-    // Filtro por número de pedido
-    if (pedido) {
+    // Filtro por tipo de pago
+    if (tipoPago) {
         filtradas = filtradas.filter(c => {
-            const pedidoActual = (c.noPedido || "").trim();
-            return pedidoActual === pedido; // comparación directa string con string
+            const tipoPagoActual = (c.tipoPago || "").trim();
+            return tipoPagoActual === tipoPago;
         });
     }
 
     // Si to-do está vacío → mostrar todas
-    if (!texto && !fecha && !pedido) {
+    if (!texto && !fecha && !tipoPago) {
         filtradas = todasComandas;
     }
 
@@ -79,11 +84,12 @@ function aplicarFiltros(tipoUsuario) {
 // Función que pinta la tabla
 function pintarComandas(lista, tipoUsuario) {
     const tbody = $("#tablaComandas tbody").empty();
+    const colspan = tipoUsuario === "ADMINISTRADOR" ? "11" : "10";
 
     if (!lista || lista.length === 0) {
         tbody.append(`
             <tr>
-                <td colspan="8" class="text-center text-muted">
+                <td colspan="${colspan}" class="text-center text-muted">
                     No se encontraron resultados
                 </td>
             </tr>
@@ -100,7 +106,10 @@ function pintarComandas(lista, tipoUsuario) {
               </td>
               <td>${comanda.status || "-"}</td>
               <td>${comanda.fecha || "-"}</td>
-              <td>${comanda.hora || "-"}</td>
+              <td>${comanda.tipoPago || "-"}</td>
+              <td class="text-truncate" title="${comanda.vendedor || ""}">
+                ${comanda.vendedor || "-"}
+              </td>
               <td class="text-center">
                   <i class="bi btn-comandas bi-clipboard-data"
                      title="Ver Detalles"
@@ -334,14 +343,14 @@ function initTooltipsTabla() {
 
 
 // Eventos en buscador y filtros locales
-$(document).on("input change", "#buscarTexto, #filtroFecha, #filtroNoPedido", function () {
+$(document).on("input change", "#buscarTexto, #filtroFecha, #filtroTipoPago", function () {
     aplicarFiltros("ADMINISTRADOR");
 });
 
 $(document).on("click", "#btnLimpiarFiltros", function () {
     $("#buscarTexto").val("");
     $("#filtroFecha").val("");
-    $("#filtroNoPedido").val("");
+    $("#filtroTipoPago").val("");
     $("#filtroStatus").val(""); // reset a "Todos"
 
     aplicarFiltros("ADMINISTRADOR"); // refrescar tabla
@@ -612,12 +621,16 @@ function mostrarModal(comandaId) {
                 // Cargar los productos en la tabla
                 const productosList = $("#detalleProductos").empty();
                 comanda.productos.forEach((producto, index) => {
+                    // Mostrar lote o espacio vacío si no existe
+                    const loteDisplay = producto.lote && producto.lote.trim() !== "" && producto.lote !== "N/A" && producto.lote !== "NA" 
+                        ? producto.lote 
+                        : "";
                     const fila = `
                         <tr>
                             <td style="display: table-cell !important;">${producto.clave}</td>
                             <td>${producto.descripcion}</td>
                             <td style="text-align: right;">${producto.cantidad}</td>
-                            <td style="text-align: right;">${producto.lote}</td>
+                            <td style="text-align: right;">${loteDisplay}</td>
                             <td>
                                 <label class="container">
                                     <input type="checkbox" 

@@ -174,12 +174,13 @@
                     <span class="text">Ventas</span>
                 </a>
                 <ul class="dropdown-menu">
-                    <?php if ($tipoUsuario != "ALMACENISTA") { ?> 
+                    <?php if ($tipoUsuario != "ALMACENISTA") { ?>
                         <li><a class="dropdown-item" href="Ventas.php" tabindex="-1">Pedidos</a></li>
                     <?php } ?>
                     <li><a class="dropdown-item" href="Remisiones.php" tabindex="-1">Remisiones</a></li>
                     <?php if ($tipoUsuario != "ALMACENISTA") { ?> <!-- || $tipoUsuario != "SUPER-ALMACENISTA" || $tipoUsuario == "SUPER-ALMACENISTA" -->
                         <li><a class="dropdown-item" href="Facturas.php" tabindex="-1">Facturas</a></li>
+                        <li><a class="dropdown-item" href="Muestras.php" tabindex="-1">Muestras</a></li>
                     <?php } ?>
                 </ul>
             </li>

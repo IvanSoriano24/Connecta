@@ -187,7 +187,8 @@ if (isset($_SESSION['usuario'])) {
     #buscarTexto,
     #filtroFecha,
     #filtroNoPedido,
-    #filtroStatus {
+    #filtroStatus,
+    #filtroTipoPago {
         min-height: 38px;   /* un poco más alto que el default (~32px) */
         font-size: 0.95rem; /* texto ligeramente más grande */
         padding: 6px 10px;  /* más espacio interno */
@@ -268,10 +269,21 @@ if (isset($_SESSION['usuario'])) {
                                 </select>
                             </div>
 
+                            <!-- Filtro por tipo de pago -->
+                            <div>
+                                <label for="filtroTipoPago" class="form-label">Tipo Pago:</label>
+                                <select id="filtroTipoPago" class="form-select" style="width: 160px;">
+                                    <option value="">Todos</option>
+                                    <option value="Anticipado">Anticipado</option>
+                                    <option value="Crédito">Crédito</option>
+                                    <option value="No definido">No definido</option>
+                                </select>
+                            </div>
+
                             <!-- Buscador -->
                             <div>
                                 <label for="buscarTexto" class="form-label">Buscar:</label>
-                                <input type="text" id="buscarTexto" class="form-control" placeholder="Cliente, status, Pedido, ">
+                                <input type="text" id="buscarTexto" class="form-control" placeholder="Cliente, Pedido, Vendedor" style="width: 330px;">
                             </div>
 
                             <!-- Filtro por fecha -->
@@ -280,12 +292,7 @@ if (isset($_SESSION['usuario'])) {
                                 <input type="date" id="filtroFecha" class="form-control">
                             </div>
 
-                            <!-- Filtro por número de pedido -->
-                            <div>
-                                <label for="filtroNoPedido" class="form-label">Pedido:</label>
-                                <input type="number" id="filtroNoPedido" class="form-control" placeholder="Ej: 19625">
-                            </div>
-
+                        
                             <!-- Botón limpiar -->
                             <div>
                                 <button id="btnLimpiarFiltros" class="btn btn-outline-danger">
@@ -310,7 +317,8 @@ if (isset($_SESSION['usuario'])) {
                                                     <th>Nombre Cliente</th>
                                                     <th>Status</th>
                                                     <th class="col-fecha">Fecha</th>
-                                                    <th>Hora</th>
+                                                    <th>Tipo Pago</th>
+                                                    <th>Vendedor</th>
                                                     <th>Detalles</th>
                                                     <th>Verificar</th>
                                                     <th>Imprimir</th>

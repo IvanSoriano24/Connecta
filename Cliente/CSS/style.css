@@ -480,7 +480,7 @@ body {
 /* Botones nuevos sin texto para (Pedidos, Remisiones, Cancelados, etc) */
 
 .btn-iconNuevos {
-	border-radius: 36px;
+	border-radius: 50%;
 	display: inline-flex;
 	justify-content: center;
 	align-items: center;
@@ -488,19 +488,21 @@ body {
 	height: 36px;
 	border: none;
 	cursor: pointer;
-	transition: transform .08s ease, filter .15s ease;
-	color: #fff;
+	transition: transform 0.2s ease, background-color 0.3s ease;
+	color: #3f317d;
+	background: transparent;
+	font-size: 1.3rem;
 }
-.btn-icon:active { transform: scale(0.95); }
-.btn-icon:hover { filter: brightness(0.9); }
+.btn-iconNuevos:active { transform: scale(0.95); }
+.btn-iconNuevos:hover { transform: scale(1.1); }
 
-.btn-editar    { background: #0d6efd; }  /* azul */
-.btn-cancelar  { background: #dc3545; }  /* rojo */
-.btn-visualizar    { background: #20c997; }  /* verde-agua */
-.btn-downloadP{ background: #3c91e6; }  /* azul cielo*/
-.btn-enviarWhatsapp    { background: #198754; }  /* verde */
-.btn-enviarCorreo { background: #fd7e14; }  /* naranja */
-.btn-facturar    { background: #185c3c; }  /* verde fuerte */
+.btn-editar    { color: #3f317d; }
+.btn-cancelar  { color: #3f317d; }
+.btn-visualizar    { color: #3f317d; }
+.btn-downloadP{ color: #3f317d; }
+.btn-enviarWhatsapp    { color: #3f317d; }
+.btn-enviarCorreo { color: #3f317d; }
+.btn-facturar    { color: #3f317d; }
 
 .td-btn{
 	padding: 16px 8px;
