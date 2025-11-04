@@ -318,7 +318,7 @@ if (isset($_SESSION['usuario'])) {
     }
 </script>
 <script src="JS/menu.js?n=1"></script>
-<script src="JS/app.j?n=1s"></script>
+<script src="JS/app.js?n=1"></script>
 <script src="JS/script.js?n=1"></script>
 
 <script>

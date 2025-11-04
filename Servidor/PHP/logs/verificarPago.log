@@ -361,3 +361,176 @@
 [2025-10-10 16:43:57] ERROR:El pedido: 19188 se cancelo null
 [2025-10-10 16:43:59] ERROR:El pedido: 174 se cancelo null
 [2025-10-10 16:44:01] ERROR:El pedido: 19153 se cancelo null
+[2025-10-13 20:35:07] ERROR:El pedido: 19190 se cancelo null
+[2025-10-13 20:35:08] ERROR:El pedido: 19190 se cancelo null
+[2025-10-13 20:35:09] ERROR:El pedido: 19182 se cancelo null
+[2025-10-13 20:35:09] ERROR:El pedido: 19182 se cancelo null
+[2025-10-13 20:35:11] ERROR:El pedido: 19711 se cancelo null
+[2025-10-13 20:35:11] ERROR:El pedido: 19711 se cancelo null
+[2025-10-13 20:35:13] ERROR:El pedido: 19189 se cancelo null
+[2025-10-13 20:35:13] ERROR:El pedido: 19189 se cancelo null
+[2025-10-13 20:35:15] ERROR:El pedido: 203 se cancelo null
+[2025-10-13 20:35:16] ERROR:El pedido: 203 se cancelo null
+[2025-10-13 20:35:18] Succes: Buscando pago del pedido: 19742 null
+[2025-10-13 20:35:18] Succes: Pedido: 19742 en tiempo null
+[2025-10-13 20:35:18] Succes: Pedido: 19742 con importe 6603.36, con una cuenta de 1322.4  null
+[2025-10-13 20:35:18] Succes: Pedido: 19742 no pagado null
+[2025-10-13 20:35:19] Succes: Buscando pago del pedido: 19742 null
+[2025-10-13 20:35:19] Succes: Pedido: 19742 en tiempo null
+[2025-10-13 20:35:19] Succes: Pedido: 19742 con importe 6603.36, con una cuenta de 1322.4  null
+[2025-10-13 20:35:19] Succes: Pedido: 19742 no pagado null
+[2025-10-13 20:35:19] ERROR:El pedido: 208 se cancelo null
+[2025-10-13 20:35:20] ERROR:El pedido: 208 se cancelo null
+[2025-10-13 20:35:20] ERROR:El pedido: 19706 se cancelo null
+[2025-10-13 20:35:21] ERROR:El pedido: 19706 se cancelo null
+[2025-10-13 20:35:22] ERROR:El pedido: 19704 se cancelo null
+[2025-10-13 20:35:23] ERROR:El pedido: 19704 se cancelo null
+[2025-10-13 20:35:26] ERROR:El pedido: 115 se cancelo null
+[2025-10-13 20:35:28] ERROR:El pedido: 115 se cancelo null
+[2025-10-13 20:35:30] ERROR:El pedido: 19640 se cancelo null
+[2025-10-13 20:35:31] ERROR:El pedido: 19383 se cancelo null
+[2025-10-13 20:35:31] ERROR:El pedido: 19640 se cancelo null
+[2025-10-13 20:35:32] ERROR:El pedido: 19383 se cancelo null
+[2025-10-13 20:35:32] ERROR:El pedido: 19546 se cancelo null
+[2025-10-13 20:35:34] ERROR:El pedido: 19546 se cancelo null
+[2025-10-13 20:35:37] ERROR:El pedido: 19154 se cancelo null
+[2025-10-13 20:35:38] ERROR:El pedido: 19394 se cancelo null
+[2025-10-13 20:35:39] ERROR:El pedido: 19154 se cancelo null
+[2025-10-13 20:35:39] ERROR:El pedido: 19159 se cancelo null
+[2025-10-13 20:35:40] ERROR:El pedido: 19394 se cancelo null
+[2025-10-13 20:35:40] Succes: Buscando pago del pedido: 19200 null
+[2025-10-13 20:35:40] Succes: Pedido: 19200 en tiempo null
+[2025-10-13 20:35:40] Succes: Pedido: 19200 con importe 7942.1, con una cuenta de 1915.69  null
+[2025-10-13 20:35:40] Succes: Pedido: 19200 no pagado null
+[2025-10-13 20:35:41] ERROR:El pedido: 19623 se cancelo null
+[2025-10-13 20:35:41] ERROR:El pedido: 19159 se cancelo null
+[2025-10-13 20:35:42] Succes: Buscando pago del pedido: 19200 null
+[2025-10-13 20:35:42] Succes: Pedido: 19200 en tiempo null
+[2025-10-13 20:35:42] Succes: Pedido: 19200 con importe 7942.1, con una cuenta de 1915.69  null
+[2025-10-13 20:35:42] Succes: Pedido: 19200 no pagado null
+[2025-10-13 20:35:42] ERROR:El pedido: 19636 se cancelo null
+[2025-10-13 20:35:43] ERROR:El pedido: 19623 se cancelo null
+[2025-10-13 20:35:44] ERROR:El pedido: 19436 se cancelo null
+[2025-10-13 20:35:44] ERROR:El pedido: 19636 se cancelo null
+[2025-10-13 20:35:45] ERROR:El pedido: 19624 se cancelo null
+[2025-10-13 20:35:46] ERROR:El pedido: 19436 se cancelo null
+[2025-10-13 20:35:46] ERROR:El pedido: 19488 se cancelo null
+[2025-10-13 20:35:47] ERROR:El pedido: 19624 se cancelo null
+[2025-10-13 20:35:47] ERROR:El pedido: 19389 se cancelo null
+[2025-10-13 20:35:48] ERROR:El pedido: 19167 se cancelo null
+[2025-10-13 20:35:49] ERROR:El pedido: 19488 se cancelo null
+[2025-10-13 20:35:50] ERROR:El pedido: 19384 se cancelo null
+[2025-10-13 20:35:50] ERROR:El pedido: 19389 se cancelo null
+[2025-10-13 20:35:51] ERROR:El pedido: 19385 se cancelo null
+[2025-10-13 20:35:51] ERROR:El pedido: 19167 se cancelo null
+[2025-10-13 20:35:52] ERROR:El pedido: 19384 se cancelo null
+[2025-10-13 20:35:52] ERROR:El pedido: 19158 se cancelo null
+[2025-10-13 20:35:53] ERROR:El pedido: 19385 se cancelo null
+[2025-10-13 20:35:53] ERROR:El pedido: 19523 se cancelo null
+[2025-10-13 20:35:54] ERROR:El pedido: 19158 se cancelo null
+[2025-10-13 20:35:55] ERROR:El pedido: 19523 se cancelo null
+[2025-10-13 20:35:56] ERROR:El pedido: 19709 se cancelo null
+[2025-10-13 20:35:57] ERROR:El pedido: 19481 se cancelo null
+[2025-10-13 20:35:58] ERROR:El pedido: 19188 se cancelo null
+[2025-10-13 20:35:58] ERROR:El pedido: 19709 se cancelo null
+[2025-10-13 20:36:00] ERROR:El pedido: 19481 se cancelo null
+[2025-10-13 20:36:00] ERROR:El pedido: 174 se cancelo null
+[2025-10-13 20:36:01] ERROR:El pedido: 19188 se cancelo null
+[2025-10-13 20:36:02] ERROR:El pedido: 19153 se cancelo null
+[2025-10-13 20:36:03] ERROR:El pedido: 174 se cancelo null
+[2025-10-13 20:36:05] ERROR:El pedido: 19153 se cancelo null
+[2025-10-13 20:46:35] ERROR:El pedido: 19190 se cancelo null
+[2025-10-13 20:46:36] ERROR:El pedido: 19182 se cancelo null
+[2025-10-13 20:46:39] ERROR:El pedido: 19711 se cancelo null
+[2025-10-13 20:46:41] ERROR:El pedido: 19189 se cancelo null
+[2025-10-13 20:46:43] ERROR:El pedido: 203 se cancelo null
+[2025-10-13 20:46:45] Succes: Buscando pago del pedido: 19742 null
+[2025-10-13 20:46:45] Succes: Pedido: 19742 en tiempo null
+[2025-10-13 20:46:45] Succes: Pedido: 19742 con importe 6603.36, con una cuenta de 1322.4  null
+[2025-10-13 20:46:45] Succes: Pedido: 19742 no pagado null
+[2025-10-13 20:46:47] ERROR:El pedido: 208 se cancelo null
+[2025-10-13 20:46:48] ERROR:El pedido: 19706 se cancelo null
+[2025-10-13 20:46:50] ERROR:El pedido: 19704 se cancelo null
+[2025-10-13 20:46:55] ERROR:El pedido: 115 se cancelo null
+[2025-10-13 20:46:58] ERROR:El pedido: 19640 se cancelo null
+[2025-10-13 20:46:59] ERROR:El pedido: 19383 se cancelo null
+[2025-10-13 20:47:00] ERROR:El pedido: 19546 se cancelo null
+[2025-10-13 20:47:05] ERROR:El pedido: 19154 se cancelo null
+[2025-10-13 20:47:07] ERROR:El pedido: 19394 se cancelo null
+[2025-10-13 20:47:08] ERROR:El pedido: 19159 se cancelo null
+[2025-10-13 20:47:08] Succes: Buscando pago del pedido: 19200 null
+[2025-10-13 20:47:08] Succes: Pedido: 19200 en tiempo null
+[2025-10-13 20:47:08] Succes: Pedido: 19200 con importe 7942.1, con una cuenta de 1915.69  null
+[2025-10-13 20:47:08] Succes: Pedido: 19200 no pagado null
+[2025-10-13 20:47:10] ERROR:El pedido: 19623 se cancelo null
+[2025-10-13 20:47:11] ERROR:El pedido: 19636 se cancelo null
+[2025-10-13 20:47:11] Succes: Buscando pago del pedido: 19745 null
+[2025-10-13 20:47:11] Succes: Pedido: 19745 en tiempo null
+[2025-10-13 20:47:12] Succes: Pedido: 19745 con importe 10816.42, con una cuenta de 0  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:12] Succes: Pedido: 19745 no pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:13] ERROR:El pedido: 19436 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:14] ERROR:El pedido: 19624 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:15] ERROR:El pedido: 19488 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:16] ERROR:El pedido: 19389 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:17] ERROR:El pedido: 19167 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:18] ERROR:El pedido: 19384 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:19] ERROR:El pedido: 19385 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:21] ERROR:El pedido: 19158 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:22] ERROR:El pedido: 19523 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:25] ERROR:El pedido: 19709 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:26] ERROR:El pedido: 19481 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:27] ERROR:El pedido: 19188 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:30] ERROR:El pedido: 174 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:47:31] ERROR:El pedido: 19153 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 20:48:15] ERROR:El pedido: 19190 se cancelo null
+[2025-10-13 20:48:17] ERROR:El pedido: 19182 se cancelo null
+[2025-10-13 20:48:18] ERROR:El pedido: 19711 se cancelo null
+[2025-10-13 20:48:20] ERROR:El pedido: 19189 se cancelo null
+[2025-10-13 20:48:22] ERROR:El pedido: 203 se cancelo null
+[2025-10-13 20:48:24] Succes: Buscando pago del pedido: 19742 null
+[2025-10-13 20:48:24] Succes: Pedido: 19742 en tiempo null
+[2025-10-13 20:48:24] Succes: Pedido: 19742 con importe 6603.36, con una cuenta de 6603.36  null
+[2025-10-13 20:48:24] Succes: Pedido: 19742 pagado null
+[2025-10-13 20:48:25] Succes: Pago: 19742 cambio de estatus null
+[2025-10-13 20:48:25] Succes: Iniciando aliminacion de pago null
+[2025-10-13 20:48:25] Succes: CXC eliminada null
+[2025-10-13 20:48:25] Succes: Iniciando resta de saldo null
+[2025-10-13 20:48:25] Succes: Saldo actualizado correctamente del cliente        843 null
+[2025-10-13 20:48:25] Succes: Iniciando la creacion de la comanda null
+[2025-10-13 12:48:26] Succes: Se creo la comanda del pedido 19742 null
+[2025-10-13 12:48:26] Succes: Empezando la remision null
+[2025-10-13 12:48:28] Succes: Respuesta de la remision , mas informacion revisar logs de la remision null
+[2025-10-13 12:48:29] ERROR:El pedido: 208 se cancelo null
+[2025-10-13 12:48:30] ERROR:El pedido: 19706 se cancelo null
+[2025-10-13 12:48:32] ERROR:El pedido: 19704 se cancelo null
+[2025-10-13 12:48:37] ERROR:El pedido: 115 se cancelo null
+[2025-10-13 12:48:40] ERROR:El pedido: 19640 se cancelo null
+[2025-10-13 12:48:42] ERROR:El pedido: 19383 se cancelo null
+[2025-10-13 12:48:43] ERROR:El pedido: 19546 se cancelo null
+[2025-10-13 12:48:48] ERROR:El pedido: 19154 se cancelo null
+[2025-10-13 12:48:49] ERROR:El pedido: 19394 se cancelo null
+[2025-10-13 12:48:50] ERROR:El pedido: 19159 se cancelo null
+[2025-10-13 12:48:51] Succes: Buscando pago del pedido: 19200 null
+[2025-10-13 12:48:51] Succes: Pedido: 19200 en tiempo null
+[2025-10-13 12:48:51] Succes: Pedido: 19200 con importe 7942.1, con una cuenta de 1915.69  null
+[2025-10-13 12:48:51] Succes: Pedido: 19200 no pagado null
+[2025-10-13 12:48:52] ERROR:El pedido: 19623 se cancelo null
+[2025-10-13 12:48:53] ERROR:El pedido: 19636 se cancelo null
+[2025-10-13 12:48:53] Succes: Buscando pago del pedido: 19745 null
+[2025-10-13 12:48:53] Succes: Pedido: 19745 en tiempo null
+[2025-10-13 12:48:54] Succes: Pedido: 19745 con importe 10816.42, con una cuenta de 0  {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:48:54] Succes: Pedido: 19745 no pagado {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:48:55] ERROR:El pedido: 19436 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:48:56] ERROR:El pedido: 19624 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:48:57] ERROR:El pedido: 19488 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:48:58] ERROR:El pedido: 19389 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:48:59] ERROR:El pedido: 19167 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:49:00] ERROR:El pedido: 19384 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:49:01] ERROR:El pedido: 19385 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:49:03] ERROR:El pedido: 19158 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:49:04] ERROR:El pedido: 19523 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:49:06] ERROR:El pedido: 19709 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:49:07] ERROR:El pedido: 19481 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:49:09] ERROR:El pedido: 19188 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:49:11] ERROR:El pedido: 174 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}
+[2025-10-13 12:49:13] ERROR:El pedido: 19153 se cancelo {"type":2,"message":"Trying to access array offset on value of type null","file":"C:\\xampp\\htdocs\\MDConnecta\\Servidor\\PHP\\verificarPago.php","line":204}

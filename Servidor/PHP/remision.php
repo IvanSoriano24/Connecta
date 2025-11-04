@@ -4446,48 +4446,94 @@ function obtenerFolio($remisionId, $claveSae, $conexionData, $conn)
 }
 function obtenerComanda($firebaseProjectId, $firebaseApiKey, $pedidoID, $noEmpresa)
 {
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+    // Endpoint de runQuery
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    // Construimos el structuredQuery con filtro AND (folio + noEmpresa)
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => "COMANDA"]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "folio"],
+                                "op"    => "EQUAL",
+                                "value" => ["stringValue" => (string)$pedidoID]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op"    => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "limit" => 20 // por si acaso hay más de una coincidencia
+        ]
+    ]);
 
     $context = stream_context_create([
         'http' => [
-            'method' => 'GET',
-            'header' => "Content-Type: application/json\r\n"
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => $payload,
+            'timeout' => 20
         ]
     ]);
 
     $response = @file_get_contents($url, false, $context);
 
     if ($response === false) {
+        // mantén el mismo estilo de retorno que tu versión actual
         echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos.']);
-    } else {
-        $data = json_decode($response, true);
-        $comandas = [];
+        return [];
+    }
 
-        if (isset($data['documents'])) {
-            foreach ($data['documents'] as $document) {
-                $fields = $document['fields'];
-                $status = $fields['status']['stringValue'];
-                // Aplicar el filtro de estado si está definido
-                if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
-                    $empFirebase = (int) $fields['folio']['stringValue'];
-                    $empBuscada  = (int) $pedidoID;
-                    if ($empFirebase === $empBuscada) {
-                        $comandas[] = [
-                            'id' => basename($document['name']),
-                            'noPedido' => $fields['folio']['stringValue'],
-                            'nombreCliente' => $fields['nombreCliente']['stringValue'],
-                            'status' =>  $fields['status']['stringValue'],
-                            'folio' =>  $fields['folio']['stringValue'],
-                            'claveCliente' =>  $fields['claveCliente']['stringValue'],
-                            'credito' =>  $fields['credito']['booleanValue'],
-                            'numGuia' =>  $fields['numGuia']['stringValue'] ?? ""
-                        ];
-                    }
-                }
+    // runQuery devuelve un array de filas, cada una puede o no traer 'document'
+    $rows = json_decode($response, true);
+    $comandas = [];
+
+    if (is_array($rows)) {
+        foreach ($rows as $row) {
+            if (!isset($row['document'])) continue;
+
+            $document = $row['document'];
+            $fields   = $document['fields'] ?? [];
+
+            // Lectura segura de campos
+            $folio           = $fields['folio']['stringValue'] ?? '';
+            $nombreCliente   = $fields['nombreCliente']['stringValue'] ?? '';
+            $status          = $fields['status']['stringValue'] ?? '';
+            $claveCliente    = $fields['claveCliente']['stringValue'] ?? '';
+            $credito         = isset($fields['credito']['booleanValue']) ? (bool)$fields['credito']['booleanValue'] : false;
+            $numGuia         = $fields['numGuia']['stringValue'] ?? "";
+            $noEmpresaField  = isset($fields['noEmpresa']['integerValue']) ? (int)$fields['noEmpresa']['integerValue'] : null;
+
+            // Doble guard (no debería ser necesario porque ya filtramos en Firestore, pero por robustez)
+            if ($noEmpresaField === (int)$noEmpresa && (string)$folio === (string)$pedidoID) {
+                $comandas[] = [
+                    'id'            => basename($document['name']),
+                    'noPedido'      => $folio,
+                    'nombreCliente' => $nombreCliente,
+                    'status'        => $status,
+                    'folio'         => $folio,
+                    'claveCliente'  => $claveCliente,
+                    'credito'       => $credito,
+                    'numGuia'       => $numGuia,
+                ];
             }
         }
-        return $comandas;
     }
+
+    return $comandas;
 }
 function datosCliente($clie, $claveSae, $conexionData, $conn)
 {
@@ -6517,24 +6563,69 @@ function restarSaldo($conexionData, $claveSae, $pagado, $conn)
         'message' => "Saldo actualizado correctamente"
     ]);
 }
-function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $value = true)
+function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $folio, $value = true)
 {
-    // Extraer el ID de documento (la parte después de /COMANDA/)
-    $parts = explode('/', $documentName);
-    $docId = end($parts);
+    $docId = null;
 
-    // URL de PATCH con máscara solo en facturado
-    $url = sprintf(
+    // 1) Si $documentName parece ser un path completo, extrae el ID
+    if (strpos($documentName, '/') !== false) {
+        $parts = explode('/', $documentName);
+        $docId = end($parts);
+    } else {
+        // 2) Si no es path, asumimos que es el FOLIO y buscamos con runQuery
+        $runQueryUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+        $payload = json_encode([
+            "structuredQuery" => [
+                "from" => [
+                    ["collectionId" => "COMANDA"]
+                ],
+                "where" => [
+                    "fieldFilter" => [
+                        "field" => ["fieldPath" => "folio"],
+                        "op"    => "EQUAL",
+                        "value" => ["stringValue" => (string)$folio]
+                    ]
+                ],
+                "limit" => 1
+            ]
+        ]);
+
+        $ctx = stream_context_create([
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\n",
+                'content' => $payload,
+            ]
+        ]);
+
+        $resp = @file_get_contents($runQueryUrl, false, $ctx);
+        if ($resp === false) return false;
+
+        $rows = json_decode($resp, true);
+        if (is_array($rows)) {
+            foreach ($rows as $row) {
+                if (isset($row['document']['name'])) {
+                    $nameParts = explode('/', $row['document']['name']);
+                    $docId = end($nameParts);
+                    break;
+                }
+            }
+        }
+        if (!$docId) return false; // no se encontró
+    }
+
+    // 3) PATCH del campo facturado con updateMask
+    $patchUrl = sprintf(
         'https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents/COMANDA/%s?updateMask.fieldPaths=facturado&key=%s',
         $firebaseProjectId,
         $docId,
         $firebaseApiKey
     );
 
-    // Payload con solo el campo facturado
     $payload = json_encode([
         'fields' => [
-            'facturado' => ['booleanValue' => $value]
+            'facturado' => ['booleanValue' => (bool)$value]
         ]
     ]);
 
@@ -6543,11 +6634,10 @@ function actualizarStatus($firebaseProjectId, $firebaseApiKey, $documentName, $v
             'method'  => 'PATCH',
             'header'  => "Content-Type: application/json\r\n",
             'content' => $payload,
-            // opcional: 'timeout' => 10,
         ]
     ]);
 
-    $res = @file_get_contents($url, false, $ctx);
+    $res = @file_get_contents($patchUrl, false, $ctx);
     return $res !== false;
 }
 function crearFactura($folio, $noEmpresa, $claveSae, $folioFactura)
@@ -6852,38 +6942,105 @@ function enviarCorreoFaltaDatos($conexionData, $claveSae, $folio, $noEmpresa, $f
 function guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema, $remisionId, $claveCliente, $fallaId, $conn)
 {
     $fechaCreacion = date("Y-m-d H:i:s"); // Fecha y hora actual
-    //var_dump($problema);
-    // Si me llega un único error en formato asociativo, lo convierto en array de uno:
+
+    // Normaliza: si llega un solo error asociativo, conviértelo en arreglo
     if (isset($problema['origen']) && isset($problema['message'])) {
         $problema = [$problema];
     }
-    if ($fallaId === "") {
-        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA?key=$firebaseApiKey";
-        // Construir el arrayValue de fallas
-        $valores = [];
-        foreach ($problema as $f) {
-            $valores[] = [
-                'mapValue' => [
-                    'fields' => [
-                        'origen'  => ['stringValue' => $f['origen']],
-                        'message' => ['stringValue' => $f['message']],
-                    ],
-                ],
-            ];
-        }
 
-        $fields = [
-            'folio'     => ['stringValue'  => $remisionId],
-            'cliente'   => ['stringValue'  => $claveCliente],
-            'claveSae'  => ['stringValue'  => $claveSae],
-            'noEmpresa' => ['integerValue' => $noEmpresa],
-            'creacion'  => ['stringValue'  => $fechaCreacion],
-            'problemas'    => [                  // aquí va el nuevo array
-                'arrayValue' => [
-                    'values' => $valores
-                ]
+    // --- Si no me pasaron $fallaId, intento localizar el documento por runQuery ---
+    if ($fallaId === "") {
+        $rqUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+        $rqPayload = json_encode([
+            "structuredQuery" => [
+                "from" => [
+                    ["collectionId" => "FALLAS_FACTURA"]
+                ],
+                "where" => [
+                    "compositeFilter" => [
+                        "op" => "AND",
+                        "filters" => [
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "folio"],
+                                    "op"    => "EQUAL",
+                                    "value" => ["stringValue" => (string)$remisionId]
+                                ]
+                            ],
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "noEmpresa"],
+                                    "op"    => "EQUAL",
+                                    "value" => ["integerValue" => (int)$noEmpresa]
+                                ]
+                            ],
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "claveSae"],
+                                    "op"    => "EQUAL",
+                                    "value" => ["stringValue" => (string)$claveSae]
+                                ]
+                            ],
+                        ]
+                    ]
+                ],
+                "limit" => 1
+            ]
+        ], JSON_UNESCAPED_SLASHES);
+
+        $rqCtx = stream_context_create([
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => $rqPayload,
+                'timeout' => 20
+            ]
+        ]);
+
+        $rqRes = @file_get_contents($rqUrl, false, $rqCtx);
+        if ($rqRes !== false) {
+            $rows = json_decode($rqRes, true);
+            if (is_array($rows)) {
+                foreach ($rows as $row) {
+                    if (isset($row['document']['name'])) {
+                        $parts = explode('/', $row['document']['name']);
+                        $fallaId = end($parts);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // Construir array de problemas (arrayValue)
+    $valores = [];
+    foreach ($problema as $f) {
+        $valores[] = [
+            'mapValue' => [
+                'fields' => [
+                    'origen'  => ['stringValue' => (string)$f['origen']],
+                    'message' => ['stringValue' => (string)$f['message']],
+                ],
             ],
         ];
+    }
+
+    // Campos a guardar (mismo payload que ya usabas)
+    $fields = [
+        'folio'     => ['stringValue'  => (string)$remisionId],
+        'cliente'   => ['stringValue'  => (string)$claveCliente],
+        'claveSae'  => ['stringValue'  => (string)$claveSae],
+        'noEmpresa' => ['integerValue' => (int)$noEmpresa],
+        'creacion'  => ['stringValue'  => $fechaCreacion],
+        'problemas' => [
+            'arrayValue' => ['values' => $valores]
+        ],
+    ];
+
+    // POST (crear) si NO existe; PATCH (actualizar) si SÍ existe
+    if ($fallaId === "") {
+        $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA?key=$firebaseApiKey";
 
         $payload = json_encode(['fields' => $fields], JSON_UNESCAPED_SLASHES);
         $ctx = stream_context_create([
@@ -6895,33 +7052,9 @@ function guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebasePr
         ]);
 
         $response = @file_get_contents($url, false, $ctx);
+        // (Opcional) podrías validar $response !== false
     } else {
         $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA/$fallaId?key=$firebaseApiKey";
-        // Construir el arrayValue de fallas
-        $valores = [];
-        foreach ($problema as $f) {
-            $valores[] = [
-                'mapValue' => [
-                    'fields' => [
-                        'origen'  => ['stringValue' => $f['origen']],
-                        'message' => ['stringValue' => $f['message']],
-                    ],
-                ],
-            ];
-        }
-
-        $fields = [
-            'folio'     => ['stringValue'  => $remisionId],
-            'cliente'   => ['stringValue'  => $claveCliente],
-            'claveSae'  => ['stringValue'  => $claveSae],
-            'noEmpresa' => ['integerValue' => $noEmpresa],
-            'creacion'  => ['stringValue'  => $fechaCreacion],
-            'problemas'    => [                  // aquí va el nuevo array
-                'arrayValue' => [
-                    'values' => $valores
-                ]
-            ],
-        ];
 
         $payload = json_encode(['fields' => $fields], JSON_UNESCAPED_SLASHES);
         $ctx = stream_context_create([
@@ -6933,104 +7066,147 @@ function guardarFallas($conexionData, $claveSae, $folio, $noEmpresa, $firebasePr
         ]);
 
         $response = @file_get_contents($url, false, $ctx);
+        // (Opcional) validar $response
     }
 }
 function enviarCorreoFalla($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $problema, $folioFactura, $conn)
 {
     if ($conn === false) {
         throw new Exception("Error al conectar con la base de datos");
-        //die(json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]));
     }
-
-    //$cveDoc = str_pad($folioFactura, 10, '0', STR_PAD_LEFT);
-    //$cveDoc = str_pad($cveDoc, 20, ' ', STR_PAD_LEFT);
 
     $fechaActual = date("Y-m-d H:i:s");
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
-    $sql = "SELECT CVE_VEND, CVE_CLPV FROM $nombreTabla
-        WHERE CVE_DOC = ?";
-
+    $sql = "SELECT CVE_VEND, CVE_CLPV FROM $nombreTabla WHERE CVE_DOC = ?";
     $stmt = sqlsrv_query($conn, $sql, [$folioFactura]);
     if ($stmt === false) {
-        //die(json_encode(['success' => false, 'message' => 'Error al obtener la descripción del producto', 'errors' => sqlsrv_errors()]));
         throw new Exception("Error al obtener la descripción del producto");
     }
-
     $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     $CVE_VEND = $row ? $row['CVE_VEND'] : "";
     $CVE_CLPV = $row ? $row['CVE_CLPV'] : "";
 
-    $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
-    // Consultar Firebase para obtener los datos del vendedor
+    // ===== USUARIOS vía runQuery (filtra en Firestore) =====
+    $runUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => "USUARIOS"]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "tipoUsuario"],
+                                "op"    => "EQUAL",
+                                "value" => ["stringValue" => "VENDEDOR"]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "claveUsuario"],
+                                "op"    => "EQUAL",
+                                "value" => ["stringValue" => (string)$CVE_VEND]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op"    => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "claveSae"],
+                                "op"    => "EQUAL",
+                                "value" => ["stringValue" => (string)$claveSae]
+                            ]
+                        ],
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ], JSON_UNESCAPED_SLASHES);
+
     $context = stream_context_create([
         'http' => [
-            'method' => 'GET',
-            'header' => "Content-Type: application/json\r\n"
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => $payload,
+            'timeout' => 20
         ]
     ]);
 
-    $response = @file_get_contents($firebaseUrl, false, $context);
+    $response = @file_get_contents($runUrl, false, $context);
     if ($response === false) {
         throw new Exception("No se pudo obtener la información del vendedor para enviar la falla");
     }
 
-    $usuariosData = json_decode($response, true);
+    $rows = json_decode($response, true);
 
-    //var_dump($usuariosData);
     $telefonoVendedor = "";
-    $nombreVendedor = "";
-    // Buscar al vendedor por clave
-    if (isset($usuariosData['documents'])) {
-        foreach ($usuariosData['documents'] as $document) {
-            $fields = $document['fields'];
-            //var_dump($document['fields']);
-            if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
-                if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $CVE_VEND) {
-                    if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
-                        $telefonoVendedor = $fields['telefono']['stringValue'];
-                        $correoVendedor = $fields['correo']['stringValue'];
-                        $nombreVendedor = $fields['nombre']['stringValue'];
-                        break;
-                    }
-                }
-            }
+    $correoVendedor   = "";
+    $nombreVendedor   = "";
+
+    if (is_array($rows)) {
+        foreach ($rows as $rowU) {
+            if (!isset($rowU['document'])) continue;
+            $fieldsU = $rowU['document']['fields'] ?? [];
+            $telefonoVendedor = $fieldsU['telefono']['stringValue'] ?? "";
+            $correoVendedor   = $fieldsU['correo']['stringValue'] ?? "";
+            $nombreVendedor   = $fieldsU['nombre']['stringValue'] ?? "";
+            break; // tomamos el primero
         }
     }
 
-    $mail = new clsMail();
-    //$correoVendedor = "amartinez@grupointerzenda.com"; //Interzenda
-    //$correoVendedor = 'marcos.luna@mdcloud.mx';
-    //$correoVendedor = "desarrollo01@mdcloud.mx";
-    $clienteData = obtenerCliente($CVE_CLPV, $conexionData, $claveSae, $conn);
-    $rutaXml = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".xml";
-    $rutaError = "../XML/sdk2/tmp/ultimo_error_respuesta.txt";
-    $titulo = "MDConnecta";
-    // Definir el remitente (si no está definido, se usa uno por defecto)
-    $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
-    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
+    if ($correoVendedor === "" && $telefonoVendedor === "" && $nombreVendedor === "") {
+        $correoVendedor = "desarrollo01@mdcloud.mx";
+        //$correoVendedor = "facturacion@grupointerzenda.com";
+        //throw new Exception("Vendedor no encontrado en Firestore (USUARIOS)");
+    }
+    // ===== /USUARIOS vía runQuery =====
 
+    $mail = new clsMail();
+
+    $clienteData = obtenerCliente($CVE_CLPV, $conexionData, $claveSae, $conn);
+    $rutaXml   = "../XML/sdk2/timbrados/xml_" . urlencode($clienteData['NOMBRE']) . "_" . urlencode($folioFactura) . ".xml";
+    $rutaError = "../XML/sdk2/tmp/ultimo_error_respuesta.txt";
+    $titulo    = "MDConnecta";
+
+    // Remitente dinámico (si no hay en sesión, queda vacío como ya lo manejas)
+    $correoRemitente     = $_SESSION['usuario']['correo']     ?? "";
+    $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
     if ($correoRemitente === "" || $contraseñaRemitente === "") {
         $correoRemitente = "";
         $contraseñaRemitente = "";
     }
 
     $correoDestino = $correoVendedor;
-
-    // Asunto del correo
     $asunto = 'Problemas con la factura #' . $folioFactura;
 
-    // Construcción del cuerpo del correo
-    $bodyHTML = "<p>Estimado/a <b>$nombreVendedor</b>,</p>";
+    $bodyHTML  = "<p>Estimado/a <b>$nombreVendedor</b>,</p>";
     $bodyHTML .= "<p>Se le notifica que hubo un problema al realizar el CFDI: <b>$folioFactura</b>.</p>";
     $bodyHTML .= "<p><b>Fecha de Reporte:</b> " . $fechaActual . "</p>";
     $bodyHTML .= "<p><b>Problema:</b> " . $problema . "</p>";
-
     $bodyHTML .= "<p>Saludos cordiales,</p><p>Su equipo de soporte.</p>";
 
-    // Enviar el correo con el remitente dinámico
-    $resultado = $mail->metEnviarError($titulo, $nombreVendedor, $correoDestino, $asunto, $bodyHTML, $correoRemitente, $contraseñaRemitente, $rutaXml, $rutaError);
+    $resultado = $mail->metEnviarError(
+        $titulo,
+        $nombreVendedor,
+        $correoDestino,
+        $asunto,
+        $bodyHTML,
+        $correoRemitente,
+        $contraseñaRemitente,
+        $rutaXml,
+        $rutaError
+    );
+
     return false;
 }
 function obtenerPedido($cveDoc, $conexionData, $claveSae, $conn)
@@ -7137,48 +7313,68 @@ function obtenerEmpresa($noEmpresa)
 {
     global $firebaseProjectId, $firebaseApiKey;
 
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-    // Configura el contexto de la solicitud para manejar errores y tiempo de espera
+    // runQuery a EMPRESAS filtrando por noEmpresa
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => "EMPRESAS"]
+            ],
+            "where" => [
+                "fieldFilter" => [
+                    "field" => ["fieldPath" => "noEmpresa"],
+                    "op"    => "EQUAL",
+                    "value" => ["integerValue" => (int)$noEmpresa]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ], JSON_UNESCAPED_SLASHES);
+
     $context = stream_context_create([
         'http' => [
-            'timeout' => 10 // Tiempo máximo de espera en segundos
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => $payload,
+            'timeout' => 10
         ]
     ]);
 
-    // Realizar la consulta a Firebase
     $response = @file_get_contents($url, false, $context);
     if ($response === false) {
-        return false; // Error en la petición
+        return false;
     }
 
-    // Decodifica la respuesta JSON
-    $data = json_decode($response, true);
-    if (!isset($data['documents'])) {
-        return false; // No se encontraron documentos
+    // runQuery devuelve un arreglo de filas; cada fila puede o no traer 'document'
+    $rows = json_decode($response, true);
+    if (!is_array($rows)) {
+        return false;
     }
-    // Busca los datos de la empresa por noEmpresa
-    foreach ($data['documents'] as $document) {
-        $fields = $document['fields'];
-        if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
-            return [
-                'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? null,
-                'id' => $fields['id']['stringValue'] ?? null,
-                'razonSocial' => $fields['razonSocial']['stringValue'] ?? null,
-                'rfc' => $fields['rfc']['stringValue'] ?? null,
-                'regimenFiscal' => $fields['regimenFiscal']['stringValue'] ?? null,
-                'calle' => $fields['calle']['stringValue'] ?? null,
-                'numExterior' => $fields['numExterior']['stringValue'] ?? null,
-                'numInterior' => $fields['numInterior']['stringValue'] ?? null,
-                'entreCalle' => $fields['entreCalle']['stringValue'] ?? null,
-                'colonia' => $fields['colonia']['stringValue'] ?? null,
-                'referencia' => $fields['referencia']['stringValue'] ?? null,
-                'pais' => $fields['pais']['stringValue'] ?? null,
-                'estado' => $fields['estado']['stringValue'] ?? null,
-                'municipio' => $fields['municipio']['stringValue'] ?? null,
-                'codigoPostal' => $fields['codigoPostal']['stringValue'] ?? null,
-                'poblacion' => $fields['poblacion']['stringValue'] ?? null
-            ];
-        }
+
+    foreach ($rows as $row) {
+        if (!isset($row['document']['fields'])) continue;
+
+        $fields = $row['document']['fields'];
+
+        return [
+            'noEmpresa'     => isset($fields['noEmpresa']['integerValue']) ? (int)$fields['noEmpresa']['integerValue'] : null,
+            'id'            => $fields['id']['stringValue'] ?? null,
+            'razonSocial'   => $fields['razonSocial']['stringValue'] ?? null,
+            'rfc'           => $fields['rfc']['stringValue'] ?? null,
+            'regimenFiscal' => $fields['regimenFiscal']['stringValue'] ?? null,
+            'calle'         => $fields['calle']['stringValue'] ?? null,
+            'numExterior'   => $fields['numExterior']['stringValue'] ?? null,
+            'numInterior'   => $fields['numInterior']['stringValue'] ?? null,
+            'entreCalle'    => $fields['entreCalle']['stringValue'] ?? null,
+            'colonia'       => $fields['colonia']['stringValue'] ?? null,
+            'referencia'    => $fields['referencia']['stringValue'] ?? null,
+            'pais'          => $fields['pais']['stringValue'] ?? null,
+            'estado'        => $fields['estado']['stringValue'] ?? null,
+            'municipio'     => $fields['municipio']['stringValue'] ?? null,
+            'codigoPostal'  => $fields['codigoPostal']['stringValue'] ?? null,
+            'poblacion'     => $fields['poblacion']['stringValue'] ?? null
+        ];
     }
 
     return false; // No se encontró la empresa
@@ -7234,50 +7430,87 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     $clienteNombre = trim($clienteData['NOMBRE']);
     $clave = trim($clienteData['CLAVE']);
 
-    /******************************************/
-    $firebaseUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/USUARIOS?key=$firebaseApiKey";
-    // Consultar Firebase para obtener los datos del vendedor
+    // === USUARIOS vía runQuery (filtra en Firestore) ===
+    $runUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => "USUARIOS"]
+            ],
+            "where" => [
+                "compositeFilter" => [
+                    "op" => "AND",
+                    "filters" => [
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "tipoUsuario"],
+                                "op"    => "EQUAL",
+                                "value" => ["stringValue" => "VENDEDOR"]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "claveUsuario"],
+                                "op"    => "EQUAL",
+                                "value" => ["stringValue" => (string)$CVE_VEND]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "noEmpresa"],
+                                "op"    => "EQUAL",
+                                "value" => ["integerValue" => (int)$noEmpresa]
+                            ]
+                        ],
+                        [
+                            "fieldFilter" => [
+                                "field" => ["fieldPath" => "claveSae"],
+                                "op"    => "EQUAL",
+                                "value" => ["stringValue" => (string)$claveSae]
+                            ]
+                        ],
+                    ]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ], JSON_UNESCAPED_SLASHES);
+
     $context = stream_context_create([
         'http' => [
-            'method' => 'GET',
-            'header' => "Content-Type: application/json\r\n"
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => $payload,
+            'timeout' => 15
         ]
     ]);
 
-    $response = @file_get_contents($firebaseUrl, false, $context);
+    $response = @file_get_contents($runUrl, false, $context);
     if ($response === false) {
-        echo "<div class='container'>
-                        <div class='title'>Error al Obtener Información</div>
-                        <div class='message'>No se pudo obtener la información del vendedor.</div>
-                        <a href='/Cliente/altaPedido.php' class='button'>Volver</a>
-                      </div>";
-        exit;
+        throw new Exception("Error al conectar con la base de datos");
     }
 
-    $usuariosData = json_decode($response, true);
+    $rows = json_decode($response, true);
 
-    //var_dump($usuariosData);
     $telefonoVendedor = "";
-    $correoVendedor = "";
-    $nombreVendedor = "";
-    //var_dump($CVE_VEND);
-    // Buscar al vendedor por clave
-    if (isset($usuariosData['documents'])) {
-        foreach ($usuariosData['documents'] as $document) {
-            $fields = $document['fields'];
-            //var_dump($document['fields']);
-            if (isset($fields['tipoUsuario']['stringValue']) && $fields['tipoUsuario']['stringValue'] === "VENDEDOR") {
-                if (isset($fields['claveUsuario']['stringValue']) && $fields['claveUsuario']['stringValue'] === $CVE_VEND) {
-                    if (isset($fields['noEmpresa']['integerValue']) && $fields['noEmpresa']['integerValue'] === $noEmpresa && isset($fields['claveSae']['stringValue']) && $fields['claveSae']['stringValue'] === $claveSae) {
-                        $telefonoVendedor = $fields['telefono']['stringValue'];
-                        $correoVendedor = $fields['correo']['stringValue'] ?? "";
-                        $nombreVendedor = $fields['nombre']['stringValue'];
-                        break;
-                    }
-                }
-            }
+    $correoVendedor   = "";
+    $nombreVendedor   = "";
+
+    // Tomamos el primer documento coincidente
+    if (is_array($rows)) {
+        foreach ($rows as $row) {
+            if (!isset($row['document']['fields'])) continue;
+            $fields = $row['document']['fields'];
+
+            $telefonoVendedor = $fields['telefono']['stringValue'] ?? "";
+            $correoVendedor   = $fields['correo']['stringValue']   ?? "";
+            $nombreVendedor   = $fields['nombre']['stringValue']   ?? "";
+            break;
         }
     }
+    // === /USUARIOS vía runQuery ===
+
     /******************************************/
     //$emailPred = $correoVendedor ?? "";
     //$numeroWhatsApp = $telefonoVendedor;
@@ -7292,7 +7525,7 @@ function validarCorreo($conexionData, $rutaPDF, $claveSae, $folio, $noEmpresa, $
     if ($correo === 'S' && !empty($emailPred)) {
 
         $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
-        //$rutaPDFW = "https://mdconecta.mdcloud.a´´/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
+        //$rutaPDFW = "https://mdconecta.mdcloud.app/Servidor/PHP/pdfs/Factura_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $folioFactura) . ".pdf";
 
         //$rutaPDFW = "http://localhost/MDConnecta/Servidor/PHP/pdfs/Factura_" . urldecode($folioFactura) . ".pdf";
 
@@ -7469,12 +7702,82 @@ function crearPdf($folio, $noEmpresa, $claveSae, $conexionData, $folioFactura, $
 }
 function eliminarErrores($conexionData, $claveSae, $folio, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $remisionId, $claveCliente, $fallaId, $conn)
 {
+    // Si no nos pasaron el ID, búscalo por runQuery (folio + noEmpresa + claveSae)
+    if ($fallaId === "" || $fallaId === null) {
+        $rqUrl = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+        $rqPayload = json_encode([
+            "structuredQuery" => [
+                "from" => [
+                    ["collectionId" => "FALLAS_FACTURA"]
+                ],
+                "where" => [
+                    "compositeFilter" => [
+                        "op" => "AND",
+                        "filters" => [
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "folio"],
+                                    "op"    => "EQUAL",
+                                    "value" => ["stringValue" => (string)$remisionId]
+                                ]
+                            ],
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "noEmpresa"],
+                                    "op"    => "EQUAL",
+                                    "value" => ["integerValue" => (int)$noEmpresa]
+                                ]
+                            ],
+                            [
+                                "fieldFilter" => [
+                                    "field" => ["fieldPath" => "claveSae"],
+                                    "op"    => "EQUAL",
+                                    "value" => ["stringValue" => (string)$claveSae]
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                "limit" => 1
+            ]
+        ], JSON_UNESCAPED_SLASHES);
 
+        $rqCtx = stream_context_create([
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\n",
+                'content' => $rqPayload,
+                'timeout' => 20
+            ]
+        ]);
+
+        $rqRes = @file_get_contents($rqUrl, false, $rqCtx);
+        if ($rqRes !== false) {
+            $rows = json_decode($rqRes, true);
+            if (is_array($rows)) {
+                foreach ($rows as $row) {
+                    if (isset($row['document']['name'])) {
+                        $parts = explode('/', $row['document']['name']);
+                        $fallaId = end($parts);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$fallaId) {
+            echo json_encode(['success' => false, 'message' => 'No se encontró el documento de fallas para eliminar.']);
+            return;
+        }
+    }
+
+    // Con $fallaId ya resuelto, elimina el documento
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/FALLAS_FACTURA/$fallaId?key=$firebaseApiKey";
     $options = [
         'http' => [
             'header' => "Content-Type: application/json\r\n",
             'method' => 'DELETE',
+            'timeout' => 20
         ],
     ];
     $context = stream_context_create($options);
@@ -7522,7 +7825,7 @@ function facturarRemision($remisionId, $noEmpresa, $claveSae, $conexionData, $fi
                 die();*/
                 $folioFactura = facturar($folio, $claveSae, $noEmpresa, $claveCliente, $credito, $conn, $conexionData);
                 //var_dump("folioFactura: ", $folioFactura);
-                actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName);
+                actualizarStatus($firebaseProjectId, $firebaseApiKey, $docName, $folio);
 
                 $respuestaFactura = json_decode(cfdi($folio, $noEmpresa, $claveSae, $folioFactura, $conn, $conexionData, $firebaseProjectId, $firebaseApiKey), true);
 

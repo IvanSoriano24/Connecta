@@ -114,53 +114,70 @@ function datosProcuto($CVE_ART, $claveSae, $conexionData, $conn)
 }
 function datosEmpresaC($noEmpresa, $firebaseProjectId, $firebaseApiKey)
 {
+    // Endpoint de runQuery
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
 
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/EMPRESAS?key=$firebaseApiKey";
-    // Configura el contexto de la solicitud para manejar errores y tiempo de espera
+    // Filtrar por noEmpresa == $noEmpresa
+    $payload = json_encode([
+        "structuredQuery" => [
+            "from" => [
+                ["collectionId" => "EMPRESAS"]
+            ],
+            "where" => [
+                "fieldFilter" => [
+                    "field" => ["fieldPath" => "noEmpresa"],
+                    "op"    => "EQUAL",
+                    "value" => ["integerValue" => (int)$noEmpresa]
+                ]
+            ],
+            "limit" => 1
+        ]
+    ], JSON_UNESCAPED_SLASHES);
+
     $context = stream_context_create([
         'http' => [
-            'timeout' => 10 // Tiempo máximo de espera en segundos
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => $payload,
+            'timeout' => 10
         ]
     ]);
 
-    // Realizar la consulta a Firebase
     $response = @file_get_contents($url, false, $context);
     if ($response === false) {
         return false; // Error en la petición
     }
 
-    // Decodifica la respuesta JSON
-    $data = json_decode($response, true);
-    if (!isset($data['documents'])) {
-        return false; // No se encontraron documentos
+    $rows = json_decode($response, true);
+    if (!is_array($rows)) {
+        return false; // Respuesta inesperada
     }
-    // Busca los datos de la empresa por noEmpresa
-    foreach ($data['documents'] as $document) {
-        $fields = $document['fields'];
-        $empFirebase = (int) $fields['noEmpresa']['integerValue'];
-        $empBuscada  = (int) $noEmpresa;
-        if ($empFirebase === $empBuscada) {
-            return [
-                'noEmpresa' => $fields['noEmpresa']['integerValue'] ?? null,
-                'id' => $fields['id']['stringValue'] ?? null,
-                'razonSocial' => $fields['razonSocial']['stringValue'] ?? null,
-                'rfc' => $fields['rfc']['stringValue'] ?? null,
-                'regimenFiscal' => $fields['regimenFiscal']['stringValue'] ?? null,
-                'calle' => $fields['calle']['stringValue'] ?? null,
-                'numExterior' => $fields['numExterior']['stringValue'] ?? null,
-                'numInterior' => $fields['numInterior']['stringValue'] ?? null,
-                'entreCalle' => $fields['entreCalle']['stringValue'] ?? null,
-                'colonia' => $fields['colonia']['stringValue'] ?? null,
-                'referencia' => $fields['referencia']['stringValue'] ?? null,
-                'pais' => $fields['pais']['stringValue'] ?? null,
-                'estado' => $fields['estado']['stringValue'] ?? null,
-                'municipio' => $fields['municipio']['stringValue'] ?? null,
-                'codigoPostal' => $fields['codigoPostal']['stringValue'] ?? null,
-                'poblacion' => $fields['poblacion']['stringValue'] ?? null,
-                'keyEncValue' => $fields['keyEncValue']['stringValue'] ?? null,
-                'keyEncIv' => $fields['keyEncIv']['stringValue'] ?? null
-            ];
-        }
+
+    foreach ($rows as $row) {
+        if (!isset($row['document']['fields'])) continue;
+
+        $fields = $row['document']['fields'];
+
+        return [
+            'noEmpresa'     => isset($fields['noEmpresa']['integerValue']) ? (int)$fields['noEmpresa']['integerValue'] : null,
+            'id'            => $fields['id']['stringValue'] ?? null,
+            'razonSocial'   => $fields['razonSocial']['stringValue'] ?? null,
+            'rfc'           => $fields['rfc']['stringValue'] ?? null,
+            'regimenFiscal' => $fields['regimenFiscal']['stringValue'] ?? null,
+            'calle'         => $fields['calle']['stringValue'] ?? null,
+            'numExterior'   => $fields['numExterior']['stringValue'] ?? null,
+            'numInterior'   => $fields['numInterior']['stringValue'] ?? null,
+            'entreCalle'    => $fields['entreCalle']['stringValue'] ?? null,
+            'colonia'       => $fields['colonia']['stringValue'] ?? null,
+            'referencia'    => $fields['referencia']['stringValue'] ?? null,
+            'pais'          => $fields['pais']['stringValue'] ?? null,
+            'estado'        => $fields['estado']['stringValue'] ?? null,
+            'municipio'     => $fields['municipio']['stringValue'] ?? null,
+            'codigoPostal'  => $fields['codigoPostal']['stringValue'] ?? null,
+            'poblacion'     => $fields['poblacion']['stringValue'] ?? null,
+            'keyEncValue'   => $fields['keyEncValue']['stringValue'] ?? null,
+            'keyEncIv'      => $fields['keyEncIv']['stringValue'] ?? null,
+        ];
     }
 
     return false; // No se encontró la empresa
@@ -204,8 +221,8 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID, $conn, $conexionData,
     // Credenciales de Timbrado
     $datos['PAC']['usuario'] = $empresaData['rfc'];
     $datos['PAC']['pass'] = $empresaData['rfc'];
-    $datos['PAC']['produccion'] = 'SI';
-    //$datos['PAC']['produccion'] = 'NO';
+    //$datos['PAC']['produccion'] = 'SI';
+    $datos['PAC']['produccion'] = 'NO';
 
     // Credenciales de Timbrado
     /*$datos['PAC']['usuario'] = 'DEMO700101XXX';
