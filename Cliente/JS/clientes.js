@@ -89,42 +89,104 @@ function doSearch() {
                   ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
                   : ""; // Centrado de la palomita con display: block y margin: 0 auto
                 const row = document.createElement("tr");
-                row.innerHTML = `
-                              <td>${cliente.CLAVE || "Sin clave"}</td>
-                              <td>${cliente.NOMBRE || "Sin nombre"}</td>
-                              <td>${cliente.CALLE || "Sin calle"}</td>
-                              <td style="text-align: right;">${saldoFormateado}</td>
-                              <td style="text-align: center;">${estadoTimbrado}</td> <!-- Centrar la palomita -->
-                              <td>${
-                                cliente.NOMBRECOMERCIAL || "Sin nombre comercial"
-                              }</td>
-                              <td>
-                                  <button class="btnVisualizarCliente" name="btnVisualizarCliente" data-id="${
-                                    cliente.CLAVE
-                                  }" style="
-                                      display: inline-flex;
-                                      align-items: center;
-                                      padding: 0.5rem 1rem;
-                                      font-size: 1rem;
-                                      font-family: Lato;
-                                      color: #fff;
-                                      background-color: #007bff;
-                                      border: none;
-                                      border-radius: 0.25rem;
-                                      cursor: pointer;
-                                      transition: background-color 0.3s ease;
-                                  ">
-                                      <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar
-                                  </button>
-                              </td>
-                          `;
+                
+                // Crear las celdas directamente
+                const tdClave = document.createElement("td");
+                tdClave.textContent = cliente.CLAVE || "Sin clave";
+                
+                const tdNombre = document.createElement("td");
+                tdNombre.textContent = cliente.NOMBRE || "Sin nombre";
+                
+                const tdCalle = document.createElement("td");
+                tdCalle.textContent = cliente.CALLE || "Sin calle";
+                
+                const tdSaldo = document.createElement("td");
+                tdSaldo.style.textAlign = "right";
+                tdSaldo.innerHTML = saldoFormateado;
+                
+                const tdEstado = document.createElement("td");
+                tdEstado.style.textAlign = "center";
+                tdEstado.innerHTML = estadoTimbrado;
+                
+                const tdNombreComercial = document.createElement("td");
+                tdNombreComercial.textContent = cliente.NOMBRECOMERCIAL || "Sin nombre comercial";
+                
+                // Botón Estado de Cuenta General
+                const tdEstadoCuentaGeneral = document.createElement("td");
+                tdEstadoCuentaGeneral.style.textAlign = "center";
+                const btnEstadoCuentaGeneral = document.createElement("button");
+                btnEstadoCuentaGeneral.className = "btn btn-sm btn-info btnEstadoCuentaGeneral";
+                btnEstadoCuentaGeneral.setAttribute("data-clave", cliente.CLAVE || "");
+                btnEstadoCuentaGeneral.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+                btnEstadoCuentaGeneral.style.padding = "0.25rem 0.5rem";
+                btnEstadoCuentaGeneral.style.fontSize = "0.875rem";
+                btnEstadoCuentaGeneral.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar';
+                tdEstadoCuentaGeneral.appendChild(btnEstadoCuentaGeneral);
+                
+                // Botón Estado de Cuenta Detallado
+                const tdEstadoCuentaDetallado = document.createElement("td");
+                tdEstadoCuentaDetallado.style.textAlign = "center";
+                const btnEstadoCuentaDetallado = document.createElement("button");
+                btnEstadoCuentaDetallado.className = "btn btn-sm btn-warning btnEstadoCuentaDetallado";
+                btnEstadoCuentaDetallado.setAttribute("data-clave", cliente.CLAVE || "");
+                btnEstadoCuentaDetallado.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+                btnEstadoCuentaDetallado.style.padding = "0.25rem 0.5rem";
+                btnEstadoCuentaDetallado.style.fontSize = "0.875rem";
+                btnEstadoCuentaDetallado.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar';
+                tdEstadoCuentaDetallado.appendChild(btnEstadoCuentaDetallado);
+                
+                // Botón Cobranza
+                const tdCobranza = document.createElement("td");
+                tdCobranza.style.textAlign = "center";
+                const btnCobranza = document.createElement("button");
+                btnCobranza.className = "btn btn-sm btn-success btnCobranza";
+                btnCobranza.setAttribute("data-clave", cliente.CLAVE || "");
+                btnCobranza.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+                btnCobranza.style.padding = "0.25rem 0.5rem";
+                btnCobranza.style.fontSize = "0.875rem";
+                btnCobranza.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver';
+                tdCobranza.appendChild(btnCobranza);
+                
+                // Botón Visualizar
+                const tdVisualizar = document.createElement("td");
+                const btnVisualizar = document.createElement("button");
+                btnVisualizar.className = "btnVisualizarCliente";
+                btnVisualizar.name = "btnVisualizarCliente";
+                btnVisualizar.setAttribute("data-id", cliente.CLAVE);
+                btnVisualizar.style.display = "inline-flex";
+                btnVisualizar.style.alignItems = "center";
+                btnVisualizar.style.padding = "0.5rem 1rem";
+                btnVisualizar.style.fontSize = "1rem";
+                btnVisualizar.style.fontFamily = "Lato";
+                btnVisualizar.style.color = "#fff";
+                btnVisualizar.style.backgroundColor = "#007bff";
+                btnVisualizar.style.border = "none";
+                btnVisualizar.style.borderRadius = "0.25rem";
+                btnVisualizar.style.cursor = "pointer";
+                btnVisualizar.style.transition = "background-color 0.3s ease";
+                btnVisualizar.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar';
+                tdVisualizar.appendChild(btnVisualizar);
+                
+                // Agregar todas las celdas a la fila
+                row.appendChild(tdClave);
+                row.appendChild(tdNombre);
+                row.appendChild(tdCalle);
+                row.appendChild(tdSaldo);
+                row.appendChild(tdEstado);
+                row.appendChild(tdNombreComercial);
+                row.appendChild(tdEstadoCuentaGeneral);
+                row.appendChild(tdEstadoCuentaDetallado);
+                row.appendChild(tdCobranza);
+                row.appendChild(tdVisualizar);
+                
                 clientesTable.appendChild(row);
               });
               buildPagination(response.total);
               agregarEventosBotones();
+              agregarEventosReportes();
             } else {
               const clientesTable = document.getElementById("datosClientes");
-              clientesTable.innerHTML = `<tr><td style="text-align: center;">No hay datos disponibles</td></tr>`;
+              clientesTable.innerHTML = `<tr><td colspan="10" style="text-align: center;">No hay datos disponibles</td></tr>`;
             }
           } else {
             console.error("La respuesta no es un objeto válido:", response);
@@ -324,40 +386,101 @@ function obtenerClientes(limpiarTabla = true) {
                 ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
                 : ""; // Centrado de la palomita con display: block y margin: 0 auto
               const row = document.createElement("tr");
-              //cliente.CLAVE = (cliente.CLAVE + '').replace(/\D/g, '') || cliente.CLAVE;
-              row.innerHTML = `
-                            <td>${cliente.CLAVE || "Sin clave"}</td>
-                            <td>${cliente.NOMBRE || "Sin nombre"}</td>
-                            <td>${cliente.CALLE || "Sin calle"}</td>
-                            <td style="text-align: right;">${saldoFormateado}</td>
-                            <td style="text-align: center;">${estadoTimbrado}</td> <!-- Centrar la palomita -->
-                            <td>${
-                              cliente.NOMBRECOMERCIAL || "Sin nombre comercial"
-                            }</td>
-                            <td>
-                                <button class="btnVisualizarCliente" name="btnVisualizarCliente" data-id="${
-                                  cliente.CLAVE
-                                }" style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    padding: 0.5rem 1rem;
-                                    font-size: 1rem;
-                                    font-family: Lato;
-                                    color: #fff;
-                                    background-color: #007bff;
-                                    border: none;
-                                    border-radius: 0.25rem;
-                                    cursor: pointer;
-                                    transition: background-color 0.3s ease;
-                                ">
-                                    <i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar
-                                </button>
-                            </td>
-                        `;
+              
+              // Crear las celdas directamente
+              const tdClave = document.createElement("td");
+              tdClave.textContent = cliente.CLAVE || "Sin clave";
+              
+              const tdNombre = document.createElement("td");
+              tdNombre.textContent = cliente.NOMBRE || "Sin nombre";
+              
+              const tdCalle = document.createElement("td");
+              tdCalle.textContent = cliente.CALLE || "Sin calle";
+              
+              const tdSaldo = document.createElement("td");
+              tdSaldo.style.textAlign = "right";
+              tdSaldo.innerHTML = saldoFormateado;
+              
+              const tdEstado = document.createElement("td");
+              tdEstado.style.textAlign = "center";
+              tdEstado.innerHTML = estadoTimbrado;
+              
+              const tdNombreComercial = document.createElement("td");
+              tdNombreComercial.textContent = cliente.NOMBRECOMERCIAL || "Sin nombre comercial";
+              
+              // Botón Estado de Cuenta General
+              const tdEstadoCuentaGeneral = document.createElement("td");
+              tdEstadoCuentaGeneral.style.textAlign = "center";
+              const btnEstadoCuentaGeneral = document.createElement("button");
+              btnEstadoCuentaGeneral.className = "btn btn-sm btn-info btnEstadoCuentaGeneral";
+              btnEstadoCuentaGeneral.setAttribute("data-clave", cliente.CLAVE || "");
+              btnEstadoCuentaGeneral.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+              btnEstadoCuentaGeneral.style.padding = "0.25rem 0.5rem";
+              btnEstadoCuentaGeneral.style.fontSize = "0.875rem";
+              btnEstadoCuentaGeneral.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
+              tdEstadoCuentaGeneral.appendChild(btnEstadoCuentaGeneral);
+              
+              // Botón Estado de Cuenta Detallado
+              const tdEstadoCuentaDetallado = document.createElement("td");
+              tdEstadoCuentaDetallado.style.textAlign = "center";
+              const btnEstadoCuentaDetallado = document.createElement("button");
+              btnEstadoCuentaDetallado.className = "btn btn-sm btn-warning btnEstadoCuentaDetallado";
+              btnEstadoCuentaDetallado.setAttribute("data-clave", cliente.CLAVE || "");
+              btnEstadoCuentaDetallado.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+              btnEstadoCuentaDetallado.style.padding = "0.25rem 0.5rem";
+              btnEstadoCuentaDetallado.style.fontSize = "0.875rem";
+              btnEstadoCuentaDetallado.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
+              tdEstadoCuentaDetallado.appendChild(btnEstadoCuentaDetallado);
+              
+              // Botón Cobranza
+              const tdCobranza = document.createElement("td");
+              tdCobranza.style.textAlign = "center";
+              const btnCobranza = document.createElement("button");
+              btnCobranza.className = "btn btn-sm btn-success btnCobranza";
+              btnCobranza.setAttribute("data-clave", cliente.CLAVE || "");
+              btnCobranza.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+              btnCobranza.style.padding = "0.25rem 0.5rem";
+              btnCobranza.style.fontSize = "0.875rem";
+              btnCobranza.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
+              tdCobranza.appendChild(btnCobranza);
+              
+              // Botón Visualizar
+              const tdVisualizar = document.createElement("td");
+              const btnVisualizar = document.createElement("button");
+              btnVisualizar.className = "btnVisualizarCliente";
+              btnVisualizar.name = "btnVisualizarCliente";
+              btnVisualizar.setAttribute("data-id", cliente.CLAVE);
+              btnVisualizar.style.display = "inline-flex";
+              btnVisualizar.style.alignItems = "center";
+              btnVisualizar.style.padding = "0.5rem 1rem";
+              btnVisualizar.style.fontSize = "1rem";
+              btnVisualizar.style.fontFamily = "Lato";
+              btnVisualizar.style.color = "#fff";
+              btnVisualizar.style.backgroundColor = "#007bff";
+              btnVisualizar.style.border = "none";
+              btnVisualizar.style.borderRadius = "0.25rem";
+              btnVisualizar.style.cursor = "pointer";
+              btnVisualizar.style.transition = "background-color 0.3s ease";
+              btnVisualizar.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar';
+              tdVisualizar.appendChild(btnVisualizar);
+              
+              // Agregar todas las celdas a la fila
+              row.appendChild(tdClave);
+              row.appendChild(tdNombre);
+              row.appendChild(tdCalle);
+              row.appendChild(tdSaldo);
+              row.appendChild(tdEstado);
+              row.appendChild(tdNombreComercial);
+              row.appendChild(tdEstadoCuentaGeneral);
+              row.appendChild(tdEstadoCuentaDetallado);
+              row.appendChild(tdCobranza);
+              row.appendChild(tdVisualizar);
+              
               clientesTable.appendChild(row);
             });
             buildPagination(response.total);
             agregarEventosBotones();
+            agregarEventosReportes();
           } else {
             Swal.fire({
               title: "Aviso",
@@ -447,3 +570,776 @@ $("#selectCantidad").on("change", function () {
   paginaActual = 1; // volvemos a la primera página
   obtenerClientes(true); // limpia la tabla y carga sólo registrosPorPagina filas
 });
+
+// Variable global para almacenar el cliente actual
+let clienteActualReporte = null;
+let nombreClienteActualReporte = null;
+
+// Función para agregar eventos a los botones de reportes
+function agregarEventosReportes() {
+  // Botones de Estado de Cuenta General
+  document.querySelectorAll(".btnEstadoCuentaGeneral").forEach((boton) => {
+    boton.addEventListener("click", function () {
+      const clave = this.getAttribute("data-clave");
+      const nombre = this.getAttribute("data-nombre");
+      abrirModalEstadoCuentaGeneral(clave, nombre);
+    });
+  });
+
+  // Botones de Estado de Cuenta Detallado
+  document.querySelectorAll(".btnEstadoCuentaDetallado").forEach((boton) => {
+    boton.addEventListener("click", function () {
+      const clave = this.getAttribute("data-clave");
+      const nombre = this.getAttribute("data-nombre");
+      abrirModalEstadoCuentaDetallado(clave, nombre);
+    });
+  });
+
+  // Botones de Cobranza
+  document.querySelectorAll(".btnCobranza").forEach((boton) => {
+    boton.addEventListener("click", function () {
+      const clave = this.getAttribute("data-clave");
+      const nombre = this.getAttribute("data-nombre");
+      abrirModalCobranza(clave, nombre);
+    });
+  });
+}
+
+// Función para abrir el modal de Estado de Cuenta General
+function abrirModalEstadoCuentaGeneral(claveCliente, nombreCliente) {
+  clienteActualReporte = claveCliente;
+  nombreClienteActualReporte = nombreCliente;
+  
+  document.getElementById("modalClienteNombreGeneral").textContent = nombreCliente || "Cliente";
+  document.getElementById("filtroFechaInicioEstadoCuentaGeneral").value = "";
+  document.getElementById("filtroFechaFinEstadoCuentaGeneral").value = "";
+  
+  const modal = new bootstrap.Modal(document.getElementById("modalEstadoCuentaGeneral"));
+  modal.show();
+  
+  cargarEstadoCuentaGeneral();
+}
+
+// Función para cerrar el modal de Estado de Cuenta General
+function cerrarModalEstadoCuentaGeneral() {
+  const modal = bootstrap.Modal.getInstance(document.getElementById("modalEstadoCuentaGeneral"));
+  if (modal) {
+    modal.hide();
+  }
+}
+
+// Función para cargar el Estado de Cuenta General
+function cargarEstadoCuentaGeneral() {
+  if (!clienteActualReporte) {
+    return;
+  }
+  
+  const tablaBody = document.getElementById("datosEstadoCuentaGeneral");
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuentaGeneral").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuentaGeneral").value;
+  
+  tablaBody.innerHTML = `
+    <tr>
+      <td colspan="10" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </td>
+    </tr>
+  `;
+  
+  $.post(
+    "../Servidor/PHP/reportesGeneral.php",
+    {
+      numFuncion: "3",
+      filtroFechaInicio: filtroFechaInicio,
+      filtroFechaFin: filtroFechaFin,
+      filtroCliente: clienteActualReporte,
+    },
+    function (response) {
+      try {
+        if (typeof response === "string") {
+          response = JSON.parse(response);
+        }
+        
+        if (response.success && response.data && response.data.length > 0) {
+          tablaBody.innerHTML = "";
+          
+          const fragment = document.createDocumentFragment();
+          response.data.forEach((reporte) => {
+            const cargos = Number(reporte.CARGOS || 0);
+            const abonos = Number(reporte.ABONOS || 0);
+            const saldo = Number(reporte.SALDO || 0);
+            
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${reporte.CLAVE || ""}</td>
+              <td>${reporte.TIPO || ""}</td>
+              <td>${reporte.CONCEPTO || ""}</td>
+              <td>${reporte.DOCUMENTO || ""}</td>
+              <td>${reporte.NUM || ""}</td>
+              <td>${reporte.FECHA_APLICACION || ""}</td>
+              <td>${reporte.FECHA_VENCIMIENTO || ""}</td>
+              <td style="text-align:right;">${cargos.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${abonos.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${saldo.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+            `;
+            fragment.appendChild(row);
+          });
+          
+          tablaBody.appendChild(fragment);
+        } else {
+          tablaBody.innerHTML = `
+            <tr>
+              <td colspan="10" class="text-center">No se encontraron registros</td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error("Error al procesar JSON:", error);
+        tablaBody.innerHTML = `
+          <tr>
+            <td colspan="10" class="text-center text-danger">Error al cargar los datos</td>
+          </tr>
+        `;
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Error en la solicitud:", textStatus, errorThrown);
+    tablaBody.innerHTML = `
+      <tr>
+        <td colspan="10" class="text-center text-danger">Error al cargar los datos</td>
+      </tr>
+    `;
+  });
+}
+
+// Función para abrir el modal de Estado de Cuenta Detallado
+function abrirModalEstadoCuentaDetallado(claveCliente, nombreCliente) {
+  clienteActualReporte = claveCliente;
+  nombreClienteActualReporte = nombreCliente;
+  
+  document.getElementById("modalClienteNombreDetallado").textContent = nombreCliente || "Cliente";
+  document.getElementById("filtroFechaInicioEstadoCuentaDetallado").value = "";
+  document.getElementById("filtroFechaFinEstadoCuentaDetallado").value = "";
+  
+  const modal = new bootstrap.Modal(document.getElementById("modalEstadoCuentaDetallado"));
+  modal.show();
+  
+  cargarEstadoCuentaDetallado();
+}
+
+// Función para cerrar el modal de Estado de Cuenta Detallado
+function cerrarModalEstadoCuentaDetallado() {
+  const modal = bootstrap.Modal.getInstance(document.getElementById("modalEstadoCuentaDetallado"));
+  if (modal) {
+    modal.hide();
+  }
+}
+
+// Función para cargar el Estado de Cuenta Detallado
+function cargarEstadoCuentaDetallado() {
+  if (!clienteActualReporte) {
+    return;
+  }
+  
+  const tablaBody = document.getElementById("datosEstadoCuentaDetallado");
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuentaDetallado").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuentaDetallado").value;
+  
+  tablaBody.innerHTML = `
+    <tr>
+      <td colspan="10" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </td>
+    </tr>
+  `;
+  
+  $.post(
+    "../Servidor/PHP/reportesGeneral.php",
+    {
+      numFuncion: "5",
+      filtroFechaInicio: filtroFechaInicio,
+      filtroFechaFin: filtroFechaFin,
+      filtroCliente: clienteActualReporte,
+    },
+    function (response) {
+      try {
+        if (typeof response === "string") {
+          response = JSON.parse(response);
+        }
+        
+        if (response.success && response.data && response.data.length > 0) {
+          tablaBody.innerHTML = "";
+          
+          const fragment = document.createDocumentFragment();
+          response.data.forEach((reporte) => {
+            const cargo = reporte.CARGO !== null && reporte.CARGO !== "" ? Number(reporte.CARGO) : null;
+            const abono = reporte.ABONO !== null && reporte.ABONO !== "" ? Number(reporte.ABONO) : null;
+            const saldo = reporte.SALDO !== null && reporte.SALDO !== "" ? Number(reporte.SALDO) : null;
+            
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${reporte.CLAVE || ""}</td>
+              <td>${reporte.TIPO || ""}</td>
+              <td>${reporte.CONCEPTO || ""}</td>
+              <td>${reporte.DOCUMENTO || ""}</td>
+              <td>${reporte.NUM || ""}</td>
+              <td>${reporte.FECHA_APLICACION || ""}</td>
+              <td>${reporte.FECHA_VENCIMIENTO || ""}</td>
+              <td style="text-align:right;">${cargo !== null ? cargo.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) : ""}</td>
+              <td style="text-align:right;">${abono !== null ? abono.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) : ""}</td>
+              <td style="text-align:right;">${saldo !== null ? saldo.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' }) : ""}</td>
+            `;
+            fragment.appendChild(row);
+          });
+          
+          tablaBody.appendChild(fragment);
+        } else {
+          tablaBody.innerHTML = `
+            <tr>
+              <td colspan="10" class="text-center">No se encontraron registros</td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error("Error al procesar JSON:", error);
+        tablaBody.innerHTML = `
+          <tr>
+            <td colspan="10" class="text-center text-danger">Error al cargar los datos</td>
+          </tr>
+        `;
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Error en la solicitud:", textStatus, errorThrown);
+    tablaBody.innerHTML = `
+      <tr>
+        <td colspan="10" class="text-center text-danger">Error al cargar los datos</td>
+      </tr>
+    `;
+  });
+}
+
+// Función para abrir el modal de Cobranza
+function abrirModalCobranza(claveCliente, nombreCliente) {
+  clienteActualReporte = claveCliente;
+  nombreClienteActualReporte = nombreCliente;
+  
+  document.getElementById("modalClienteNombreCobranza").textContent = nombreCliente || "Cliente";
+  document.getElementById("filtroFechaInicioCobranza").value = "";
+  document.getElementById("filtroFechaFinCobranza").value = "";
+  
+  const modal = new bootstrap.Modal(document.getElementById("modalCobranza"));
+  modal.show();
+  
+  cargarCobranza();
+}
+
+// Función para cerrar el modal de Cobranza
+function cerrarModalCobranza() {
+  const modal = bootstrap.Modal.getInstance(document.getElementById("modalCobranza"));
+  if (modal) {
+    modal.hide();
+  }
+}
+
+// Función para cargar Cobranza
+function cargarCobranza() {
+  if (!clienteActualReporte) {
+    return;
+  }
+  
+  const tablaBody = document.getElementById("datosCobranza");
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioCobranza").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinCobranza").value;
+  
+  tablaBody.innerHTML = `
+    <tr>
+      <td colspan="13" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </td>
+    </tr>
+  `;
+  
+  $.post(
+    "../Servidor/PHP/reportesGeneral.php",
+    {
+      numFuncion: "4",
+      filtroFechaInicio: filtroFechaInicio,
+      filtroFechaFin: filtroFechaFin,
+      filtroCliente: clienteActualReporte,
+      filtroVendedor: "",
+    },
+    function (response) {
+      try {
+        if (typeof response === "string") {
+          response = JSON.parse(response);
+        }
+        
+        if (response.success && response.data && response.data.length > 0) {
+          tablaBody.innerHTML = "";
+          
+          const fragment = document.createDocumentFragment();
+          response.data.forEach((reporte) => {
+            const cargos = Number(reporte.CARGOS || 0);
+            const abonos = Number(reporte.ABONOS || 0);
+            const saldo = Number(reporte.SALDO || 0);
+            
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${reporte.CLAVE || ""}</td>
+              <td>${reporte.NOMBRE_CLIENTE || ""}</td>
+              <td>${reporte.TELEFONO_CLIENTE || ""}</td>
+              <td>${reporte.TIPO || ""}</td>
+              <td>${reporte.CONCEPTO || ""}</td>
+              <td>${reporte.DOCUMENTO || ""}</td>
+              <td>${reporte.NUM || ""}</td>
+              <td>${reporte.FECHA_APLICACION || ""}</td>
+              <td>${reporte.FECHA_VENCIMIENTO || ""}</td>
+              <td style="text-align:right;">${cargos.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${abonos.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${saldo.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td>${reporte.MONEDA || ""}</td>
+            `;
+            fragment.appendChild(row);
+          });
+          
+          tablaBody.appendChild(fragment);
+        } else {
+          tablaBody.innerHTML = `
+            <tr>
+              <td colspan="13" class="text-center">No se encontraron registros</td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error("Error al procesar JSON:", error);
+        tablaBody.innerHTML = `
+          <tr>
+            <td colspan="13" class="text-center text-danger">Error al cargar los datos</td>
+          </tr>
+        `;
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Error en la solicitud:", textStatus, errorThrown);
+    tablaBody.innerHTML = `
+      <tr>
+        <td colspan="13" class="text-center text-danger">Error al cargar los datos</td>
+      </tr>
+    `;
+  });
+}
+
+// ==================== FUNCIONES PARA ESTADO DE CUENTA GENERAL ====================
+
+function descargarPDFEstadoCuentaGeneral() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuentaGeneral").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuentaGeneral").value;
+  
+  // Descargar directamente sin mostrar spinner (el navegador manejará la descarga)
+  window.location.href = `../Servidor/PHP/reportesEstadoCuenta.php?tipo=general&cliente=${encodeURIComponent(clienteActualReporte)}&fechaInicio=${encodeURIComponent(filtroFechaInicio)}&fechaFin=${encodeURIComponent(filtroFechaFin)}&accion=descargar`;
+}
+
+function enviarWhatsAppEstadoCuentaGeneral() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuentaGeneral").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuentaGeneral").value;
+  
+  Swal.fire({
+    title: "Enviando por WhatsApp...",
+    text: "Por favor espere",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  $.post(
+    "../Servidor/PHP/reportesEstadoCuenta.php",
+    {
+      tipo: "general",
+      cliente: clienteActualReporte,
+      fechaInicio: filtroFechaInicio,
+      fechaFin: filtroFechaFin,
+      accion: "whatsapp"
+    },
+    function (response) {
+      Swal.close();
+      if (response.success) {
+        Swal.fire({
+          title: "Éxito",
+          text: response.message || "Reporte enviado por WhatsApp correctamente",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message || "Error al enviar por WhatsApp",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  ).fail(function () {
+    Swal.close();
+    Swal.fire({
+      title: "Error",
+      text: "Error al enviar por WhatsApp",
+      icon: "error",
+    });
+  });
+}
+
+function enviarCorreoEstadoCuentaGeneral() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuentaGeneral").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuentaGeneral").value;
+  
+  Swal.fire({
+    title: "Enviando por correo...",
+    text: "Por favor espere",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  $.post(
+    "../Servidor/PHP/reportesEstadoCuenta.php",
+    {
+      tipo: "general",
+      cliente: clienteActualReporte,
+      fechaInicio: filtroFechaInicio,
+      fechaFin: filtroFechaFin,
+      accion: "correo"
+    },
+    function (response) {
+      Swal.close();
+      if (response.success) {
+        Swal.fire({
+          title: "Éxito",
+          text: response.message || "Reporte enviado por correo correctamente",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message || "Error al enviar por correo",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  ).fail(function () {
+    Swal.close();
+    Swal.fire({
+      title: "Error",
+      text: "Error al enviar por correo",
+      icon: "error",
+    });
+  });
+}
+
+// ==================== FUNCIONES PARA ESTADO DE CUENTA DETALLADO ====================
+
+function descargarPDFEstadoCuentaDetallado() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuentaDetallado").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuentaDetallado").value;
+  
+  // Descargar directamente sin mostrar spinner (el navegador manejará la descarga)
+  window.location.href = `../Servidor/PHP/reportesEstadoCuenta.php?tipo=detallado&cliente=${encodeURIComponent(clienteActualReporte)}&fechaInicio=${encodeURIComponent(filtroFechaInicio)}&fechaFin=${encodeURIComponent(filtroFechaFin)}&accion=descargar`;
+}
+
+function enviarWhatsAppEstadoCuentaDetallado() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuentaDetallado").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuentaDetallado").value;
+  
+  Swal.fire({
+    title: "Enviando por WhatsApp...",
+    text: "Por favor espere",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  $.post(
+    "../Servidor/PHP/reportesEstadoCuenta.php",
+    {
+      tipo: "detallado",
+      cliente: clienteActualReporte,
+      fechaInicio: filtroFechaInicio,
+      fechaFin: filtroFechaFin,
+      accion: "whatsapp"
+    },
+    function (response) {
+      Swal.close();
+      if (response.success) {
+        Swal.fire({
+          title: "Éxito",
+          text: response.message || "Reporte enviado por WhatsApp correctamente",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message || "Error al enviar por WhatsApp",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  ).fail(function () {
+    Swal.close();
+    Swal.fire({
+      title: "Error",
+      text: "Error al enviar por WhatsApp",
+      icon: "error",
+    });
+  });
+}
+
+function enviarCorreoEstadoCuentaDetallado() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuentaDetallado").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuentaDetallado").value;
+  
+  Swal.fire({
+    title: "Enviando por correo...",
+    text: "Por favor espere",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  $.post(
+    "../Servidor/PHP/reportesEstadoCuenta.php",
+    {
+      tipo: "detallado",
+      cliente: clienteActualReporte,
+      fechaInicio: filtroFechaInicio,
+      fechaFin: filtroFechaFin,
+      accion: "correo"
+    },
+    function (response) {
+      Swal.close();
+      if (response.success) {
+        Swal.fire({
+          title: "Éxito",
+          text: response.message || "Reporte enviado por correo correctamente",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message || "Error al enviar por correo",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  ).fail(function () {
+    Swal.close();
+    Swal.fire({
+      title: "Error",
+      text: "Error al enviar por correo",
+      icon: "error",
+    });
+  });
+}
+
+// ==================== FUNCIONES PARA COBRANZA ====================
+
+function descargarPDFCobranza() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioCobranza").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinCobranza").value;
+  
+  // Descargar directamente sin mostrar spinner (el navegador manejará la descarga)
+  window.location.href = `../Servidor/PHP/reportesEstadoCuenta.php?tipo=cobranza&cliente=${encodeURIComponent(clienteActualReporte)}&fechaInicio=${encodeURIComponent(filtroFechaInicio)}&fechaFin=${encodeURIComponent(filtroFechaFin)}&accion=descargar`;
+}
+
+function enviarWhatsAppCobranza() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioCobranza").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinCobranza").value;
+  
+  Swal.fire({
+    title: "Enviando por WhatsApp...",
+    text: "Por favor espere",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  $.post(
+    "../Servidor/PHP/reportesEstadoCuenta.php",
+    {
+      tipo: "cobranza",
+      cliente: clienteActualReporte,
+      fechaInicio: filtroFechaInicio,
+      fechaFin: filtroFechaFin,
+      accion: "whatsapp"
+    },
+    function (response) {
+      Swal.close();
+      if (response.success) {
+        Swal.fire({
+          title: "Éxito",
+          text: response.message || "Reporte enviado por WhatsApp correctamente",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message || "Error al enviar por WhatsApp",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  ).fail(function () {
+    Swal.close();
+    Swal.fire({
+      title: "Error",
+      text: "Error al enviar por WhatsApp",
+      icon: "error",
+    });
+  });
+}
+
+function enviarCorreoCobranza() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioCobranza").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinCobranza").value;
+  
+  Swal.fire({
+    title: "Enviando por correo...",
+    text: "Por favor espere",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  $.post(
+    "../Servidor/PHP/reportesEstadoCuenta.php",
+    {
+      tipo: "cobranza",
+      cliente: clienteActualReporte,
+      fechaInicio: filtroFechaInicio,
+      fechaFin: filtroFechaFin,
+      accion: "correo"
+    },
+    function (response) {
+      Swal.close();
+      if (response.success) {
+        Swal.fire({
+          title: "Éxito",
+          text: response.message || "Reporte enviado por correo correctamente",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message || "Error al enviar por correo",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  ).fail(function () {
+    Swal.close();
+    Swal.fire({
+      title: "Error",
+      text: "Error al enviar por correo",
+      icon: "error",
+    });
+  });
+}

@@ -162,14 +162,189 @@ if (isset($_SESSION['usuario'])) {
 
     .form-container {
         position: sticky;
-        /* Cambiado a sticky para mantener fijo */
-        /*top: 0;*/
-        /* Para que se fije en la parte superior */
         z-index: 10;
         background: white;
         display: flex;
+        flex-direction: column;
+    }
+    
+    .form-main-wrapper {
+        display: flex;
+        width: 100%;
+        gap: 15px;
+    }
+    
+    .form-fields-container {
+        flex: 1;
+        flex-basis: 50%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-row-with-help {
+        display: flex;
+        width: 100%;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .form-fields-group {
+        flex: 1;
+        display: flex;
         flex-wrap: wrap;
-        justify-content: space-between;
+        gap: 10px;
+    }
+    
+    .form-help-column {
+        flex: 1;
+        flex-basis: 50%;
+        display: flex;
+        align-items: stretch;
+    }
+    
+    /* Estilos para Agregar orden de compra */
+    .pdf-button-container {
+        text-align: left;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    
+    
+    /* Ajustes para la sección de partidas */
+    .table-data {
+        width: 100%;
+        margin-top: 20px;
+    }
+    
+    .table-container {
+        width: 100%;
+    }
+    
+    .tabla-productos {
+        width: 100%;
+        min-width: 100%;
+    }
+    
+    .tabla-scroll {
+        width: 100%;
+    }
+    
+    /* Contenedor principal que incluye formulario y tabla */
+    .main-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 15px;
+    }
+    
+    .main-form-section {
+        flex: 1;
+        flex-basis: 50%;
+        min-width: 0;
+    }
+    
+    .main-help-section {
+        flex: 1;
+        flex-basis: 50%;
+    }
+    
+    
+    /* Ajuste para que el recuadro de ayuda se alinee con la tabla */
+    .help-section-wrapper {
+        position: sticky;
+        top: 20px;
+        height: fit-content;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .main-content-wrapper > div:first-child {
+            flex-direction: column;
+        }
+        
+        .main-form-section {
+            flex-basis: 100%;
+            width: 100%;
+        }
+        
+        .main-help-section {
+            flex-basis: 100%;
+            width: 100%;
+        }
+        
+        
+        .help-section-wrapper {
+            position: relative;
+            top: 0;
+            max-height: none;
+        }
+        
+        .form-element {
+            flex-basis: 100% !important;
+        }
+        
+        .table-data {
+            width: 100%;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .form-row-with-help {
+            flex-direction: column;
+        }
+        
+        .form-fields-group {
+            width: 100%;
+        }
+        
+        .main-help-section {
+            width: 100%;
+        }
+        
+        .ayuda-cliente {
+            min-height: auto;
+        }
+        
+        .tabla-scroll {
+            overflow-x: auto;
+        }
+        
+        .tabla-productos {
+            min-width: 800px;
+        }
+        
+        .pdf-button-container {
+            text-align: left;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .card-body {
+            padding: 10px;
+        }
+        
+        .form-element {
+            margin-bottom: 10px;
+        }
+        
+        .ayuda-cliente {
+            padding: 10px;
+        }
+        
+        .tabla-productos {
+            font-size: 12px;
+        }
+        
+        .tabla-productos th,
+        .tabla-productos td {
+            padding: 5px;
+        }
+        
+        .main-content-wrapper {
+            gap: 10px;
+        }
     }
 
     .form-container .row {
@@ -180,12 +355,153 @@ if (isset($_SESSION['usuario'])) {
         gap: 10px;
         margin-bottom: 15px;
     }
+    
+    .form-row-with-help .row {
+        width: 100%;
+        margin-bottom: 0;
+    }
 
     .form-element {
         flex-grow: 1;
-        flex-basis: calc(20% - 10px);
+        flex-basis: calc(50% - 10px);
         margin: 0;
         padding: 0;
+    }
+    
+    /* Recuadro de Ayuda del Cliente */
+    .ayuda-cliente {
+        width: 100%;
+        margin: 0;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        box-sizing: border-box;
+        align-self: stretch;
+    }
+    
+    .ayuda-cliente-fixed {
+        position: sticky;
+        top: 20px;
+        height: fit-content;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    
+    .ayuda-cliente h5 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #333;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .ayuda-cliente-content {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    
+    .info-cliente-item {
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .info-cliente-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .info-cliente-item strong {
+        display: block;
+        color: #333;
+        margin-bottom: 4px;
+        font-size: 0.9em;
+    }
+    
+    .info-cliente-item span {
+        display: block;
+        color: #555;
+        font-size: 0.95em;
+        padding-left: 8px;
+    }
+    
+    .estado-cliente {
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    
+    .estado-cliente.al-corriente {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .estado-cliente.con-atrasos {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .estado-cliente.con-atrasos-critico {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .lista-facturas,
+    .lista-productos {
+        margin-top: 8px;
+        max-height: 150px;
+        overflow-y: auto;
+        font-size: 0.85em;
+    }
+    
+    .item-factura,
+    .item-producto {
+        padding: 4px 0;
+        border-bottom: 1px solid #e8e8e8;
+    }
+    
+    .item-factura:last-child,
+    .item-producto:last-child {
+        border-bottom: none;
+    }
+    
+    .item-factura span,
+    .item-producto span {
+        display: block;
+        color: #666;
+    }
+    
+    .item-factura .folio,
+    .item-producto .clave {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    /* Estilos para el botón de Estado de Cuenta */
+    #btnEstadoCuenta {
+        margin-top: 8px;
+    }
+    
+    /* Estilos para el modal de estado de cuenta */
+    #modalEstadoCuenta .modal-xl {
+        max-width: 95%;
+    }
+    
+    #tablaEstadoCuenta {
+        font-size: 0.9em;
+    }
+    
+    #tablaEstadoCuenta thead th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    #tablaEstadoCuenta tbody tr:hover {
+        background-color: #f5f5f5;
     }
 
     label {
@@ -377,11 +693,14 @@ if (isset($_SESSION['usuario'])) {
         max-height: 600px;
         /* o lo que necesites */
         height: 350px;
+        width: 100%;
     }
 
     .tabla-productos {
         /*border-collapse: collapse;*/
         width: 100%;
+        min-width: 100%;
+        table-layout: auto;
     }
 
     .tabla-productos thead {
@@ -583,8 +902,9 @@ if (isset($_SESSION['usuario'])) {
                 <div class="card-body ">
                     <!-- Formulario -->
                     <form class="form-container" id="formularioPedido">
-                        <!-- 1st row: 4 inputs (2 select, 2 text) -->
-                        <div class="row">
+                        <!-- Campos ocultos -->
+                        <input type="text" name="tipoOperacion" id="tipoOperacion" hidden readonly value="alta" tabindex="-1">
+                        <div style="display: none;">
                             <div class="form-element">
                                 <label for="factura">Pedido: </label>
                                 <select name="factura" id="factura" style="width: 170px;">
@@ -592,207 +912,284 @@ if (isset($_SESSION['usuario'])) {
                                 </select>
                             </div>
                             <div class="form-element">
-                                <label for="numero">Folio:</label>
-                                <input type="text" name="numero" id="numero" readonly tabindex="-1">
-                            </div>
-
-                            <input type="text" name="tipoOperacion" id="tipoOperacion" hidden readonly value="alta" tabindex="-1">
-
-                            <div class="form-element">
-                                <label for="diaAlta">Fecha </label>
-                                <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;"
-                                    readonly1 tabindex="-1">
-                            </div>
-                            <div class="form-element">
-                                <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
-                                <label for="cliente">Cliente</label>
-                                <div class="input-container" style="position: relative;">
-                                    <div style="display: flex; align-items: center; gap: 5px;">
-                                        <input name="cliente" id="cliente" autocomplete="off"
-                                            oninput="toggleClearButton()" style="padding-right: 2rem; width: 170px;" />
-                                        <button id="clearInput" type="button" class="btn" onclick="clearAllFields()" tabindex="-1"
-                                            style="display: none; padding: 5px 10px;">
-                                            <i class="bx bx-x"></i>
-                                        </button>
-                                        <button type="button" class="btn" onclick="abrirModalClientes()" tabindex="-1"
-                                            style="padding: 5px 5px;">
-                                            <i class="bx bx-search"></i>
-                                        </button>
-                                    </div>
-                                    <ul id="clientesSugeridos" class="suggestions-list"></ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-element" style="display: none;">
-                                <label for="rfc">RFC <a class='bx'> *</a></label>
-                                <input type="text" name="rfc" id="rfc" tabindex="-1">
-                            </div>
-                            <div class="form-element">
-                                <label for="nombre">Nombre <a class='bx'> *</a></label>
-                                <input type="text" name="nombre" id="nombre" style="width: 700px;" tabindex="-1" readonly />
-                            </div>
-                            <div class="form-element">
-                                <label for="supedido">O.C</label>
-                                <input type="text" name="supedido" id="supedido" style="width:170px;" disabled>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-element" style="display: none;">
-                                <label for="calle">Calle </label>
-                                <input type="text" name="calle" id="calle" style="background-color: #e0e0e0; " value=""
-                                    readonly>
-                            </div>
-                            <div class="form-element" style="display: none;">
-                                <label for="numE">Num. ext. </label>
-                                <input type="text" name="numE" id="numE" style="background-color: #e0e0e0; " value=""
-                                    readonly>
-                            </div>
-                            <div class="form-element" style="display: none;">
-                                <label for="numI">Num. Int.</label>
-                                <input type="text" name="numI" id="numI" style="background-color: #e0e0e0; " value=""
-                                    readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="vendedor">Vendedor </label>
-                                <input type="text" name="vendedor" id="vendedor" style="width: 180px;"
-                                    value="<?php echo $claveUsuario ?>" tabindex="-1" readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="almacen">Almacen </label>
-                                <input type="text" name="almacen" id="almacen" style="background-color: #e0e0e0; width: 180px;"
-                                    value="1" tabindex="-1" readonly>
-                            </div>
-                            <div class="form-element">
                                 <label for="entrega">Entrega </label>
                                 <input type="date" name="entrega" id="entrega"
                                     style="width:180px; align-items: center;" disabled tabindex="-1">
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="form-element" style="display: none;">
-                                <label for="colonia">Colonia:</label>
-                                <input type="text" name="colonia" id="colonia"
-                                    style="background-color: #e0e0e0; width: 470px;" value="" readonly>
-                            </div>
-                            <div class="form-element">
-                                <label for="condicion">Condicion </label>
-                                <div style="display: flex; align-items: center;">
-                                    <input type="text" name="condicion" style="width: 410px;" id="condicion" maxlength="25" disabled>
-                                    <button type="button" class="btn ms-2" id="AyudaCondicion" tabindex="-1">
-                                        <i class="bx bx-help-circle"></i>
-                                    </button>
+                        
+                        <div class="main-content-wrapper">
+                            <!-- Sección de dos columnas: Formulario y Ayuda del Cliente -->
+                            <div style="display: flex; width: 100%; gap: 15px; align-items: flex-start;">
+                                <!-- Columna izquierda: Campos del formulario -->
+                                <div class="main-form-section">
+                                    <div class="form-fields-container">
+                                <!-- Fila 1: Folio - Fecha -->
+                                <div class="form-row-with-help">
+                                    <div class="form-fields-group">
+                                        <div class="form-element">
+                                            <label for="numero">Folio:</label>
+                                            <input type="text" name="numero" id="numero" readonly tabindex="-1">
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="diaAlta">Fecha </label>
+                                            <input type="date" name="diaAlta" id="diaAlta" style="width:180px; align-items: center;"
+                                                readonly1 tabindex="-1">
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-element">
-                            </div>
-                            <div class="form-element">
-                                <label for="descuentoCliente">Descuento </label>
-                                <div style="display: flex; align-items: center;">
-                                    <input type="text" name="descuentoCliente" id="descuentoCliente" style="width: 110px;" tabindex="-1" disabled>
-                                    <button type="button" class="btn ms-2" id="AyudaDescuento" tabindex="-1">
-                                        <i class="bx bx-help-circle"></i>
-                                    </button>
+                                
+                                <!-- Fila 2: Cliente - OC -->
+                                <div class="form-row-with-help">
+                                    <div class="form-fields-group">
+                                        <div class="form-element">
+                                            <input type="hidden" name="csrf_token" id="csrf_token" value="<?php echo $csrf_token; ?>">
+                                            <label for="cliente">Cliente</label>
+                                            <div class="input-container" style="position: relative;">
+                                                <div style="display: flex; align-items: center; gap: 5px;">
+                                                    <input name="cliente" id="cliente" autocomplete="off"
+                                                        oninput="toggleClearButton()" style="padding-right: 2rem; width: 170px;" />
+                                                    <button id="clearInput" type="button" class="btn" onclick="clearAllFields()" tabindex="-1"
+                                                        style="display: none; padding: 5px 10px;">
+                                                        <i class="bx bx-x"></i>
+                                                    </button>
+                                                    <button type="button" class="btn" onclick="abrirModalClientes()" tabindex="-1"
+                                                        style="padding: 5px 5px;">
+                                                        <i class="bx bx-search"></i>
+                                                    </button>
+                                                </div>
+                                                <ul id="clientesSugeridos" class="suggestions-list"></ul>
+                                            </div>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="supedido">O.C</label>
+                                            <input type="text" name="supedido" id="supedido" style="width:170px;" disabled>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="form-element">
-                                <label for="enviar">Enviar a <input type="button" id="datosEnvio" value="Datos de Envio" disabled> <a class='bx'> *</a> </label>
-                                <div style="display: flex; align-items: center;">
-                                    <input type="text" name="enviar" style="width:410px;" id="enviar" disabled>
-                                    <button type="button" class="btn ms-2" id="AyudaEnviarA">
-                                        <i class="bx bx-help-circle"></i>
-                                    </button>
+                                
+                                <!-- Fila 3: Vendedor - Almacen -->
+                                <div class="form-row-with-help">
+                                    <div class="form-fields-group">
+                                        <div class="form-element">
+                                            <label for="vendedor">Vendedor </label>
+                                            <input type="text" name="vendedor" id="vendedor" style="width: 180px;"
+                                                value="<?php echo $claveUsuario ?>" tabindex="-1" readonly>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="almacen">Almacen </label>
+                                            <input type="text" name="almacen" id="almacen" style="background-color: #e0e0e0; width: 180px;"
+                                                value="1" tabindex="-1" readonly>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="form-element">
-                                <label for="observaciones">Observaciones</label>
-                                <input type="text" name="observaciones" id="observaciones" style="width:250px;" disabled>
-                            </div>
-                            <div class="form-checks">
-                                <input type="checkbox" name="enviarWhats" id="enviarWhats" checked>
-                                <label for="enviarWhats" data-check>Enviar WhatsApp</label>
+                                
+                                <!-- Fila 4: Descuento - Condicion -->
+                                <div class="form-row-with-help">
+                                    <div class="form-fields-group">
+                                        <div class="form-element">
+                                            <label for="descuentoCliente">Descuento </label>
+                                            <div style="display: flex; align-items: center;">
+                                                <input type="text" name="descuentoCliente" id="descuentoCliente" style="width: 110px;" tabindex="-1" disabled>
+                                                <button type="button" class="btn ms-2" id="AyudaDescuento" tabindex="-1">
+                                                    <i class="bx bx-help-circle"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="form-element">
+                                            <label for="condicion">Condicion </label>
+                                            <div style="display: flex; align-items: center;">
+                                                <input type="text" name="condicion" style="width: 410px;" id="condicion" maxlength="25" disabled>
+                                                <button type="button" class="btn ms-2" id="AyudaCondicion" tabindex="-1">
+                                                    <i class="bx bx-help-circle"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Fila 5: Datos de envio (Ocupa dos espacios) -->
+                                <div class="form-row-with-help">
+                                    <div class="form-fields-group">
+                                        <div class="form-element" style="flex-basis: 100%;">
+                                            <label for="enviar">Enviar a <input type="button" id="datosEnvio" value="Datos de Envio" disabled> <a class='bx'> *</a> </label>
+                                            <div style="display: flex; align-items: center;">
+                                                <input type="text" name="enviar" style="width:410px;" id="enviar" disabled>
+                                                <button type="button" class="btn ms-2" id="AyudaEnviarA">
+                                                    <i class="bx bx-help-circle"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Fila 6: Observaciones -->
+                                <div class="form-row-with-help">
+                                    <div class="form-fields-group">
+                                        <div class="form-element" style="flex-basis: 100%;">
+                                            <label for="observaciones">Observaciones</label>
+                                            <input type="text" name="observaciones" id="observaciones" style="width:250px;" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Fila 7: Checks de enviar por whatsapp y correo -->
+                                <div class="form-row-with-help">
+                                    <div class="form-fields-group">
+                                        <div class="form-element" style="flex-basis: 100%;">
+                                            <div class="form-checks">
+                                                <input type="checkbox" name="enviarWhats" id="enviarWhats" checked>
+                                                <label for="enviarWhats" data-check>Enviar WhatsApp</label>
 
-                                <input type="checkbox" name="enviarCorreo" id="enviarCorreo" checked>
-                                <label for="enviarCorreo" data-check>Enviar Correo</label>
-                            </div>
-                            
-                            <div class="container my-5">
-                                <!-- Campo de entrada principal (simulado) -->
-                                <input type="hidden" id="enviar">
-
-                                <!-- Botón para abrir el modal de PDFs -->
-                                <div class="pdf-button-container">
-                                    <label for="enviar" class="me-2">Agregar orden de compra</label>
-                                    <button type="button" id="btnSubirPDF" class="btn-like-subirpdf p-2 border-5"
-                                        data-bs-toggle="modal" data-bs-target="#modalPDF" onclick="abrirModalPdf()" disabled>
-                                        <i class="bx bx-upload"></i> Subir PDF
-                                    </button>
+                                                <input type="checkbox" name="enviarCorreo" id="enviarCorreo" checked>
+                                                <label for="enviarCorreo" data-check>Enviar Correo</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <!-- cerca del botón "Subir PDF" -->
-                                <div id="resumenPDFs" class="mt-2 d-flex flex-wrap gap-2"></div>
-                            </div>
-                            <div class="form-element" style="display: none;">
-                                <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
-                                <input type="text" name="codigoPostal" id="codigoPostal"
-                                    style="background-color: #e0e0e0; " value="" readonly>
-                            </div>
-                            <div class="form-element" style="display: none;">
-                                <label for="poblacion">Población:</label>
-                                <input type="text" name="poblacion" id="poblacion" style="background-color: #e0e0e0; "
-                                    value="" readonly>
-                            </div>
-                            <div class="form-element"></div>
-                        </div>
-                        <div class="row" style="display: none;">
-                            <div class="form-element">
-                                <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
-                                <input type="text" name="regimenFiscal" id="regimenFiscal"
-                                    style="background-color: #e0e0e0; " value="" readonly>
-                            </div>
-
-                        </div>
-                        <div class="row">
-                            <div class="form-element" style="display: none;">
-                                <div class="form-element">
-                                    <label for="comision">Comision </label>
-                                    <input type="text" name="comision" id="comision">
+                                
+                                <!-- Agregar orden de compra (alineado a la izquierda) -->
+                                <div class="form-row-with-help">
+                                    <div class="form-fields-group">
+                                        <div class="pdf-button-container">
+                                            <label for="enviar" class="me-2">Agregar orden de compra</label>
+                                            <button type="button" id="btnSubirPDF" class="btn-like-subirpdf p-2 border-5"
+                                                data-bs-toggle="modal" data-bs-target="#modalPDF" onclick="abrirModalPdf()" disabled>
+                                                <i class="bx bx-upload"></i> Subir PDF
+                                            </button>
+                                            <div id="resumenPDFs" class="mt-2 d-flex flex-wrap gap-2"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-element">
-                                    <label for="pais">Pais: <a class='bx'>*</a></label>
-                                    <input type="text" name="pais" id="pais" style="background-color: #e0e0e0; "
-                                        value="" readonly>
+                                
+                                <!-- Campos ocultos que se mantienen para funcionalidad -->
+                                <div style="display: none;">
+                                    <div class="form-element">
+                                        <label for="rfc">RFC <a class='bx'> *</a></label>
+                                        <input type="text" name="rfc" id="rfc" tabindex="-1">
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="nombre">Nombre <a class='bx'> *</a></label>
+                                        <input type="text" name="nombre" id="nombre" style="width: 700px;" tabindex="-1" readonly />
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="calle">Calle </label>
+                                        <input type="text" name="calle" id="calle" style="background-color: #e0e0e0; " value=""
+                                            readonly>
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="numE">Num. ext. </label>
+                                        <input type="text" name="numE" id="numE" style="background-color: #e0e0e0; " value=""
+                                            readonly>
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="numI">Num. Int.</label>
+                                        <input type="text" name="numI" id="numI" style="background-color: #e0e0e0; " value=""
+                                            readonly>
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="colonia">Colonia:</label>
+                                        <input type="text" name="colonia" id="colonia"
+                                            style="background-color: #e0e0e0; width: 470px;" value="" readonly>
+                                    </div>
+                                </div>
+                                
+                                <!-- Campos ocultos adicionales -->
+                                <div style="display: none;">
+                                    <input type="hidden" id="enviar">
+                                    <div class="form-element">
+                                        <label for="codigoPostal">Código Postal:<a class='bx'>*</a></label>
+                                        <input type="text" name="codigoPostal" id="codigoPostal"
+                                            style="background-color: #e0e0e0; " value="" readonly>
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="poblacion">Población:</label>
+                                        <input type="text" name="poblacion" id="poblacion" style="background-color: #e0e0e0; "
+                                            value="" readonly>
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="regimenFiscal">Régimen Fiscal: <a class='bx'> *</a></label>
+                                        <input type="text" name="regimenFiscal" id="regimenFiscal"
+                                            style="background-color: #e0e0e0; " value="" readonly>
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="comision">Comision </label>
+                                        <input type="text" name="comision" id="comision">
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="pais">Pais: <a class='bx'>*</a></label>
+                                        <input type="text" name="pais" id="pais" style="background-color: #e0e0e0; "
+                                            value="" readonly>
+                                    </div>
+                                    <div class="form-element">
+                                        <label for="destinatario">Destinatario </label>
+                                        <div style="display: flex; align-items: center;">
+                                            <input type="text" name="destinatario" id="destinatario"
+                                                style="background-color: #e0e0e0; width: 470px; " value="" readonly>
+                                        </div>
+                                    </div>
+                                    <input class="input-mt" type="text" name="conCredito" id="conCredito" readonly hidden>
                                 </div>
                             </div>
-
                         </div>
-                        <div class="row">
-                            <div class="form-element" style="display: none;">
-                                <label for="destinatario">Destinatario </label>
-                                <div style="display: flex; align-items: center;">
-                                    <input type="text" name="destinatario" id="destinatario"
-                                        style="background-color: #e0e0e0; width: 470px; " value="" readonly>
+                        
+                        <!-- Columna derecha: Recuadro de Ayuda del Cliente (fijo) -->
+                        <div class="main-help-section">
+                            <div class="help-section-wrapper">
+                                <div class="ayuda-cliente">
+                                    <h5>Ayuda del Cliente</h5>
+                                    <div class="ayuda-cliente-content">
+                                        <div class="info-cliente-item">
+                                            <strong>Nombre:</strong>
+                                            <span id="infoNombre">-</span>
+                                        </div>
+                                        <div class="info-cliente-item">
+                                            <strong>Crédito:</strong>
+                                            <span id="infoCredito">-</span>
+                                        </div>
+                                        <div class="info-cliente-item">
+                                            <strong>Deuda:</strong>
+                                            <span id="infoDeuda">-</span>
+                                        </div>
+                                        <div class="info-cliente-item">
+                                            <strong>Límite de Crédito:</strong>
+                                            <span id="infoLimiteCredito">-</span>
+                                        </div>
+                                        <div class="info-cliente-item">
+                                            <strong>Estado:</strong>
+                                            <span id="infoEstado" class="estado-cliente">-</span>
+                                        </div>
+                                        <div class="info-cliente-item">
+                                            <button type="button" class="btn btn-sm btn-primary" id="btnEstadoCuenta" onclick="abrirModalEstadoCuenta()" style="width: 100%; margin-top: 5px;" disabled>
+                                                Estado de cuenta
+                                            </button>
+                                        </div>
+                                        <div class="info-cliente-item">
+                                            <strong>Últimas Facturas:</strong>
+                                            <div id="infoFacturas" class="lista-facturas"></div>
+                                        </div>
+                                        <div class="info-cliente-item">
+                                            <strong>Últimos Productos:</strong>
+                                            <div id="infoProductos" class="lista-productos"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <input class="input-mt" type="text" name="conCredito" id="conCredito" readonly hidden>
-                            <div class="form-element"></div>
                         </div>
-                        <div class="row">
-                            <div class="form-element"></div>
-                            <button type="button" class="btn-primary" id="verTotales" tabindex="-1"
-                                style="width: 150px;">Ver Totales</button>
-                        </div>
-                    </form>
-                    <!-- 5th row: 2 buttons -->
-                    <!-- Seccion de partidas  -->
-                    <div class="table-data">
+                    </div>
+                    
+                    <!-- Seccion de partidas (ocupa todo el ancho dentro de main-content-wrapper) -->
+                    <div class="table-data" style="width: 100%;">
                         <div class="order">
                             <div class="table-container">
                                 <div class="table-wrapper">
-                                    <button type="button" class="btn-secondary" id="añadirPartida" tabindex="-1">Añadir
-                                        Partida</button>
-                                    <br>
+                                    <!-- Botones de Añadir Partida y Ver Totales lado a lado -->
+                                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                                        <button type="button" class="btn-secondary" id="añadirPartida" tabindex="-1">Añadir
+                                            Partida</button>
+                                        <button type="button" class="btn-primary" id="verTotales" tabindex="-1"
+                                            style="width: 150px;">Ver Totales</button>
+                                    </div>
                                     <div class="tabla-scroll">
                                         <!-- Tabla de partidas -->
                                         <table id="tablaProductos" name="tablaProductos" class="tabla-productos">
@@ -821,15 +1218,16 @@ if (isset($_SESSION['usuario'])) {
                             </div>
                         </div>
                     </div>
-                    <br>
-                    <!-- Botones para el Guardado y la cancelacion del pedio (revisar archivo JS/altaPedido.js) -->
-                    <div class="row">
-                        <div class="form-element"></div>
+                    
+                    <!-- Botones para el Guardado y la cancelacion del pedido -->
+                    <div style="margin-top: 30px; text-align: center; padding: 20px 0;">
                         <button type="button" class="btn-save" id="guardarPedido" tabindex="-1"
-                            style="width: 150px;">Guardar</button>
+                            style="width: 150px; margin-right: 10px;">Guardar</button>
                         <button type="button" class="btn-cancel" id="cancelarPedido" tabindex="-1"
                             style="width: 150px;">Cancelar</button>
                     </div>
+                    </div>
+                    </form>
                     <!-- Modal clientes -->
                     <div id="modalClientes" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -881,9 +1279,73 @@ if (isset($_SESSION['usuario'])) {
                                     <!-- <button type="button" class=" btn-cancel" onclick="cerrarModal()">C</button> -->
                                 </div>
                             </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    
+                    <!-- Modal Estado de Cuenta -->
+                    <div id="modalEstadoCuenta" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-xl" role="document" style="max-width: 95%;">
+                            <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+                                <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Estado de Cuenta - <span id="modalClienteNombre">Cliente</span></h5>
+                                    <button type="button" class="btn-close" onclick="cerrarModalEstadoCuenta()"></button>
+                                </div>
+                                <!-- Modal Body -->
+                                <div class="modal-body">
+                                    <!-- Filtros -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label for="filtroFechaInicioEstadoCuenta" class="form-label">Fecha Inicio:</label>
+                                            <input type="date" id="filtroFechaInicioEstadoCuenta" class="form-control">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="filtroFechaFinEstadoCuenta" class="form-label">Fecha Fin:</label>
+                                            <input type="date" id="filtroFechaFinEstadoCuenta" class="form-control">
+                                        </div>
+                                        <div class="col-md-4 d-flex align-items-end">
+                                            <button type="button" class="btn btn-primary" onclick="cargarEstadoCuenta()" style="width: 100%;">
+                                                <i class="bx bx-search"></i> Buscar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Tabla de Estado de Cuenta -->
+                                    <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+                                        <table id="tablaEstadoCuenta" class="table table-striped table-bordered table-hover">
+                                            <thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
+                                                <tr>
+                                                    <th>Clave</th>
+                                                    <th>Tipo</th>
+                                                    <th>Concepto</th>
+                                                    <th>Documento</th>
+                                                    <th>Núm.</th>
+                                                    <th>F. de aplicación</th>
+                                                    <th>F. de venc. referencia</th>
+                                                    <th style="text-align:right;">Cargos</th>
+                                                    <th style="text-align:right;">Abonos</th>
+                                                    <th style="text-align:right;">Saldo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="datosEstadoCuenta">
+                                                <tr>
+                                                    <td colspan="10" class="text-center">
+                                                        <div class="spinner-border text-primary" role="status">
+                                                            <span class="visually-hidden">Cargando...</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- Modal Footer -->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" onclick="cerrarModalEstadoCuenta()">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 <!-- Modal Datos de Envio -->
                 <div id="modalEnvio" class="modal fade" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-lg">

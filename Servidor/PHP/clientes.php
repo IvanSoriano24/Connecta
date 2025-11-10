@@ -686,6 +686,244 @@ function mostrarClienteEspecifico($clave, $conexionData)
     sqlsrv_free_stmt($stmt);
     sqlsrv_close($conn);
 }
+
+function obtenerUltimasFacturas($conexionData, $claveCliente, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    
+    $tablaFactF = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    
+    // Obtener las últimas facturas del cliente ordenadas por fecha descendente
+    $sql = "
+        SELECT TOP 10
+            CVE_DOC,
+            FECHA_DOC,
+            IMPORTE
+        FROM $tablaFactF
+        WHERE CVE_CLPV = ?
+        ORDER BY FECHA_DOC DESC
+    ";
+    
+    $params = [$claveCliente];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    
+    if ($stmt === false) {
+        sqlsrv_close($conn);
+        echo json_encode(['success' => false, 'message' => 'Error al consultar facturas', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    
+    $facturas = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        // Formatear la fecha (SQL Server devuelve objetos DateTime)
+        $fecha = $row['FECHA_DOC'];
+        if ($fecha !== null) {
+            if (is_object($fecha) && method_exists($fecha, 'format')) {
+                $fechaFormateada = $fecha->format('Y-m-d');
+            } else {
+                $fechaFormateada = date('Y-m-d', strtotime($fecha));
+            }
+        } else {
+            $fechaFormateada = '-';
+        }
+        
+        $facturas[] = [
+            'folio' => trim($row['CVE_DOC']),
+            'fecha' => $fechaFormateada,
+            'importe' => $row['IMPORTE'] ?? 0
+        ];
+    }
+    
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    
+    echo json_encode([
+        'success' => true,
+        'facturas' => $facturas
+    ]);
+}
+
+function obtenerUltimosProductos($conexionData, $claveCliente, $claveSae)
+{
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    
+    $tablaParFactF = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaFactF = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    
+    // Obtener los últimos 5 productos comprados por el cliente
+    $sql = "
+        SELECT TOP 5
+            p.CVE_ART,
+            SUM(p.CANT) AS CANTIDAD_TOTAL,
+            MAX(i.DESCR) AS DESCRIPCION
+        FROM $tablaParFactF p
+        INNER JOIN $tablaFactF f ON p.CVE_DOC = f.CVE_DOC
+        LEFT JOIN $tablaInve i ON p.CVE_ART = i.CVE_ART
+        WHERE f.CVE_CLPV = ?
+        GROUP BY p.CVE_ART
+        ORDER BY MAX(f.FECHA_DOC) DESC
+    ";
+    
+    $params = [$claveCliente];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    
+    if ($stmt === false) {
+        sqlsrv_close($conn);
+        echo json_encode(['success' => false, 'message' => 'Error al consultar productos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    
+    $productos = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $productos[] = [
+            'clave' => trim($row['CVE_ART']),
+            'descripcion' => trim($row['DESCRIPCION'] ?? ''),
+            'cantidad' => $row['CANTIDAD_TOTAL']
+        ];
+    }
+    
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    
+    echo json_encode([
+        'success' => true,
+        'productos' => $productos
+    ]);
+}
+
+function validarFacturasVencidas($conexionData, $claveCliente, $claveSae)
+{
+    // Si el saldo es 0 o menor, no hay facturas vencidas
+    // Primero verificamos el saldo del cliente
+    $serverName = $conexionData['host'];
+    $connectionInfo = [
+        "Database" => $conexionData['nombreBase'],
+        "UID" => $conexionData['usuario'],
+        "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
+        "TrustServerCertificate" => true
+    ];
+    
+    $conn = sqlsrv_connect($serverName, $connectionInfo);
+    if ($conn === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    
+    $nombreTablaClie = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaCuenM = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaCuenD = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    
+    // Verificar saldo del cliente
+    $sqlSaldo = "SELECT SALDO FROM $nombreTablaClie WHERE CLAVE = ?";
+    $paramsSaldo = [$claveCliente];
+    $stmtSaldo = sqlsrv_query($conn, $sqlSaldo, $paramsSaldo);
+    
+    if ($stmtSaldo === false) {
+        sqlsrv_close($conn);
+        echo json_encode(['success' => false, 'message' => 'Error al consultar el saldo', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    
+    $rowSaldo = sqlsrv_fetch_array($stmtSaldo, SQLSRV_FETCH_ASSOC);
+    sqlsrv_free_stmt($stmtSaldo);
+    
+    if (!$rowSaldo || $rowSaldo['SALDO'] <= 0) {
+        sqlsrv_close($conn);
+        echo json_encode([
+            'success' => true,
+            'tieneAtrasos' => false,
+            'mensaje' => 'Al corriente'
+        ]);
+        exit;
+    }
+    
+    // Si el saldo es mayor a 0, buscar facturas vencidas
+    $sql = "
+        SELECT 
+            CUENM.REFER,
+            CUENM.NUM_CARGO,
+            CUENM.IMPORTE,
+            CUENM.FECHA_VENC,
+            ISNULL(SUM(CUEND.IMPORTE), 0) AS PAGADO
+        FROM $tablaCuenM CUENM
+        LEFT JOIN $tablaCuenD CUEND 
+            ON CUEND.CVE_CLIE = CUENM.CVE_CLIE
+            AND CUEND.REFER = CUENM.REFER
+            AND CUEND.NUM_CARGO = CUENM.NUM_CARGO
+        WHERE CUENM.CVE_CLIE = ?
+            AND CUENM.FECHA_VENC < CAST(GETDATE() AS DATE)
+            AND CUENM.REFER NOT LIKE '%NC%'
+        GROUP BY 
+            CUENM.CVE_CLIE,
+            CUENM.REFER,
+            CUENM.NUM_CARGO,
+            CUENM.IMPORTE,
+            CUENM.FECHA_VENC
+        HAVING 
+            ROUND(CUENM.IMPORTE - ISNULL(SUM(CUEND.IMPORTE), 0), 2) > 0
+    ";
+    
+    $params = [$claveCliente];
+    $stmt = sqlsrv_query($conn, $sql, $params);
+    
+    if ($stmt === false) {
+        sqlsrv_close($conn);
+        echo json_encode(['success' => false, 'message' => 'Error al consultar facturas vencidas', 'errors' => sqlsrv_errors()]);
+        exit;
+    }
+    
+    $facturasVencidas = [];
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $facturasVencidas[] = $row;
+    }
+    
+    sqlsrv_free_stmt($stmt);
+    sqlsrv_close($conn);
+    
+    if (count($facturasVencidas) > 0) {
+        echo json_encode([
+            'success' => true,
+            'tieneAtrasos' => true,
+            'mensaje' => 'Tiene atrasos',
+            'cantidadFacturas' => count($facturasVencidas)
+        ]);
+    } else {
+        echo json_encode([
+            'success' => true,
+            'tieneAtrasos' => false,
+            'mensaje' => 'Al corriente'
+        ]);
+    }
+}
+
 function validarCreditos($conexionData, $clienteId)
 {
     // Validar si el ID del cliente está proporcionado
@@ -2211,6 +2449,57 @@ switch ($funcion) {
 
         $cliente = $_POST['cliente'];
         obtenerClientePedido($conexionData, $cliente, $claveSae);
+        break;
+    case 19:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        $claveCliente = $_GET['claveCliente'] ?? $_POST['claveCliente'] ?? '';
+        $claveCliente = formatearClaveCliente($claveCliente);
+        validarFacturasVencidas($conexionData, $claveCliente, $claveSae);
+        break;
+    case 20:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        $claveCliente = $_GET['claveCliente'] ?? $_POST['claveCliente'] ?? '';
+        $claveCliente = formatearClaveCliente($claveCliente);
+        obtenerUltimasFacturas($conexionData, $claveCliente, $claveSae);
+        break;
+    case 21:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($claveSae, $firebaseProjectId, $firebaseApiKey, $noEmpresa);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+        $conexionData = $conexionResult['data'];
+        $claveCliente = $_GET['claveCliente'] ?? $_POST['claveCliente'] ?? '';
+        $claveCliente = formatearClaveCliente($claveCliente);
+        obtenerUltimosProductos($conexionData, $claveCliente, $claveSae);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Funcion no valida.']);

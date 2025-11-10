@@ -224,6 +224,9 @@ if (isset($_SESSION['usuario'])) {
 										<th>Saldo</th>
 										<th>Estado Datos Timbrado</th>
 										<th>Nombre Comercial</th>
+										<th>Estado de cuenta</th>
+										<th>Estado de cuenta detallado</th>
+										<th>Cobranza</th>
 										<th>Visualizar</th>
 									</tr>
 								</thead>
@@ -551,6 +554,213 @@ if (isset($_SESSION['usuario'])) {
 			});
 		});
 	</script>
+
+	<!-- Modal Estado de Cuenta General -->
+	<div id="modalEstadoCuentaGeneral" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-xl" role="document" style="max-width: 95%;">
+			<div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+				<div class="modal-header">
+					<h5 class="modal-title">Estado de Cuenta General - <span id="modalClienteNombreGeneral">Cliente</span></h5>
+					<button type="button" class="btn-close" onclick="cerrarModalEstadoCuentaGeneral()"></button>
+				</div>
+				<div class="modal-body">
+					<div class="row mb-3">
+						<div class="col-md-4">
+							<label for="filtroFechaInicioEstadoCuentaGeneral" class="form-label">Fecha Inicio:</label>
+							<input type="date" id="filtroFechaInicioEstadoCuentaGeneral" class="form-control">
+						</div>
+						<div class="col-md-4">
+							<label for="filtroFechaFinEstadoCuentaGeneral" class="form-label">Fecha Fin:</label>
+							<input type="date" id="filtroFechaFinEstadoCuentaGeneral" class="form-control">
+						</div>
+						<div class="col-md-4 d-flex align-items-end">
+							<button type="button" class="btn btn-primary" onclick="cargarEstadoCuentaGeneral()" style="width: 100%;">
+								<i class="bx bx-search"></i> Buscar
+							</button>
+						</div>
+					</div>
+					<div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+						<table id="tablaEstadoCuentaGeneral" class="table table-striped table-bordered table-hover">
+							<thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
+								<tr>
+									<th>Clave</th>
+									<th>Tipo</th>
+									<th>Concepto</th>
+									<th>Documento</th>
+									<th>Núm.</th>
+									<th>F. de aplicación</th>
+									<th>F. de venc. referencia</th>
+									<th style="text-align:right;">Cargos</th>
+									<th style="text-align:right;">Abonos</th>
+									<th style="text-align:right;">Saldo</th>
+								</tr>
+							</thead>
+							<tbody id="datosEstadoCuentaGeneral">
+								<tr>
+									<td colspan="10" class="text-center">
+										<div class="spinner-border text-primary" role="status">
+											<span class="visually-hidden">Cargando...</span>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" onclick="descargarPDFEstadoCuentaGeneral()">
+						<i class="bx bx-download"></i> Descargar PDF
+					</button>
+					<button type="button" class="btn btn-success" onclick="enviarWhatsAppEstadoCuentaGeneral()">
+						<i class="bx bxl-whatsapp"></i> Enviar WhatsApp
+					</button>
+					<button type="button" class="btn btn-primary" onclick="enviarCorreoEstadoCuentaGeneral()">
+						<i class="bx bx-envelope"></i> Enviar Correo
+					</button>
+					<button type="button" class="btn btn-secondary" onclick="cerrarModalEstadoCuentaGeneral()">Cerrar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal Estado de Cuenta Detallado -->
+	<div id="modalEstadoCuentaDetallado" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-xl" role="document" style="max-width: 95%;">
+			<div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+				<div class="modal-header">
+					<h5 class="modal-title">Estado de Cuenta Detallado - <span id="modalClienteNombreDetallado">Cliente</span></h5>
+					<button type="button" class="btn-close" onclick="cerrarModalEstadoCuentaDetallado()"></button>
+				</div>
+				<div class="modal-body">
+					<div class="row mb-3">
+						<div class="col-md-4">
+							<label for="filtroFechaInicioEstadoCuentaDetallado" class="form-label">Fecha Inicio:</label>
+							<input type="date" id="filtroFechaInicioEstadoCuentaDetallado" class="form-control">
+						</div>
+						<div class="col-md-4">
+							<label for="filtroFechaFinEstadoCuentaDetallado" class="form-label">Fecha Fin:</label>
+							<input type="date" id="filtroFechaFinEstadoCuentaDetallado" class="form-control">
+						</div>
+						<div class="col-md-4 d-flex align-items-end">
+							<button type="button" class="btn btn-primary" onclick="cargarEstadoCuentaDetallado()" style="width: 100%;">
+								<i class="bx bx-search"></i> Buscar
+							</button>
+						</div>
+					</div>
+					<div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+						<table id="tablaEstadoCuentaDetallado" class="table table-striped table-bordered table-hover">
+							<thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
+								<tr>
+									<th>Clave</th>
+									<th>Tipo</th>
+									<th>Concepto</th>
+									<th>Documento</th>
+									<th>Núm.</th>
+									<th>F. de aplicación</th>
+									<th>F. de venc. referencia</th>
+									<th style="text-align:right;">Cargo</th>
+									<th style="text-align:right;">Abono</th>
+									<th style="text-align:right;">Saldo</th>
+								</tr>
+							</thead>
+							<tbody id="datosEstadoCuentaDetallado">
+								<tr>
+									<td colspan="10" class="text-center">
+										<div class="spinner-border text-primary" role="status">
+											<span class="visually-hidden">Cargando...</span>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" onclick="descargarPDFEstadoCuentaDetallado()">
+						<i class="bx bx-download"></i> Descargar PDF
+					</button>
+					<button type="button" class="btn btn-success" onclick="enviarWhatsAppEstadoCuentaDetallado()">
+						<i class="bx bxl-whatsapp"></i> Enviar WhatsApp
+					</button>
+					<button type="button" class="btn btn-primary" onclick="enviarCorreoEstadoCuentaDetallado()">
+						<i class="bx bx-envelope"></i> Enviar Correo
+					</button>
+					<button type="button" class="btn btn-secondary" onclick="cerrarModalEstadoCuentaDetallado()">Cerrar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal Cobranza -->
+	<div id="modalCobranza" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-xl" role="document" style="max-width: 95%;">
+			<div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+				<div class="modal-header">
+					<h5 class="modal-title">Cobranza - <span id="modalClienteNombreCobranza">Cliente</span></h5>
+					<button type="button" class="btn-close" onclick="cerrarModalCobranza()"></button>
+				</div>
+				<div class="modal-body">
+					<div class="row mb-3">
+						<div class="col-md-3">
+							<label for="filtroFechaInicioCobranza" class="form-label">Fecha Inicio:</label>
+							<input type="date" id="filtroFechaInicioCobranza" class="form-control">
+						</div>
+						<div class="col-md-3">
+							<label for="filtroFechaFinCobranza" class="form-label">Fecha Fin:</label>
+							<input type="date" id="filtroFechaFinCobranza" class="form-control">
+						</div>
+						<div class="col-md-6 d-flex align-items-end">
+							<button type="button" class="btn btn-primary" onclick="cargarCobranza()" style="width: 100%;">
+								<i class="bx bx-search"></i> Buscar
+							</button>
+						</div>
+					</div>
+					<div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+						<table id="tablaCobranza" class="table table-striped table-bordered table-hover">
+							<thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
+								<tr>
+									<th>Clave</th>
+									<th>Nombre Cliente</th>
+									<th>Teléfono</th>
+									<th>Tipo</th>
+									<th>Concepto</th>
+									<th>Documento</th>
+									<th>Núm.</th>
+									<th>F. de aplicación</th>
+									<th>F. de venc. referencia</th>
+									<th style="text-align:right;">Cargos</th>
+									<th style="text-align:right;">Abonos</th>
+									<th style="text-align:right;">Saldo</th>
+									<th>Moneda</th>
+								</tr>
+							</thead>
+							<tbody id="datosCobranza">
+								<tr>
+									<td colspan="13" class="text-center">
+										<div class="spinner-border text-primary" role="status">
+											<span class="visually-hidden">Cargando...</span>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" onclick="descargarPDFCobranza()">
+						<i class="bx bx-download"></i> Descargar PDF
+					</button>
+					<button type="button" class="btn btn-success" onclick="enviarWhatsAppCobranza()">
+						<i class="bx bxl-whatsapp"></i> Enviar WhatsApp
+					</button>
+					<button type="button" class="btn btn-primary" onclick="enviarCorreoCobranza()">
+						<i class="bx bx-envelope"></i> Enviar Correo
+					</button>
+					<button type="button" class="btn btn-secondary" onclick="cerrarModalCobranza()">Cerrar</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
     <script src="JS/script.js?n=1"></script>
 	<!-- Scripts de JS para el funcionamiento del sistema -->

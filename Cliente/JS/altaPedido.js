@@ -1519,6 +1519,343 @@ function validarCreditoCliente(clienteId) {
     });
 }
 
+// Variable global para almacenar el cliente actual
+let clienteActualId = null;
+
+// Función para actualizar la información del cliente en el recuadro de ayuda
+function actualizarInfoCliente(clienteId) {
+  clienteActualId = clienteId; // Guardar el ID del cliente actual
+  
+  if (!clienteId) {
+    // Limpiar los campos si no hay cliente
+    document.getElementById("infoNombre").textContent = "-";
+    document.getElementById("infoCredito").textContent = "-";
+    document.getElementById("infoDeuda").textContent = "-";
+    document.getElementById("infoLimiteCredito").textContent = "-";
+    const estadoElement = document.getElementById("infoEstado");
+    estadoElement.textContent = "-";
+    estadoElement.className = "estado-cliente";
+    document.getElementById("infoFacturas").innerHTML = "-";
+    document.getElementById("infoProductos").innerHTML = "-";
+    // Deshabilitar botón de estado de cuenta
+    const btnEstadoCuenta = document.getElementById("btnEstadoCuenta");
+    if (btnEstadoCuenta) {
+      btnEstadoCuenta.disabled = true;
+    }
+    return;
+  }
+  
+  // Habilitar botón de estado de cuenta
+  const btnEstadoCuenta = document.getElementById("btnEstadoCuenta");
+  if (btnEstadoCuenta) {
+    btnEstadoCuenta.disabled = false;
+  }
+
+  // Obtener el token CSRF
+  const csrfToken = document.getElementById("csrf_token").value;
+  
+  // Hacer petición para obtener los datos completos del cliente
+  fetch(`../Servidor/PHP/clientes.php?clave=${encodeURIComponent(clienteId)}&numFuncion=2&token=${csrfToken}`)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success && data.cliente) {
+        const cliente = data.cliente;
+        
+        // Actualizar Nombre
+        const nombre = cliente.NOMBRE || "-";
+        document.getElementById("infoNombre").textContent = nombre;
+        
+        // Actualizar Crédito (CAMPLIB9 / CON_CREDITO)
+        const credito = cliente.CON_CREDITO || cliente.CAMPLIB9 || "";
+        const creditoTexto = credito.trim().toUpperCase() === "S" ? "Sí" : credito.trim().toUpperCase() === "N" ? "No" : "-";
+        document.getElementById("infoCredito").textContent = creditoTexto;
+        
+        // Actualizar Deuda (SALDO)
+        const deuda = cliente.SALDO || 0;
+        const deudaFormateada = typeof deuda === "number" ? deuda.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) : "-";
+        document.getElementById("infoDeuda").textContent = deudaFormateada;
+        
+        // Actualizar Límite de Crédito (LIMCRED)
+        const limiteCredito = cliente.LIMCRED || 0;
+        const limiteFormateado = typeof limiteCredito === "number" ? limiteCredito.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) : "-";
+        document.getElementById("infoLimiteCredito").textContent = limiteFormateado;
+        
+        // Validar facturas vencidas
+        validarEstadoCliente(clienteId);
+        // Obtener últimas facturas y productos
+        obtenerUltimasFacturas(clienteId);
+        obtenerUltimosProductos(clienteId);
+      } else {
+        // Si no se encontraron datos, mostrar guiones
+        document.getElementById("infoNombre").textContent = "-";
+        document.getElementById("infoCredito").textContent = "-";
+        document.getElementById("infoDeuda").textContent = "-";
+        document.getElementById("infoLimiteCredito").textContent = "-";
+        const estadoElement = document.getElementById("infoEstado");
+        estadoElement.textContent = "-";
+        estadoElement.className = "estado-cliente";
+        document.getElementById("infoFacturas").innerHTML = "-";
+        document.getElementById("infoProductos").innerHTML = "-";
+      }
+    })
+    .catch((error) => {
+      console.error("Error al obtener información del cliente:", error);
+      // En caso de error, mostrar guiones
+      document.getElementById("infoNombre").textContent = "-";
+      document.getElementById("infoCredito").textContent = "-";
+      document.getElementById("infoDeuda").textContent = "-";
+      document.getElementById("infoLimiteCredito").textContent = "-";
+      const estadoElement = document.getElementById("infoEstado");
+      estadoElement.textContent = "-";
+      estadoElement.className = "estado-cliente";
+      document.getElementById("infoFacturas").innerHTML = "-";
+      document.getElementById("infoProductos").innerHTML = "-";
+      // Deshabilitar botón de estado de cuenta
+      const btnEstadoCuenta = document.getElementById("btnEstadoCuenta");
+      if (btnEstadoCuenta) {
+        btnEstadoCuenta.disabled = true;
+      }
+    });
+}
+
+// Función para abrir el modal de estado de cuenta
+function abrirModalEstadoCuenta() {
+  if (!clienteActualId) {
+    Swal.fire({
+      title: "Aviso",
+      text: "Debe seleccionar un cliente primero.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  // Obtener el nombre del cliente para mostrarlo en el modal
+  const nombreCliente = document.getElementById("infoNombre").textContent;
+  document.getElementById("modalClienteNombre").textContent = nombreCliente || "Cliente";
+  
+  // Limpiar filtros de fecha
+  document.getElementById("filtroFechaInicioEstadoCuenta").value = "";
+  document.getElementById("filtroFechaFinEstadoCuenta").value = "";
+  
+  // Mostrar el modal
+  const modal = new bootstrap.Modal(document.getElementById("modalEstadoCuenta"));
+  modal.show();
+  
+  // Cargar el estado de cuenta sin filtros de fecha (todos los registros)
+  cargarEstadoCuenta();
+}
+
+// Función para cerrar el modal de estado de cuenta
+function cerrarModalEstadoCuenta() {
+  const modal = bootstrap.Modal.getInstance(document.getElementById("modalEstadoCuenta"));
+  if (modal) {
+    modal.hide();
+  }
+}
+
+// Función para cargar el estado de cuenta
+function cargarEstadoCuenta() {
+  if (!clienteActualId) {
+    return;
+  }
+  
+  const tablaBody = document.getElementById("datosEstadoCuenta");
+  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuenta").value;
+  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuenta").value;
+  
+  // Mostrar spinner
+  tablaBody.innerHTML = `
+    <tr>
+      <td colspan="10" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </td>
+    </tr>
+  `;
+  
+  // Hacer petición para obtener el estado de cuenta
+  // El noEmpresa se obtiene de la sesión en el servidor
+  $.post(
+    "../Servidor/PHP/reportesGeneral.php",
+    {
+      numFuncion: "3",
+      filtroFechaInicio: filtroFechaInicio,
+      filtroFechaFin: filtroFechaFin,
+      filtroCliente: clienteActualId,
+    },
+    function (response) {
+      try {
+        if (typeof response === "string") {
+          response = JSON.parse(response);
+        }
+        
+        if (response.success && response.data && response.data.length > 0) {
+          tablaBody.innerHTML = "";
+          
+          const fragment = document.createDocumentFragment();
+          response.data.forEach((reporte) => {
+            const cargos = Number(reporte.CARGOS || 0);
+            const abonos = Number(reporte.ABONOS || 0);
+            const saldo = Number(reporte.SALDO || 0);
+            
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${reporte.CLAVE || ""}</td>
+              <td>${reporte.TIPO || ""}</td>
+              <td>${reporte.CONCEPTO || ""}</td>
+              <td>${reporte.DOCUMENTO || ""}</td>
+              <td>${reporte.NUM || ""}</td>
+              <td>${reporte.FECHA_APLICACION || ""}</td>
+              <td>${reporte.FECHA_VENCIMIENTO || ""}</td>
+              <td style="text-align:right;">${cargos.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${abonos.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${saldo.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+            `;
+            fragment.appendChild(row);
+          });
+          
+          tablaBody.appendChild(fragment);
+        } else {
+          tablaBody.innerHTML = `
+            <tr>
+              <td colspan="10" class="text-center">No se encontraron registros</td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error("Error al procesar JSON:", error);
+        tablaBody.innerHTML = `
+          <tr>
+            <td colspan="10" class="text-center text-danger">Error al cargar los datos</td>
+          </tr>
+        `;
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Error en la solicitud:", textStatus, errorThrown);
+    tablaBody.innerHTML = `
+      <tr>
+        <td colspan="10" class="text-center text-danger">Error al cargar los datos</td>
+      </tr>
+    `;
+  });
+}
+
+// Función para obtener las últimas facturas del cliente
+function obtenerUltimasFacturas(clienteId) {
+  if (!clienteId) {
+    document.getElementById("infoFacturas").innerHTML = "-";
+    return;
+  }
+
+  fetch(`../Servidor/PHP/clientes.php?claveCliente=${encodeURIComponent(clienteId)}&numFuncion=20`)
+    .then((response) => response.json())
+    .then((data) => {
+      const facturasContainer = document.getElementById("infoFacturas");
+      
+      if (data.success && data.facturas && data.facturas.length > 0) {
+        let html = "";
+        data.facturas.forEach((factura) => {
+          const importeFormateado = typeof factura.importe === "number" 
+            ? factura.importe.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) 
+            : factura.importe || "-";
+          
+          html += `
+            <div class="item-factura">
+              <span class="folio">${factura.folio || "-"}</span>
+              <span>${factura.fecha || "-"} - ${importeFormateado}</span>
+            </div>
+          `;
+        });
+        facturasContainer.innerHTML = html;
+      } else {
+        facturasContainer.innerHTML = "No hay facturas";
+      }
+    })
+    .catch((error) => {
+      console.error("Error al obtener facturas:", error);
+      document.getElementById("infoFacturas").innerHTML = "-";
+    });
+}
+
+// Función para obtener los últimos productos del cliente
+function obtenerUltimosProductos(clienteId) {
+  if (!clienteId) {
+    document.getElementById("infoProductos").innerHTML = "-";
+    return;
+  }
+
+  fetch(`../Servidor/PHP/clientes.php?claveCliente=${encodeURIComponent(clienteId)}&numFuncion=21`)
+    .then((response) => response.json())
+    .then((data) => {
+      const productosContainer = document.getElementById("infoProductos");
+      
+      if (data.success && data.productos && data.productos.length > 0) {
+        let html = "";
+        data.productos.forEach((producto) => {
+          html += `
+            <div class="item-producto">
+              <span class="clave">${producto.clave || "-"}</span>
+              <span>${producto.descripcion || "Sin descripción"}</span>
+              <span>Cantidad: ${producto.cantidad || 0}</span>
+            </div>
+          `;
+        });
+        productosContainer.innerHTML = html;
+      } else {
+        productosContainer.innerHTML = "No hay productos";
+      }
+    })
+    .catch((error) => {
+      console.error("Error al obtener productos:", error);
+      document.getElementById("infoProductos").innerHTML = "-";
+    });
+}
+
+// Función para validar el estado del cliente (facturas vencidas)
+function validarEstadoCliente(clienteId) {
+  if (!clienteId) {
+    const estadoElement = document.getElementById("infoEstado");
+    estadoElement.textContent = "-";
+    estadoElement.className = "estado-cliente";
+    return;
+  }
+
+  fetch(`../Servidor/PHP/clientes.php?claveCliente=${encodeURIComponent(clienteId)}&numFuncion=19`)
+    .then((response) => response.json())
+    .then((data) => {
+      const estadoElement = document.getElementById("infoEstado");
+      
+      if (data.success) {
+        if (data.tieneAtrasos) {
+          // Tiene atrasos - color naranja/rojo
+          estadoElement.textContent = data.mensaje || "Tiene atrasos";
+          // Si hay muchas facturas vencidas, usar color rojo, si no, naranja
+          if (data.cantidadFacturas && data.cantidadFacturas > 3) {
+            estadoElement.className = "estado-cliente con-atrasos-critico";
+          } else {
+            estadoElement.className = "estado-cliente con-atrasos";
+          }
+        } else {
+          // Al corriente - color verde
+          estadoElement.textContent = data.mensaje || "Al corriente";
+          estadoElement.className = "estado-cliente al-corriente";
+        }
+      } else {
+        estadoElement.textContent = "-";
+        estadoElement.className = "estado-cliente";
+      }
+    })
+    .catch((error) => {
+      console.error("Error al validar estado del cliente:", error);
+      const estadoElement = document.getElementById("infoEstado");
+      estadoElement.textContent = "-";
+      estadoElement.className = "estado-cliente";
+    });
+}
+
 // Función para mostrar sugerencias de clientes
 function showCustomerSuggestions() {
   const clienteInput = document.getElementById("cliente");
@@ -1665,6 +2002,8 @@ function llenarDatosCliente(cliente) {
   $("#descuentoCliente").val(cliente.DESCUENTO || 0);
   // Validar el crédito del cliente
   validarCreditoCliente(cliente.CLAVE);
+  // Actualizar información del cliente en el recuadro de ayuda
+  actualizarInfoCliente(cliente.CLAVE);
 }
 // Filtrar clientes según la entrada de búsqueda en el modal
 function filtrarClientes() {
@@ -1924,6 +2263,24 @@ function clearAllFields() {
   $("#colonia").val("");
   $("#codigoPostal").val("");
   $("#poblacion").val("");
+  // Limpiar información del cliente en el recuadro de ayuda
+  clienteActualId = null;
+  actualizarInfoCliente(null);
+  // Limpiar estado
+  const estadoElement = document.getElementById("infoEstado");
+  if (estadoElement) {
+    estadoElement.textContent = "-";
+    estadoElement.className = "estado-cliente";
+  }
+  // Limpiar facturas y productos
+  const facturasElement = document.getElementById("infoFacturas");
+  if (facturasElement) {
+    facturasElement.innerHTML = "-";
+  }
+  const productosElement = document.getElementById("infoProductos");
+  if (productosElement) {
+    productosElement.innerHTML = "-";
+  }
   $("#pais").val("");
   $("#regimenFiscal").val("");
   $("#destinatario").val("");
