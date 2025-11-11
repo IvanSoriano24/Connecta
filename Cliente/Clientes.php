@@ -170,6 +170,44 @@ if (isset($_SESSION['usuario'])) {
 			border-color: #007bff;
 			box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 		}
+
+		/* Contenedor para la tabla con scroll */
+		.table-scroll-container {
+			max-height: calc(100vh - 300px);
+			overflow-y: auto;
+			overflow-x: auto;
+			margin-top: 1rem;
+		}
+
+		/* Encabezados fijos (sticky) */
+		.table-scroll-container #clientes thead {
+			position: sticky;
+			top: 0;
+			z-index: 10;
+			background-color: #fff !important;
+		}
+
+		.table-scroll-container #clientes thead th {
+			background-color: #fff !important;
+			border-bottom: 2px solid var(--grey);
+			box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+			position: relative;
+		}
+
+		/* Mejora visual del scroll */
+		.table-scroll-container::-webkit-scrollbar {
+			width: 8px;
+			height: 8px;
+		}
+
+		.table-scroll-container::-webkit-scrollbar-thumb {
+			background-color: #ccc;
+			border-radius: 4px;
+		}
+
+		.table-scroll-container::-webkit-scrollbar-thumb:hover {
+			background-color: #aaa;
+		}
 	</style>
 </head>
 
@@ -214,26 +252,27 @@ if (isset($_SESSION['usuario'])) {
 										onkeyup="debouncedSearch()" />
 								</div>
 							</div>
-							<!-- Tabla con los datos de los clientes -->
-							<table id="clientes">
-								<thead>
+							<!-- Contenedor con scroll para la tabla -->
+							<div class="table-scroll-container">
+								<!-- Tabla con los datos de los clientes -->
+								<table id="clientes">
+									<thead>
 									<tr>
 										<th>Clave</th>
 										<th>Nombre</th>
-										<th>Calle</th>
 										<th>Saldo</th>
 										<th>Estado Datos Timbrado</th>
-										<th>Nombre Comercial</th>
-										<th>Estado de cuenta</th>
+										<th>Última venta</th>
 										<th>Estado de cuenta detallado</th>
-										<th>Cobranza</th>
+										<th>Estado de cuenta</th>
 										<th>Visualizar</th>
 									</tr>
-								</thead>
-								<!-- Tbdy con datos dinamicos -->
-								<tbody id="datosClientes">
-								</tbody>
-							</table>
+									</thead>
+									<!-- Tbdy con datos dinamicos -->
+									<tbody id="datosClientes">
+									</tbody>
+								</table>
+							</div>
 							<!-- Paginacion -->
 							<div id="pagination" class="pagination">
 							</div>
@@ -757,6 +796,57 @@ if (isset($_SESSION['usuario'])) {
 						<i class="bx bx-envelope"></i> Enviar Correo
 					</button>
 					<button type="button" class="btn btn-secondary" onclick="cerrarModalCobranza()">Cerrar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal Estado de Cuenta -->
+	<div id="modalEstadoCuenta" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-xl" role="document" style="max-width: 95%;">
+			<div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+				<div class="modal-header">
+					<h5 class="modal-title">Estado de Cuenta - <span id="modalClienteNombreEstadoCuenta">Cliente</span></h5>
+					<button type="button" class="btn-close" onclick="cerrarModalEstadoCuenta()"></button>
+				</div>
+				<div class="modal-body">
+					<div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+						<table id="tablaEstadoCuenta" class="table table-striped table-bordered table-hover">
+							<thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
+								<tr>
+									<th>Factura</th>
+									<th>F. de aplicación</th>
+									<th>F. de vencimiento</th>
+									<th style="text-align:right;">Cargos</th>
+									<th style="text-align:right;">Abonos</th>
+									<th style="text-align:right;">Saldos</th>
+									<th>Moneda</th>
+									<th>Estado</th>
+								</tr>
+							</thead>
+							<tbody id="datosEstadoCuenta">
+								<tr>
+									<td colspan="8" class="text-center">
+										<div class="spinner-border text-primary" role="status">
+											<span class="visually-hidden">Cargando...</span>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" onclick="descargarPDFEstadoCuenta()">
+						<i class="bx bx-download"></i> Descargar PDF
+					</button>
+					<button type="button" class="btn btn-success" onclick="enviarWhatsAppEstadoCuenta()">
+						<i class="bx bxl-whatsapp"></i> Enviar WhatsApp
+					</button>
+					<button type="button" class="btn btn-primary" onclick="enviarCorreoEstadoCuenta()">
+						<i class="bx bx-envelope"></i> Enviar Correo
+					</button>
+					<button type="button" class="btn btn-secondary" onclick="cerrarModalEstadoCuenta()">Cerrar</button>
 				</div>
 			</div>
 		</div>

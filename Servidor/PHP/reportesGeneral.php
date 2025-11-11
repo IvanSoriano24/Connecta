@@ -855,6 +855,149 @@ function obtenerCobranzaDetalle($conexionData, $filtroFechaInicio, $filtroFechaF
     }
 }
 
+function obtenerFacturasNoPagadas($conexionData, $filtroCliente)
+{
+    try {
+        $claveSae = $_SESSION['empresa']['claveSae'];
+
+        $serverName = $conexionData['host'];
+        $connectionInfo = [
+            "Database" => $conexionData['nombreBase'],
+            "UID" => $conexionData['usuario'],
+            "PWD" => $conexionData['password'],
+            "TrustServerCertificate" => true
+        ];
+        $conn = sqlsrv_connect($serverName, $connectionInfo);
+        if ($conn === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al conectar a la base de datos', 'errors' => sqlsrv_errors()]));
+        }
+
+        $prefijo = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
+        $tablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE$prefijo]";
+        $tablaCuenM    = "[{$conexionData['nombreBase']}].[dbo].[CUEN_M$prefijo]";
+        $tablaCuenDet  = "[{$conexionData['nombreBase']}].[dbo].[CUEN_DET$prefijo]";
+        $tablaMonedas  = "[{$conexionData['nombreBase']}].[dbo].[MONED$prefijo]";
+
+        $docWidth = 20;
+        $decimals = 0;
+
+        $whereCliente = "";
+        $params = [];
+        if (!empty($filtroCliente)) {
+            $whereCliente = "AND CLI.CLAVE = ?";
+            $params[] = $filtroCliente;
+        }
+
+        $sql = "
+        WITH M AS (
+          SELECT
+              CLI.CLAVE    AS CLAVE_CLIENTE,
+              CLI.NOMBRE   AS NOMBRE_CLIENTE,
+              M0.REFER     AS REFERENCIA,
+              RIGHT(REPLICATE('0', $docWidth) + RTRIM(LTRIM(M0.REFER)), $docWidth) AS DOC_KEY,
+              M0.NO_FACTURA AS FACTURA,
+              M0.NUM_CPTO   AS CONCEPTO,
+              M0.FECHA_VENC AS FECHA_VENCIMIENTO,
+              M0.FECHA_APLI AS FECHA_APLICACION,
+              CAST(CASE WHEN M0.SIGNO = -1 THEN M0.IMPORTE * -1 ELSE M0.IMPORTE END AS DECIMAL(18,6)) AS MONTO_ORIGINAL_RAW,
+              MON.DESCR AS MONEDA
+          FROM $tablaCuenM AS M0
+          INNER JOIN $tablaClientes  AS CLI ON CLI.CLAVE = M0.CVE_CLIE
+          LEFT  JOIN $tablaMonedas AS MON ON MON.NUM_MONED = M0.NUM_MONED
+          WHERE
+              CLI.STATUS <> 'B'
+              $whereCliente
+              AND M0.NUM_CPTO NOT IN (8,9,12)
+        ),
+        D AS (
+          SELECT
+              D0.CVE_CLIE,
+              RIGHT(REPLICATE('0', $docWidth) + RTRIM(LTRIM(D0.REFER)), $docWidth) AS DOC_KEY,
+              CAST(SUM(CASE 
+                          WHEN D0.SIGNO = -1 AND D0.NUM_CPTO <> 16 
+                          THEN D0.IMPORTE * D0.SIGNO 
+                          ELSE 0 
+                       END) AS DECIMAL(18,6)) AS SUMA_DETALLE_RAW
+          FROM $tablaCuenDet AS D0
+          GROUP BY
+              D0.CVE_CLIE,
+              RIGHT(REPLICATE('0', $docWidth) + RTRIM(LTRIM(D0.REFER)), $docWidth)
+        ),
+        S AS (
+          SELECT
+              M.CLAVE_CLIENTE,
+              M.NOMBRE_CLIENTE,
+              M.REFERENCIA,
+              M.FACTURA,
+              M.CONCEPTO,
+              M.FECHA_VENCIMIENTO,
+              M.FECHA_APLICACION,
+              ROUND(M.MONTO_ORIGINAL_RAW, $decimals)                        AS MONTO_ORIGINAL_RED,
+              ROUND(COALESCE(-D.SUMA_DETALLE_RAW, 0), $decimals)            AS MONTO_PAGADO_RED,
+              ROUND(M.MONTO_ORIGINAL_RAW + COALESCE(D.SUMA_DETALLE_RAW,0), $decimals) AS SALDO_RESTANTE_RED,
+              M.MONEDA
+          FROM M
+          LEFT JOIN D
+            ON D.CVE_CLIE = M.CLAVE_CLIENTE
+           AND D.DOC_KEY  = M.DOC_KEY
+        )
+        SELECT
+            CLAVE_CLIENTE AS CLAVE,
+            NOMBRE_CLIENTE AS NOMBRE_CLIENTE,
+            REFERENCIA AS REFERENCIA,
+            FACTURA AS FACTURA,
+            CONCEPTO AS CONCEPTO,
+            FECHA_VENCIMIENTO AS FECHA_VENCIMIENTO,
+            FECHA_APLICACION AS FECHA_APLICACION,
+            CONVERT(DECIMAL(18,2), MONTO_ORIGINAL_RED)  AS MONTO_ORIGINAL,
+            CONVERT(DECIMAL(18,2), MONTO_PAGADO_RED)    AS MONTO_PAGADO,
+            CONVERT(DECIMAL(18,2), SALDO_RESTANTE_RED)  AS SALDO_RESTANTE,
+            MONEDA AS MONEDA,
+            CASE
+              WHEN SALDO_RESTANTE_RED > 0 AND FECHA_VENCIMIENTO < CAST(GETDATE() AS DATE) THEN 'VENCIDA'
+              WHEN SALDO_RESTANTE_RED > 0 THEN 'PENDIENTE'
+              ELSE 'PAGADA'
+            END AS ESTADO_CUENTA
+        FROM S
+        WHERE SALDO_RESTANTE_RED > 0
+        ORDER BY FECHA_VENCIMIENTO ASC
+        ";
+
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            die(json_encode(['success' => false, 'message' => 'Error al ejecutar la consulta', 'errors' => sqlsrv_errors()]));
+        }
+
+        $reportes = [];
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            // Formatea fechas SQLSRV
+            foreach (['FECHA_APLICACION', 'FECHA_VENCIMIENTO'] as $fechaCampo) {
+                if (isset($row[$fechaCampo]) && $row[$fechaCampo] instanceof DateTime) {
+                    $row[$fechaCampo] = $row[$fechaCampo]->format('Y-m-d');
+                } elseif (isset($row[$fechaCampo]) && is_array($row[$fechaCampo]) && isset($row[$fechaCampo]['date'])) {
+                    $row[$fechaCampo] = substr($row[$fechaCampo]['date'], 0, 10);
+                }
+            }
+
+            $row['MONTO_ORIGINAL'] = (float)$row['MONTO_ORIGINAL'];
+            $row['MONTO_PAGADO'] = (float)$row['MONTO_PAGADO'];
+            $row['SALDO_RESTANTE'] = (float)$row['SALDO_RESTANTE'];
+
+            foreach ($row as $k => $v) {
+                if (is_string($v)) $row[$k] = utf8_encode(trim($v));
+            }
+            $reportes[] = $row;
+        }
+
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
+
+        echo json_encode(['success' => true, 'data' => $reportes]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
 /*-------------------------------------------------------------------------------------------------------------------*/
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
@@ -982,6 +1125,29 @@ switch ($funcion) {
         $filtroCliente = formatearClaveCliente($filtroCliente);
 
         obtenerEstadoCuentaDetalle($conexionData, $filtroFechaInicio, $filtroFechaFin, $filtroCliente);
+        break;
+    case 6:
+        if (!isset($_SESSION['empresa']['noEmpresa'])) {
+            echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
+            exit;
+        }
+        $noEmpresa = $_SESSION['empresa']['noEmpresa'];
+        $claveSae = $_SESSION['empresa']['claveSae'];
+        $conexionResult = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);
+        if (!$conexionResult['success']) {
+            echo json_encode($conexionResult);
+            break;
+        }
+
+        $conexionData = $conexionResult['data'];
+        $filtroCliente = $_POST['filtroCliente'] ?? '';
+
+        // SOLO AQUÍ haces el formateo SI filtroCliente no viene vacío
+        if (!empty($filtroCliente)) {
+            $filtroCliente = formatearClaveCliente($filtroCliente);
+        }
+
+        obtenerFacturasNoPagadas($conexionData, $filtroCliente);
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);

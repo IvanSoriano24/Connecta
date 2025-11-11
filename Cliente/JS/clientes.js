@@ -97,9 +97,6 @@ function doSearch() {
                 const tdNombre = document.createElement("td");
                 tdNombre.textContent = cliente.NOMBRE || "Sin nombre";
                 
-                const tdCalle = document.createElement("td");
-                tdCalle.textContent = cliente.CALLE || "Sin calle";
-                
                 const tdSaldo = document.createElement("td");
                 tdSaldo.style.textAlign = "right";
                 tdSaldo.innerHTML = saldoFormateado;
@@ -108,20 +105,17 @@ function doSearch() {
                 tdEstado.style.textAlign = "center";
                 tdEstado.innerHTML = estadoTimbrado;
                 
-                const tdNombreComercial = document.createElement("td");
-                tdNombreComercial.textContent = cliente.NOMBRECOMERCIAL || "Sin nombre comercial";
-                
-                // Botón Estado de Cuenta General
-                const tdEstadoCuentaGeneral = document.createElement("td");
-                tdEstadoCuentaGeneral.style.textAlign = "center";
-                const btnEstadoCuentaGeneral = document.createElement("button");
-                btnEstadoCuentaGeneral.className = "btn btn-sm btn-info btnEstadoCuentaGeneral";
-                btnEstadoCuentaGeneral.setAttribute("data-clave", cliente.CLAVE || "");
-                btnEstadoCuentaGeneral.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-                btnEstadoCuentaGeneral.style.padding = "0.25rem 0.5rem";
-                btnEstadoCuentaGeneral.style.fontSize = "0.875rem";
-                btnEstadoCuentaGeneral.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar';
-                tdEstadoCuentaGeneral.appendChild(btnEstadoCuentaGeneral);
+                // Última venta
+                const tdUltimaVenta = document.createElement("td");
+                tdUltimaVenta.style.textAlign = "center";
+                if (cliente.ULTIMA_VENTA) {
+                    // Formatear la fecha de YYYY-MM-DD a DD/MM/YYYY
+                    const fecha = cliente.ULTIMA_VENTA;
+                    const fechaFormateada = fecha.split('-').reverse().join('/');
+                    tdUltimaVenta.textContent = fechaFormateada;
+                } else {
+                    tdUltimaVenta.textContent = "-";
+                }
                 
                 // Botón Estado de Cuenta Detallado
                 const tdEstadoCuentaDetallado = document.createElement("td");
@@ -130,22 +124,10 @@ function doSearch() {
                 btnEstadoCuentaDetallado.className = "btn btn-sm btn-warning btnEstadoCuentaDetallado";
                 btnEstadoCuentaDetallado.setAttribute("data-clave", cliente.CLAVE || "");
                 btnEstadoCuentaDetallado.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-                btnEstadoCuentaDetallado.style.padding = "0.25rem 0.5rem";
-                btnEstadoCuentaDetallado.style.fontSize = "0.875rem";
-                btnEstadoCuentaDetallado.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar';
+                btnEstadoCuentaDetallado.style.padding = "0.15rem 0.35rem";
+                btnEstadoCuentaDetallado.style.fontSize = "0.75rem";
+                btnEstadoCuentaDetallado.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
                 tdEstadoCuentaDetallado.appendChild(btnEstadoCuentaDetallado);
-                
-                // Botón Cobranza
-                const tdCobranza = document.createElement("td");
-                tdCobranza.style.textAlign = "center";
-                const btnCobranza = document.createElement("button");
-                btnCobranza.className = "btn btn-sm btn-success btnCobranza";
-                btnCobranza.setAttribute("data-clave", cliente.CLAVE || "");
-                btnCobranza.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-                btnCobranza.style.padding = "0.25rem 0.5rem";
-                btnCobranza.style.fontSize = "0.875rem";
-                btnCobranza.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Ver';
-                tdCobranza.appendChild(btnCobranza);
                 
                 // Botón Visualizar
                 const tdVisualizar = document.createElement("td");
@@ -155,8 +137,8 @@ function doSearch() {
                 btnVisualizar.setAttribute("data-id", cliente.CLAVE);
                 btnVisualizar.style.display = "inline-flex";
                 btnVisualizar.style.alignItems = "center";
-                btnVisualizar.style.padding = "0.5rem 1rem";
-                btnVisualizar.style.fontSize = "1rem";
+                btnVisualizar.style.padding = "0.25rem 0.5rem";
+                btnVisualizar.style.fontSize = "0.8rem";
                 btnVisualizar.style.fontFamily = "Lato";
                 btnVisualizar.style.color = "#fff";
                 btnVisualizar.style.backgroundColor = "#007bff";
@@ -164,19 +146,30 @@ function doSearch() {
                 btnVisualizar.style.borderRadius = "0.25rem";
                 btnVisualizar.style.cursor = "pointer";
                 btnVisualizar.style.transition = "background-color 0.3s ease";
-                btnVisualizar.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar';
+                btnVisualizar.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.25rem;"></i> Ver';
                 tdVisualizar.appendChild(btnVisualizar);
                 
                 // Agregar todas las celdas a la fila
                 row.appendChild(tdClave);
                 row.appendChild(tdNombre);
-                row.appendChild(tdCalle);
                 row.appendChild(tdSaldo);
                 row.appendChild(tdEstado);
-                row.appendChild(tdNombreComercial);
-                row.appendChild(tdEstadoCuentaGeneral);
+                row.appendChild(tdUltimaVenta);
                 row.appendChild(tdEstadoCuentaDetallado);
-                row.appendChild(tdCobranza);
+                
+                // Botón Estado de Cuenta
+                const tdEstadoCuenta = document.createElement("td");
+                tdEstadoCuenta.style.textAlign = "center";
+                const btnEstadoCuenta = document.createElement("button");
+                btnEstadoCuenta.className = "btn btn-sm btn-danger btnEstadoCuenta";
+                btnEstadoCuenta.setAttribute("data-clave", cliente.CLAVE || "");
+                btnEstadoCuenta.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+                btnEstadoCuenta.style.padding = "0.15rem 0.35rem";
+                btnEstadoCuenta.style.fontSize = "0.75rem";
+                btnEstadoCuenta.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
+                tdEstadoCuenta.appendChild(btnEstadoCuenta);
+                
+                row.appendChild(tdEstadoCuenta);
                 row.appendChild(tdVisualizar);
                 
                 clientesTable.appendChild(row);
@@ -186,7 +179,7 @@ function doSearch() {
               agregarEventosReportes();
             } else {
               const clientesTable = document.getElementById("datosClientes");
-              clientesTable.innerHTML = `<tr><td colspan="10" style="text-align: center;">No hay datos disponibles</td></tr>`;
+              clientesTable.innerHTML = `<tr><td colspan="8" style="text-align: center;">No hay datos disponibles</td></tr>`;
             }
           } else {
             console.error("La respuesta no es un objeto válido:", response);
@@ -394,9 +387,6 @@ function obtenerClientes(limpiarTabla = true) {
               const tdNombre = document.createElement("td");
               tdNombre.textContent = cliente.NOMBRE || "Sin nombre";
               
-              const tdCalle = document.createElement("td");
-              tdCalle.textContent = cliente.CALLE || "Sin calle";
-              
               const tdSaldo = document.createElement("td");
               tdSaldo.style.textAlign = "right";
               tdSaldo.innerHTML = saldoFormateado;
@@ -405,20 +395,17 @@ function obtenerClientes(limpiarTabla = true) {
               tdEstado.style.textAlign = "center";
               tdEstado.innerHTML = estadoTimbrado;
               
-              const tdNombreComercial = document.createElement("td");
-              tdNombreComercial.textContent = cliente.NOMBRECOMERCIAL || "Sin nombre comercial";
-              
-              // Botón Estado de Cuenta General
-              const tdEstadoCuentaGeneral = document.createElement("td");
-              tdEstadoCuentaGeneral.style.textAlign = "center";
-              const btnEstadoCuentaGeneral = document.createElement("button");
-              btnEstadoCuentaGeneral.className = "btn btn-sm btn-info btnEstadoCuentaGeneral";
-              btnEstadoCuentaGeneral.setAttribute("data-clave", cliente.CLAVE || "");
-              btnEstadoCuentaGeneral.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-              btnEstadoCuentaGeneral.style.padding = "0.25rem 0.5rem";
-              btnEstadoCuentaGeneral.style.fontSize = "0.875rem";
-              btnEstadoCuentaGeneral.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
-              tdEstadoCuentaGeneral.appendChild(btnEstadoCuentaGeneral);
+              // Última venta
+              const tdUltimaVenta = document.createElement("td");
+              tdUltimaVenta.style.textAlign = "center";
+              if (cliente.ULTIMA_VENTA) {
+                  // Formatear la fecha de YYYY-MM-DD a DD/MM/YYYY
+                  const fecha = cliente.ULTIMA_VENTA;
+                  const fechaFormateada = fecha.split('-').reverse().join('/');
+                  tdUltimaVenta.textContent = fechaFormateada;
+              } else {
+                  tdUltimaVenta.textContent = "-";
+              }
               
               // Botón Estado de Cuenta Detallado
               const tdEstadoCuentaDetallado = document.createElement("td");
@@ -427,22 +414,10 @@ function obtenerClientes(limpiarTabla = true) {
               btnEstadoCuentaDetallado.className = "btn btn-sm btn-warning btnEstadoCuentaDetallado";
               btnEstadoCuentaDetallado.setAttribute("data-clave", cliente.CLAVE || "");
               btnEstadoCuentaDetallado.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-              btnEstadoCuentaDetallado.style.padding = "0.25rem 0.5rem";
-              btnEstadoCuentaDetallado.style.fontSize = "0.875rem";
+              btnEstadoCuentaDetallado.style.padding = "0.15rem 0.35rem";
+              btnEstadoCuentaDetallado.style.fontSize = "0.75rem";
               btnEstadoCuentaDetallado.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
               tdEstadoCuentaDetallado.appendChild(btnEstadoCuentaDetallado);
-              
-              // Botón Cobranza
-              const tdCobranza = document.createElement("td");
-              tdCobranza.style.textAlign = "center";
-              const btnCobranza = document.createElement("button");
-              btnCobranza.className = "btn btn-sm btn-success btnCobranza";
-              btnCobranza.setAttribute("data-clave", cliente.CLAVE || "");
-              btnCobranza.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-              btnCobranza.style.padding = "0.25rem 0.5rem";
-              btnCobranza.style.fontSize = "0.875rem";
-              btnCobranza.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
-              tdCobranza.appendChild(btnCobranza);
               
               // Botón Visualizar
               const tdVisualizar = document.createElement("td");
@@ -452,8 +427,8 @@ function obtenerClientes(limpiarTabla = true) {
               btnVisualizar.setAttribute("data-id", cliente.CLAVE);
               btnVisualizar.style.display = "inline-flex";
               btnVisualizar.style.alignItems = "center";
-              btnVisualizar.style.padding = "0.5rem 1rem";
-              btnVisualizar.style.fontSize = "1rem";
+              btnVisualizar.style.padding = "0.25rem 0.5rem";
+              btnVisualizar.style.fontSize = "0.8rem";
               btnVisualizar.style.fontFamily = "Lato";
               btnVisualizar.style.color = "#fff";
               btnVisualizar.style.backgroundColor = "#007bff";
@@ -461,19 +436,30 @@ function obtenerClientes(limpiarTabla = true) {
               btnVisualizar.style.borderRadius = "0.25rem";
               btnVisualizar.style.cursor = "pointer";
               btnVisualizar.style.transition = "background-color 0.3s ease";
-              btnVisualizar.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.5rem;"></i> Visualizar';
+              btnVisualizar.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.25rem;"></i> Ver';
               tdVisualizar.appendChild(btnVisualizar);
               
               // Agregar todas las celdas a la fila
               row.appendChild(tdClave);
               row.appendChild(tdNombre);
-              row.appendChild(tdCalle);
               row.appendChild(tdSaldo);
               row.appendChild(tdEstado);
-              row.appendChild(tdNombreComercial);
-              row.appendChild(tdEstadoCuentaGeneral);
+              row.appendChild(tdUltimaVenta);
               row.appendChild(tdEstadoCuentaDetallado);
-              row.appendChild(tdCobranza);
+              
+              // Botón Estado de Cuenta
+              const tdEstadoCuenta = document.createElement("td");
+              tdEstadoCuenta.style.textAlign = "center";
+              const btnEstadoCuenta = document.createElement("button");
+              btnEstadoCuenta.className = "btn btn-sm btn-danger btnEstadoCuenta";
+              btnEstadoCuenta.setAttribute("data-clave", cliente.CLAVE || "");
+              btnEstadoCuenta.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+              btnEstadoCuenta.style.padding = "0.15rem 0.35rem";
+              btnEstadoCuenta.style.fontSize = "0.75rem";
+              btnEstadoCuenta.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
+              tdEstadoCuenta.appendChild(btnEstadoCuenta);
+              
+              row.appendChild(tdEstadoCuenta);
               row.appendChild(tdVisualizar);
               
               clientesTable.appendChild(row);
@@ -577,13 +563,15 @@ let nombreClienteActualReporte = null;
 
 // Función para agregar eventos a los botones de reportes
 function agregarEventosReportes() {
-  // Botones de Estado de Cuenta General
-  document.querySelectorAll(".btnEstadoCuentaGeneral").forEach((boton) => {
-    boton.addEventListener("click", function () {
-      const clave = this.getAttribute("data-clave");
-      const nombre = this.getAttribute("data-nombre");
-      abrirModalEstadoCuentaGeneral(clave, nombre);
-    });
+  // Remover event listeners anteriores para evitar duplicados
+  document.querySelectorAll(".btnEstadoCuentaDetallado").forEach((boton) => {
+    const nuevoBoton = boton.cloneNode(true);
+    boton.parentNode.replaceChild(nuevoBoton, boton);
+  });
+  
+  document.querySelectorAll(".btnEstadoCuenta").forEach((boton) => {
+    const nuevoBoton = boton.cloneNode(true);
+    boton.parentNode.replaceChild(nuevoBoton, boton);
   });
 
   // Botones de Estado de Cuenta Detallado
@@ -595,12 +583,12 @@ function agregarEventosReportes() {
     });
   });
 
-  // Botones de Cobranza
-  document.querySelectorAll(".btnCobranza").forEach((boton) => {
+  // Botones de Estado de Cuenta
+  document.querySelectorAll(".btnEstadoCuenta").forEach((boton) => {
     boton.addEventListener("click", function () {
       const clave = this.getAttribute("data-clave");
       const nombre = this.getAttribute("data-nombre");
-      abrirModalCobranza(clave, nombre);
+      abrirModalEstadoCuenta(clave, nombre);
     });
   });
 }
@@ -1315,6 +1303,236 @@ function enviarCorreoCobranza() {
       cliente: clienteActualReporte,
       fechaInicio: filtroFechaInicio,
       fechaFin: filtroFechaFin,
+      accion: "correo"
+    },
+    function (response) {
+      Swal.close();
+      if (response.success) {
+        Swal.fire({
+          title: "Éxito",
+          text: response.message || "Reporte enviado por correo correctamente",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message || "Error al enviar por correo",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  ).fail(function () {
+    Swal.close();
+    Swal.fire({
+      title: "Error",
+      text: "Error al enviar por correo",
+      icon: "error",
+    });
+  });
+}
+
+// ==================== FUNCIONES PARA ESTADO DE CUENTA ====================
+
+function abrirModalEstadoCuenta(claveCliente, nombreCliente) {
+  clienteActualReporte = claveCliente;
+  nombreClienteActualReporte = nombreCliente;
+  
+  document.getElementById("modalClienteNombreEstadoCuenta").textContent = nombreCliente || "Cliente";
+  
+  const modal = new bootstrap.Modal(document.getElementById("modalEstadoCuenta"));
+  modal.show();
+  
+  cargarEstadoCuenta();
+}
+
+function cerrarModalEstadoCuenta() {
+  const modal = bootstrap.Modal.getInstance(document.getElementById("modalEstadoCuenta"));
+  if (modal) {
+    modal.hide();
+  }
+}
+
+function cargarEstadoCuenta() {
+  if (!clienteActualReporte) {
+    return;
+  }
+  
+  const tablaBody = document.getElementById("datosEstadoCuenta");
+  
+  tablaBody.innerHTML = `
+    <tr>
+      <td colspan="8" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </td>
+    </tr>
+  `;
+  
+  $.post(
+    "../Servidor/PHP/reportesGeneral.php",
+    {
+      numFuncion: "6",
+      filtroCliente: clienteActualReporte,
+    },
+    function (response) {
+      try {
+        if (typeof response === "string") {
+          response = JSON.parse(response);
+        }
+        
+        if (response.success && response.data && response.data.length > 0) {
+          tablaBody.innerHTML = "";
+          
+          const fragment = document.createDocumentFragment();
+          response.data.forEach((reporte) => {
+            const montoOriginal = Number(reporte.MONTO_ORIGINAL || 0);
+            const montoPagado = Number(reporte.MONTO_PAGADO || 0);
+            const saldoRestante = Number(reporte.SALDO_RESTANTE || 0);
+            
+            // Determinar color según estado
+            let estadoClass = "";
+            if (reporte.ESTADO_CUENTA === "VENCIDA") {
+              estadoClass = "text-danger fw-bold";
+            } else if (reporte.ESTADO_CUENTA === "PENDIENTE") {
+              estadoClass = "text-warning fw-bold";
+            } else {
+              estadoClass = "text-success";
+            }
+            
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${reporte.FACTURA || ""}</td>
+              <td>${reporte.FECHA_APLICACION || ""}</td>
+              <td>${reporte.FECHA_VENCIMIENTO || ""}</td>
+              <td style="text-align:right;">${montoOriginal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${montoPagado.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${saldoRestante.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td>${reporte.MONEDA || ""}</td>
+              <td class="${estadoClass}">${reporte.ESTADO_CUENTA || ""}</td>
+            `;
+            fragment.appendChild(row);
+          });
+          
+          tablaBody.appendChild(fragment);
+        } else {
+          tablaBody.innerHTML = `
+            <tr>
+              <td colspan="8" class="text-center">No se encontraron facturas pendientes</td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error("Error al procesar JSON:", error);
+        tablaBody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center text-danger">Error al cargar los datos</td>
+          </tr>
+        `;
+      }
+    },
+    "json"
+  ).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Error en la solicitud:", textStatus, errorThrown);
+    tablaBody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center text-danger">Error al cargar los datos</td>
+      </tr>
+    `;
+  });
+}
+
+function descargarPDFEstadoCuenta() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  window.location.href = `../Servidor/PHP/reportesEstadoCuenta.php?tipo=facturasnopagadas&cliente=${encodeURIComponent(clienteActualReporte)}&accion=descargar`;
+}
+
+function enviarWhatsAppEstadoCuenta() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  Swal.fire({
+    title: "Enviando por WhatsApp...",
+    text: "Por favor espere",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  $.post(
+    "../Servidor/PHP/reportesEstadoCuenta.php",
+    {
+      tipo: "facturasnopagadas",
+      cliente: clienteActualReporte,
+      accion: "whatsapp"
+    },
+    function (response) {
+      Swal.close();
+      if (response.success) {
+        Swal.fire({
+          title: "Éxito",
+          text: response.message || "Reporte enviado por WhatsApp correctamente",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.message || "Error al enviar por WhatsApp",
+          icon: "error",
+        });
+      }
+    },
+    "json"
+  ).fail(function () {
+    Swal.close();
+    Swal.fire({
+      title: "Error",
+      text: "Error al enviar por WhatsApp",
+      icon: "error",
+    });
+  });
+}
+
+function enviarCorreoEstadoCuenta() {
+  if (!clienteActualReporte) {
+    Swal.fire({
+      title: "Aviso",
+      text: "No hay cliente seleccionado.",
+      icon: "warning",
+    });
+    return;
+  }
+  
+  Swal.fire({
+    title: "Enviando por correo...",
+    text: "Por favor espere",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  $.post(
+    "../Servidor/PHP/reportesEstadoCuenta.php",
+    {
+      tipo: "facturasnopagadas",
+      cliente: clienteActualReporte,
       accion: "correo"
     },
     function (response) {

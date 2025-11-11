@@ -70,6 +70,7 @@ function mostrarClientes($conexionData, $claveSae)
             "Database" => $conexionData['nombreBase'], // Nombre de la base de datos
             "UID" => $conexionData['usuario'],
             "PWD" => $conexionData['password'],
+            "CharacterSet" => "UTF-8",
             "TrustServerCertificate" => true
         ];
         $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -86,6 +87,7 @@ function mostrarClientes($conexionData, $claveSae)
 
         // Construir el nombre de la tabla dinámicamente usando el número de empresa
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $tablaFactF = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         // Construir la consulta SQL
         if ($tipoUsuario === 'ADMINISTRADOR') {
             // ADMIN: no hay filtro de vendedor
@@ -95,18 +97,22 @@ function mostrarClientes($conexionData, $claveSae)
             // Montamos el SQL SIN punto y coma al final
             $sql = "
             SELECT
-                CLAVE,
-                NOMBRE,
-                RFC,
-                CALLE AS CALLE,
-                TELEFONO,
-                SALDO,
-                VAL_RFC AS EstadoDatosTimbrado,
-                NOMBRECOMERCIAL,
-                DESCUENTO
-            FROM $nombreTabla
-            WHERE STATUS = 'A'
-            ORDER BY CLAVE ASC
+                c.CLAVE,
+                c.NOMBRE,
+                c.RFC,
+                c.CALLE AS CALLE,
+                c.TELEFONO,
+                c.SALDO,
+                c.VAL_RFC AS EstadoDatosTimbrado,
+                c.NOMBRECOMERCIAL,
+                c.DESCUENTO,
+                (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
+                 FROM $tablaFactF f
+                 WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
+                 ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
+            FROM $nombreTabla c
+            WHERE c.STATUS = 'A'
+            ORDER BY c.CLAVE ASC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
             ";
 
@@ -122,19 +128,23 @@ function mostrarClientes($conexionData, $claveSae)
 
             $sql = "
             SELECT
-                CLAVE,
-                NOMBRE,
-                RFC,
-                CALLE AS CALLE,
-                TELEFONO,
-                SALDO,
-                VAL_RFC AS EstadoDatosTimbrado,
-                NOMBRECOMERCIAL,
-                DESCUENTO
-            FROM $nombreTabla
-            WHERE STATUS = 'A'
-                AND CVE_VEND = ?
-            ORDER BY CLAVE ASC
+                c.CLAVE,
+                c.NOMBRE,
+                c.RFC,
+                c.CALLE AS CALLE,
+                c.TELEFONO,
+                c.SALDO,
+                c.VAL_RFC AS EstadoDatosTimbrado,
+                c.NOMBRECOMERCIAL,
+                c.DESCUENTO,
+                (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
+                 FROM $tablaFactF f
+                 WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
+                 ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
+            FROM $nombreTabla c
+            WHERE c.STATUS = 'A'
+                AND c.CVE_VEND = ?
+            ORDER BY c.CLAVE ASC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
             ";
 
@@ -158,17 +168,38 @@ function mostrarClientes($conexionData, $claveSae)
 
                     // Verificar si el valor no está vacío antes de intentar convertirlo
                     if (!empty($value)) {
-                        // Detectar la codificación del valor
-                        $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
-
-                        // Si la codificación no se puede detectar o no es UTF-8, convertir la codificación
-                        if ($encoding && $encoding !== 'UTF-8') {
+                        // Intentar detectar la codificación, con prioridad para Windows-1252 (común en SQL Server)
+                        $encoding = mb_detect_encoding($value, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                        
+                        // Si no se detecta o no es UTF-8, intentar convertir
+                        if ($encoding === false || $encoding === 'ASCII') {
+                            // Si es ASCII, puede ser válido, pero verificar si hay caracteres especiales
+                            if (preg_match('/[^\x00-\x7F]/', $value)) {
+                                // Hay caracteres no-ASCII, intentar convertir desde Windows-1252
+                                $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                            }
+                        } elseif ($encoding !== 'UTF-8') {
+                            // Convertir desde la codificación detectada
                             $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                        }
+                        
+                        // Verificar que la conversión fue exitosa, si no, intentar con Windows-1252
+                        if (!mb_check_encoding($value, 'UTF-8')) {
+                            $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                        }
+                    } else {
+                        // Si después de trim está vacío, mantener como null para ULTIMA_VENTA
+                        if ($key === 'ULTIMA_VENTA') {
+                            $value = null;
+                        } else {
+                            $value = '';
                         }
                     }
                 } elseif ($value === null) {
-                    // Si el valor es null, asignar un valor predeterminado
-                    $value = '';
+                    // Para ULTIMA_VENTA, mantener null en lugar de convertir a string vacío
+                    if ($key !== 'ULTIMA_VENTA') {
+                        $value = '';
+                    }
                 }
 
                 // Asignar el valor limpio al campo correspondiente
@@ -190,10 +221,10 @@ function mostrarClientes($conexionData, $claveSae)
         sqlsrv_close($conn);
         // Retornar los datos en formato JSON
         if (empty($clientes)) {
-            echo json_encode(['success' => false, 'total' => 0, 'data' => [], 'message' => 'No se encontraron clientes']);
+            echo json_encode(['success' => false, 'total' => 0, 'data' => [], 'message' => 'No se encontraron clientes'], JSON_UNESCAPED_UNICODE);
             exit;
         }
-        echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
+        echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes], JSON_UNESCAPED_UNICODE);
         exit;
     } catch (Exception $e) {
         // Si hay algún error, devuelves un error en formato JSON
@@ -459,12 +490,24 @@ function mostrarClienteBusqueda($claveVendedor, $conexionData, $clienteInput, $c
 
                 // Verificar si el valor no está vacío antes de intentar convertirlo
                 if (!empty($value)) {
-                    // Detectar la codificación del valor
-                    $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
-
-                    // Si la codificación no se puede detectar o no es UTF-8, convertir la codificación
-                    if ($encoding && $encoding !== 'UTF-8') {
+                    // Intentar detectar la codificación, con prioridad para Windows-1252 (común en SQL Server)
+                    $encoding = mb_detect_encoding($value, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                    
+                    // Si no se detecta o no es UTF-8, intentar convertir
+                    if ($encoding === false || $encoding === 'ASCII') {
+                        // Si es ASCII, puede ser válido, pero verificar si hay caracteres especiales
+                        if (preg_match('/[^\x00-\x7F]/', $value)) {
+                            // Hay caracteres no-ASCII, intentar convertir desde Windows-1252
+                            $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                        }
+                    } elseif ($encoding !== 'UTF-8') {
+                        // Convertir desde la codificación detectada
                         $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                    }
+                    
+                    // Verificar que la conversión fue exitosa, si no, intentar con Windows-1252
+                    if (!mb_check_encoding($value, 'UTF-8')) {
+                        $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
                     }
                 }
             } elseif ($value === null) {
@@ -494,7 +537,7 @@ function mostrarClienteBusqueda($claveVendedor, $conexionData, $clienteInput, $c
         exit;
     }
     header('Content-Type: application/json; charset=UTF-8');
-    echo json_encode(['success' => true,  'data' => $clientes]); //'total' => $total,
+    echo json_encode(['success' => true,  'data' => $clientes], JSON_UNESCAPED_UNICODE); //'total' => $total,
 }
 function mostrarClientesPedidos($conexionData, $claveSae)
 {
@@ -522,6 +565,7 @@ function mostrarClientesPedidos($conexionData, $claveSae)
             "Database" => $conexionData['nombreBase'], // Nombre de la base de datos
             "UID" => $conexionData['usuario'],
             "PWD" => $conexionData['password'],
+            "CharacterSet" => "UTF-8",
             "TrustServerCertificate" => true
         ];
         $conn = sqlsrv_connect($serverName, $connectionInfo);
@@ -596,12 +640,24 @@ function mostrarClientesPedidos($conexionData, $claveSae)
 
                     // Verificar si el valor no está vacío antes de intentar convertirlo
                     if (!empty($value)) {
-                        // Detectar la codificación del valor
-                        $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
-
-                        // Si la codificación no se puede detectar o no es UTF-8, convertir la codificación
-                        if ($encoding && $encoding !== 'UTF-8') {
+                        // Intentar detectar la codificación, con prioridad para Windows-1252 (común en SQL Server)
+                        $encoding = mb_detect_encoding($value, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                        
+                        // Si no se detecta o no es UTF-8, intentar convertir
+                        if ($encoding === false || $encoding === 'ASCII') {
+                            // Si es ASCII, puede ser válido, pero verificar si hay caracteres especiales
+                            if (preg_match('/[^\x00-\x7F]/', $value)) {
+                                // Hay caracteres no-ASCII, intentar convertir desde Windows-1252
+                                $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                            }
+                        } elseif ($encoding !== 'UTF-8') {
+                            // Convertir desde la codificación detectada
                             $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                        }
+                        
+                        // Verificar que la conversión fue exitosa, si no, intentar con Windows-1252
+                        if (!mb_check_encoding($value, 'UTF-8')) {
+                            $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
                         }
                     }
                 } elseif ($value === null) {
@@ -619,11 +675,11 @@ function mostrarClientesPedidos($conexionData, $claveSae)
         sqlsrv_close($conn);
         // Retornar los datos en formato JSON
         if (empty($clientes)) {
-            echo json_encode(['success' => false, 'message' => 'No se encontraron clientes']);
+            echo json_encode(['success' => false, 'message' => 'No se encontraron clientes'], JSON_UNESCAPED_UNICODE);
             exit;
         }
         header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode(['success' => true, 'data' => $clientes]);
+        echo json_encode(['success' => true, 'data' => $clientes], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
         // Si hay algún error, devuelves un error en formato JSON
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -674,12 +730,41 @@ function mostrarClienteEspecifico($clave, $conexionData)
 
     // Verificar si encontramos el cliente
     if ($cliente) {
+        // Procesar datos del cliente para asegurar codificación UTF-8
+        foreach ($cliente as $key => $value) {
+            if ($value !== null && is_string($value)) {
+                $value = trim($value);
+                if (!empty($value)) {
+                    // Intentar detectar la codificación, con prioridad para Windows-1252 (común en SQL Server)
+                    $encoding = mb_detect_encoding($value, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                    
+                    // Si no se detecta o no es UTF-8, intentar convertir
+                    if ($encoding === false || $encoding === 'ASCII') {
+                        // Si es ASCII, puede ser válido, pero verificar si hay caracteres especiales
+                        if (preg_match('/[^\x00-\x7F]/', $value)) {
+                            // Hay caracteres no-ASCII, intentar convertir desde Windows-1252
+                            $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                        }
+                    } elseif ($encoding !== 'UTF-8') {
+                        // Convertir desde la codificación detectada
+                        $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                    }
+                    
+                    // Verificar que la conversión fue exitosa, si no, intentar con Windows-1252
+                    if (!mb_check_encoding($value, 'UTF-8')) {
+                        $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                    }
+                }
+                $cliente[$key] = $value;
+            }
+        }
+        
         echo json_encode([
             'success' => true,
             'cliente' => $cliente
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado', 'errors' => sqlsrv_errors()]);
+        echo json_encode(['success' => false, 'message' => 'Cliente no encontrado', 'errors' => sqlsrv_errors()], JSON_UNESCAPED_UNICODE);
     }
 
     // Cerrar la conexión
@@ -740,8 +825,24 @@ function obtenerUltimasFacturas($conexionData, $claveCliente, $claveSae)
             $fechaFormateada = '-';
         }
         
+        // Procesar folio para asegurar codificación UTF-8
+        $folio = trim($row['CVE_DOC']);
+        if (!empty($folio)) {
+            $encoding = mb_detect_encoding($folio, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+            if ($encoding === false || $encoding === 'ASCII') {
+                if (preg_match('/[^\x00-\x7F]/', $folio)) {
+                    $folio = mb_convert_encoding($folio, 'UTF-8', 'Windows-1252');
+                }
+            } elseif ($encoding !== 'UTF-8') {
+                $folio = mb_convert_encoding($folio, 'UTF-8', $encoding);
+            }
+            if (!mb_check_encoding($folio, 'UTF-8')) {
+                $folio = mb_convert_encoding($folio, 'UTF-8', 'Windows-1252');
+            }
+        }
+        
         $facturas[] = [
-            'folio' => trim($row['CVE_DOC']),
+            'folio' => $folio,
             'fecha' => $fechaFormateada,
             'importe' => $row['IMPORTE'] ?? 0
         ];
@@ -753,7 +854,7 @@ function obtenerUltimasFacturas($conexionData, $claveCliente, $claveSae)
     echo json_encode([
         'success' => true,
         'facturas' => $facturas
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
 }
 
 function obtenerUltimosProductos($conexionData, $claveCliente, $claveSae)
@@ -802,9 +903,34 @@ function obtenerUltimosProductos($conexionData, $claveCliente, $claveSae)
     
     $productos = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        // Procesar clave y descripción para asegurar codificación UTF-8
+        $clave = trim($row['CVE_ART']);
+        $descripcion = trim($row['DESCRIPCION'] ?? '');
+        
+        foreach (['clave' => $clave, 'descripcion' => $descripcion] as $key => $value) {
+            if (!empty($value)) {
+                $encoding = mb_detect_encoding($value, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                if ($encoding === false || $encoding === 'ASCII') {
+                    if (preg_match('/[^\x00-\x7F]/', $value)) {
+                        $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                    }
+                } elseif ($encoding !== 'UTF-8') {
+                    $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                }
+                if (!mb_check_encoding($value, 'UTF-8')) {
+                    $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                }
+            }
+            if ($key === 'clave') {
+                $clave = $value;
+            } else {
+                $descripcion = $value;
+            }
+        }
+        
         $productos[] = [
-            'clave' => trim($row['CVE_ART']),
-            'descripcion' => trim($row['DESCRIPCION'] ?? ''),
+            'clave' => $clave,
+            'descripcion' => $descripcion,
             'cantidad' => $row['CANTIDAD_TOTAL']
         ];
     }
@@ -815,7 +941,7 @@ function obtenerUltimosProductos($conexionData, $claveCliente, $claveSae)
     echo json_encode([
         'success' => true,
         'productos' => $productos
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
 }
 
 function validarFacturasVencidas($conexionData, $claveCliente, $claveSae)
@@ -861,7 +987,7 @@ function validarFacturasVencidas($conexionData, $claveCliente, $claveSae)
             'success' => true,
             'tieneAtrasos' => false,
             'mensaje' => 'Al corriente'
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
         exit;
     }
     
@@ -914,13 +1040,13 @@ function validarFacturasVencidas($conexionData, $claveCliente, $claveSae)
             'tieneAtrasos' => true,
             'mensaje' => 'Tiene atrasos',
             'cantidadFacturas' => count($facturasVencidas)
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     } else {
         echo json_encode([
             'success' => true,
             'tieneAtrasos' => false,
             'mensaje' => 'Al corriente'
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     }
 }
 
@@ -975,7 +1101,7 @@ function validarCreditos($conexionData, $clienteId)
         echo json_encode([
             'success' => true,
             'conCredito' => $conCredito
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
         // Manejo de errores
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -1171,65 +1297,135 @@ function obtenerDatosEnvioTabla($firebaseProjectId, $firebaseApiKey, $conexionDa
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
-    // 3) Petición a Firebase
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
-    $context = stream_context_create(['http' => ['timeout' => 10]]);
-    $response = @file_get_contents($url, false, $context);
-    if ($response === false) {
-        echo json_encode(['success' => false, 'message' => 'Error al obtener datos de Firebase']);
-        exit;
-    }
-    $body = json_decode($response, true);
-    if (!isset($body['documents'])) {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron documentos en Firebase']);
-        exit;
-    }
-
-    // 4) Filtrar y armar array de envíos
+    // 3) Obtener todos los documentos de Firebase con paginación
     $datos = [];
-    foreach ($body['documents'] as $doc) {
-        $f = $doc['fields'];
-        $empFirebase = (int) $f['noEmpresa']['integerValue'];
-        $empBuscada  = (int) $noEmpresa;
-        if ($empFirebase == $empBuscada) {
-            $datos[] = [
-                'idDocumento'   => basename($doc['name']),
-                'id'            => $f['id']['integerValue']       ?? null,
-                'tituloEnvio'   => $f['tituloEnvio']['stringValue'] ?? null,
-                'clienteClave'  => $f['claveCliente']['stringValue'] ?? null,
-                // inicializamos en vacío: se llenará abajo
-                'clienteNombre' => null,
-            ];
+    $nextPageToken = null;
+    $urlBase = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/ENVIOS?key=$firebaseApiKey";
+    
+    do {
+        $url = $urlBase;
+        if ($nextPageToken) {
+            $url .= "&pageToken=" . urlencode($nextPageToken);
         }
-    }
+        
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 30,
+                'method' => 'GET',
+                'header' => "Content-Type: application/json\r\n"
+            ]
+        ]);
+        
+        $response = @file_get_contents($url, false, $context);
+        if ($response === false) {
+            echo json_encode(['success' => false, 'message' => 'Error al obtener datos de Firebase']);
+            sqlsrv_close($conn);
+            exit;
+        }
+        
+        $body = json_decode($response, true);
+        if (!isset($body['documents'])) {
+            // Si no hay documentos en esta página, salir del bucle
+            break;
+        }
+
+        // 4) Filtrar y armar array de envíos
+        foreach ($body['documents'] as $doc) {
+            $f = $doc['fields'];
+            $empFirebase = (int) ($f['noEmpresa']['integerValue'] ?? 0);
+            $empBuscada  = (int) $noEmpresa;
+            if ($empFirebase == $empBuscada) {
+                $clienteClave = trim($f['claveCliente']['stringValue'] ?? '');
+                if (!empty($clienteClave)) {
+                    $datos[] = [
+                        'idDocumento'   => basename($doc['name']),
+                        'id'            => $f['id']['integerValue'] ?? null,
+                        'tituloEnvio'   => $f['tituloEnvio']['stringValue'] ?? '',
+                        'clienteClave'  => $clienteClave,
+                        'clienteNombre' => null, // Se llenará abajo
+                    ];
+                }
+            }
+        }
+
+        // Obtener el token de la siguiente página si existe
+        $nextPageToken = $body['nextPageToken'] ?? null;
+    } while ($nextPageToken !== null);
 
     if (empty($datos)) {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron envíos para esta empresa.']);
+        sqlsrv_close($conn);
+        echo json_encode(['success' => true, 'data' => [], 'total' => 0]);
         exit;
     }
 
-    // 5) Obtener nombre de cliente para cada envío
-    $sql = "SELECT CLAVE, NOMBRE FROM $nombreTabla WHERE CLAVE = ?";
-    foreach ($datos as &$envio) {
-        $params = [$envio['clienteClave']];
-        $stmt = sqlsrv_query($conn, $sql, $params);
-        if ($stmt !== false && $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            $envio['clienteNombre'] = $row['NOMBRE'];
-        } else {
-            $envio['clienteNombre'] = '(cliente no encontrado)';
+    // 5) Optimizar: Obtener todos los nombres de clientes de una vez
+    $clavesClientes = array_unique(array_column($datos, 'clienteClave'));
+    $clavesClientes = array_filter($clavesClientes, function($clave) {
+        return !empty(trim($clave));
+    });
+    
+    $nombresClientes = [];
+    if (!empty($clavesClientes)) {
+        // Construir consulta IN con todas las claves
+        $placeholders = [];
+        $params = [];
+        foreach ($clavesClientes as $clave) {
+            $placeholders[] = '?';
+            $params[] = trim($clave);
         }
-        sqlsrv_free_stmt($stmt);
+        
+        $sql = "SELECT LTRIM(RTRIM(CLAVE)) AS CLAVE, NOMBRE FROM $nombreTabla WHERE LTRIM(RTRIM(CLAVE)) IN (" . implode(',', $placeholders) . ")";
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        
+        if ($stmt !== false) {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $claveLimpia = trim($row['CLAVE']);
+                $nombre = $row['NOMBRE'];
+                // Procesar codificación de caracteres
+                if (is_string($nombre)) {
+                    $nombre = trim($nombre);
+                    if (!empty($nombre)) {
+                        $encoding = mb_detect_encoding($nombre, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                        if ($encoding === false || $encoding === 'ASCII') {
+                            if (preg_match('/[^\x00-\x7F]/', $nombre)) {
+                                $nombre = mb_convert_encoding($nombre, 'UTF-8', 'Windows-1252');
+                            }
+                        } elseif ($encoding !== 'UTF-8') {
+                            $nombre = mb_convert_encoding($nombre, 'UTF-8', $encoding);
+                        }
+                        if (!mb_check_encoding($nombre, 'UTF-8')) {
+                            $nombre = mb_convert_encoding($nombre, 'UTF-8', 'Windows-1252');
+                        }
+                    }
+                }
+                $nombresClientes[$claveLimpia] = $nombre;
+            }
+            sqlsrv_free_stmt($stmt);
+        }
+    }
+
+    // 6) Asignar nombres de clientes a los envíos
+    foreach ($datos as &$envio) {
+        $claveLimpia = trim($envio['clienteClave']);
+        $envio['clienteNombre'] = $nombresClientes[$claveLimpia] ?? '(cliente no encontrado)';
     }
     unset($envio);
 
-    // 6) Ordenar por título (o por cliente si prefieres)
+    // 7) Ordenar por título
     usort($datos, function ($a, $b) {
-        return strcmp($a['tituloEnvio'], $b['tituloEnvio']);
+        return strcmp($a['tituloEnvio'] ?? '', $b['tituloEnvio'] ?? '');
     });
 
-    // 7) Devolver JSON
-    header('Content-Type: application/json');
-    echo json_encode(['success' => true, 'data' => $datos]);
+    // 8) Cerrar conexión
+    sqlsrv_close($conn);
+
+    // 9) Devolver JSON con información de paginación
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode([
+        'success' => true, 
+        'data' => $datos,
+        'total' => count($datos)
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 function obtenerClientes($conexionData, $claveSae)
@@ -1252,22 +1448,27 @@ function obtenerClientes($conexionData, $claveSae)
         ]));
     }
 
-    // 2) Nombre de la tabla de clientes
+    // 2) Nombre de la tabla de clientes y facturas
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaFactF = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
     $sql = "SELECT
-                CLAVE,
-                NOMBRE,
-                RFC,
-                CALLE_ENVIO AS CALLE,
-                TELEFONO,
-                SALDO,
-                VAL_RFC AS EstadoDatosTimbrado,
-                NOMBRECOMERCIAL,
-                DESCUENTO
-            FROM $nombreTabla
-            WHERE STATUS = 'A'
-            ORDER BY CLAVE ASC";
+                c.CLAVE,
+                c.NOMBRE,
+                c.RFC,
+                c.CALLE_ENVIO AS CALLE,
+                c.TELEFONO,
+                c.SALDO,
+                c.VAL_RFC AS EstadoDatosTimbrado,
+                c.NOMBRECOMERCIAL,
+                c.DESCUENTO,
+                (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
+                 FROM $tablaFactF f
+                 WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
+                 ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
+            FROM $nombreTabla c
+            WHERE c.STATUS = 'A'
+            ORDER BY c.CLAVE ASC";
     $stmt = sqlsrv_query($conn, $sql);
     $clientes = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
@@ -1314,6 +1515,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
         "PWD" => $conexionData['password'],
+        "CharacterSet" => "UTF-8",
         "TrustServerCertificate" => true
     ];
 
@@ -1326,46 +1528,63 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
     $claveVendedor = str_pad($claveVendedor, 5, " ", STR_PAD_LEFT);
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaFactF = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     if ($tipoUsuario === "ADMINISTRADOR") {
         if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
-                FROM $nombreTabla
+            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.VAL_RFC AS EstadoDatosTimbrado, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+                (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
+                 FROM $tablaFactF f
+                 WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
+                 ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
+                FROM $nombreTabla c
                 WHERE 
-                LOWER(LTRIM(RTRIM(CLAVE))) LIKE ? OR
-                LOWER(LTRIM(RTRIM(NOMBRE))) LIKE ? OR
-                LOWER(LTRIM(RTRIM(NOMBRECOMERCIAL))) LIKE ? OR
-                LOWER(LTRIM(RTRIM(CALLE))) LIKE ? AND [STATUS] = 'A'
-                ORDER BY CLAVE ASC;";
+                LOWER(LTRIM(RTRIM(c.CLAVE))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(c.NOMBRE))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(c.NOMBRECOMERCIAL))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(c.CALLE))) LIKE ? AND c.[STATUS] = 'A'
+                ORDER BY c.CLAVE ASC;";
         } else {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
-                FROM $nombreTabla
+            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.VAL_RFC AS EstadoDatosTimbrado, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+                (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
+                 FROM $tablaFactF f
+                 WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
+                 ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
+                FROM $nombreTabla c
                 WHERE 
-                CLAVE LIKE ? OR
-                NOMBRE LIKE ? OR
-                NOMBRECOMERCIAL LIKE ? OR
-                CALLE LIKE ? AND [STATUS] = 'A'
-                ORDER BY CLAVE ASC;";
+                c.CLAVE LIKE ? OR
+                c.NOMBRE LIKE ? OR
+                c.NOMBRECOMERCIAL LIKE ? OR
+                c.CALLE LIKE ? AND c.[STATUS] = 'A'
+                ORDER BY c.CLAVE ASC;";
         }
     } else {
         if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
-                FROM $nombreTabla
+            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.VAL_RFC AS EstadoDatosTimbrado, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+                (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
+                 FROM $tablaFactF f
+                 WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
+                 ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
+                FROM $nombreTabla c
                 WHERE 
-                LOWER(LTRIM(RTRIM(CLAVE))) LIKE ? OR
-                LOWER(LTRIM(RTRIM(NOMBRE))) LIKE ? OR
-                LOWER(LTRIM(RTRIM(NOMBRECOMERCIAL))) LIKE ? OR
-                LOWER(LTRIM(RTRIM(CALLE))) LIKE ? AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'
-                ORDER BY CLAVE ASC;";
+                LOWER(LTRIM(RTRIM(c.CLAVE))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(c.NOMBRE))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(c.NOMBRECOMERCIAL))) LIKE ? OR
+                LOWER(LTRIM(RTRIM(c.CALLE))) LIKE ? AND c.[CVE_VEND] = '$claveVendedor' AND c.[STATUS] = 'A'
+                ORDER BY c.CLAVE ASC;";
         } else {
-            $sql = "SELECT CLAVE, NOMBRE, RFC, CALLE, SALDO, TELEFONO, NUMEXT, VAL_RFC AS EstadoDatosTimbrado, NUMINT, COLONIA, CODIGO, LOCALIDAD, PAIS, NOMBRECOMERCIAL, LISTA_PREC 
-                FROM $nombreTabla
+            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.VAL_RFC AS EstadoDatosTimbrado, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+                (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
+                 FROM $tablaFactF f
+                 WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
+                 ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
+                FROM $nombreTabla c
                 WHERE 
-                CLAVE LIKE ? OR
-                NOMBRE LIKE ? OR
-                NOMBRECOMERCIAL LIKE ? OR
-                CALLE LIKE ? AND [CVE_VEND] = '$claveVendedor' AND [STATUS] = 'A'
-                ORDER BY CLAVE ASC;";
+                c.CLAVE LIKE ? OR
+                c.NOMBRE LIKE ? OR
+                c.NOMBRECOMERCIAL LIKE ? OR
+                c.CALLE LIKE ? AND c.[CVE_VEND] = '$claveVendedor' AND c.[STATUS] = 'A'
+                ORDER BY c.CLAVE ASC;";
         }
     }
 
@@ -1383,13 +1602,31 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
             if ($value !== null && is_string($value)) {
                 $value = trim($value);
                 if (!empty($value)) {
-                    $encoding = mb_detect_encoding($value, mb_list_encodings(), true);
-                    if ($encoding && $encoding !== 'UTF-8') {
+                    // Intentar detectar la codificación, con prioridad para Windows-1252 (común en SQL Server)
+                    $encoding = mb_detect_encoding($value, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                    
+                    // Si no se detecta o no es UTF-8, intentar convertir
+                    if ($encoding === false || $encoding === 'ASCII') {
+                        // Si es ASCII, puede ser válido, pero verificar si hay caracteres especiales
+                        if (preg_match('/[^\x00-\x7F]/', $value)) {
+                            // Hay caracteres no-ASCII, intentar convertir desde Windows-1252
+                            $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                        }
+                    } elseif ($encoding !== 'UTF-8') {
+                        // Convertir desde la codificación detectada
                         $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                    }
+                    
+                    // Verificar que la conversión fue exitosa, si no, intentar con Windows-1252
+                    if (!mb_check_encoding($value, 'UTF-8')) {
+                        $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
                     }
                 }
             } elseif ($value === null) {
-                $value = ''; // Valor predeterminado si es null
+                // Para ULTIMA_VENTA, mantener null en lugar de convertir a string vacío
+                if ($key !== 'ULTIMA_VENTA') {
+                    $value = ''; // Valor predeterminado si es null
+                }
             }
             if ($key === 'CLAVE') {
                 // deja sólo dígitos
@@ -1417,7 +1654,7 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
 
     header('Content-Type: application/json; charset=UTF-8');
     //return $clientes;
-    echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes]);
+    echo json_encode(['success' => true, 'total' => $total, 'data' => $clientes], JSON_UNESCAPED_UNICODE);
 }
 function obtenerFolio($firebaseProjectId, $firebaseApiKey)
 {
@@ -2125,17 +2362,45 @@ function obtenerClientePedido($conexionData, $clienteInput, $claveSae)
     }
     $clientes = [];
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        // Procesar datos del cliente para asegurar codificación UTF-8
+        foreach ($row as $key => $value) {
+            if ($value !== null && is_string($value)) {
+                $value = trim($value);
+                if (!empty($value)) {
+                    // Intentar detectar la codificación, con prioridad para Windows-1252 (común en SQL Server)
+                    $encoding = mb_detect_encoding($value, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                    
+                    // Si no se detecta o no es UTF-8, intentar convertir
+                    if ($encoding === false || $encoding === 'ASCII') {
+                        // Si es ASCII, puede ser válido, pero verificar si hay caracteres especiales
+                        if (preg_match('/[^\x00-\x7F]/', $value)) {
+                            // Hay caracteres no-ASCII, intentar convertir desde Windows-1252
+                            $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                        }
+                    } elseif ($encoding !== 'UTF-8') {
+                        // Convertir desde la codificación detectada
+                        $value = mb_convert_encoding($value, 'UTF-8', $encoding);
+                    }
+                    
+                    // Verificar que la conversión fue exitosa, si no, intentar con Windows-1252
+                    if (!mb_check_encoding($value, 'UTF-8')) {
+                        $value = mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+                    }
+                }
+                $row[$key] = $value;
+            }
+        }
         $clientes[] = $row;
     }
 
     if (count($clientes) > 0) {
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=UTF-8');
         echo json_encode([
             'success' => true,
             'cliente' => $clientes
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     } else {
-        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes.']);
+        echo json_encode(['success' => false, 'message' => 'No se encontraron clientes.'], JSON_UNESCAPED_UNICODE);
     }
 
     sqlsrv_free_stmt($stmt);

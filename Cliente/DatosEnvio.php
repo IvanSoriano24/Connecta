@@ -713,21 +713,35 @@ if (isset($_SESSION['usuario'])) {
         });
     </script>
     <script>
-        // 1) Función que recorre las filas y esconde las que no coincidan
+        // 1) Función que filtra los datos y actualiza la paginación
         function filterTable() {
-            const term = document
-                .getElementById('searchTerm')
-                .value
-                .trim()
-                .toLowerCase();
-
-            document
-                .querySelectorAll('#tablaDatos tbody tr')
-                .forEach(row => {
-                    // tomamos todo el texto de la fila
-                    const text = row.textContent.toLowerCase();
-                    row.style.display = text.includes(term) ? '' : 'none';
-                });
+            const term = document.getElementById('searchTerm').value.trim().toLowerCase();
+            
+            if (!term) {
+                // Si no hay término de búsqueda, mostrar todos los datos
+                if (typeof todosLosDatosOriginales !== 'undefined' && todosLosDatosOriginales.length > 0) {
+                    todosLosDatos = [...todosLosDatosOriginales];
+                }
+            } else {
+                // Filtrar los datos
+                if (typeof todosLosDatosOriginales !== 'undefined' && todosLosDatosOriginales.length > 0) {
+                    todosLosDatos = todosLosDatosOriginales.filter(correo => {
+                        const nombreCliente = (correo.clienteNombre || '').toLowerCase();
+                        const tituloEnvio = (correo.tituloEnvio || '').toLowerCase();
+                        return nombreCliente.includes(term) || tituloEnvio.includes(term);
+                    });
+                }
+            }
+            
+            if (typeof paginaActual !== 'undefined') {
+                paginaActual = 1;
+                if (typeof mostrarDatosPagina === 'function') {
+                    mostrarDatosPagina();
+                }
+                if (typeof actualizarControlesPaginacion === 'function') {
+                    actualizarControlesPaginacion();
+                }
+            }
         }
 
         // 2) Un pequeño "debounce" para no disparar filterTable en cada pulsación
@@ -740,10 +754,6 @@ if (isset($_SESSION['usuario'])) {
         }
         // 3) Creamos la versión "debounced" de filterTable
         const debouncedSearch = debounce(filterTable, 250);
-
-        // (Opcional) Si prefieres bindear con addEventListener en vez de onkeyup:
-        // document.getElementById('searchTerm')
-        //   .addEventListener('input', debouncedSearch);
     </script>
 
 </body>

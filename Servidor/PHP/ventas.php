@@ -827,12 +827,14 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
 
         // Filtro por vendedor
         $params = [];
-        if ($tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario = 'SUPER-ALMACENISTA') {
+        if ($tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario === 'SUPER-ALMACENISTA') {
+            // Los administradores pueden ver todos los pedidos o filtrar por vendedor específico
             if ($filtroVendedor !== '') {
                 $sql      .= " AND f.CVE_VEND = ?";
                 $params[]  = $filtroVendedor;
             }
         } else {
+            // Los vendedores solo pueden ver sus propios pedidos
             $sql      .= " AND f.CVE_VEND = ?";
             $params[]  = $claveVendedor;
         }
@@ -898,15 +900,21 @@ function mostrarPedidos($conexionData, $filtroFecha, $estadoPedido, $filtroVende
             $countSql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
         }
 
-        if ($tipoUsuario === 'ADMINISTRADOR') {
+        // Filtro por vendedor en la consulta de conteo
+        $countParams = [];
+        if ($tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario === 'SUPER-ALMACENISTA') {
+            // Los administradores pueden ver todos los pedidos o filtrar por vendedor específico
             if ($filtroVendedor !== '') {
                 $countSql      .= " AND f.CVE_VEND = ?";
+                $countParams[]  = $filtroVendedor;
             }
         } else {
+            // Los vendedores solo pueden ver sus propios pedidos
             $countSql      .= " AND f.CVE_VEND = ?";
+            $countParams[]  = $claveVendedor;
         }
 
-        $countStmt = sqlsrv_query($conn, $countSql, $params);
+        $countStmt = sqlsrv_query($conn, $countSql, $countParams);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
         sqlsrv_free_stmt($countStmt);
@@ -1102,6 +1110,7 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
         }
         $sql .= ")";
         $likeFilter = '%' . $filtroBusqueda . '%';
+        $params = [];
         $params[] = $likeFilter;
         $params[] = $likeFilter;
         $params[] = $likeFilter;
@@ -1122,13 +1131,15 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
         }
 
 
-        if ($tipoUsuario === 'ADMINISTRADOR') {
+        // Filtro por vendedor
+        if ($tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario === 'SUPER-ALMACENISTA') {
+            // Los administradores pueden ver todos los pedidos o filtrar por vendedor específico
             if ($filtroVendedor !== '') {
                 $sql      .= " AND f.CVE_VEND = ?";
                 $params[]  = $filtroVendedor;
             }
         } else {
-            // Usuarios no ADMIN sólo ven sus pedidos
+            // Los vendedores solo pueden ver sus propios pedidos
             $sql      .= " AND f.CVE_VEND = ?";
             $params[]  = $claveVendedor;
         }
@@ -1192,18 +1203,21 @@ function mostrarPedidosFiltrados($conexionData, $filtroFecha, $estadoPedido, $fi
         } elseif ($filtroFecha == 'Mes Anterior') {
             $countSql .= " AND MONTH(f.FECHAELAB) = MONTH(DATEADD(MONTH, -1, GETDATE())) AND YEAR(f.FECHAELAB) = YEAR(DATEADD(MONTH, -1, GETDATE())) ";
         }
-        if ($tipoUsuario === 'ADMINISTRADOR') {
+        // Filtro por vendedor en la consulta de conteo
+        $countParams = [];
+        if ($tipoUsuario === 'ADMINISTRADOR' || $tipoUsuario === 'SUPER-ALMACENISTA') {
+            // Los administradores pueden ver todos los pedidos o filtrar por vendedor específico
             if ($filtroVendedor !== '') {
                 $countSql      .= " AND f.CVE_VEND = ?";
-                $params[]  = $filtroVendedor;
+                $countParams[]  = $filtroVendedor;
             }
         } else {
-            // Usuarios no ADMIN sólo ven sus pedidos
+            // Los vendedores solo pueden ver sus propios pedidos
             $countSql      .= " AND f.CVE_VEND = ?";
-            $params[]  = $claveVendedor;
+            $countParams[]  = $claveVendedor;
         }
 
-        $countStmt = sqlsrv_query($conn, $countSql, $params);
+        $countStmt = sqlsrv_query($conn, $countSql, $countParams);
         $totalRow  = sqlsrv_fetch_array($countStmt, SQLSRV_FETCH_ASSOC);
         $total     = (int)$totalRow['total'];
         sqlsrv_free_stmt($countStmt);

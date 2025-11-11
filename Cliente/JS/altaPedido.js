@@ -1633,10 +1633,6 @@ function abrirModalEstadoCuenta() {
   const nombreCliente = document.getElementById("infoNombre").textContent;
   document.getElementById("modalClienteNombre").textContent = nombreCliente || "Cliente";
   
-  // Limpiar filtros de fecha
-  document.getElementById("filtroFechaInicioEstadoCuenta").value = "";
-  document.getElementById("filtroFechaFinEstadoCuenta").value = "";
-  
   // Mostrar el modal
   const modal = new bootstrap.Modal(document.getElementById("modalEstadoCuenta"));
   modal.show();
@@ -1660,13 +1656,11 @@ function cargarEstadoCuenta() {
   }
   
   const tablaBody = document.getElementById("datosEstadoCuenta");
-  const filtroFechaInicio = document.getElementById("filtroFechaInicioEstadoCuenta").value;
-  const filtroFechaFin = document.getElementById("filtroFechaFinEstadoCuenta").value;
   
   // Mostrar spinner
   tablaBody.innerHTML = `
     <tr>
-      <td colspan="10" class="text-center">
+      <td colspan="8" class="text-center">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Cargando...</span>
         </div>
@@ -1674,14 +1668,12 @@ function cargarEstadoCuenta() {
     </tr>
   `;
   
-  // Hacer petición para obtener el estado de cuenta
+  // Hacer petición para obtener el estado de cuenta (reporte de facturas no pagadas)
   // El noEmpresa se obtiene de la sesión en el servidor
   $.post(
     "../Servidor/PHP/reportesGeneral.php",
     {
-      numFuncion: "3",
-      filtroFechaInicio: filtroFechaInicio,
-      filtroFechaFin: filtroFechaFin,
+      numFuncion: "6", // Reporte de Estado de Cuenta (facturas no pagadas)
       filtroCliente: clienteActualId,
     },
     function (response) {
@@ -1695,22 +1687,30 @@ function cargarEstadoCuenta() {
           
           const fragment = document.createDocumentFragment();
           response.data.forEach((reporte) => {
-            const cargos = Number(reporte.CARGOS || 0);
-            const abonos = Number(reporte.ABONOS || 0);
-            const saldo = Number(reporte.SALDO || 0);
+            const montoOriginal = Number(reporte.MONTO_ORIGINAL || 0);
+            const montoPagado = Number(reporte.MONTO_PAGADO || 0);
+            const saldoRestante = Number(reporte.SALDO_RESTANTE || 0);
+            
+            // Determinar color según estado
+            let estadoClass = "";
+            if (reporte.ESTADO_CUENTA === "VENCIDA") {
+              estadoClass = "text-danger fw-bold";
+            } else if (reporte.ESTADO_CUENTA === "PENDIENTE") {
+              estadoClass = "text-warning fw-bold";
+            } else {
+              estadoClass = "text-success";
+            }
             
             const row = document.createElement("tr");
             row.innerHTML = `
-              <td>${reporte.CLAVE || ""}</td>
-              <td>${reporte.TIPO || ""}</td>
-              <td>${reporte.CONCEPTO || ""}</td>
-              <td>${reporte.DOCUMENTO || ""}</td>
-              <td>${reporte.NUM || ""}</td>
+              <td>${reporte.FACTURA || ""}</td>
               <td>${reporte.FECHA_APLICACION || ""}</td>
               <td>${reporte.FECHA_VENCIMIENTO || ""}</td>
-              <td style="text-align:right;">${cargos.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-              <td style="text-align:right;">${abonos.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-              <td style="text-align:right;">${saldo.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${montoOriginal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${montoPagado.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td style="text-align:right;">${saldoRestante.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+              <td>${reporte.MONEDA || ""}</td>
+              <td class="${estadoClass}">${reporte.ESTADO_CUENTA || ""}</td>
             `;
             fragment.appendChild(row);
           });
@@ -1719,7 +1719,7 @@ function cargarEstadoCuenta() {
         } else {
           tablaBody.innerHTML = `
             <tr>
-              <td colspan="10" class="text-center">No se encontraron registros</td>
+              <td colspan="8" class="text-center">No se encontraron facturas pendientes</td>
             </tr>
           `;
         }
@@ -1727,7 +1727,7 @@ function cargarEstadoCuenta() {
         console.error("Error al procesar JSON:", error);
         tablaBody.innerHTML = `
           <tr>
-            <td colspan="10" class="text-center text-danger">Error al cargar los datos</td>
+            <td colspan="8" class="text-center text-danger">Error al cargar los datos</td>
           </tr>
         `;
       }
@@ -1737,7 +1737,7 @@ function cargarEstadoCuenta() {
     console.error("Error en la solicitud:", textStatus, errorThrown);
     tablaBody.innerHTML = `
       <tr>
-        <td colspan="10" class="text-center text-danger">Error al cargar los datos</td>
+        <td colspan="8" class="text-center text-danger">Error al cargar los datos</td>
       </tr>
     `;
   });

@@ -1,48 +1,26 @@
+// Variables globales para paginación
+let todosLosDatos = [];
+let todosLosDatosOriginales = [];
+let paginaActual = 1;
+const registrosPorPagina = 20; // Ajustado a 20 registros por página
+
 function obtenerDatosTabla() {
   $.ajax({
     url: "../Servidor/PHP/clientes.php",
     method: "GET",
-    data: { numFuncion: "15" }, // Llamar la función para obtener vendedores
+    data: { numFuncion: "15" },
     success: function (response) {
       try {
         if (response.success) {
-          const tablaBody = document.querySelector("#tablaDatos tbody");
-          tablaBody.innerHTML = ""; // Limpiamos la tabla antes de agregar los correos
-
-          response.data.forEach((correo) => {
-            const row = document.createElement("tr");
-
-            // Celda para mostrar el correo
-            const cellCorreo = document.createElement("td");
-            cellCorreo.textContent = correo.clienteNombre;
-            row.appendChild(cellCorreo);
-
-            const cellTitulo = document.createElement("td");
-            cellTitulo.textContent = correo.tituloEnvio;
-            row.appendChild(cellTitulo);
-
-            // Celda para el botón de Visualizar
-            const cellVisualizar = document.createElement("td");
-            const btnVisualizar = document.createElement("button");
-            btnVisualizar.textContent = "Visualizar";
-            btnVisualizar.classList.add("btn", "btn-info");
-            btnVisualizar.onclick = () => visualizarDatos(correo.idDocumento); // Implementa la función visualizarCorreo
-            cellVisualizar.appendChild(btnVisualizar);
-            row.appendChild(cellVisualizar);
-
-            // Celda para el botón de Editar
-            const cellEditar = document.createElement("td");
-            const btnEditar = document.createElement("button");
-            btnEditar.textContent = "Editar";
-            btnEditar.classList.add("btn", "btn-info");
-            btnEditar.onclick = () => editarDatos(correo.idDocumento); // Implementa la función visualizarCorreo
-            cellEditar.appendChild(btnEditar);
-            row.appendChild(cellEditar);
-
-            tablaBody.appendChild(row);
-          });
+          todosLosDatos = response.data || [];
+          todosLosDatosOriginales = [...todosLosDatos]; // Guardar copia para búsqueda
+          paginaActual = 1;
+          mostrarDatosPagina();
+          actualizarControlesPaginacion();
         } else {
-          console.error("Error al obtener los correos");
+          console.error("Error al obtener los datos");
+          const tablaBody = document.querySelector("#tablaDatos tbody");
+          tablaBody.innerHTML = "<tr><td colspan='4' class='text-center'>No se encontraron datos</td></tr>";
         }
       } catch (error) {
         console.error("Error al Procesar la Respuesta:", error);
@@ -61,6 +39,98 @@ function obtenerDatosTabla() {
       });
     },
   });
+}
+
+function mostrarDatosPagina() {
+  const tablaBody = document.querySelector("#tablaDatos tbody");
+  tablaBody.innerHTML = "";
+
+  if (todosLosDatos.length === 0) {
+    tablaBody.innerHTML = "<tr><td colspan='4' class='text-center'>No se encontraron datos</td></tr>";
+    return;
+  }
+
+  const inicio = (paginaActual - 1) * registrosPorPagina;
+  const fin = inicio + registrosPorPagina;
+  const datosPagina = todosLosDatos.slice(inicio, fin);
+
+  datosPagina.forEach((correo) => {
+    const row = document.createElement("tr");
+
+    const cellCorreo = document.createElement("td");
+    cellCorreo.textContent = correo.clienteNombre || "(sin nombre)";
+    row.appendChild(cellCorreo);
+
+    const cellTitulo = document.createElement("td");
+    cellTitulo.textContent = correo.tituloEnvio || "";
+    row.appendChild(cellTitulo);
+
+    const cellVisualizar = document.createElement("td");
+    const btnVisualizar = document.createElement("button");
+    btnVisualizar.textContent = "Visualizar";
+    btnVisualizar.classList.add("btn", "btn-info", "btn-sm");
+    btnVisualizar.onclick = () => visualizarDatos(correo.idDocumento);
+    cellVisualizar.appendChild(btnVisualizar);
+    row.appendChild(cellVisualizar);
+
+    const cellEditar = document.createElement("td");
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar";
+    btnEditar.classList.add("btn", "btn-info", "btn-sm");
+    btnEditar.onclick = () => editarDatos(correo.idDocumento);
+    cellEditar.appendChild(btnEditar);
+    row.appendChild(cellEditar);
+
+    tablaBody.appendChild(row);
+  });
+}
+
+function actualizarControlesPaginacion() {
+  const totalPaginas = Math.ceil(todosLosDatos.length / registrosPorPagina);
+  let controlesPaginacion = document.getElementById("controlesPaginacion");
+  
+  if (!controlesPaginacion) {
+    // Crear contenedor de paginación si no existe
+    const tablaContainer = document.querySelector(".table-data .order");
+    controlesPaginacion = document.createElement("div");
+    controlesPaginacion.id = "controlesPaginacion";
+    controlesPaginacion.className = "d-flex justify-content-between align-items-center mt-3";
+    tablaContainer.appendChild(controlesPaginacion);
+  }
+
+  controlesPaginacion.innerHTML = `
+    <div class="d-flex align-items-center">
+      <span class="me-3">Mostrando ${((paginaActual - 1) * registrosPorPagina) + 1} - ${Math.min(paginaActual * registrosPorPagina, todosLosDatos.length)} de ${todosLosDatos.length} registros</span>
+    </div>
+    <nav>
+      <ul class="pagination mb-0">
+        <li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1}); return false;">Anterior</a>
+        </li>
+        ${Array.from({ length: totalPaginas }, (_, i) => i + 1)
+          .map(num => `
+            <li class="page-item ${num === paginaActual ? 'active' : ''}">
+              <a class="page-link" href="#" onclick="cambiarPagina(${num}); return false;">${num}</a>
+            </li>
+          `).join('')}
+        <li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
+          <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1}); return false;">Siguiente</a>
+        </li>
+      </ul>
+    </nav>
+  `;
+}
+
+function cambiarPagina(nuevaPagina) {
+  const totalPaginas = Math.ceil(todosLosDatos.length / registrosPorPagina);
+  if (nuevaPagina < 1 || nuevaPagina > totalPaginas) {
+    return;
+  }
+  paginaActual = nuevaPagina;
+  mostrarDatosPagina();
+  actualizarControlesPaginacion();
+  // Scroll hacia arriba de la tabla
+  document.querySelector("#tablaDatos").scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function obtenerClientes() {
   $.ajax({
@@ -266,7 +336,7 @@ function guardarDatosEnvio() {
         }).then(() => {
           // Cuando cierren el cuadro de alerta, ocultamos el modal y recargamos listados
           $("#modalNuevoEnvio").modal("hide");
-          mostrarMoldal(); // Suponemos que esta función recarga la lista de envíos
+          obtenerDatosTabla(); // Recargar la lista de envíos
         });
       } else {
         // Si success = false, mostramos advertencia con el mensaje del servidor
@@ -362,7 +432,7 @@ function actualizarDatos() {
         }).then(() => {
           // Cuando cierren el cuadro de alerta, ocultamos el modal y recargamos listados
           $("#modalEnvioEditar").modal("hide");
-          //mostrarMoldal(); // Suponemos que esta función recarga la lista de envíos
+          obtenerDatosTabla(); // Recargar la lista de envíos
         });
       } else {
         // Si success = false, mostramos advertencia con el mensaje del servidor
