@@ -2,7 +2,7 @@
 let todosLosDatos = [];
 let todosLosDatosOriginales = [];
 let paginaActual = 1;
-const registrosPorPagina = 20; // Ajustado a 20 registros por página
+let registrosPorPagina = 20; // Ajustado a 20 registros por página (ahora es variable)
 
 function obtenerDatosTabla() {
   $.ajax({
@@ -16,11 +16,11 @@ function obtenerDatosTabla() {
           todosLosDatosOriginales = [...todosLosDatos]; // Guardar copia para búsqueda
           paginaActual = 1;
           mostrarDatosPagina();
-          actualizarControlesPaginacion();
+          buildPagination(todosLosDatos.length);
         } else {
           console.error("Error al obtener los datos");
           const tablaBody = document.querySelector("#tablaDatos tbody");
-          tablaBody.innerHTML = "<tr><td colspan='4' class='text-center'>No se encontraron datos</td></tr>";
+          tablaBody.innerHTML = "<tr><td colspan='6' class='text-center'>No se encontraron datos</td></tr>";
         }
       } catch (error) {
         console.error("Error al Procesar la Respuesta:", error);
@@ -46,7 +46,7 @@ function mostrarDatosPagina() {
   tablaBody.innerHTML = "";
 
   if (todosLosDatos.length === 0) {
-    tablaBody.innerHTML = "<tr><td colspan='4' class='text-center'>No se encontraron datos</td></tr>";
+    tablaBody.innerHTML = "<tr><td colspan='6' class='text-center'>No se encontraron datos</td></tr>";
     return;
   }
 
@@ -57,80 +57,108 @@ function mostrarDatosPagina() {
   datosPagina.forEach((correo) => {
     const row = document.createElement("tr");
 
-    const cellCorreo = document.createElement("td");
-    cellCorreo.textContent = correo.clienteNombre || "(sin nombre)";
-    row.appendChild(cellCorreo);
+    const cellCliente = document.createElement("td");
+    cellCliente.textContent = correo.clienteNombre || "(sin nombre)";
+    row.appendChild(cellCliente);
 
     const cellTitulo = document.createElement("td");
     cellTitulo.textContent = correo.tituloEnvio || "";
     row.appendChild(cellTitulo);
 
+    const cellCompania = document.createElement("td");
+    cellCompania.textContent = correo.compania || "-";
+    row.appendChild(cellCompania);
+
+    const cellNombreContacto = document.createElement("td");
+    cellNombreContacto.textContent = correo.nombreContacto || "-";
+    row.appendChild(cellNombreContacto);
+
     const cellVisualizar = document.createElement("td");
-    const btnVisualizar = document.createElement("button");
-    btnVisualizar.textContent = "Visualizar";
-    btnVisualizar.classList.add("btn", "btn-info", "btn-sm");
-    btnVisualizar.onclick = () => visualizarDatos(correo.idDocumento);
-    cellVisualizar.appendChild(btnVisualizar);
+    cellVisualizar.className = "text-center";
+    const iconVisualizar = document.createElement("i");
+    iconVisualizar.className = "bi btn-iconNuevos bi-eye btnVisualizarEnvio";
+    iconVisualizar.setAttribute("title", "Visualizar");
+    iconVisualizar.setAttribute("data-bs-toggle", "tooltip");
+    iconVisualizar.setAttribute("data-bs-placement", "top");
+    iconVisualizar.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
+    iconVisualizar.setAttribute("data-id", correo.idDocumento);
+    iconVisualizar.onclick = () => visualizarDatos(correo.idDocumento);
+    cellVisualizar.appendChild(iconVisualizar);
     row.appendChild(cellVisualizar);
 
     const cellEditar = document.createElement("td");
-    const btnEditar = document.createElement("button");
-    btnEditar.textContent = "Editar";
-    btnEditar.classList.add("btn", "btn-info", "btn-sm");
-    btnEditar.onclick = () => editarDatos(correo.idDocumento);
-    cellEditar.appendChild(btnEditar);
+    cellEditar.className = "text-center";
+    const iconEditar = document.createElement("i");
+    iconEditar.className = "bi btn-iconNuevos bi-pencil btnEditarEnvio";
+    iconEditar.setAttribute("title", "Editar");
+    iconEditar.setAttribute("data-bs-toggle", "tooltip");
+    iconEditar.setAttribute("data-bs-placement", "top");
+    iconEditar.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
+    iconEditar.setAttribute("data-id", correo.idDocumento);
+    iconEditar.onclick = () => editarDatos(correo.idDocumento);
+    cellEditar.appendChild(iconEditar);
     row.appendChild(cellEditar);
 
     tablaBody.appendChild(row);
   });
-}
-
-function actualizarControlesPaginacion() {
-  const totalPaginas = Math.ceil(todosLosDatos.length / registrosPorPagina);
-  let controlesPaginacion = document.getElementById("controlesPaginacion");
   
-  if (!controlesPaginacion) {
-    // Crear contenedor de paginación si no existe
-    const tablaContainer = document.querySelector(".table-data .order");
-    controlesPaginacion = document.createElement("div");
-    controlesPaginacion.id = "controlesPaginacion";
-    controlesPaginacion.className = "d-flex justify-content-between align-items-center mt-3";
-    tablaContainer.appendChild(controlesPaginacion);
-  }
-
-  controlesPaginacion.innerHTML = `
-    <div class="d-flex align-items-center">
-      <span class="me-3">Mostrando ${((paginaActual - 1) * registrosPorPagina) + 1} - ${Math.min(paginaActual * registrosPorPagina, todosLosDatos.length)} de ${todosLosDatos.length} registros</span>
-    </div>
-    <nav>
-      <ul class="pagination mb-0">
-        <li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
-          <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1}); return false;">Anterior</a>
-        </li>
-        ${Array.from({ length: totalPaginas }, (_, i) => i + 1)
-          .map(num => `
-            <li class="page-item ${num === paginaActual ? 'active' : ''}">
-              <a class="page-link" href="#" onclick="cambiarPagina(${num}); return false;">${num}</a>
-            </li>
-          `).join('')}
-        <li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
-          <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1}); return false;">Siguiente</a>
-        </li>
-      </ul>
-    </nav>
-  `;
+  // Inicializar tooltips después de crear los botones
+  initTooltipsDatosEnvio();
 }
 
-function cambiarPagina(nuevaPagina) {
-  const totalPaginas = Math.ceil(todosLosDatos.length / registrosPorPagina);
-  if (nuevaPagina < 1 || nuevaPagina > totalPaginas) {
-    return;
+// Función para inicializar tooltips de Bootstrap
+function initTooltipsDatosEnvio() {
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+}
+
+// Función para crear botones de paginación
+function makeBtn(text, page, disabled, active) {
+  const $btn = $("<button>")
+    .text(text)
+    .prop("disabled", disabled)
+    .toggleClass("active", active);
+
+  if (!disabled) {
+    $btn.on("click", () => {
+      paginaActual = page;
+      mostrarDatosPagina();
+      buildPagination(todosLosDatos.length);
+    });
   }
-  paginaActual = nuevaPagina;
-  mostrarDatosPagina();
-  actualizarControlesPaginacion();
-  // Scroll hacia arriba de la tabla
-  document.querySelector("#tablaDatos").scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  return $btn;
+}
+
+// Función para construir la paginación (similar a clientes.js)
+function buildPagination(total) {
+  const totalPages = Math.ceil(total / registrosPorPagina);
+  const maxButtons = 5;
+  const $cont = $("#pagination").empty();
+
+  if (totalPages <= 1) return;
+
+  let start = Math.max(1, paginaActual - Math.floor(maxButtons / 2));
+  let end = start + maxButtons - 1;
+  if (end > totalPages) {
+    end = totalPages;
+    start = Math.max(1, end - maxButtons + 1);
+  }
+
+  // Flechas «Primera» y «Anterior»
+  $cont.append(makeBtn("«", 1, paginaActual === 1, false));
+  $cont.append(makeBtn("‹", paginaActual - 1, paginaActual === 1, false));
+
+  // Botones numéricos
+  for (let i = start; i <= end; i++) {
+    $cont.append(makeBtn(i, i, false, i === paginaActual));
+  }
+
+  // Flechas «Siguiente» y «Última»
+  $cont.append(makeBtn("›", paginaActual + 1, paginaActual === totalPages, false));
+  $cont.append(makeBtn("»", totalPages, paginaActual === totalPages, false));
 }
 function obtenerClientes() {
   $.ajax({
@@ -802,5 +830,14 @@ $(document).ready(function () {
   });
   $("#estadoNuevoContacto").on("change", function () {
     obtenerMunicipiosNuevos();
+  });
+  
+  // Control de cantidad de registros por página
+  $("#selectCantidad").on("change", function () {
+    const seleccion = parseInt($(this).val(), 10);
+    registrosPorPagina = isNaN(seleccion) ? registrosPorPagina : seleccion;
+    paginaActual = 1; // volvemos a la primera página
+    mostrarDatosPagina();
+    buildPagination(todosLosDatos.length);
   });
 });

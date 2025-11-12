@@ -85,9 +85,14 @@ function doSearch() {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}`;
-                const estadoTimbrado = cliente.EstadoDatosTimbrado
-                  ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
-                  : ""; // Centrado de la palomita con display: block y margin: 0 auto
+                const limiteCredito = parseFloat(cliente.LIMCRED || 0);
+                const limiteCreditoFormateado = `$${limiteCredito.toLocaleString("es-MX", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`;
+                const diasCredito = cliente.DIASCRED || 0;
+                const credito = (cliente.CAMPLIB9 === 'S' || cliente.CAMPLIB9 === 's') ? 'Si' : 'No';
+                
                 const row = document.createElement("tr");
                 
                 // Crear las celdas directamente
@@ -97,13 +102,20 @@ function doSearch() {
                 const tdNombre = document.createElement("td");
                 tdNombre.textContent = cliente.NOMBRE || "Sin nombre";
                 
-                const tdSaldo = document.createElement("td");
-                tdSaldo.style.textAlign = "right";
-                tdSaldo.innerHTML = saldoFormateado;
+                // Crédito
+                const tdCredito = document.createElement("td");
+                tdCredito.style.textAlign = "center";
+                tdCredito.textContent = credito;
                 
-                const tdEstado = document.createElement("td");
-                tdEstado.style.textAlign = "center";
-                tdEstado.innerHTML = estadoTimbrado;
+                // Límite de crédito
+                const tdLimiteCredito = document.createElement("td");
+                tdLimiteCredito.style.textAlign = "right";
+                tdLimiteCredito.textContent = limiteCreditoFormateado;
+                
+                // Días de crédito
+                const tdDiasCredito = document.createElement("td");
+                tdDiasCredito.style.textAlign = "center";
+                tdDiasCredito.textContent = diasCredito;
                 
                 // Última venta
                 const tdUltimaVenta = document.createElement("td");
@@ -117,59 +129,59 @@ function doSearch() {
                     tdUltimaVenta.textContent = "-";
                 }
                 
-                // Botón Estado de Cuenta Detallado
+                // Saldo (movido al final)
+                const tdSaldo = document.createElement("td");
+                tdSaldo.style.textAlign = "right";
+                tdSaldo.innerHTML = saldoFormateado;
+                
+                // Botón Estado de Cuenta (primero)
+                const tdEstadoCuenta = document.createElement("td");
+                tdEstadoCuenta.className = "text-center";
+                const iconEstadoCuenta = document.createElement("i");
+                iconEstadoCuenta.className = "bi btn-iconNuevos bi-file-earmark-text btnEstadoCuenta";
+                iconEstadoCuenta.setAttribute("title", "Estado de Cuenta");
+                iconEstadoCuenta.setAttribute("data-bs-toggle", "tooltip");
+                iconEstadoCuenta.setAttribute("data-bs-placement", "top");
+                iconEstadoCuenta.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
+                iconEstadoCuenta.setAttribute("data-clave", cliente.CLAVE || "");
+                iconEstadoCuenta.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+                tdEstadoCuenta.appendChild(iconEstadoCuenta);
+                
+                // Botón Estado de Cuenta Detallado (segundo)
                 const tdEstadoCuentaDetallado = document.createElement("td");
-                tdEstadoCuentaDetallado.style.textAlign = "center";
-                const btnEstadoCuentaDetallado = document.createElement("button");
-                btnEstadoCuentaDetallado.className = "btn btn-sm btn-warning btnEstadoCuentaDetallado";
-                btnEstadoCuentaDetallado.setAttribute("data-clave", cliente.CLAVE || "");
-                btnEstadoCuentaDetallado.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-                btnEstadoCuentaDetallado.style.padding = "0.15rem 0.35rem";
-                btnEstadoCuentaDetallado.style.fontSize = "0.75rem";
-                btnEstadoCuentaDetallado.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
-                tdEstadoCuentaDetallado.appendChild(btnEstadoCuentaDetallado);
+                tdEstadoCuentaDetallado.className = "text-center";
+                const iconEstadoCuentaDetallado = document.createElement("i");
+                iconEstadoCuentaDetallado.className = "bi btn-iconNuevos bi-file-earmark-text-fill btnEstadoCuentaDetallado";
+                iconEstadoCuentaDetallado.setAttribute("title", "Estado de Cuenta Detallado");
+                iconEstadoCuentaDetallado.setAttribute("data-bs-toggle", "tooltip");
+                iconEstadoCuentaDetallado.setAttribute("data-bs-placement", "top");
+                iconEstadoCuentaDetallado.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
+                iconEstadoCuentaDetallado.setAttribute("data-clave", cliente.CLAVE || "");
+                iconEstadoCuentaDetallado.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+                tdEstadoCuentaDetallado.appendChild(iconEstadoCuentaDetallado);
                 
                 // Botón Visualizar
                 const tdVisualizar = document.createElement("td");
-                const btnVisualizar = document.createElement("button");
-                btnVisualizar.className = "btnVisualizarCliente";
-                btnVisualizar.name = "btnVisualizarCliente";
-                btnVisualizar.setAttribute("data-id", cliente.CLAVE);
-                btnVisualizar.style.display = "inline-flex";
-                btnVisualizar.style.alignItems = "center";
-                btnVisualizar.style.padding = "0.25rem 0.5rem";
-                btnVisualizar.style.fontSize = "0.8rem";
-                btnVisualizar.style.fontFamily = "Lato";
-                btnVisualizar.style.color = "#fff";
-                btnVisualizar.style.backgroundColor = "#007bff";
-                btnVisualizar.style.border = "none";
-                btnVisualizar.style.borderRadius = "0.25rem";
-                btnVisualizar.style.cursor = "pointer";
-                btnVisualizar.style.transition = "background-color 0.3s ease";
-                btnVisualizar.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.25rem;"></i> Ver';
-                tdVisualizar.appendChild(btnVisualizar);
+                tdVisualizar.className = "text-center";
+                const iconVisualizar = document.createElement("i");
+                iconVisualizar.className = "bi btn-iconNuevos bi-eye btnVisualizarCliente";
+                iconVisualizar.setAttribute("title", "Visualizar Cliente");
+                iconVisualizar.setAttribute("data-bs-toggle", "tooltip");
+                iconVisualizar.setAttribute("data-bs-placement", "top");
+                iconVisualizar.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
+                iconVisualizar.setAttribute("data-id", cliente.CLAVE);
+                tdVisualizar.appendChild(iconVisualizar);
                 
-                // Agregar todas las celdas a la fila
+                // Agregar todas las celdas a la fila en el orden correcto
                 row.appendChild(tdClave);
                 row.appendChild(tdNombre);
-                row.appendChild(tdSaldo);
-                row.appendChild(tdEstado);
+                row.appendChild(tdCredito);
+                row.appendChild(tdLimiteCredito);
+                row.appendChild(tdDiasCredito);
                 row.appendChild(tdUltimaVenta);
-                row.appendChild(tdEstadoCuentaDetallado);
-                
-                // Botón Estado de Cuenta
-                const tdEstadoCuenta = document.createElement("td");
-                tdEstadoCuenta.style.textAlign = "center";
-                const btnEstadoCuenta = document.createElement("button");
-                btnEstadoCuenta.className = "btn btn-sm btn-danger btnEstadoCuenta";
-                btnEstadoCuenta.setAttribute("data-clave", cliente.CLAVE || "");
-                btnEstadoCuenta.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-                btnEstadoCuenta.style.padding = "0.15rem 0.35rem";
-                btnEstadoCuenta.style.fontSize = "0.75rem";
-                btnEstadoCuenta.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
-                tdEstadoCuenta.appendChild(btnEstadoCuenta);
-                
+                row.appendChild(tdSaldo);
                 row.appendChild(tdEstadoCuenta);
+                row.appendChild(tdEstadoCuentaDetallado);
                 row.appendChild(tdVisualizar);
                 
                 clientesTable.appendChild(row);
@@ -177,9 +189,10 @@ function doSearch() {
               buildPagination(response.total);
               agregarEventosBotones();
               agregarEventosReportes();
+              initTooltipsClientes();
             } else {
               const clientesTable = document.getElementById("datosClientes");
-              clientesTable.innerHTML = `<tr><td colspan="8" style="text-align: center;">No hay datos disponibles</td></tr>`;
+              clientesTable.innerHTML = `<tr><td colspan="10" style="text-align: center;">No hay datos disponibles</td></tr>`;
             }
           } else {
             console.error("La respuesta no es un objeto válido:", response);
@@ -201,13 +214,21 @@ function doSearch() {
 const noEmpresa = sessionStorage.getItem("noEmpresaSeleccionada");
 const token = document.getElementById("csrf_token").value;
 
+// Función para inicializar tooltips de Bootstrap
+function initTooltipsClientes() {
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+}
+
 // Función para agregar eventos a los botones dinámicos
 function agregarEventosBotones() {
   const botonesVisualizar = document.querySelectorAll(".btnVisualizarCliente");
 
   botonesVisualizar.forEach((boton) => {
     boton.addEventListener("click", function () {
-      const clienteId = this.getAttribute("data-id");
+      const clienteId = this.getAttribute("data-id") || this.getAttribute("data-clave");
       // Realizamos la petición AJAX para obtener los datos del cliente
       fetch(
         `../Servidor/PHP/clientes.php?clave=${clienteId}&numFuncion=2&token=${token}`
@@ -375,9 +396,14 @@ function obtenerClientes(limpiarTabla = true) {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}`;
-              const estadoTimbrado = cliente.EstadoDatosTimbrado
-                ? "<i class='bx bx-check-square' style='color: green; display: block; margin: 0 auto;'></i>"
-                : ""; // Centrado de la palomita con display: block y margin: 0 auto
+              const limiteCredito = parseFloat(cliente.LIMCRED || 0);
+              const limiteCreditoFormateado = `$${limiteCredito.toLocaleString("es-MX", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`;
+              const diasCredito = cliente.DIASCRED || 0;
+              const credito = (cliente.CAMPLIB9 === 'S' || cliente.CAMPLIB9 === 's') ? 'Si' : 'No';
+              
               const row = document.createElement("tr");
               
               // Crear las celdas directamente
@@ -387,13 +413,20 @@ function obtenerClientes(limpiarTabla = true) {
               const tdNombre = document.createElement("td");
               tdNombre.textContent = cliente.NOMBRE || "Sin nombre";
               
-              const tdSaldo = document.createElement("td");
-              tdSaldo.style.textAlign = "right";
-              tdSaldo.innerHTML = saldoFormateado;
+              // Crédito
+              const tdCredito = document.createElement("td");
+              tdCredito.style.textAlign = "center";
+              tdCredito.textContent = credito;
               
-              const tdEstado = document.createElement("td");
-              tdEstado.style.textAlign = "center";
-              tdEstado.innerHTML = estadoTimbrado;
+              // Límite de crédito
+              const tdLimiteCredito = document.createElement("td");
+              tdLimiteCredito.style.textAlign = "right";
+              tdLimiteCredito.textContent = limiteCreditoFormateado;
+              
+              // Días de crédito
+              const tdDiasCredito = document.createElement("td");
+              tdDiasCredito.style.textAlign = "center";
+              tdDiasCredito.textContent = diasCredito;
               
               // Última venta
               const tdUltimaVenta = document.createElement("td");
@@ -407,59 +440,59 @@ function obtenerClientes(limpiarTabla = true) {
                   tdUltimaVenta.textContent = "-";
               }
               
-              // Botón Estado de Cuenta Detallado
+              // Saldo (movido al final)
+              const tdSaldo = document.createElement("td");
+              tdSaldo.style.textAlign = "right";
+              tdSaldo.innerHTML = saldoFormateado;
+              
+              // Botón Estado de Cuenta (primero)
+              const tdEstadoCuenta = document.createElement("td");
+              tdEstadoCuenta.className = "text-center";
+              const iconEstadoCuenta = document.createElement("i");
+              iconEstadoCuenta.className = "bi btn-iconNuevos bi-file-earmark-text btnEstadoCuenta";
+              iconEstadoCuenta.setAttribute("title", "Estado de Cuenta");
+              iconEstadoCuenta.setAttribute("data-bs-toggle", "tooltip");
+              iconEstadoCuenta.setAttribute("data-bs-placement", "top");
+              iconEstadoCuenta.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
+              iconEstadoCuenta.setAttribute("data-clave", cliente.CLAVE || "");
+              iconEstadoCuenta.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+              tdEstadoCuenta.appendChild(iconEstadoCuenta);
+              
+              // Botón Estado de Cuenta Detallado (segundo)
               const tdEstadoCuentaDetallado = document.createElement("td");
-              tdEstadoCuentaDetallado.style.textAlign = "center";
-              const btnEstadoCuentaDetallado = document.createElement("button");
-              btnEstadoCuentaDetallado.className = "btn btn-sm btn-warning btnEstadoCuentaDetallado";
-              btnEstadoCuentaDetallado.setAttribute("data-clave", cliente.CLAVE || "");
-              btnEstadoCuentaDetallado.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-              btnEstadoCuentaDetallado.style.padding = "0.15rem 0.35rem";
-              btnEstadoCuentaDetallado.style.fontSize = "0.75rem";
-              btnEstadoCuentaDetallado.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
-              tdEstadoCuentaDetallado.appendChild(btnEstadoCuentaDetallado);
+              tdEstadoCuentaDetallado.className = "text-center";
+              const iconEstadoCuentaDetallado = document.createElement("i");
+              iconEstadoCuentaDetallado.className = "bi btn-iconNuevos bi-file-earmark-text-fill btnEstadoCuentaDetallado";
+              iconEstadoCuentaDetallado.setAttribute("title", "Estado de Cuenta Detallado");
+              iconEstadoCuentaDetallado.setAttribute("data-bs-toggle", "tooltip");
+              iconEstadoCuentaDetallado.setAttribute("data-bs-placement", "top");
+              iconEstadoCuentaDetallado.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
+              iconEstadoCuentaDetallado.setAttribute("data-clave", cliente.CLAVE || "");
+              iconEstadoCuentaDetallado.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
+              tdEstadoCuentaDetallado.appendChild(iconEstadoCuentaDetallado);
               
               // Botón Visualizar
               const tdVisualizar = document.createElement("td");
-              const btnVisualizar = document.createElement("button");
-              btnVisualizar.className = "btnVisualizarCliente";
-              btnVisualizar.name = "btnVisualizarCliente";
-              btnVisualizar.setAttribute("data-id", cliente.CLAVE);
-              btnVisualizar.style.display = "inline-flex";
-              btnVisualizar.style.alignItems = "center";
-              btnVisualizar.style.padding = "0.25rem 0.5rem";
-              btnVisualizar.style.fontSize = "0.8rem";
-              btnVisualizar.style.fontFamily = "Lato";
-              btnVisualizar.style.color = "#fff";
-              btnVisualizar.style.backgroundColor = "#007bff";
-              btnVisualizar.style.border = "none";
-              btnVisualizar.style.borderRadius = "0.25rem";
-              btnVisualizar.style.cursor = "pointer";
-              btnVisualizar.style.transition = "background-color 0.3s ease";
-              btnVisualizar.innerHTML = '<i class="fas fa-eye" style="margin-right: 0.25rem;"></i> Ver';
-              tdVisualizar.appendChild(btnVisualizar);
+              tdVisualizar.className = "text-center";
+              const iconVisualizar = document.createElement("i");
+              iconVisualizar.className = "bi btn-iconNuevos bi-eye btnVisualizarCliente";
+              iconVisualizar.setAttribute("title", "Visualizar Cliente");
+              iconVisualizar.setAttribute("data-bs-toggle", "tooltip");
+              iconVisualizar.setAttribute("data-bs-placement", "top");
+              iconVisualizar.setAttribute("data-bs-delay", '{"show":0,"hide":0}');
+              iconVisualizar.setAttribute("data-id", cliente.CLAVE);
+              tdVisualizar.appendChild(iconVisualizar);
               
-              // Agregar todas las celdas a la fila
+              // Agregar todas las celdas a la fila en el orden correcto
               row.appendChild(tdClave);
               row.appendChild(tdNombre);
-              row.appendChild(tdSaldo);
-              row.appendChild(tdEstado);
+              row.appendChild(tdCredito);
+              row.appendChild(tdLimiteCredito);
+              row.appendChild(tdDiasCredito);
               row.appendChild(tdUltimaVenta);
-              row.appendChild(tdEstadoCuentaDetallado);
-              
-              // Botón Estado de Cuenta
-              const tdEstadoCuenta = document.createElement("td");
-              tdEstadoCuenta.style.textAlign = "center";
-              const btnEstadoCuenta = document.createElement("button");
-              btnEstadoCuenta.className = "btn btn-sm btn-danger btnEstadoCuenta";
-              btnEstadoCuenta.setAttribute("data-clave", cliente.CLAVE || "");
-              btnEstadoCuenta.setAttribute("data-nombre", cliente.NOMBRE || "Sin nombre");
-              btnEstadoCuenta.style.padding = "0.15rem 0.35rem";
-              btnEstadoCuenta.style.fontSize = "0.75rem";
-              btnEstadoCuenta.innerHTML = '<i class="bx bx-file-blank"></i> Ver';
-              tdEstadoCuenta.appendChild(btnEstadoCuenta);
-              
+              row.appendChild(tdSaldo);
               row.appendChild(tdEstadoCuenta);
+              row.appendChild(tdEstadoCuentaDetallado);
               row.appendChild(tdVisualizar);
               
               clientesTable.appendChild(row);
@@ -563,20 +596,9 @@ let nombreClienteActualReporte = null;
 
 // Función para agregar eventos a los botones de reportes
 function agregarEventosReportes() {
-  // Remover event listeners anteriores para evitar duplicados
-  document.querySelectorAll(".btnEstadoCuentaDetallado").forEach((boton) => {
-    const nuevoBoton = boton.cloneNode(true);
-    boton.parentNode.replaceChild(nuevoBoton, boton);
-  });
-  
-  document.querySelectorAll(".btnEstadoCuenta").forEach((boton) => {
-    const nuevoBoton = boton.cloneNode(true);
-    boton.parentNode.replaceChild(nuevoBoton, boton);
-  });
-
   // Botones de Estado de Cuenta Detallado
-  document.querySelectorAll(".btnEstadoCuentaDetallado").forEach((boton) => {
-    boton.addEventListener("click", function () {
+  document.querySelectorAll(".btnEstadoCuentaDetallado").forEach((icono) => {
+    icono.addEventListener("click", function () {
       const clave = this.getAttribute("data-clave");
       const nombre = this.getAttribute("data-nombre");
       abrirModalEstadoCuentaDetallado(clave, nombre);
@@ -584,8 +606,8 @@ function agregarEventosReportes() {
   });
 
   // Botones de Estado de Cuenta
-  document.querySelectorAll(".btnEstadoCuenta").forEach((boton) => {
-    boton.addEventListener("click", function () {
+  document.querySelectorAll(".btnEstadoCuenta").forEach((icono) => {
+    icono.addEventListener("click", function () {
       const clave = this.getAttribute("data-clave");
       const nombre = this.getAttribute("data-nombre");
       abrirModalEstadoCuenta(clave, nombre);

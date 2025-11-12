@@ -999,19 +999,21 @@ function obtenerFacturasNoPagadas($conexionData, $filtroCliente)
 }
 
 /*-------------------------------------------------------------------------------------------------------------------*/
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
-    // Si es una solicitud POST, asignamos el valor de numFuncion
-    $funcion = $_POST['numFuncion'];
-    //var_dump($funcion);
-} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['numFuncion'])) {
-    // Si es una solicitud GET, asignamos el valor de numFuncion
-    $funcion = $_GET['numFuncion'];
-    //var_dump($funcion);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Error al realizar la peticion.']);
-    exit;
-}
-switch ($funcion) {
+// Solo ejecutar esta validación si el archivo se está ejecutando directamente
+if (basename($_SERVER['PHP_SELF']) === 'reportesGeneral.php') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
+        // Si es una solicitud POST, asignamos el valor de numFuncion
+        $funcion = $_POST['numFuncion'];
+        //var_dump($funcion);
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['numFuncion'])) {
+        // Si es una solicitud GET, asignamos el valor de numFuncion
+        $funcion = $_GET['numFuncion'];
+        //var_dump($funcion);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al realizar la peticion.']);
+        exit;
+    }
+    switch ($funcion) {
     case 1:
         if (!isset($_SESSION['empresa']['noEmpresa'])) {
             echo json_encode(['success' => false, 'message' => 'No se ha definido la empresa en la sesión']);
@@ -1152,4 +1154,5 @@ switch ($funcion) {
     default:
         echo json_encode(['success' => false, 'message' => 'Función no válida.']);
         break;
+    }
 }

@@ -88,6 +88,7 @@ function mostrarClientes($conexionData, $claveSae)
         // Construir el nombre de la tabla dinámicamente usando el número de empresa
         $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $tablaFactF = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+        $tablaClieClib = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         // Construir la consulta SQL
         if ($tipoUsuario === 'ADMINISTRADOR') {
             // ADMIN: no hay filtro de vendedor
@@ -103,7 +104,9 @@ function mostrarClientes($conexionData, $claveSae)
                 c.CALLE AS CALLE,
                 c.TELEFONO,
                 c.SALDO,
-                c.VAL_RFC AS EstadoDatosTimbrado,
+                c.LIMCRED,
+                c.DIASCRED,
+                ISNULL(clib.CAMPLIB9, 'N') AS CAMPLIB9,
                 c.NOMBRECOMERCIAL,
                 c.DESCUENTO,
                 (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
@@ -111,6 +114,7 @@ function mostrarClientes($conexionData, $claveSae)
                  WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
                  ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
             FROM $nombreTabla c
+            LEFT JOIN $tablaClieClib clib ON c.CLAVE = clib.CVE_CLIE
             WHERE c.STATUS = 'A'
             ORDER BY c.CLAVE ASC
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
@@ -134,7 +138,9 @@ function mostrarClientes($conexionData, $claveSae)
                 c.CALLE AS CALLE,
                 c.TELEFONO,
                 c.SALDO,
-                c.VAL_RFC AS EstadoDatosTimbrado,
+                c.LIMCRED,
+                c.DIASCRED,
+                ISNULL(clib.CAMPLIB9, 'N') AS CAMPLIB9,
                 c.NOMBRECOMERCIAL,
                 c.DESCUENTO,
                 (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
@@ -142,6 +148,7 @@ function mostrarClientes($conexionData, $claveSae)
                  WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
                  ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
             FROM $nombreTabla c
+            LEFT JOIN $tablaClieClib clib ON c.CLAVE = clib.CVE_CLIE
             WHERE c.STATUS = 'A'
                 AND c.CVE_VEND = ?
             ORDER BY c.CLAVE ASC
@@ -1337,12 +1344,47 @@ function obtenerDatosEnvioTabla($firebaseProjectId, $firebaseApiKey, $conexionDa
             if ($empFirebase == $empBuscada) {
                 $clienteClave = trim($f['claveCliente']['stringValue'] ?? '');
                 if (!empty($clienteClave)) {
+                    // Procesar nombreContacto y compania con codificación UTF-8
+                    $nombreContacto = $f['nombreContacto']['stringValue'] ?? '';
+                    $compania = $f['compania']['stringValue'] ?? '';
+                    
+                    // Aplicar conversión de codificación si es necesario
+                    if (is_string($nombreContacto) && !empty($nombreContacto)) {
+                        $encoding = mb_detect_encoding($nombreContacto, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                        if ($encoding === false || $encoding === 'ASCII') {
+                            if (preg_match('/[^\x00-\x7F]/', $nombreContacto)) {
+                                $nombreContacto = mb_convert_encoding($nombreContacto, 'UTF-8', 'Windows-1252');
+                            }
+                        } elseif ($encoding !== 'UTF-8') {
+                            $nombreContacto = mb_convert_encoding($nombreContacto, 'UTF-8', $encoding);
+                        }
+                        if (!mb_check_encoding($nombreContacto, 'UTF-8')) {
+                            $nombreContacto = mb_convert_encoding($nombreContacto, 'UTF-8', 'Windows-1252');
+                        }
+                    }
+                    
+                    if (is_string($compania) && !empty($compania)) {
+                        $encoding = mb_detect_encoding($compania, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+                        if ($encoding === false || $encoding === 'ASCII') {
+                            if (preg_match('/[^\x00-\x7F]/', $compania)) {
+                                $compania = mb_convert_encoding($compania, 'UTF-8', 'Windows-1252');
+                            }
+                        } elseif ($encoding !== 'UTF-8') {
+                            $compania = mb_convert_encoding($compania, 'UTF-8', $encoding);
+                        }
+                        if (!mb_check_encoding($compania, 'UTF-8')) {
+                            $compania = mb_convert_encoding($compania, 'UTF-8', 'Windows-1252');
+                        }
+                    }
+                    
                     $datos[] = [
                         'idDocumento'   => basename($doc['name']),
                         'id'            => $f['id']['integerValue'] ?? null,
                         'tituloEnvio'   => $f['tituloEnvio']['stringValue'] ?? '',
                         'clienteClave'  => $clienteClave,
                         'clienteNombre' => null, // Se llenará abajo
+                        'compania'      => $compania,
+                        'nombreContacto' => $nombreContacto,
                     ];
                 }
             }
@@ -1529,61 +1571,70 @@ function obtenerDatosCliente($claveVendedor, $conexionData, $filtroBusqueda, $cl
 
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaFactF = "[{$conexionData['nombreBase']}].[dbo].[FACTF" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaClieClib = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
     if ($tipoUsuario === "ADMINISTRADOR") {
         if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
-            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.VAL_RFC AS EstadoDatosTimbrado, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+                c.LIMCRED, c.DIASCRED, ISNULL(clib.CAMPLIB9, 'N') AS CAMPLIB9,
                 (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
                  FROM $tablaFactF f
                  WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
                  ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
                 FROM $nombreTabla c
+                LEFT JOIN $tablaClieClib clib ON c.CLAVE = clib.CVE_CLIE
                 WHERE 
-                LOWER(LTRIM(RTRIM(c.CLAVE))) LIKE ? OR
+                (LOWER(LTRIM(RTRIM(c.CLAVE))) LIKE ? OR
                 LOWER(LTRIM(RTRIM(c.NOMBRE))) LIKE ? OR
                 LOWER(LTRIM(RTRIM(c.NOMBRECOMERCIAL))) LIKE ? OR
-                LOWER(LTRIM(RTRIM(c.CALLE))) LIKE ? AND c.[STATUS] = 'A'
+                LOWER(LTRIM(RTRIM(c.CALLE))) LIKE ?) AND c.[STATUS] = 'A'
                 ORDER BY c.CLAVE ASC;";
         } else {
-            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.VAL_RFC AS EstadoDatosTimbrado, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+                c.LIMCRED, c.DIASCRED, ISNULL(clib.CAMPLIB9, 'N') AS CAMPLIB9,
                 (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
                  FROM $tablaFactF f
                  WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
                  ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
                 FROM $nombreTabla c
+                LEFT JOIN $tablaClieClib clib ON c.CLAVE = clib.CVE_CLIE
                 WHERE 
-                c.CLAVE LIKE ? OR
+                (c.CLAVE LIKE ? OR
                 c.NOMBRE LIKE ? OR
                 c.NOMBRECOMERCIAL LIKE ? OR
-                c.CALLE LIKE ? AND c.[STATUS] = 'A'
+                c.CALLE LIKE ?) AND c.[STATUS] = 'A'
                 ORDER BY c.CLAVE ASC;";
         }
     } else {
         if (preg_match('/[a-zA-Z]/', $filtroBusqueda)) {
-            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.VAL_RFC AS EstadoDatosTimbrado, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+                c.LIMCRED, c.DIASCRED, ISNULL(clib.CAMPLIB9, 'N') AS CAMPLIB9,
                 (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
                  FROM $tablaFactF f
                  WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
                  ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
                 FROM $nombreTabla c
+                LEFT JOIN $tablaClieClib clib ON c.CLAVE = clib.CVE_CLIE
                 WHERE 
-                LOWER(LTRIM(RTRIM(c.CLAVE))) LIKE ? OR
+                (LOWER(LTRIM(RTRIM(c.CLAVE))) LIKE ? OR
                 LOWER(LTRIM(RTRIM(c.NOMBRE))) LIKE ? OR
                 LOWER(LTRIM(RTRIM(c.NOMBRECOMERCIAL))) LIKE ? OR
-                LOWER(LTRIM(RTRIM(c.CALLE))) LIKE ? AND c.[CVE_VEND] = '$claveVendedor' AND c.[STATUS] = 'A'
+                LOWER(LTRIM(RTRIM(c.CALLE))) LIKE ?) AND c.[CVE_VEND] = '$claveVendedor' AND c.[STATUS] = 'A'
                 ORDER BY c.CLAVE ASC;";
         } else {
-            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.VAL_RFC AS EstadoDatosTimbrado, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+            $sql = "SELECT c.CLAVE, c.NOMBRE, c.RFC, c.CALLE, c.SALDO, c.TELEFONO, c.NUMEXT, c.NUMINT, c.COLONIA, c.CODIGO, c.LOCALIDAD, c.PAIS, c.NOMBRECOMERCIAL, c.LISTA_PREC,
+                c.LIMCRED, c.DIASCRED, ISNULL(clib.CAMPLIB9, 'N') AS CAMPLIB9,
                 (SELECT TOP 1 CONVERT(VARCHAR(10), f.FECHA_DOC, 120)
                  FROM $tablaFactF f
                  WHERE LTRIM(RTRIM(f.CVE_CLPV)) = LTRIM(RTRIM(c.CLAVE))
                  ORDER BY f.FECHA_DOC DESC) AS ULTIMA_VENTA
                 FROM $nombreTabla c
+                LEFT JOIN $tablaClieClib clib ON c.CLAVE = clib.CVE_CLIE
                 WHERE 
-                c.CLAVE LIKE ? OR
+                (c.CLAVE LIKE ? OR
                 c.NOMBRE LIKE ? OR
                 c.NOMBRECOMERCIAL LIKE ? OR
-                c.CALLE LIKE ? AND c.[CVE_VEND] = '$claveVendedor' AND c.[STATUS] = 'A'
+                c.CALLE LIKE ?) AND c.[CVE_VEND] = '$claveVendedor' AND c.[STATUS] = 'A'
                 ORDER BY c.CLAVE ASC;";
         }
     }

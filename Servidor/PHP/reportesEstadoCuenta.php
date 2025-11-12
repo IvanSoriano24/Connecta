@@ -1,11 +1,39 @@
 <?php
+// Cargar TCPDF ANTES que cualquier otro archivo para evitar conflictos
+// Intentar cargar TCPDF desde Composer primero
+if (file_exists(__DIR__ . '/../../vendor/tecnickcom/tcpdf/tcpdf.php')) {
+    require_once __DIR__ . '/../../vendor/tecnickcom/tcpdf/tcpdf.php';
+} 
+// Si no está en Composer, usar la versión local existente en el proyecto
+elseif (file_exists(__DIR__ . '/../XML/sdk2/lib/modulos/html2pdf_fe_ticket/tcpdf_min/tcpdf.php')) {
+    require_once __DIR__ . '/../XML/sdk2/lib/modulos/html2pdf_fe_ticket/tcpdf_min/tcpdf.php';
+}
+
+// Cargar autoload después de TCPDF
 require_once __DIR__ . '/../../vendor/autoload.php';
+
+// Verificar que TCPDF esté disponible
+if (!class_exists('TCPDF')) {
+    die('Error: TCPDF no está disponible. Por favor, ejecute: composer install');
+}
+
 require_once 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 require_once 'reportesGeneral.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+}
+
+// Definir constantes de TCPDF si no están definidas
+if (!defined('PDF_PAGE_ORIENTATION')) {
+    define('PDF_PAGE_ORIENTATION', 'P'); // Portrait
+}
+if (!defined('PDF_UNIT')) {
+    define('PDF_UNIT', 'mm');
+}
+if (!defined('PDF_PAGE_FORMAT')) {
+    define('PDF_PAGE_FORMAT', 'LETTER');
 }
 
 // Obtener parámetros
@@ -112,9 +140,38 @@ switch ($tipo) {
         exit;
 }
 
+// Si no hay datos y la acción es descargar, generar PDF vacío
+// Para otras acciones (whatsapp, correo), devolver error si no hay datos
 if (empty($reportes)) {
-    echo json_encode(['success' => false, 'message' => 'No se encontraron datos para el reporte']);
-    exit;
+    if ($accion === 'descargar') {
+        // Generar PDF vacío con mensaje
+        $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        $pdf->SetCreator('MDConnecta');
+        $pdf->SetAuthor('MDConnecta');
+        $pdf->SetTitle($tituloReporte);
+        $pdf->SetSubject($tituloReporte);
+        $pdf->SetMargins(10, 20, 10);
+        $pdf->SetAutoPageBreak(TRUE, 15);
+        $pdf->AddPage();
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->Cell(0, 10, $tituloReporte, 0, 1, 'C');
+        $pdf->Ln(10);
+        $pdf->SetFont('helvetica', '', 12);
+        $pdf->Cell(0, 10, 'Cliente: ' . htmlspecialchars($clienteNombre), 0, 1, 'L');
+        $pdf->Ln(5);
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->Cell(0, 10, 'No se encontraron datos para el reporte.', 0, 1, 'C');
+        
+        ob_end_clean();
+        header('Content-Type: application/pdf');
+        $nombreArchivo = $tituloReporte . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $cliente) . '_' . date('YmdHis') . '.pdf';
+        header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
+        $pdf->Output($nombreArchivo, 'D');
+        exit;
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No se encontraron datos para el reporte']);
+        exit;
+    }
 }
 
 // Función para obtener datos del estado de cuenta general

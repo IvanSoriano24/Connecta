@@ -48,6 +48,8 @@ if (isset($_SESSION['usuario'])) {
 	<!-- Bootsstrap  -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
     <!-- Boxicons -->
@@ -260,11 +262,13 @@ if (isset($_SESSION['usuario'])) {
 									<tr>
 										<th>Clave</th>
 										<th>Nombre</th>
-										<th>Saldo</th>
-										<th>Estado Datos Timbrado</th>
+										<th>Crédito</th>
+										<th>Límite de crédito</th>
+										<th>Días de crédito</th>
 										<th>Última venta</th>
-										<th>Estado de cuenta detallado</th>
+										<th>Saldo</th>
 										<th>Estado de cuenta</th>
+										<th>Estado de cuenta detallado</th>
 										<th>Visualizar</th>
 									</tr>
 									</thead>

@@ -39,6 +39,8 @@ if (isset($_SESSION['usuario'])) {
     <!-- Bootsstrap  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <script src="JS/sideBar.js?n=1"></script>
@@ -117,6 +119,111 @@ if (isset($_SESSION['usuario'])) {
             box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
         }
     </style>
+    <style>
+        .pagination {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .pagination button {
+            margin: 0 .25rem;
+            padding: 0.4rem .8rem;
+            border: 1px solid #007bff;
+            background: none;
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background: #007bff;
+            color: #fff;
+        }
+
+        /*******************/
+        .pagination-controls {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-family: Lato, sans-serif;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .cantidad-label {
+            margin: 0;
+        }
+
+        .cantidad-select {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.9rem;
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            background-color: #fff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .cantidad-select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        /* Estilos mejorados para botones de acción */
+        .btn-action-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-action:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-action i {
+            font-size: 1.1rem;
+        }
+
+        .btn-action-importar {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: #fff;
+        }
+
+        .btn-action-importar:hover {
+            background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
+            color: #fff;
+        }
+
+        .btn-action-agregar {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: #fff;
+        }
+
+        .btn-action-agregar:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+            color: #fff;
+        }
+    </style>
 </head>
 
 <body>
@@ -137,13 +244,15 @@ if (isset($_SESSION['usuario'])) {
                                 <div class="order mb-3">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <!-- Botones a la izquierda -->
-                                        <div class="btn-group">
-                                            <button class="btn btn-success" id="btnImportar">
+                                        <div class="btn-action-group">
+                                            <button class="btn-action btn-action-importar" id="btnImportar">
                                                 <input type="file" id="inputExcel" accept=".xlsx, .xls" style="display: none;">
-                                                <i class='bx bxs-file-import'></i> Importar
+                                                <i class="bi bi-file-earmark-arrow-up"></i>
+                                                <span>Importar</span>
                                             </button>
-                                            <button class="btn btn-primary" id="btnAgregar">
-                                                <i class='bx bxs-plus-circle'></i> Agregar Datos
+                                            <button class="btn-action btn-action-agregar" id="btnAgregar">
+                                                <i class="bi bi-plus-circle-fill"></i>
+                                                <span>Agregar Datos</span>
                                             </button>
                                         </div>
 
@@ -168,6 +277,8 @@ if (isset($_SESSION['usuario'])) {
                                             <tr>
                                                 <th>Cliente</th>
                                                 <th>Titulo de Envio</th>
+                                                <th>Compañía</th>
+                                                <th>Nombre del Contacto</th>
                                                 <th>Visualizar</th>
                                                 <th>Editar</th>
                                             </tr>
@@ -176,6 +287,19 @@ if (isset($_SESSION['usuario'])) {
                                             <!-- Los correos se agregarán aquí dinámicamente -->
                                         </tbody>
                                     </table>
+                                </div>
+                                <!-- Paginacion -->
+                                <div id="pagination" class="pagination">
+                                </div>
+                                <!-- Cantidad de registros a mostrar -->
+                                <div class="pagination-controls">
+                                    <label for="selectCantidad" class="cantidad-label">Mostrar</label>
+                                    <select id="selectCantidad" class="cantidad-select">
+                                        <option value="10">10</option>
+                                        <option value="20" selected>20</option>
+                                        <option value="30">30</option>
+                                    </select>
+                                    <span class="cantidad-label">por página</span>
                                 </div>
                             </div>
                         </div>
@@ -728,7 +852,12 @@ if (isset($_SESSION['usuario'])) {
                     todosLosDatos = todosLosDatosOriginales.filter(correo => {
                         const nombreCliente = (correo.clienteNombre || '').toLowerCase();
                         const tituloEnvio = (correo.tituloEnvio || '').toLowerCase();
-                        return nombreCliente.includes(term) || tituloEnvio.includes(term);
+                        const compania = (correo.compania || '').toLowerCase();
+                        const nombreContacto = (correo.nombreContacto || '').toLowerCase();
+                        return nombreCliente.includes(term) || 
+                               tituloEnvio.includes(term) || 
+                               compania.includes(term) || 
+                               nombreContacto.includes(term);
                     });
                 }
             }
@@ -738,8 +867,8 @@ if (isset($_SESSION['usuario'])) {
                 if (typeof mostrarDatosPagina === 'function') {
                     mostrarDatosPagina();
                 }
-                if (typeof actualizarControlesPaginacion === 'function') {
-                    actualizarControlesPaginacion();
+                if (typeof buildPagination === 'function') {
+                    buildPagination(todosLosDatos.length);
                 }
             }
         }
