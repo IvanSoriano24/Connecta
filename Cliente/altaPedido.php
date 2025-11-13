@@ -1315,21 +1315,19 @@ if (isset($_SESSION['usuario'])) {
                                         <table id="tablaEstadoCuenta" class="table table-striped table-bordered table-hover">
                                             <thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
                                                 <tr>
-                                                    <th>Clave</th>
-                                                    <th>Tipo</th>
-                                                    <th>Concepto</th>
-                                                    <th>Documento</th>
-                                                    <th>Núm.</th>
+                                                    <th>Factura</th>
                                                     <th>F. de aplicación</th>
-                                                    <th>F. de venc. referencia</th>
+                                                    <th>F. de vencimiento</th>
                                                     <th style="text-align:right;">Cargos</th>
                                                     <th style="text-align:right;">Abonos</th>
-                                                    <th style="text-align:right;">Saldo</th>
+                                                    <th style="text-align:right;">Saldos</th>
+                                                    <th>Moneda</th>
+                                                    <th>Estado</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="datosEstadoCuenta">
                                                 <tr>
-                                                    <td colspan="10" class="text-center">
+                                                    <td colspan="8" class="text-center">
                                                         <div class="spinner-border text-primary" role="status">
                                                             <span class="visually-hidden">Cargando...</span>
                                                         </div>

@@ -1521,10 +1521,12 @@ function validarCreditoCliente(clienteId) {
 
 // Variable global para almacenar el cliente actual
 let clienteActualId = null;
+let clienteTieneCredito = false;
 
 // Función para actualizar la información del cliente en el recuadro de ayuda
 function actualizarInfoCliente(clienteId) {
   clienteActualId = clienteId; // Guardar el ID del cliente actual
+  clienteTieneCredito = false;
   
   if (!clienteId) {
     // Limpiar los campos si no hay cliente
@@ -1547,9 +1549,9 @@ function actualizarInfoCliente(clienteId) {
   
   // Habilitar botón de estado de cuenta
   const btnEstadoCuenta = document.getElementById("btnEstadoCuenta");
-  if (btnEstadoCuenta) {
-    btnEstadoCuenta.disabled = false;
-  }
+    if (btnEstadoCuenta) {
+      btnEstadoCuenta.disabled = true;
+    }
 
   // Obtener el token CSRF
   const csrfToken = document.getElementById("csrf_token").value;
@@ -1567,8 +1569,14 @@ function actualizarInfoCliente(clienteId) {
         
         // Actualizar Crédito (CAMPLIB9 / CON_CREDITO)
         const credito = cliente.CON_CREDITO || cliente.CAMPLIB9 || "";
-        const creditoTexto = credito.trim().toUpperCase() === "S" ? "Sí" : credito.trim().toUpperCase() === "N" ? "No" : "-";
+        const creditoUpper = credito.trim().toUpperCase();
+        clienteTieneCredito = creditoUpper === "S";
+        const creditoTexto = clienteTieneCredito ? "Sí" : creditoUpper === "N" ? "No" : "-";
         document.getElementById("infoCredito").textContent = creditoTexto;
+        const btnEstadoCuenta = document.getElementById("btnEstadoCuenta");
+        if (btnEstadoCuenta) {
+          btnEstadoCuenta.disabled = !clienteTieneCredito;
+        }
         
         // Actualizar Deuda (SALDO)
         const deuda = cliente.SALDO || 0;
@@ -1580,8 +1588,14 @@ function actualizarInfoCliente(clienteId) {
         const limiteFormateado = typeof limiteCredito === "number" ? limiteCredito.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) : "-";
         document.getElementById("infoLimiteCredito").textContent = limiteFormateado;
         
-        // Validar facturas vencidas
-        validarEstadoCliente(clienteId);
+        const estadoElement = document.getElementById("infoEstado");
+        if (clienteTieneCredito) {
+          // Validar facturas vencidas
+          validarEstadoCliente(clienteId);
+        } else {
+          estadoElement.textContent = "Anticipado";
+          estadoElement.className = "estado-cliente al-corriente";
+        }
         // Obtener últimas facturas y productos
         obtenerUltimasFacturas(clienteId);
         obtenerUltimosProductos(clienteId);
@@ -1628,6 +1642,14 @@ function abrirModalEstadoCuenta() {
     });
     return;
   }
+  if (!clienteTieneCredito) {
+    Swal.fire({
+      title: "Aviso",
+      text: "El cliente no tiene crédito. Estado de cuenta no disponible.",
+      icon: "info",
+    });
+    return;
+  }
   
   // Obtener el nombre del cliente para mostrarlo en el modal
   const nombreCliente = document.getElementById("infoNombre").textContent;
@@ -1652,6 +1674,15 @@ function cerrarModalEstadoCuenta() {
 // Función para cargar el estado de cuenta
 function cargarEstadoCuenta() {
   if (!clienteActualId) {
+    return;
+  }
+  if (!clienteTieneCredito) {
+    const tablaBody = document.getElementById("datosEstadoCuenta");
+    tablaBody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center text-success fw-bold">Cliente sin crédito. Estado anticipado.</td>
+      </tr>
+    `;
     return;
   }
   
@@ -1684,7 +1715,6 @@ function cargarEstadoCuenta() {
         
         if (response.success && response.data && response.data.length > 0) {
           tablaBody.innerHTML = "";
-          
           const fragment = document.createDocumentFragment();
           response.data.forEach((reporte) => {
             const montoOriginal = Number(reporte.MONTO_ORIGINAL || 0);
@@ -1693,14 +1723,18 @@ function cargarEstadoCuenta() {
             
             // Determinar color según estado
             let estadoClass = "";
-            if (reporte.ESTADO_CUENTA === "VENCIDA") {
+            let estadoTexto = reporte.ESTADO_CUENTA || "";
+            if (!clienteTieneCredito) {
+              estadoTexto = "Anticipado";
+              estadoClass = "text-success fw-bold";
+            } else if (estadoTexto === "VENCIDA") {
               estadoClass = "text-danger fw-bold";
-            } else if (reporte.ESTADO_CUENTA === "PENDIENTE") {
+            } else if (estadoTexto === "PENDIENTE") {
               estadoClass = "text-warning fw-bold";
             } else {
               estadoClass = "text-success";
             }
-            
+
             const row = document.createElement("tr");
             row.innerHTML = `
               <td>${reporte.FACTURA || ""}</td>
@@ -1710,7 +1744,7 @@ function cargarEstadoCuenta() {
               <td style="text-align:right;">${montoPagado.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
               <td style="text-align:right;">${saldoRestante.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
               <td>${reporte.MONEDA || ""}</td>
-              <td class="${estadoClass}">${reporte.ESTADO_CUENTA || ""}</td>
+              <td class="${estadoClass}">${estadoTexto}</td>
             `;
             fragment.appendChild(row);
           });
@@ -1757,7 +1791,7 @@ function obtenerUltimasFacturas(clienteId) {
       
       if (data.success && data.facturas && data.facturas.length > 0) {
         let html = "";
-        data.facturas.forEach((factura) => {
+        data.facturas.slice(0, 3).forEach((factura) => {
           const importeFormateado = typeof factura.importe === "number" 
             ? factura.importe.toLocaleString("es-MX", { style: "currency", currency: "MXN" }) 
             : factura.importe || "-";
@@ -1793,17 +1827,33 @@ function obtenerUltimosProductos(clienteId) {
       const productosContainer = document.getElementById("infoProductos");
       
       if (data.success && data.productos && data.productos.length > 0) {
-        let html = "";
+        const vistos = new Set();
+        const productosUnicos = [];
+
         data.productos.forEach((producto) => {
+          const clave = producto.clave || "-";
+          const descripcion = producto.descripcion || "Sin descripción";
+          const key = `${clave}||${descripcion}`;
+
+          if (!vistos.has(key)) {
+            vistos.add(key);
+            productosUnicos.push({ clave, descripcion });
+          }
+        });
+
+        const ultimosCinco = productosUnicos.slice(0, 5);
+
+        let html = "";
+        ultimosCinco.forEach((producto) => {
           html += `
             <div class="item-producto">
-              <span class="clave">${producto.clave || "-"}</span>
-              <span>${producto.descripcion || "Sin descripción"}</span>
-              <span>Cantidad: ${producto.cantidad || 0}</span>
+              <span class="clave">${producto.clave}</span>
+              <span>${producto.descripcion}</span>
             </div>
           `;
         });
-        productosContainer.innerHTML = html;
+
+        productosContainer.innerHTML = html || "No hay productos";
       } else {
         productosContainer.innerHTML = "No hay productos";
       }
@@ -1816,6 +1866,12 @@ function obtenerUltimosProductos(clienteId) {
 
 // Función para validar el estado del cliente (facturas vencidas)
 function validarEstadoCliente(clienteId) {
+  if (!clienteTieneCredito) {
+    const estadoElement = document.getElementById("infoEstado");
+    estadoElement.textContent = "Anticipado";
+    estadoElement.className = "estado-cliente al-corriente";
+    return;
+  }
   if (!clienteId) {
     const estadoElement = document.getElementById("infoEstado");
     estadoElement.textContent = "-";
