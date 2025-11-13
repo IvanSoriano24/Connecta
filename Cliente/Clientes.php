@@ -651,13 +651,13 @@ if (isset($_SESSION['usuario'])) {
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" onclick="descargarPDFEstadoCuentaGeneral()">
+					<button type="button" class="btn btn-danger" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bx-download"></i> Descargar PDF
 					</button>
-					<button type="button" class="btn btn-success" onclick="enviarWhatsAppEstadoCuentaGeneral()">
+					<button type="button" class="btn btn-success" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bxl-whatsapp"></i> Enviar WhatsApp
 					</button>
-					<button type="button" class="btn btn-primary" onclick="enviarCorreoEstadoCuentaGeneral()">
+					<button type="button" class="btn btn-primary" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bx-envelope"></i> Enviar Correo
 					</button>
 					<button type="button" class="btn btn-secondary" onclick="cerrarModalEstadoCuentaGeneral()">Cerrar</button>
@@ -719,13 +719,13 @@ if (isset($_SESSION['usuario'])) {
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" onclick="descargarPDFEstadoCuentaDetallado()">
+					<button type="button" class="btn btn-danger" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bx-download"></i> Descargar PDF
 					</button>
-					<button type="button" class="btn btn-success" onclick="enviarWhatsAppEstadoCuentaDetallado()">
+					<button type="button" class="btn btn-success" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bxl-whatsapp"></i> Enviar WhatsApp
 					</button>
-					<button type="button" class="btn btn-primary" onclick="enviarCorreoEstadoCuentaDetallado()">
+					<button type="button" class="btn btn-primary" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bx-envelope"></i> Enviar Correo
 					</button>
 					<button type="button" class="btn btn-secondary" onclick="cerrarModalEstadoCuentaDetallado()">Cerrar</button>
@@ -790,13 +790,13 @@ if (isset($_SESSION['usuario'])) {
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" onclick="descargarPDFCobranza()">
+					<button type="button" class="btn btn-danger" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bx-download"></i> Descargar PDF
 					</button>
-					<button type="button" class="btn btn-success" onclick="enviarWhatsAppCobranza()">
+					<button type="button" class="btn btn-success" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bxl-whatsapp"></i> Enviar WhatsApp
 					</button>
-					<button type="button" class="btn btn-primary" onclick="enviarCorreoCobranza()">
+					<button type="button" class="btn btn-primary" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bx-envelope"></i> Enviar Correo
 					</button>
 					<button type="button" class="btn btn-secondary" onclick="cerrarModalCobranza()">Cerrar</button>
@@ -841,13 +841,13 @@ if (isset($_SESSION['usuario'])) {
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-danger" onclick="descargarPDFEstadoCuenta()">
+					<button type="button" class="btn btn-danger" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bx-download"></i> Descargar PDF
 					</button>
-					<button type="button" class="btn btn-success" onclick="enviarWhatsAppEstadoCuenta()">
+					<button type="button" class="btn btn-success" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bxl-whatsapp"></i> Enviar WhatsApp
 					</button>
-					<button type="button" class="btn btn-primary" onclick="enviarCorreoEstadoCuenta()">
+					<button type="button" class="btn btn-primary" onclick="mostrarMensajeEnDesarrollo()">
 						<i class="bx bx-envelope"></i> Enviar Correo
 					</button>
 					<button type="button" class="btn btn-secondary" onclick="cerrarModalEstadoCuenta()">Cerrar</button>

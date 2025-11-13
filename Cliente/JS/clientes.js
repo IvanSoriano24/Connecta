@@ -27,6 +27,15 @@ btnDatosVentas.addEventListener("click", () => {
   btnDatosGenerales.classList.remove("btn-primary");
 });
 
+function mostrarMensajeEnDesarrollo() {
+  Swal.fire({
+    icon: "info",
+    title: "En desarrollo",
+    text: "Esta funcionalidad se encuentra en fase de desarrollo.",
+    confirmButtonText: "Entendido",
+  });
+}
+
 let debounceTimeout;
 function debouncedSearch() {
   clearTimeout(debounceTimeout);
