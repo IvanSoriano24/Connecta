@@ -7,6 +7,7 @@ require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
 include 'utils.php';
+include 'bitacora.php';
 
 
 function validarSaldo($conexionData, $clave, $claveSae, $conn)
@@ -1001,6 +1002,14 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             ]);
         }
 
+        $camposModulo = [
+            'quienCreo' => $_SESSION['usuario']['nombre'],
+            'pedidoID' => $noPedido,
+            'clienteID' => $claveCliente,
+            'productos' => $partidasData,
+        ];
+        agregarBitacora($_SESSION['empresa']['claveUsuario'], "PEDIDOS", "Pedido Con Credito", $noEmpresa, $camposModulo);
+        
         sqlsrv_commit($conn);
         sqlsrv_close($conn);
         exit();
@@ -1053,6 +1062,14 @@ function validarCorreoCliente($formularioData, $partidasData, $conexionData, $ru
             'notificacion' => true,
             'message' => 'Pedido realizado, pero el cliente no tiene correo ni WhatsApp válidos. Se notificó al vendedor.',
         ]);
+
+        $camposModulo = [
+            'quienCreo' => $_SESSION['usuario']['nombre'],
+            'pedidoID' => $noPedido,
+            'clienteID' => $claveCliente,
+            'productos' => $partidasData,
+        ];
+        agregarBitacora($_SESSION['empresa']['claveUsuario'], "PEDIDOS", "Pedido Con Credito", $noEmpresa, $camposModulo);
 
         sqlsrv_commit($conn);
         sqlsrv_close($conn);
@@ -1651,8 +1668,8 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
 
     //$clienteNombre = trim($clienteData['NOMBRE']);
     //$numero = trim($clienteData['TELEFONO']); // Si no hay teléfono registrado, usa un número por defecto
-    $numero = "+527772127123"; //InterZenda AutorizaTelefono
-    //$numero = "+527773750925";
+    //$numero = "+527772127123"; //InterZenda AutorizaTelefono
+    $numero = "+527773750925";
     //$_SESSION['usuario']['telefono'];
     // Obtener descripciones de los productos
     $nombreTabla2 = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -1839,6 +1856,8 @@ switch ($funcion) {
                         $idEnvios = guardarDatosPedido($envioData, $FOLIO, $noEmpresa, $formularioData);
                         $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn);
                         validarCorreoCliente($formularioData, $partidasData, $conexionData, $rutaPDF, $claveSae, $conCredito, $conn, $FOLIO, $idEnvios, $flagCorreo, $flagWhats);
+
+
                         sqlsrv_commit($conn);
                         sqlsrv_close($conn);
                         exit();
@@ -1852,6 +1871,15 @@ switch ($funcion) {
                             'autorizacion' => true,
                             'message' => 'El pedido se completó pero debe ser autorizado.',
                         ]);
+
+                        $camposModulo = [
+                            'quienCreo' => $_SESSION['usuario']['nombre'],
+                            'pedidoID' => $folio,
+                            'clienteID' => $clienteId,
+                            'productos' => $partidasData,
+                        ];
+                        agregarBitacora($usuario, "PEDIDOS", "Pedido Autorizado", $noEmpresa, $camposModulo);
+
                         sqlsrv_commit($conn);
                         sqlsrv_close($conn);
                         exit();

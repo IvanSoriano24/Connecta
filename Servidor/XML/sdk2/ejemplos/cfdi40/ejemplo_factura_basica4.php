@@ -221,8 +221,8 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID, $conn, $conexionData,
     // Credenciales de Timbrado
     $datos['PAC']['usuario'] = $empresaData['rfc'];
     $datos['PAC']['pass'] = $empresaData['rfc'];
-    //$datos['PAC']['produccion'] = 'SI';
-    $datos['PAC']['produccion'] = 'NO';
+    $datos['PAC']['produccion'] = 'SI';
+    //$datos['PAC']['produccion'] = 'NO';
 
     // Credenciales de Timbrado
     /*$datos['PAC']['usuario'] = 'DEMO700101XXX';

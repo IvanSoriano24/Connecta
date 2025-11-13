@@ -1002,15 +1002,15 @@ function obtenerDatosFormulario() {
   ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
     now.getSeconds()
   ).padStart(2, "0")}`;
-  const diaAlta =
-    new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";
+  /*const diaAlta =
+    new Date().toISOString().slice(0, 10).replace("T", " ") + " 00:00:00.000";*/
   //const fechaActual = now.toISOString().slice(0, 10); // Formato YYYY-MM-DD
 
   const campoEntrega = document.getElementById("entrega").value;
   //alert(fechaActual);
   // Si el usuario ha ingresado una fecha, se usa esa, de lo contrario, se usa la fecha actual
   //const entrega = campoEntrega ? campoEntrega : fechaActual;
-  //const diaAlta = document.getElementById("diaAlta").value; // Fecha y hora
+  const diaAlta = document.getElementById("diaAlta").value; // Fecha y hora
   const formularioData = {
     claveVendedor: document.getElementById("vendedor").value,
     //claveVendedor: "1",

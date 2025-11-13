@@ -5,9 +5,9 @@ if (file_exists(__DIR__ . '/../../vendor/tecnickcom/tcpdf/tcpdf.php')) {
     require_once __DIR__ . '/../../vendor/tecnickcom/tcpdf/tcpdf.php';
 } 
 // Si no está en Composer, usar la versión local existente en el proyecto
-elseif (file_exists(__DIR__ . '/../XML/sdk2/lib/modulos/html2pdf_fe_ticket/tcpdf_min/tcpdf.php')) {
+/*elseif (file_exists(__DIR__ . '/../XML/sdk2/lib/modulos/html2pdf_fe_ticket/tcpdf_min/tcpdf.php')) {
     require_once __DIR__ . '/../XML/sdk2/lib/modulos/html2pdf_fe_ticket/tcpdf_min/tcpdf.php';
-}
+}*/
 
 // Cargar autoload después de TCPDF
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -737,58 +737,140 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
     $pdf->AddPage();
     $pdf->SetFont('helvetica', '', 9);
 
-    // Encabezado
-    $pdf->SetFont('helvetica', 'B', 16);
-    $pdf->Cell(0, 10, $tituloReporte, 0, 1, 'C');
-    $pdf->Ln(5);
+    // Encabezado con logotipo e información principal
+    $logoPath = realpath(__DIR__ . '/../../Cliente/SRC/logoInterzenda.PNG');
+    $margins = $pdf->getMargins();
+    $logoX = $margins['left'];
+    $logoY = 16;
+    $logoWidth = 42;
+    $logoBottomY = $logoY;
 
-    $pdf->SetFont('helvetica', '', 10);
-    $htmlHeader = "<table cellspacing='0' cellpadding='2'>";
-    $htmlHeader .= "<tr><td><b>Cliente:</b> " . htmlspecialchars($clienteNombre) . "</td></tr>";
-    if (!empty($fechaInicio) || !empty($fechaFin)) {
-        $htmlHeader .= "<tr><td><b>Rango de fechas:</b> " . 
-            (!empty($fechaInicio) ? htmlspecialchars($fechaInicio) : 'Desde inicio') . 
-            " - " . 
-            (!empty($fechaFin) ? htmlspecialchars($fechaFin) : 'Hasta hoy') . 
-            "</td></tr>";
+    if ($logoPath && file_exists($logoPath)) {
+        $logoPath = str_replace('\\', '/', $logoPath);
+        $pdf->Image($logoPath, $logoX, $logoY, $logoWidth, 0, '', '', '', false, 300);
+        $logoBottomY = $pdf->GetY();
     }
-    $htmlHeader .= "<tr><td><b>Fecha de generación:</b> " . date('Y-m-d H:i:s') . "</td></tr>";
-    $htmlHeader .= "</table>";
-    $pdf->writeHTML($htmlHeader, true, false, false, false, '');
-    $pdf->Ln(5);
 
-    // Tabla de datos
+    $logoDisponible = $logoPath && file_exists($logoPath);
+    $usableWidth = $pdf->getPageWidth() - $margins['left'] - $margins['right'];
+
+    // Replicar desplazamiento del bloque de crédito dentro de la tarjeta (50% columna izquierda + 2% de separación + padding lateral)
+    $cardPaddingX = 14 * 0.352777778; // 14px en mm aprox. (ajustado para PDF)
+    $innerCardWidth = max($usableWidth - ($cardPaddingX * 2), 10);
+    $creditColumnStart = $margins['left'] + $cardPaddingX + ($innerCardWidth * 0.52);
+    $creditRightEdge = $margins['left'] + $usableWidth - $cardPaddingX;
+    $headerStartX = $logoDisponible ? max($logoX + $logoWidth + 8, $creditColumnStart) : $creditColumnStart;
+    $headerWidth = max($creditRightEdge - $headerStartX, 60);
+
+    $pdf->SetXY($headerStartX, $logoY);
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->SetTextColor(63, 43, 140);
+    $pdf->Cell($headerWidth, 9, htmlspecialchars($tituloReporte), 0, 2, 'L');
+
+    $pdf->SetFont('helvetica', '', 9);
+    $pdf->SetTextColor(119, 119, 119);
+    $pdf->Cell($headerWidth, 5, 'Fecha de generación: ' . date('Y-m-d H:i:s'), 0, 2, 'L');
+
+    $pdf->SetTextColor(0, 0, 0);
+
+    $inicioTexto = !empty($fechaInicio) ? htmlspecialchars($fechaInicio) : 'Desde inicio';
+    $finTexto = !empty($fechaFin) ? htmlspecialchars($fechaFin) : 'Hasta hoy';
+    $rangoFechas = (!empty($fechaInicio) || !empty($fechaFin)) ? ($inicioTexto . ' - ' . $finTexto) : 'Sin filtro de fechas';
+    $limiteCreditoTexto = '$' . number_format($limiteCreditoCliente, 2);
+    $saldoClienteTexto = '$' . number_format($saldoCliente, 2);
+    $headerBottomY = max($logoY + ($logoWidth * 0.5), $pdf->GetY());
+    $pdf->SetY($headerBottomY + 12);
+
+    $resumenHtml = "
+        <table cellspacing='0' cellpadding='0' style='width:100%; border-collapse:collapse; font-size:9px;'>
+            <tr>
+                <td style='background-color:#f4f1ff; border-radius:8px; border:0.6px solid #ded8ff; padding:10px 14px;'>
+                    <table cellspacing='0' cellpadding='0' style='width:100%; font-size:9px; border-collapse:collapse;'>
+                        <tr>
+                            <td style='width:50%; vertical-align:top;'>
+                                <table cellspacing='0' cellpadding='0' style='width:100%; font-size:9px;'>
+                                    <tr>
+                                        <td style='font-weight:bold; color:#3f2b8c;'>Cliente</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding:4px 0 10px 0; color:#333;'>" . htmlspecialchars($clienteNombre) . "</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='font-weight:bold; color:#3f2b8c;'>Rango de fechas</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding-top:4px; color:#333;'>$rangoFechas</td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td style='width:2%;'></td>
+                            <td style='width:48%; vertical-align:top; text-align:right;'>
+                                <table cellspacing='0' cellpadding='0' style='width:100%; font-size:9px;'>
+                                    <tr>
+                                        <td style='font-weight:bold; color:#3f2b8c; text-align:right;'>Límite de crédito</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding:4px 0 10px 0; color:#333; text-align:right;'>$limiteCreditoTexto</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='font-weight:bold; color:#3f2b8c; text-align:right;'>Saldo del cliente</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding-top:4px; color:#333; text-align:right;'>$saldoClienteTexto</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    ";
+    $pdf->writeHTML($resumenHtml, false, false, false, false, '');
+    $pdf->Ln(6);
+
+    // Tabla de datos estilizada
+    $tableStart = '<table cellpadding="6" cellspacing="0" style="width:100%; font-size:8px; border-collapse:collapse; border-spacing:0;">';
+    $headerRowStyle = "background-color:#3f2b8c; color:#ffffff; text-transform:uppercase; letter-spacing:0.4px;";
+    $headerCellStyle = "padding:7px 6px; text-align:center; border:none;";
+    $bodyCellStyle = "padding:6px 5px; border:none; border-bottom:0.35px solid #ecebf7; color:#333333;";
+    $bodyCellRightStyle = "padding:6px 5px; border:none; border-bottom:0.35px solid #ecebf7; text-align:right; color:#333333;";
+    $totalRowBaseStyle = "padding:9px 6px; background-color:#ece7ff; border:none; border-top:0.6px solid #c6bffb;";
+    $totalLabelStyle = $totalRowBaseStyle . " text-align:right; font-weight:bold; color:#3f2b8c;";
+    $totalValueStyle = $totalRowBaseStyle . " text-align:right; font-weight:bold; color:#3f2b8c;";
+    $totalEmptyStyle = $totalRowBaseStyle;
+
     if ($tipo === 'cobranza') {
-        $html = '<table border="1" cellpadding="4" style="font-size:8px;">';
-        $html .= '<thead><tr style="background-color:#4B0082; color:#fff; font-weight:bold; text-align:center;">';
-        $html .= '<th>Clave</th><th>Nombre</th><th>Teléfono</th><th>Tipo</th><th>Concepto</th>';
-        $html .= '<th>Documento</th><th>Núm.</th><th>F. Aplicación</th><th>F. Vencimiento</th>';
-        $html .= '<th style="text-align:right;">Cargos</th><th style="text-align:right;">Abonos</th>';
-        $html .= '<th style="text-align:right;">Saldo</th><th>Moneda</th>';
+        $html = $tableStart;
+        $html .= '<thead><tr style="' . $headerRowStyle . '">';
+        $html .= '<th style="' . $headerCellStyle . '">Clave</th><th style="' . $headerCellStyle . '">Nombre</th><th style="' . $headerCellStyle . '">Teléfono</th><th style="' . $headerCellStyle . '">Tipo</th><th style="' . $headerCellStyle . '">Concepto</th>';
+        $html .= '<th style="' . $headerCellStyle . '">Documento</th><th style="' . $headerCellStyle . '">Núm.</th><th style="' . $headerCellStyle . '">F. Aplicación</th><th style="' . $headerCellStyle . '">F. Vencimiento</th>';
+        $html .= '<th style="' . $headerCellStyle . '">Cargos</th><th style="' . $headerCellStyle . '">Abonos</th>';
+        $html .= '<th style="' . $headerCellStyle . '">Saldo</th><th style="' . $headerCellStyle . '">Moneda</th>';
         $html .= '</tr></thead><tbody>';
     } else if ($tipo === 'detallado') {
-        $html = '<table border="1" cellpadding="4" style="font-size:8px;">';
-        $html .= '<thead><tr style="background-color:#4B0082; color:#fff; font-weight:bold; text-align:center;">';
-        $html .= '<th>Clave</th><th>Tipo</th><th>Concepto</th><th>Documento</th><th>Núm.</th>';
-        $html .= '<th>F. Aplicación</th><th>F. Vencimiento</th>';
-        $html .= '<th style="text-align:right;">Cargo</th><th style="text-align:right;">Abono</th>';
-        $html .= '<th style="text-align:right;">Saldo</th>';
+        $html = $tableStart;
+        $html .= '<thead><tr style="' . $headerRowStyle . '">';
+        $html .= '<th style="' . $headerCellStyle . '">Clave</th><th style="' . $headerCellStyle . '">Tipo</th><th style="' . $headerCellStyle . '">Concepto</th><th style="' . $headerCellStyle . '">Documento</th><th style="' . $headerCellStyle . '">Núm.</th>';
+        $html .= '<th style="' . $headerCellStyle . '">F. Aplicación</th><th style="' . $headerCellStyle . '">F. Vencimiento</th>';
+        $html .= '<th style="' . $headerCellStyle . '">Cargo</th><th style="' . $headerCellStyle . '">Abono</th>';
+        $html .= '<th style="' . $headerCellStyle . '">Saldo</th>';
         $html .= '</tr></thead><tbody>';
     } else if ($tipo === 'facturasnopagadas') {
-        $html = '<table border="1" cellpadding="4" style="font-size:8px;">';
-        $html .= '<thead><tr style="background-color:#4B0082; color:#fff; font-weight:bold; text-align:center;">';
-        $html .= '<th>Factura</th>';
-        $html .= '<th>F. Aplicación</th><th>F. Vencimiento</th>';
-        $html .= '<th style="text-align:right;">Cargos</th><th style="text-align:right;">Abonos</th>';
-        $html .= '<th style="text-align:right;">Saldos</th><th>Moneda</th><th>Estado</th>';
+        $html = $tableStart;
+        $html .= '<thead><tr style="' . $headerRowStyle . '">';
+        $html .= '<th style="' . $headerCellStyle . '">Factura</th>';
+        $html .= '<th style="' . $headerCellStyle . '">F. Aplicación</th><th style="' . $headerCellStyle . '">F. Vencimiento</th>';
+        $html .= '<th style="' . $headerCellStyle . '">Cargos</th><th style="' . $headerCellStyle . '">Abonos</th>';
+        $html .= '<th style="' . $headerCellStyle . '">Saldos</th><th style="' . $headerCellStyle . '">Moneda</th><th style="' . $headerCellStyle . '">Estado</th>';
         $html .= '</tr></thead><tbody>';
     } else {
-        $html = '<table border="1" cellpadding="4" style="font-size:8px;">';
-        $html .= '<thead><tr style="background-color:#4B0082; color:#fff; font-weight:bold; text-align:center;">';
-        $html .= '<th>Clave</th><th>Tipo</th><th>Concepto</th><th>Documento</th><th>Núm.</th>';
-        $html .= '<th>F. Aplicación</th><th>F. Vencimiento</th>';
-        $html .= '<th style="text-align:right;">Cargos</th><th style="text-align:right;">Abonos</th>';
-        $html .= '<th style="text-align:right;">Saldo</th>';
+        $html = $tableStart;
+        $html .= '<thead><tr style="' . $headerRowStyle . '">';
+        $html .= '<th style="' . $headerCellStyle . '">Clave</th><th style="' . $headerCellStyle . '">Tipo</th><th style="' . $headerCellStyle . '">Concepto</th><th style="' . $headerCellStyle . '">Documento</th><th style="' . $headerCellStyle . '">Núm.</th>';
+        $html .= '<th style="' . $headerCellStyle . '">F. Aplicación</th><th style="' . $headerCellStyle . '">F. Vencimiento</th>';
+        $html .= '<th style="' . $headerCellStyle . '">Cargos</th><th style="' . $headerCellStyle . '">Abonos</th>';
+        $html .= '<th style="' . $headerCellStyle . '">Saldo</th>';
         $html .= '</tr></thead><tbody>';
     }
 
@@ -806,19 +888,19 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
             $totalSaldo += $saldo;
 
             $html .= '<tr>';
-            $html .= '<td>' . htmlspecialchars($reporte['CLAVE'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['NOMBRE_CLIENTE'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['TELEFONO_CLIENTE'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['TIPO'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['CONCEPTO'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['DOCUMENTO'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['NUM'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['FECHA_APLICACION'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['FECHA_VENCIMIENTO'] ?? '') . '</td>';
-            $html .= '<td style="text-align:right;">$' . number_format($cargos, 2) . '</td>';
-            $html .= '<td style="text-align:right;">$' . number_format($abonos, 2) . '</td>';
-            $html .= '<td style="text-align:right;">$' . number_format($saldo, 2) . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['MONEDA'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['CLAVE'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['NOMBRE_CLIENTE'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['TELEFONO_CLIENTE'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['TIPO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['CONCEPTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['DOCUMENTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['NUM'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['FECHA_APLICACION'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['FECHA_VENCIMIENTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">$' . number_format($cargos, 2) . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">$' . number_format($abonos, 2) . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">$' . number_format($saldo, 2) . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['MONEDA'] ?? '') . '</td>';
             $html .= '</tr>';
         } else if ($tipo === 'detallado') {
             $cargo = $reporte['CARGO'] ?? '';
@@ -836,16 +918,16 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
             }
 
             $html .= '<tr>';
-            $html .= '<td>' . htmlspecialchars($reporte['CLAVE'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['TIPO'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['CONCEPTO'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['DOCUMENTO'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['NUM'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['FECHA_APLICACION'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['FECHA_VENCIMIENTO'] ?? '') . '</td>';
-            $html .= '<td style="text-align:right;">' . ($cargo !== '' ? '$' . number_format($cargo, 2) : '') . '</td>';
-            $html .= '<td style="text-align:right;">' . ($abono !== '' ? '$' . number_format($abono, 2) : '') . '</td>';
-            $html .= '<td style="text-align:right;">' . ($saldo !== '' ? '$' . number_format($saldo, 2) : '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['CLAVE'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['TIPO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['CONCEPTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['DOCUMENTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['NUM'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['FECHA_APLICACION'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['FECHA_VENCIMIENTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">' . ($cargo !== '' ? '$' . number_format($cargo, 2) : '') . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">' . ($abono !== '' ? '$' . number_format($abono, 2) : '') . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">' . ($saldo !== '' ? '$' . number_format($saldo, 2) : '') . '</td>';
             $html .= '</tr>';
         } else if ($tipo === 'facturasnopagadas') {
             $montoOriginal = $reporte['MONTO_ORIGINAL'] ?? 0;
@@ -863,14 +945,14 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
             }
 
             $html .= '<tr>';
-            $html .= '<td>' . htmlspecialchars($reporte['FACTURA'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['FECHA_APLICACION'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['FECHA_VENCIMIENTO'] ?? '') . '</td>';
-            $html .= '<td style="text-align:right;">$' . number_format($montoOriginal, 2) . '</td>';
-            $html .= '<td style="text-align:right;">$' . number_format($montoPagado, 2) . '</td>';
-            $html .= '<td style="text-align:right;">$' . number_format($saldoRestante, 2) . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['MONEDA'] ?? '') . '</td>';
-            $html .= '<td style="' . $estadoColor . '">' . htmlspecialchars($reporte['ESTADO_CUENTA'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['FACTURA'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['FECHA_APLICACION'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['FECHA_VENCIMIENTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">$' . number_format($montoOriginal, 2) . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">$' . number_format($montoPagado, 2) . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">$' . number_format($saldoRestante, 2) . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['MONEDA'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . ' ' . $estadoColor . '">' . htmlspecialchars($reporte['ESTADO_CUENTA'] ?? '') . '</td>';
             $html .= '</tr>';
         } else {
             $cargos = $reporte['CARGOS'] ?? 0;
@@ -881,50 +963,50 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
             $totalSaldo += $saldo;
 
             $html .= '<tr>';
-            $html .= '<td>' . htmlspecialchars($reporte['CLAVE'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['TIPO'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['CONCEPTO'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['DOCUMENTO'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['NUM'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['FECHA_APLICACION'] ?? '') . '</td>';
-            $html .= '<td>' . htmlspecialchars($reporte['FECHA_VENCIMIENTO'] ?? '') . '</td>';
-            $html .= '<td style="text-align:right;">$' . number_format($cargos, 2) . '</td>';
-            $html .= '<td style="text-align:right;">$' . number_format($abonos, 2) . '</td>';
-            $html .= '<td style="text-align:right;">$' . number_format($saldo, 2) . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['CLAVE'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['TIPO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['CONCEPTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['DOCUMENTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['NUM'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['FECHA_APLICACION'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellStyle . '">' . htmlspecialchars($reporte['FECHA_VENCIMIENTO'] ?? '') . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">$' . number_format($cargos, 2) . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">$' . number_format($abonos, 2) . '</td>';
+            $html .= '<td style="' . $bodyCellRightStyle . '">$' . number_format($saldo, 2) . '</td>';
             $html .= '</tr>';
         }
     }
 
     // Totales
     if ($tipo === 'cobranza') {
-        $html .= '<tr style="font-weight:bold; background-color:#dcdcdc;">';
-        $html .= '<td colspan="9" style="text-align:right;"><b>TOTALES:</b></td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalCargos, 2) . '</td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalAbonos, 2) . '</td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalSaldo, 2) . '</td>';
-        $html .= '<td></td>';
+        $html .= '<tr>';
+        $html .= '<td colspan="9" style="' . $totalLabelStyle . '">TOTALES</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalCargos, 2) . '</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalAbonos, 2) . '</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalSaldo, 2) . '</td>';
+        $html .= '<td style="' . $totalEmptyStyle . '"></td>';
         $html .= '</tr>';
     } else if ($tipo === 'detallado') {
-        $html .= '<tr style="font-weight:bold; background-color:#dcdcdc;">';
-        $html .= '<td colspan="7" style="text-align:right;"><b>TOTALES:</b></td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalCargos, 2) . '</td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalAbonos, 2) . '</td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalSaldo, 2) . '</td>';
+        $html .= '<tr>';
+        $html .= '<td colspan="7" style="' . $totalLabelStyle . '">TOTALES</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalCargos, 2) . '</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalAbonos, 2) . '</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalSaldo, 2) . '</td>';
         $html .= '</tr>';
     } else if ($tipo === 'facturasnopagadas') {
-        $html .= '<tr style="font-weight:bold; background-color:#dcdcdc;">';
-        $html .= '<td colspan="3" style="text-align:right;"><b>TOTALES:</b></td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalCargos, 2) . '</td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalAbonos, 2) . '</td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalSaldo, 2) . '</td>';
-        $html .= '<td></td><td></td>';
+        $html .= '<tr>';
+        $html .= '<td colspan="3" style="' . $totalLabelStyle . '">TOTALES</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalCargos, 2) . '</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalAbonos, 2) . '</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalSaldo, 2) . '</td>';
+        $html .= '<td style="' . $totalEmptyStyle . '"></td><td style="' . $totalEmptyStyle . '"></td>';
         $html .= '</tr>';
     } else {
-        $html .= '<tr style="font-weight:bold; background-color:#dcdcdc;">';
-        $html .= '<td colspan="7" style="text-align:right;"><b>TOTALES:</b></td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalCargos, 2) . '</td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalAbonos, 2) . '</td>';
-        $html .= '<td style="text-align:right;">$' . number_format($totalSaldo, 2) . '</td>';
+        $html .= '<tr>';
+        $html .= '<td colspan="7" style="' . $totalLabelStyle . '">TOTALES</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalCargos, 2) . '</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalAbonos, 2) . '</td>';
+        $html .= '<td style="' . $totalValueStyle . '">$' . number_format($totalSaldo, 2) . '</td>';
         $html .= '</tr>';
     }
 
