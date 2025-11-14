@@ -790,9 +790,6 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
 
     $pdf->SetTextColor(0, 0, 0);
 
-    $inicioTexto = !empty($fechaInicio) ? htmlspecialchars($fechaInicio) : 'Desde inicio';
-    $finTexto = !empty($fechaFin) ? htmlspecialchars($fechaFin) : 'Hasta hoy';
-    $rangoFechas = (!empty($fechaInicio) || !empty($fechaFin)) ? ($inicioTexto . ' - ' . $finTexto) : 'Sin filtro de fechas';
     $limiteCreditoTexto = '$' . number_format($limiteCreditoCliente, 2);
     $saldoClienteTexto = '$' . number_format($saldoCliente, 2);
     $cuentaSTPTexto = $cuentaSTP !== '' ? htmlspecialchars($cuentaSTP) : 'No registrada';
@@ -812,12 +809,6 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
                                     </tr>
                                     <tr>
                                         <td style='padding:4px 0 10px 0; color:#333;'>" . htmlspecialchars($clienteNombre) . "</td>
-                                    </tr>
-                                    <tr>
-                                        <td style='font-weight:bold; color:#3f2b8c;'>Rango de fechas</td>
-                                    </tr>
-                                    <tr>
-                                        <td style='padding-top:4px; color:#333;'>$rangoFechas</td>
                                     </tr>
                                     <tr>
                                         <td style='font-weight:bold; color:#3f2b8c;'>Cuenta STP</td>
