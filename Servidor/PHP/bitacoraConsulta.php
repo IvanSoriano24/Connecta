@@ -29,11 +29,16 @@ if (!is_array($input)) {
 
 $modulo = strtoupper(trim($input['modulo'] ?? ''));
 $accionFiltro = strtoupper(trim($input['accion'] ?? ''));
+$folioFiltro = trim($input['folio'] ?? '');
+$fechaInicio = trim($input['fechaInicio'] ?? '');
+$fechaFin = trim($input['fechaFin'] ?? '');
 
 $accionesPermitidas = [
     'PEDIDOS' => [
-        'CREACION' => ['Pedido Anticipado', 'Pedido Con Credito'],
-        'EDICION'  => ['Edicion de Pedido'],
+        'TODAS'       => ['Pedido Anticipado', 'Pedido Con Credito', 'Edicion de Pedido', 'Cancelacion de Pedido'],
+        'CREACION'    => ['Pedido Anticipado', 'Pedido Con Credito'],
+        'EDICION'     => ['Edicion de Pedido'],
+        'CANCELACION' => ['Cancelacion de Pedido'],
     ],
     'CLIENTES' => [],
     'FACTURAS' => [],
@@ -68,7 +73,7 @@ if (empty($acciones)) {
 }
 
 try {
-    $registros = consultarBitacoraPorFiltros($modulo, $acciones);
+    $registros = consultarBitacoraPorFiltros($modulo, $acciones, $folioFiltro, $fechaInicio, $fechaFin);
     echo json_encode([
         'success' => true,
         'data' => $registros,
@@ -82,13 +87,72 @@ try {
     ]);
 }
 
-function consultarBitacoraPorFiltros(string $modulo, array $acciones, int $limite = 50): array
+function consultarBitacoraPorFiltros(string $modulo, array $acciones, string $folio = '', string $fechaInicio = '', string $fechaFin = '', int $limite = 50): array
 {
     global $firebaseProjectId, $firebaseApiKey;
 
     $accionValues = [];
     foreach ($acciones as $accion) {
         $accionValues[] = ['stringValue' => $accion];
+    }
+
+    $filters = [
+        [
+            'fieldFilter' => [
+                'field' => ['fieldPath' => 'modulo'],
+                'op' => 'EQUAL',
+                'value' => ['stringValue' => $modulo],
+            ],
+        ],
+        [
+            'fieldFilter' => [
+                'field' => ['fieldPath' => 'accion'],
+                'op' => count($accionValues) > 1 ? 'IN' : 'EQUAL',
+                'value' => count($accionValues) > 1
+                    ? ['arrayValue' => ['values' => $accionValues]]
+                    : $accionValues[0],
+            ],
+        ],
+    ];
+
+    if ($folio !== '' && $modulo === 'PEDIDOS') {
+        $valorFolio = ctype_digit($folio)
+            ? ['integerValue' => (int)$folio]
+            : ['stringValue' => $folio];
+        $filters[] = [
+            'fieldFilter' => [
+                'field' => ['fieldPath' => 'camposModulo.pedidoID'],
+                'op' => 'EQUAL',
+                'value' => $valorFolio,
+            ],
+        ];
+    }
+
+    $zona = new DateTimeZone('America/Mexico_City');
+    if ($fechaInicio !== '') {
+        $inicio = DateTime::createFromFormat('Y-m-d H:i:s', $fechaInicio . ' 00:00:00', $zona);
+        if ($inicio) {
+            $filters[] = [
+                'fieldFilter' => [
+                    'field' => ['fieldPath' => 'creacion'],
+                    'op' => 'GREATER_THAN_OR_EQUAL',
+                    'value' => ['timestampValue' => $inicio->format(DateTime::ATOM)],
+                ],
+            ];
+        }
+    }
+
+    if ($fechaFin !== '') {
+        $fin = DateTime::createFromFormat('Y-m-d H:i:s', $fechaFin . ' 23:59:59', $zona);
+        if ($fin) {
+            $filters[] = [
+                'fieldFilter' => [
+                    'field' => ['fieldPath' => 'creacion'],
+                    'op' => 'LESS_THAN_OR_EQUAL',
+                    'value' => ['timestampValue' => $fin->format(DateTime::ATOM)],
+                ],
+            ];
+        }
     }
 
     $query = [
@@ -99,24 +163,7 @@ function consultarBitacoraPorFiltros(string $modulo, array $acciones, int $limit
             'where' => [
                 'compositeFilter' => [
                     'op' => 'AND',
-                    'filters' => [
-                        [
-                            'fieldFilter' => [
-                                'field' => ['fieldPath' => 'modulo'],
-                                'op' => 'EQUAL',
-                                'value' => ['stringValue' => $modulo],
-                            ],
-                        ],
-                        [
-                            'fieldFilter' => [
-                                'field' => ['fieldPath' => 'accion'],
-                                'op' => count($accionValues) > 1 ? 'IN' : 'EQUAL',
-                                'value' => count($accionValues) > 1
-                                    ? ['arrayValue' => ['values' => $accionValues]]
-                                    : $accionValues[0],
-                            ],
-                        ],
-                    ],
+                    'filters' => $filters,
                 ],
             ],
             'orderBy' => [

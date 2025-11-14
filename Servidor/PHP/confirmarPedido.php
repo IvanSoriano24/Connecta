@@ -311,6 +311,24 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                                 json_encode($error, JSON_UNESCAPED_UNICODE)
                             );
                             error_log($msg, 3, $logFile);
+                            $remisionResultado = crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor, $logFile);
+                            $remisionExitosa = is_array($remisionResultado) && ($remisionResultado['success'] ?? false) === true;
+                            if (!$remisionExitosa) {
+                                $payloadNotificacion = [
+                                    'success' => false,
+                                    'productosSinExistencia' => []
+                                ];
+                                notificarSinExistencias(
+                                    $payloadNotificacion,
+                                    $firebaseProjectId,
+                                    $firebaseApiKey,
+                                    $vendedor,
+                                    $pedidoId,
+                                    $nombreCliente,
+                                    $noEmpresa,
+                                    $claveSae
+                                );
+                            }
                             // Obtener la hora actual
                             $horaActual = (int) date('H'); // Hora actual en formato 24 horas (e.g., 13 para 1:00 PM)
                             // Determinar el estado según la hora
@@ -320,6 +338,7 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                             $producto = obtenerProductos($pedidoId, $conexionData, $claveSae);
                             $envioData = datosEnvioNuevo($idEnvios, $firebaseProjectId, $firebaseApiKey);
                             // Preparar datos para Firebase
+                            //Crear la comanda
                             $comanda = [
                                 "fields" => [
                                     "idComanda" => ["stringValue" => uniqid()],
@@ -370,131 +389,68 @@ if (isset($_GET['pedidoId']) && isset($_GET['accion'])) {
                                 ]
                             ];
 
-                            // URL de Firebase
-                            $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
+                            $comandaCreada = false;
+                            if ($remisionExitosa) {
+                                $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/COMANDA?key=$firebaseApiKey";
 
-                            // Enviar los datos a Firebase
-                            $context = stream_context_create([
-                                'http' => [
-                                    'method' => 'POST',
-                                    'header' => "Content-Type: application/json\r\n",
-                                    'content' => json_encode($comanda)
-                                ]
-                            ]);
-                            //Realizamos la consulta
-                            $response = @file_get_contents($url, false, $context);
+                                $context = stream_context_create([
+                                    'http' => [
+                                        'method' => 'POST',
+                                        'header' => "Content-Type: application/json\r\n",
+                                        'content' => json_encode($comanda)
+                                    ]
+                                ]);
+                                $response = @file_get_contents($url, false, $context);
 
-                            if ($response === false) {
-                                //Si la consulta no fue correcta, mostrará este mensaje
-                                $error = error_get_last();
-                                $msg = sprintf(
-                                    "[%s] ERROR: Error al crear la Comanda → %s\n",
-                                    date('Y-m-d H:i:s'),
-                                    json_encode($error, JSON_UNESCAPED_UNICODE)
-                                );
-                                error_log($msg, 3, $logFile);
-                                echo "<div class='container'>
-                        <div class='title'>Error al Conectarse</div>
-                        <div class='message'>Hubo un problema al confirmar su pedido</div>
-                        <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                      </div>";
-                                die();
-                            } else {
-                                $error = error_get_last();
-                                $msg = sprintf(
-                                    "[%s] Succes: Comanda Creada→ %s\n",
-                                    date('Y-m-d H:i:s'),
-                                    json_encode($error, JSON_UNESCAPED_UNICODE)
-                                );
-                                error_log($msg, 3, $logFile);
-                                //Si fue correcta, empieza a realizar la remision obteniendo 
-                                $result = json_decode($response, true);
-                                if (isset($result['name'])) {
-
-                                    /*//$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
-                                    //$remisionUrl = "https://mdconecta.mdcloud.app/Servidor/PHP/remision.php";
-                                    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
-
-                                    $data = [
-                                        'numFuncion' => 1,
-                                        'pedidoId' => $pedidoId,
-                                        'claveSae' => $claveSae,
-                                        'noEmpresa' => $noEmpresa,
-                                        'vendedor' => $vendedor
-                                    ];
-
-                                    $ch = curl_init();
-                                    curl_setopt($ch, CURLOPT_URL, $remisionUrl);
-                                    curl_setopt($ch, CURLOPT_POST, true);
-                                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-                                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                                        'Content-Type: application/x-www-form-urlencoded'
-                                    ]);
-
-                                    $remisionResponse = curl_exec($ch);
-
-                                    if (curl_errno($ch)) {
-                                        $error = error_get_last();
-                                        $msg = sprintf(
-                                            "[%s] ERROR: Error al crear la Comanda → %s\n",
-                                            date('Y-m-d H:i:s'),
-                                            json_encode($error, JSON_UNESCAPED_UNICODE)
-                                        );
-                                        error_log($msg, 3, $logFile);
-                                        echo 'Error cURL: ' . curl_error($ch);
-                                    }
-
-                                    curl_close($ch);
-
-                                    //echo "Respuesta de remision.php: " . $remisionResponse;
-                                    $remisionData = json_decode($remisionResponse, true);
-                                    $error = error_get_last();
-                                        $msg = sprintf(
-                                            "[%s] INFO: Respuesta de la remision $remisionData → %s\n",
-                                            date('Y-m-d H:i:s'),
-                                            json_encode($error, JSON_UNESCAPED_UNICODE)
-                                        );
-                                        error_log($msg, 3, $logFile);
-                                    echo "Respuesta de decodificada.php: " . $remisionData;
-                                    //$cveDoc = trim($remisionData['cveDoc']);
-
-                                    // Verificar si la respuesta es un PDF
-                                    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-                                    if (strpos($contentType, 'application/pdf') !== false) {
-                                        // Guardar el PDF localmente o redireccionar
-                                        file_put_contents("remision.pdf", $remisionResponse);
-                                        echo "<script>window.open('remision.pdf', '_blank');</script>";
-                                    }*/
+                                if ($response === false) {
                                     $error = error_get_last();
                                     $msg = sprintf(
-                                        "[%s] INFO: Creacion de la Remision %s\n",
+                                        "[%s] ERROR: Error al crear la Comanda → %s\n",
                                         date('Y-m-d H:i:s'),
                                         json_encode($error, JSON_UNESCAPED_UNICODE)
                                     );
                                     error_log($msg, 3, $logFile);
-                                    crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor, $logFile);
-                                    bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "aceptado", $noEmpresa);
-                                    echo "<div class='container'>
+                                } else {
+                                    $error = error_get_last();
+                                    $msg = sprintf(
+                                        "[%s] Succes: Comanda Creada→ %s\n",
+                                        date('Y-m-d H:i:s'),
+                                        json_encode($error, JSON_UNESCAPED_UNICODE)
+                                    );
+                                    error_log($msg, 3, $logFile);
+                                    if (!empty($remisionResultado['enlaceLotes']) && is_array($remisionResultado['enlaceLotes'])) {
+                                        foreach ($remisionResultado['enlaceLotes'] as $enlace) {
+                                            actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, $enlace);
+                                        }
+                                    }
+                                    $result = json_decode($response, true);
+                                    if (isset($result['name'])) {
+                                        $error = error_get_last();
+                                        $msg = sprintf(
+                                            "[%s] INFO: Creacion de la Remision %s\n",
+                                            date('Y-m-d H:i:s'),
+                                            json_encode($error, JSON_UNESCAPED_UNICODE)
+                                        );
+                                        error_log($msg, 3, $logFile);
+                                        bitacora($clave, $firebaseProjectId, $firebaseApiKey, $pedidoId, "aceptado", $noEmpresa);
+                                        $comandaCreada = true;
+                                    } else {
+                                        $error = error_get_last();
+                                        $msg = sprintf(
+                                            "[%s] ERROR: Error al crear la remision → %s\n",
+                                            date('Y-m-d H:i:s'),
+                                            json_encode($error, JSON_UNESCAPED_UNICODE)
+                                        );
+                                        error_log($msg, 3, $logFile);
+                                    }
+                                }
+                            }
+
+                            echo "<div class='container'>
                                         <div class='title'>Confirmación Exitosa</div>
                                         <div class='message'>El pedido ha sido confirmado y registrado correctamente.</div>
                                         <!--<a href='/Cliente/altaPedido.php' class='button'>Regresar al inicio</a>-->
                                     </div>";
-                                } else {
-                                    $error = error_get_last();
-                                    $msg = sprintf(
-                                        "[%s] ERROR: Error al crear la remision → %s\n",
-                                        date('Y-m-d H:i:s'),
-                                        json_encode($error, JSON_UNESCAPED_UNICODE)
-                                    );
-                                    error_log($msg, 3, $logFile);
-                                    echo "<div class='container'>
-                            <div class='title'>Error al Registrar</div>
-                            <div class='message'>Hubo un problema al aceptar su pedido.</div>
-                            <!--<a href='/Cliente/altaPedido.php' class='button'>Volver</a>-->
-                          </div>";
-                                }
-                            }
                         } else {
                             //Actualizar status para buscar pago
                             $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PAGOS?key=$firebaseApiKey";

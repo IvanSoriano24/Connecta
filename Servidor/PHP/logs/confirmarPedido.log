@@ -429,3 +429,161 @@
 [2025-10-10 14:24:51] INFO: El cliente  realizo la accion → null
 [2025-10-10 14:24:52] Advertencia: Pedido: 19195 Rechazado → null
 [2025-10-10 14:24:53] Advertencia: Se le notifico al vendedor sobre el pedido 19195 → null
+--------------------------------------------------------------------------------------------
+[2025-11-14 14:37:48] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 14:37:49] Advertencia: Confirmacion Repetida de  19222 → null
+[2025-11-14 14:39:24] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 14:39:27] Info: Pedido 19222 19222 verificadas existencias correctamente → []
+[2025-11-14 14:39:27] INFO: El pedido 19222 cuenta con las existencias necesarias → null
+[2025-11-14 14:39:27] INFO: El cliente        879 maneja credico → null
+[2025-11-14 14:39:27] INFO: Pedido 19222 - Inicio de la remisión → null
+[2025-11-14 14:39:27] INFO: Pedido 19222 - Conexión a la base de datos establecida → null
+[2025-11-14 14:39:27] INFO: Pedido 19222 - Ejecutando actualizarMulti → null
+[2025-11-14 14:39:27] INFO: Pedido 19222 - Ejecutando actualizarInve5 → null
+[2025-11-14 14:39:27] INFO: Pedido 19222 - Ejecutando actualizarFolios → null
+[2025-11-14 14:39:27] INFO: Pedido 19222 - Ejecutando actualizarInve → null
+[2025-11-14 14:39:27] INFO: Pedido 19222 - Validando lotes antes de generar la remisión → null
+[2025-11-14 14:39:27] SUCCESS: Pedido 19222 - Validación de lotes finalizada → {"totalLotes":1}
+[2025-11-14 14:39:27] INFO: Pedido 19222 - Ejecutando actualizarInve2 → null
+[2025-11-14 14:39:28] INFO: Pedido 19222 - Ejecutando actualizarInve3 → null
+[2025-11-14 14:39:28] INFO: Pedido 19222 - Ejecutando actualizarInveClaro → null
+[2025-11-14 14:39:28] INFO: Pedido 19222 - Ejecutando actualizarInveAmazon → null
+[2025-11-14 14:39:28] INFO: Pedido 19222 - Ejecutando actualizarMulti2 → null
+[2025-11-14 14:39:28] INFO: Pedido 19222 - Ejecutando actualizarAfac → null
+[2025-11-14 14:39:28] INFO: Pedido 19222 - Insertando BITA de remisión → null
+[2025-11-14 14:39:29] SUCCESS: Pedido 19222 - BITA generado → {"CVE_BITA":87328}
+[2025-11-14 14:39:29] INFO: Pedido 19222 - Actualizando control ID_TABLA=62 → null
+[2025-11-14 14:39:29] INFO: Pedido 19222 - Guardando datos de envío en INFENVIO → null
+[2025-11-14 14:39:29] INFO: Pedido 19222 - Insertando datos del cliente en INFCLI → null
+[2025-11-14 14:39:29] INFO: Pedido 19222 - Insertando FACTR (remisión) → null
+[2025-11-14 14:39:29] SUCCESS: Pedido 19222 - FACTR generado → {"folio":13884}
+[2025-11-14 14:39:29] INFO: Pedido 19222 - Insertando movimientos MINVE → null
+[2025-11-14 14:39:30] SUCCESS: Pedido 19222 - Movimientos registrados → {"totalMovimientos":1}
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Actualizando control ID_TABLA=32 → null
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Actualizando control ID_TABLA=44 → null
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Insertando datos en FACTR_CLIB → null
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Actualizando PAR_FACTP → null
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Actualizando métricas en INVEXX → null
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Insertando partidas de remisión PAR_FACTR → null
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Actualizando FACTP (TIP_DOC_E, ENLAZADO) → null
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Actualizando FACTP DOC_SIG → null
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Actualizando FACTP TIP_FAC → null
+[2025-11-14 14:39:30] INFO: Pedido 19222 - Insertando relación DOCTOSIG → null
+[2025-11-14 14:39:31] INFO: Pedido 19222 - Insertando PAR_FACTR_CLIB → null
+[2025-11-14 14:39:31] INFO: Pedido 19222 - Actualizando alerta de usuario → null
+[2025-11-14 14:39:31] INFO: Pedido 19222 - Actualizando alerta general → null
+[2025-11-14 14:39:31] INFO: Pedido 19222 - Actualizando control ID_TABLA=70 → null
+[2025-11-14 14:39:31] INFO: Pedido 19222 - Actualizando control ID_TABLA=58 → null
+[2025-11-14 14:39:31] INFO: Pedido 19222 - Actualizando estado del pedido en FACTP_CLIB → null
+[2025-11-14 14:39:31] INFO: Actualizando estus del pedido → null
+[2025-11-14 14:39:31] SUCCES: Estado del pedido 19222 actualizado → null
+[2025-11-14 14:39:31] SUCCESS: Pedido 19222 - Proceso de remisión finalizado → {"folio":13884}
+[2025-11-14 14:39:32] Succes: Comanda Creada→ null
+[2025-11-14 14:39:33] INFO: Creacion de la Remision null
+-----------------------------------------------------------------------------------------
+[2025-11-14 14:55:26] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 14:55:29] Info: Pedido 19221 19221 verificadas existencias correctamente → []
+[2025-11-14 14:55:29] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987}]
+[2025-11-14 14:55:29] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131}]
+[2025-11-14 14:55:29] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131},{"producto":"AD-2125","existencias":594,"apartados":0,"disponible":594}]
+[2025-11-14 14:55:29] INFO: El pedido 19221 cuenta con las existencias necesarias → null
+[2025-11-14 14:55:29] INFO: El cliente        879 maneja credico → null
+[2025-11-14 14:55:29] INFO: Pedido 19221 - Inicio de la remisión → null
+[2025-11-14 14:55:29] INFO: Pedido 19221 - Conexión a la base de datos establecida → null
+[2025-11-14 14:55:29] INFO: Pedido 19221 - Ejecutando actualizarMulti → null
+[2025-11-14 15:09:18] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 15:09:21] Info: Pedido 19221 19221 verificadas existencias correctamente → []
+[2025-11-14 15:09:21] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987}]
+[2025-11-14 15:09:21] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131}]
+[2025-11-14 15:09:22] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131},{"producto":"AD-2125","existencias":594,"apartados":0,"disponible":594}]
+[2025-11-14 15:09:22] INFO: El pedido 19221 cuenta con las existencias necesarias → null
+[2025-11-14 15:09:22] INFO: El cliente        879 maneja credico → null
+[2025-11-14 15:09:22] INFO: Pedido 19221 - Inicio de la remisión → null
+[2025-11-14 15:09:22] INFO: Pedido 19221 - Conexión a la base de datos establecida → null
+[2025-11-14 15:09:22] INFO: Pedido 19221 - Ejecutando actualizarMulti → null
+-----------------------------------------------------------------------------------------
+[2025-11-14 15:09:49] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 15:09:51] Info: Pedido 19221 19221 verificadas existencias correctamente → []
+[2025-11-14 15:09:51] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987}]
+[2025-11-14 15:09:51] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131}]
+[2025-11-14 15:09:51] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131},{"producto":"AD-2125","existencias":594,"apartados":0,"disponible":594}]
+[2025-11-14 15:09:51] INFO: El pedido 19221 cuenta con las existencias necesarias → null
+[2025-11-14 15:09:51] INFO: El cliente        879 maneja credico → null
+[2025-11-14 15:09:51] INFO: Pedido 19221 - Inicio de la remisión → null
+[2025-11-14 15:09:51] INFO: Pedido 19221 - Conexión a la base de datos establecida → null
+[2025-11-14 15:09:51] INFO: Pedido 19221 - Ejecutando actualizarMulti → null
+-----------------------------------------------------------------------------------------
+[2025-11-14 15:10:25] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 15:10:26] Info: Pedido 19221 19221 verificadas existencias correctamente → []
+[2025-11-14 15:10:27] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987}]
+[2025-11-14 15:10:27] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131}]
+[2025-11-14 15:10:27] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131},{"producto":"AD-2125","existencias":594,"apartados":0,"disponible":594}]
+[2025-11-14 15:10:27] INFO: El pedido 19221 cuenta con las existencias necesarias → null
+[2025-11-14 15:10:27] INFO: El cliente        879 maneja credico → null
+[2025-11-14 15:10:27] INFO: Pedido 19221 - Inicio de la remisión → null
+[2025-11-14 15:10:27] INFO: Pedido 19221 - Conexión a la base de datos establecida → null
+[2025-11-14 15:10:27] INFO: Pedido 19221 - Ejecutando actualizarMulti → null
+-----------------------------------------------------------------------------------------
+[2025-11-14 15:12:52] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 15:12:54] Info: Pedido 19221 19221 verificadas existencias correctamente → []
+[2025-11-14 15:12:54] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987}]
+[2025-11-14 15:12:54] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131}]
+[2025-11-14 15:12:54] Info: Pedido 19221 19221 verificadas existencias correctamente → [{"producto":"AA-1613","existencias":1118,"apartados":131,"disponible":987},{"producto":"AA1813","existencias":4140,"apartados":9,"disponible":4131},{"producto":"AD-2125","existencias":594,"apartados":0,"disponible":594}]
+[2025-11-14 15:12:54] INFO: El pedido 19221 cuenta con las existencias necesarias → null
+[2025-11-14 15:12:54] INFO: El cliente        879 maneja credico → null
+[2025-11-14 15:12:54] INFO: Pedido 19221 - Inicio de la remisión → null
+[2025-11-14 15:12:54] INFO: Pedido 19221 - Conexión a la base de datos establecida → null
+[2025-11-14 15:12:54] INFO: Pedido 19221 - Ejecutando actualizarMulti → null
+[2025-11-14 15:12:54] INFO: Pedido 19221 - Ejecutando actualizarInve5 → null
+[2025-11-14 15:12:55] INFO: Pedido 19221 - Ejecutando actualizarFolios → null
+[2025-11-14 15:12:55] INFO: Pedido 19221 - Ejecutando actualizarInve → null
+[2025-11-14 15:12:55] INFO: Pedido 19221 - Validando lotes antes de generar la remisión → null
+[2025-11-14 15:12:56] SUCCESS: Pedido 19221 - Validación de lotes finalizada → {"totalLotes":4}
+[2025-11-14 15:12:56] INFO: Pedido 19221 - Ejecutando actualizarInve2 → null
+[2025-11-14 15:12:56] INFO: Pedido 19221 - Ejecutando actualizarInve3 → null
+[2025-11-14 15:12:57] INFO: Pedido 19221 - Ejecutando actualizarInveClaro → null
+[2025-11-14 15:12:57] INFO: Pedido 19221 - Ejecutando actualizarInveAmazon → null
+[2025-11-14 15:12:57] INFO: Pedido 19221 - Ejecutando actualizarMulti2 → null
+[2025-11-14 15:12:58] INFO: Pedido 19221 - Ejecutando actualizarAfac → null
+[2025-11-14 15:12:58] INFO: Pedido 19221 - Insertando BITA de remisión → null
+[2025-11-14 15:12:58] SUCCESS: Pedido 19221 - BITA generado → {"CVE_BITA":87329}
+[2025-11-14 15:12:58] INFO: Pedido 19221 - Actualizando control ID_TABLA=62 → null
+[2025-11-14 15:12:58] INFO: Pedido 19221 - Guardando datos de envío en INFENVIO → null
+[2025-11-14 15:12:58] INFO: Pedido 19221 - Insertando datos del cliente en INFCLI → null
+[2025-11-14 15:12:59] INFO: Pedido 19221 - Insertando FACTR (remisión) → null
+[2025-11-14 15:12:59] SUCCESS: Pedido 19221 - FACTR generado → {"folio":13885}
+[2025-11-14 15:12:59] INFO: Pedido 19221 - Insertando movimientos MINVE → null
+[2025-11-14 15:12:59] SUCCESS: Pedido 19221 - Movimientos registrados → {"totalMovimientos":4}
+[2025-11-14 15:12:59] INFO: Pedido 19221 - Actualizando control ID_TABLA=32 → null
+[2025-11-14 15:12:59] INFO: Pedido 19221 - Actualizando control ID_TABLA=44 → null
+[2025-11-14 15:12:59] INFO: Pedido 19221 - Insertando datos en FACTR_CLIB → null
+[2025-11-14 15:12:59] INFO: Pedido 19221 - Actualizando PAR_FACTP → null
+[2025-11-14 15:13:00] INFO: Pedido 19221 - Actualizando métricas en INVEXX → null
+[2025-11-14 15:13:00] INFO: Pedido 19221 - Insertando partidas de remisión PAR_FACTR → null
+[2025-11-14 15:13:00] INFO: Pedido 19221 - Actualizando FACTP (TIP_DOC_E, ENLAZADO) → null
+[2025-11-14 15:13:00] INFO: Pedido 19221 - Actualizando FACTP DOC_SIG → null
+[2025-11-14 15:13:00] INFO: Pedido 19221 - Actualizando FACTP TIP_FAC → null
+[2025-11-14 15:13:00] INFO: Pedido 19221 - Insertando relación DOCTOSIG → null
+[2025-11-14 15:13:00] INFO: Pedido 19221 - Insertando PAR_FACTR_CLIB → null
+[2025-11-14 15:13:01] INFO: Pedido 19221 - Actualizando alerta de usuario → null
+[2025-11-14 15:13:01] INFO: Pedido 19221 - Actualizando alerta general → null
+[2025-11-14 15:13:01] INFO: Pedido 19221 - Actualizando control ID_TABLA=70 → null
+[2025-11-14 15:13:01] INFO: Pedido 19221 - Actualizando control ID_TABLA=58 → null
+[2025-11-14 15:13:01] INFO: Pedido 19221 - Actualizando estado del pedido en FACTP_CLIB → null
+[2025-11-14 15:13:01] INFO: Actualizando estus del pedido → null
+[2025-11-14 15:13:01] SUCCES: Estado del pedido 19221 actualizado → null
+[2025-11-14 15:13:01] SUCCESS: Pedido 19221 - Proceso de remisión finalizado → {"folio":13885}
+[2025-11-14 15:13:02] Succes: Comanda Creada→ null
+[2025-11-14 15:13:07] INFO: Creacion de la Remision null
+[2025-11-14 15:15:52] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 15:15:53] Advertencia: Confirmacion Repetida de  19221 → null
+[2025-11-14 15:18:40] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 15:18:41] Advertencia: Confirmacion Repetida de  19210 → null
+[2025-11-14 15:19:27] INFO: El cliente        879 realizo la accion → null
+[2025-11-14 15:19:30] Info: Pedido 19210 19210 verificadas existencias correctamente → []
+[2025-11-14 15:19:30] INFO: El pedido 19210 cuenta con las existencias necesarias → null
+[2025-11-14 15:19:30] INFO: El cliente        879 maneja credico → null
+[2025-11-14 15:19:30] INFO: Pedido 19210 - Inicio de la remisión → null
+[2025-11-14 15:19:30] INFO: Pedido 19210 - Conexión a la base de datos establecida → null
+[2025-11-14 15:19:30] INFO: Pedido 19210 - Ejecutando actualizarMulti → null
+[2025-11-14 15:19:30] ERROR: Pedido 19210 - Error en la remisión, se ejecutará rollback → "Error al actualizar MULTXX para el producto 102000 en almacén 1: [{\"0\":\"42S02\",\"SQLSTATE\":\"42S02\",\"1\":208,\"code\":208,\"2\":\"[Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid object name 'SAE90Empre02a.dbo.MULTT02'.\",\"message\":\"[Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid object name 'SAE90Empre02a.dbo.MULTT02'.\"}]"

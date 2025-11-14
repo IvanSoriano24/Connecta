@@ -84,8 +84,9 @@ if ($conn === false) {
 
 $prefijo = str_pad($claveSae, 2, "0", STR_PAD_LEFT);
 $tablaClientes = "[{$conexionData['nombreBase']}].[dbo].[CLIE$prefijo]";
+$tablaClieClib = "[{$conexionData['nombreBase']}].[dbo].[CLIE_CLIB$prefijo]";
 
-$sqlCliente = "SELECT NOMBRE, EMAILPRED, TELEFONO FROM $tablaClientes WHERE CLAVE = ?";
+$sqlCliente = "SELECT NOMBRE, EMAILPRED, TELEFONO, SALDO, LIMCRED FROM $tablaClientes WHERE CLAVE = ?";
 $paramsCliente = [$filtroCliente];
 $stmtCliente = sqlsrv_query($conn, $sqlCliente, $paramsCliente);
 
@@ -97,6 +98,22 @@ if ($stmtCliente === false) {
 
 $clienteData = sqlsrv_fetch_array($stmtCliente, SQLSRV_FETCH_ASSOC);
 sqlsrv_free_stmt($stmtCliente);
+
+$limiteCreditoCliente = isset($clienteData['LIMCRED']) ? (float)$clienteData['LIMCRED'] : 0.0;
+$saldoCliente = isset($clienteData['SALDO']) ? (float)$clienteData['SALDO'] : 0.0;
+
+$cuentaSTP = '';
+if ($clienteData) {
+    $sqlCuentaSTP = "SELECT CAMPLIB10 FROM $tablaClieClib WHERE CVE_CLIE = ?";
+    $paramsCuentaSTP = [$filtroCliente];
+    $stmtCuentaSTP = sqlsrv_query($conn, $sqlCuentaSTP, $paramsCuentaSTP);
+    if ($stmtCuentaSTP !== false) {
+        $cuentaSTPData = sqlsrv_fetch_array($stmtCuentaSTP, SQLSRV_FETCH_ASSOC);
+        $cuentaSTP = trim($cuentaSTPData['CAMPLIB10'] ?? '');
+        sqlsrv_free_stmt($stmtCuentaSTP);
+    }
+}
+
 sqlsrv_close($conn);
 
 if (!$clienteData) {
@@ -121,19 +138,19 @@ $tituloReporte = '';
 switch ($tipo) {
     case 'general':
         $reportes = obtenerDatosEstadoCuentaGeneral($conexionData, $fechaInicio, $fechaFin, $filtroCliente);
-        $tituloReporte = 'Estado de Cuenta General';
+        $tituloReporte = 'Estado de Cuenta';
         break;
     case 'detallado':
         $reportes = obtenerDatosEstadoCuentaDetalle($conexionData, $fechaInicio, $fechaFin, $filtroCliente);
-        $tituloReporte = 'Estado de Cuenta Detallado';
+        $tituloReporte = 'Estado de Cuenta';
         break;
     case 'cobranza':
         $reportes = obtenerDatosCobranza($conexionData, $fechaInicio, $fechaFin, $filtroCliente);
-        $tituloReporte = 'Cobranza';
+        $tituloReporte = 'Estado de Cuenta';
         break;
     case 'facturasnopagadas':
         $reportes = obtenerDatosFacturasNoPagadas($conexionData, $filtroCliente);
-        $tituloReporte = 'Facturas No Pagadas';
+        $tituloReporte = 'Estado de Cuenta';
         break;
     default:
         echo json_encode(['success' => false, 'message' => 'Tipo de reporte no válido']);
@@ -726,7 +743,7 @@ function obtenerDatosCobranza($conexionData, $filtroFechaInicio, $filtroFechaFin
 }
 
 // Función para generar PDF
-function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo) {
+function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo, $cuentaSTP, $limiteCreditoCliente, $saldoCliente) {
     $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     $pdf->SetCreator('MDConnecta');
     $pdf->SetAuthor('MDConnecta');
@@ -778,6 +795,7 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
     $rangoFechas = (!empty($fechaInicio) || !empty($fechaFin)) ? ($inicioTexto . ' - ' . $finTexto) : 'Sin filtro de fechas';
     $limiteCreditoTexto = '$' . number_format($limiteCreditoCliente, 2);
     $saldoClienteTexto = '$' . number_format($saldoCliente, 2);
+    $cuentaSTPTexto = $cuentaSTP !== '' ? htmlspecialchars($cuentaSTP) : 'No registrada';
     $headerBottomY = max($logoY + ($logoWidth * 0.5), $pdf->GetY());
     $pdf->SetY($headerBottomY + 12);
 
@@ -800,6 +818,12 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
                                     </tr>
                                     <tr>
                                         <td style='padding-top:4px; color:#333;'>$rangoFechas</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='font-weight:bold; color:#3f2b8c;'>Cuenta STP</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding-top:4px; color:#333;'>$cuentaSTPTexto</td>
                                     </tr>
                                 </table>
                             </td>
@@ -1018,7 +1042,7 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
 
 // Procesar según la acción
 if ($accion === 'descargar') {
-    $pdf = generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo);
+    $pdf = generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo, $cuentaSTP, $limiteCreditoCliente, $saldoCliente);
     
     ob_end_clean();
     header('Content-Type: application/pdf');
@@ -1028,7 +1052,7 @@ if ($accion === 'descargar') {
     exit;
 } else if ($accion === 'whatsapp') {
     // Generar PDF y guardarlo
-    $pdf = generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo);
+    $pdf = generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo, $cuentaSTP, $limiteCreditoCliente, $saldoCliente);
     $nombreArchivo = $tituloReporte . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $cliente) . '_' . date('YmdHis') . '.pdf';
     $rutaPDF = __DIR__ . '/pdfs/' . $nombreArchivo;
     
@@ -1058,7 +1082,7 @@ if ($accion === 'descargar') {
     exit;
 } else if ($accion === 'correo') {
     // Generar PDF y guardarlo
-    $pdf = generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo);
+    $pdf = generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo, $cuentaSTP, $limiteCreditoCliente, $saldoCliente);
     $nombreArchivo = $tituloReporte . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $cliente) . '_' . date('YmdHis') . '.pdf';
     $rutaPDF = __DIR__ . '/pdfs/' . $nombreArchivo;
     

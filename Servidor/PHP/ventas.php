@@ -4000,10 +4000,35 @@ function eliminarPedido($conexionData, $pedidoID, $claveSae)
         exit;
     }
 
+    $pedidoIDOriginal = $pedidoID;
     $pedidoID = str_pad($pedidoID, 20, ' ', STR_PAD_LEFT);
 
     $tablaPedidos   = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPedidosCLIB = "[{$conexionData['nombreBase']}].[dbo].[FACTP_CLIB" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+    $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+    $clienteID = null;
+    $productosBitacora = [];
+
+    $queryInfo = "SELECT CVE_CLPV FROM $tablaPedidos WHERE CVE_DOC = ?";
+    $stmtInfo = sqlsrv_query($conn, $queryInfo, [$pedidoID]);
+    if ($stmtInfo && $rowInfo = sqlsrv_fetch_array($stmtInfo, SQLSRV_FETCH_ASSOC)) {
+        $clienteID = trim($rowInfo['CVE_CLPV']);
+    }
+    if ($stmtInfo) {
+        sqlsrv_free_stmt($stmtInfo);
+    }
+
+    $stmtPartidas = sqlsrv_query($conn, "SELECT CVE_ART, CANT FROM $tablaPartidas WHERE CVE_DOC = ?", [$pedidoID]);
+    if ($stmtPartidas) {
+        while ($rowPart = sqlsrv_fetch_array($stmtPartidas, SQLSRV_FETCH_ASSOC)) {
+            $productosBitacora[] = [
+                'producto' => trim($rowPart['CVE_ART']),
+                'cantidad' => (float)$rowPart['CANT'],
+            ];
+        }
+        sqlsrv_free_stmt($stmtPartidas);
+    }
 
     // Iniciar transacción
     sqlsrv_begin_transaction($conn);
@@ -4024,6 +4049,21 @@ function eliminarPedido($conexionData, $pedidoID, $claveSae)
         }
 
         sqlsrv_commit($conn);
+
+        $camposModulo = [
+            'quienCancelo' => $_SESSION['usuario']['nombre'] ?? 'Sistema',
+            'pedidoID' => trim($pedidoIDOriginal),
+            'clienteID' => $clienteID ? trim($clienteID) : null,
+            'productos' => $productosBitacora,
+        ];
+        agregarBitacora(
+            $_SESSION['empresa']['claveUsuario'] ?? 'Sistema',
+            "PEDIDOS",
+            "Cancelacion de Pedido",
+            $_SESSION['empresa']['noEmpresa'] ?? 0,
+            $camposModulo
+        );
+
         echo json_encode(['success' => true, 'pedido' => $pedidoID]);
     } catch (Exception $e) {
         sqlsrv_rollback($conn);

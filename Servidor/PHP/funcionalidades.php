@@ -5,15 +5,12 @@ function actualizarMulti($conexionData, $pedidoId, $claveSae, $conn)
 {
 
     if ($conn === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al conectar con la base de datos',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception('Error al conectar con la base de datos: ' . json_encode(sqlsrv_errors(), JSON_UNESCAPED_UNICODE));
     }
     $pedidoId = str_pad($pedidoId, 10, '0', STR_PAD_LEFT); // Asegura que tenga 10 dígitos con ceros a la izquierda
     $pedidoId = str_pad($pedidoId, 20, ' ', STR_PAD_LEFT);
     // Construcción dinámica de las tablas
+    //$tablaMulti = "[{$conexionData['nombreBase']}].[dbo].[MULTT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaMulti = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
     $tablaPartidas = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
 
@@ -26,11 +23,7 @@ function actualizarMulti($conexionData, $pedidoId, $claveSae, $conn)
 
     $stmtProductos = sqlsrv_query($conn, $sqlProductos, $params);
     if ($stmtProductos === false) {
-        die(json_encode([
-            'success' => false,
-            'message' => 'Error al obtener productos del pedido',
-            'errors' => sqlsrv_errors()
-        ]));
+        throw new Exception('Error al obtener productos del pedido: ' . json_encode(sqlsrv_errors(), JSON_UNESCAPED_UNICODE));
     }
 
     // ✅ 2. Actualizar MULTXX por cada producto
@@ -65,12 +58,7 @@ function actualizarMulti($conexionData, $pedidoId, $claveSae, $conn)
         $stmtUpdate = sqlsrv_query($conn, $sqlUpdate, $paramsUpdate);
 
         if ($stmtUpdate === false) {
-            echo json_encode([
-                'success' => false,
-                'message' => "Error al actualizar MULTXX para el producto $cveArt en almacén $numAlm",
-                'errors' => sqlsrv_errors()
-            ]);
-            die();
+            throw new Exception("Error al actualizar MULTXX para el producto $cveArt en almacén $numAlm: " . json_encode(sqlsrv_errors(), JSON_UNESCAPED_UNICODE));
         }
 
         sqlsrv_free_stmt($stmtUpdate);
@@ -308,7 +296,6 @@ function validarLotes($conexionData, $pedidoId, $claveSae, $conn)
         );
         //var_dump($enlaceLTPDResultados);
     }
-
 
     return $enlaceLTPDResultados;
 }
@@ -2776,14 +2763,22 @@ function actualizarDatosComanda($firebaseProjectId, $firebaseApiKey, $pedidoId, 
 //function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor,  $conn){
 function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedor, $logFile)
 {
-    global $firebaseProjectId, $firebaseApiKey;
-    $error = error_get_last();
-    $msg = sprintf(
-        "[%s] INFO: Inicio de la Remision %s\n",
-        date('Y-m-d H:i:s'),
-        json_encode($error, JSON_UNESCAPED_UNICODE)
-    );
-    error_log($msg, 3, $logFile);
+    $registrarLog = function ($nivel, $mensaje, $contexto = null) use ($logFile, $pedidoId) {
+        if (empty($logFile)) {
+            return;
+        }
+        $payload = $contexto ?? error_get_last();
+        $msg = sprintf(
+            "[%s] %s: %s → %s\n",
+            date('Y-m-d H:i:s'),
+            strtoupper($nivel),
+            "Pedido $pedidoId - $mensaje",
+            json_encode($payload, JSON_UNESCAPED_UNICODE)
+        );
+        error_log($msg, 3, $logFile);
+    };
+
+    $registrarLog('INFO', 'Inicio de la remisión');
     $conn = sqlsrv_connect($conexionData['host'], [
         "Database" => $conexionData['nombreBase'],
         "UID" => $conexionData['usuario'],
@@ -2792,74 +2787,122 @@ function crearRemision($conexionData, $pedidoId, $claveSae, $noEmpresa, $vendedo
         "TrustServerCertificate" => true
     ]);
     if (!$conn) {
-        $error = error_get_last();
-        $msg = sprintf(
-            "[%s] INFO: Realizando Remision → %s\n",
-            date('Y-m-d H:i:s'),
-            json_encode($error, JSON_UNESCAPED_UNICODE)
-        );
-        error_log($msg, 3, $logFile);
+        $registrarLog('ERROR', 'No se pudo establecer la conexión con la base de datos');
         throw new Exception("No pude conectar a la base de datos");
     }
+    $registrarLog('INFO', 'Conexión a la base de datos establecida');
 
-    actualizarMulti($conexionData, $pedidoId, $claveSae, $conn);
-    actualizarInve5($conexionData, $pedidoId, $claveSae, $conn);
-    actualizarFolios($conexionData, $claveSae, $conn);
-    actualizarInve($conexionData, $pedidoId, $claveSae, $conn);
-
-    $enlaceLote = validarLotes($conexionData, $pedidoId, $claveSae, $conn);
-    //var_dump($enlace);
-
-    actualizarInve2($conexionData, $pedidoId, $claveSae, $conn);
-    actualizarInve3($conexionData, $pedidoId, $claveSae, $conn);
-    actualizarInveClaro($conexionData, $pedidoId, $claveSae, $conn);
-    actualizarInveAmazon($conexionData, $pedidoId, $claveSae, $conn);
-    actualizarMulti2($conexionData, $pedidoId, $claveSae, $conn);
-
-    actualizarAfac($conexionData, $pedidoId, $claveSae, $conn);
-
-    $CVE_BITA = insertarBitaR($conexionData, $pedidoId, $claveSae, $conn);
-    //var_dump("Bita: ", $CVE_BITA);
-    actualizarControl3($conexionData, $claveSae, $conn);
-    $DAT_ENVIO = gaurdarDatosEnvioR($conexionData, $pedidoId, $claveSae, $conn);
-    //actualizamos
-    //var_dump("Envio: ", $DAT_ENVIO);
-    $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $pedidoId, $conn);
-    //var_dump("Cliente: ", $DAT_MOSTR);
-
-    $folio = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVIO, $DAT_MOSTR, $conn);
-
-
-    $movimientos = insertarMimve($conexionData, $pedidoId, $claveSae, $folio, $enlaceLote, $conn);
-    actualizarControl($conexionData, $claveSae, $conn); //?
-    actualizarControl2R($conexionData, $claveSae, $movimientos, $conn); //?
-    insertarFactr_Clib($conexionData, $folio, $claveSae, $conn);
-    actualizarPar_Factp($conexionData, $pedidoId, $folio, $claveSae, $conn);
-    actualizarInve4($conexionData, $pedidoId, $claveSae, $conn);
-    insertarPar_Factr($conexionData, $pedidoId, $folio, $claveSae, $enlaceLote, $movimientos, $conn);
-    actualizarFactp($conexionData, $pedidoId, $claveSae, $conn);
-    actualizarFactp2($conexionData, $pedidoId, $folio, $claveSae, $conn);
-    actualizarFactp3($conexionData, $pedidoId, $claveSae, $conn);
-    insertarDoctoSig($conexionData, $pedidoId, $folio, $claveSae, $conn);
-    insertarPar_Factr_Clib($conexionData, $pedidoId, $folio, $claveSae, $conn);
-    //insertarInfenvio($conexionData, $pedidoId, $folio, $claveSae, $conn);
-    actualizarAlerta_Usuario($conexionData, $claveSae, $conn);
-    actualizarAlerta($conexionData, $claveSae, $conn);
-
-    actualizarControl4($conexionData, $claveSae, $conn);
-
-    //actualizarControl5($conexionData, $claveSae); //?
-    actualizarControl6($conexionData, $claveSae, $conn);
-
-    foreach ($enlaceLote as $enlace) {
-        actualizarDatosComanda(
-            $firebaseProjectId,
-            $firebaseApiKey,
-            $pedidoId,
-            $enlace,
-            $logFile
-        );
+    if (!sqlsrv_begin_transaction($conn)) {
+        $registrarLog('ERROR', 'No se pudo iniciar la transacción', sqlsrv_errors());
+        sqlsrv_close($conn);
+        return [
+            'success' => false,
+            'error' => 'No se pudo iniciar la transacción'
+        ];
     }
 
-    actualizarStatusPedido($conexionData, $pedidoId, $claveSae, $conn, $logFile);
+    try {
+        $registrarLog('INFO', 'Ejecutando actualizarMulti');
+        actualizarMulti($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Ejecutando actualizarInve5');
+        actualizarInve5($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Ejecutando actualizarFolios');
+        actualizarFolios($conexionData, $claveSae, $conn);
+        $registrarLog('INFO', 'Ejecutando actualizarInve');
+        actualizarInve($conexionData, $pedidoId, $claveSae, $conn);
+
+        $registrarLog('INFO', 'Validando lotes antes de generar la remisión');
+        $enlaceLote = validarLotes($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('SUCCESS', 'Validación de lotes finalizada', ['totalLotes' => count((array)$enlaceLote)]);
+
+        $registrarLog('INFO', 'Ejecutando actualizarInve2');
+        actualizarInve2($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Ejecutando actualizarInve3');
+        actualizarInve3($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Ejecutando actualizarInveClaro');
+        actualizarInveClaro($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Ejecutando actualizarInveAmazon');
+        actualizarInveAmazon($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Ejecutando actualizarMulti2');
+        actualizarMulti2($conexionData, $pedidoId, $claveSae, $conn);
+
+        $registrarLog('INFO', 'Ejecutando actualizarAfac');
+        actualizarAfac($conexionData, $pedidoId, $claveSae, $conn);
+
+        $registrarLog('INFO', 'Insertando BITA de remisión');
+        $CVE_BITA = insertarBitaR($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('SUCCESS', 'BITA generado', ['CVE_BITA' => $CVE_BITA]);
+        $registrarLog('INFO', 'Actualizando control ID_TABLA=62');
+        actualizarControl3($conexionData, $claveSae, $conn);
+        $registrarLog('INFO', 'Guardando datos de envío en INFENVIO');
+        $DAT_ENVIO = gaurdarDatosEnvioR($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Insertando datos del cliente en INFCLI');
+        $DAT_MOSTR = insertatInfoClie($conexionData, $claveSae, $pedidoId, $conn);
+
+        $registrarLog('INFO', 'Insertando FACTR (remisión)');
+        $folio = insertarFactr($conexionData, $pedidoId, $claveSae, $CVE_BITA, $DAT_ENVIO, $DAT_MOSTR, $conn);
+        $registrarLog('SUCCESS', 'FACTR generado', ['folio' => $folio]);
+
+        $registrarLog('INFO', 'Insertando movimientos MINVE');
+        $movimientos = insertarMimve($conexionData, $pedidoId, $claveSae, $folio, $enlaceLote, $conn);
+        $registrarLog('SUCCESS', 'Movimientos registrados', ['totalMovimientos' => $movimientos['totalMovimientos'] ?? 0]);
+        $registrarLog('INFO', 'Actualizando control ID_TABLA=32');
+        actualizarControl($conexionData, $claveSae, $conn);
+        $registrarLog('INFO', 'Actualizando control ID_TABLA=44');
+        actualizarControl2R($conexionData, $claveSae, $movimientos, $conn);
+        $registrarLog('INFO', 'Insertando datos en FACTR_CLIB');
+        insertarFactr_Clib($conexionData, $folio, $claveSae, $conn);
+        $registrarLog('INFO', 'Actualizando PAR_FACTP');
+        actualizarPar_Factp($conexionData, $pedidoId, $folio, $claveSae, $conn);
+        $registrarLog('INFO', 'Actualizando métricas en INVEXX');
+        actualizarInve4($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Insertando partidas de remisión PAR_FACTR');
+        insertarPar_Factr($conexionData, $pedidoId, $folio, $claveSae, $enlaceLote, $movimientos, $conn);
+        $registrarLog('INFO', 'Actualizando FACTP (TIP_DOC_E, ENLAZADO)');
+        actualizarFactp($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Actualizando FACTP DOC_SIG');
+        actualizarFactp2($conexionData, $pedidoId, $folio, $claveSae, $conn);
+        $registrarLog('INFO', 'Actualizando FACTP TIP_FAC');
+        actualizarFactp3($conexionData, $pedidoId, $claveSae, $conn);
+        $registrarLog('INFO', 'Insertando relación DOCTOSIG');
+        insertarDoctoSig($conexionData, $pedidoId, $folio, $claveSae, $conn);
+        $registrarLog('INFO', 'Insertando PAR_FACTR_CLIB');
+        insertarPar_Factr_Clib($conexionData, $pedidoId, $folio, $claveSae, $conn);
+        $registrarLog('INFO', 'Actualizando alerta de usuario');
+        actualizarAlerta_Usuario($conexionData, $claveSae, $conn);
+        $registrarLog('INFO', 'Actualizando alerta general');
+        actualizarAlerta($conexionData, $claveSae, $conn);
+
+        $registrarLog('INFO', 'Actualizando control ID_TABLA=70');
+        actualizarControl4($conexionData, $claveSae, $conn);
+        $registrarLog('INFO', 'Actualizando control ID_TABLA=58');
+        actualizarControl6($conexionData, $claveSae, $conn);
+
+        $registrarLog('INFO', 'Actualizando estado del pedido en FACTP_CLIB');
+        actualizarStatusPedido($conexionData, $pedidoId, $claveSae, $conn, $logFile);
+
+        if (!sqlsrv_commit($conn)) {
+            throw new Exception('No se pudo confirmar la transacción de la remisión');
+        }
+
+        $registrarLog('SUCCESS', 'Proceso de remisión finalizado', ['folio' => $folio]);
+        return [
+            'success' => true,
+            'enlaceLotes' => $enlaceLote,
+            'folio' => $folio
+        ];
+    } catch (Throwable $th) {
+        $registrarLog('ERROR', 'Error en la remisión, se ejecutará rollback', $th->getMessage());
+        if ($conn) {
+            sqlsrv_rollback($conn);
+        }
+        return [
+            'success' => false,
+            'error' => $th->getMessage()
+        ];
+    } finally {
+        if ($conn) {
+            sqlsrv_close($conn);
+        }
+    }
 }

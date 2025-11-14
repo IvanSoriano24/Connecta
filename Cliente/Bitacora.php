@@ -110,13 +110,168 @@ session_destroy(); */
         .table-bitacora th:first-child,
         .table-bitacora td:first-child {
             width: 80px;
-            text-align: center;
+            min-width: 80px;
+            max-width: 80px;
             font-weight: 600;
+            text-align: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            vertical-align: middle !important;
         }
 
         .table-bitacora th:last-child,
         .table-bitacora td:last-child {
             text-align: center;
+        }
+
+        .table-bitacora tbody td:first-child {
+            display: table-cell;
+            text-align: center !important;
+        }
+
+        /* Modal detalle */
+        .modal-detalle .modal-header {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: #fff;
+            border-bottom: none;
+        }
+
+        .modal-detalle .modal-content {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 30px 70px rgba(15, 23, 42, 0.2);
+        }
+
+        .modal-detalle .modal-body {
+            background: #f8fafc;
+        }
+
+        .detalle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detalle-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 1rem;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .detalle-card .detalle-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #94a3b8;
+            margin-bottom: 0.2rem;
+        }
+
+        .detalle-card .detalle-value {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 1.05rem;
+        }
+
+        .detalle-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.45rem 1.2rem;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+        .detalle-section {
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+            margin-bottom: 1.5rem;
+        }
+
+        .detalle-section h6 {
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: #475569;
+        }
+
+        .table-detalle {
+            margin-bottom: 0;
+        }
+
+        .table-detalle thead th {
+            background: #eef2ff;
+            color: #475569;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border-top: none;
+        }
+
+        .table-detalle tbody td {
+            border-color: #f1f5f9;
+        }
+
+        .detalle-empty {
+            padding: 2rem;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .paginacion-bitacora {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 0 0;
+        }
+
+        .paginacion-bitacora.active {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .paginacion-bitacora .pagination {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .paginacion-bitacora .pagination button {
+            border: 1px solid #cbd5f5;
+            background: #fff;
+            color: #1e293b;
+            padding: 0.35rem 0.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            min-width: 34px;
+            transition: all 0.2s ease;
+        }
+
+        .paginacion-bitacora .pagination button.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        .paginacion-bitacora .pagination button.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .paginacion-bitacora .cantidad-label {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .paginacion-bitacora .cantidad-select {
+            border-radius: 12px;
+            border: 1px solid #cbd5f5;
+            padding: 0.35rem 2rem 0.35rem 0.75rem;
         }
     </style>
 </head>
@@ -162,6 +317,18 @@ session_destroy(); */
                                         <option value="">Selecciona un módulo primero</option>
                                     </select>
                                 </div>
+                                <div class="col-md-4" id="folioWrapper" style="display:none;">
+                                    <label for="folioFiltro" class="form-label">Folio de pedido</label>
+                                    <input type="text" id="folioFiltro" class="form-control" placeholder="Ej. 0000012345">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="fechaInicio" class="form-label">Fecha inicio</label>
+                                    <input type="date" id="fechaInicio" class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="fechaFin" class="form-label">Fecha fin</label>
+                                    <input type="date" id="fechaFin" class="form-control">
+                                </div>
                             </div>
                         </div>
 
@@ -185,6 +352,19 @@ session_destroy(); */
                                 <tbody id="tablaBitacora"></tbody>
                             </table>
                         </div>
+
+                        <div class="paginacion-bitacora d-none" id="paginacionControles">
+                            <div id="paginacionBitacora" class="pagination"></div>
+                            <div class="pagination-controls d-flex align-items-center gap-2">
+                                <label for="selectCantidadBitacora" class="cantidad-label mb-0">Mostrar</label>
+                                <select id="selectCantidadBitacora" class="cantidad-select">
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="30">30</option>
+                                </select>
+                                <span class="cantidad-label mb-0">por página</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -193,59 +373,71 @@ session_destroy(); */
 
     <div class="modal fade" id="modalDetalleBitacora" tabindex="-1" aria-labelledby="modalDetalleLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalDetalleLabel">Detalle del registro</h5>
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content modal-detalle">
+                <div class="modal-header">
+                    <div>
+                        <p class="mb-1 text-uppercase small text-white-50">Detalle de la bitácora</p>
+                        <h5 class="modal-title" id="modalDetalleLabel">Registro seleccionado</h5>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <p class="mb-1 text-muted">Acción</p>
-                            <p class="fw-semibold" id="detalleAccion"></p>
+                    <div class="detalle-grid mb-2">
+                        <div class="detalle-card text-center">
+                            <p class="detalle-label">Acción</p>
+                            <span class="detalle-chip bg-primary-subtle text-primary fw-semibold" id="detalleAccion"></span>
                         </div>
-                        <div class="col-md-4">
-                            <p class="mb-1 text-muted">Usuario</p>
-                            <p class="fw-semibold" id="detalleUsuario"></p>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Usuario</p>
+                            <p class="detalle-value" id="detalleUsuario"></p>
                         </div>
-                        <div class="col-md-4">
-                            <p class="mb-1 text-muted">Fecha</p>
-                            <p class="fw-semibold" id="detalleFecha"></p>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Fecha</p>
+                            <p class="detalle-value" id="detalleFecha"></p>
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p class="mb-1 text-muted">Pedido</p>
-                            <p class="fw-semibold" id="detallePedido"></p>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Pedido</p>
+                            <p class="detalle-value" id="detallePedido"></p>
                         </div>
-                        <div class="col-md-6">
-                            <p class="mb-1 text-muted">Cliente</p>
-                            <p class="fw-semibold" id="detalleCliente"></p>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Cliente</p>
+                            <p class="detalle-value" id="detalleCliente"></p>
                         </div>
                     </div>
 
-                    <h6 class="mt-4">Productos</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Descripción</th>
-                                    <th class="text-end">Cantidad</th>
-                                    <th class="text-end">Precio</th>
-                                </tr>
-                            </thead>
-                            <tbody id="detalleProductos"></tbody>
-                        </table>
+                    <div class="detalle-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Productos</h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-detalle">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Descripción</th>
+                                        <th class="text-end">Cantidad anterior</th>
+                                        <th class="text-end">Ajuste</th>
+                                        <th class="text-end">Cantidad nueva</th>
+                                        <th class="text-end">Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detalleProductos"></tbody>
+                            </table>
+                        </div>
                     </div>
-
-                    <h6 class="mt-4">Cambios</h6>
-                    <div id="detalleCambios" class="row g-3"></div>
+                    <!--
+                    <div class="detalle-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Cambios</h6>
+                        </div>
+                        <div id="detalleCambios" class="row g-3 d-none"></div>
+                    </div>
+                    -->
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
