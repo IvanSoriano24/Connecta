@@ -231,19 +231,23 @@ function agregarBitacora(
 
     $context = stream_context_create([
         'http' => [
-            'method'  => 'POST',
-            'header'  => "Content-Type: application/json\r\n",
-            'content' => $payload,
+            'method'        => 'POST',
+            'header'        => "Content-Type: application/json\r\n",
+            'content'       => $payload,
+            'ignore_errors' => true,
         ],
     ]);
 
-    $response = @file_get_contents($url, false, $context);
-    if ($response === false) {
-        $error = error_get_last();
+    $response = file_get_contents($url, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    $esExito = strpos($statusLine, '200') !== false;
+
+    if ($response === false || !$esExito) {
+        $error = $response !== false ? $response : (error_get_last()['message'] ?? null);
         return [
             'success' => false,
             'message' => 'No se pudo registrar la bitácora en Firestore.',
-            'error'   => $error['message'] ?? null,
+            'error'   => $error,
         ];
     }
 
@@ -255,4 +259,96 @@ function agregarBitacora(
         'message' => 'Bitácora registrada correctamente.',
         'num'     => $num,
     ];
+}
+
+/**
+ * Registra específicamente la edición de un pedido con el detalle de productos.
+ */
+function guardarBitacoraEdicionPedido(
+    string $usuarioClave,
+    string $nombreResponsable,
+    int $noEmpresa,
+    string $pedidoID,
+    string $clienteID,
+    array $productos,
+    array $cambiosProductos = []
+): array {
+    $productosBitacora = resumirProductosParaBitacora($productos);
+    $resumenCambios = normalizarCambiosProductosBitacora($cambiosProductos);
+
+    $camposModulo = [
+        'quienCreo' => $nombreResponsable,
+        'pedidoID' => $pedidoID,
+        'clienteID' => $clienteID,
+        'productos' => json_encode($productosBitacora, JSON_UNESCAPED_UNICODE),
+        'cambiosProductos' => json_encode($resumenCambios, JSON_UNESCAPED_UNICODE),
+    ];
+
+    return agregarBitacora(
+        $usuarioClave,
+        'PEDIDOS',
+        'Edicion de Pedido',
+        $noEmpresa,
+        $camposModulo
+    );
+}
+
+function resumirProductosParaBitacora(array $productos): array
+{
+    $resumen = [];
+    foreach ($productos as $producto) {
+        $clave = $producto['producto'] ?? $producto['CVE_ART'] ?? '';
+        $cantidad = $producto['cantidad'] ?? $producto['CANT'] ?? 0;
+        $precio = $producto['precioUnitario'] ?? $producto['PREC'] ?? 0;
+        $descripcion = $producto['descripcion'] ?? ($producto['DESCR'] ?? '');
+
+        $resumen[] = [
+            'producto' => (string)$clave,
+            'cantidad' => (float)$cantidad,
+            'precio' => (float)$precio,
+            'descripcion' => (string)$descripcion,
+        ];
+    }
+    return $resumen;
+}
+
+function normalizarCambiosProductosBitacora(array $cambios): array
+{
+    $tipos = ['agregados', 'editados', 'eliminados'];
+    $resultado = [
+        'agregados' => [],
+        'editados' => [],
+        'eliminados' => [],
+    ];
+
+    foreach ($tipos as $tipo) {
+        if (!isset($cambios[$tipo]) || !is_array($cambios[$tipo])) {
+            continue;
+        }
+
+        foreach ($cambios[$tipo] as $item) {
+            $producto = (string)($item['producto'] ?? '');
+
+            if ($tipo === 'editados') {
+                $resultado[$tipo][] = [
+                    'producto' => $producto,
+                    'cantidadAnterior' => (float)($item['cantidadAnterior'] ?? 0),
+                    'cantidadActual' => (float)($item['cantidadActual'] ?? 0),
+                    'diferencia' => (float)($item['diferencia'] ?? 0),
+                ];
+            } elseif ($tipo === 'agregados') {
+                $resultado[$tipo][] = [
+                    'producto' => $producto,
+                    'cantidad' => (float)($item['cantidadActual'] ?? $item['cantidad'] ?? 0),
+                ];
+            } else { // eliminados
+                $resultado[$tipo][] = [
+                    'producto' => $producto,
+                    'cantidad' => (float)($item['cantidadAnterior'] ?? $item['cantidad'] ?? 0),
+                ];
+            }
+        }
+    }
+
+    return $resultado;
 }

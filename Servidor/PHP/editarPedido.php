@@ -7,6 +7,7 @@ require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
 include 'utils.php';
+include 'bitacora.php';
 require 'funcionesFirebase.php';
 
 
@@ -661,8 +662,15 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
     }
 
     // Actualizar las partidas asociadas al pedido
-    actualizarPartidas($conexionData, $formularioData, $partidasData, $conn);
-
+    $resultadoPartidas = actualizarPartidas($conexionData, $formularioData, $partidasData, $conn);
+    if (!$resultadoPartidas['success']) {
+        return $resultadoPartidas;
+    }
+    $cambiosProductos = $resultadoPartidas['cambiosProductos'] ?? [
+        'agregados' => [],
+        'editados' => [],
+        'eliminados' => [],
+    ];
 
     $claveSae = $_SESSION['empresa']['claveSae'];
     $nombreTabla = "[{$conexionData['nombreBase']}].[dbo].[FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
@@ -747,7 +755,11 @@ function actualizarPedido($conexionData, $formularioData, $partidasData, $estatu
     // Cerrar la conexión
     sqlsrv_free_stmt($stmt);
 
-    return ['success' => true, 'message' => 'Pedido actualizado correctamente'];
+    return [
+        'success' => true,
+        'message' => 'Pedido actualizado correctamente',
+        'cambiosProductos' => $cambiosProductos,
+    ];
 }
 function actualizarPartidas($conexionData, $formularioData, $partidasData, $conn)
 {
@@ -769,6 +781,11 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData, $conn
         sqlsrv_rollback($conn);
         die(json_encode($resultadoInventario));
     }
+    $cambiosProductos = $resultadoInventario['cambiosProductos'] ?? [
+        'agregados' => [],
+        'editados' => [],
+        'eliminados' => [],
+    ];
     $query = "SELECT CVE_ART, NUM_PAR FROM $nombreTabla WHERE CVE_DOC = ?";
     $stmt = sqlsrv_query($conn, $query, [$CVE_DOC]);
 
@@ -912,7 +929,11 @@ function actualizarPartidas($conexionData, $formularioData, $partidasData, $conn
         $NUM_PAR++;
     }
 
-    return ['success' => true, 'message' => 'Partidas actualizadas correctamente'];
+    return [
+        'success' => true,
+        'message' => 'Partidas actualizadas correctamente',
+        'cambiosProductos' => $cambiosProductos,
+    ];
 }
 function obtenerPartidasActualizadas($CVE_DOC, $conexionData, $claveSae, $conn)
 {
@@ -1009,6 +1030,10 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
         $partidasActuales[$partida['producto']] = $partida['cantidad'];
     }
 
+    $productosAgregados = [];
+    $productosEliminados = [];
+    $productosEditados = [];
+
     // Ajustar el inventario
     foreach ($partidasAnteriores as $producto => $cantidadAnterior) {
 
@@ -1018,6 +1043,10 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
             // Si el producto fue eliminado, agregar la cantidad anterior al inventario
             $sql = "UPDATE $nombreTablaInventario SET APART = APART - ? WHERE CVE_ART = ?";
             $params = [$cantidadAnterior, $producto];
+            $productosEliminados[] = [
+                'producto' => $producto,
+                'cantidadAnterior' => (float)$cantidadAnterior,
+            ];
         }
         // Si la cantidad fue reducida, ajustar la diferencia
         elseif ($partidasActuales[$producto] < $cantidadAnterior) {
@@ -1026,6 +1055,12 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
             $diferencia = $cantidadAnterior - $partidasActuales[$producto];
             $sql = "UPDATE $nombreTablaInventario SET APART = APART - ? WHERE CVE_ART = ?";
             $params = [$diferencia, $producto];
+            $productosEditados[] = [
+                'producto' => $producto,
+                'cantidadAnterior' => (float)$cantidadAnterior,
+                'cantidadActual' => (float)$partidasActuales[$producto],
+                'diferencia' => (float)$partidasActuales[$producto] - (float)$cantidadAnterior,
+            ];
         }
         // Si la cantidad fue aumentada, restar la diferencia del inventario
         elseif ($partidasActuales[$producto] > $cantidadAnterior) {
@@ -1033,6 +1068,12 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
             $diferencia = $partidasActuales[$producto] - $cantidadAnterior;
             $sql = "UPDATE $nombreTablaInventario SET APART = APART + ? WHERE CVE_ART = ?";
             $params = [$diferencia, $producto];
+            $productosEditados[] = [
+                'producto' => $producto,
+                'cantidadAnterior' => (float)$cantidadAnterior,
+                'cantidadActual' => (float)$partidasActuales[$producto],
+                'diferencia' => (float)$partidasActuales[$producto] - (float)$cantidadAnterior,
+            ];
         }
         // Si las cantidades son iguales, no se realiza ninguna acción
         else {
@@ -1058,9 +1099,21 @@ function actualizarNuevoInventario($conexionData, $formularioData, $partidasData
                 sqlsrv_rollback($conn);
                 die(json_encode(['success' => false, 'message' => 'Error al agregar nuevo producto al inventario', 'errors' => sqlsrv_errors()]));
             }
+            $productosAgregados[] = [
+                'producto' => $producto,
+                'cantidadActual' => (float)$cantidadActual,
+            ];
         }
     }
-    return ['success' => true, 'message' => 'Inventario actualizado correctamente'];
+    return [
+        'success' => true,
+        'message' => 'Inventario actualizado correctamente',
+        'cambiosProductos' => [
+            'agregados' => $productosAgregados,
+            'editados' => $productosEditados,
+            'eliminados' => $productosEliminados,
+        ],
+    ];
 }
 function generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $FOLIO, $conn)
 {
@@ -1219,7 +1272,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
         if ($puedeEnviarWhats) {
             $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
             $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-            $resultadoWhatsApp = enviarWhatsAppConPlantillaPdf(
+            /*$resultadoWhatsApp = enviarWhatsAppConPlantillaPdf(
                 $numeroWhatsApp,
                 $clienteNombre,
                 $noPedido,
@@ -1235,7 +1288,7 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
                 $id,
                 $rutaPDFW,
                 $filename
-            );
+            );*/
         }
 
         // =====================================================
@@ -1270,7 +1323,6 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
             ]);
         }
 
-
         sqlsrv_commit($conn);
         sqlsrv_close($conn);
         exit();
@@ -1288,10 +1340,11 @@ function validarCorreoClienteActualizacion($formularioData, $conexionData, $ruta
     if ($flagWhats) {
         $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
         $filename = "Pedido_" . preg_replace('/[^A-Za-z0-9_\-]/', '', $noPedido) . ".pdf";
-        enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $id, $rutaPDFW, $filename);
+        //enviarWhatsAppConPlantillaPdf($numeroWhatsApp, $clienteNombre, $noPedido, $claveSae, $partidasData, $enviarA, $vendedor, $fechaElaboracion, $noEmpresa, $clave, $conCredito, $claveCliente, $id, $rutaPDFW, $filename);
     }
 
     echo json_encode(['success' => false, 'datos' => true, 'message' => 'Pedido Realizado, el Cliente no tiene medios de contacto para notificar.']);
+    
     sqlsrv_commit($conn);
     sqlsrv_close($conn);
     exit();
@@ -2063,8 +2116,25 @@ switch ($funtion) {
                     actualizarControl2($conexionData, $claveSae, $conn); //ROLLBACK
 
                     $resultadoActualizacion = actualizarPedido($conexionData, $formularioData, $partidasData, $estatus, $DAT_ENVIO, $conn); //ROLLBACK
+                    $cambiosProductosBitacora = $resultadoActualizacion['cambiosProductos'] ?? [
+                        'agregados' => [],
+                        'editados' => [],
+                        'eliminados' => [],
+                    ];
 
                     if ($resultadoActualizacion['success']) {
+                        $bitacoraResultado = guardarBitacoraEdicionPedido(
+                            $_SESSION['empresa']['claveUsuario'],
+                            $_SESSION['usuario']['nombre'],
+                            $noEmpresa,
+                            (string)$pedidoId,
+                            (string)$clave,
+                            $partidasData,
+                            $cambiosProductosBitacora
+                        );
+                        if (!$bitacoraResultado['success']) {
+                            error_log('Bitácora edición de pedido falló: ' . json_encode($bitacoraResultado));
+                        }
                         //actualizarDatoEnvio($DAT_ENVIO, $claveSae, $noEmpresa, $firebaseProjectId, $firebaseApiKey, $envioData);
                         if ($validarSaldo === 0 && $credito == 0) {
                             $rutaPDF = generarPDFP($formularioData, $partidasData, $conexionData, $claveSae, $noEmpresa, $formularioData['numero'], $conn);
@@ -2087,6 +2157,7 @@ switch ($funtion) {
                             $id = actualizarDatosPedido($envioData, $formularioData['numero'], $noEmpresa, $formularioData['observaciones'], $conn);
                             if ($conCredito == "S") {
                                 guardarPedidoActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $partidasData, $id, $conn);
+                                
                                 $resultado = enviarWhatsAppActualizado($formularioData, $conexionData, $claveSae, $noEmpresa, $validarSaldo, $conCredito, $conn);
                             } else {
                                 //var_dump("Si");
@@ -2100,7 +2171,7 @@ switch ($funtion) {
                                     $id,
                                     $conn,
                                     $formularioData['enviarCorreo'] ?? false,
-                                    $formularioData['enviarWhats'] ?? false
+                                $formularioData['enviarWhats'] ?? false
                                 );
 
                             }
