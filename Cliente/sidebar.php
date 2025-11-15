@@ -241,6 +241,15 @@
         <?php } ?>
 
         <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
+            <li>
+                <a href="Bitacora.php" title="Bitácora" tabindex="-1">
+                    <i class='bx bxs-notepad'></i>
+                    <span class="text">Bitácora</span>
+                </a>
+            </li>
+        <?php } ?>
+
+        <?php if ($tipoUsuario == "ADMINISTRADOR") { ?>
             <li class="dropdown-manual">
                 <a href="#" class="dropdown-toggle dropdown-toggle-manual" title="Configuración" tabindex="-1">
                     <i class='bx bxs-cog'></i>

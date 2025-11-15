@@ -811,7 +811,7 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
                                         <td style='padding:4px 0 10px 0; color:#333;'>" . htmlspecialchars($clienteNombre) . "</td>
                                     </tr>
                                     <tr>
-                                        <td style='font-weight:bold; color:#3f2b8c;'>Cuenta STP</td>
+                                        <td style='font-weight:bold; color:#3f2b8c;'>Favor de transferir  a la cuenta:</td>
                                     </tr>
                                     <tr>
                                         <td style='padding-top:4px; color:#333;'>$cuentaSTPTexto</td>
