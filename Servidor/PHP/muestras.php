@@ -436,12 +436,12 @@ function buscarProductos($termino, $conexionData) {
 
         $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
         $tablaMult = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-
+        //i.UNI_VENTA,
         $sql = "
             SELECT TOP 10
                 i.CVE_ART,
                 i.DESCR,
-                i.UNI_VENTA,
+                i.UNI_MED,
                 ISNULL(m.EXIST, 0) as EXIST
             FROM $tablaInve i
             LEFT JOIN $tablaMult m ON i.CVE_ART = m.CVE_ART AND m.CVE_ALM = '2'
@@ -1332,7 +1332,8 @@ switch ($funcion) {
             $claveSae = $conexionData['claveSae'];
             $tablaInve = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
             $tablaMult = "[{$conexionData['nombreBase']}].[dbo].[MULT" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
-            $sql = "SELECT TOP 100 i.CVE_ART, i.DESCR, i.UNI_VENTA, ISNULL(m.EXIST, 0) as EXIST
+            //i.UNI_VENTA,  
+            $sql = "SELECT TOP 100 i.CVE_ART, i.DESCR, i.UNI_MED, ISNULL(m.EXIST, 0) as EXIST
                     FROM $tablaInve i
                     LEFT JOIN $tablaMult m ON i.CVE_ART = m.CVE_ART AND m.CVE_ALM = '2'
                     WHERE i.STATUS = 'ALTA'

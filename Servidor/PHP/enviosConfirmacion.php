@@ -5,10 +5,14 @@ error_reporting(E_ALL);
 $logDir  = __DIR__ . '/logs';
 $logFile = $logDir . '/enviosConfirmacion.log';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
 require 'funcionesFirebase.php';
+require 'bitacora.php';
 
 
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae, $logFile){
@@ -311,6 +315,17 @@ function enviarConfirmacionCorreo($pedidoID, $noEmpresa, $claveSae, $conexionDat
 
         if (!empty($correosEnviados)) {
             buscarYEliminar($noPedido);
+            
+            // Registrar en bitácora
+            $camposModulo = [
+                'pedidoID' => (int)ltrim(trim($noPedido), '0'),
+                'clienteID' => trim($claveCliente),
+                'quienRealizo' => $_SESSION['usuario']['nombre'],
+                'medioEnvio' => 'Correo',
+                'correoDestino' => implode('; ', $correosEnviados), // Correos separados por punto y coma
+            ];
+            agregarBitacora($_SESSION['usuario']['nombre'], "PEDIDOS", "Envio de Confirmacion", $noEmpresa, $camposModulo);
+            
             echo json_encode([
                 'success' => true,
                 'message' => 'Pedido enviado correctamente a: ' . implode(', ', $correosEnviados),
@@ -890,6 +905,16 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
         // Determinar la respuesta JSON según las notificaciones enviadas
         buscarYEliminar($noPedido);
         if ($numeroBandera === 0) {
+            // Registrar en bitácora
+            $camposModulo = [
+                'pedidoID' => (int)ltrim(trim($noPedido), '0'),
+                'clienteID' => trim($claveCliente),
+                'quienRealizo' => $_SESSION['usuario']['nombre'],
+                'medioEnvio' => 'WhatsApp',
+                'telefonoDestino' => $numeroWhatsApp, // Número de WhatsApp
+            ];
+            agregarBitacora($_SESSION['usuario']['nombre'], "PEDIDOS", "Envio de Confirmacion", $noEmpresa, $camposModulo);
+            
             /// Respuesta de éxito
             header('Content-Type: application/json; charset=UTF-8');
             echo json_encode([
@@ -911,6 +936,17 @@ function enviarConfirmacionWhats($pedidoID, $noEmpresa, $claveSae, $conexionData
                 throw new Exception("Problema al enviar mensaje de WhatsApp");
                 //echo json_encode(['success' => false, 'message' => 'Problema al enviar mensaje de WhatsApp.', 'error' => $resultadoWhatsApp]);
             }
+            
+            // Registrar en bitácora
+            $camposModulo = [
+                'pedidoID' => (int)ltrim(trim($noPedido), '0'),
+                'clienteID' => trim($claveCliente),
+                'quienRealizo' => $_SESSION['usuario']['nombre'],
+                'medioEnvio' => 'WhatsApp',
+                'telefonoDestino' => $numeroWhatsApp, // Número de WhatsApp (enviado al vendedor)
+            ];
+            agregarBitacora($_SESSION['usuario']['nombre'], "PEDIDOS", "Envio de Confirmacion", $noEmpresa, $camposModulo);
+            
             echo json_encode(['success' => false, 'notificacion' => true, 'message' => 'Pedido Enviado, el Cliente no Tiene un Correo y WhatsApp para notificar.']);
             //die();
         }

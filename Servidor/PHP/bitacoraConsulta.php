@@ -35,10 +35,12 @@ $fechaFin = trim($input['fechaFin'] ?? '');
 
 $accionesPermitidas = [
     'PEDIDOS' => [
-        'TODAS'       => ['Pedido Anticipado', 'Pedido Con Credito', 'Edicion de Pedido', 'Cancelacion de Pedido'],
+        'TODAS'       => ['Pedido Anticipado', 'Pedido Con Credito', 'Edicion de Pedido', 'Cancelacion de Pedido', 'Envio de Confirmacion'],
         'CREACION'    => ['Pedido Anticipado', 'Pedido Con Credito'],
         'EDICION'     => ['Edicion de Pedido'],
         'CANCELACION' => ['Cancelacion de Pedido'],
+        'ENVIO DE CONFIRMACION' => ['Envio de Confirmacion'],
+        'CONFIRMACION DE PEDIDO' => ['CONFIRMACION'],
     ],
     'CLIENTES' => [],
     'FACTURAS' => [],
@@ -73,7 +75,13 @@ if (empty($acciones)) {
 }
 
 try {
-    $registros = consultarBitacoraPorFiltros($modulo, $acciones, $folioFiltro, $fechaInicio, $fechaFin);
+    // Si es confirmación de pedido, consultar la colección BITACORA
+    if (in_array('CONFIRMACION', $acciones)) {
+        $registros = consultarBitacoraConfirmacion($folioFiltro, $fechaInicio, $fechaFin);
+    } else {
+        $registros = consultarBitacoraPorFiltros($modulo, $acciones, $folioFiltro, $fechaInicio, $fechaFin);
+    }
+    
     echo json_encode([
         'success' => true,
         'data' => $registros,
@@ -295,5 +303,174 @@ function obtenerIdDocumentoFirestore(string $name): string
     }
     $parts = explode('/', $name);
     return end($parts);
+}
+
+function consultarBitacoraConfirmacion(string $folio = '', string $fechaInicio = '', string $fechaFin = '', int $limite = 50): array
+{
+    global $firebaseProjectId, $firebaseApiKey;
+    
+    $noEmpresa = $_SESSION['empresa']['noEmpresa'] ?? null;
+    if ($noEmpresa === null) {
+        return [];
+    }
+
+    $filters = [
+        [
+            'fieldFilter' => [
+                'field' => ['fieldPath' => 'noEmpresa'],
+                'op' => 'EQUAL',
+                'value' => ['integerValue' => (int)$noEmpresa],
+            ],
+        ],
+    ];
+
+    // Filtro por folio de pedido
+    if ($folio !== '') {
+        $valorFolio = ctype_digit($folio)
+            ? ['integerValue' => (int)$folio]
+            : ['stringValue' => $folio];
+        $filters[] = [
+            'fieldFilter' => [
+                'field' => ['fieldPath' => 'pedido'],
+                'op' => 'EQUAL',
+                'value' => $valorFolio,
+            ],
+        ];
+    }
+
+    // Filtro por fecha inicio
+    if ($fechaInicio !== '') {
+        $zona = new DateTimeZone('America/Mexico_City');
+        $inicio = DateTime::createFromFormat('Y-m-d H:i:s', $fechaInicio . ' 00:00:00', $zona);
+        if ($inicio) {
+            $filters[] = [
+                'fieldFilter' => [
+                    'field' => ['fieldPath' => 'fechaCreacion'],
+                    'op' => 'GREATER_THAN_OR_EQUAL',
+                    'value' => ['stringValue' => $inicio->format('Y-m-d H:i:s')],
+                ],
+            ];
+        }
+    }
+
+    // Filtro por fecha fin
+    if ($fechaFin !== '') {
+        $zona = new DateTimeZone('America/Mexico_City');
+        $fin = DateTime::createFromFormat('Y-m-d H:i:s', $fechaFin . ' 23:59:59', $zona);
+        if ($fin) {
+            $filters[] = [
+                'fieldFilter' => [
+                    'field' => ['fieldPath' => 'fechaCreacion'],
+                    'op' => 'LESS_THAN_OR_EQUAL',
+                    'value' => ['stringValue' => $fin->format('Y-m-d H:i:s')],
+                ],
+            ];
+        }
+    }
+
+    $query = [
+        'structuredQuery' => [
+            'from' => [
+                ['collectionId' => 'BITACORA'],
+            ],
+            'where' => [
+                'compositeFilter' => [
+                    'op' => 'AND',
+                    'filters' => $filters,
+                ],
+            ],
+            'orderBy' => [
+                [
+                    'field' => ['fieldPath' => 'fechaCreacion'],
+                    'direction' => 'DESCENDING',
+                ],
+            ],
+            'limit' => $limite,
+        ],
+    ];
+
+    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents:runQuery?key=$firebaseApiKey";
+
+    $context = stream_context_create([
+        'http' => [
+            'method'  => 'POST',
+            'header'  => "Content-Type: application/json\r\n",
+            'content' => json_encode($query),
+            'ignore_errors' => true,
+        ],
+    ]);
+
+    $response = file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        $error = error_get_last();
+        throw new Exception($error['message'] ?? 'Error de comunicación con Firestore');
+    }
+
+    $statusLine = $http_response_header[0] ?? '';
+    if (strpos($statusLine, '200') === false) {
+        throw new Exception($response);
+    }
+
+    $data = json_decode($response, true);
+    if (!is_array($data)) {
+        return [];
+    }
+
+    $registros = [];
+    foreach ($data as $entrada) {
+        if (!isset($entrada['document'])) {
+            continue;
+        }
+
+        $documento = $entrada['document'];
+        $fields = $documento['fields'] ?? [];
+        if (empty($fields)) {
+            continue;
+        }
+
+        $parsed = [];
+        foreach ($fields as $campo => $valor) {
+            $parsed[$campo] = firestoreValueToPhp($valor);
+        }
+
+        $idDocumento = obtenerIdDocumentoFirestore($documento['name'] ?? '');
+
+        // Mapear el tipo de confirmación
+        $accionOriginal = strtolower($parsed['accion'] ?? '');
+        $tipoConfirmacion = '';
+        
+        switch ($accionOriginal) {
+            case 'aceptado':
+                $tipoConfirmacion = 'Aceptado';
+                break;
+            case 'anticipo':
+                $tipoConfirmacion = 'Anticipo';
+                break;
+            case 'sin existencias':
+                $tipoConfirmacion = 'Sin Existencias';
+                break;
+            default:
+                $tipoConfirmacion = ucfirst($parsed['accion'] ?? 'Confirmación');
+        }
+
+        $registros[] = [
+            'id' => $idDocumento,
+            'modulo' => 'PEDIDOS',
+            'accion' => 'Confirmación de Pedido',
+            'usuario' => 'Cliente', // No hay usuario en BITACORA, se asume que fue el cliente
+            'num' => null,
+            'noEmpresa' => $parsed['noEmpresa'] ?? null,
+            'creacion' => $parsed['fechaCreacion'] ?? '',
+            'camposModulo' => [
+                'pedidoID' => $parsed['pedido'] ?? '',
+                'clienteID' => $parsed['claveCliente'] ?? '',
+                'tipoConfirmacion' => $tipoConfirmacion,
+                'fechaCreacion' => $parsed['fechaCreacion'] ?? '',
+            ],
+        ];
+    }
+
+    return $registros;
 }
 

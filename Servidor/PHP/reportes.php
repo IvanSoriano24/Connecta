@@ -6,7 +6,9 @@ $logDir  = __DIR__ . '/logs';
 $logFile = $logDir . '/reportes.log';
 
 require '../fpdf/fpdf.php';
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Función para obtener los datos de la empresa desde Firebase
 function obtenerDatosEmpresaFire($noEmpresa)

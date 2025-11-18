@@ -3,7 +3,9 @@ const accionesPorModulo = {
         { value: "TODAS", label: "Todas" },
         { value: "CREACION", label: "Creación" },
         { value: "EDICION", label: "Edición" },
-        { value: "CANCELACION", label: "Cancelación" }
+        { value: "CANCELACION", label: "Cancelación" },
+        { value: "Envio de Confirmacion", label: "Envío de Confirmación" },
+        { value: "CONFIRMACION DE PEDIDO", label: "Confirmación de Pedido" }
     ],
     CLIENTES: [],
     FACTURAS: []
@@ -11,6 +13,8 @@ const accionesPorModulo = {
 
 let registrosBitacora = [];
 let modalDetalle;
+let modalDetalleEnvio;
+let modalDetalleConfirmacion;
 let paginaActual = 1;
 let registrosPorPagina = 10;
 let totalPaginas = 1;
@@ -22,6 +26,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const fechaInicio = document.getElementById("fechaInicio");
     const fechaFin = document.getElementById("fechaFin");
     modalDetalle = new bootstrap.Modal(document.getElementById("modalDetalleBitacora"));
+    modalDetalleEnvio = new bootstrap.Modal(document.getElementById("modalDetalleEnvioConfirmacion"));
+    modalDetalleConfirmacion = new bootstrap.Modal(document.getElementById("modalDetalleConfirmacion"));
 
     moduloFiltro.addEventListener("change", () => {
         actualizarAcciones(moduloFiltro.value);
@@ -196,6 +202,18 @@ function mostrarDetalleRegistro(index) {
     const registro = registrosBitacora[index];
     if (!registro) return;
 
+    // Si es "Envio de Confirmacion", usar el modal específico
+    if (registro.accion === "Envio de Confirmacion") {
+        mostrarDetalleEnvioConfirmacion(registro);
+        return;
+    }
+
+    // Si es "Confirmación de Pedido", usar el modal específico
+    if (registro.accion === "Confirmación de Pedido") {
+        mostrarDetalleConfirmacion(registro);
+        return;
+    }
+
     const campos = registro.camposModulo || {};
     const fecha = new Date(registro.creacion || Date.now()).toLocaleString("es-MX");
 
@@ -209,6 +227,80 @@ function mostrarDetalleRegistro(index) {
     renderizarCambios(campos.cambiosProductos || {});
 
     modalDetalle.show();
+}
+
+function mostrarDetalleEnvioConfirmacion(registro) {
+    const campos = registro.camposModulo || {};
+    const fecha = new Date(registro.creacion || Date.now()).toLocaleString("es-MX");
+
+    // Información general
+    document.getElementById("detalleEnvioAccion").textContent = registro.accion || "-";
+    document.getElementById("detalleEnvioUsuario").textContent = registro.usuario || "-";
+    document.getElementById("detalleEnvioFecha").textContent = fecha;
+    document.getElementById("detalleEnvioPedido").textContent = campos.pedidoID || "-";
+    document.getElementById("detalleEnvioCliente").textContent = campos.clienteID || "-";
+    //document.getElementById("detalleEnvioQuienRealizo").textContent = campos.quienRealizo || "-";
+
+    // Medio de envío
+    const medioEnvio = campos.medioEnvio || "-";
+    const medioChip = document.getElementById("detalleEnvioMedio");
+    medioChip.textContent = medioEnvio;
+    
+    // Aplicar estilos según el medio
+    medioChip.className = "detalle-chip fw-semibold";
+    if (medioEnvio === "Correo") {
+        medioChip.classList.add("bg-info-subtle", "text-info");
+    } else if (medioEnvio === "WhatsApp") {
+        medioChip.classList.add("bg-success-subtle", "text-success");
+    } else {
+        medioChip.classList.add("bg-secondary-subtle", "text-secondary");
+    }
+
+    // Destino del envío
+    const destinoDiv = document.getElementById("detalleEnvioDestino");
+    if (medioEnvio === "Correo" && campos.correoDestino) {
+        const correos = campos.correoDestino.split(';').map(email => email.trim());
+        destinoDiv.innerHTML = correos.map(email => 
+            `<div class="mb-1"><i class="bx bx-envelope me-2"></i>${email}</div>`
+        ).join('');
+    } else if (medioEnvio === "WhatsApp" && campos.telefonoDestino) {
+        destinoDiv.innerHTML = `<div><i class="bx bx-phone me-2"></i>${campos.telefonoDestino}</div>`;
+    } else {
+        destinoDiv.innerHTML = '<span class="text-muted">No disponible</span>';
+    }
+
+    modalDetalleEnvio.show();
+}
+
+function mostrarDetalleConfirmacion(registro) {
+    const campos = registro.camposModulo || {};
+    const fecha = new Date(registro.creacion || campos.fechaCreacion || Date.now()).toLocaleString("es-MX");
+
+    // Información general
+    document.getElementById("detalleConfirmacionAccion").textContent = registro.accion || "-";
+    document.getElementById("detalleConfirmacionUsuario").textContent = registro.usuario || "-";
+    document.getElementById("detalleConfirmacionFecha").textContent = fecha;
+    document.getElementById("detalleConfirmacionPedido").textContent = campos.pedidoID || "-";
+    document.getElementById("detalleConfirmacionCliente").textContent = campos.clienteID || "-";
+
+    // Tipo de confirmación
+    const tipoConfirmacion = campos.tipoConfirmacion || "-";
+    const tipoChip = document.getElementById("detalleConfirmacionTipo");
+    tipoChip.textContent = tipoConfirmacion;
+    
+    // Aplicar estilos según el tipo
+    tipoChip.className = "detalle-chip fw-semibold";
+    if (tipoConfirmacion.toLowerCase() === "aceptado" || tipoConfirmacion.toLowerCase().includes("confirmación")) {
+        tipoChip.classList.add("bg-success-subtle", "text-success");
+    } else if (tipoConfirmacion.toLowerCase() === "anticipo") {
+        tipoChip.classList.add("bg-warning-subtle", "text-warning");
+    } else if (tipoConfirmacion.toLowerCase().includes("sin existencias")) {
+        tipoChip.classList.add("bg-danger-subtle", "text-danger");
+    } else {
+        tipoChip.classList.add("bg-secondary-subtle", "text-secondary");
+    }
+
+    modalDetalleConfirmacion.show();
 }
 
 function renderizarProductos(productos, cambios) {

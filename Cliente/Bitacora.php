@@ -109,24 +109,30 @@ session_destroy(); */
 
         .table-bitacora th:first-child,
         .table-bitacora td:first-child {
-            width: 80px;
-            min-width: 80px;
-            max-width: 80px;
-            font-weight: 600;
+            width: 80px !important;
+            min-width: 80px !important;
+            max-width: 80px !important;
+            font-weight: 600 !important;
             text-align: center !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            vertical-align: middle !important;
+            display: table-cell !important;
+        }
+
+        .table-bitacora thead th:first-child {
+            text-align: center !important;
+        }
+
+        .table-bitacora tbody td:first-child {
+            display: table-cell !important;
+            text-align: center !important;
             vertical-align: middle !important;
         }
 
         .table-bitacora th:last-child,
         .table-bitacora td:last-child {
             text-align: center;
-        }
-
-        .table-bitacora tbody td:first-child {
-            display: table-cell;
-            text-align: center !important;
         }
 
         /* Modal detalle */
@@ -435,6 +441,125 @@ session_destroy(); */
                         <div id="detalleCambios" class="row g-3 d-none"></div>
                     </div>
                     -->
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Envío de Confirmación -->
+    <div class="modal fade" id="modalDetalleEnvioConfirmacion" tabindex="-1" aria-labelledby="modalDetalleEnvioLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content modal-detalle">
+                <div class="modal-header">
+                    <div>
+                        <p class="mb-1 text-uppercase small text-white-50">Detalle del envío de confirmación</p>
+                        <h5 class="modal-title" id="modalDetalleEnvioLabel">Registro seleccionado</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="detalle-grid mb-2">
+                        <div class="detalle-card text-center">
+                            <p class="detalle-label">Acción</p>
+                            <span class="detalle-chip bg-primary-subtle text-primary fw-semibold" id="detalleEnvioAccion"></span>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Usuario</p>
+                            <p class="detalle-value" id="detalleEnvioUsuario"></p>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Fecha</p>
+                            <p class="detalle-value" id="detalleEnvioFecha"></p>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Pedido</p>
+                            <p class="detalle-value" id="detalleEnvioPedido"></p>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Cliente</p>
+                            <p class="detalle-value" id="detalleEnvioCliente"></p>
+                        </div>
+                        <!--<div class="detalle-card">
+                            <p class="detalle-label">Quien realizó</p>
+                            <p class="detalle-value" id="detalleEnvioQuienRealizo"></p>
+                        </div>-->
+                    </div>
+                    <div class="detalle-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Información del envío</h6>
+                        </div>
+                        <div class="detalle-grid mb-3">
+                            <div class="detalle-card text-center">
+                                <p class="detalle-label">Medio de envío</p>
+                                <span class="detalle-chip fw-semibold" id="detalleEnvioMedio"></span>
+                            </div>
+                            <div class="detalle-card">
+                                <p class="detalle-label">Destino</p>
+                                <div class="detalle-value" id="detalleEnvioDestino"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Confirmación de Pedido -->
+    <div class="modal fade" id="modalDetalleConfirmacion" tabindex="-1" aria-labelledby="modalDetalleConfirmacionLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content modal-detalle">
+                <div class="modal-header">
+                    <div>
+                        <p class="mb-1 text-uppercase small text-white-50">Detalle de la confirmación de pedido</p>
+                        <h5 class="modal-title" id="modalDetalleConfirmacionLabel">Registro seleccionado</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="detalle-grid mb-2">
+                        <div class="detalle-card text-center">
+                            <p class="detalle-label">Acción</p>
+                            <span class="detalle-chip bg-primary-subtle text-primary fw-semibold" id="detalleConfirmacionAccion"></span>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Usuario</p>
+                            <p class="detalle-value" id="detalleConfirmacionUsuario"></p>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Fecha</p>
+                            <p class="detalle-value" id="detalleConfirmacionFecha"></p>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Pedido</p>
+                            <p class="detalle-value" id="detalleConfirmacionPedido"></p>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Cliente</p>
+                            <p class="detalle-value" id="detalleConfirmacionCliente"></p>
+                        </div>
+                    </div>
+
+                    <div class="detalle-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Información de la confirmación</h6>
+                        </div>
+                        <div class="detalle-grid mb-3">
+                            <div class="detalle-card text-center">
+                                <p class="detalle-label">Tipo de confirmación</p>
+                                <span class="detalle-chip fw-semibold" id="detalleConfirmacionTipo"></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
