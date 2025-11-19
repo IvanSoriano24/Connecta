@@ -1,4 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require __DIR__ . '/../../vendor/autoload.php';
 use Kreait\Firebase\Factory;
 
@@ -9,6 +13,7 @@ error_reporting(E_ALL);
 require 'firebase.php';
 require_once '../PHPMailer/clsMail.php';
 include 'reportes.php';
+require_once 'bitacora.php';
 
 function obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae)
 {
@@ -1111,81 +1116,6 @@ function notificaciones($firebaseProjectId, $firebaseApiKey)
 
 function pedidos($firebaseProjectId, $firebaseApiKey, $filtroStatus, $conexionData)
 {
-    /*
-    $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/PEDIDOS_AUTORIZAR?key=$firebaseApiKey";
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'GET',
-            'header' => "Content-Type: application/json\r\n"
-        ]
-    ]);
-
-    $response = @file_get_contents($url, false, $context);
-
-    if ($response === false) {
-        echo json_encode(['success' => false, 'message' => 'No se pudo conectar a la base de datos.']);
-        return;
-    }
-
-    $data = json_decode($response, true);
-    $pedidos = [];
-    $claveSae = $_SESSION['empresa']['claveSae'];
-    if (isset($data['documents'])) {
-        foreach ($data['documents'] as $document) {
-            $fields = $document['fields'];
-            if ($fields['claveSae']['stringValue'] === $claveSae) {
-                $status = $fields['status']['stringValue'] ?? 'Desconocido';
-
-                // Validaciones necesarias
-                //$claveSae = $fields['claveSae']['stringValue'] ?? '';
-                $noEmpresa = $fields['noEmpresa']['integerValue'] ?? '';
-                $claveCliente = $fields['cliente']['stringValue'] ?? '';
-                $claveVendedor = $fields['vendedor']['stringValue'] ?? '';
-
-                // Aplicar el filtro de estado si está definido
-                if ($filtroStatus === '' || $status === $filtroStatus) {
-                    // Extraer partidas y calcular total
-                    $totalPedido = 0;
-                    $partidas = $fields['partidas']['arrayValue']['values'] ?? [];
-
-                    foreach ($partidas as $partida) {
-                        if (isset($partida['mapValue']['fields']['subtotal']['stringValue'])) {
-                            $subtotal = floatval($partida['mapValue']['fields']['subtotal']['stringValue']);
-                            $totalPedido += $subtotal;
-                        }
-                    }
-
-                    // Obtener datos del cliente
-                    $dataCliente = obtenerDatosCliente($conexionData, $claveCliente, $claveSae, $claveVendedor);
-                    $clienteNombre = $dataCliente['cliente'] ?? 'Cliente Desconocido';
-                    $vendedorNombre = $dataCliente['vendedor'] ?? 'Vendedor Desconocido';
-
-
-                    // Formatear datos correctamente
-                    $pedidos[] = [
-                        'id' => basename($document['name']),
-                        'folio' => $fields['folio']['stringValue'] ?? 'N/A',
-                        'cliente' => $clienteNombre,
-                        'enviar' => $fields['enviar']['stringValue'] ?? 'N/A',
-                        'vendedor' => $vendedorNombre,
-                        'diaAlta' => $fields['diaAlta']['stringValue'] ?? 'N/A',
-                        'claveSae' => $fields['claveSae']['stringValue'] ?? 'N/A',
-                        'noEmpresa' => $noEmpresa,
-                        'status' => $status,
-                        'totalPedido' => number_format(floatval($fields['importe']['doubleValue']), 2, '.', '') ?? "0.0", // 🔹 Total formateado con 2 decimales
-                    ];
-                }
-            } else {
-            }
-        }
-        // Ordenar los pedidos por totalPedido de manera descendente
-        usort($pedidos, function ($a, $b) {
-            return $b['folio'] <=> $a['folio'];
-        });
-    }
-
-    echo json_encode(['success' => true, 'data' => $pedidos]);*/
     $noEmpresa = $_SESSION['empresa']['noEmpresa'];
     $collection = "PEDIDOS_AUTORIZAR";
     $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId"
@@ -1460,6 +1390,14 @@ function pedidoAutorizado($firebaseProjectId, $firebaseApiKey, $pedidoId, $folio
         $CVE_DOC = str_pad($CVE_DOC, 20, ' ', STR_PAD_LEFT);
         $rutaPDF = generarPDFP($CVE_DOC, $conexionData, $claveSae, $noEmpresa, $vend, $folio);
         validarCorreoCliente($CVE_DOC, $conexionData, $rutaPDF, $claveSae, $folio, $firebaseProjectId, $firebaseApiKey, $pedidoId, $noEmpresa, $vend);
+        
+        // Registrar en bitácora
+        $nombreUsuario = $_SESSION['usuario']['nombre'] ?? 'Sistema';
+        $camposModulo = [
+            'folioPedido' => $folio
+        ];
+        agregarBitacora($nombreUsuario, "PEDIDOS", "Pedido Autorizado", (int)$noEmpresa, $camposModulo);
+        
         //echo json_encode(['success' => true, 'message' => 'Pedido Autorizado.']);
     }
 }
@@ -1803,6 +1741,13 @@ function pedidoRechazado($vendedor, $nombreCliente, $folio, $firebaseProjectId, 
         $error = error_get_last();
         echo json_encode(['success' => false, 'message' => 'Error al Autorizar el pedido.', 'error' => $error['message']]);
     } else {
+        // Registrar en bitácora
+        $nombreUsuario = $_SESSION['usuario']['nombre'] ?? 'Sistema';
+        $camposModulo = [
+            'folioPedido' => $folio
+        ];
+        agregarBitacora($nombreUsuario, "PEDIDOS", "Pedido Rechazado", (int)$noEmpresa, $camposModulo);
+        
         $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
         $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
         // Crear el cuerpo de la solicitud para la API

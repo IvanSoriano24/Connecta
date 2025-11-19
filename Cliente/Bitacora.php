@@ -568,6 +568,58 @@ session_destroy(); */
         </div>
     </div>
 
+    <!-- Modal para Autorización de Pedido -->
+    <div class="modal fade" id="modalDetalleAutorizacion" tabindex="-1" aria-labelledby="modalDetalleAutorizacionLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content modal-detalle">
+                <div class="modal-header">
+                    <div>
+                        <p class="mb-1 text-uppercase small text-white-50">Detalle de la autorización de pedido</p>
+                        <h5 class="modal-title" id="modalDetalleAutorizacionLabel">Registro seleccionado</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="detalle-grid mb-2">
+                        <div class="detalle-card text-center">
+                            <p class="detalle-label">Acción</p>
+                            <span class="detalle-chip bg-primary-subtle text-primary fw-semibold" id="detalleAutorizacionAccion"></span>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Usuario</p>
+                            <p class="detalle-value" id="detalleAutorizacionUsuario"></p>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Fecha</p>
+                            <p class="detalle-value" id="detalleAutorizacionFecha"></p>
+                        </div>
+                        <div class="detalle-card">
+                            <p class="detalle-label">Folio de Pedido</p>
+                            <p class="detalle-value" id="detalleAutorizacionPedido"></p>
+                        </div>
+                    </div>
+
+                    <div class="detalle-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Información de la autorización</h6>
+                        </div>
+                        <div class="detalle-grid mb-3">
+                            <div class="detalle-card text-center">
+                                <p class="detalle-label">Estado</p>
+                                <span class="detalle-chip fw-semibold" id="detalleAutorizacionTipo"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>

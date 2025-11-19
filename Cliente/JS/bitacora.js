@@ -5,7 +5,8 @@ const accionesPorModulo = {
         { value: "EDICION", label: "Edición" },
         { value: "CANCELACION", label: "Cancelación" },
         { value: "Envio de Confirmacion", label: "Envío de Confirmación" },
-        { value: "CONFIRMACION DE PEDIDO", label: "Confirmación de Pedido" }
+        { value: "CONFIRMACION DE PEDIDO", label: "Confirmación de Pedido" },
+        { value: "AUTORIZACION DE PEDIDO", label: "Autorización de Pedido" }
     ],
     CLIENTES: [],
     FACTURAS: []
@@ -15,6 +16,7 @@ let registrosBitacora = [];
 let modalDetalle;
 let modalDetalleEnvio;
 let modalDetalleConfirmacion;
+let modalDetalleAutorizacion;
 let paginaActual = 1;
 let registrosPorPagina = 10;
 let totalPaginas = 1;
@@ -28,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     modalDetalle = new bootstrap.Modal(document.getElementById("modalDetalleBitacora"));
     modalDetalleEnvio = new bootstrap.Modal(document.getElementById("modalDetalleEnvioConfirmacion"));
     modalDetalleConfirmacion = new bootstrap.Modal(document.getElementById("modalDetalleConfirmacion"));
+    modalDetalleAutorizacion = new bootstrap.Modal(document.getElementById("modalDetalleAutorizacion"));
 
     moduloFiltro.addEventListener("change", () => {
         actualizarAcciones(moduloFiltro.value);
@@ -179,13 +182,24 @@ function renderizarTabla() {
             const campos = registro.camposModulo || {};
             const fecha = new Date(registro.creacion || Date.now()).toLocaleString("es-MX");
 
+            // Determinar el badge según la acción
+            let badgeClass = "bg-info text-dark";
+            if (registro.accion === "Pedido Autorizado") {
+                badgeClass = "bg-success text-white";
+            } else if (registro.accion === "Pedido Rechazado") {
+                badgeClass = "bg-danger text-white";
+            }
+
+            // Obtener el folio del pedido (puede estar en pedidoID o folioPedido)
+            const folioPedido = campos.pedidoID || campos.folioPedido || "-";
+
             return `
                 <tr>
                     <td>${registro.num ?? "-"}</td>
-                    <td><span class="badge bg-info text-dark badge-accion">${registro.accion}</span></td>
+                    <td><span class="badge ${badgeClass} badge-accion">${registro.accion}</span></td>
                     <td>${registro.usuario || "-"}</td>
                     <td>${fecha}</td>
-                    <td>${campos.pedidoID || "-"}</td>
+                    <td>${folioPedido}</td>
                     <td>${campos.clienteID || "-"}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary btn-detalle-bitacora" data-index="${inicio + index}">
@@ -211,6 +225,12 @@ function mostrarDetalleRegistro(index) {
     // Si es "Confirmación de Pedido", usar el modal específico
     if (registro.accion === "Confirmación de Pedido") {
         mostrarDetalleConfirmacion(registro);
+        return;
+    }
+
+    // Si es "Pedido Autorizado" o "Pedido Rechazado", usar el modal de autorización
+    if (registro.accion === "Pedido Autorizado" || registro.accion === "Pedido Rechazado") {
+        mostrarDetalleAutorizacion(registro);
         return;
     }
 
@@ -301,6 +321,34 @@ function mostrarDetalleConfirmacion(registro) {
     }
 
     modalDetalleConfirmacion.show();
+}
+
+function mostrarDetalleAutorizacion(registro) {
+    const campos = registro.camposModulo || {};
+    const fecha = new Date(registro.creacion || Date.now()).toLocaleString("es-MX");
+
+    // Información general
+    document.getElementById("detalleAutorizacionAccion").textContent = registro.accion || "-";
+    document.getElementById("detalleAutorizacionUsuario").textContent = registro.usuario || "-";
+    document.getElementById("detalleAutorizacionFecha").textContent = fecha;
+    document.getElementById("detalleAutorizacionPedido").textContent = campos.folioPedido || "-";
+
+    // Tipo de acción (Autorizado o Rechazado)
+    const tipoAccion = registro.accion || "-";
+    const tipoChip = document.getElementById("detalleAutorizacionTipo");
+    tipoChip.textContent = tipoAccion;
+    
+    // Aplicar estilos según el tipo
+    tipoChip.className = "detalle-chip fw-semibold";
+    if (tipoAccion === "Pedido Autorizado") {
+        tipoChip.classList.add("bg-success-subtle", "text-success");
+    } else if (tipoAccion === "Pedido Rechazado") {
+        tipoChip.classList.add("bg-danger-subtle", "text-danger");
+    } else {
+        tipoChip.classList.add("bg-secondary-subtle", "text-secondary");
+    }
+
+    modalDetalleAutorizacion.show();
 }
 
 function renderizarProductos(productos, cambios) {

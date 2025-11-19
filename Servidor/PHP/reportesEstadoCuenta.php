@@ -757,29 +757,18 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
     // Encabezado con logotipo e información principal
     $logoPath = realpath(__DIR__ . '/../../Cliente/SRC/logoInterzenda.PNG');
     $margins = $pdf->getMargins();
-    $logoX = $margins['left'];
-    $logoY = 16;
+    $headerY = 16;
     $logoWidth = 42;
-    $logoBottomY = $logoY;
-
-    if ($logoPath && file_exists($logoPath)) {
-        $logoPath = str_replace('\\', '/', $logoPath);
-        $pdf->Image($logoPath, $logoX, $logoY, $logoWidth, 0, '', '', '', false, 300);
-        $logoBottomY = $pdf->GetY();
-    }
 
     $logoDisponible = $logoPath && file_exists($logoPath);
     $usableWidth = $pdf->getPageWidth() - $margins['left'] - $margins['right'];
 
-    // Replicar desplazamiento del bloque de crédito dentro de la tarjeta (50% columna izquierda + 2% de separación + padding lateral)
-    $cardPaddingX = 14 * 0.352777778; // 14px en mm aprox. (ajustado para PDF)
-    $innerCardWidth = max($usableWidth - ($cardPaddingX * 2), 10);
-    $creditColumnStart = $margins['left'] + $cardPaddingX + ($innerCardWidth * 0.52);
-    $creditRightEdge = $margins['left'] + $usableWidth - $cardPaddingX;
-    $headerStartX = $logoDisponible ? max($logoX + $logoWidth + 8, $creditColumnStart) : $creditColumnStart;
-    $headerWidth = max($creditRightEdge - $headerStartX, 60);
+    // Título en el lado izquierdo
+    $headerStartX = $margins['left'];
+    $headerWidth = $usableWidth;
 
-    $pdf->SetXY($headerStartX, $logoY);
+    // Colocar título primero (lado izquierdo)
+    $pdf->SetXY($headerStartX, $headerY);
     $pdf->SetFont('helvetica', 'B', 16);
     $pdf->SetTextColor(63, 43, 140);
     $pdf->Cell($headerWidth, 9, htmlspecialchars($tituloReporte), 0, 2, 'L');
@@ -790,11 +779,25 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
 
     $pdf->SetTextColor(0, 0, 0);
 
+    // Replicar desplazamiento del bloque de crédito dentro de la tarjeta (50% columna izquierda + 2% de separación + padding lateral)
+    $cardPaddingX = 14 * 0.352777778; // 14px en mm aprox. (ajustado para PDF)
+    $innerCardWidth = max($usableWidth - ($cardPaddingX * 2), 10);
+    $creditColumnStart = $margins['left'] + $cardPaddingX + ($innerCardWidth * 0.52);
+    $creditRightEdge = $margins['left'] + $usableWidth - $cardPaddingX;
+
     $limiteCreditoTexto = '$' . number_format($limiteCreditoCliente, 2);
     $saldoClienteTexto = '$' . number_format($saldoCliente, 2);
     $cuentaSTPTexto = $cuentaSTP !== '' ? htmlspecialchars($cuentaSTP) : 'No registrada';
-    $headerBottomY = max($logoY + ($logoWidth * 0.5), $pdf->GetY());
+    $headerBottomY = $pdf->GetY();
     $pdf->SetY($headerBottomY + 12);
+    
+    // Calcular posición Y para alinear el logo con los datos del cliente
+    // La tabla tiene padding de 10px (3.53mm) arriba
+    // Colocar el logo más arriba, alineado con el inicio de la sección de datos del cliente
+    $clienteDataStartY = $pdf->GetY();
+    $tablePaddingTop = 10 * 0.352777778; // 10px en mm (padding-top de la tabla)
+    // Colocar el logo más arriba, alineado con "Límite de crédito" y "Saldo del cliente"
+    $logoY = $clienteDataStartY + $tablePaddingTop + -38; // Offset pequeño para alineación precisa
 
     $resumenHtml = "
         <table cellspacing='0' cellpadding='0' style='width:100%; border-collapse:collapse; font-size:9px;'>
@@ -842,6 +845,18 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
         </table>
     ";
     $pdf->writeHTML($resumenHtml, false, false, false, false, '');
+    
+    // Colocar logo DESPUÉS de renderizar la tabla HTML, alineado verticalmente con los datos del cliente
+    if ($logoPath && file_exists($logoPath)) {
+        $logoPath = str_replace('\\', '/', $logoPath);
+        // Alinear el logo con la columna derecha (datos de crédito)
+        // La columna derecha empieza en aproximadamente 52% del ancho (50% + 2% separación)
+        // Colocar el logo alineado con el inicio de esa columna, pero ajustado para mejor alineación visual
+        $logoX = $creditColumnStart + 20; // Ajustar un poco a la izquierda para mejor alineación
+        // Colocar el logo en la posición Y calculada (centrado verticalmente con la sección de crédito)
+        $pdf->Image($logoPath, $logoX, $logoY, $logoWidth, 0, '', '', '', false, 300);
+    }
+    
     $pdf->Ln(6);
 
     // Tabla de datos estilizada

@@ -35,12 +35,13 @@ $fechaFin = trim($input['fechaFin'] ?? '');
 
 $accionesPermitidas = [
     'PEDIDOS' => [
-        'TODAS'       => ['Pedido Anticipado', 'Pedido Con Credito', 'Edicion de Pedido', 'Cancelacion de Pedido', 'Envio de Confirmacion'],
+        'TODAS'       => ['Pedido Anticipado', 'Pedido Con Credito', 'Edicion de Pedido', 'Cancelacion de Pedido', 'Envio de Confirmacion', 'Pedido Autorizado', 'Pedido Rechazado'],
         'CREACION'    => ['Pedido Anticipado', 'Pedido Con Credito'],
         'EDICION'     => ['Edicion de Pedido'],
         'CANCELACION' => ['Cancelacion de Pedido'],
         'ENVIO DE CONFIRMACION' => ['Envio de Confirmacion'],
         'CONFIRMACION DE PEDIDO' => ['CONFIRMACION'],
+        'AUTORIZACION DE PEDIDO' => ['Pedido Autorizado', 'Pedido Rechazado'],
     ],
     'CLIENTES' => [],
     'FACTURAS' => [],
@@ -127,11 +128,28 @@ function consultarBitacoraPorFiltros(string $modulo, array $acciones, string $fo
         $valorFolio = ctype_digit($folio)
             ? ['integerValue' => (int)$folio]
             : ['stringValue' => $folio];
+        
+        // Para acciones de autorización, buscar en folioPedido también
+        // Usamos OR para buscar en ambos campos
         $filters[] = [
-            'fieldFilter' => [
-                'field' => ['fieldPath' => 'camposModulo.pedidoID'],
-                'op' => 'EQUAL',
-                'value' => $valorFolio,
+            'compositeFilter' => [
+                'op' => 'OR',
+                'filters' => [
+                    [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => 'camposModulo.pedidoID'],
+                            'op' => 'EQUAL',
+                            'value' => $valorFolio,
+                        ],
+                    ],
+                    [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => 'camposModulo.folioPedido'],
+                            'op' => 'EQUAL',
+                            'value' => $valorFolio,
+                        ],
+                    ],
+                ],
             ],
         ];
     }
@@ -242,6 +260,11 @@ function consultarBitacoraPorFiltros(string $modulo, array $acciones, string $fo
             if (json_last_error() === JSON_ERROR_NONE) {
                 $camposModulo['cambiosProductos'] = $cambios;
             }
+        }
+
+        // Para acciones de autorización, el folio puede estar en folioPedido
+        if (isset($camposModulo['folioPedido']) && !isset($camposModulo['pedidoID'])) {
+            $camposModulo['pedidoID'] = $camposModulo['folioPedido'];
         }
 
         $idDocumento = obtenerIdDocumentoFirestore($documento['name'] ?? '');
