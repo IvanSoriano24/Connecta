@@ -54,7 +54,26 @@ if (!$esAdministrador && $claveVendedor) {
     $claveVendedorFormateada = formatearClaveVendedor($claveVendedor);
 }
 
-// Estadísticas de ventas activas (todas, sin filtro de fecha)
+// Obtener filtros de fecha (pueden venir por POST o GET)
+$fechaInicio = null;
+$fechaFin = null;
+
+// Leer datos JSON si vienen por POST
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+
+if ($data && isset($data['fechaInicio']) && isset($data['fechaFin'])) {
+    $fechaInicio = $data['fechaInicio'];
+    $fechaFin = $data['fechaFin'];
+} elseif (isset($_POST['fechaInicio']) && isset($_POST['fechaFin'])) {
+    $fechaInicio = $_POST['fechaInicio'];
+    $fechaFin = $_POST['fechaFin'];
+} elseif (isset($_GET['fechaInicio']) && isset($_GET['fechaFin'])) {
+    $fechaInicio = $_GET['fechaInicio'];
+    $fechaFin = $_GET['fechaFin'];
+}
+
+// Estadísticas de ventas activas
 // Usar LEFT JOIN como en ventas.php y filtrar por CAMPLIB3
 $sqlActivas = "
     SELECT 
@@ -65,7 +84,7 @@ $sqlActivas = "
     WHERE LTRIM(RTRIM(clib.CAMPLIB3)) = 'A'
 ";
 
-// Estadísticas de ventas vendidas (todas, sin filtro de fecha)
+// Estadísticas de ventas vendidas
 $sqlVendidas = "
     SELECT 
         COUNT(DISTINCT f.CVE_DOC) AS totalPedidos,
@@ -82,8 +101,18 @@ $paramsVendidas = [];
 if (!$esAdministrador && $claveVendedorFormateada) {
     $sqlActivas .= " AND f.CVE_VEND = ?";
     $sqlVendidas .= " AND f.CVE_VEND = ?";
-    $paramsActivas = [$claveVendedorFormateada];
-    $paramsVendidas = [$claveVendedorFormateada];
+    $paramsActivas[] = $claveVendedorFormateada;
+    $paramsVendidas[] = $claveVendedorFormateada;
+}
+
+// Aplicar filtro de fecha si se proporcionó
+if ($fechaInicio && $fechaFin) {
+    $sqlActivas .= " AND CAST(f.FECHAELAB AS DATE) >= ? AND CAST(f.FECHAELAB AS DATE) <= ?";
+    $sqlVendidas .= " AND CAST(f.FECHAELAB AS DATE) >= ? AND CAST(f.FECHAELAB AS DATE) <= ?";
+    $paramsActivas[] = $fechaInicio;
+    $paramsActivas[] = $fechaFin;
+    $paramsVendidas[] = $fechaInicio;
+    $paramsVendidas[] = $fechaFin;
 }
 
 // Ejecutar consulta de activas
@@ -132,6 +161,124 @@ if ($stmtVendidas) {
     error_log("Error en consulta vendidas: " . json_encode($debugInfo));
 }
 
+// Nombres de tablas adicionales
+$nombreTablaVEND = "[{$conexionData['nombreBase']}].[dbo].[VEND" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+$nombreTablaCLIE = "[{$conexionData['nombreBase']}].[dbo].[CLIE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+$nombreTablaPAR = "[{$conexionData['nombreBase']}].[dbo].[PAR_FACTP" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+$nombreTablaINVE = "[{$conexionData['nombreBase']}].[dbo].[INVE" . str_pad($claveSae, 2, "0", STR_PAD_LEFT) . "]";
+
+// Consulta para obtener el vendedor con mayores ventas
+$sqlVendedorTop = "
+    SELECT TOP 1
+        v.CVE_VEND,
+        v.NOMBRE,
+        COUNT(DISTINCT f.CVE_DOC) AS totalVentas,
+        ISNULL(SUM(f.IMPORTE), 0) AS totalImporte
+    FROM $nombreTabla2 f
+    LEFT JOIN $nombreTablaCLIB clib ON clib.CLAVE_DOC = f.CVE_DOC
+    LEFT JOIN $nombreTablaVEND v ON v.CVE_VEND = f.CVE_VEND
+    WHERE LTRIM(RTRIM(clib.CAMPLIB3)) = 'V'
+";
+
+// Consulta para obtener el cliente con más compras
+$sqlClienteTop = "
+    SELECT TOP 1
+        c.CLAVE,
+        c.NOMBRE,
+        COUNT(DISTINCT f.CVE_DOC) AS totalCompras,
+        ISNULL(SUM(f.IMPORTE), 0) AS totalImporte
+    FROM $nombreTabla2 f
+    LEFT JOIN $nombreTablaCLIB clib ON clib.CLAVE_DOC = f.CVE_DOC
+    LEFT JOIN $nombreTablaCLIE c ON c.CLAVE = f.CVE_CLPV
+    WHERE LTRIM(RTRIM(clib.CAMPLIB3)) = 'V'
+";
+
+// Consulta para obtener el producto más vendido
+$sqlProductoTop = "
+    SELECT TOP 1
+        i.CVE_ART,
+        i.DESCR,
+        SUM(p.CANT) AS totalCantidad,
+        COUNT(DISTINCT p.CVE_DOC) AS totalPedidos
+    FROM $nombreTablaPAR p
+    INNER JOIN $nombreTabla2 f ON p.CVE_DOC = f.CVE_DOC
+    LEFT JOIN $nombreTablaCLIB clib ON clib.CLAVE_DOC = f.CVE_DOC
+    LEFT JOIN $nombreTablaINVE i ON i.CVE_ART = p.CVE_ART
+    WHERE LTRIM(RTRIM(clib.CAMPLIB3)) = 'V'
+";
+
+// Aplicar filtro por vendedor si NO es administrador
+$paramsVendedorTop = [];
+$paramsClienteTop = [];
+$paramsProductoTop = [];
+if (!$esAdministrador && $claveVendedorFormateada) {
+    $sqlVendedorTop .= " AND f.CVE_VEND = ?";
+    $sqlClienteTop .= " AND f.CVE_VEND = ?";
+    $sqlProductoTop .= " AND f.CVE_VEND = ?";
+    $paramsVendedorTop[] = $claveVendedorFormateada;
+    $paramsClienteTop[] = $claveVendedorFormateada;
+    $paramsProductoTop[] = $claveVendedorFormateada;
+}
+
+// Aplicar filtro de fecha si se proporcionó
+if ($fechaInicio && $fechaFin) {
+    $sqlVendedorTop .= " AND CAST(f.FECHAELAB AS DATE) >= ? AND CAST(f.FECHAELAB AS DATE) <= ?";
+    $sqlClienteTop .= " AND CAST(f.FECHAELAB AS DATE) >= ? AND CAST(f.FECHAELAB AS DATE) <= ?";
+    $sqlProductoTop .= " AND CAST(f.FECHAELAB AS DATE) >= ? AND CAST(f.FECHAELAB AS DATE) <= ?";
+    $paramsVendedorTop[] = $fechaInicio;
+    $paramsVendedorTop[] = $fechaFin;
+    $paramsClienteTop[] = $fechaInicio;
+    $paramsClienteTop[] = $fechaFin;
+    $paramsProductoTop[] = $fechaInicio;
+    $paramsProductoTop[] = $fechaFin;
+}
+
+$sqlVendedorTop .= " GROUP BY v.CVE_VEND, v.NOMBRE ORDER BY totalVentas DESC, totalImporte DESC";
+$sqlClienteTop .= " GROUP BY c.CLAVE, c.NOMBRE ORDER BY totalCompras DESC, totalImporte DESC";
+$sqlProductoTop .= " GROUP BY i.CVE_ART, i.DESCR ORDER BY totalCantidad DESC";
+
+// Ejecutar consulta de vendedor top
+$vendedorTop = ['nombre' => '-', 'ventas' => 0];
+$stmtVendedorTop = sqlsrv_query($conn, $sqlVendedorTop, $paramsVendedorTop);
+if ($stmtVendedorTop) {
+    $row = sqlsrv_fetch_array($stmtVendedorTop, SQLSRV_FETCH_ASSOC);
+    if ($row && $row['NOMBRE']) {
+        $vendedorTop = [
+            'nombre' => trim($row['NOMBRE']),
+            'ventas' => (int)$row['totalVentas']
+        ];
+    }
+    sqlsrv_free_stmt($stmtVendedorTop);
+}
+
+// Ejecutar consulta de cliente top
+$clienteTop = ['nombre' => '-', 'compras' => 0];
+$stmtClienteTop = sqlsrv_query($conn, $sqlClienteTop, $paramsClienteTop);
+if ($stmtClienteTop) {
+    $row = sqlsrv_fetch_array($stmtClienteTop, SQLSRV_FETCH_ASSOC);
+    if ($row && $row['NOMBRE']) {
+        $clienteTop = [
+            'nombre' => trim($row['NOMBRE']),
+            'compras' => (int)$row['totalCompras']
+        ];
+    }
+    sqlsrv_free_stmt($stmtClienteTop);
+}
+
+// Ejecutar consulta de producto top
+$productoTop = ['nombre' => '-', 'cantidad' => 0];
+$stmtProductoTop = sqlsrv_query($conn, $sqlProductoTop, $paramsProductoTop);
+if ($stmtProductoTop) {
+    $row = sqlsrv_fetch_array($stmtProductoTop, SQLSRV_FETCH_ASSOC);
+    if ($row && $row['DESCR']) {
+        $productoTop = [
+            'nombre' => trim($row['DESCR']),
+            'cantidad' => (float)$row['totalCantidad']
+        ];
+    }
+    sqlsrv_free_stmt($stmtProductoTop);
+}
+
 sqlsrv_close($conn);
 
 // Preparar respuesta con información de debug (solo en desarrollo)
@@ -140,7 +287,10 @@ $response = [
     'data' => [
         'activas' => $activas,
         'vendidas' => $vendidas,
-        'totalDineroVendido' => $vendidas['totalImporte']
+        'totalDineroVendido' => $vendidas['totalImporte'],
+        'vendedorTop' => $vendedorTop,
+        'clienteTop' => $clienteTop,
+        'productoTop' => $productoTop
     ]
 ];
 
