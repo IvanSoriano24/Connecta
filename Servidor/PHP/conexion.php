@@ -21,7 +21,8 @@ function login($funcion)
             $response = file_get_contents($url);
 
             if ($response === false) {
-                header("Location: /index.php?error=4");
+                //header("Location: /index.php?error=4");
+                header("Location: ../../Cliente/index.php?error=4");
                 die("Error al conectarse con Firebase.");
             }
 
@@ -45,14 +46,14 @@ function login($funcion)
                 if ($usuarioFirebase === $usuario && (password_verify($password, $passwordFirebase))) {
                 //if ($usuarioFirebase === $usuario && $passwordFirebase == $password) {
                     if ($statusFirebase === 'Bloqueado') {
-                        header("Location: /index.php?error=2");
-                        //header("Location: ../../Cliente/index.php?error=2");
+                        //header("Location: /index.php?error=2");
+                        header("Location: ../../Cliente/index.php?error=2");
                         exit();
                     }
 
                     if ($statusFirebase === 'Baja') {
-                        header("Location: /index.php?error=3");
-                        //header("Location: ../../Cliente/index.php?error=3");
+                        //header("Location: /index.php?error=3");
+                        header("Location: ../../Cliente/index.php?error=3");
                         exit();
                     }
 
@@ -90,20 +91,20 @@ function login($funcion)
                     if (!$resultadoConexion['success']) {
                         cerrarSesion();
                         echo json_encode($resultadoConexion);
-                        //header("Location: ../../Cliente/index.php?error=4");
-                        header("Location: /index.php?error=4");
+                        header("Location: ../../Cliente/index.php?error=4");
+                        //header("Location: /index.php?error=4");
                         exit();
                     }
-                    header("Location: /Menu.php");
-                    //header("Location: ../../Cliente/Menu.php");
+                    //header("Location: /Menu.php");
+                    header("Location: ../../Cliente/Menu.php");
                     exit();
                 }
-                header("Location: /Dashboard.php");
-                //header("Location: ../../Cliente/Dashboard.php");
+                //header("Location: /Dashboard.php");
+                header("Location: ../../Cliente/Dashboard.php");
                 exit();
             } else {
-                header("Location: /index.php?error=1");
-                //header("Location: ../../Cliente/index.php?error=1");
+                //header("Location: /index.php?error=1");
+                header("Location: ../../Cliente/index.php?error=1");
                 exit();
             }
         }
