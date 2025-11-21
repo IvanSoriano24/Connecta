@@ -42,13 +42,46 @@ $connectionInfo = [
     "Database" => $conexionData['nombreBase'],
     "UID" => $conexionData['usuario'],
     "PWD" => $conexionData['password'],
-    "CharacterSet" => "UTF-8"
+    "CharacterSet" => "UTF-8",
+    "TrustServerCertificate" => true
 ];
 
 $conn = sqlsrv_connect($serverName, $connectionInfo);
 
 if ($conn === false) {
-    echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos']);
+    $errors = sqlsrv_errors();
+    $errorMessage = 'Error al conectar con la base de datos';
+    $errorDetails = [];
+    
+    if ($errors) {
+        foreach ($errors as $error) {
+            $errorDetails[] = [
+                'code' => $error['code'],
+                'message' => $error['message'],
+                'SQLSTATE' => $error['SQLSTATE']
+            ];
+        }
+        $errorMessage .= ': ' . $errors[0]['message'];
+    }
+    
+    $response = [
+        'success' => false,
+        'message' => $errorMessage,
+        'serverName' => $serverName,
+        'database' => $conexionData['nombreBase']
+    ];
+    
+    // Solo incluir detalles de error en modo debug
+    if (isset($_GET['debug'])) {
+        $response['errors'] = $errorDetails;
+        $response['connectionInfo'] = [
+            'host' => $serverName,
+            'database' => $conexionData['nombreBase'],
+            'usuario' => $conexionData['usuario']
+        ];
+    }
+    
+    echo json_encode($response);
     exit;
 }
 
