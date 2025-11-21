@@ -72,7 +72,6 @@ if (isset($_SESSION['usuario'])) {
 			/* Difumina el fondo mientras un modal está abierto */
 		}
 	</style>
-
 	<style>
 		/* CSS */
 		.search-head {

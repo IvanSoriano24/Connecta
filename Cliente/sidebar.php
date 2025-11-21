@@ -157,8 +157,8 @@
     <ul class="side-menu top">
 
         <a href="Dashboard.php" class="brand" tabindex="-1">
-            <img src="SRC/imagen.png" alt="Logo grande" id="logoGrande">
-            <img src="SRC/imagen-small.png" alt="Logo pequeño" id="logoChico">
+            <img src="SRC/logomd.png" alt="Logo grande" id="logoGrande">
+            <img src="SRC/logomd.png" alt="Logo pequeño" id="logoChico">
         </a>
         <li class="active">
             <a href="Dashboard.php" title="Dashboard" tabindex="-1">

@@ -36,9 +36,9 @@ if (isset($_SESSION["usuario"])) {
         <div id="divContenedor" class="form-container sign-up-container">
             <form id="form" method="POST" action="../Servidor/PHP/conexion.php">
                 <div id="divLogo">
-                    <img src="SRC/imagen.png" alt="Logo" id="logo"> <br>
+                    <img src="SRC/logomd.png" alt="Logo" id="logo"> <br>
                     <span class="txt">
-                        Grupo <br> Interzenda
+                        MDCloud
                     </span>
                 </div>
 

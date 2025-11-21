@@ -17,14 +17,14 @@ class clsMail
     /*private $defaultUser = 'mdc2401042j9@gmail.com'; // Correo por defecto
     private $defaultPass = 'byxj qfob tdvj vbbw'; // Contraseña por defecto*/
 
-    private $defaultUser = 'Servicioalcliente@grupointerzenda.com'; // Correo por defecto
-    private $defaultPass = 'aB159263#1#'; // Contraseña por defecto
+    /*private $defaultUser = 'Servicioalcliente@grupointerzenda.com'; // Correo por defecto
+    private $defaultPass = 'aB159263#1#'; // Contraseña por defecto*/
 
     /*private $defaultUser = 'sonicjos.ys@gmail.com'; // Correo por defecto
     private $defaultPass = 'dnfb fyvb qpuk xqml'; // Contraseña por defecto*/
 
-    //private $defaultUser = 'josemanuelnavarroreval@gmail.com'; // Correo por defecto
-    //private $defaultPass = 'ntdc qhcf ymxm guks'; // Contraseña por defecto
+    private $defaultUser = 'josemanuelnavarroreval@gmail.com'; // Correo por defecto
+    private $defaultPass = 'ntdc qhcf ymxm guks'; // Contraseña por defecto
 
     public function __construct()
     {
@@ -32,10 +32,10 @@ class clsMail
         $this->mail->isSMTP();
         $this->mail->SMTPAuth = true;
         $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Cifrado TLS
-        //$this->mail->Host = 'smtp.gmail.com'; // Servidor SMTP de Gmail
-        $this->mail->Host = 'mail.grupointerzenda.com';
-        //$this->mail->Port = 587; // Puerto para TLS
+        $this->mail->Host = 'smtp.gmail.com'; // Servidor SMTP de Gmail
+        //$this->mail->Host = 'mail.grupointerzenda.com';
         $this->mail->Port = 587; // Puerto para TLS
+        //$this->mail->Port = 587; // Puerto para TLS
         $this->mail->CharSet = 'UTF-8'; // Codificación
     }
 

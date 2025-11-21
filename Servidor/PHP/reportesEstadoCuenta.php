@@ -3,7 +3,7 @@
 // Intentar cargar TCPDF desde Composer primero
 if (file_exists(__DIR__ . '/../../vendor/tecnickcom/tcpdf/tcpdf.php')) {
     require_once __DIR__ . '/../../vendor/tecnickcom/tcpdf/tcpdf.php';
-} 
+}
 // Si no está en Composer, usar la versión local existente en el proyecto
 /*elseif (file_exists(__DIR__ . '/../XML/sdk2/lib/modulos/html2pdf_fe_ticket/tcpdf_min/tcpdf.php')) {
     require_once __DIR__ . '/../XML/sdk2/lib/modulos/html2pdf_fe_ticket/tcpdf_min/tcpdf.php';
@@ -178,7 +178,7 @@ if (empty($reportes)) {
         $pdf->Ln(5);
         $pdf->SetFont('helvetica', '', 10);
         $pdf->Cell(0, 10, 'No se encontraron datos para el reporte.', 0, 1, 'C');
-        
+
         ob_end_clean();
         header('Content-Type: application/pdf');
         $nombreArchivo = $tituloReporte . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $cliente) . '_' . date('YmdHis') . '.pdf';
@@ -192,7 +192,8 @@ if (empty($reportes)) {
 }
 
 // Función para obtener datos del estado de cuenta general
-function obtenerDatosEstadoCuentaGeneral($conexionData, $filtroFechaInicio, $filtroFechaFin, $filtroCliente) {
+function obtenerDatosEstadoCuentaGeneral($conexionData, $filtroFechaInicio, $filtroFechaFin, $filtroCliente)
+{
     try {
         $claveSae = $_SESSION['empresa']['claveSae'];
         $serverName = $conexionData['host'];
@@ -300,7 +301,8 @@ function obtenerDatosEstadoCuentaGeneral($conexionData, $filtroFechaInicio, $fil
 }
 
 // Función para obtener datos del estado de cuenta detallado
-function obtenerDatosEstadoCuentaDetalle($conexionData, $filtroFechaInicio, $filtroFechaFin, $filtroCliente) {
+function obtenerDatosEstadoCuentaDetalle($conexionData, $filtroFechaInicio, $filtroFechaFin, $filtroCliente)
+{
     try {
         $claveSae = $_SESSION['empresa']['claveSae'];
         $serverName = $conexionData['host'];
@@ -409,7 +411,7 @@ function obtenerDatosEstadoCuentaDetalle($conexionData, $filtroFechaInicio, $fil
             }
             foreach ($row as $k => $v) {
                 if (is_string($v)) $row[$k] = utf8_encode(trim($v));
-                if (in_array($k, ['CARGO','ABONO','SALDO']) && $v !== null) $row[$k] = floatval($v);
+                if (in_array($k, ['CARGO', 'ABONO', 'SALDO']) && $v !== null) $row[$k] = floatval($v);
             }
             $reportes[] = $row;
         }
@@ -467,7 +469,8 @@ function obtenerDatosEstadoCuentaDetalle($conexionData, $filtroFechaInicio, $fil
 }
 
 // Función para obtener datos de facturas no pagadas
-function obtenerDatosFacturasNoPagadas($conexionData, $filtroCliente) {
+function obtenerDatosFacturasNoPagadas($conexionData, $filtroCliente)
+{
     try {
         $claveSae = $_SESSION['empresa']['claveSae'];
         $serverName = $conexionData['host'];
@@ -609,7 +612,8 @@ function obtenerDatosFacturasNoPagadas($conexionData, $filtroCliente) {
 }
 
 // Función para obtener datos de cobranza
-function obtenerDatosCobranza($conexionData, $filtroFechaInicio, $filtroFechaFin, $filtroCliente) {
+function obtenerDatosCobranza($conexionData, $filtroFechaInicio, $filtroFechaFin, $filtroCliente)
+{
     try {
         $claveSae = $_SESSION['empresa']['claveSae'];
         $serverName = $conexionData['host'];
@@ -723,7 +727,7 @@ function obtenerDatosCobranza($conexionData, $filtroFechaInicio, $filtroFechaFin
                 'TELEFONO_CLIENTE' => $row['TELEFONO_CLIENTE'],
                 'TIPO'     => $row['TIPO'],
                 'CONCEPTO' => $row['CONCEPTO'],
-                'DOCUMENTO'=> $row['DOCUMENTO'],
+                'DOCUMENTO' => $row['DOCUMENTO'],
                 'NUM'      => $row['NUM'],
                 'FECHA_APLICACION' => $row['FECHA_APLICACION'],
                 'FECHA_VENCIMIENTO' => $row['FECHA_VENCIMIENTO'],
@@ -743,7 +747,8 @@ function obtenerDatosCobranza($conexionData, $filtroFechaInicio, $filtroFechaFin
 }
 
 // Función para generar PDF
-function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo, $cuentaSTP, $limiteCreditoCliente, $saldoCliente) {
+function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo, $cuentaSTP, $limiteCreditoCliente, $saldoCliente)
+{
     $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     $pdf->SetCreator('MDConnecta');
     $pdf->SetAuthor('MDConnecta');
@@ -755,9 +760,10 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
     $pdf->SetFont('helvetica', '', 9);
 
     // Encabezado con logotipo e información principal
-    $logoPath = realpath(__DIR__ . '/../../Cliente/SRC/logoInterzenda.PNG');
+    //$logoPath = realpath(__DIR__ . '/../../Cliente/SRC/logoInterzenda.PNG');
+    $logoPath = realpath(__DIR__ . '/../../Cliente/SRC/logomd.png');
     $margins = $pdf->getMargins();
-    $headerY = 16;
+    $headerY = 22;
     $logoWidth = 42;
 
     $logoDisponible = $logoPath && file_exists($logoPath);
@@ -790,7 +796,7 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
     $cuentaSTPTexto = $cuentaSTP !== '' ? htmlspecialchars($cuentaSTP) : 'No registrada';
     $headerBottomY = $pdf->GetY();
     $pdf->SetY($headerBottomY + 12);
-    
+
     // Calcular posición Y para alinear el logo con los datos del cliente
     // La tabla tiene padding de 10px (3.53mm) arriba
     // Colocar el logo más arriba, alineado con el inicio de la sección de datos del cliente
@@ -812,12 +818,6 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
                                     </tr>
                                     <tr>
                                         <td style='padding:4px 0 10px 0; color:#333;'>" . htmlspecialchars($clienteNombre) . "</td>
-                                    </tr>
-                                    <tr>
-                                        <td style='font-weight:bold; color:#3f2b8c;'>Favor de transferir  a la cuenta:</td>
-                                    </tr>
-                                    <tr>
-                                        <td style='padding-top:4px; color:#333;'>$cuentaSTPTexto</td>
                                     </tr>
                                 </table>
                             </td>
@@ -846,6 +846,17 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
     ";
     $pdf->writeHTML($resumenHtml, false, false, false, false, '');
     
+    // Escribir la leyenda STP directamente con métodos TCPDF para garantizar centrado y negritas
+    $currentY = $pdf->GetY();
+    $pdf->SetY($currentY + 10);
+    $pdf->SetFont('helvetica', 'B', 12);
+    //$pdf->SetTextColor(63, 43, 140); // Colorrgb(0, 0, 0)
+    $pdf->SetTextColor(0, 0, 0); // Colorrgb(0, 0, 0)
+    $stpTextoCompleto = 'Favor de transferir a la cuenta: ' . $cuentaSTPTexto;
+    $pdf->Cell(0, 10, $stpTextoCompleto, 0, 1, 'C', false, '', 0, false, 'T', 'M');
+    $pdf->SetTextColor(0, 0, 0); // Resetear color
+    $pdf->Ln(2);
+
     // Colocar logo DESPUÉS de renderizar la tabla HTML, alineado verticalmente con los datos del cliente
     if ($logoPath && file_exists($logoPath)) {
         $logoPath = str_replace('\\', '/', $logoPath);
@@ -856,8 +867,8 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
         // Colocar el logo en la posición Y calculada (centrado verticalmente con la sección de crédito)
         $pdf->Image($logoPath, $logoX, $logoY, $logoWidth, 0, '', '', '', false, 300);
     }
-    
-    $pdf->Ln(6);
+
+    $pdf->Ln(2);
 
     // Tabla de datos estilizada
     $tableStart = '<table cellpadding="6" cellspacing="0" style="width:100%; font-size:8px; border-collapse:collapse; border-spacing:0;">';
@@ -936,7 +947,7 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
             $cargo = $reporte['CARGO'] ?? '';
             $abono = $reporte['ABONO'] ?? '';
             $saldo = $reporte['SALDO'] ?? '';
-            
+
             if ($cargo !== '') {
                 $totalCargos += $cargo;
             }
@@ -966,7 +977,7 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
             $totalCargos += $montoOriginal;
             $totalAbonos += $montoPagado;
             $totalSaldo += $saldoRestante;
-            
+
             $estadoColor = '';
             if (($reporte['ESTADO_CUENTA'] ?? '') === 'VENCIDA') {
                 $estadoColor = 'color:#d32f2f; font-weight:bold;';
@@ -1049,7 +1060,7 @@ function generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fe
 // Procesar según la acción
 if ($accion === 'descargar') {
     $pdf = generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo, $cuentaSTP, $limiteCreditoCliente, $saldoCliente);
-    
+
     ob_end_clean();
     header('Content-Type: application/pdf');
     $nombreArchivo = $tituloReporte . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $cliente) . '_' . date('YmdHis') . '.pdf';
@@ -1061,25 +1072,25 @@ if ($accion === 'descargar') {
     $pdf = generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo, $cuentaSTP, $limiteCreditoCliente, $saldoCliente);
     $nombreArchivo = $tituloReporte . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $cliente) . '_' . date('YmdHis') . '.pdf';
     $rutaPDF = __DIR__ . '/pdfs/' . $nombreArchivo;
-    
+
     // Asegurar que el directorio existe
     if (!file_exists(__DIR__ . '/pdfs/')) {
         mkdir(__DIR__ . '/pdfs/', 0777, true);
     }
-    
+
     $pdf->Output($rutaPDF, 'F');
-    
+
     // URL pública del PDF
     $rutaPDFW = "https://mdconecta.mdcloud.mx/Servidor/PHP/pdfs/" . $nombreArchivo;
-    
+
     if (empty($telefonoCliente) || !preg_match('/^\d{10,15}$/', $telefonoCliente)) {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un número de teléfono válido']);
         exit;
     }
-    
+
     // Enviar por WhatsApp
     $resultado = enviarWhatsAppReporte($telefonoCliente, $clienteNombre, $tituloReporte, $rutaPDFW, $nombreArchivo);
-    
+
     if (str_contains($resultado, "error") || str_contains($resultado, "Error")) {
         echo json_encode(['success' => false, 'message' => 'Error al enviar por WhatsApp: ' . $resultado]);
     } else {
@@ -1091,22 +1102,22 @@ if ($accion === 'descargar') {
     $pdf = generarPDF($reportes, $tituloReporte, $clienteNombre, $fechaInicio, $fechaFin, $tipo, $cuentaSTP, $limiteCreditoCliente, $saldoCliente);
     $nombreArchivo = $tituloReporte . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $cliente) . '_' . date('YmdHis') . '.pdf';
     $rutaPDF = __DIR__ . '/pdfs/' . $nombreArchivo;
-    
+
     // Asegurar que el directorio existe
     if (!file_exists(__DIR__ . '/pdfs/')) {
         mkdir(__DIR__ . '/pdfs/', 0777, true);
     }
-    
+
     $pdf->Output($rutaPDF, 'F');
-    
+
     if (empty($emailCliente) || !filter_var($emailCliente, FILTER_VALIDATE_EMAIL)) {
         echo json_encode(['success' => false, 'message' => 'El cliente no tiene un correo electrónico válido']);
         exit;
     }
-    
+
     // Enviar por correo
     $resultado = enviarCorreoReporte($emailCliente, $clienteNombre, $tituloReporte, $rutaPDF, $fechaInicio, $fechaFin);
-    
+
     if ($resultado === "Correo enviado exitosamente.") {
         echo json_encode(['success' => true, 'message' => 'Reporte enviado por correo correctamente']);
     } else {
@@ -1119,7 +1130,8 @@ if ($accion === 'descargar') {
 }
 
 // Función para enviar WhatsApp
-function enviarWhatsAppReporte($numeroWhatsApp, $clienteNombre, $tituloReporte, $rutaPDFW, $filename) {
+function enviarWhatsAppReporte($numeroWhatsApp, $clienteNombre, $tituloReporte, $rutaPDFW, $filename)
+{
     $url = 'https://graph.facebook.com/v21.0/509608132246667/messages';
     $token = 'EAAQbK4YCPPcBOZBm8SFaqA0q04kQWsFtafZChL80itWhiwEIO47hUzXEo1Jw6xKRZBdkqpoyXrkQgZACZAXcxGlh2ZAUVLtciNwfvSdqqJ1Xfje6ZBQv08GfnrLfcKxXDGxZB8r8HSn5ZBZAGAsZBEvhg0yHZBNTJhOpDT67nqhrhxcwgPgaC2hxTUJSvgb5TiPAvIOupwZDZD';
 
@@ -1176,39 +1188,36 @@ function enviarWhatsAppReporte($numeroWhatsApp, $clienteNombre, $tituloReporte, 
 }
 
 // Función para enviar correo
-function enviarCorreoReporte($correo, $clienteNombre, $tituloReporte, $rutaPDF, $fechaInicio, $fechaFin) {
+function enviarCorreoReporte($correo, $clienteNombre, $tituloReporte, $rutaPDF, $fechaInicio, $fechaFin)
+{
     $mail = new clsMail();
-    
+
     $correoRemitente = $_SESSION['usuario']['correo'] ?? "";
     $contraseñaRemitente = $_SESSION['empresa']['contrasena'] ?? "";
-    
+
     if ($correoRemitente === "" || $contraseñaRemitente === "") {
         $correoRemitente = "";
         $contraseñaRemitente = "";
     }
-    
+
     $titulo = isset($_SESSION['empresa']['razonSocial']) ? $_SESSION['empresa']['razonSocial'] : 'MDConnecta';
     $asunto = $tituloReporte . ' - ' . $clienteNombre;
-    
+
     $bodyHTML = "<p>Estimado/a <b>$clienteNombre</b>,</p>";
     $bodyHTML .= "<p>Por este medio le enviamos su <b>$tituloReporte</b>.</p>";
-    
+
     if (!empty($fechaInicio) || !empty($fechaFin)) {
-        $bodyHTML .= "<p><b>Rango de fechas:</b> " . 
-            (!empty($fechaInicio) ? htmlspecialchars($fechaInicio) : 'Desde inicio') . 
-            " - " . 
-            (!empty($fechaFin) ? htmlspecialchars($fechaFin) : 'Hasta hoy') . 
+        $bodyHTML .= "<p><b>Rango de fechas:</b> " .
+            (!empty($fechaInicio) ? htmlspecialchars($fechaInicio) : 'Desde inicio') .
+            " - " .
+            (!empty($fechaFin) ? htmlspecialchars($fechaFin) : 'Hasta hoy') .
             "</p>";
     }
-    
+
     $bodyHTML .= "<p>El documento PDF se encuentra adjunto a este correo.</p>";
     $bodyHTML .= "<p>Saludos cordiales,<br>Su equipo de soporte.</p>";
-    
+
     $resultado = $mail->metEnviar($titulo, $clienteNombre, $correo, $asunto, $bodyHTML, $rutaPDF, $correoRemitente, $contraseñaRemitente);
-    
+
     return $resultado;
 }
-?>
-
-
-

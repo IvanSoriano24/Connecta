@@ -90,7 +90,7 @@ if (isset($_SESSION['usuario'])) {
                 <div class="col ms-5">
                     <h2>Bienvenido</h2>
                     <h1><span><?= $tipoUsuario ?></span></h1>
-                    <img src="SRC/logoInterzenda.png" alt="Logo" style="max-width: 20%; height: auto;">
+                    <img src="SRC/logomd.png" alt="Logo" style="max-width: 20%; height: auto;">
                 </div>
             </div>
 

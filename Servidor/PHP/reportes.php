@@ -647,7 +647,7 @@ class PDFPedido extends FPDF
             $this->Cell(120, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->datosVendedor['correo']), 0, 0, 'L');
         }
         // Logo de la empresa
-        $this->Image('../../Cliente/SRC/imagen.png', 145, 1, 0, 30); //, '', '', 'PNG'
+        $this->Image('../../Cliente/SRC/logomd.png', 145, 1, 0, 30); //, '', '', 'PNG'
         $this->Ln(10);
 
         $this->SetFont('Arial', 'B', 16);
@@ -809,7 +809,7 @@ class PDFRemision extends FPDF
             $this->Cell(120, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->datosVendedorRemision['correo']), 0, 0, 'L');
         }
         // Logo de la empresa
-        $this->Image('../../Cliente/SRC/imagen.png', 145, 1, 0, 30); //, '', '', 'PNG'
+        $this->Image('../../Cliente/SRC/logomd.png', 145, 1, 0, 30); //, '', '', 'PNG'
         $this->Ln(10);
 
         $this->SetFont('Arial', 'B', 16);
@@ -956,7 +956,7 @@ class PDFPedidoAutoriza extends FPDF
             $this->Cell(120, 9, iconv("UTF-8", "ISO-8859-1", "Email: " . $this->datosVendedorPedidoAutoriza['correo']), 0, 0, 'L');
         }
         // Logo de la empresa
-        $this->Image('../../Cliente/SRC/imagen.png', 145, 1, 0, 30); //, '', '', 'PNG'
+        $this->Image('../../Cliente/SRC/logomd.png', 145, 1, 0, 30); //, '', '', 'PNG'
         $this->Ln(10);
 
         $this->SetFont('Arial', 'B', 16);
@@ -1195,7 +1195,7 @@ class PDFFactura extends FPDF
             $this->Ln(4);
 
             // Logo de la empresa
-            $this->Image('../../Cliente/SRC/imagen.png', 145, 1, 0, 30); //, '', '', 'PNG'
+            $this->Image('../../Cliente/SRC/logomd.png', 145, 1, 0, 30); //, '', '', 'PNG'
             $this->Ln(10);
 
             $this->SetFont('Arial', 'B', 16);
