@@ -1,1 +1,3 @@
 /vendor/
+# Ignorar credenciales de Firebase
+Cliente/keys/firebase-adminsdk.json
