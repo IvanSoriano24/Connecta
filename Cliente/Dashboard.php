@@ -8,7 +8,7 @@ if (isset($_SESSION['pendiente_conexion_sae']) && $_SESSION['pendiente_conexion_
     require '../Servidor/PHP/conexion.php';
     session_unset();
     session_destroy();
-    header('Location:../index.php');
+    header('Location: index.php');
     exit();
 }
 
