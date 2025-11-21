@@ -23,138 +23,325 @@ video{
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-image: #fffefe;
+    font-family: 'Lato', Arial, sans-serif;
+    background: #f5f7fa;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
-    }
-    
-    #divContenedor {
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-        outline: 2px solid rgb(153, 219, 250); /* Usar outline para bordes internos */
-        box-shadow: 0 4px 6px rgba(68, 68, 68, 0.705);
-        width: 300px;
-        text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        position: relative; 
-        z-index: 3;
-    }
-    
-    
-    #divContenedor:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 12px rgba(11, 14, 20, 0.705);
-    }
+    padding: 20px;
+}
 
-    .txt{
-        font-family: Lato; font-size: 16px;
-    }
-
-    .txth1{
-        font-family: Lato; font-size: 22px;
-    }
-    
-    h4 {
-    color: #646464;
-    }
-    
-    label {
-    display: block;
-    text-align: left;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #1f1f1f;
-    }
-    
-    input[type="text"], input[type="password"], input[type="email"] {
-    width: 90%;
-    padding: 10px;
-    margin-bottom: 15px;
-    background-color: #cccccc94;
-    border: 1px solid #f1f1f1;
-    border-radius: 5px;
-    font-size: 14px;
-    }
-    
-    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
-    border-color: #e0e0e0;
-    outline: none;
-    }
-    
-    #divButton {
-    text-align: center;
-    
-    }
-    
-    input[type="submit"], button {
-    background-color: #c0c0c0;
-    color: #080404;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    font-size: 14px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    transition: background-color 0.3s ease, transform 0.4s ease;
-    }
-    
-    input[type="submit"]:hover, button:hover {
-    background-color: #f7f7f7;
-    transform: scale(1.1);
-    }
-    
-    .error {
-    color: rgb(250, 65, 65);
-    font-size: 12px;
-    margin-top: -10px;
-    margin-bottom: 10px;
-    text-align: left;
-    }
-    
-    .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
+.containerP {
     width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    max-width: 900px;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    }
-    
-    .modal-content {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 400px;
-    text-align: center;
+}
+
+/* Card principal con dos secciones */
+.login-card {
+    display: flex;
+    width: 100%;
+    max-width: 800px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    min-height: 500px;
+}
+
+/* Sección izquierda - Azul */
+.login-left {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 30px;
+    color: white;
     position: relative;
-    }
-    
-    .close-modal {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.logo-wrapper {
+    margin-bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-wrapper {
+    margin-bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mdcloud-logo {
+    width: 100%;
+    max-width: 150px;
+    height: auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    object-fit: contain;
+}
+
+.logo-tagline {
+    color: white;
+    font-size: 14px;
+    font-style: italic;
+    margin-top: 15px;
+    text-align: center;
+    opacity: 0.9;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+}
+
+.welcome-text {
+    text-align: center;
+}
+
+.welcome-text h2 {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: white;
+}
+
+.welcome-text p {
     font-size: 20px;
-    font-weight: bold;
-    color: #ffffff;
-    }
-    
-    .close-modal:hover {
-    color: #333;
+    margin: 0;
+    color: white;
+    opacity: 0.95;
+}
+
+/* Sección derecha - Blanca */
+.login-right {
+    width: 60%;
+    padding: 50px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 30px 0;
+    text-align: left;
+}
+
+/* Grupos de input */
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 45px 14px 15px;
+    border: 2px solid #99DBFA;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: 'Lato', Arial, sans-serif;
+    transition: all 0.3s ease;
+    background: white;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.input-group input::placeholder {
+    color: #999;
+}
+
+.input-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #4A90E2;
+    font-size: 18px;
+    pointer-events: none;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    cursor: pointer;
+    outline: none;
+    padding: 0;
+    color: #4A90E2;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    color: #357ABD;
+}
+
+.toggle-password:focus {
+    outline: none;
+}
+
+.error {
+    color: rgb(250, 65, 65);
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+    text-align: left;
+}
+
+/* Enlace de olvidé contraseña */
+.forgot-password {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.forgot-password a {
+    color: #999;
+    font-size: 14px;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.forgot-password a:hover {
+    color: #4A90E2;
+}
+
+/* Botón de ingresar */
+.login-button {
+    width: 100%;
+    padding: 14px;
+    background: #4A90E2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Lato', Arial, sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.login-button:hover {
+    background: #357ABD;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.login-button:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .login-card {
+        flex-direction: column;
+        max-width: 100%;
     }
 
-    #logo {
-        width: 100px;
-        height: auto;
-        position:static;
+    .login-left {
+        width: 100%;
+        padding: 30px 20px;
+        min-height: 250px;
     }
+
+    .login-right {
+        width: 100%;
+        padding: 40px 30px;
+    }
+
+    .logo-text {
+        font-size: 28px;
+    }
+
+    .welcome-text h2 {
+        font-size: 24px;
+    }
+
+    .welcome-text p {
+        font-size: 18px;
+    }
+
+    .login-title {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .login-left {
+        padding: 25px 15px;
+        min-height: 200px;
+    }
+
+    .login-right {
+        padding: 30px 20px;
+    }
+
+    .logo-wrapper svg {
+        width: 60px;
+        height: 60px;
+    }
+
+    .logo-text {
+        font-size: 24px;
+    }
+
+    .welcome-text h2 {
+        font-size: 20px;
+    }
+
+    .welcome-text p {
+        font-size: 16px;
+    }
+
+    .login-title {
+        font-size: 22px;
+        margin-bottom: 25px;
+    }
+
+    .input-group input {
+        padding: 12px 40px 12px 12px;
+        font-size: 14px;
+    }
+}
+
+/* Estilos adicionales para mantener compatibilidad */
+.txt {
+    font-family: 'Lato', Arial, sans-serif;
+    font-size: 16px;
+}
+
+.txth1 {
+    font-family: 'Lato', Arial, sans-serif;
+    font-size: 22px;
+}
+
+#divContenedor {
+    position: relative;
+    z-index: 3;
+}

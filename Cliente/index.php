@@ -33,52 +33,51 @@ if (isset($_SESSION["usuario"])) {
 <body>
 
     <div class="containerP">
-        <div id="divContenedor" class="form-container sign-up-container">
-            <form id="form" method="POST" action="../Servidor/PHP/conexion.php">
-                <div id="divLogo">
-                    <img src="SRC/logomd.png" alt="Logo" id="logo"> <br>
-                    <span class="txt">
-                        MDCloud
-                    </span>
+        <div id="divContenedor" class="login-card">
+            <!-- Sección izquierda - Azul -->
+            <div class="login-left">
+                <div class="logo-container">
+                    <div class="logo-wrapper">
+                        <img src="Images/mdcloud.png" alt="MDCloud Logo" class="mdcloud-logo">
+                    </div>
+                    <p class="logo-tagline">De datos a decisiones</p>
                 </div>
-
-                <h4 class="txth1">Inicio de Sesion</h4>
-                <div id="divUsuario">
-                    <label for="text" class="txt">Nombre Usuario: </label>
-                    <input type="text" name="usuario" id="usuario">
+                <div class="welcome-text">
+                    <h2>Bienvenido</h2>
+                    
+                    <p>MDConnecta</p>
                 </div>
+            </div>
 
-                <div id="divPassword" style="position: relative;">
-                    <label for="password" class="txt">Contraseña</label>
-                    <input type="password" name="password" id="password">
-                    <!-- Boton para mostrar/ocultar la contraseña -->
-                    <button type="button" id="togglePassword" style="
-                        position: absolute;
-                        right: 10px;
-                        top: 55%;
-                        transform: translateY(-50%);
-                        border: none;
-                        background: none;
-                        cursor: pointer;
-                        outline: none;
-                        box-shadow: none;
-                        appearance: none;
-                        -webkit-appearance: none;
-                        -moz-appearance: none;
-                    ">
-                        <i class="bi bi-eye"></i> <!-- Icono inicial -->
+            <!-- Sección derecha - Blanca -->
+            <div class="login-right">
+                <form id="form" method="POST" action="../Servidor/PHP/conexion.php">
+                    <h4 class="login-title">Inicio de sesión</h4>
+                    
+                    <div class="input-group">
+                        <input type="text" name="usuario" id="usuario" placeholder="Usuario" required>
+                        <i class="bi bi-person input-icon"></i>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" name="password" id="password" placeholder="Contraseña" required>
+                        <button type="button" id="togglePassword" class="toggle-password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <span class="error" id="loginPasswordError"></span>
+                    </div>
+
+                    <div class="forgot-password">
+                        <a href="#">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <button type="submit" id="buttonSesion" name="buttonSesion" class="login-button">
+                        Ingresar
                     </button>
-                    <span class="error" id="loginPasswordError"></span>
-                </div>
-                <!-- Boton para iniciar sesion (revisar JS/menu.js) para su funcionamiento -->
-                <div id="divButton">
-                    <button type="submit" id="buttonSesion" name="buttonSesion" class="txt">Ingresar</button>
-                </div>
-                <div>
-                    <br>
-                </div>
-                <input type="hidden" value="1" id="numFuncion" , name="numFuncion">
-            </form>
+
+                    <input type="hidden" value="1" id="numFuncion" name="numFuncion">
+                </form>
+            </div>
         </div>
     </div>
     <script src="JS/java.js?n=1"></script>
