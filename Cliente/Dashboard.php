@@ -1,5 +1,17 @@
 <?php
+require '../Servidor/PHP/firebase.php';
 session_start();
+
+// Verificar si existe la bandera de conexión pendiente
+if (isset($_SESSION['pendiente_conexion_sae']) && $_SESSION['pendiente_conexion_sae'] === true) {
+    // Si tiene la bandera, cerrar sesión y redirigir al index
+    require '../Servidor/PHP/conexion.php';
+    session_unset();
+    session_destroy();
+    header('Location:../index.php');
+    exit();
+}
+
 if (isset($_SESSION['usuario'])) {
     if ($_SESSION['usuario']['tipoUsuario'] == 'CLIENTE') {
         header('Location:Menu.php');
@@ -22,6 +34,41 @@ if (isset($_SESSION['usuario'])) {
         $claveUsuario = $_SESSION['empresa']['claveUsuario'] ?? null;
         $contrasena = $_SESSION['empresa']['contrasena'] ?? null;
         $claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+        
+        // Verificar si la empresa tiene conexión SAE
+        if ($claveSae !== null && $noEmpresa !== null) {
+            $url = "https://firestore.googleapis.com/v1/projects/$firebaseProjectId/databases/(default)/documents/CONEXIONES?key=$firebaseApiKey";
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'header' => "Content-Type: application/json\r\n"
+                ]
+            ]);
+            $result = file_get_contents($url, false, $context);
+            
+            if ($result !== FALSE) {
+                $documents = json_decode($result, true);
+                if (isset($documents['documents'])) {
+                    $tieneConexion = false;
+                    // Buscar si existe un documento con el mismo `noEmpresa` y `claveSae`
+                    foreach ($documents['documents'] as $document) {
+                        $fields = $document['fields'];
+                        if (isset($fields['claveSae']) && $fields['claveSae']['stringValue'] === $claveSae && 
+                            isset($fields['noEmpresa']) && $fields['noEmpresa']['integerValue'] === $noEmpresa) {
+                            $tieneConexion = true;
+                            break;
+                        }
+                    }
+                    
+                    // Si no tiene conexión y el usuario es administrador, establecer bandera y redirigir a crearConexionSae.php
+                    if (!$tieneConexion && ($tipoUsuario == 'ADMINISTRADOR' || $tipoUsuario == 'ADMIISTRADOR')) {
+                        $_SESSION['pendiente_conexion_sae'] = true;
+                        header('Location:crearConexionSae.php');
+                        exit();
+                    }
+                }
+            }
+        }
     }
 
     // Creación de un CSRF Token
@@ -269,7 +316,9 @@ if (isset($_SESSION['usuario'])) {
                             sesionNoEmpresa(idEmpresarial);
 
                             // Redirigir a la página de creación de conexión después de que el usuario cierre la alerta
-                            window.location.href = "crearConexionSae.php";
+                            //window.location.href = "crearConexionSae.php";
+                            window.location.href = "../Cliente/crearConexionSae.php";
+                            
                             //window.location.reload();
                         }
                     });

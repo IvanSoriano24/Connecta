@@ -1,6 +1,16 @@
 <?php
 session_start();
 
+// Verificar si existe la bandera de conexión pendiente
+if (isset($_SESSION['pendiente_conexion_sae']) && $_SESSION['pendiente_conexion_sae'] === true) {
+    // Si tiene la bandera, cerrar sesión y redirigir al index
+    require '../Servidor/PHP/conexion.php';
+    session_unset();
+    session_destroy();
+    header('Location:../index.php');
+    exit();
+}
+
 if (isset($_SESSION['usuario'])) {
     if (
         $_SESSION['usuario']['tipoUsuario'] == 'ALMACENISTA' || $_SESSION['usuario']['tipoUsuario'] == 'VENDEDOR' ||

@@ -1,5 +1,8 @@
 <?php
 session_start();
+// Establecer la bandera cuando se carga esta página
+$_SESSION['pendiente_conexion_sae'] = true;
+
 if (isset($_SESSION['usuario']) && isset($_SESSION['empresa']['razonSocial'])) {
   $nombreUsuario = $_SESSION['usuario']["nombre"];
   $tipoUsuario = $_SESSION['usuario']["tipoUsuario"];
@@ -16,7 +19,8 @@ if (isset($_SESSION['usuario']) && isset($_SESSION['empresa']['razonSocial'])) {
   }
   $csrf_token  = $_SESSION['csrf_token'];
 } else {
-  header('Location:../crearConexionSae.php');
+  header('Location:Dashboard.php');
+  exit();
 }
 /*
 session_unset();
@@ -128,6 +132,13 @@ session_destroy(); */
         passwordInput.type = "password";
       }
     });
+    
+    // Prevenir el botón "atrás" del navegador
+    // Reemplazar el historial para que si el usuario hace clic en atrás, regrese a esta misma página
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function() {
+      window.history.pushState(null, null, window.location.href);
+    };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="JS/menu.js?n=1"></script>

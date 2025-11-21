@@ -652,6 +652,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($resultadoConexion['success']) {
                         ob_clean();
                         $resultadoGuardar = guardarConexion($data, $firebaseProjectId, $firebaseApiKey, $idDocumento, $resultadoConexion, $resultadoBanco);
+                        // Si se guardó exitosamente, eliminar la bandera
+                        if (isset($_SESSION['pendiente_conexion_sae'])) {
+                            unset($_SESSION['pendiente_conexion_sae']);
+                        }
                         //echo json_encode($resultadoGuardar);
                         return;
                     } else {
@@ -687,12 +691,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $resultadoBanco = probarConexionBanco($data['host'], $data['usuarioSae'], $data['password'], $data['nombreBanco'], $data['claveSae']);
                     if ($resultadoBanco['success']) {
                         $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion, $resultadoBanco);
+                        // Si se guardó exitosamente, eliminar la bandera
+                        if ($resultadoGuardar['success']) {
+                            unset($_SESSION['pendiente_conexion_sae']);
+                        }
                         echo json_encode($resultadoGuardar);
                     } else {
                         echo json_encode(['success' => false, 'message' => $resultadoBanco['message']]);
                     }
                 } else {
                     $resultadoGuardar = guardarConexionNew($data, $firebaseProjectId, $firebaseApiKey, $resultadoConexion);
+                    // Si se guardó exitosamente, eliminar la bandera
+                    if ($resultadoGuardar['success']) {
+                        unset($_SESSION['pendiente_conexion_sae']);
+                    }
                     echo json_encode($resultadoGuardar);
                     return;
                 }
