@@ -513,6 +513,7 @@ if (isset($_SESSION['usuario'])) {
             headers: {
                 'Content-Type': 'application/json'
             },
+            credentials: 'include', // Incluir cookies de sesión
             body: JSON.stringify({
                 fechaInicio: fechaInicio,
                 fechaFin: fechaFin

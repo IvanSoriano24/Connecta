@@ -1,5 +1,9 @@
 <?php
-session_start();
+// Verificar si la sesión ya está iniciada antes de iniciarla
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require 'firebase.php';
 require 'utils.php';
 
