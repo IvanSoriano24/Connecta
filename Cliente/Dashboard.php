@@ -141,6 +141,58 @@ if (isset($_SESSION['usuario'])) {
                 </div>
             </div>
 
+            <!-- Estadísticas de ventas del día -->
+            <div class="row m-5" id="estadisticasVentas">
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="card-body text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 text-white-50">Ventas Activas</h6>
+                                    <h3 class="card-title mb-0" id="totalActivas">0</h3>
+                                    <p class="mb-0 mt-2" style="font-size: 0.9rem;">Total de pedidos activos</p>
+                                </div>
+                                <div class="display-4 opacity-50">
+                                    <i class='bx bx-cart'></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="card-body text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 text-white-50">Ventas Vendidas</h6>
+                                    <h3 class="card-title mb-0" id="totalVendidas">0</h3>
+                                    <p class="mb-0 mt-2" style="font-size: 0.9rem;">Total de pedidos vendidos</p>
+                                </div>
+                                <div class="display-4 opacity-50">
+                                    <i class='bx bx-check-circle'></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="card-body text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 text-white-50">Dinero Vendido</h6>
+                                    <h3 class="card-title mb-0" id="totalDinero">$0.00</h3>
+                                    <p class="mb-0 mt-2" style="font-size: 0.9rem;">Total vendido acumulado</p>
+                                </div>
+                                <div class="display-4 opacity-50">
+                                    <i class='bx bx-dollar'></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
             <?php
             /*echo $contrasena;
@@ -371,8 +423,37 @@ if (isset($_SESSION['usuario'])) {
 <script src="JS/script.js?n=1"></script>
 
 <script>
-    //var claveSae = "/*<?php /*echo $claveSae;*/ ?>*/";
-    //alert(claveSae);
+    // Cargar estadísticas de ventas del día
+    function cargarEstadisticasVentas() {
+        fetch('../Servidor/PHP/estadisticasVentas.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('totalActivas').textContent = data.data.activas.totalPedidos;
+                    document.getElementById('totalVendidas').textContent = data.data.vendidas.totalPedidos;
+                    
+                    // Formatear el dinero con separadores de miles
+                    const totalDinero = parseFloat(data.data.totalDineroVendido);
+                    document.getElementById('totalDinero').textContent = '$' + totalDinero.toLocaleString('es-MX', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                } else {
+                    console.error('Error al cargar estadísticas:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar estadísticas:', error);
+            });
+    }
+
+    // Cargar estadísticas al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarEstadisticasVentas();
+        
+        // Actualizar cada 5 minutos
+        setInterval(cargarEstadisticasVentas, 300000);
+    });
 </script>
 </body>
 
