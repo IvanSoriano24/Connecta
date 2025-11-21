@@ -1772,6 +1772,11 @@ function enviarWhatsAppAutorizacion($formularioData, $partidasData, $conexionDat
     return $result;
 }
 // -----------------------------------------------------------------------------------------------------//
+// Verificar si la sesión ya está iniciada antes de iniciarla
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numFuncion'])) {
     // Si es una solicitud POST, asignamos el valor de numFuncion
     $funcion = $_POST['numFuncion'];
@@ -1874,11 +1879,11 @@ switch ($funcion) {
 
                         $camposModulo = [
                             'quienCreo' => $_SESSION['usuario']['nombre'],
-                            'pedidoID' => $folio,
+                            'pedidoID' => $FOLIO,
                             'clienteID' => $clienteId,
                             'productos' => $partidasData,
                         ];
-                        agregarBitacora($usuario, "PEDIDOS", "Pedido Autorizado", $noEmpresa, $camposModulo);
+                        agregarBitacora($_SESSION['empresa']['claveUsuario'] ?? $_SESSION['usuario']['usuario'], "PEDIDOS", "Pedido Autorizado", $noEmpresa, $camposModulo);
 
                         sqlsrv_commit($conn);
                         sqlsrv_close($conn);

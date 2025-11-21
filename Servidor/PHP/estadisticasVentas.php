@@ -9,10 +9,10 @@ require 'utils.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
-if (!isset($_SESSION['usuario']) || !isset($_SESSION['empresa'])) {
+/*if (!isset($_SESSION['usuario']) || !isset($_SESSION['empresa'])) {
     echo json_encode(['success' => false, 'message' => 'No hay sesión activa']);
     exit;
-}
+}*/
 
 $tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
 $claveVendedor = $_SESSION['empresa']['claveUsuario'] ?? '';
