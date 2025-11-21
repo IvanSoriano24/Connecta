@@ -9,15 +9,22 @@ require 'utils.php';
 
 header('Content-Type: application/json; charset=UTF-8');
 
-/*if (!isset($_SESSION['usuario']) || !isset($_SESSION['empresa'])) {
+// Validar que exista sesión de usuario y empresa
+if (!isset($_SESSION['usuario']) || !isset($_SESSION['empresa'])) {
     echo json_encode(['success' => false, 'message' => 'No hay sesión activa']);
     exit;
-}*/
+}
 
-$tipoUsuario = $_SESSION['usuario']['tipoUsuario'];
+$tipoUsuario = $_SESSION['usuario']['tipoUsuario'] ?? '';
 $claveVendedor = $_SESSION['empresa']['claveUsuario'] ?? '';
-$noEmpresa = $_SESSION['empresa']['noEmpresa'];
-$claveSae = $_SESSION['empresa']['claveSae'];
+$noEmpresa = $_SESSION['empresa']['noEmpresa'] ?? null;
+$claveSae = $_SESSION['empresa']['claveSae'] ?? null;
+
+// Validar que los datos necesarios estén presentes
+if ($noEmpresa === null || $claveSae === null) {
+    echo json_encode(['success' => false, 'message' => 'No se ha seleccionado una empresa']);
+    exit;
+}
 
 // Obtener datos de conexión
 $conexionData = obtenerConexion($noEmpresa, $firebaseProjectId, $firebaseApiKey, $claveSae);

@@ -396,30 +396,21 @@ if (isset($_SESSION['usuario'])) {
 
                     // Llamar la función sesionEmpresa para registrar sesión
                     sesionEmpresa(idEmpresarial);
-
-                    /*
-                    Swal.fire({
-                        title: 'Has seleccionado:',
-                        text: `${noEmpresa} - ${razonSocial}`,
-                        icon: 'success'
-                    }).then(() => {
-                        seleccionarEmpresa(noEmpresa);
-                        //const modal = bootstrap.Modal.getInstance(document.getElementById('empresaModal'));
-                        modal.hide();
-                        // Guardar los datos en la variable global
-                        idEmpresarial = {
-                            id: empresaSeleccionada,
-                            noEmpresa: noEmpresa,
-                            razonSocial: razonSocial,
-                            claveUsuario: claveUsuario,
-                            claveSae: claveSae,
-                            contrasena: contrasena
-                        };
-
-                        // Llamar la función sesionEmpresa para registrar sesión
-                        sesionEmpresa(idEmpresarial);
-
-                    }); */
+                    
+                    // Cargar estadísticas después de seleccionar empresa
+                    setTimeout(function() {
+                        const hoy = new Date();
+                        const haceUnMes = new Date();
+                        haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+                        
+                        const fechaFin = hoy.toISOString().split('T')[0];
+                        const fechaInicio = haceUnMes.toISOString().split('T')[0];
+                        
+                        document.getElementById('fechaInicio').value = fechaInicio;
+                        document.getElementById('fechaFin').value = fechaFin;
+                        
+                        cargarEstadisticasVentas(fechaInicio, fechaFin);
+                    }, 500);
 
                 } else {
                     //No tiene conexion a SAE
@@ -556,12 +547,20 @@ if (isset($_SESSION['usuario'])) {
                         document.getElementById('productoTop').textContent = productoTexto;
                     }
                 } else {
+                    // Si el error es por falta de sesión o empresa, no mostrar alerta (es normal al inicio)
+                    if (data.message && (data.message.includes('sesión') || data.message.includes('empresa'))) {
+                        console.log('Esperando selección de empresa...');
+                        return;
+                    }
                     console.error('Error al cargar estadísticas:', data.message);
-                    Swal.fire({
-                        title: 'Error',
-                        text: data.message || 'Error al cargar las estadísticas',
-                        icon: 'error'
-                    });
+                    // Solo mostrar error si no es por falta de sesión/empresa
+                    if (data.message && !data.message.includes('No se ha seleccionado')) {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message || 'Error al cargar las estadísticas',
+                            icon: 'error'
+                        });
+                    }
                 }
             })
             .catch(error => {
@@ -576,6 +575,14 @@ if (isset($_SESSION['usuario'])) {
 
     // Cargar estadísticas al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
+        // Verificar si hay empresa seleccionada antes de cargar estadísticas
+        const empresaSeleccionada = <?php echo json_encode(isset($_SESSION['empresa']) ? $_SESSION['empresa'] : null); ?>;
+        
+        if (!empresaSeleccionada) {
+            // Si no hay empresa, no cargar estadísticas
+            return;
+        }
+        
         // Establecer fechas por defecto (último mes)
         const hoy = new Date();
         const haceUnMes = new Date();
