@@ -407,7 +407,7 @@ function cfdi($cve_doc, $noEmpresa, $claveSae, $facturaID, $conn, $conexionData,
 //        echo "<b>[$variable]=</b>$valor<hr>";
 //}
 }
-//http://localhost/MDConnecta/Servidor/PHPverificarFactura.php
+//http://localhost/NewMDConnecta/Servidor/PHPverificarFactura.php
 //http://localhost/MDConnecta/Servidor/XML/sdk2/ejemplos/cfdi40/ejemplo_factura_basica4.php?cve_doc=18631&noEmpresa=02&claveSae=02
 $cve_doc = $_POST['cve_doc'];
 $noEmpresa = $_POST['noEmpresa'];

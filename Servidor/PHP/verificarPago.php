@@ -327,7 +327,7 @@ function crearRemision($folio, $claveSae, $noEmpresa, $vendedor, $logFile)
     //Construir la conexion
     //$remisionUrl = "https://mdconecta.mdcloud.mx/Servidor/PHP/remision.php";
     //$remisionUrl = "https://mdconecta.mdcloud.app/Servidor/PHP/remision.php";
-    $remisionUrl = 'http://localhost/MDConnecta/Servidor/PHP/remision.php';
+    $remisionUrl = 'http://localhost/NewMDConnecta/Servidor/PHP/remision.php';
 
     //Estructurar los datos nesesarios
     $data = [

@@ -587,3 +587,53 @@
 [2025-11-14 15:19:30] INFO: Pedido 19210 - Conexión a la base de datos establecida → null
 [2025-11-14 15:19:30] INFO: Pedido 19210 - Ejecutando actualizarMulti → null
 [2025-11-14 15:19:30] ERROR: Pedido 19210 - Error en la remisión, se ejecutará rollback → "Error al actualizar MULTXX para el producto 102000 en almacén 1: [{\"0\":\"42S02\",\"SQLSTATE\":\"42S02\",\"1\":208,\"code\":208,\"2\":\"[Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid object name 'SAE90Empre02a.dbo.MULTT02'.\",\"message\":\"[Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid object name 'SAE90Empre02a.dbo.MULTT02'.\"}]"
+[2025-11-21 14:47:36] INFO: El cliente          1 realizo la accion → null
+[2025-11-21 14:47:38] Info: Pedido 13 13 verificadas existencias correctamente → []
+[2025-11-21 14:47:38] Info: Pedido 13 13 verificadas existencias correctamente → [{"producto":"PRODUCTO01","existencias":95,"apartados":1,"disponible":94}]
+[2025-11-21 14:47:38] Info: Pedido 13 13 verificadas existencias correctamente → [{"producto":"PRODUCTO01","existencias":95,"apartados":1,"disponible":94},{"producto":"PRODUCTO02","existencias":99,"apartados":0,"disponible":99}]
+[2025-11-21 14:47:38] INFO: El pedido 13 cuenta con las existencias necesarias → null
+[2025-11-21 14:47:38] INFO: El cliente          1 maneja credico → null
+[2025-11-21 14:47:38] INFO: Pedido 13 - Inicio de la remisión → null
+[2025-11-21 14:47:38] INFO: Pedido 13 - Conexión a la base de datos establecida → null
+[2025-11-21 14:47:38] INFO: Pedido 13 - Ejecutando actualizarMulti → null
+[2025-11-21 14:47:38] INFO: Pedido 13 - Ejecutando actualizarInve5 → null
+[2025-11-21 14:47:38] INFO: Pedido 13 - Ejecutando actualizarFolios → null
+[2025-11-21 14:47:38] INFO: Pedido 13 - Ejecutando actualizarInve → null
+[2025-11-21 14:47:39] INFO: Pedido 13 - Validando lotes antes de generar la remisión → null
+[2025-11-21 14:47:39] SUCCESS: Pedido 13 - Validación de lotes finalizada → {"totalLotes":3}
+[2025-11-21 14:47:39] INFO: Pedido 13 - Ejecutando actualizarInve2 → null
+[2025-11-21 14:47:40] INFO: Pedido 13 - Ejecutando actualizarInve3 → null
+[2025-11-21 14:47:40] INFO: Pedido 13 - Ejecutando actualizarInveClaro → null
+[2025-11-21 14:47:40] INFO: Pedido 13 - Ejecutando actualizarInveAmazon → null
+[2025-11-21 14:47:40] INFO: Pedido 13 - Ejecutando actualizarMulti2 → null
+[2025-11-21 14:47:41] INFO: Pedido 13 - Ejecutando actualizarAfac → null
+[2025-11-21 14:47:41] INFO: Pedido 13 - Insertando BITA de remisión → null
+[2025-11-21 14:47:41] SUCCESS: Pedido 13 - BITA generado → {"CVE_BITA":13}
+[2025-11-21 14:47:41] INFO: Pedido 13 - Actualizando control ID_TABLA=62 → null
+[2025-11-21 14:47:41] INFO: Pedido 13 - Guardando datos de envío en INFENVIO → null
+[2025-11-21 14:47:41] INFO: Pedido 13 - Insertando datos del cliente en INFCLI → null
+[2025-11-21 14:47:41] INFO: Pedido 13 - Insertando FACTR (remisión) → null
+[2025-11-21 14:47:42] SUCCESS: Pedido 13 - FACTR generado → {"folio":8}
+[2025-11-21 14:47:42] INFO: Pedido 13 - Insertando movimientos MINVE → null
+[2025-11-21 14:47:42] SUCCESS: Pedido 13 - Movimientos registrados → {"totalMovimientos":3}
+[2025-11-21 14:47:42] INFO: Pedido 13 - Actualizando control ID_TABLA=32 → null
+[2025-11-21 14:47:42] INFO: Pedido 13 - Actualizando control ID_TABLA=44 → null
+[2025-11-21 14:47:42] INFO: Pedido 13 - Insertando datos en FACTR_CLIB → null
+[2025-11-21 14:47:42] INFO: Pedido 13 - Actualizando PAR_FACTP → null
+[2025-11-21 14:47:42] INFO: Pedido 13 - Actualizando métricas en INVEXX → null
+[2025-11-21 14:47:42] INFO: Pedido 13 - Insertando partidas de remisión PAR_FACTR → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Actualizando FACTP (TIP_DOC_E, ENLAZADO) → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Actualizando FACTP DOC_SIG → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Actualizando FACTP TIP_FAC → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Insertando relación DOCTOSIG → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Insertando PAR_FACTR_CLIB → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Actualizando alerta de usuario → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Actualizando alerta general → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Actualizando control ID_TABLA=70 → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Actualizando control ID_TABLA=58 → null
+[2025-11-21 14:47:43] INFO: Pedido 13 - Actualizando estado del pedido en FACTP_CLIB → null
+[2025-11-21 14:47:43] INFO: Actualizando estus del pedido → null
+[2025-11-21 14:47:43] SUCCES: Estado del pedido 13 actualizado → null
+[2025-11-21 14:47:43] SUCCESS: Pedido 13 - Proceso de remisión finalizado → {"folio":8}
+[2025-11-21 14:47:45] Succes: Comanda Creada→ null
+[2025-11-21 14:47:48] INFO: Creacion de la Remision null
